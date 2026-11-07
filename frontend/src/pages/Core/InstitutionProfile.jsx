@@ -65,7 +65,7 @@ const brandSidebars = (primary) => {
 }
 const sameColour = (a, b) => String(a || '').toLowerCase() === String(b || '').toLowerCase()
 
-export default function HospitalProfile() {
+export default function InstitutionProfile() {
   const { t } = useTranslation('admin')
   const qc = useQueryClient()
   const { data, isLoading } = useQuery({ queryKey: ['settings'], queryFn: fetchSettings })
@@ -119,8 +119,8 @@ export default function HospitalProfile() {
               {field('name', t('admin.institutionProfile.fields.name'))}
               {field('legalName', t('admin.institutionProfile.fields.legalName'))}
               {field('registrationNo', t('admin.institutionProfile.fields.registrationNo'))}
-              {field('nabhNo', t('admin.institutionProfile.fields.nabhNo'))}
-              {field('hfrId', t('admin.institutionProfile.fields.hfrId'))}
+              {field('affiliationNo', t('admin.institutionProfile.fields.affiliationNo'))}
+              {field('udiseCode', t('admin.institutionProfile.fields.udiseCode'))}
               {field('gstin', 'GSTIN', { maxLength: 15 })}
               {field('pan', 'PAN', { maxLength: 10 })}
             </div>

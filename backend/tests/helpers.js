@@ -38,7 +38,7 @@ export async function newInstitution(planCode = 'GROWTH', extra = {}) {
 
 /** A supertest agent that keeps cookies, signed in as `email`. */
 export async function signIn(app, email, password, tenantId) {
-  const agent = request.agent(app).set('Origin', 'http://localhost:5180') // the app's origin — cookie writes need it (CSRF guard)
+  const agent = request.agent(app).set('Origin', 'http://localhost:5190') // the app's origin — cookie writes need it (CSRF guard)
   const res = await agent.post('/api/v1/auth/login').send({ email, password, tenantId })
   if (res.status !== 200) throw new Error(`login ${email} failed: ${res.status} ${JSON.stringify(res.body)}`)
   agent.me = res.body.data

@@ -1,10 +1,10 @@
 import api from './client'
 
-// Files and discussion on any record — a patient, an OPD visit, a bill (engine E15).
+// Files and discussion on any record — a student, a receipt, a staff record (engine E15).
 const get = async (url, params) => (await api.get(url, { params })).data.data
 
 export const fetchFiles = (entityType, entityId) => get('/v1/files', { entityType, entityId })
-export const fetchPatientFiles = (studentId, includeDeleted) => get('/v1/files', { studentId, includeDeleted: includeDeleted ? '1' : undefined })
+export const fetchStudentFiles = (studentId, includeDeleted) => get('/v1/files', { studentId, includeDeleted: includeDeleted ? '1' : undefined })
 export const uploadFile = async (entityType, entityId, file, { category, title } = {}) => (await api.post('/v1/files', file, {
   params: { entityType, entityId, category, title },
   headers: { 'Content-Type': file.type || 'application/octet-stream', 'X-File-Name': encodeURIComponent(file.name || 'file') },

@@ -3,7 +3,7 @@ export const IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/webp']
 
 /**
  * A chosen image → a small data URL stored inline (the institution logo, an employee's photo), so it shows everywhere
- * without a sign-in: prints and PDFs, the patient portal, public pages. WebP where the browser can encode it.
+ * without a sign-in: prints and PDFs, the parent app, public pages. WebP where the browser can encode it.
  *
  *   maxSide   longest side in px; when the result is over `maxBytes` it retries at ¾ and ½ of that
  *   maxBytes  the most the image file may weigh (before base64)

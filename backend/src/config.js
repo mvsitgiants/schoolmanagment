@@ -10,12 +10,12 @@ export const config = {
   env,
   isProd: env === 'production',
   isTest,
-  port: Number(process.env.PORT) || 4000,
-  mongoUrl: process.env.MONGO_URL || 'mongodb://127.0.0.1:27017/schoolgiant?replicaSet=rs0',
+  port: Number(process.env.PORT) || 4100,
+  mongoUrl: process.env.MONGO_URL || 'mongodb://127.0.0.1:27018/schoolgiant?replicaSet=rs0',
   jwtSecret: process.env.JWT_SECRET || 'dev-only-secret-change-me-before-production-000000',
   accessTtlSec: 15 * 60,
   refreshTtlDays: 30,
-  corsOrigin: (process.env.CORS_ORIGIN || 'http://localhost:5180').split(',').map((s) => s.trim().replace(/\/+$/, '')).filter(Boolean),
+  corsOrigin: (process.env.CORS_ORIGIN || 'http://localhost:5190').split(',').map((s) => s.trim().replace(/\/+$/, '')).filter(Boolean),
   signupEnabled: (process.env.SIGNUP_ENABLED ?? 'true') !== 'false',
   /**
    * Platform owners get an emailed code after the password once email works. The way back in when
@@ -30,8 +30,8 @@ export const config = {
     email: process.env.SUPERADMIN_EMAIL || 'owner@schoolgiant.test',
     password: process.env.SUPERADMIN_PASSWORD || 'Owner@123',
   },
-  /** The web app's public address, for links sent to patients (prescriptions, reports, booking). */
-  appUrl: (process.env.APP_URL || 'http://localhost:5180').replace(/\/+$/, ''),
+  /** The web app's public address, for links sent to families (report cards, receipts, notices). */
+  appUrl: (process.env.APP_URL || 'http://localhost:5190').replace(/\/+$/, ''),
   /** disk (default) or s3 — platform/storage.js. */
   storage: (process.env.STORAGE || 'disk').toLowerCase(),
   s3: {

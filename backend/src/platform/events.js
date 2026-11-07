@@ -3,7 +3,7 @@ import { logger } from './logger.js'
 
 // Event bus (E13), in-process. A module emits a domain event once its write has
 // committed — `appointments.booked`, `billing.bill_created` — and listeners react
-// (patient messages today; webhooks later) without the module knowing about them.
+// (family messages, webhooks) without the module knowing about them.
 //
 // A listener runs in the caller's tenant context but outside any transaction, and a
 // failing listener is logged, never thrown: the user's work is already saved.

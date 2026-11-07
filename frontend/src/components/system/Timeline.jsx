@@ -8,7 +8,7 @@ import { TONE } from './tokens'
  * such rows — no buttons inside a button). `pending: true` draws a step that hasn't happened yet (hollow, faint). For visit history, sample journeys, approvals, audit trails.
  *
  *   <Timeline items={[
- *     { id, icon: Stethoscope, tone: 'brand', title: 'OPD visit — Dr Rao', time: dateTime(v.at), meta: 'Fever', body: <…/>, actions: <Button…/>, aside: '+20', status: <StatusPill…/> },
+ *     { id, icon: ClipboardCheck, tone: 'brand', title: 'Half-yearly exam — 8-A', time: dateTime(v.at), meta: 'Results published', body: <…/>, actions: <Button…/>, aside: '+20', status: <StatusPill…/> },
  *   ]} />
  */
 export default function Timeline({ items = [], className, dense = false }) {

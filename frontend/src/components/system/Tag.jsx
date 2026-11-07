@@ -2,7 +2,7 @@ import clsx from 'clsx'
 import { TONE } from './tokens'
 
 /**
- * A soft, square-ish chip for a fact about a record — a dose, a route, a batch, a ward —
+ * A soft, square-ish chip for a fact about a record — a class, a house, a batch, a route —
  * as opposed to <StatusPill>, which is for lifecycle status. Same tone vocabulary.
  *
  *   <Tag icon={Clock3}>5 days</Tag>   <Tag tone="info" mono>B-2291</Tag>

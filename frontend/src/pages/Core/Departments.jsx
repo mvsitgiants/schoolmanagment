@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { Building, FlaskConical, HeartPulse, Pencil, Plus, Stethoscope, Trash2, Wrench, Briefcase } from 'lucide-react'
+import { Building, GraduationCap, Pencil, Plus, Trash2, Wrench, Briefcase } from 'lucide-react'
 import { ImportExportButtons,
   ControlChip, DataTable, FormField, HeaderButton, Input, Modal, PageContainer, PageHeader, Select, StatCardRow, StatusPill, Textarea, Toolbar, useConfirm,
 } from '../../components/system'
@@ -14,23 +14,21 @@ import { importDepartments } from '../../api/core'
 import { readSheet } from '../../utils/readSheet'
 
 export const DEPT_TYPES = {
-  CLINICAL: { label: 'Clinical', tone: 'danger', icon: Stethoscope },
-  DIAGNOSTIC: { label: 'Diagnostic', tone: 'info', icon: FlaskConical },
-  NURSING: { label: 'Nursing', tone: 'brand', icon: HeartPulse },
-  SUPPORT: { label: 'Support', tone: 'success', icon: Wrench },
+  ACADEMIC: { label: 'Academic', tone: 'brand', icon: GraduationCap },
   ADMINISTRATIVE: { label: 'Administrative', tone: 'neutral', icon: Briefcase },
+  SUPPORT: { label: 'Support', tone: 'success', icon: Wrench },
 }
 
 function DeptForm({ dept, onClose, onSaved }) {
   const { t } = useTranslation('admin')
-  const [form, setForm] = useState(() => ({ name: '', code: '', type: 'CLINICAL', description: '', active: true, ...dept, specialities: (dept?.specialities ?? []).join(', '), headUserId: dept?.headUserId ?? '' }))
+  const [form, setForm] = useState(() => ({ name: '', code: '', type: 'ACADEMIC', description: '', active: true, ...dept, headUserId: dept?.headUserId ?? '' }))
   const [errors, setErrors] = useState({})
   const { data: people = [] } = useQuery({ queryKey: ['user-lookup'], queryFn: fetchUserLookup })
   const { showError } = useSnackbar()
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e?.target ? e.target.value : e }))
   const save = useMutation({
     mutationFn: () => {
-      const body = { name: form.name, code: form.code, type: form.type, specialities: form.specialities.split(',').map((s) => s.trim()).filter(Boolean), headUserId: form.headUserId || null, description: form.description, active: form.active }
+      const body = { name: form.name, code: form.code, type: form.type, headUserId: form.headUserId || null, description: form.description, active: form.active }
       return dept ? updateDepartment(dept.id, body) : createDepartment(body)
     },
     onSuccess: onSaved,
@@ -56,7 +54,6 @@ function DeptForm({ dept, onClose, onSaved }) {
           </Select>
         </FormField>
       </div>
-      <div className="mt-4"><FormField label={t('admin.departments.specialities')} hint={t('admin.departments.specialitiesHint')}><Input value={form.specialities} onChange={set('specialities')} /></FormField></div>
       <div className="mt-4"><FormField label={t('admin.departments.description')}><Textarea rows={2} value={form.description ?? ''} onChange={set('description')} /></FormField></div>
       {dept && <label className="mt-4 flex items-center justify-between rounded-lg border border-border px-3 py-2.5 text-sm text-ink">{t('status.active')} <Switch checked={form.active} onChange={set('active')} label={t('status.active')} /></label>}
     </Modal>
@@ -76,7 +73,7 @@ export default function Departments() {
   const del = useMutation({ mutationFn: deleteDepartment, onSuccess: () => { qc.invalidateQueries({ queryKey: ['departments'] }); showSuccess(t('admin.departments.deleted')) }, onError: (e) => showError(e.message) })
 
   const q = search.trim().toLowerCase()
-  const shown = rows.filter((d) => (!type || d.type === type) && (!q || d.name.toLowerCase().includes(q) || d.code.toLowerCase().includes(q) || d.specialities.some((s) => s.toLowerCase().includes(q))))
+  const shown = rows.filter((d) => (!type || d.type === type) && (!q || d.name.toLowerCase().includes(q) || d.code.toLowerCase().includes(q)))
   const count = (t) => rows.filter((d) => d.type === t && d.active).length
 
   return (
@@ -85,16 +82,15 @@ export default function Departments() {
         actions={<>
           {hasPermission('core.departments.import') && <ImportExportButtons resourceLabel={t('ui:ui.importExport.resources.departments')} requires="core.departments.import"
             onImport={async (file) => importDepartments(await readSheet(file), true)} onCommit={(rows) => importDepartments(rows, false)}
-            templateHeaders={['name', 'code', 'type', 'specialities', 'description']}
-            templateSample={['Cardiology', 'CARD', 'CLINICAL', 'Interventional cardiology | Electrophysiology', '']}
+            templateHeaders={['name', 'code', 'type', 'description']}
+            templateSample={['Mathematics', 'MATHS', 'ACADEMIC', 'Maths teachers of every class']}
             onDone={() => { qc.invalidateQueries({ queryKey: ['departments'] }); qc.invalidateQueries({ queryKey: ['setup'] }) }} />}
           {<HeaderButton icon={Plus} variant="primary" requires="create" onClick={() => setEditing('new')}>{t('admin.departments.newDepartment')}</HeaderButton>}
         </>} />
       <StatCardRow items={[
-        { icon: Stethoscope, label: typeLabel('CLINICAL'), value: count('CLINICAL'), tone: 'danger', onClick: () => setType('CLINICAL') },
-        { icon: FlaskConical, label: typeLabel('DIAGNOSTIC'), value: count('DIAGNOSTIC'), tone: 'info', onClick: () => setType('DIAGNOSTIC') },
-        { icon: HeartPulse, label: typeLabel('NURSING'), value: count('NURSING'), tone: 'brand', onClick: () => setType('NURSING') },
-        { icon: Wrench, label: t('admin.departments.supportAdmin'), value: count('SUPPORT') + count('ADMINISTRATIVE'), tone: 'neutral' },
+        { icon: GraduationCap, label: typeLabel('ACADEMIC'), value: count('ACADEMIC'), tone: 'brand', onClick: () => setType('ACADEMIC') },
+        { icon: Briefcase, label: typeLabel('ADMINISTRATIVE'), value: count('ADMINISTRATIVE'), tone: 'neutral', onClick: () => setType('ADMINISTRATIVE') },
+        { icon: Wrench, label: typeLabel('SUPPORT'), value: count('SUPPORT'), tone: 'success', onClick: () => setType('SUPPORT') },
       ]} />
       <DataTable
         rows={shown}
@@ -104,7 +100,6 @@ export default function Departments() {
         columns={[
           { key: 'name', header: t('admin.departments.department'), mobilePrimary: true, render: (v, r) => { const T = DEPT_TYPES[r.type]; const Icon = T?.icon ?? Building; return <div className="flex items-center gap-3"><span className="w-8 h-8 rounded-lg bg-bg flex items-center justify-center text-ink-muted"><Icon className="w-4 h-4" /></span><div><p className="font-medium text-ink">{v}</p><p className="text-xs text-ink-faint font-mono-num">{r.code}</p></div></div> } },
           { key: 'type', header: t('admin.departments.type'), render: (v) => <StatusPill tone={DEPT_TYPES[v]?.tone}>{typeLabel(v)}</StatusPill> },
-          { key: 'specialities', header: t('admin.departments.specialities'), mobileHidden: true, render: (v) => (v.length ? <div className="flex flex-wrap gap-1">{v.map((s) => <span key={s} className="text-[11px] px-1.5 py-0.5 rounded bg-black/5 text-ink-muted">{s}</span>)}</div> : <span className="text-ink-faint">—</span>) },
           { key: 'headName', header: t('admin.departments.headCol'), mobileHidden: true, render: (v) => v || <span className="text-ink-faint">—</span> },
           { key: 'staffCount', header: t('admin.departments.staff'), align: 'right', sortable: true },
           { key: 'active', header: t('common.status'), render: (v) => <StatusPill tone={v ? 'success' : 'neutral'}>{v ? t('status.active') : t('admin.departments.inactive')}</StatusPill> },

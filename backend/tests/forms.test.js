@@ -1,16 +1,10 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { checkFormDefinition, computeForm, formSummary, nowIn, validateFormValues } from '@schoolgiant/shared'
-import { Appointment } from '../src/models/frontoffice.js'
-import { runAsTenant } from '../src/platform/context.js'
-import { nextNumber } from '../src/platform/numbering.js'
+import { checkFormDefinition, computeForm, formSummary, validateFormValues } from '@schoolgiant/shared'
 import { newInstitution, signIn, startDb, stopDb } from './helpers.js'
 
 let app
 let h
 let admin
-let doctor
-const today = () => nowIn('Asia/Kolkata').date
-const ALL_WEEK = [0, 1, 2, 3, 4, 5, 6].map((weekday) => ({ weekday, start: '08:00', end: '12:00', slotMinutes: 15 }))
 
 const ASTHMA = { sections: [
   { title: 'Control', columns: 2, fields: [
@@ -31,8 +25,6 @@ beforeAll(async () => {
   app = await startDb()
   h = await newInstitution('STARTER')
   admin = await signIn(app, h.email, h.password)
-  doctor = (await admin.post('/api/v1/appointments/doctors').send({ name: 'Dr. Forms', sessions: ALL_WEEK })).body.data
-  await admin.post('/api/v1/auth/sign-pin').send({ password: h.password, pin: '4826' })
 })
 afterAll(stopDb)
 
@@ -55,12 +47,12 @@ describe('form builder', () => {
   let formId
   it('gives every institution the starter forms, published', async () => {
     const forms = (await admin.get('/api/v1/core/forms')).body.data
-    expect(forms.map((f) => f.code).sort()).toEqual(['ANC', 'DM_REVIEW', 'GROWTH', 'HTN_REVIEW', 'PHQ9'])
+    expect(forms.map((f) => f.code).sort()).toEqual(['CLASS_OBSERVATION', 'HEALTH_CHECKUP', 'PARENT_FEEDBACK'])
     expect(forms.every((f) => f.status === 'PUBLISHED' && f.version === 1)).toBe(true)
   })
 
   it('a new form is a draft until published; publishing refuses a broken design', async () => {
-    const f = (await admin.post('/api/v1/core/forms').send({ code: 'ASTHMA', name: 'Asthma review', use: 'OPD_CONSULT' })).body.data
+    const f = (await admin.post('/api/v1/core/forms').send({ code: 'ASTHMA', name: 'Asthma care plan', use: 'HEALTH' })).body.data
     formId = f.id
     expect(f).toMatchObject({ status: 'DRAFT', version: 0 })
     const broken = await admin.post(`/api/v1/core/forms/${formId}/publish`)
@@ -76,29 +68,7 @@ describe('form builder', () => {
     const changed = { sections: [...ASTHMA.sections, { title: 'Inhaler', columns: 1, fields: [{ key: 'TECHNIQUE', label: 'Inhaler technique checked', type: 'YESNO', required: true }] }] }
     const saved = (await admin.put(`/api/v1/core/forms/${formId}`).send({ definition: changed })).body.data
     expect(saved).toMatchObject({ version: 1, changedSincePublish: true })
-    let live = (await admin.get('/api/v1/opd/forms')).body.data.find((f) => f.formId === formId)
-    expect(live.version).toBe(1)
-    await admin.post(`/api/v1/core/forms/${formId}/publish`).expect(200)
-    live = (await admin.get('/api/v1/opd/forms')).body.data.find((f) => f.formId === formId)
-    expect(live.version).toBe(2)
-    expect((await admin.get(`/api/v1/opd/forms/${formId}/versions/1`)).body.data.definition.sections).toHaveLength(2)
-  })
-
-  it('in the consult: required answers are checked at signing, and the summary is kept with the note', async () => {
-    const p = (await admin.post('/api/v1/patients').send({ firstName: 'Form', lastName: 'Filler', gender: 'MALE', age: { years: 40 }, mobile: '9000011111', address: { pincode: '560001' }, consents: { dataProcessing: true } })).body.data
-    const apptId = await runAsTenant(h.tenant._id, async () => String((await Appointment.create({ apptNo: await nextNumber('APPOINTMENT'), studentId: p.id, patient: { name: p.name }, doctorId: doctor.id, doctorName: doctor.name, date: today(), time: '08:00', status: 'BOOKED' }))._id))
-    const visit = (await admin.post(`/api/v1/appointments/${apptId}/check-in`).send({})).body.data.visit
-    await admin.post(`/api/v1/opd/visits/${visit.id}/start`).expect(200)
-    const entry = (values) => ({ formId, version: 2, code: 'ASTHMA', name: 'Asthma review', values })
-    await admin.put(`/api/v1/opd/visits/${visit.id}/draft`).send({ data: { complaints: [{ text: 'Wheeze' }], forms: [entry({ PEFR: '280', PRED: '400', NIGHT: 'YES' })] } }).expect(200)
-    const missing = await admin.post(`/api/v1/opd/visits/${visit.id}/sign`).send({ pin: '4826' })
-    expect(missing.status).toBe(400)
-    expect(missing.body.details.forms).toEqual({ 0: { NIGHTS: 'Nights a week is required', TECHNIQUE: 'Inhaler technique checked is required' } })
-    await admin.put(`/api/v1/opd/visits/${visit.id}/draft`).send({ data: { complaints: [{ text: 'Wheeze' }], forms: [entry({ PEFR: '280', PRED: '400', NIGHT: 'YES', NIGHTS: '2', S1: '1', S2: '1', TECHNIQUE: 'YES' })] } }).expect(200)
-    await admin.post(`/api/v1/opd/visits/${visit.id}/sign`).send({ pin: '4826' }).expect(200)
-    const ws = (await admin.get(`/api/v1/opd/visits/${visit.id}`)).body.data
-    const saved = ws.note.data.forms[0]
-    expect(saved.values).toMatchObject({ PCT: '70', TOTAL: '2' })
-    expect(saved.summary.find((l) => l.key === 'TOTAL').text).toBe('2 — Not controlled')
+    const pub = (await admin.post(`/api/v1/core/forms/${formId}/publish`)).body.data
+    expect(pub).toMatchObject({ version: 2, changedSincePublish: false })
   })
 })

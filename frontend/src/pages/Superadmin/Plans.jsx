@@ -24,7 +24,7 @@ function PlanEditor({ plan, plans, catalog, onClose, onSaved }) {
   const isNew = !plan?.code
   const [form, setForm] = useState(() => ({
     code: '', name: '', tagline: '', trialDays: 14, isPublic: true, active: true, highlight: false, sortOrder: 10,
-    limits: { users: 10, branches: 1, beds: 0, storageGb: 10 }, features: [], modules: [],
+    limits: { students: 500, users: 40, branches: 1, storageGb: 20 }, features: [], modules: [],
     ...plan,
     priceMonthly: rupees(plan?.priceMonthly ?? 0), priceYearly: rupees(plan?.priceYearly ?? 0),
     featuresText: (plan?.features ?? []).join('\n'),
@@ -157,7 +157,7 @@ export default function Plans() {
                 <div><dt className="text-[11px] text-ink-faint uppercase tracking-wide">{t('superadmin.plans.institutions')}</dt><dd className="font-medium text-ink">{p.tenantCount}</dd></div>
                 <div><dt className="text-[11px] text-ink-faint uppercase tracking-wide">{t('superadmin.common.modules')}</dt><dd className="font-medium text-ink">{p.modules.length}</dd></div>
                 <div><dt className="text-[11px] text-ink-faint uppercase tracking-wide">{t('superadmin.limits.users')}</dt><dd className="font-medium text-ink">{p.limits.users}</dd></div>
-                <div><dt className="text-[11px] text-ink-faint uppercase tracking-wide">{t('superadmin.limits.beds')}</dt><dd className="font-medium text-ink">{p.limits.beds}</dd></div>
+                <div><dt className="text-[11px] text-ink-faint uppercase tracking-wide">{t('superadmin.limits.students')}</dt><dd className="font-medium text-ink">{p.limits.students}</dd></div>
               </dl>
               <ul className="mt-4 space-y-1 flex-1">{p.features.slice(0, 4).map((f) => <li key={f} className="text-xs text-ink-muted flex gap-1.5"><Check className="w-3.5 h-3.5 text-brand-500 shrink-0" />{f}</li>)}</ul>
               {canPlatform('plans') && <Button variant="secondary" icon={Pencil} className="mt-4" onClick={() => setEditing(p)}>{t('superadmin.plans.edit')}</Button>}

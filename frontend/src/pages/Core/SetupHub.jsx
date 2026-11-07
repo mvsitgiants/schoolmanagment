@@ -17,7 +17,7 @@ import {
   CreditCard,
   FileCheck2,
   FileText,
-  Institution,
+  School as Institution,
   Key,
   Layers,
   LayoutDashboard,
@@ -30,23 +30,24 @@ import {
   ShieldAlert,
   ShieldCheck,
   Sparkles,
-  Stethoscope,
+  GraduationCap,
   UserCheck,
   UserPlus,
   Users,
   Zap,
 } from 'lucide-react'
-import { MODULE_BY_ID } from '@schoolgiant/shared'
+import { MODULES, MODULE_BY_ID } from '@schoolgiant/shared'
 import { PageContainer } from '../../components/system'
 import Button from '../../components/ui/Button'
-import { createRolesFromTemplates, fetchRoleTemplates, fetchRoles, fetchSetup } from '../../api/core'
+import { createRolesFromTemplates, fetchDepartments, fetchRoleTemplates, fetchRoles, fetchSetup } from '../../api/core'
 import { hasPermission } from '../../api/auth'
 import { useSnackbar } from '../../context/SnackbarContext'
 import useAuthUser from '../../hooks/useAuthUser'
 import { iconFor } from '../../catalog/icons'
 import { useCatalogLabel } from '../../hooks/useCatalogLabel'
 
-const SUGGESTED = ['FRONT_DESK', 'CONSULTANT', 'STAFF_NURSE', 'CASHIER', 'LAB_TECH', 'PHARMACIST']
+// Roles a new school usually starts with (codes from packages/shared/src/roleTemplates.js)
+const SUGGESTED = ['PRINCIPAL', 'CLASS_TEACHER', 'SUBJECT_TEACHER', 'ACCOUNTANT', 'ADMISSION_COUNSELLOR', 'FRONT_DESK']
 
 // Step visual tokens and metadata
 const STEP_META = {
@@ -65,8 +66,8 @@ const STEP_META = {
     estTime: '1 min',
   },
   departments: {
-    icon: Stethoscope,
-    badge: 'Clinical Structure',
+    icon: GraduationCap,
+    badge: 'Academic Structure',
     accent: 'text-info-600 bg-info-50 border-info-200/80',
     number: '03',
     estTime: '3 min',
@@ -94,26 +95,14 @@ const STEP_META = {
   },
 }
 
-// Clinical modules definition for roadmap visualization
-const CLINICAL_MODULES = [
-  { id: 'opd', name: 'OPD Consultation', tag: 'Outpatient', desc: 'Queues, doctor desk, vitals & electronic prescriptions' },
-  { id: 'ipd', name: 'IPD & Wards', tag: 'Inpatient', desc: 'Bed matrix, admissions, daily rounds & discharge summaries' },
-  { id: 'emergency', name: 'Emergency & Triage', tag: 'Emergency', desc: 'ESI triage, red/yellow/green bays & MLC intimation' },
-  { id: 'lab', name: 'Laboratory (LIS)', tag: 'Diagnostics', desc: 'Worklists, normal ranges, panic values & report signing' },
-  { id: 'radiology', name: 'Radiology & PACS', tag: 'Imaging', desc: 'DICOM web viewer, ultrasound, CT/MRI & radiologist notes' },
-  { id: 'pharmacy', name: 'Pharmacy & Dispensing', tag: 'Medicines', desc: 'Rx queue, batch tracking, expiry & POS billing' },
-  { id: 'ot', name: 'Operating Theatre', tag: 'Surgical', desc: 'Theatre slots, WHO safety checklist & PAC assessment' },
-  { id: 'cssd', name: 'CSSD & Sterilization', tag: 'Sterile', desc: 'Sets, autoclaving cycles & pack tracking' },
-  { id: 'billing', name: 'Billing & Cashier', tag: 'Finance', desc: 'Interim bills, deposits, insurance claims & TPA' },
-  { id: 'hrms', name: 'HRMS & Payroll', tag: 'Staffing', desc: 'Biometric attendance, shift rosters, salary & leaves' },
-]
+// The product roadmap: every catalog module, grouped by the phase it ships in.
+const PHASES = [...new Set(MODULES.map((m) => m.phase))].sort((x, y) => x - y)
 
 function getRoleCategory(code) {
   const c = String(code).toUpperCase()
-  if (['CONSULTANT', 'DOCTOR', 'STAFF_NURSE', 'SURGEON', 'ANESTHETIST', 'NURSE'].some((k) => c.includes(k))) return 'clinical'
-  if (['FRONT_DESK', 'CASHIER', 'BILLING', 'ADMIN', 'MANAGER', 'RECEPTION'].some((k) => c.includes(k))) return 'administrative'
-  if (['LAB_TECH', 'PHARMACIST', 'RADIOLOGIST', 'BIOCHEMIST', 'STORE_KEEPER'].some((k) => c.includes(k))) return 'diagnostic'
-  return 'other'
+  if (['TEACHER', 'PRINCIPAL', 'HOD', 'EXAM_CONTROLLER', 'PLACEMENT'].some((k) => c.includes(k))) return 'teaching'
+  if (['FRONT_DESK', 'ACCOUNTANT', 'ADMISSION', 'HR_', 'ADMIN'].some((k) => c.includes(k))) return 'administrative'
+  return 'support'
 }
 
 /** Team & Roles Tab Component */
@@ -297,7 +286,7 @@ function RolesTabContent({ setup }) {
                 {t('admin.setupHub.createFromRecs')}
               </h4>
               <p className="text-xs text-ink-muted mt-1 max-w-xl">
-                {t('admin.setupHub.hub.rolesIntro', 'Ready-to-use clinical, nursing, front-office and diagnostic roles. Each role maps to real institution workflows.')}
+                {t('admin.setupHub.hub.rolesIntro', 'Ready-to-use teaching, office and campus roles. Each role maps to how schools and colleges really work.')}
               </p>
             </div>
 
@@ -306,9 +295,9 @@ function RolesTabContent({ setup }) {
               <div className="inline-flex rounded-xl border border-border bg-bg p-1 text-xs font-medium">
                 {[
                   { id: 'all', label: t('admin.setupHub.hub.allRoles', 'All Roles') },
-                  { id: 'clinical', label: t('admin.setupHub.hub.clinical', 'Clinical') },
-                  { id: 'administrative', label: t('admin.setupHub.hub.frontOffice', 'Front Office') },
-                  { id: 'diagnostic', label: t('admin.setupHub.hub.diagnostics', 'Diagnostics') },
+                  { id: 'teaching', label: t('admin.setupHub.hub.teaching', 'Teaching') },
+                  { id: 'administrative', label: t('admin.setupHub.hub.office', 'Office') },
+                  { id: 'support', label: t('admin.setupHub.hub.campus', 'Campus & support') },
                 ].map((tab) => (
                   <button
                     key={tab.id}
@@ -489,8 +478,8 @@ function OverviewTabContent({ setup, next, pct, stepTitle, onNavigateTab }) {
 
         <div className="rounded-2xl border border-border bg-surface p-4 shadow-card">
           <div className="flex items-center justify-between text-xs font-semibold text-ink-faint mb-2">
-            <span>{t('admin.setupHub.hub.clinicalWings', 'Clinical Wings')}</span>
-            <Stethoscope className="w-4 h-4 text-info-500" />
+            <span>{t('admin.setupHub.hub.departmentsKpi', 'Departments')}</span>
+            <GraduationCap className="w-4 h-4 text-info-500" />
           </div>
           <div className="font-display text-2xl font-extrabold text-ink">
             {setup.steps.find((s) => s.id === 'departments')?.count ?? '—'}
@@ -674,7 +663,7 @@ function OverviewTabContent({ setup, next, pct, stepTitle, onNavigateTab }) {
         </ol>
       </div>
 
-      {/* Clinical Ecosystem Banner */}
+      {/* Module roadmap banner */}
       <div className="rounded-2xl border border-border bg-surface p-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-start gap-4">
@@ -683,13 +672,13 @@ function OverviewTabContent({ setup, next, pct, stepTitle, onNavigateTab }) {
             </span>
             <div>
               <h4 className="text-sm font-bold text-ink flex items-center gap-2">
-                {t('admin.setupHub.hub.modularArchitecture', 'Modular Clinical Architecture')}
+                {t('admin.setupHub.hub.modularArchitecture', 'One modular suite')}
                 <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-brand-100 text-brand-800">
                   {t('admin.setupHub.hub.ready', 'Ready')}
                 </span>
               </h4>
               <p className="text-xs sm:text-sm text-ink-muted mt-1 leading-relaxed max-w-3xl">
-                {t('admin.setupHub.clinicalNote')}
+                {t('admin.setupHub.modulesNote')}
               </p>
             </div>
           </div>
@@ -724,7 +713,7 @@ function ProfileTabContent() {
           <div>
             <h3 className="font-display text-lg font-bold text-ink">{t('admin.setupHub.hub.profileTitle', 'Institution Profile & Letterhead')}</h3>
             <p className="text-xs text-ink-muted mt-0.5">
-              {t('admin.setupHub.hub.profileSubtitle', 'Official institution details shown on Rx, Lab Reports, Inpatient Bills and Discharge Summaries.')}
+              {t('admin.setupHub.hub.profileSubtitle', 'Official institution details shown on receipts, report cards, certificates and letters.')}
             </p>
           </div>
           <Button icon={Building2} onClick={() => navigate('/core/profile')}>
@@ -742,27 +731,27 @@ function ProfileTabContent() {
             <div className="flex items-center justify-between border-b-2 border-brand-500 pb-4">
               <div className="flex items-center gap-3.5">
                 <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-50 text-brand-600 font-bold text-xl border border-brand-200">
-                  {tenant?.name?.charAt(0) || 'H'}
+                  {tenant?.name?.charAt(0) || 'S'}
                 </span>
                 <div>
                   <h4 className="font-display text-lg font-extrabold text-ink tracking-tight">
-                    {tenant?.name || 'City Care Institution'}
+                    {tenant?.name || t('admin.setupHub.yourInstitution', 'your institution')}
                   </h4>
                   <p className="text-xs text-ink-muted mt-0.5">
-                    {profile.tagline || 'Multi-Speciality Healthcare & Research Institute'}
+                    {profile.tagline || t('admin.setupHub.hub.sampleTagline', 'Affiliated to CBSE, New Delhi')}
                   </p>
                 </div>
               </div>
               <div className="text-end text-xs text-ink-muted space-y-0.5">
                 <p className="font-medium">{profile.phone || '+91 98765 43210'}</p>
-                <p>{profile.email || 'info@citycarehospital.com'}</p>
-                <p className="text-[11px] text-ink-faint">NABH Accredited</p>
+                <p>{profile.email || 'info@greenvalley.edu.in'}</p>
+                {profile.affiliationNo && <p className="text-[11px] text-ink-faint">{t('admin.setupHub.hub.affiliationLabel', 'Affiliation no.')} {profile.affiliationNo}</p>}
               </div>
             </div>
 
             <div className="mt-4 text-xs text-ink-muted flex flex-wrap items-center justify-between gap-2">
-              <span>{profile.addressLine || '123 Medical Enclave, Main Road'}, {profile.city || 'Metro City'}</span>
-              <span>{t('admin.setupHub.hub.regLabel', 'Reg:')} {profile.regNumber || 'HOSP-2026-CC01'}</span>
+              <span>{profile.addressLine || t('admin.setupHub.hub.sampleAddress', 'Your address')}, {profile.city || t('admin.setupHub.hub.sampleCity', 'City')}</span>
+              <span>{t('admin.setupHub.hub.regLabel', 'Reg:')} {profile.registrationNo || '—'}</span>
             </div>
           </div>
         </div>
@@ -772,43 +761,40 @@ function ProfileTabContent() {
 }
 
 /** Departments Tab Content */
-function DepartmentsTabContent({ setup }) {
+function DepartmentsTabContent() {
   const { t } = useTranslation('admin')
   const navigate = useNavigate()
-  const deptStep = setup.steps.find((s) => s.id === 'departments')
+  const { data: departments = [] } = useQuery({ queryKey: ['departments'], queryFn: fetchDepartments })
+  const active = departments.filter((d) => d.active)
 
   return (
     <div className="space-y-6">
       <div className="rounded-2xl border border-border bg-surface p-6 shadow-card">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-5 mb-5">
           <div>
-            <h3 className="font-display text-lg font-bold text-ink">{t('admin.setupHub.hub.departmentsTitle', 'Clinical & Support Departments')}</h3>
+            <h3 className="font-display text-lg font-bold text-ink">{t('admin.setupHub.hub.departmentsTitle', 'Departments')}</h3>
             <p className="text-xs text-ink-muted mt-0.5">
-              {t('admin.setupHub.hub.departmentsSubtitle', 'Organize your medical specialities, wards, diagnostic centers and support teams.')}
+              {t('admin.setupHub.hub.departmentsSubtitle', 'Academic departments (Mathematics, Science…), the office and support teams.')}
             </p>
           </div>
-          <Button icon={Stethoscope} onClick={() => navigate('/core/departments')}>
+          <Button icon={GraduationCap} onClick={() => navigate('/core/departments')}>
             {t('admin.setupHub.hub.manageDepartments', 'Manage Departments')}
           </Button>
         </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[
-            { title: 'General Medicine', type: 'Clinical', doctorCount: 4, badge: 'Active' },
-            { title: 'Emergency & Trauma', type: 'Clinical', doctorCount: 6, badge: '24/7' },
-            { title: 'Pathology & Lab', type: 'Diagnostic', doctorCount: 3, badge: 'Active' },
-            { title: 'Radiology & Imaging', type: 'Diagnostic', doctorCount: 2, badge: 'Active' },
-          ].map((d) => (
-            <div key={d.title} className="rounded-xl border border-border bg-bg/40 p-4">
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-ink-faint">{d.type}</span>
-              <h4 className="text-sm font-bold text-ink mt-1">{d.title}</h4>
-              <p className="text-xs text-ink-muted mt-0.5">{t('admin.setupHub.hub.doctorsAssigned', '{{count}} doctors assigned', { count: d.doctorCount })}</p>
-              <span className="mt-3 inline-block text-[11px] font-semibold px-2 py-0.5 rounded-full bg-success-100 text-success-800">
-                {d.badge}
-              </span>
-            </div>
-          ))}
-        </div>
+        {active.length === 0 ? (
+          <p className="text-sm text-ink-muted">{t('admin.setupHub.hub.noDepartments', 'No departments yet. Add your first three to finish this step.')}</p>
+        ) : (
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {active.slice(0, 8).map((d) => (
+              <div key={d.id} className="rounded-xl border border-border bg-bg/40 p-4">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-ink-faint">{t(`admin.departments.types.${d.type}`, { defaultValue: d.type })}</span>
+                <h4 className="text-sm font-bold text-ink mt-1">{d.name}</h4>
+                <p className="text-xs text-ink-muted mt-0.5">{t('admin.setupHub.hub.staffAssigned', '{{count}} staff', { count: d.staffCount ?? 0 })}</p>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )
@@ -816,7 +802,8 @@ function DepartmentsTabContent({ setup }) {
 
 /** Modules Ecosystem Tab Content */
 function ModulesTabContent() {
-  const { t } = useTranslation('admin')
+  const { t } = useTranslation(['admin', 'catalog'])
+  const cl = useCatalogLabel()
   const navigate = useNavigate()
 
   return (
@@ -826,7 +813,7 @@ function ModulesTabContent() {
           <div>
             <h3 className="font-display text-lg font-bold text-ink">{t('admin.setupHub.hub.modulesTitle', 'SchoolGiant modules architecture')}</h3>
             <p className="text-xs text-ink-muted mt-0.5">
-              {t('admin.setupHub.hub.modulesSubtitle', 'Full suite of specialized clinical and administrative workflows designed for Indian institutions.')}
+              {t('admin.setupHub.hub.modulesSubtitle', 'Every module of the suite, by the roadmap phase it ships in. Roles you create now already include the modules still to come.')}
             </p>
           </div>
           <Button icon={Layers} variant="secondary" onClick={() => navigate('/core/all-pages')}>
@@ -834,16 +821,21 @@ function ModulesTabContent() {
           </Button>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-4">
-          {CLINICAL_MODULES.map((mod) => (
-            <div key={mod.id} className="rounded-xl border border-border p-4 bg-surface hover:border-brand-300 transition">
-              <div className="flex items-center justify-between gap-2 mb-1">
-                <h4 className="text-sm font-bold text-ink">{t(`admin.setupHub.hub.clinicalModules.${mod.id}.name`, mod.name)}</h4>
-                <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-brand-50 text-brand-700 border border-brand-200">
-                  {t(`admin.setupHub.hub.clinicalModules.${mod.id}.tag`, mod.tag)}
-                </span>
+        <div className="space-y-6">
+          {PHASES.map((phase) => (
+            <div key={phase}>
+              <h4 className="text-xs font-bold uppercase tracking-wider text-ink-faint mb-2.5">{t(`catalog:catalog.modulePage.phases.${phase}`, { defaultValue: `Phase ${phase}` })}</h4>
+              <div className="grid md:grid-cols-2 gap-4">
+                {MODULES.filter((m) => m.phase === phase).map((mod) => (
+                  <div key={mod.id} className="rounded-xl border border-border p-4 bg-surface hover:border-brand-300 transition">
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <h5 className="text-sm font-bold text-ink">{cl.module(mod)}</h5>
+                      <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-brand-50 text-brand-700 border border-brand-200">{cl.category(mod.category)}</span>
+                    </div>
+                    <p className="text-xs text-ink-muted mt-1 leading-relaxed">{cl.description(mod)}</p>
+                  </div>
+                ))}
               </div>
-              <p className="text-xs text-ink-muted mt-1 leading-relaxed">{t(`admin.setupHub.hub.clinicalModules.${mod.id}.desc`, mod.desc)}</p>
             </div>
           ))}
         </div>
@@ -877,9 +869,9 @@ export default function SetupHub() {
   const SUB_NAV_ITEMS = [
     { id: 'overview', label: t('admin.setupHub.hub.navOverview', 'Overview & Checklist'), icon: Rocket, badge: setup ? `${setup.done}/${setup.total}` : null },
     { id: 'profile', label: t('admin.setupHub.hub.navProfile', 'Institution Profile'), icon: Building2, badge: setup?.steps.find((s) => s.id === 'profile')?.done ? '✓' : null },
-    { id: 'departments', label: t('admin.setupHub.hub.navDepartments', 'Departments & Wings'), icon: Stethoscope, badge: setup?.steps.find((s) => s.id === 'departments')?.count },
+    { id: 'departments', label: t('admin.setupHub.hub.navDepartments', 'Departments'), icon: GraduationCap, badge: setup?.steps.find((s) => s.id === 'departments')?.count },
     { id: 'roles', label: t('admin.setupHub.hub.navRoles', 'Team & Role Access'), icon: ShieldCheck, badge: setup?.steps.find((s) => s.id === 'roles')?.count },
-    { id: 'modules', label: t('admin.setupHub.hub.navModules', 'Clinical Ecosystem'), icon: Layers, badge: '10' },
+    { id: 'modules', label: t('admin.setupHub.hub.navModules', 'Modules & roadmap'), icon: Layers, badge: String(MODULES.length) },
   ]
 
   return (
@@ -1047,7 +1039,7 @@ export default function SetupHub() {
 
             {activeTab === 'profile' && <ProfileTabContent />}
 
-            {activeTab === 'departments' && <DepartmentsTabContent setup={setup} />}
+            {activeTab === 'departments' && <DepartmentsTabContent />}
 
             {activeTab === 'roles' && <RolesTabContent setup={setup} />}
 

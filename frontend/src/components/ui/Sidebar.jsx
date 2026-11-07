@@ -95,8 +95,8 @@ export default function Sidebar({ open = false, onClose }) {
             >
               <Home className="w-4 h-4 text-sidebar-fg/50" /> {t('home', 'Home')}
             </NavLink>
-            {/* Everyone's own record — never gated by a module or a permission, because a nurse
-                with no HR access still has to mark in, ask for leave and read a payslip. */}
+            {/* Everyone's own account — never gated by a module or a permission, because a teacher
+                with no HR access still has to change a password, ask for leave and read a payslip. */}
             <NavLink
               to="/me"
               className={({ isActive }) =>

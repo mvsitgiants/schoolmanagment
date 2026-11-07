@@ -41,7 +41,7 @@ export function statusTone(status) {
 
 /** Recharts styling — one palette + one look for every chart in the app. */
 export const CHART = {
-  // Categorical series — identity only (which doctor, which ward, billed vs collected). Taken in
+  // Categorical series — identity only (which class, which campus, billed vs collected). Taken in
   // this order, never cycled, never re-ordered by rank. Validated as a set (dataviz skill
   // validate_palette, light mode, white surface): lightness band, chroma, colour-blind (CVD)
   // separation ΔE ≥ 9 between neighbours, normal vision ΔE ≥ 19. Slots 3–5 are light on white,

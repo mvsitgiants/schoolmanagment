@@ -11,8 +11,8 @@ const formSchema = new Schema({
   code: { type: String, required: true, uppercase: true, trim: true },
   name: { type: String, required: true, trim: true },
   description: String,
-  use: { type: String, default: 'OPD_CONSULT' },
-  specialities: [String], // suggested first for doctors of these specialities
+  use: { type: String, default: 'SURVEY' },
+  specialities: [String], // tags: suggested first to staff of these subjects / departments
   definition: { type: Mixed, default: { sections: [] } },
   status: { type: String, default: 'DRAFT' }, // DRAFT · PUBLISHED · ARCHIVED
   version: { type: Number, default: 0 }, // latest published version, 0 = never published

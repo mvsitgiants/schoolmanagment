@@ -9,7 +9,7 @@ import { saveMyLanguage } from '../../api/auth'
  * Language picker.
  *   enabledLanguages: codes the institution switched on (all when empty)
  *   saveToProfile:    also save the choice on the signed-in staff user's account (top bar)
- *   onSelect(code):   extra hook after switching (e.g. the patient portal remembers it per patient)
+ *   onSelect(code):   extra hook after switching (e.g. the parent app remembers it per family)
  */
 export default function LanguageSelector({ enabledLanguages, variant = 'topbar', className, saveToProfile = false, onSelect }) {
   const { t } = useTranslation('ui')

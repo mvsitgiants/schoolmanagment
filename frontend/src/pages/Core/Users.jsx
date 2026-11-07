@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { EMPLOYEE_CATEGORIES, EMPLOYMENT_TYPES, MODALITIES } from '@schoolgiant/shared'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import clsx from 'clsx'
 import { KeyRound, LogOut, Mail, Pencil, Shield, ShieldCheck, UserCheck, UserPlus, UserX, Users as UsersIcon } from 'lucide-react'
@@ -23,11 +22,9 @@ import { importUsers } from '../../api/core'
 import { readSheet } from '../../utils/readSheet'
 import { downloadCsv } from '../../utils/csv'
 
-const BLANK = { name: '', email: '', mobile: '', designation: '', roleIds: [], departmentIds: [], branchId: '', password: '', passwordMode: 'temp', radiologyModalities: [] }
+const BLANK = { name: '', email: '', mobile: '', designation: '', roleIds: [], departmentIds: [], branchId: '', password: '', passwordMode: 'temp' }
 // the platform can email (Superadmin › Settings): a new user is invited by email by default
 const canInvite = () => !!getCurrentUser()?.features?.email
-// radiologists' modalities live here only while HR is off (else on the employee record)
-const modalitiesHere = () => { const on = getCurrentUser()?.enabledModules ?? []; return on.includes('radiology') && !on.includes('hrms') }
 
 function CheckList({ items, value, onChange, render, empty }) {
   const toggle = (id) => onChange(value.includes(id) ? value.filter((x) => x !== id) : [...value, id])
@@ -45,26 +42,19 @@ function CheckList({ items, value, onChange, render, empty }) {
 }
 
 function UserForm({ user, roles, departments, branches, onClose, onSaved }) {
-  const { t } = useTranslation(['admin', 'hrms', 'common'])
+  const { t } = useTranslation(['admin', 'common'])
   const cl = useCatalogLabel()
   const isNew = !user
-  const [form, setForm] = useState(() => (user ? { ...BLANK, ...user, roleIds: user.roles.map((r) => r.id), departmentIds: user.departments.map((d) => d.id), branchId: user.branchId || '', mobile: user.mobile || '', designation: user.designation || '', radiologyModalities: user.radiologyModalities ?? [] } : { ...BLANK, passwordMode: canInvite() ? 'invite' : 'temp' }))
+  const [form, setForm] = useState(() => (user ? { ...BLANK, ...user, roleIds: user.roles.map((r) => r.id), departmentIds: user.departments.map((d) => d.id), branchId: user.branchId || '', mobile: user.mobile || '', designation: user.designation || '' } : { ...BLANK, passwordMode: canInvite() ? 'invite' : 'temp' }))
   const [errors, setErrors] = useState({})
   const { showError } = useSnackbar()
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e?.target ? e.target.value : e }))
-  // "Also add to staff": a new login can get its Staff & HR record in the same save
-  const canAddStaff = isNew && !!getCurrentUser()?.enabledModules?.includes('hrms') && hasPermission('hrms.employees.create')
-  const today = localIso(new Date())
-  const [staff, setStaff] = useState({ on: false, category: '', employmentType: 'PERMANENT', joiningDate: today })
-  const addingStaff = canAddStaff && staff.on
 
   const save = useMutation({
     mutationFn: () => {
       const body = { name: form.name, email: form.email, mobile: form.mobile, designation: form.designation, roleIds: form.roleIds, departmentIds: form.departmentIds, branchId: form.branchId || null }
-      if (modalitiesHere()) body.radiologyModalities = form.radiologyModalities
       if (isNew && form.passwordMode === 'set') body.password = form.password
       if (isNew && form.passwordMode === 'invite') body.invite = true
-      if (addingStaff) body.staff = { category: staff.category, employmentType: staff.employmentType, joiningDate: staff.joiningDate }
       return isNew ? createUser(body) : updateUser(user.id, body)
     },
     onSuccess: onSaved,
@@ -74,7 +64,7 @@ function UserForm({ user, roles, departments, branches, onClose, onSaved }) {
   return (
     <Modal open onClose={onClose} size="lg" title={isNew ? t('admin.users.form.addTitle') : t('admin.users.form.editTitle', { name: user.name })} footer={<>
       <Button variant="secondary" onClick={onClose}>{t('actions.cancel')}</Button>
-      <Button loading={save.isPending} disabled={!form.name || !form.email || !form.roleIds.length || (addingStaff && (!staff.category || !staff.employmentType || !staff.joiningDate))} onClick={() => save.mutate()}>{isNew ? t('admin.users.addUser') : t('admin.users.form.saveChanges')}</Button>
+      <Button loading={save.isPending} disabled={!form.name || !form.email || !form.roleIds.length} onClick={() => save.mutate()}>{isNew ? t('admin.users.addUser') : t('admin.users.form.saveChanges')}</Button>
     </>}>
       <div className="grid sm:grid-cols-2 gap-4">
         <FormField label={t('admin.users.form.fullName')} required error={errors.name}><Input value={form.name} onChange={set('name')} placeholder={t('admin.users.form.fullNamePlaceholder')} /></FormField>
@@ -101,16 +91,6 @@ function UserForm({ user, roles, departments, branches, onClose, onSaved }) {
             render={(d) => <span className="text-sm text-ink">{d.name}</span>} />
         </FormField>
         <div className="space-y-4">
-          {modalitiesHere() && (
-            <FormField label={t('admin.users.form.imaging')} hint={t('admin.users.form.imagingHint')}>
-              <div className="flex flex-wrap gap-1.5">
-                {MODALITIES.map((m) => {
-                  const on = form.radiologyModalities.includes(m.value)
-                  return <button key={m.value} type="button" aria-pressed={on} onClick={() => set('radiologyModalities')(on ? form.radiologyModalities.filter((x) => x !== m.value) : [...form.radiologyModalities, m.value])} className={clsx('px-2.5 py-1 rounded-full text-xs border', on ? 'bg-brand-500 border-brand-500 text-white' : 'border-border text-ink-muted hover:border-brand-300')}>{m.short}</button>
-                })}
-              </div>
-            </FormField>
-          )}
           {branches.length > 1 && (
             <FormField label={t('admin.users.form.branch')}>
               <Select value={form.branchId} onChange={set('branchId')}>
@@ -129,35 +109,6 @@ function UserForm({ user, roles, departments, branches, onClose, onSaved }) {
                 {errors.password && <p className="text-xs text-danger-600">{errors.password}</p>}
               </div>
             </FormField>
-          )}
-          {canAddStaff && (
-            <div className="rounded-lg border border-border p-3">
-              <label className="flex items-start justify-between gap-3 text-sm">
-                <span className="min-w-0">
-                  <span className="block font-medium text-ink">{t('admin.users.form.alsoStaff')}</span>
-                  <span className="block text-xs text-ink-muted">{t('admin.users.form.alsoStaffHint')}</span>
-                </span>
-                <Switch checked={staff.on} onChange={(on) => setStaff((x) => ({ ...x, on }))} label={t('admin.users.form.alsoStaff')} />
-              </label>
-              {staff.on && (
-                <div className="mt-3 grid sm:grid-cols-3 gap-3">
-                  <FormField label={t('hrms:hrms.employeeForm.staffCategory')} required error={errors['staff.category']}>
-                    <Select value={staff.category} onChange={(e) => setStaff((x) => ({ ...x, category: e.target.value }))}>
-                      <option value="">{t('common:common.pickOne')}</option>
-                      {EMPLOYEE_CATEGORIES.map((c) => <option key={c.value} value={c.value}>{t(`hrms:hrms.enum.employeeCategories.${c.value}`, { defaultValue: c.label })}</option>)}
-                    </Select>
-                  </FormField>
-                  <FormField label={t('hrms:hrms.employeeForm.employmentType')} required>
-                    <Select value={staff.employmentType} onChange={(e) => setStaff((x) => ({ ...x, employmentType: e.target.value }))}>
-                      {EMPLOYMENT_TYPES.map((c) => <option key={c.value} value={c.value}>{t(`hrms:hrms.enum.employmentTypes.${c.value}`, { defaultValue: c.label })}</option>)}
-                    </Select>
-                  </FormField>
-                  <FormField label={t('hrms:hrms.employeeForm.joiningDate')} required>
-                    <Input type="date" value={staff.joiningDate} onChange={(e) => setStaff((x) => ({ ...x, joiningDate: e.target.value }))} />
-                  </FormField>
-                </div>
-              )}
-            </div>
           )}
         </div>
       </div>
@@ -248,7 +199,7 @@ export default function Users() {
               return res
             }}
             templateHeaders={['name', 'email', 'mobile', 'designation', 'roles', 'departments', 'branch']}
-            templateSample={['Dr. Neha Sinha', 'neha.sinha@cityhospital.in', '9876501234', 'Consultant physician', 'Consultant', 'GEN-MED', '']}
+            templateSample={['Neha Sinha', 'neha.sinha@greenvalley.edu.in', '9876501234', 'Mathematics teacher', 'Class Teacher', 'MATHS', '']}
             onDone={refresh} />}
           {<HeaderButton icon={UserPlus} variant="primary" requires="create" onClick={() => setEditing('new')}>{t('admin.users.addUser')}</HeaderButton>}
         </>} />

@@ -22,7 +22,7 @@ export const forgetPrintLayouts = () => cache.clear()
 
 async function effective(docType) {
   const fallback = { letterhead: { ...LETTERHEAD_DEFAULTS, institution: {} }, template: printDefaults(docType) }
-  // the patient's link page renders documents with nobody signed in
+  // a family's link page renders documents with nobody signed in
   if (!getCurrentUser()) return fallback
   const hit = cache.get(docType)
   if (hit && Date.now() - hit.at < TTL) return hit.value
@@ -35,7 +35,7 @@ async function effective(docType) {
   }
 }
 
-/** The letterhead block. `right` is the document's own corner (title, doctor, bill no…). */
+/** The letterhead block. `right` is the document's own corner (title, class, receipt no…). */
 export function letterheadHtml(lh, t, h, accent, right = '') {
   if (t.letterhead === 'PREPRINTED') return right ? `<div class="head" style="border-bottom-color:transparent;justify-content:flex-end">${right}</div>` : ''
   if (t.letterhead === 'NONE') return `<div class="head"><div class="hn" style="font-size:11pt">${esc(h.name)}</div>${right}</div>`

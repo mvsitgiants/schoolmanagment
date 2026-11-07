@@ -23,7 +23,7 @@ const ago = (iso, t) => {
 /** Where the request's record lives in the app. */
 function recordLink(r, t) {
   if (r.entityType === 'invoice') return { to: `/billing/invoices?bill=${r.entityId}`, label: t('admin.approvals.openBill', { bill: r.entityName }) }
-  if (r.studentId) return { to: `/patients/patient-360/${r.studentId}`, label: t('admin.approvals.openPatient') }
+  if (r.studentId) return { to: `/students/profile/${r.studentId}`, label: t('admin.approvals.openStudent') }
   return null
 }
 

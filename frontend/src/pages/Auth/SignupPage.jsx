@@ -121,7 +121,7 @@ export default function SignupPage() {
                     <ul className="mt-2 space-y-1">
                       {p.features.slice(0, 3).map((f) => <li key={f} className="text-xs text-ink-muted flex gap-1.5"><Check className="w-3.5 h-3.5 text-brand-500 shrink-0" />{f}</li>)}
                     </ul>
-                    <p className="mt-2 text-[11px] text-ink-faint">{p.limits.beds ? t('auth.signup.planLimitsBeds', { modules: p.modules.length, users: p.limits.users, beds: p.limits.beds }) : t('auth.signup.planLimits', { modules: p.modules.length, users: p.limits.users })}</p>
+                    <p className="mt-2 text-[11px] text-ink-faint">{p.limits.students ? t('auth.signup.planLimitsStudents', { modules: p.modules.length, users: p.limits.users, students: p.limits.students }) : t('auth.signup.planLimits', { modules: p.modules.length, users: p.limits.users })}</p>
                   </button>
                 )
               })}

@@ -25,7 +25,7 @@ const chLabel = (t, ch) => t(`admin.notificationSetup.channels.${ch}`, { default
 const statusText = (t, s) => (MESSAGE_STATUSES[s] ? t(`admin.notificationSetup.statuses.${s}`, { defaultValue: MESSAGE_STATUSES[s].label }) : s)
 const keyOf = (code) => String(code).replace(/\./g, '_')
 
-// ───────────────────────────────────────────────────────── patient messages (wording)
+// ───────────────────────────────────────────────────────── family messages (wording)
 
 function ChannelEditor({ channel, value, vars, varHelp, customized, fixed, onChange, onReset, errors, disabled }) {
   const { t } = useTranslation('admin')
@@ -71,7 +71,7 @@ function ChannelEditor({ channel, value, vars, varHelp, customized, fixed, onCha
                   <Input value={value.language ?? 'en'} disabled={disabled} onChange={(e) => onChange({ language: e.target.value })} />
                 </FormField>
                 <FormField label={t('admin.notificationSetup.templateValues')} error={errors[`${channel}.params`]}>
-                  <Input value={(value.params ?? []).join(', ')} disabled={disabled} onChange={(e) => onChange({ params: e.target.value.split(',').map((x) => x.trim()).filter(Boolean) })} placeholder="patient.name, appt.date" />
+                  <Input value={(value.params ?? []).join(', ')} disabled={disabled} onChange={(e) => onChange({ params: e.target.value.split(',').map((x) => x.trim()).filter(Boolean) })} placeholder="student.name, fees.dueDate" />
                 </FormField>
               </div>
             )}
@@ -230,7 +230,7 @@ function ChannelSetup({ channel, saved, providers, gatewayVars }) {
         )}
         {channel === 'EMAIL' && p === 'SMTP' && (
           <div className="grid sm:grid-cols-2 gap-3">
-            <FormField label={t('admin.notificationSetup.smtpServer')}><Input value={form.smtp?.host ?? ''} disabled={disabled} placeholder="smtp.yourhospital.in" onChange={(e) => set({ smtp: { ...form.smtp, host: e.target.value } })} /></FormField>
+            <FormField label={t('admin.notificationSetup.smtpServer')}><Input value={form.smtp?.host ?? ''} disabled={disabled} placeholder="smtp.yourschool.edu.in" onChange={(e) => set({ smtp: { ...form.smtp, host: e.target.value } })} /></FormField>
             <div className="flex items-end gap-3">
               <FormField label={t('admin.notificationSetup.port')}><Input type="number" className="!w-24" value={form.smtp?.port ?? ''} disabled={disabled} placeholder="587" onChange={(e) => set({ smtp: { ...form.smtp, port: e.target.value ? Number(e.target.value) : undefined } })} /></FormField>
               <div className="pb-2"><Switch checked={!!form.smtp?.secure} disabled={disabled} onChange={(secure) => set({ smtp: { ...form.smtp, secure } })} label="SSL" /></div>
@@ -345,7 +345,7 @@ function LogTab() {
   )
 }
 
-/** Administration › Notification rules: what patients are sent, how it is delivered, and the log (engine E12). */
+/** Administration › Notification rules: what families are sent, how it is delivered, and the log (engine E12). */
 export default function NotificationSetup() {
   const { t } = useTranslation('admin')
   const [tab, setTab] = useState('messages')

@@ -8,9 +8,9 @@ import Avatar from './Avatar'
  * and an optional row of headline facts underneath. Deliberately quiet — no tint, no gradient.
  *
  *   <RecordHero name={p.name} title={<Link…>{p.name}</Link>} subtitle="Signed by … · 12 Oct, 10:40"
- *     chips={<><CodeBadge>{p.uhid}</CodeBadge><Tag>34 M</Tag></>}
+ *     chips={<><CodeBadge>{s.admissionNo}</CodeBadge><Tag>8-A</Tag></>}
  *     status={<StatusPill>Dispensed</StatusPill>} aside={<CodeBadge>RX-1021</CodeBadge>}
- *     facts={[{ icon: Stethoscope, label: t('…doctor'), value: 'Dr Rao' }, …]} />
+ *     facts={[{ icon: GraduationCap, label: t('…classTeacher'), value: 'Ms Rao' }, …]} />
  */
 export default function RecordHero({ name, photo, icon: Icon, leading, title, subtitle, chips, status, aside, facts, compact = false, className }) {
   const list = (facts ?? []).filter(Boolean)

@@ -9,15 +9,14 @@ const MM = 96 / 25.4 // CSS px per mm
 /** Made-up rows that look like the document, so margins and the letterhead can be judged. */
 function sampleBody(docType) {
   const rows = {
-    RX: [['Tab. Dolo 650', '1-0-1 · after food · 5 days'], ['Cap. Pan 40', '1-0-0 · before food · 5 days'], ['Syp. Mucolite', '5 ml · 1-1-1 · 5 days']],
-    LAB_REPORT: [['Haemoglobin', '13.4 g/dL', '13.0 – 17.0'], ['Total WBC count', '11,800 /µL  H', '4,000 – 11,000'], ['Platelets', '2.6 lakh/µL', '1.5 – 4.1']],
-    RAD_REPORT: [['Findings', 'Both lung fields are clear. Cardiac size is normal.'], ['Impression', 'No abnormality detected.']],
-    PHARMACY_BILL: [['Dolo 650 · B2024 · 06/27', '10', '₹30.00'], ['Pan 40 · P118 · 11/26', '10', '₹125.00']],
-    OPD_BILL: [['Consultation — Dr. Ravi Prasad', '1', '₹500'], ['Complete blood count', '1', '₹350']],
-    IPD_BILL: [['Room — semi-private × 3 days', '3', '₹7,500'], ['Surgeon fee', '1', '₹25,000']],
-    DISCHARGE_SUMMARY: [['Diagnosis', 'Acute appendicitis'], ['Procedure', 'Laparoscopic appendicectomy'], ['Advice', 'Soft diet, review in 7 days']],
-    CERTIFICATE: [['This is to certify that', 'Mr. Prakash Pillai was under my treatment from 01/10/2026 to 05/10/2026 and is fit to resume work.']],
-  }[docType] ?? [['Item', 'Detail']]
+    FEE_RECEIPT: [['Tuition fee — Term 2', '1', '₹18,000'], ['Transport fee — Term 2', '1', '₹6,500'], ['Total paid (UPI)', '', '₹24,500']],
+    FEE_INVOICE: [['Tuition fee — Term 2', '₹18,000'], ['Transport fee — Term 2', '₹6,500'], ['Due by 10/10/2026', '₹24,500']],
+    REPORT_CARD: [['English', '86 / 100', 'A2'], ['Mathematics', '92 / 100', 'A1'], ['Science', '78 / 100', 'B1']],
+    HALL_TICKET: [['English', '14/10/2026', '9:30 AM'], ['Mathematics', '16/10/2026', '9:30 AM'], ['Science', '18/10/2026', '9:30 AM']],
+    TRANSFER_CERTIFICATE: [['Date of admission', '02/04/2019'], ['Class last studied', 'VIII'], ['Conduct', 'Good']],
+    BONAFIDE: [['This is to certify that', 'Aarav Sharma is a bonafide student of this school, studying in Class VIII-A in the year 2026-27.']],
+    PAYSLIP: [['Basic', '₹32,000'], ['Dearness allowance', '₹6,400'], ['Provident fund', '−₹3,840']],
+    }[docType] ?? [['Item', 'Detail']]
   return `<table>${rows.map((r) => `<tr>${r.map((c) => `<td>${esc(c)}</td>`).join('')}</tr>`).join('')}</table>`
 }
 
@@ -62,7 +61,7 @@ export default function PrintPreview({ template: tpl, letterhead: lh, docType, h
   </style></head><body><div class="sheet">
     ${pre ? `<div class="reserved" style="top:0;height:${tpl.headerSpaceMm ?? 0}mm">${esc(t('ui.printPreview.preprintedHeader'))}</div><div class="reserved" style="bottom:0;height:${tpl.footerSpaceMm ?? 0}mm">${esc(t('ui.printPreview.preprintedFooter'))}</div>` : ''}
     ${letterheadHtml(lh ?? {}, tpl, { name: t('ui.printPreview.yourInstitution'), ...h }, accent, right)}
-    <div class="pt"><div><b>Prakash Pillai</b><div class="muted">60 Y / Male</div></div><div><span class="k">UHID</span> CC26000016</div><div><span class="k">${esc(t('common.doctor'))}</span> Dr. Ravi Prasad</div></div>
+    <div class="pt"><div><b>Aarav Sharma</b><div class="muted">${esc(t('common.class'))} VIII-A</div></div><div><span class="k">${esc(t('common.admissionNo'))}</span> 20260142</div><div><span class="k">${esc(t('common.guardian'))}</span> Neha Sharma</div></div>
     ${sampleBody(docType)}
     <div class="foot"><div class="muted">${esc(tpl.footerText || lh?.footerText || '')}${tpl.showPrintedOn !== false ? `${tpl.footerText || lh?.footerText ? '<br/>' : ''}${esc(t('ui.printPreview.printedOn', { date: '07/10/2026' }))}` : ''}</div>
       ${tpl.showQr !== false ? '<div class="qr">QR</div>' : ''}</div>

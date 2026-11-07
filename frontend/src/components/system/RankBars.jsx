@@ -4,9 +4,9 @@ import { useTranslation } from 'react-i18next'
 /**
  * A ranked "top N" in a card: one row per item with its label and value as text and
  * a thin bar for scale. For comparisons whose labels are too long for a bar axis
- * (doctors, diagnoses, payment modes). Single series, so no legend; the title names it.
+ * (classes, subjects, payment modes). Single series, so no legend; the title names it.
  *
- *   <RankBars title="Busiest doctors" rows={[{ label: 'Dr. Rao', value: 42 }]} valueFormat={(v) => v} />
+ *   <RankBars title="Most absences" rows={[{ label: '8-A', value: 42 }]} valueFormat={(v) => v} />
  *
  * Optional `actions` sits at the header's end (e.g. a "Full report" link). `peak` fixes the bar
  * scale (100 for percentages) instead of scaling to the largest row.

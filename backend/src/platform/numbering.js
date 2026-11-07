@@ -26,7 +26,7 @@ async function branchCode(branchId) {
   return (await Branch.findById(branchId).select('code').lean())?.code ?? 'MAIN'
 }
 
-/** Issue the next number, e.g. nextNumber('UHID') → 'UH26000125'. */
+/** Issue the next number, e.g. nextNumber('ADMISSION_NO') → '20260125'. */
 export async function nextNumber(docType, { branchId, date = new Date() } = {}) {
   const series = await seriesFor(docType)
   const timeZone = await tenantTimezone()

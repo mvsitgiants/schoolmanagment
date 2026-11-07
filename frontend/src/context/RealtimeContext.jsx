@@ -4,7 +4,7 @@ import { API_BASE_URL } from '../api/client'
 import { syncCurrentUser } from '../api/auth'
 
 // Live updates for a signed-in member of staff: ONE socket per browser tab, opened by the
-// authenticated app layout only (never on public pages, the patient portal, kiosks or TV
+// authenticated app layout only (never on public pages, the parent app, kiosks or TV
 // displays). The server pushes `<domain>:<verb>` events — notification:new, presence:changed,
 // page:ring / page:update / page:stop / page:answer, chat:* next — and answers client actions
 // sent with emit().

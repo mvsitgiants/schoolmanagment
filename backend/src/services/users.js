@@ -6,7 +6,6 @@ import { audit, diffFields, diffLists } from '../platform/audit.js'
 import { hashPassword, hashToken } from '../platform/auth/tokens.js'
 import { clearFailedLogins } from '../platform/auth/lockout.js'
 import { clean } from '../platform/db.js'
-import { emit } from '../platform/events.js'
 import { badRequest, conflict, forbidden, notFound } from '../platform/errors.js'
 import { endSessions } from '../platform/middleware.js'
 import { getContext, runAsTenant } from '../platform/context.js'
@@ -122,7 +121,7 @@ export async function createUser(input, auth) {
   const user = await User.create({
     name: input.name, email: input.email, mobile: input.mobile, designation: input.designation,
     roleIds: input.roleIds, departmentIds: input.departmentIds ?? [], branchId: input.branchId || undefined,
-    radiologyModalities: input.radiologyModalities?.length ? input.radiologyModalities : undefined,
+    sectionIds: input.sectionIds ?? [],
     passwordHash: await hashPassword(invite ? randomBytes(24).toString('base64url') : input.password || generated),
     mustChangePassword: !!generated || (!invite && !!input.mustChangePassword),
     tempPasswordExpiresAt: generated ? tempExpiry() : undefined, // an admin-chosen password doesn't expire
@@ -130,7 +129,6 @@ export async function createUser(input, auth) {
   })
   await audit({ action: 'CREATE', module: 'core', entityType: 'user', entityId: String(user._id), entityName: user.name, summary: `Added user ${user.name} (${roles.map((r) => r.name).join(', ')})`, added: roles.map((r) => r.name) })
   await bumpAccessVersion(auth.tenantId)
-  await emit('chat.membership_changed', { userIds: [String(user._id)] }) // their institution / department chats
   return { user: await getUser(user._id), tempPassword: generated, inviteToken: invite?.token }
 }
 
@@ -172,11 +170,10 @@ export async function updateUser(id, input, auth) {
   for (const f of ['name', 'email', 'mobile', 'designation']) if (input[f] !== undefined) user[f] = input[f]
   if (input.departmentIds) user.departmentIds = input.departmentIds
   if (input.branchId !== undefined) user.branchId = input.branchId || undefined
-  if (input.radiologyModalities) user.radiologyModalities = input.radiologyModalities
+  if (input.sectionIds) user.sectionIds = input.sectionIds
   await user.save()
 
-  const changes = diffFields(before, user.toObject(), ['name', 'email', 'mobile', 'designation', 'branchId', 'radiologyModalities'])
-  if (input.departmentIds || input.branchId !== undefined) await emit('chat.membership_changed', { userIds: [String(user._id)] })
+  const changes = diffFields(before, user.toObject(), ['name', 'email', 'mobile', 'designation', 'branchId'])
   const roleNames = async (ids) => (await Role.find({ _id: { $in: ids } }).select('name').lean()).map((r) => r.name)
   if (changes.length || roleDiff.added.length || roleDiff.removed.length) {
     await audit({
@@ -202,7 +199,6 @@ export async function setUserActive(id, active, auth) {
   user.active = active
   await user.save()
   if (!active) await revokeUserSessions(user._id, 'USER_DEACTIVATED')
-  await emit('chat.membership_changed', { userIds: [String(user._id)] })
   await audit({ action: 'UPDATE', module: 'core', entityType: 'user', entityId: String(user._id), entityName: user.name, summary: `${active ? 'Re-activated' : 'Deactivated'} ${user.name}`, changes: [{ field: 'active', from: !active, to: active }] })
   await bumpAccessVersion(auth.tenantId)
   return getUser(user._id)

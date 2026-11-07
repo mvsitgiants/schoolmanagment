@@ -78,7 +78,7 @@ export function InfoGrid({ children, cols = 2, className }) {
   )
 }
 
-/** A card of Info lines — plain white, hairline border, no shadow (as Patient 360's sections). */
+/** A card of Info lines — plain white, hairline border, no shadow (as Student 360's sections). */
 export function InfoPanel({ title, subtitle, icon, actions, cols = 2, children, className }) {
   return (
     <SectionCard icon={icon} title={title} hint={subtitle} actions={actions} className={className}>

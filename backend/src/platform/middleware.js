@@ -179,7 +179,7 @@ export function requirePlatform(perm) {
 }
 
 const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS'])
-const SESSION_COOKIES = ['hx_at', 'hx_rt', 'hx_pt'] // staff access / refresh, patient portal
+const SESSION_COOKIES = ['hx_at', 'hx_rt', 'hx_pt'] // staff access / refresh, parent & student app
 
 /**
  * CSRF guard for cookie sign-ins. The cookies are SameSite=None (the app and the API are on

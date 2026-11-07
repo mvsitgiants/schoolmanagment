@@ -64,7 +64,7 @@ function cleanOrigins(list) {
     const s = String(raw).trim()
     if (!s) continue
     let u
-    try { u = new URL(s) } catch { throw badRequest(`“${s.slice(0, 60)}” is not a website address. Use https://yourhospital.com`, { fields: { allowedOrigins: 'Not valid' } }) }
+    try { u = new URL(s) } catch { throw badRequest(`“${s.slice(0, 60)}” is not a website address. Use https://yourschool.edu.in`, { fields: { allowedOrigins: 'Not valid' } }) }
     const local = ['localhost', '127.0.0.1'].includes(u.hostname)
     if (u.protocol !== 'https:' && !(local && u.protocol === 'http:')) throw badRequest(`${u.host}: use https:// (http only for localhost).`, { fields: { allowedOrigins: 'Use https' } })
     out.push(u.origin)
@@ -237,7 +237,7 @@ export async function redeliver(id, req) {
 
 // ───────────────────────────────────────────────────────── delivery
 
-// never out: codes, secrets, contact details, and patient share links (bearer URLs to documents)
+// never out: codes, secrets, contact details, and family share links (bearer URLs to documents)
 const SAFE_OUT = /otp|password|secret|token|aadhaar|^to$|^mobile$|^email$|link$/i
 function sanitize(v, depth = 0) {
   if (depth > 5 || v === null || v === undefined) return v
@@ -265,7 +265,7 @@ function deliverOnce(ep, d) {
     const req = lib.request(url, {
       method: 'POST', lookup: guardedLookup, timeout: 10_000,
       headers: {
-        'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body), 'User-Agent': 'HospitalSamadhan-Webhooks/1.0',
+        'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body), 'User-Agent': 'SchoolGiant-Webhooks/1.0',
         'X-Webhook-Id': d.deliveryId, 'X-Webhook-Event': d.event, 'X-Webhook-Timestamp': String(ts), 'X-Webhook-Signature': `t=${ts},v1=${signature}`,
       },
     }, (res) => {

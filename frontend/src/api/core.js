@@ -85,7 +85,7 @@ export const createCustomField = (body) => post('/v1/core/custom-fields', body)
 export const updateCustomField = (id, body) => patch(`/v1/core/custom-fields/${id}`, body)
 export const deleteCustomField = (id) => del(`/v1/core/custom-fields/${id}`)
 
-// notifications (the bell) and patient messages — engine E12
+// notifications (the bell) and family messages — engine E12
 export const markNotificationsRead = (ids) => post('/v1/core/notifications/read', ids ? { ids } : {})
 export const fetchMessaging = () => get('/v1/core/messaging')
 export const saveMessagingChannel = async (channel, body) => (await api.put(`/v1/core/messaging/${channel}`, body)).data.data

@@ -17,7 +17,7 @@ export async function importDepartments(rows, { dryRun, schema }, req) {
   const out = rows.map((f, i) => {
     const { doc, errors } = checkRow(schema, compact({
       name: cell(f.name), code: cell(f.code), type: cell(f.type).toUpperCase() || undefined,
-      specialities: cell(f.specialities) ? list(f.specialities) : undefined, description: cell(f.description) || undefined,
+      description: cell(f.description) || undefined,
     }))
     const code = cell(f.code).toUpperCase()
     if (code && seen.has(code)) errors.push({ field: 'code', message: 'Twice in this file' })

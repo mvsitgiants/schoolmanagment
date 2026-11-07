@@ -16,12 +16,9 @@
     "@aws-sdk/lib-storage": "^3.1154.0",
     "@schoolgiant/shared": "*",
     "bcryptjs": "^3.0.2",
-    "busboy": "^1.6.0",
     "bwip-js": "^4.11.4",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
-    "dcmjs": "^0.52.0",
-    "dicom-parser": "^1.8.21",
     "express": "^5.1.0",
     "express-rate-limit": "^7.5.0",
     "handlebars": "^4.7.10",
@@ -32,7 +29,6 @@
     "pino": "^9.6.0",
     "qrcode": "^1.5.4",
     "socket.io": "^4.8.4",
-    "yazl": "^3.3.1",
     "zod": "^3.24.0"
   },
   "devDependencies": {

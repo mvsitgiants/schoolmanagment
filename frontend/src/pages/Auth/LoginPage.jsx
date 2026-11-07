@@ -8,32 +8,16 @@ import { landingFor } from '../../catalog/nav'
 import LanguageSelector from '../../components/ui/LanguageSelector'
 import NoticeBanner from '../../components/ui/NoticeBanner'
 import AuthMark from './AuthMark'
-import { KeyModules, ProductPeek } from '../../components/auth/LoginShowcase'
+import { KeyModules } from '../../components/auth/LoginShowcase'
 
+// Demo sign-ins, shown only in development (npm run seed creates them).
 const DEMO = [
   { label: 'Platform owner', email: 'owner@schoolgiant.test', password: 'Owner@123', hint: 'SaaS console' },
-  { label: 'City Care · Admin', email: 'mvsitgiants@gmail.com', password: 'Admin@123', hint: 'paid Institution plan' },
-  { label: 'Sunrise · Admin', email: 'admin@sunrise.test', password: 'Admin@123', hint: 'new trial, 1 role' },
-  { label: 'Front desk', email: 'priya.frontdesk@citycare.test', password: 'Demo@123', hint: 'limited role' },
-  { label: 'Staff nurse', email: 'mary.nurse@citycare.test', password: 'Demo@123', hint: 'vitals station' },
-  { label: 'Doctor', email: 'dr.kavya@citycare.test', password: 'Demo@123', hint: 'OPD · signing PIN 1357' },
-  { label: 'Cashier', email: 'suresh.cash@citycare.test', password: 'Demo@123', hint: 'billing counter' },
-  { label: 'Billing manager', email: 'meena.billing@citycare.test', password: 'Demo@123', hint: 'bills, tariffs, day-end' },
-  { label: 'Lab technician', email: 'imran.lab@citycare.test', password: 'Demo@123', hint: 'collection, results' },
-  { label: 'Pathologist', email: 'dr.neha@citycare.test', password: 'Demo@123', hint: 'verify · PIN 1357' },
-  { label: 'Pharmacist', email: 'deepa.pharma@citycare.test', password: 'Demo@123', hint: 'Rx queue, counter' },
-  { label: 'Radiologist', email: 'dr.vikram@citycare.test', password: 'Demo@123', hint: 'reports · PIN 1357' },
-  { label: 'Housekeeping', email: 'rekha.hk@citycare.test', password: 'Demo@123', hint: 'bed turnaround' },
-  { label: 'Dietician', email: 'divya.diet@citycare.test', password: 'Demo@123', hint: 'diets, kitchen' },
-  { label: 'Store keeper', email: 'ravi.store@citycare.test', password: 'Demo@123', hint: 'ward indents' },
-  { label: 'ER doctor', email: 'dr.nikhil@citycare.test', password: 'Demo@123', hint: 'emergency' },
-  { label: 'OT nurse', email: 'grace.ot@citycare.test', password: 'Demo@123', hint: 'theatre list' },
-  { label: 'TPA desk', email: 'farah.tpa@citycare.test', password: 'Demo@123', hint: 'pre-auths, claims' },
-  { label: 'Medical records', email: 'joseph.mrd@citycare.test', password: 'Demo@123', hint: 'ICD coding, requests' },
-  { label: 'CSSD technician', email: 'sunil.cssd@citycare.test', password: 'Demo@123', hint: 'sterile sets' },
-  { label: 'Patient relations', email: 'pooja.gro@citycare.test', password: 'Demo@123', hint: 'feedback, complaints' },
-  { label: 'HR manager', email: 'nisha.hr@citycare.test', password: 'Demo@123', hint: 'staff, roster, attendance, leave' },
-  { label: 'Doctor, 2 institutions', email: 'dr.mehta@demo.test', password: 'Demo@123', hint: 'asks which institution' },
+  { label: 'Green Valley · Admin', email: 'admin@greenvalley.test', password: 'Admin@123', hint: 'school, Growth plan' },
+  { label: 'Principal', email: 'principal@greenvalley.test', password: 'Demo@123', hint: 'sees everything' },
+  { label: 'Class teacher', email: 'teacher@greenvalley.test', password: 'Demo@123', hint: 'one class' },
+  { label: 'Accountant', email: 'accounts@greenvalley.test', password: 'Demo@123', hint: 'fees and accounts' },
+  { label: 'Sunrise College · Admin', email: 'admin@sunrise.test', password: 'Admin@123', hint: 'college, Higher Ed trial' },
 ]
 
 export default function LoginPage() {
@@ -143,11 +127,10 @@ export default function LoginPage() {
           </div>
           <h1 className="hidden lg:block mt-6 font-display text-5xl font-bold text-white tracking-tight">SchoolGiant</h1>
           <div className="hidden lg:block mt-4 max-w-xl space-y-3 text-[15px] leading-relaxed text-white/85">
-            <p>{t('auth.showcase.intro', 'One system for the whole institution — front desk, OPD, wards, lab, pharmacy, billing, insurance and accounts, all working from the same patient record.')}</p>
-            <p className="hidden [@media(min-height:960px)]:block">{t('auth.showcase.intro2', 'From registration to discharge every department hands its work to the next, so nobody writes the same thing twice.')}</p>
+            <p>{t('auth.showcase.intro', 'One system for your whole school or college — admissions, attendance, exams, fees, staff and parents, all working from the same student record.')}</p>
+            <p className="hidden [@media(min-height:960px)]:block">{t('auth.showcase.intro2', 'From the first enquiry to the leaving certificate, every office hands its work to the next, so nobody writes the same thing twice.')}</p>
           </div>
           <div className="hidden lg:flex flex-col gap-7 mt-7">
-            <ProductPeek className="w-full max-w-[620px] [@media(max-height:1000px)]:max-w-[530px] [@media(max-height:800px)]:max-w-[400px] self-start" />
             <KeyModules />
           </div>
         </div>
@@ -258,7 +241,6 @@ export default function LoginPage() {
                     </button>
                   ))}
                 </div>
-                <p className="mt-2 text-[11px] text-slate-400">Patient portal: <Link to="/my/city-care-institution" className="text-brand-600 hover:underline">/my/city-care-institution</Link> — mobile 99000 12345, the code shows on screen.</p>
               </div>
             )}
           </div>

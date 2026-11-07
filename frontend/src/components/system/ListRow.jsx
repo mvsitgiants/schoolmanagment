@@ -7,7 +7,7 @@ import IconTile from './IconTile'
  * a leading icon / avatar, a title with a muted subtitle, a line of chips, and a trailing
  * value or action. Clickable rows get a hover state and a chevron.
  *
- *   <ListRow icon={FlaskConical} tone="info" title="CBC" subtitle="Ramesh K · UHID 1021"
+ *   <ListRow icon={GraduationCap} tone="info" title="Aarav Sharma" subtitle="8-A · Adm. no. 20261021"
  *     meta={<><Tag>EDTA</Tag><StatusPill>Pending</StatusPill></>} trailing="10:42" onClick={…} />
  *
  * Stack rows inside <ListRows> for hairline dividers.

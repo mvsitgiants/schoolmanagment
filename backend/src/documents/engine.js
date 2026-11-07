@@ -98,7 +98,7 @@ function lookupInNs(lang, ns, key) {
   return null
 }
 
-const COMMON_LOOKUP_NS = ['common', 'ui', 'billing', 'clinical', 'ipd', 'opd', 'pharmacy', 'lab', 'radiology', 'emergency', 'hrms', 'payroll', 'procurement']
+const COMMON_LOOKUP_NS = ['common', 'ui']
 
 export function translateDoc(lang, key, fallback) {
   if (!key) return fallback ?? ''
@@ -126,7 +126,7 @@ const HELPERS = {
   t: (key, fallback, options) => {
     const opts = typeof fallback === 'object' && fallback !== null && 'hash' in fallback ? fallback : options
     const defaultText = typeof fallback === 'string' ? fallback : (opts?.hash?.default ?? key)
-    const lang = opts?.data?.root?.$lang || opts?.data?.root?.patient?.preferredLanguage || opts?.data?.root?.patient?.language || opts?.data?.root?.lang || 'en'
+    const lang = opts?.data?.root?.$lang || opts?.data?.root?.student?.language || opts?.data?.root?.lang || 'en'
     const vars = opts?.hash ?? {}
     const text = esc(translateDoc(lang, key, defaultText)).replace(/&lt;(\/?)b&gt;/g, '<$1b>')
     return safe(text.replace(/\{\{\s*(\w+)\s*\}\}/g, (m, n) => (n in vars ? esc(vars[n] ?? '') : m)))
@@ -137,7 +137,7 @@ const HELPERS = {
     const opts = options ?? (typeof fallback === 'object' && fallback !== null && 'hash' in fallback ? fallback : null)
     const label = typeof fallback === 'string' ? fallback : null
     if (code === undefined || code === null || code === '') return label ?? ''
-    const lang = opts?.data?.root?.$lang || opts?.data?.root?.patient?.preferredLanguage || opts?.data?.root?.patient?.language || opts?.data?.root?.lang || 'en'
+    const lang = opts?.data?.root?.$lang || opts?.data?.root?.student?.language || opts?.data?.root?.lang || 'en'
     return safe(esc(translateDoc(lang, `${prefix}.${String(code).replace(/\./g, '_')}`, label ?? String(code))))
   },
   /** ₹1,234.50 from paise. `{{money total}}`, `{{money total 0}}` for whole rupees. */
@@ -152,7 +152,7 @@ const HELPERS = {
   default: (v, fallback) => (v === undefined || v === null || v === '' ? fallback : v),
   inc: (i) => Number(i) + 1,
   abs: (n) => Math.abs(Number(n) || 0),
-  /** `(array a b c)` — a list, e.g. for `{{join (array patient.age patient.gender) " · "}}`. */
+  /** `(array a b c)` — a list, e.g. for `{{join (array student.class student.section) " · "}}`. */
   array: (...a) => a.slice(0, -1),
   eq: (a, b) => a === b,
   ne: (a, b) => a !== b,
@@ -320,7 +320,7 @@ export function printSafeHtml(html) {
 }
 
 export function renderPage({ title, source, model, layout, timeZone = 'Asia/Kolkata', autoPrint = true, lang }) {
-  const effectiveLang = lang || model?.$lang || model?.patient?.preferredLanguage || model?.patient?.language || model?.lang || 'en'
+  const effectiveLang = lang || model?.$lang || model?.student?.language || model?.lang || 'en'
   const isRtl = effectiveLang === 'ur'
   const body = compile(source)({ ...model, $layout: layout, $tz: timeZone, $now: new Date(), $accent: layout.accent, $lang: effectiveLang }, { allowProtoPropertiesByDefault: false })
   const rtlCss = isRtl ? `

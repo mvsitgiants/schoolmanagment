@@ -11,12 +11,12 @@ import { recordEvent, subscriptionSummary } from '../../services/subscription.js
 
 const router = Router()
 
-const PROFILE_FIELDS = ['legalName', 'email', 'phone', 'website', 'addressLine', 'city', 'state', 'pincode', 'country', 'gstin', 'pan', 'registrationNo', 'nabhNo', 'hfrId', 'logoUrl', 'primaryColor', 'sidebarColor', 'timezone', 'currency', 'dateFormat']
+const PROFILE_FIELDS = ['legalName', 'email', 'phone', 'website', 'addressLine', 'city', 'state', 'pincode', 'country', 'gstin', 'pan', 'registrationNo', 'affiliationNo', 'udiseCode', 'logoUrl', 'primaryColor', 'sidebarColor', 'timezone', 'currency', 'dateFormat']
 
 const shape = (t) => ({ id: String(t._id), name: t.name, slug: t.slug, ...(t.profile ?? {}), verification: t.verification?.at ? { at: t.verification.at } : null })
 
 // what the platform checked when it verified the institution: changing any of them needs a fresh check
-const VERIFIED_FIELDS = ['name', 'legalName', 'gstin', 'pan', 'registrationNo', 'hfrId']
+const VERIFIED_FIELDS = ['name', 'legalName', 'gstin', 'pan', 'registrationNo', 'udiseCode']
 
 // Every signed-in user reads branding and formats (logo, colours, date format).
 router.get('/settings', async (req, res) => {
@@ -39,7 +39,7 @@ const settingsSchema = z.object({
   legalName: optionalText(160), email: optionalText(120), phone: optionalText(30), website: optionalText(160),
   addressLine: optionalText(250), city: optionalText(80), state: optionalText(80), pincode: optionalText(12), country: optionalText(60),
   gstin: z.string().trim().toUpperCase().regex(/^[0-9A-Z]{15}$/, 'GSTIN has 15 letters/digits').optional().or(z.literal('').transform(() => undefined)),
-  pan: optionalText(10), registrationNo: optionalText(60), nabhNo: optionalText(60), hfrId: optionalText(60),
+  pan: optionalText(10), registrationNo: optionalText(60), affiliationNo: optionalText(60), udiseCode: optionalText(60),
   logoUrl: logo, primaryColor: hex, sidebarColor: hex,
   timezone: optionalText(60), currency: optionalText(3), dateFormat: z.enum(['DD/MM/YYYY', 'MM/DD/YYYY', 'YYYY-MM-DD']).optional(),
 })
@@ -52,7 +52,7 @@ router.patch('/settings', requirePermission('core.profile.edit'), async (req, re
   if (input.name) tenant.name = input.name
   // A GSTIN or ABDM facility (HFR) ID belongs to one institution on the platform — the same institution
   // signing up again (a second free trial) shows up here.
-  for (const [field, label] of [['gstin', 'GSTIN'], ['hfrId', 'ABDM facility (HFR) ID']]) {
+  for (const [field, label] of [['gstin', 'GSTIN'], ['udiseCode', 'ABDM facility (HFR) ID']]) {
     const v = input[field]
     if (v && v !== tenant.profile?.[field] && await Tenant.exists({ _id: { $ne: tenant._id }, [`profile.${field}`]: v })) {
       throw conflict(`Another institution on the platform already uses this ${label}. If it is yours, contact support to join the two accounts.`, { fields: { [field]: 'Already registered' } })
@@ -87,7 +87,7 @@ router.get('/setup', requirePermission('core.setup.view'), async (req, res) => {
   const steps = [
     { id: 'profile', title: 'Institution profile', hint: 'Address, contact numbers and registration details used on every print.', path: '/core/profile', done: !!(p.addressLine && p.city && p.phone) },
     { id: 'branding', title: 'Logo & colours', hint: 'Your logo and brand colour across the app and printouts.', path: '/core/profile', done: !!(p.logoUrl || p.primaryColor) },
-    { id: 'departments', title: 'Departments', hint: 'Clinical and support departments with specialities.', path: '/core/departments', done: departments >= 3, count: departments },
+    { id: 'departments', title: 'Departments', hint: 'Academic, administrative and support departments: Mathematics, Science, Accounts, Transport…', path: '/core/departments', done: departments >= 3, count: departments },
     { id: 'roles', title: 'Team & roles', hint: 'Decide what each role can see and do. Start from recommended roles.', path: '/core/setup#roles', done: roles >= 2, count: roles },
     { id: 'users', title: 'Invite your staff', hint: 'Create logins and give each person a role.', path: '/core/users', done: users >= 2, count: users },
     { id: 'subscription', title: 'Choose a plan', hint: 'Pick the plan that fits and keep the workspace running after the trial.', path: '/core/subscription', done: sub.status === 'ACTIVE' },

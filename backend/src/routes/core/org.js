@@ -70,7 +70,6 @@ const deptSchema = z.object({
   name: z.string().trim().min(2, 'Enter a department name').max(100),
   code: z.string().trim().toUpperCase().regex(/^[A-Z0-9-]{2,12}$/, '2–12 letters, digits or dashes'),
   type: z.enum(DEPARTMENT_TYPES),
-  specialities: z.array(z.string().trim().min(1).max(80)).max(30).default([]),
   headUserId: objectId.optional().nullable().or(z.literal('').transform(() => null)),
   description: optionalText(500),
   active: z.boolean().optional(),
@@ -105,7 +104,7 @@ router.patch('/departments/:id', requirePermission('core.departments.edit'), asy
   const before = dept.toObject()
   Object.assign(dept, input)
   await dept.save()
-  const changes = diffFields(before, dept.toObject(), ['name', 'code', 'type', 'specialities', 'headUserId', 'description', 'active'])
+  const changes = diffFields(before, dept.toObject(), ['name', 'code', 'type', 'headUserId', 'description', 'active'])
   if (changes.length) await audit({ action: 'UPDATE', module: 'core', entityType: 'department', entityId: String(dept._id), entityName: dept.name, summary: `Updated department ${dept.name}`, changes }, req)
   res.json({ data: dept })
 })

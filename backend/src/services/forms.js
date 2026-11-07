@@ -1,4 +1,4 @@
-import { FORM_USE_LABEL, STARTER_FORMS, checkFormDefinition, formFields } from '@schoolgiant/shared'
+import { FORM_USES, FORM_USE_LABEL, STARTER_FORMS, checkFormDefinition, formFields } from '@schoolgiant/shared'
 import { FormTemplate, FormVersion } from '../models/forms.js'
 import { audit } from '../platform/audit.js'
 import { getContext } from '../platform/context.js'
@@ -7,7 +7,7 @@ import { badRequest, conflict, notFound } from '../platform/errors.js'
 import { escapeRegex } from '../platform/validate.js'
 
 // Form builder (docs/00 §7 E6). Designs are edited freely; publishing checks the design,
-// freezes it as version N and makes it the one doctors fill. Filled forms keep their
+// freezes it as version N and makes it the one staff and families fill. Filled forms keep their
 // version, so editing a form never changes what an old record says.
 
 /** Starter forms for an institution that has none — published as version 1. */
@@ -96,8 +96,8 @@ export async function duplicateForm(id, req) {
   return createForm({ code, name: `${f.name} (copy)`, description: f.description, use: f.use, specialities: f.specialities, definition: f.definition }, req)
 }
 
-/** Forms doctors can add, at their latest published version. */
-export async function publishedForms(uses = ['OPD_CONSULT', 'ASSESSMENT']) {
+/** Forms staff can use, at their latest published version. */
+export async function publishedForms(uses = FORM_USES.map((u) => u.value)) {
   await ensureStarterForms()
   const forms = await FormTemplate.find({ status: 'PUBLISHED', use: { $in: uses } }).sort({ name: 1 }).lean()
   const versions = await FormVersion.find({ $or: forms.map((f) => ({ formId: f._id, version: f.version })) }).lean()

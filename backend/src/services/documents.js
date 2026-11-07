@@ -51,7 +51,7 @@ export async function renderPrint(docType, raw, { templateId, body, layout: draf
   if (!source) throw notFound('Template')
   const title = def.title(model)
   try {
-    const lang = askedLang || raw.patient?.preferredLanguage || raw.patient?.language || raw.bill?.language || raw.receipt?.language || raw.institution?.defaultLanguage || 'en'
+    const lang = askedLang || raw.student?.language || raw.bill?.language || raw.receipt?.language || raw.institution?.defaultLanguage || 'en'
     const html = renderPage({ title, source, model, layout, timeZone: letterhead.institution?.timezone || 'Asia/Kolkata', autoPrint, lang })
     return { html, title, paper: template.paper ?? 'A4', landscape: template.orientation === 'landscape' && !fixedPaper(template.paper), margins: card ? {} : template.margins ?? {}, skipped: model.skipped ?? 0 }
   } catch (e) {
@@ -73,13 +73,11 @@ export async function printToPdf(docType, raw, { transform, ...opts } = {}) {
   return pdf ? { pdf, fileName: pdfName(p.title), title: p.title } : null
 }
 
-/** A bill prints with the inpatient or OPD template according to the bill itself. */
-const billType = (docType, raw) => (['OPD_BILL', 'IPD_BILL'].includes(docType) && raw?.bill ? (raw.bill.type === 'IPD' ? 'IPD_BILL' : 'OPD_BILL') : docType)
 
 /** One record's document for a signed-in user, checked against the document's permissions. */
 export async function renderDocument(docType, id, auth, opts = {}) {
   const raw = await loadDocument(docType, id, auth)
-  return renderData(billType(docType, raw), raw, opts)
+  return renderData(docType, raw, opts)
 }
 
 async function loadDocument(docType, id, auth) {
@@ -118,7 +116,7 @@ export async function renderDocumentsPdf(docType, ids, auth, opts = {}) {
  */
 export async function renderDocumentPdf(docType, id, auth, opts = {}) {
   const raw = await loadDocument(docType, id, auth)
-  const out = await printToPdf(billType(docType, raw), raw, opts)
+  const out = await printToPdf(docType, raw, opts)
   if (!out) throw new AppError(409, 'PDF download isn’t available just now — use Print instead.', { code: 'PDF_UNAVAILABLE' })
   return out
 }

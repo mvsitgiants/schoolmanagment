@@ -5,7 +5,7 @@ import { TONE } from './tokens'
  * A heading for one block inside a drawer, modal or record page: a small tinted icon,
  * the title, an optional count bubble and hint, and actions on the far side.
  *
- *   <SectionHeader icon={Pill} title={t('…medicines')} count={lines.length} actions={<Button size="sm">…</Button>} />
+ *   <SectionHeader icon={BookOpen} title={t('…subjects')} count={lines.length} actions={<Button size="sm">…</Button>} />
  *   <MedicineList>…</MedicineList>
  */
 export default function SectionHeader({ icon: Icon, title, count, hint, actions, tone = 'brand', divider = false, className }) {
@@ -39,7 +39,7 @@ export default function SectionHeader({ icon: Icon, title, count, hint, actions,
  * `footer` row (an action bar: Save / Sign …). The icon
  * takes the tone only when it means something (danger for allergies, warning for alerts).
  *
- *   <SectionCard icon={Pill} title={t('…medicines')} count={3}>…</SectionCard>
+ *   <SectionCard icon={BookOpen} title={t('…subjects')} count={3}>…</SectionCard>
  *   <SectionCard icon={ShieldAlert} tone="danger" title={t('…allergies')}>…</SectionCard>
  */
 export function SectionCard({ icon: Icon, title, count, hint, actions, footer, tone = 'neutral', flush = false, className, bodyClassName, children }) {

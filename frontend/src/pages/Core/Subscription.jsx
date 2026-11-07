@@ -253,7 +253,7 @@ export default function Subscription() {
                 <p className="mt-3"><span className="font-display text-2xl font-semibold text-ink">{formatINR(perMonth)}</span><span className="text-xs text-ink-faint"> {t('admin.subscription.perMonth')}</span></p>
                 <p className="text-[11px] text-ink-faint">{cyc === 'YEARLY' ? t('admin.subscription.billedYearly', { price: formatINR(p.priceYearly) }) : t('admin.subscription.billedMonthly')} · {t('admin.subscription.plusGst')}</p>
                 <ul className="mt-4 space-y-1.5 text-sm flex-1">
-                  <li className="text-ink">{t('admin.subscription.planUsers', { count: p.limits.users })} · {t('admin.subscription.planBranches', { count: p.limits.branches })}{p.limits.beds ? <> · {t('admin.subscription.planBeds', { count: p.limits.beds })}</> : null}</li>
+                  <li className="text-ink">{t('admin.subscription.planUsers', { count: p.limits.users })} · {t('admin.subscription.planBranches', { count: p.limits.branches })}{p.limits.students ? <> · {t('admin.subscription.planStudents', { count: p.limits.students })}</> : null}</li>
                   {p.features.map((f) => <li key={f} className="flex gap-2 text-ink-muted"><Check className="w-4 h-4 text-brand-500 shrink-0 mt-0.5" />{f}</li>)}
                 </ul>
                 {canManage && (

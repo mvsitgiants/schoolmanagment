@@ -21,9 +21,9 @@ const onSubmitKey = (fn) => (e) => { if ((e.metaKey || e.ctrlKey) && e.key === '
 const area = 'w-full border border-border rounded px-2.5 py-1.5 text-sm outline-none focus:ring-2 focus:ring-brand-500/25 bg-white'
 
 /**
- * Staff discussion on any record — "patient will pay the balance on Friday",
+ * Staff discussion on any record — "parent will pay the balance on Friday",
  * "report requested from the outside lab". Replies are one level deep; the author can
- * edit for a day and delete. Not for clinical notes: those live in the consult.
+ * edit for a day and delete. Not for formal records: those live in their own module.
  *
  *   <RecordComments entityType="invoice" entityId={bill.id} />
  */

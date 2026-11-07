@@ -8,7 +8,7 @@ import { TONE } from './tokens'
 
 // Cell renderers for <DataTable> columns (and anywhere a list shows the same kind of value).
 // Each one is the house style for that kind of value, so every table reads the same:
-//   { key: 'name', render: (_, r) => <PersonCell name={r.name} sub={r.uhid} /> }
+//   { key: 'name', render: (_, r) => <PersonCell name={r.name} sub={r.admissionNo} /> }
 //   { key: 'amount', align: 'right', render: (v) => <Money value={v} /> }
 
 /** Avatar (photo or initials) + name, with a muted second line (ID, phone, role). */
@@ -71,7 +71,7 @@ export function DateCell({ value, time = false, relative = true, tone, className
   )
 }
 
-/** A code / number / ID (UHID, invoice no., batch) as a monospace badge. */
+/** A code / number / ID (admission no., receipt no., batch) as a monospace badge. */
 export function CodeBadge({ children, tone = 'neutral', title, onClick, className }) {
   if (children == null || children === '') return <span className="text-ink-faint">—</span>
   const badge = <Tag tone={tone} mono size="xs" title={title} className={clsx('text-[11.5px]', onClick && 'hover:border-brand-400 hover:text-brand-700', className)}>{children}</Tag>
@@ -103,7 +103,7 @@ export function ExpiryBadge({ value, warnDays = 90, dangerDays = 30, tone: toneO
 }
 
 /**
- * A level against a target — stock on hand vs reorder level, beds used vs total, budget used.
+ * A level against a target — stock on hand vs reorder level, seats filled vs total, budget used.
  * The bar turns amber at/under `warnAt` and red at/under `dangerAt` (for "low is bad"), or
  * the other way round with `highIsBad` (e.g. occupancy, spend). `bare` draws only the bar
  * (for next to text that already states the figures).

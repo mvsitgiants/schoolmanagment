@@ -1,5 +1,5 @@
 // Razorpay Checkout: the browser only opens Razorpay's own window; the server makes the order and
-// checks the signed response. Used by the patient portal (an institution's gateway) and by Subscription
+// checks the signed response. Used by the parent app (an institution's own gateway, for fees) and by Subscription
 // & billing (the platform's account).
 const CHECKOUT_JS = 'https://checkout.razorpay.com/v1/checkout.js'
 let loading = null

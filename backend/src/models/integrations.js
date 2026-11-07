@@ -40,7 +40,7 @@ export const IntegrationConfig = model('IntegrationConfig', integrationConfigSch
 
 // ───────────────────────────────────────────────────────── log
 
-/** One call to or from a provider. Summaries are redacted: no secrets, OTPs or clinical values. */
+/** One call to or from a provider. Summaries are redacted: no secrets, OTPs or personal details. */
 const integrationLogSchema = new Schema({
   provider: { type: String, required: true },
   direction: { type: String, required: true }, // IN · OUT

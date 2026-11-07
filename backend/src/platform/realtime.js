@@ -25,7 +25,7 @@ import { liveSession, onSessionsForgotten } from './middleware.js'
 //    actions are registered with onSocket() and always answer through the ack callback with
 //    `{ ok: true, data }` or `{ ok: false, error, code, details }`.
 //
-// ── Auth: the same access cookie (hx_at) and session row as the REST API. Patient-portal
+// ── Auth: the same access cookie (hx_at) and session row as the REST API. Parent-app
 //    tokens, API keys and platform-owner (superadmin) sessions are refused. Every reconnect
 //    is a fresh handshake, so it is checked again; open sockets are re-checked every minute
 //    and at once when sessions are revoked (sign-out, "sign out of all devices", user
@@ -227,7 +227,7 @@ async function authenticateSocket(token) {
   if (!token || looksLikeApiKey(token)) throw new SocketAuthError('UNAUTHORIZED', 'Sign in to an institution workspace.')
   const claims = verifyAccess(token)
   if (!claims || !claims.sid || !claims.sub) throw new SocketAuthError('UNAUTHORIZED', 'Your sign-in has expired.')
-  if (claims.k) throw new SocketAuthError('FORBIDDEN', 'Live updates are for institution staff.') // patient-portal style token
+  if (claims.k) throw new SocketAuthError('FORBIDDEN', 'Live updates are for institution staff.') // parent-app style token
   if (claims.sa || !claims.tid) throw new SocketAuthError('FORBIDDEN', 'Live updates are for institution staff.')
   const sessionOk = await sessionIsLive(claims.sid)
   if (!sessionOk) throw new SocketAuthError('UNAUTHORIZED', 'Your session has ended. Please sign in again.')

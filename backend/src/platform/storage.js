@@ -5,7 +5,7 @@ import { PassThrough, Writable } from 'node:stream'
 import { pipeline } from 'node:stream/promises'
 import { config } from '../config.js'
 
-// File storage for attachments (E15) and imaging (radiology images). Keys are always made by the
+// File storage for attachments (E15): documents, photos, uploads. Keys are always made by the
 // server ("<tenant>/<yyyy>/<mm>/<uuid>.<ext>"), never by a user. Two backends, same calls:
 //   STORAGE=disk (default) — under UPLOAD_DIR; dev machines and single-server installs.
 //   STORAGE=s3             — an S3 bucket (or any S3-compatible store via S3_ENDPOINT), encrypted

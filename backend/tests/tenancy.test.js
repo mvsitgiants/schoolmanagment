@@ -16,8 +16,8 @@ describe('tenant isolation', () => {
   it('only ever returns the current tenant\'s records', async () => {
     const a = await newInstitution()
     const b = await newInstitution()
-    await runAsTenant(a.tenant._id, () => Department.create({ name: 'Cardiology', code: 'CARD', type: 'CLINICAL' }))
-    await runAsTenant(b.tenant._id, () => Department.create({ name: 'Cardiology', code: 'CARD', type: 'CLINICAL' }))
+    await runAsTenant(a.tenant._id, () => Department.create({ name: 'Mathematics', code: 'MATHS', type: 'ACADEMIC' }))
+    await runAsTenant(b.tenant._id, () => Department.create({ name: 'Mathematics', code: 'MATHS', type: 'ACADEMIC' }))
     const seenByA = await runAsTenant(a.tenant._id, () => Department.find().lean())
     expect(seenByA).toHaveLength(1)
     expect(String(seenByA[0].tenantId)).toBe(String(a.tenant._id))
@@ -28,7 +28,7 @@ describe('tenant isolation', () => {
   it('blocks writing a record into another tenant', async () => {
     const a = await newInstitution()
     const b = await newInstitution()
-    await expect(runAsTenant(a.tenant._id, () => Department.create({ tenantId: b.tenant._id, name: 'X', code: 'XX', type: 'CLINICAL' })))
+    await expect(runAsTenant(a.tenant._id, () => Department.create({ tenantId: b.tenant._id, name: 'X', code: 'XX', type: 'ACADEMIC' })))
       .rejects.toThrow(/Cross-tenant/)
   })
 

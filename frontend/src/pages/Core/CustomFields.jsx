@@ -58,7 +58,7 @@ export default function CustomFields() {
   const [entity, setEntity] = useState(CUSTOM_FIELD_ENTITIES[0].value)
   const [editing, setEditing] = useState(null)
   const { data: rows = [], isLoading } = useQuery({ queryKey: ['custom-fields', entity], queryFn: () => fetchCustomFields(entity) })
-  const refresh = () => { qc.invalidateQueries({ queryKey: ['custom-fields'] }); qc.invalidateQueries({ queryKey: ['patient-meta'] }) }
+  const refresh = () => { qc.invalidateQueries({ queryKey: ['custom-fields'] }); qc.invalidateQueries({ queryKey: ['student-meta'] }) }
   const patch = useMutation({ mutationFn: ({ id, body }) => updateCustomField(id, body), onSuccess: refresh, onError: (e) => showError(e.message) })
   const del = useMutation({ mutationFn: deleteCustomField, onSuccess: () => { refresh(); showSuccess(t('admin.customFields.deleted')) }, onError: (e) => showError(e.message) })
   const canEdit = hasPermission('core.custom-fields.edit')

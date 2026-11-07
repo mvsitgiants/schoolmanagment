@@ -7,7 +7,7 @@ const ObjectId = Schema.Types.ObjectId
 export const TENANT_STATUSES = ['TRIAL', 'ACTIVE', 'PAST_DUE', 'SUSPENDED', 'CANCELLED']
 
 const limitsShape = {
-  users: Number, branches: Number, beds: Number, storageGb: Number,
+  students: Number, users: Number, branches: Number, storageGb: Number,
 }
 
 const tenantSchema = new Schema({
@@ -24,7 +24,7 @@ const tenantSchema = new Schema({
   profile: {
     legalName: String, email: String, phone: String, website: String,
     addressLine: String, city: String, state: String, pincode: String, country: { type: String, default: 'India' },
-    gstin: String, pan: String, registrationNo: String, nabhNo: String, hfrId: String,
+    gstin: String, pan: String, registrationNo: String, affiliationNo: String, udiseCode: String,
     logoUrl: String, primaryColor: String, sidebarColor: String,
     timezone: { type: String, default: 'Asia/Kolkata' },
     currency: { type: String, default: 'INR' },
@@ -240,10 +240,6 @@ const platformSettingSchema = new Schema({
   notice: { message: String, tone: { type: String, enum: ['info', 'warning'], default: 'info' }, active: Boolean, until: Date },
   /** The platform's own Razorpay account, for subscription invoices (not any institution's). Secrets encrypted. */
   razorpay: { keyId: String, keySecret: String, webhookSecret: String },
-  /**
-   * The platform's ABDM integrator account: one client id for every institution, which only adds
-   * its HIP id (Integrations › ABDM). Secret encrypted. verifiedAt: last good session, cleared on change.
-   */
   updatedBy: String,
 }, { timestamps: true, versionKey: false, minimize: false })
 export const PlatformSetting = model('PlatformSetting', platformSettingSchema, 'platform_settings')

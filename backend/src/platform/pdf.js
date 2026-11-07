@@ -68,7 +68,7 @@ function fetchImage(raw) {
   return new Promise((resolve) => {
     let u
     try { u = assertOutboundUrl(raw) } catch { resolve(null); return }
-    const req = https.get(u, { lookup: guardedLookup, timeout: 5_000, headers: { Accept: 'image/*', 'User-Agent': 'HospitalSamadhan-Print/1.0' } }, (res) => {
+    const req = https.get(u, { lookup: guardedLookup, timeout: 5_000, headers: { Accept: 'image/*', 'User-Agent': 'SchoolGiant-Print/1.0' } }, (res) => {
       const type = String(res.headers['content-type'] ?? '').split(';')[0].trim().toLowerCase()
       if (res.statusCode !== 200 || !IMAGE_TYPES.test(type) || Number(res.headers['content-length'] ?? 0) > MAX_IMAGE_BYTES) { res.resume(); resolve(null); return }
       const parts = []

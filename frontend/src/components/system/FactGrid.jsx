@@ -13,7 +13,7 @@ const COLS = {
  *
  *   <FactGrid cols={3} items={[
  *     { label: t('…phone'), value: p.phone, icon: Phone },
- *     { label: t('…uhid'), value: p.uhid, mono: true },
+ *     { label: t('…admissionNo'), value: s.admissionNo, mono: true },
  *     { label: t('…address'), value: p.address, span: 'full' },
  *   ]} />
  *

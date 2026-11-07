@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Download, Eye, FileText, Image as ImageIcon, Loader2, Paperclip, Trash2, Upload } from 'lucide-react'
 import { FILE_ACCEPT, FILE_CATEGORIES, FILE_MAX_MB, RECORD_TYPES } from '@schoolgiant/shared'
-import { deleteFile, downloadFile, fetchFiles, fetchPatientFiles, uploadFile } from '../../api/files'
+import { deleteFile, downloadFile, fetchFiles, fetchStudentFiles, uploadFile } from '../../api/files'
 import { useSnackbar } from '../../context/SnackbarContext'
 import { useFormat } from '../../context/SettingsContext'
 import { usePrompt } from './ConfirmDialog'
@@ -23,9 +23,9 @@ const isImage = (row) => /^image\//i.test(row?.contentType || '')
  * type; removing a file asks why and keeps it in the record's history.
  *
  *   <Attachments entityType="invoice" entityId={bill.id} canAdd={…} />
- *   <Attachments entityType="patient" entityId={p.id} patientScope />   // everything about the patient
+ *   <Attachments entityType="student" entityId={p.id} studentScope />   // everything about the student
  */
-export default function Attachments({ entityType, entityId, patientScope = false, category: defaultCategory = 'OTHER', label: labelProp, canAdd = true, compact = false, onChange }) {
+export default function Attachments({ entityType, entityId, studentScope = false, category: defaultCategory = 'OTHER', label: labelProp, canAdd = true, compact = false, onChange }) {
   const { t } = useTranslation('ui')
   const label = labelProp ?? t('ui.attachments.files')
   const { showError, showSuccess } = useSnackbar()
@@ -41,11 +41,11 @@ export default function Attachments({ entityType, entityId, patientScope = false
   const load = useCallback(() => {
     if (!entityId) { setItems([]); setLoading(false); return }
     setLoading(true)
-    ;(patientScope ? fetchPatientFiles(entityId) : fetchFiles(entityType, entityId))
+    ;(studentScope ? fetchStudentFiles(entityId) : fetchFiles(entityType, entityId))
       .then((data) => setItems(data ?? []))
       .catch(() => setItems([]))
       .finally(() => setLoading(false))
-  }, [entityType, entityId, patientScope])
+  }, [entityType, entityId, studentScope])
   useEffect(() => { load() }, [load])
 
   const uploadFiles = useCallback(async (fileList) => {
@@ -132,7 +132,7 @@ export default function Attachments({ entityType, entityId, patientScope = false
                 <button type="button" onClick={() => view(row)} className="flex-1 min-w-0 text-start group" title={t('ui.attachments.viewName', { name: row.fileName })}>
                   <span className="block truncate text-ink group-hover:text-brand-700 group-hover:underline">{row.title || row.fileName}</span>
                   <span className="block text-[11px] text-ink-faint truncate">
-                    {row.categoryLabel}{patientScope && row.entityType !== 'patient' ? ` · ${t('ui.attachments.onRecord', { type: RECORD_TYPES[row.entityType]?.toLowerCase() })}` : ''} · {row.uploadedBy} · {dateTime(row.uploadedAt)}
+                    {row.categoryLabel}{studentScope && row.entityType !== 'student' ? ` · ${t('ui.attachments.onRecord', { type: RECORD_TYPES[row.entityType]?.toLowerCase() })}` : ''} · {row.uploadedBy} · {dateTime(row.uploadedAt)}
                   </span>
                 </button>
                 <span className="text-xs text-ink-faint shrink-0 hidden sm:inline">{fmtSize(row.size)}</span>

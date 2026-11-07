@@ -9,7 +9,7 @@ import { MongoMemoryReplSet } from 'mongodb-memory-server'
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../../..')
 const dbPath = resolve(root, '.data/mongo')
 mkdirSync(dbPath, { recursive: true })
-const port = Number(process.env.MONGO_PORT) || 27017
+const port = Number(process.env.MONGO_PORT) || 27018
 
 const replSet = await MongoMemoryReplSet.create({
   replSet: { name: 'rs0', count: 1, storageEngine: 'wiredTiger' },

@@ -50,7 +50,7 @@ export default function Dashboard() {
 
       <StatCardRow items={[
         { icon: TrendingUp, label: t('superadmin.dashboard.mrr'), value: formatINRCompact(d.mrr), sub: t('superadmin.dashboard.mrrSub', { arr: formatINRCompact(d.arr), monthly: formatINR(Math.round(d.mrr / 100) * 100) }), tone: 'brand' },
-        { icon: Building2, label: t('superadmin.dashboard.payingInstitutions'), value: d.payingTenants, sub: t('superadmin.dashboard.hospitalsInTotal', { count: d.tenants }), tone: 'success', onClick: () => navigate('/superadmin/tenants?status=ACTIVE') },
+        { icon: Building2, label: t('superadmin.dashboard.payingInstitutions'), value: d.payingTenants, sub: t('superadmin.dashboard.institutionsInTotal', { count: d.tenants }), tone: 'success', onClick: () => navigate('/superadmin/tenants?status=ACTIVE') },
         { icon: Clock, label: t('superadmin.dashboard.onTrial'), value: d.byStatus.TRIAL ?? 0, sub: t('superadmin.dashboard.endingWithin7', { count: d.trialsEnding.length }), tone: 'info', onClick: () => navigate('/superadmin/tenants?status=TRIAL') },
         { icon: Receipt, label: t('superadmin.dashboard.outstanding'), value: formatINRCompact(d.outstanding), sub: t('superadmin.dashboard.unpaidInvoices', { count: d.outstandingCount }), tone: d.outstanding ? 'warning' : 'neutral', onClick: () => navigate('/superadmin/invoices?status=DUE') },
         { icon: IndianRupee, label: t('superadmin.dashboard.collected30d'), value: formatINRCompact(d.collected30d), sub: t('superadmin.dashboard.paymentsRecorded'), tone: 'success', onClick: () => navigate('/superadmin/invoices?status=PAID') },
@@ -58,7 +58,7 @@ export default function Dashboard() {
 
       <div className="grid xl:grid-cols-3 gap-6">
         <TrendArea className="xl:col-span-2" title={t('superadmin.dashboard.newPerWeek')} subtitle={t('superadmin.dashboard.newPerWeekSub')} data={d.signupsByWeek.map((w) => ({ label: w.label, value: w.signups }))} series={[{ key: 'value', name: t('superadmin.dashboard.newInstitutions') }]} />
-        <BreakdownDonut title={t('superadmin.dashboard.byStatus')} centerLabel={t('superadmin.dashboard.hospitalsCenter')}
+        <BreakdownDonut title={t('superadmin.dashboard.byStatus')} centerLabel={t('superadmin.dashboard.institutionsCenter')}
           segments={Object.entries(d.byStatus).filter(([, n]) => n > 0).map(([k, n]) => ({ name: tenantStatusLabel(t, k), value: n, color: TENANT_STATUS[k]?.color }))} />
       </div>
 

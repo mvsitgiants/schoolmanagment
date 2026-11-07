@@ -8,7 +8,7 @@ import { emailReady, getPlatformSettings, markEmailVerified } from './platformSe
 
 // Email the platform itself sends to staff and institution owners (security notices, and later
 // sign-in codes, invites and subscription invoices), over the SMTP server set in Superadmin ›
-// Settings. Not the institution's own patient messaging (services/messaging.js).
+// Settings. Not the institution's own family messaging (services/messaging.js).
 
 const TIMEOUT_MS = 15_000
 
@@ -47,7 +47,7 @@ const TEMPLATES = {
   }),
   portalCode: ({ institution, code, minutes }) => ({
     subject: `${code} is your ${institution} sign-in code`,
-    lines: [`Enter ${code} to sign in to the ${institution} patient portal. It works for ${minutes} minutes.`, 'If you didn’t try to sign in, ignore this email. Never share this code — the institution will never ask for it.'],
+    lines: [`Enter ${code} to sign in to the ${institution} parent app. It works for ${minutes} minutes.`, 'If you didn’t try to sign in, ignore this email. Never share this code — the institution will never ask for it.'],
   }),
   resetCode: ({ code, minutes }) => ({
     subject: `${code} is your password reset code`,

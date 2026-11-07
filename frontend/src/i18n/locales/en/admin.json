@@ -18,7 +18,7 @@
         "fullName": "Full name",
         "fullNamePlaceholder": "e.g. Dr. Kavya Reddy",
         "designation": "Designation",
-        "designationPlaceholder": "e.g. Staff nurse",
+        "designationPlaceholder": "e.g. Mathematics teacher",
         "email": "Email (sign-in)",
         "mobile": "Mobile",
         "roles": "Roles",
@@ -31,7 +31,7 @@
         "imaging": "Imaging they report",
         "imagingHint": "Radiologists: new studies of these modalities are announced to them; “My modalities” filters their list. None = all.",
         "branch": "Branch",
-        "mainHospital": "Main hospital",
+        "mainInstitution": "Main institution",
         "password": "Password",
         "generateTemp": "Generate a temporary password",
         "setNow": "Set a password now",
@@ -129,182 +129,62 @@
         "unknownToken": "Unknown token {{token}}"
       },
       "docs": {
-        "UHID": {
-          "label": "Patient UHID",
-          "hint": "One per patient, shared by every branch."
+        "ADMISSION_NO": {
+          "label": "Admission number",
+          "hint": "One per student for life, shared by every campus."
         },
-        "APPOINTMENT": {
-          "label": "Appointment"
+        "ENQUIRY": {
+          "label": "Admission enquiry"
         },
-        "OP_VISIT": {
-          "label": "OPD visit"
+        "APPLICATION": {
+          "label": "Admission application"
         },
-        "IP_ADMISSION": {
-          "label": "IP admission"
+        "TC": {
+          "label": "Transfer certificate"
+        },
+        "CERTIFICATE": {
+          "label": "Certificate"
+        },
+        "FEE_INVOICE": {
+          "label": "Fee invoice / challan"
+        },
+        "RECEIPT": {
+          "label": "Fee receipt"
+        },
+        "REFUND": {
+          "label": "Fee refund"
         },
         "GATE_PASS": {
           "label": "Gate pass"
         },
-        "ER_VISIT": {
-          "label": "Emergency visit"
-        },
-        "MLC": {
-          "label": "Medico-legal case"
-        },
-        "OT_CASE": {
-          "label": "Operation"
-        },
-        "PREAUTH": {
-          "label": "Pre-authorisation"
-        },
-        "CLAIM": {
-          "label": "Insurance claim"
-        },
-        "MRD_REQUEST": {
-          "label": "Medical record request"
-        },
-        "CSSD_CYCLE": {
-          "label": "Sterilisation cycle"
-        },
-        "CSSD_ISSUE": {
-          "label": "CSSD issue"
-        },
-        "AMB_REQUEST": {
-          "label": "Ambulance request"
-        },
-        "AMB_TRIP": {
-          "label": "Ambulance trip"
+        "COMPLAINT": {
+          "label": "Complaint"
         },
         "EMPLOYEE": {
           "label": "Employee code",
-          "hint": "One per employee, shared by every branch."
-        },
-        "HR_REQUISITION": {
-          "label": "Staff requisition"
-        },
-        "EXPENSE_CLAIM": {
-          "label": "Expense claim"
-        },
-        "PAYROLL_RUN": {
-          "label": "Payroll run"
+          "hint": "One per employee, shared by every campus."
         },
         "PAYSLIP": {
           "label": "Payslip",
           "hint": "Dated by the payroll month, not the day it is calculated."
         },
-        "PAYROLL_LOAN": {
-          "label": "Staff loan / advance"
+        "LIBRARY_ACCESSION": {
+          "label": "Library accession number"
         },
-        "PAGE_CALL": {
-          "label": "Staff call / code"
-        },
-        "COMPLAINT": {
-          "label": "Complaint"
-        },
-        "BILL": {
-          "label": "Bill / invoice"
-        },
-        "RECEIPT": {
-          "label": "Receipt"
-        },
-        "RX": {
-          "label": "Prescription"
-        },
-        "CERTIFICATE": {
-          "label": "Certificate / letter"
-        },
-        "RAD_ACCESSION": {
-          "label": "Imaging accession"
-        },
-        "LAB_SAMPLE": {
-          "label": "Lab sample"
-        },
-        "LAB_DISPATCH": {
-          "label": "Outsourced-test dispatch"
-        },
-        "PH_BILL": {
-          "label": "Pharmacy bill"
-        },
-        "PH_RETURN": {
-          "label": "Pharmacy return"
+        "OUTPASS": {
+          "label": "Hostel outpass"
         },
         "PO": {
           "label": "Purchase order"
         },
-        "GRN": {
-          "label": "Goods receipt"
-        },
-        "PURCHASE_REQ": {
-          "label": "Purchase requisition"
-        },
-        "DEBIT_NOTE": {
-          "label": "Purchase return (debit note)"
-        },
-        "TRANSFER": {
-          "label": "Stock transfer"
-        },
-        "INDENT": {
-          "label": "Indent"
-        },
-        "ADJUSTMENT": {
-          "label": "Stock adjustment"
-        },
-        "STOCK_COUNT": {
-          "label": "Physical stock count"
+        "STORE_SALE": {
+          "label": "Uniform / book sale"
         },
         "FIN_JOURNAL": {
           "label": "Journal voucher"
         },
-        "FIN_RECEIPT": {
-          "label": "Receipt voucher"
-        },
         "FIN_PAYMENT": {
           "label": "Payment voucher"
-        },
-        "FIN_CONTRA": {
-          "label": "Contra voucher"
-        },
-        "FIN_SALES": {
-          "label": "Sales voucher"
-        },
-        "FIN_PURCHASE": {
-          "label": "Purchase voucher"
-        },
-        "DOC_PAYOUT": {
-          "label": "Doctor payout statement"
-        },
-        "INCIDENT": {
-          "label": "Incident report"
-        },
-        "QUALITY_AUDIT": {
-          "label": "Quality audit"
-        },
-        "HAI_CASE": {
-          "label": "Infection (HAI) case"
-        },
-        "BB_DONOR": {
-          "label": "Blood donor ID",
-          "hint": "One per donor, kept for every later donation."
-        },
-        "BB_UNIT": {
-          "label": "Blood bag / unit number",
-          "hint": "Printed as the bag barcode; components add a letter (R, F, P, C)."
-        },
-        "BB_REQUEST": {
-          "label": "Blood request"
-        },
-        "BB_ISSUE": {
-          "label": "Blood issue"
-        },
-        "ASSET_TAG": {
-          "label": "Equipment asset tag",
-          "hint": "Printed on the asset’s barcode / QR label."
-        },
-        "ASSET_WO": {
-          "label": "Maintenance work order"
-        },
-        "ASSET_BREAKDOWN": {
-          "label": "Equipment breakdown ticket"
         }
       },
       "resets": {
@@ -317,29 +197,18 @@
     },
     "printTemplates": {
       "docs": {
-        "RX": "Prescription",
-        "OPD_BILL": "OPD bill & receipt",
-        "LAB_REPORT": "Lab report",
-        "RAD_REPORT": "Radiology report",
-        "PHARMACY_BILL": "Pharmacy bill",
-        "CERTIFICATE": "Certificates & letters",
-        "DISCHARGE_SUMMARY": "Discharge summary",
-        "IPD_BILL": "Inpatient bill",
-        "INTERIM_BILL": "Inpatient interim bill",
-        "GATE_PASS": "Gate pass",
-        "OT_NOTE": "Operation note",
-        "ER_RECORD": "ER record",
-        "MLC_INTIMATION": "MLC police intimation",
-        "ADMISSION_FORM": "Admission form & consent",
-        "DEPOSIT_RECEIPT": "Deposit receipt",
-        "HR_OFFER_LETTER": "Offer letter",
-        "HR_APPOINTMENT_LETTER": "Appointment letter",
-        "HR_RELIEVING_LETTER": "Relieving letter",
-        "HR_EXPERIENCE_LETTER": "Experience certificate",
+        "FEE_RECEIPT": "Fee receipt",
+        "FEE_INVOICE": "Fee invoice / challan",
+        "REPORT_CARD": "Report card",
+        "HALL_TICKET": "Hall ticket",
+        "TRANSFER_CERTIFICATE": "Transfer certificate",
+        "BONAFIDE": "Bonafide & character certificates",
+        "ADMISSION_FORM": "Admission form",
+        "STUDENT_ID_CARD": "Student ID card",
         "PAYSLIP": "Payslip",
-        "PURCHASE_ORDER": "Purchase order",
-        "HR_ID_CARD": "Staff ID card",
-        "CREDIT_NOTE": "Credit note"
+        "HR_OFFER_LETTER": "Offer letter",
+        "STAFF_ID_CARD": "Staff ID card",
+        "PURCHASE_ORDER": "Purchase order"
       },
       "papers": {
         "A4": "A4 (210 × 297 mm)",
@@ -360,7 +229,7 @@
         },
         "NONE": {
           "label": "No letterhead",
-          "hint": "Just the hospital name in one line, e.g. for receipt rolls."
+          "hint": "Just the institution name in one line, e.g. for receipt rolls."
         }
       },
       "title": "Print templates",
@@ -378,18 +247,18 @@
       },
       "idLabels": {
         "registrationNo": "Registration no.",
-        "nabhNo": "NABH",
+        "affiliationNo": "Board affiliation no.",
         "gstin": "GSTIN",
-        "hfrId": "HFR ID"
+        "udiseCode": "UDISE code"
       },
       "letterhead": {
         "title": "Letterhead",
         "subtitle": "Printed at the top of every document that uses “Print our letterhead”.",
         "saved": "Letterhead saved. Every document prints with it from now on.",
-        "profileNote": "The name, logo, address, phone and registration numbers come from the <link>hospital profile</link>. Here you choose how they are laid out.",
+        "profileNote": "The name, logo, address, phone and registration numbers come from the <link>institution profile</link>. Here you choose how they are laid out.",
         "alignment": "Alignment",
-        "alignLeftHint": "Hospital on the left, the document’s own details on the right.",
-        "alignCenterHint": "Hospital centred; the document’s details under it.",
+        "alignLeftHint": "Institution on the left, the document’s own details on the right.",
+        "alignCenterHint": "Institution centred; the document’s details under it.",
         "alignLeft": "Left",
         "alignCenter": "Centred",
         "logo": "Logo",
@@ -400,7 +269,7 @@
         "tagline": "Tagline",
         "taglineHint": "One line under the name, e.g. “Caring since 1998”.",
         "accent": "Accent colour",
-        "accentHint": "The hospital name and the rule under the letterhead. Empty uses your brand colour.",
+        "accentHint": "The institution name and the rule under the letterhead. Empty uses your brand colour.",
         "useBrand": "Use brand colour",
         "footer": "Footer for every document",
         "footerHint": "e.g. “24 × 7 emergency: 080 4000 1000”. A template can replace it.",
@@ -527,87 +396,57 @@
         }
       },
       "events": {
-        "appointments_booked": {
-          "label": "Appointment booked",
-          "when": "As soon as an appointment is booked."
-        },
-        "appointments_rescheduled": {
-          "label": "Appointment moved",
-          "when": "When an appointment gets a new date, time or doctor."
-        },
-        "appointments_cancelled": {
-          "label": "Appointment cancelled",
-          "when": "When the hospital cancels an appointment."
-        },
-        "appointments_reminder": {
-          "label": "Appointment reminder",
-          "when": "A day before, and a few hours before (Settings › Appointments)."
-        },
-        "opd_rx_issued": {
-          "label": "Prescription",
-          "when": "When the doctor signs a consult with medicines."
-        },
-        "lab_report_ready": {
-          "label": "Lab report ready",
-          "when": "When every test on a lab order is verified."
-        },
-        "patients_otp": {
+        "portal_otp": {
           "label": "One-time code",
-          "when": "When someone books online or checks in at the kiosk with their mobile number."
+          "when": "When a parent or student signs in to the app with their mobile number."
         },
-        "billing_bill_created": {
-          "label": "Bill and receipt",
-          "when": "When a bill is saved at the billing counter."
+        "attendance_absent": {
+          "label": "Absence alert",
+          "when": "When a student is marked absent for the day."
         },
-        "feedback_requested": {
-          "label": "Feedback request",
-          "when": "After discharge or a signed OPD consult (Settings › Feedback)."
+        "fees_receipt": {
+          "label": "Fee receipt",
+          "when": "When a fee payment is received, at the counter or online."
         },
-        "radiology_images_shared": {
-          "label": "Imaging shared with a doctor",
-          "when": "When staff share a study’s images with an outside doctor and type in their mobile or email."
+        "fees_due_reminder": {
+          "label": "Fee due reminder",
+          "when": "Before and after an installment’s last date, while fees are unpaid."
+        },
+        "exams_results_published": {
+          "label": "Results published",
+          "when": "When the results and report cards of an exam are published."
+        },
+        "communication_notice": {
+          "label": "Notice or circular",
+          "when": "When a notice is published to families."
         }
       },
       "varHelp": {
-        "patient_name": "Patient’s full name",
-        "patient_firstName": "Patient’s first name",
-        "patient_uhid": "UHID",
-        "hospital_name": "Hospital name",
-        "hospital_phone": "Hospital phone",
-        "appt_no": "Appointment number",
-        "appt_date": "Appointment date, e.g. Tue, 7 Oct",
-        "appt_time": "Appointment time, e.g. 10:30 AM",
-        "appt_oldDate": "Date before rescheduling",
-        "appt_oldTime": "Time before rescheduling",
-        "appt_reason": "Reason given for cancelling",
-        "doctor_name": "Doctor’s name",
-        "bill_no": "Bill number",
-        "bill_amount": "Bill amount, e.g. ₹850",
-        "bill_paid": "Amount paid",
-        "bill_due": "Balance due",
-        "appt_when": "“today” or “tomorrow”",
-        "rx_no": "Prescription number",
-        "rx_link": "Link to view and download the prescription",
-        "visit_date": "Date of the visit",
-        "followUp_text": "The next visit, if one was booked (empty otherwise)",
-        "report_link": "Link to view and download the report",
-        "report_tests": "Tests on the report",
+        "student_name": "Student’s full name",
+        "student_firstName": "Student’s first name",
+        "student_admissionNo": "Admission number",
+        "student_class": "Class and section, e.g. 8-A",
+        "guardian_name": "Parent or guardian the message goes to",
+        "institution_name": "Institution name",
+        "institution_phone": "Institution phone",
+        "attendance_date": "Date of the absence, e.g. Tue, 7 Oct",
+        "receipt_no": "Receipt number",
+        "receipt_amount": "Amount paid, e.g. ₹12,500",
+        "receipt_date": "Date paid",
+        "fees_due": "Fee still due, e.g. ₹8,000",
+        "fees_dueDate": "Last date to pay",
+        "pay_link": "Link to pay online",
+        "exam_name": "Exam name, e.g. Half-yearly 2026",
+        "result_link": "Link to the report card",
+        "notice_title": "Title of the notice",
+        "notice_link": "Link to read the notice",
         "otp_code": "The one-time code",
-        "otp_minutes": "Minutes the code stays valid",
-        "feedback_link": "Link to the feedback form",
-        "feedback_visit": "“visit” or “stay”",
-        "feedback_days": "Days the link works",
-        "share_link": "Link to the shared images",
-        "share_study": "The imaging study, e.g. CT Brain",
-        "share_patient": "Patient’s name",
-        "share_expires": "When the link stops working",
-        "share_by": "Who shared it",
-        "recipient_name": "The doctor it is sent to"
+        "otp_minutes": "Minutes the code stays valid"
       },
       "title": "Notification rules",
-      "subtitle": "The SMS, WhatsApp and email patients get when something happens — the wording, how it is sent, and what went out.",
+      "subtitle": "The SMS, WhatsApp and email families get when something happens — the wording, how it is sent, and what went out.",
       "tabs": {
-        "messages": "Patient messages",
+        "messages": "Family messages",
         "delivery": "Delivery",
         "log": "Message log"
       },
@@ -631,7 +470,7 @@
       "empty": "Empty",
       "savedRule": "Saved “{{name}}”.",
       "undoChanges": "Undo changes",
-      "consentNote": "Patients get these only if they agreed to that channel at registration, and only once the channel is set up under Delivery.",
+      "consentNote": "Families get these only if they haven’t opted out of that channel (email needs a yes), and only once the channel is set up under Delivery.",
       "secretSaved": "Saved. Leave blank to keep it.",
       "method": "Method",
       "bodyAs": "Body as",
@@ -658,7 +497,7 @@
       "route": "Route",
       "transactional": "Transactional",
       "promotional": "Promotional",
-      "msg91Note": "Each message needs its DLT template id (Patient messages › SMS). Delivery reports: Integrations › SMS & WhatsApp.",
+      "msg91Note": "Each message needs its DLT template id (Family messages › SMS). Delivery reports: Integrations › SMS & WhatsApp.",
       "phoneNumberId": "Phone number id",
       "accessToken": "Access token",
       "apiVersion": "API version",
@@ -678,7 +517,7 @@
       "requeued": "Queued to send again.",
       "all": "All",
       "last7Days": "Last 7 days · {{status}}:",
-      "searchPlaceholder": "Search patient, number or text…",
+      "searchPlaceholder": "Search student, number or text…",
       "channel": "Channel",
       "cols": {
         "when": "When",
@@ -686,7 +525,7 @@
       },
       "testMessage": "Test message",
       "emptyTitle": "No messages yet",
-      "emptyHint": "Book an appointment or save a bill: the patient’s messages appear here.",
+      "emptyHint": "Mark a student absent or collect a fee: the family’s messages appear here.",
       "sendAgain": "Send again",
       "sentWith": "Sent with",
       "attempts": "Attempts",
@@ -696,13 +535,13 @@
     },
     "workflows": {
       "types": {
-        "billing_discount": {
-          "label": "Discount above the limit",
-          "help": "A cashier asks before saving a bill with a bigger discount than their role allows. Once approved, they can save that patient’s bill with up to the approved discount, once."
+        "fees_concession": {
+          "label": "Fee concession above the limit",
+          "help": "The accountant asks before collecting fees with a bigger concession than their role allows. Once approved, they can collect that student’s fee with up to the approved concession, once."
         },
-        "billing_cancel": {
-          "label": "Cancel a bill",
-          "help": "For a bill the cashier can’t cancel alone: someone else’s, from an earlier day, or with a refund above their limit. Approving cancels the bill; the refund is recorded at the cashier’s counter."
+        "fees_cancel": {
+          "label": "Cancel a fee receipt",
+          "help": "For a receipt the accountant can’t cancel alone: someone else’s, from an earlier day, or above their limit. Approving cancels the receipt."
         }
       },
       "title": "Workflows & approvals",
@@ -733,9 +572,9 @@
     },
     "subscription": {
       "limits": {
-        "users": "Users",
-        "branches": "Branches",
-        "beds": "Beds",
+        "students": "Students",
+        "users": "Staff logins",
+        "branches": "Campuses",
         "storageGb": "Storage"
       },
       "title": "Subscription & billing",
@@ -759,7 +598,7 @@
         "PLAN_CHANGE": "Plan change"
       },
       "events": {
-        "VERIFIED": "Hospital verified",
+        "VERIFIED": "Institution verified",
         "VERIFICATION_REMOVED": "Verification removed",
         "TRIAL_STARTED": "Free trial started",
         "PLAN_CHANGED": "Plan changed",
@@ -811,7 +650,7 @@
       "customerSince": "Customer since",
       "payNote": "Pay by bank transfer or UPI using the invoice number as reference. Online card/UPI checkout is coming soon; your account manager records the payment and the subscription activates immediately.",
       "usage": "Usage",
-      "usageNote": "Beds and storage are counted once the IPD module and file storage are in use.",
+      "usageNote": "Students are counted when they are active; storage once files are attached.",
       "plans": "Plans",
       "mostPopular": "Most popular",
       "perMonth": "/ month",
@@ -822,8 +661,6 @@
       "planUsers_other": "{{count}} users",
       "planBranches_one": "{{count}} branch",
       "planBranches_other": "{{count}} branches",
-      "planBeds_one": "{{count}} bed",
-      "planBeds_other": "{{count}} beds",
       "whatEachIncludes": "What each plan includes",
       "module": "Module",
       "invoices": "Invoices",
@@ -870,11 +707,13 @@
       "couponRemove": "Remove",
       "couponApplied": "{{code}} applied — the price above includes it.",
       "downloadPdf": "Download PDF",
-      "pdfFailed": "The PDF couldn’t be made just now. Use Print instead."
+      "pdfFailed": "The PDF couldn’t be made just now. Use Print instead.",
+      "planStudents_one": "up to {{count}} student",
+      "planStudents_other": "up to {{count}} students"
     },
     "allPages": {
       "title": "All pages & actions",
-      "subtitle": "Everything in your {{plan}} plan — what Hospital Admin can open. Use it as the map when designing roles.",
+      "subtitle": "Everything in your {{plan}} plan — what Institution Admin can open. Use it as the map when designing roles.",
       "roles": "Roles",
       "stats": {
         "modules": "Modules",
@@ -934,7 +773,7 @@
         "upgradeToUnlock": "Upgrade to unlock",
         "youHaveEverything": "You have everything"
       },
-      "dependencyNote": "Some modules need others — IPD needs Billing, Nursing needs IPD. Switch the needed module on first; a module others depend on can't be switched off until they are.",
+      "dependencyNote": "Some modules need others — Attendance needs Students, Online tests need LMS. Switch the needed module on first; a module others depend on can’t be switched off until they are.",
       "reason": {
         "alwaysOn": "Always on",
         "notInPlan": "Not in the {{plan}} plan",
@@ -1027,8 +866,8 @@
         "toReviewSub": "Sensitive actions or duty overlap"
       },
       "onlyAdmin": {
-        "title": "Only the Hospital Admin role exists",
-        "body": "Create roles for your team — Front Desk, Doctor, Nurse, Cashier… Start from 22 recommended roles or design your own, then decide page by page what each can do.",
+        "title": "Only the Institution Admin role exists",
+        "body": "Create roles for your team — Principal, Class Teacher, Accountant, Front Desk… Start from the recommended roles or design your own, then decide page by page what each one can do.",
         "pickRecommended": "Pick recommended roles",
         "blank": "Blank role"
       },
@@ -1062,14 +901,13 @@
     },
     "setupHub": {
       "title": "Set up {{name}}",
-      "yourHospital": "your hospital",
+      "yourInstitution": "your institution",
       "subtitle": "A few steps and your team can start working without paper.",
       "allSet": "All set — your workspace is ready.",
       "stepsDone": "{{done}} of {{total}} steps done",
       "next": "Next: {{title}}",
-      "clinicalNote": "Clinical modules (OPD, IPD, Lab, Pharmacy…) open as their phases are built. Roles you create now already include their pages, so access is ready the day each module arrives.",
       "teamTitle": "Team & roles",
-      "teamSubtitle": "Every hospital starts with one role. Create the rest for your team, then decide page by page what each can see and do.",
+      "teamSubtitle": "Every institution starts with one role. Create the rest for your team, then decide page by page what each can see and do.",
       "builtIn": "built-in",
       "you": "you",
       "administrators": "administrators",
@@ -1092,7 +930,7 @@
       "createdSkipped_other": "Created {{count}} roles · {{skipped}} skipped. Open any of them to fine-tune what it can see and do.",
       "steps": {
         "profile": {
-          "title": "Hospital profile",
+          "title": "Institution profile",
           "hint": "Address, contact numbers and registration details used on every print."
         },
         "branding": {
@@ -1101,7 +939,7 @@
         },
         "departments": {
           "title": "Departments",
-          "hint": "Clinical and support departments with specialities."
+          "hint": "Academic, administrative and support departments: Mathematics, Science, Accounts, Transport…"
         },
         "roles": {
           "title": "Team & roles",
@@ -1123,17 +961,13 @@
         "rolesConfigured": "Roles configured for {{name}} staff. Click to review or adjust permissions.",
         "openRoleDirectory": "Open Role Directory →",
         "userCount": "{{count}} users",
-        "rolesIntro": "Ready-to-use clinical, nursing, front-office and diagnostic roles. Each role maps to real hospital workflows.",
+        "rolesIntro": "Ready-to-use teaching, office and campus roles. Each role maps to how schools and colleges really work.",
         "allRoles": "All Roles",
-        "clinical": "Clinical",
-        "frontOffice": "Front Office",
-        "diagnostics": "Diagnostics",
         "filterTemplates": "Filter role templates…",
         "permsShort": "perms",
         "clearSelection": "Clear selection ({{count}})",
         "overallReadiness": "Overall Readiness",
         "milestonesComplete": "{{done}} of {{total}} milestones complete",
-        "clinicalWings": "Clinical Wings",
         "departmentsActive": "Departments active (min. 3)",
         "configuredRoles": "Configured Roles",
         "accessTiers": "Access tiers provisioned",
@@ -1145,33 +979,32 @@
         "recommendedNext": "Recommended Next Action",
         "priority": "Priority",
         "milestonesTitle": "Core Onboarding Milestones",
-        "milestonesSubtitle": "Complete these 6 foundational configurations to enable paperless hospital operations.",
+        "milestonesSubtitle": "Complete these 6 foundational configurations to enable paperless institution operations.",
         "finishedCount": "{{done}}/{{total}} Finished",
         "step": "Step",
         "completed": "Completed",
         "pending": "Pending",
         "reviewSettings": "Review Settings",
         "configureMilestone": "Configure Milestone",
-        "modularArchitecture": "Modular Clinical Architecture",
+        "modularArchitecture": "One modular suite",
         "ready": "Ready",
         "viewAllModules": "View All Modules",
-        "profileTitle": "Hospital Profile & Letterhead",
-        "profileSubtitle": "Official hospital details shown on Rx, Lab Reports, Inpatient Bills and Discharge Summaries.",
-        "editProfile": "Edit Hospital Profile",
+        "profileTitle": "Institution Profile & Letterhead",
+        "profileSubtitle": "Official institution details shown on receipts, report cards, certificates and letters.",
+        "editProfile": "Edit Institution Profile",
         "letterheadPreview": "Letterhead & Document Header Live Simulation",
         "regLabel": "Reg:",
-        "departmentsTitle": "Clinical & Support Departments",
-        "departmentsSubtitle": "Organize your medical specialities, wards, diagnostic centers and support teams.",
+        "departmentsTitle": "Departments",
+        "departmentsSubtitle": "Academic departments (Mathematics, Science…), the office and support teams.",
         "manageDepartments": "Manage Departments",
-        "doctorsAssigned": "{{count}} doctors assigned",
-        "modulesTitle": "Hospital Samadhan modules architecture",
-        "modulesSubtitle": "Full suite of specialized clinical and administrative workflows designed for Indian hospitals.",
+        "modulesTitle": "SchoolGiant modules architecture",
+        "modulesSubtitle": "Every module of the suite, by the roadmap phase it ships in. Roles you create now already include the modules still to come.",
         "exploreAllPages": "Explore All Pages",
         "navOverview": "Overview & Checklist",
-        "navProfile": "Hospital Profile",
-        "navDepartments": "Departments & Wings",
+        "navProfile": "Institution Profile",
+        "navDepartments": "Departments",
         "navRoles": "Team & Role Access",
-        "navModules": "Clinical Ecosystem",
+        "navModules": "Modules & roadmap",
         "liveOperational": "Live & Operational",
         "onboardingCenter": "Onboarding Command Center",
         "milestonesCompleted": "{{done}} of {{total}} milestones completed",
@@ -1186,64 +1019,24 @@
         "stepBadges": {
           "profile": "Identity & Info",
           "branding": "Logo & Colors",
-          "departments": "Clinical Structure",
+          "departments": "Academic Structure",
           "roles": "Governance & RBAC",
           "users": "Staff Accounts",
-          "subscription": "Hospital Plan"
+          "subscription": "Institution Plan"
         },
-        "clinicalModules": {
-          "opd": {
-            "name": "OPD Consultation",
-            "tag": "Outpatient",
-            "desc": "Queues, doctor desk, vitals & electronic prescriptions"
-          },
-          "ipd": {
-            "name": "IPD & Wards",
-            "tag": "Inpatient",
-            "desc": "Bed matrix, admissions, daily rounds & discharge summaries"
-          },
-          "emergency": {
-            "name": "Emergency & Triage",
-            "tag": "Emergency",
-            "desc": "ESI triage, red/yellow/green bays & MLC intimation"
-          },
-          "lab": {
-            "name": "Laboratory (LIS)",
-            "tag": "Diagnostics",
-            "desc": "Worklists, normal ranges, panic values & report signing"
-          },
-          "radiology": {
-            "name": "Radiology & PACS",
-            "tag": "Imaging",
-            "desc": "DICOM web viewer, ultrasound, CT/MRI & radiologist notes"
-          },
-          "pharmacy": {
-            "name": "Pharmacy & Dispensing",
-            "tag": "Medicines",
-            "desc": "Rx queue, batch tracking, expiry & POS billing"
-          },
-          "ot": {
-            "name": "Operating Theatre",
-            "tag": "Surgical",
-            "desc": "Theatre slots, WHO safety checklist & PAC assessment"
-          },
-          "cssd": {
-            "name": "CSSD & Sterilization",
-            "tag": "Sterile",
-            "desc": "Sets, autoclaving cycles & pack tracking"
-          },
-          "billing": {
-            "name": "Billing & Cashier",
-            "tag": "Finance",
-            "desc": "Interim bills, deposits, insurance claims & TPA"
-          },
-          "hrms": {
-            "name": "HRMS & Payroll",
-            "tag": "Staffing",
-            "desc": "Biometric attendance, shift rosters, salary & leaves"
-          }
-        }
-      }
+        "teaching": "Teaching",
+        "office": "Office",
+        "campus": "Campus & support",
+        "departmentsKpi": "Departments",
+        "staffAssigned_one": "{{count}} staff member",
+        "staffAssigned_other": "{{count}} staff",
+        "noDepartments": "No departments yet. Add your first three to finish this step.",
+        "sampleTagline": "Affiliated to CBSE, New Delhi",
+        "sampleAddress": "Your address",
+        "sampleCity": "City",
+        "affiliationLabel": "Affiliation no."
+      },
+      "modulesNote": "Modules open as their roadmap phase is built. Roles you create now already include their pages, so access is ready the day a module arrives."
     },
     "apiKeys": {
       "title": "API keys & webhooks",
@@ -1257,7 +1050,7 @@
       "editTitle": "Edit {{name}}",
       "newKey": "New API key",
       "createKey": "Create key",
-      "namePlaceholder": "Lab partner integration",
+      "namePlaceholder": "e.g. School website",
       "expiresOn": "Expires on",
       "expiresHint": "Blank: never",
       "scopesLabel_one": "What it may do ({{count}})",
@@ -1305,28 +1098,16 @@
       "eventsLabel_one": "Events ({{count}})",
       "eventsLabel_other": "Events ({{count}})",
       "events": {
-        "appointments_booked": "Appointment booked",
-        "appointments_rescheduled": "Appointment moved",
-        "appointments_cancelled": "Appointment cancelled",
-        "appointments_no_show": "Appointment no-show",
-        "opd_consult_signed": "OPD consult signed",
-        "opd_rx_issued": "Prescription issued",
-        "lab_report_ready": "Lab report ready",
-        "billing_bill_created": "Bill created",
-        "billing_payment_received": "Payment received",
-        "billing_bill_cancelled": "Bill cancelled",
-        "billing_final_bill_created": "IPD final bill",
-        "billing_deposit_changed": "Deposit changed",
-        "ipd_discharged": "Patient discharged",
-        "pharmacy_sale_created": "Pharmacy sale",
-        "insurance_preauth_approved": "Pre-auth approved",
-        "insurance_claim_settled": "Claim settled",
-        "procurement_po_approved": "Purchase order approved",
-        "procurement_grn_posted": "Goods received",
+        "students_admitted": "Student admitted",
+        "students_left": "Student left / TC issued",
+        "attendance_absent": "Student marked absent",
+        "exams_results_published": "Results published",
+        "fees_receipt": "Fee received",
+        "fees_refund": "Fee refunded",
+        "admissions_application_submitted": "Application submitted",
         "hrms_employee_onboarded": "Employee joined",
         "hrms_employee_terminated": "Employee exited",
         "payroll_paid": "Payroll paid",
-        "ambulance_trip_completed": "Ambulance trip completed",
         "integrations_payment_captured": "Online payment captured"
       },
       "deliveryStatus": {
@@ -1358,7 +1139,7 @@
       "paused": "Paused",
       "pausedFailing": "Paused (failing)",
       "noWebhooks": "No webhooks",
-      "noWebhooksHint": "Send events like “bill created” or “lab report ready” to your own systems.",
+      "noWebhooksHint": "Send events like “fee received” or “results published” to your own systems.",
       "sendTest": "Send test",
       "rotateSecret": "Rotate secret",
       "pause": "Pause",
@@ -1372,19 +1153,9 @@
       "originsLabel": "Allowed websites",
       "originsHint": "Only for keys used from a website's pages in the browser: one address per line, e.g. https://www.yourhospital.com. Leave empty for keys used only from servers.",
       "originsShort": "Websites: {{list}}",
-      "websitePresetName": "Hospital website"
+      "websitePresetName": "Institution website"
     },
     "roleEditor": {
-      "sod": {
-        "procurement_purchase-orders_create__procurement_purchase-orders_approve": "Creates and approves purchase orders",
-        "billing_opd-bill_create__billing_invoices_cancel": "Raises bills and can cancel them",
-        "lab_worklist_enter_result__lab_verify_verify": "Enters and verifies the same lab results",
-        "payroll_runs_calculate__payroll_runs_pay": "Calculates and pays payroll",
-        "payroll_runs_calculate__payroll_runs_approve": "Calculates and approves the same payroll",
-        "payroll_runs_approve__payroll_runs_pay": "Approves and pays payroll",
-        "inventory_adjustments_create__inventory_adjustments_approve": "Writes off stock and approves the write-off",
-        "insurance_claims_settle__insurance_claims_write_off": "Records claim settlements and writes off what the payer did not pay"
-      },
       "toast": {
         "created": "Role \"{{name}}\" created.",
         "saved_one": "Saved — {{count}} user gets the change on their next click.",
@@ -1409,21 +1180,21 @@
       "subtitleMembers_one": "{{count}} user · changes apply on their next click",
       "subtitleMembers_other": "{{count}} users · changes apply on their next click",
       "create": "Create role",
-      "lockedNote": "<b>{{name}}</b> was created with your hospital. It always has every page and action of every module in your plan — including modules you add later — and can't be renamed, reduced or deleted. <link>See all pages it can open →</link>",
+      "lockedNote": "<b>{{name}}</b> was created with your institution. It always has every page and action of every module in your plan — including modules you add later — and can't be renamed, reduced or deleted. <link>See all pages it can open →</link>",
       "holdsRole": "You hold this role yourself, so you can view it but not change it.",
       "startFrom": "Start from",
       "startFromHint": "Copies a recommended role. You can change everything after.",
       "templateOption_one": "{{name}} — {{count}} permission",
       "templateOption_other": "{{name}} — {{count}} permissions",
       "roleName": "Role name",
-      "roleNamePlaceholder": "e.g. Staff Nurse",
+      "roleNamePlaceholder": "e.g. Class Teacher",
       "description": "Description",
       "descriptionHint": "Shown in the role list and when assigning roles.",
-      "descriptionPlaceholder": "e.g. Ward nursing: vitals, medication rounds, handover.",
+      "descriptionPlaceholder": "e.g. Runs one class: attendance, homework, marks and parent messages.",
       "homePage": "Lands on after sign-in",
       "homePageHint": "Their home page; Home if empty.",
       "home": "Home",
-      "fullAccessDesc": "Everything in every module, now and in future — same as Hospital Admin.",
+      "fullAccessDesc": "Everything in every module, now and in future — same as Institution Admin.",
       "fullAccessOnlyAdmin": "Only a full-access administrator can switch this on.",
       "granted": "Granted",
       "viewEverything": "View everything",
@@ -1455,7 +1226,6 @@
       "agoDays_one": "{{count}} day ago",
       "agoDays_other": "{{count}} days ago",
       "openBill": "Open bill {{bill}}",
-      "openPatient": "Open patient",
       "details": {
         "discount": "Discount",
         "billBeforeDiscount": "Bill before discount",
@@ -1513,7 +1283,8 @@
       "emptyWaiting": "Nothing is waiting for you",
       "emptyRequests": "No requests yet",
       "emptyWaitingHint": "Requests your role can decide will show here, and in the bell.",
-      "emptyRequestsHint": "When your role can’t do something on its own, the screen offers “Ask for approval”."
+      "emptyRequestsHint": "When your role can’t do something on its own, the screen offers “Ask for approval”.",
+      "openStudent": "Open student"
     },
     "permissionMatrix": {
       "searchPlaceholder": "Search pages and actions…",
@@ -1536,7 +1307,7 @@
       "actionOnly": "(action only)",
       "sensitive": "Sensitive",
       "noMatch": "No pages match “{{query}}”.",
-      "notOn": "Not switched on for this hospital ({{count}})",
+      "notOn": "Not switched on for this institution ({{count}})",
       "switchedOff": "Switched off in Modules",
       "notInPlan": "Not in the current plan",
       "upgrade": "upgrade"
@@ -1548,24 +1319,24 @@
       "defaultForAll": "Default for every module",
       "tickFirst": "Tick pages in a module first — modules with record-level scope then appear here.",
       "defaultOption": "Default ({{scope}})",
-      "fromProfile": "Departments, wards and branch come from each user’s profile in Users.",
+      "fromProfile": "Classes, departments and campus come from each user’s profile in Users.",
       "limitsTitle": "Limits",
       "limitsIntro": "Above a limit the action is not refused — it goes to an approver instead. Leave empty for no limit.",
       "fullAccessLimits": "Full-access roles have no limits.",
-      "noLimitModules": "None of the modules with limits (billing, pharmacy, purchase, stores) are switched on.",
+      "noLimitModules": "None of the modules with limits (fees, accounts, store) are switched on.",
       "percentOfBill": "Percent of the bill",
       "rupees": "Rupees",
       "noLimit": "No limit",
       "sessionTitle": "Session & security",
       "idle": "Sign out after inactivity",
-      "idleHint": "Shorter for shared ward and counter computers",
-      "idleDefault": "Hospital default (Administration › Settings)",
+      "idleHint": "Shorter for shared staff-room and office computers",
+      "idleDefault": "Institution default (Administration › Settings)",
       "minutes_one": "{{count}} minute",
       "minutes_other": "{{count}} minutes",
       "hours_one": "{{count}} hour",
       "hours_other": "{{count}} hours",
       "require2fa": "Require 2-step sign-in",
-      "require2faHint": "Recommended for roles that can see patient records or money.",
+      "require2faHint": "Recommended for roles that can see student records or money.",
       "currencyAmount": "Amount ({{cur}})",
       "require2faNoEmail": "The platform can’t send email yet, so this has no effect until it can."
     },
@@ -1604,7 +1375,7 @@
         "department": "Department",
         "branch": "Branch",
         "module": "Module",
-        "tenant": "Hospital"
+        "tenant": "Institution"
       },
       "when": "When",
       "who": "Who",
@@ -1624,7 +1395,7 @@
     },
     "branches": {
       "title": "Branches",
-      "subtitle": "The hospitals and centres your organisation runs. Every hospital has a main branch.",
+      "subtitle": "The institutions and centres your organisation runs. Every institution has a main branch.",
       "editTitle": "Edit {{name}}",
       "newBranch": "New branch",
       "addBranch": "Add branch",
@@ -1649,7 +1420,7 @@
       "inactive": "Inactive",
       "onYourPlan": "Branches on your plan",
       "planFull": "You're using every branch your {{plan}} plan includes. <link>Upgrade</link> to add more.",
-      "sharedNote": "Patients are shared across branches; beds, bills and stock belong to one branch. Each branch can have its own GSTIN and document numbering.",
+      "sharedNote": "Students and staff are shared across campuses; fees, stock and timetables belong to one campus. Each campus can have its own GSTIN and document numbering.",
       "saved": "Branch saved."
     },
     "customFields": {
@@ -1672,7 +1443,8 @@
         "MULTI": "Pick several"
       },
       "entities": {
-        "patient": "Patient"
+        "student": "Student",
+        "user": "User"
       },
       "tableTitle": "{{entity}} fields",
       "options": "Options",
@@ -1693,13 +1465,13 @@
         "message": "Values already entered stay on the records but are no longer shown."
       },
       "emptyTitle": "No custom fields yet",
-      "emptyHint": "Add fields your hospital needs on every patient — diet preference, employer, local ID…",
+      "emptyHint": "Add fields your institution needs on every student — house, mother tongue, previous school…",
       "note": "Switching a field off hides it from forms without losing values. Only switched-off fields can be deleted.",
       "saved": "Custom field saved."
     },
     "departments": {
       "title": "Departments",
-      "subtitle": "Clinical, diagnostic and support departments — used for staff, roles that see “my department”, and reports.",
+      "subtitle": "Academic, administrative and support departments — used for staff, roles that see “my department”, and reports.",
       "editTitle": "Edit {{name}}",
       "newDepartment": "New department",
       "addDepartment": "Add department",
@@ -1707,20 +1479,15 @@
       "code": "Code",
       "type": "Type",
       "types": {
-        "CLINICAL": "Clinical",
-        "DIAGNOSTIC": "Diagnostic",
-        "NURSING": "Nursing",
-        "SUPPORT": "Support",
-        "ADMINISTRATIVE": "Administrative"
+        "ACADEMIC": "Academic",
+        "ADMINISTRATIVE": "Administrative",
+        "SUPPORT": "Support"
       },
       "head": "Head of department",
       "headCol": "Head",
       "notSet": "Not set",
-      "specialities": "Specialities",
-      "specialitiesHint": "Comma separated, e.g. Interventional cardiology, Electrophysiology",
       "description": "Description",
       "deleted": "Department deleted.",
-      "supportAdmin": "Support & admin",
       "searchPlaceholder": "Search name, code, speciality…",
       "all": "All",
       "department": "Department",
@@ -1733,26 +1500,26 @@
       },
       "noMatch": "No departments match",
       "emptyTitle": "No departments yet",
-      "emptyHint": "Add the departments your hospital runs — Medicine, Surgery, Pathology, Nursing…",
+      "emptyHint": "Add the departments your institution runs — Mathematics, Science, Languages, Accounts…",
       "saved": "Department saved."
     },
-    "hospitalProfile": {
+    "institutionProfile": {
       "verified": "Verified",
-      "verifiedHint": "Verified by the platform. Changing the name, legal name, registration number, HFR id, GSTIN or PAN removes the badge until it is checked again.",
-      "notVerifiedHint": "Not verified yet. Ask support to verify your hospital's legal details.",
-      "title": "Hospital profile",
+      "verifiedHint": "Verified by the platform. Changing the name, legal name, registration number, UDISE code, GSTIN or PAN removes the badge until it is checked again.",
+      "notVerifiedHint": "Not verified yet. Ask support to verify your institution's legal details.",
+      "title": "Institution profile",
       "subtitle": "Used on every printout, bill and report, and across the app.",
-      "saved": "Hospital profile saved.",
+      "saved": "Institution profile saved.",
       "saveChanges": "Save changes",
       "identity": "Identity",
       "contact": "Contact & address",
       "regional": "Regional formats",
       "fields": {
-        "name": "Hospital name (shown in the app)",
+        "name": "Institution name (shown in the app)",
         "legalName": "Legal name (on bills)",
         "registrationNo": "Registration number",
-        "nabhNo": "NABH accreditation no.",
-        "hfrId": "ABDM facility (HFR) ID",
+        "affiliationNo": "Board affiliation no. (CBSE, ICSE, state board, university)",
+        "udiseCode": "UDISE+ code",
         "phone": "Phone",
         "email": "Email",
         "website": "Website",
@@ -1785,7 +1552,7 @@
     },
     "forms": {
       "title": "Form builder",
-      "subtitle": "Your own clinical forms — consult sections and scored assessments. Doctors add published forms to the consult; they print with the prescription.",
+      "subtitle": "Your own forms — admission questions, surveys, assessment rubrics and health records. Published forms are what staff and families fill.",
       "newForm": "New form",
       "create": "Create",
       "namePlaceholder": "e.g. Asthma review",
@@ -1868,11 +1635,11 @@
         "isAnswered": "…is answered",
         "isAnsweredHint": "Several answers? Separate them with commas. Yes/no: YES or NO; scores: the points."
       },
-      "published": "Published version {{version}}. Doctors fill this version from now on.",
+      "published": "Published version {{version}}. This version is filled from now on.",
       "copied": "Copied. You are editing the copy.",
       "archiveConfirm": {
         "title": "Archive “{{name}}”?",
-        "message": "Doctors can no longer add it. Forms already filled stay as they are."
+        "message": "It can no longer be used. Forms already filled stay as they are."
       },
       "archive": "Archive",
       "archived": "Archived.",
@@ -1882,13 +1649,13 @@
       "bringBack": "Bring back",
       "saveDraft": "Save draft",
       "publish": "Publish",
-      "archivedNote": "Archived — doctors can’t add this form. Bring it back to change or use it.",
+      "archivedNote": "Archived — this form can’t be used. Bring it back to change or use it.",
       "fixMarked": "Fix the marked fields, then publish again.",
-      "previewNote": "This is what the doctor sees. Try it: calculations and “show only if” work here.",
+      "previewNote": "This is what the person filling it sees. Try it: calculations and “show only if” work here.",
       "specialities": "Specialities",
       "commaSeparated": "Comma separated",
       "description": "Description",
-      "descriptionPlaceholder": "What it is for, shown to doctors when they pick it",
+      "descriptionPlaceholder": "What it is for, shown when someone picks it",
       "sectionTitle": "Section title",
       "oneCol": "1 col",
       "moveSectionUp": "Move section up",

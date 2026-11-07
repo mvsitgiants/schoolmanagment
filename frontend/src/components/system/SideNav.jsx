@@ -1,11 +1,11 @@
 import clsx from 'clsx'
 
 /**
- * A page's own sub-navigation: a list down the left of the page on desktop (wards, zones,
+ * A page's own sub-navigation: a list down the left of the page on desktop (classes, campuses,
  * sections) and a horizontally scrolling chip row on phones and portrait tablets.
  * Each item can carry a count and a small occupancy bar.
  *
- *   <SideNavLayout nav={<SideNav title={t('…wards')} value={ward} onChange={setWard} items={[
+ *   <SideNavLayout nav={<SideNav title={t('…classes')} value={cls} onChange={setCls} items={[
  *     { id: '', label: t('…allWards'), count: 42 },
  *     { id: w.id, label: w.name, hint: w.floor, count: '3/12', progress: { value: 9, max: 12 } },
  *   ]} />}>

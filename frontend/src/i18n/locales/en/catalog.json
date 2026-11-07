@@ -2,91 +2,96 @@
   "catalog": {
     "categories": {
       "platform": "Administration",
-      "front": "Front office",
-      "clinical": "Clinical",
-      "diagnostics": "Diagnostics",
-      "supply": "Pharmacy & supply",
-      "revenue": "Revenue cycle",
-      "people": "People",
-      "support": "Support services",
-      "engage": "Patient engagement",
-      "intel": "Intelligence"
+      "students": "Students & admissions",
+      "academics": "Academics",
+      "higher": "Higher education",
+      "finance": "Fees & finance",
+      "people": "Staff & HR",
+      "campus": "Campus operations",
+      "engage": "Communication",
+      "intel": "Reports & AI"
     },
     "modules": {
       "dashboard": "Dashboard",
       "core": "Administration",
-      "comms": "Communication",
-      "patients": "Patients",
-      "appointments": "Appointments",
-      "queue": "Queue & tokens",
-      "clinical": "Clinical records",
-      "opd": "OPD",
-      "emergency": "Emergency",
-      "ipd": "IPD & beds",
-      "nursing": "Nursing",
-      "ot": "Operation theatre",
-      "mrd": "Medical records",
-      "lab": "Laboratory",
-      "radiology": "Radiology",
-      "bloodbank": "Blood bank",
-      "pharmacy": "Pharmacy",
-      "inventory": "Stores",
-      "procurement": "Purchase",
-      "cssd": "CSSD",
-      "assets": "Biomedical assets",
-      "billing": "Billing",
-      "insurance": "Insurance & TPA",
+      "students": "Students",
+      "admissions": "Admissions",
+      "certificates": "Certificates",
+      "frontoffice": "Front office",
+      "academics": "Academic setup",
+      "attendance": "Attendance",
+      "homework": "Homework & lessons",
+      "exams": "Exams & report cards",
+      "timetable": "Timetable",
+      "lms": "Learning (LMS)",
+      "online-tests": "Online tests",
+      "programs": "Programs & OBE",
+      "registration": "Semester registration",
+      "coe": "Exam controller",
+      "accreditation": "Accreditation",
+      "placements": "Training & placements",
+      "research": "Research",
+      "alumni": "Alumni",
+      "fees": "Fees",
       "finance": "Accounts",
       "hrms": "Staff & HR",
       "payroll": "Payroll",
-      "housekeeping": "Housekeeping",
-      "diet": "Dietary",
-      "ambulance": "Ambulance",
-      "feedback": "Feedback",
-      "quality": "Quality (NABH)",
-      "portal": "Patient portal",
-      "telemed": "Teleconsultation",
+      "transport": "Transport",
+      "library": "Library",
+      "hostel": "Hostel",
+      "inventory": "Store & assets",
+      "health": "Health & infirmary",
+      "canteen": "Canteen & wallet",
+      "communication": "Communication hub",
+      "portal": "Parent & student app",
+      "events": "Events & calendar",
+      "surveys": "Surveys & feedback",
+      "website": "Website",
       "reports": "Reports",
       "analytics": "Analytics",
+      "ai": "AI assistant",
       "integrations": "Integrations"
     },
     "descriptions": {
-      "dashboard": "Role home and the management command centre.",
-      "core": "Hospital profile, users, roles, subscription and every setting.",
-      "comms": "Staff chat, calls & emergency codes between staff, with live status and escalation.",
-      "patients": "Patient registry (UHID, ABHA), duplicate check and Patient 360.",
-      "appointments": "Doctor schedules, slots, booking and reminders.",
-      "queue": "Tokens, counters, TV displays and self check-in kiosks.",
-      "clinical": "Shared clinical core: notes, orders, prescriptions, vitals, results. On whenever OPD, ER or IPD is on.",
-      "opd": "Outpatient consult workspace, e-prescription and orders.",
-      "emergency": "Triage, ER board and medico-legal cases.",
-      "ipd": "Admission, bed board, transfers and discharge.",
-      "nursing": "Nursing station: vitals chart, MAR, intake/output, care plans, handover.",
-      "ot": "OT scheduling, WHO safety checklist, anaesthesia and OT notes.",
-      "mrd": "ICD coding, record requests, incomplete records and retention.",
-      "lab": "Samples, barcodes, results, verification and reports.",
-      "radiology": "Modality worklist, report templates and PACS link.",
-      "bloodbank": "Donors, components, cross-match and issue.",
-      "pharmacy": "OP sale, IP dispensing, returns and the narcotics register.",
-      "inventory": "Item master, stores, batches, expiry, indents and transfers.",
-      "procurement": "Vendors, requisitions, purchase orders and goods receipt.",
-      "cssd": "Instrument sets, sterilisation cycles, issue and return.",
-      "assets": "Equipment register, maintenance, calibration and breakdowns.",
-      "billing": "Tariffs, packages, OPD/IPD bills, deposits, refunds and day-end.",
-      "insurance": "Payers, pre-authorisation, claims and receivables.",
-      "finance": "Ledger, receivables, payables, bank and doctor payouts.",
-      "hrms": "Staff, credentials, duty roster, attendance and leave.",
-      "payroll": "Salary structures, payroll runs, payslips and statutory returns.",
-      "housekeeping": "Bed turnaround, cleaning tasks and biomedical-waste log.",
-      "diet": "Diet orders, kitchen production and ward delivery.",
-      "ambulance": "Requests, trips, vehicles and trip billing.",
-      "feedback": "Patient feedback, NPS and complaints.",
-      "quality": "Incidents, quality indicators, audits and infection control.",
-      "portal": "Patient app: booking, payments, reports and prescriptions.",
-      "telemed": "Video consultations with e-prescription.",
+      "dashboard": "Role home and the principal’s command centre.",
+      "core": "Institution profile, campuses, users, roles, subscription and every setting.",
+      "students": "Student information system: admission, profile, guardians, documents, promotion and transfer.",
+      "admissions": "Enquiry CRM, online application, entrance test, merit list and seat allotment.",
+      "certificates": "Bonafide, character, leaving and transfer certificates with QR verification.",
+      "frontoffice": "Visitor log, gate passes, call log and complaints.",
+      "academics": "Academic years, terms, classes and sections, subjects and grading schemes.",
+      "attendance": "Daily or period-wise attendance, absence alerts to parents and student leave.",
+      "homework": "Lesson plans, syllabus tracking, homework and submissions.",
+      "exams": "Exam schedule, hall tickets, marks entry, results and report cards.",
+      "timetable": "Timetable generator, substitutions and room allocation.",
+      "lms": "Courses, study material, live classes and assignments.",
+      "online-tests": "MCQ and written tests with timer, proctoring and auto-evaluation.",
+      "programs": "Programs, regulations, CBCS credits, course and program outcomes (CO–PO mapping).",
+      "registration": "Course and elective registration, prerequisites, credit limits and add/drop.",
+      "coe": "Internal and external marks, moderation, revaluation, SGPA/CGPA, grade cards and transcripts.",
+      "accreditation": "NAAC, NBA, NIRF and AISHE reports with an evidence repository per criterion.",
+      "placements": "Companies, drives, eligibility, interview rounds, offers and placement statistics.",
+      "research": "Publications, projects, grants, patents and PhD scholars.",
+      "alumni": "Alumni directory, events, donations and job board.",
+      "fees": "Fee structures, installments, concessions, online payment, receipts, dues and refunds.",
+      "finance": "Ledgers, income and expense, bank reconciliation, GST and Tally export.",
+      "hrms": "Staff records, staff attendance, leave, recruitment and appraisal.",
+      "payroll": "Salary structures, payroll runs, payslips, PF/ESI/TDS and bank exports.",
+      "transport": "Routes, stops, vehicles, student assignment, GPS tracking and pickup alerts.",
+      "library": "Catalogue, barcode issue and return, fines and e-library.",
+      "hostel": "Rooms and beds, allotment, mess, hostel attendance and outpasses.",
+      "inventory": "Items, stock, vendors, purchase orders, uniform and book sales, asset register.",
+      "health": "Health records, vaccinations, sick-room visits and incident reports.",
+      "canteen": "Menu, pre-orders and a cashless RFID wallet that parents top up.",
+      "communication": "Notices and circulars, SMS, WhatsApp, email and push, parent–teacher chat.",
+      "portal": "The parent and student app: what it shows and how families sign in.",
+      "events": "School calendar, events, parent–teacher meeting slots and photo gallery.",
+      "surveys": "Parent and student feedback, teacher evaluation and polls.",
+      "website": "The institution’s website with notice board and online admission form.",
       "reports": "Standard reports, report builder and scheduled exports.",
-      "analytics": "Census, revenue, doctor and operations dashboards.",
-      "integrations": "ABDM, devices, PACS, payments, messaging, API keys and webhooks."
+      "analytics": "Attendance, results, fee collection and campus comparison dashboards.",
+      "ai": "Question papers, report card remarks and an assistant that answers from your own data.",
+      "integrations": "Payment gateway, SMS and WhatsApp, biometric and RFID devices, GPS and their logs."
     },
     "pages": {
       "dashboard": {
@@ -94,8 +99,8 @@
       },
       "core": {
         "setup": "Setup hub",
-        "profile": "Hospital profile",
-        "branches": "Branches",
+        "profile": "Institution profile",
+        "branches": "Campuses",
         "departments": "Departments",
         "users": "Users",
         "roles": "Roles & permissions",
@@ -112,353 +117,270 @@
         "api-keys": "API keys & webhooks",
         "settings": "Settings"
       },
-      "comms": {
-        "chat": "Chat",
-        "calls": "Calls & codes",
-        "codes": "Emergency codes"
+      "students": {
+        "admit": "New admission",
+        "directory": "Student directory",
+        "profile": "Student 360",
+        "guardians": "Parents & guardians",
+        "promotion": "Promotion",
+        "transfer": "Transfer & leaving",
+        "id-cards": "ID cards"
       },
-      "patients": {
-        "register": "Register patient",
-        "search": "Patient search",
-        "patient-360": "Patient 360",
-        "merge": "Merge duplicates",
-        "list": "All patients"
+      "admissions": {
+        "enquiries": "Enquiries",
+        "applications": "Applications",
+        "tests": "Entrance tests",
+        "merit": "Merit lists",
+        "settings": "Admission settings"
       },
-      "appointments": {
-        "calendar": "Calendar & booking",
-        "schedules": "Doctors & schedules",
-        "waitlist": "Waitlist"
+      "certificates": {
+        "issue": "Issue certificates",
+        "register": "Certificate register"
       },
-      "queue": {
-        "board": "Queue board",
-        "my-queue": "My counter",
-        "queues": "Queue setup",
-        "displays": "Displays & kiosks",
-        "kiosk": "Self check-in kiosk"
+      "frontoffice": {
+        "visitors": "Visitor log",
+        "gate-pass": "Gate passes",
+        "complaints": "Complaints"
       },
-      "clinical": {
-        "notes": "Clinical notes",
-        "orders": "Orders",
-        "prescriptions": "Prescriptions",
-        "vitals": "Vitals",
-        "allergies": "Allergies & problems",
+      "academics": {
+        "years": "Academic years & terms",
+        "classes": "Classes & sections",
+        "subjects": "Subjects",
+        "grading": "Grading schemes",
+        "allocation": "Teacher allocation"
+      },
+      "attendance": {
+        "mark": "Mark attendance",
+        "register": "Attendance register",
+        "leave": "Student leave",
+        "reports": "Attendance reports"
+      },
+      "homework": {
+        "lesson-plans": "Lesson plans",
+        "syllabus": "Syllabus tracker",
+        "homework": "Homework"
+      },
+      "exams": {
+        "schedule": "Exam schedule",
+        "hall-tickets": "Hall tickets",
+        "marks": "Marks entry",
         "results": "Results",
-        "break-glass": "Emergency access"
+        "report-cards": "Report cards",
+        "setup": "Exam setup"
       },
-      "opd": {
-        "worklist": "My OPD queue",
-        "vitals": "Vitals station",
-        "consult": "Consult workspace",
-        "templates": "Templates & favourites",
-        "encounters": "All OPD visits"
+      "timetable": {
+        "timetable": "Timetable",
+        "substitutions": "Substitutions",
+        "rooms": "Rooms"
       },
-      "emergency": {
-        "board": "ER board",
-        "triage": "Triage",
-        "chart": "ER chart",
-        "mlc": "MLC register"
+      "lms": {
+        "courses": "Courses & material",
+        "live-classes": "Live classes",
+        "question-bank": "Question bank"
       },
-      "ipd": {
-        "bed-board": "Bed board",
-        "requests": "Admission requests",
-        "admit": "Admission desk",
-        "inpatients": "Inpatients",
-        "admission": "Admission record",
-        "transfers": "Transfers",
-        "discharge": "Discharge",
-        "wards": "Wards, rooms & beds"
+      "online-tests": {
+        "tests": "Tests",
+        "attempts": "Attempts & results"
       },
-      "nursing": {
-        "ward-board": "Ward board",
-        "tasks": "Nursing tasks",
-        "chart": "Nursing chart",
-        "handover": "Handover",
-        "indents": "Ward indents",
-        "orders": "New orders"
+      "programs": {
+        "programs": "Programs & regulations",
+        "outcomes": "Outcomes & CO–PO mapping",
+        "attainment": "Attainment"
       },
-      "ot": {
-        "schedule": "OT schedule",
-        "case": "OT case",
-        "theatres": "Theatres"
+      "registration": {
+        "windows": "Registration windows",
+        "requests": "Registrations"
       },
-      "mrd": {
-        "coding": "ICD coding",
-        "requests": "Record requests",
-        "deficiency": "Incomplete records",
-        "retention": "Retention"
+      "coe": {
+        "marks": "Internal & external marks",
+        "revaluation": "Revaluation",
+        "grade-cards": "Grade cards & transcripts"
       },
-      "lab": {
-        "collection": "Sample collection",
-        "accession": "Sample receipt",
-        "worklist": "Result entry",
-        "verify": "Verification",
-        "reports": "Lab reports",
-        "tests": "Test master",
-        "micro": "Microbiology",
-        "outsource": "Outsourced tests"
+      "accreditation": {
+        "reports": "Accreditation reports",
+        "evidence": "Evidence repository"
       },
-      "radiology": {
-        "worklist": "Worklist",
-        "report": "Radiology reports",
-        "studies": "Study master"
+      "placements": {
+        "companies": "Companies",
+        "drives": "Placement drives",
+        "offers": "Offers"
       },
-      "bloodbank": {
-        "donors": "Donors",
-        "inventory": "Blood inventory",
-        "crossmatch": "Cross-match",
-        "issue": "Issue"
+      "research": {
+        "publications": "Publications",
+        "projects": "Projects & grants"
       },
-      "pharmacy": {
-        "queue": "Rx queue",
-        "sale": "Counter sale",
-        "ip-dispense": "IP dispensing",
-        "returns": "Returns",
-        "narcotics": "Narcotics register",
-        "verify": "Medication verification"
+      "alumni": {
+        "directory": "Alumni directory",
+        "donations": "Donations"
       },
-      "inventory": {
-        "items": "Item master",
-        "stores": "Stores",
-        "stock": "Stock",
-        "indents": "Indents",
-        "transfers": "Transfers",
-        "adjustments": "Adjustments",
-        "physical-count": "Physical count"
-      },
-      "procurement": {
-        "vendors": "Vendors",
-        "requisitions": "Requisitions",
-        "purchase-orders": "Purchase orders",
-        "grn": "Goods receipt",
-        "purchase-returns": "Purchase returns",
-        "rate-contracts": "Rate contracts"
-      },
-      "cssd": {
-        "sets": "Instrument sets",
-        "cycles": "Sterilisation cycles",
-        "issue-return": "Issue & return"
-      },
-      "assets": {
-        "assets": "Asset register",
-        "maintenance": "Maintenance",
-        "breakdowns": "Breakdowns",
-        "usage": "Usage & availability",
-        "equipment": "Equipment & prices"
-      },
-      "billing": {
-        "services": "Service master",
-        "tariffs": "Tariffs & rate plans",
-        "packages": "Packages",
-        "opd-bill": "OPD billing",
-        "ip-account": "Patient account (IPD)",
-        "deposits": "Deposits",
-        "invoices": "All bills",
-        "day-end": "Day-end closing",
-        "unbilled": "Unbilled services"
-      },
-      "insurance": {
-        "payers": "Payers & TPAs",
-        "pre-auth": "Pre-authorisation",
-        "claims": "Claims",
-        "receivables": "Receivables"
+      "fees": {
+        "structures": "Fee structures",
+        "concessions": "Concessions & scholarships",
+        "collect": "Collect fees",
+        "invoices": "Fee invoices & receipts",
+        "dues": "Dues & reminders",
+        "refunds": "Refunds",
+        "day-end": "Day-end closing"
       },
       "finance": {
         "accounts": "Chart of accounts",
         "journals": "Journals",
-        "receivables": "Receivables",
-        "payables": "Payables",
+        "expenses": "Expenses",
         "bank": "Bank",
-        "doctor-payouts": "Doctor payouts",
         "reports": "Financial reports"
       },
       "hrms": {
-        "employees": "Employees",
-        "credentials": "Licences & certificates",
-        "roster": "Duty roster",
-        "on-call": "On-call",
-        "attendance": "Attendance",
+        "employees": "Staff",
+        "attendance": "Staff attendance",
         "leave": "Leave",
         "holidays": "Holidays",
-        "documents": "HR documents",
-        "onboarding": "Onboarding",
-        "hiring": "Hiring",
-        "performance": "Performance",
-        "expenses": "Expense claims",
-        "analytics": "HR analytics"
+        "hiring": "Recruitment",
+        "performance": "Appraisal"
       },
       "payroll": {
         "structures": "Salary structures",
-        "statutory": "Statutory rules",
         "runs": "Payroll runs",
         "payslips": "Payslips",
         "exports": "Bank & statutory exports"
       },
-      "housekeeping": {
-        "tasks": "Cleaning tasks",
-        "schedules": "Schedules",
-        "bmw": "Biomedical waste log"
+      "transport": {
+        "routes": "Routes & stops",
+        "vehicles": "Vehicles & drivers",
+        "assignments": "Student assignment",
+        "tracking": "Live tracking"
       },
-      "diet": {
-        "orders": "Diet orders",
-        "kitchen": "Kitchen",
-        "delivery": "Delivery",
-        "menus": "Menus"
+      "library": {
+        "catalogue": "Catalogue",
+        "circulation": "Issue & return",
+        "fines": "Fines"
       },
-      "ambulance": {
-        "requests": "Requests",
-        "trips": "Trips",
-        "vehicles": "Vehicles"
+      "hostel": {
+        "rooms": "Rooms & beds",
+        "allotment": "Allotment",
+        "outpass": "Outpasses",
+        "mess": "Mess"
       },
-      "feedback": {
-        "forms": "Feedback forms",
-        "responses": "Responses",
-        "complaints": "Complaints"
+      "inventory": {
+        "items": "Items",
+        "stock": "Stock",
+        "purchase-orders": "Purchase orders",
+        "sales": "Uniform & book sales",
+        "assets": "Asset register"
       },
-      "quality": {
-        "incidents": "Incidents",
-        "indicators": "Quality indicators",
-        "audits": "Audits",
-        "infection": "Infection control"
+      "health": {
+        "records": "Health records",
+        "visits": "Sick-room visits",
+        "incidents": "Incidents"
+      },
+      "canteen": {
+        "menu": "Menu",
+        "orders": "Orders",
+        "wallet": "Wallets"
+      },
+      "communication": {
+        "notices": "Notices & circulars",
+        "messages": "Send messages",
+        "chat": "Parent–teacher chat",
+        "log": "Delivery log"
       },
       "portal": {
-        "settings": "Portal settings",
-        "content": "Portal content"
+        "settings": "App settings",
+        "content": "App content"
       },
-      "telemed": {
-        "sessions": "Video sessions",
-        "settings": "Telemed settings"
+      "events": {
+        "calendar": "Calendar",
+        "ptm": "Parent–teacher meetings",
+        "gallery": "Gallery"
+      },
+      "surveys": {
+        "forms": "Surveys",
+        "responses": "Responses"
+      },
+      "website": {
+        "pages": "Pages"
       },
       "reports": {
         "library": "Report library",
         "builder": "Report builder"
       },
       "analytics": {
-        "census": "Census & occupancy",
-        "revenue": "Revenue",
-        "doctors": "Doctor performance",
-        "operations": "Operations",
-        "quality": "Quality dashboard"
+        "academics": "Academic performance",
+        "fees": "Fee collection",
+        "campuses": "Campus comparison"
+      },
+      "ai": {
+        "assistant": "Assistant",
+        "question-papers": "Question paper generator",
+        "remarks": "Report card remarks"
       },
       "integrations": {
-        "abdm": "ABDM",
-        "devices": "Devices & analyzers",
         "payments": "Payment gateway",
         "messaging": "SMS & WhatsApp",
-        "pacs": "PACS",
+        "devices": "Devices",
         "logs": "Integration logs"
       }
     },
     "actions": {
-      "view": "View",
-      "edit": "Edit",
+      "allot": "Allot",
+      "apply_on_behalf": "Apply on behalf",
+      "approve": "Approve",
+      "approve_variance": "Approve cash variance",
+      "ask": "Ask",
+      "assign": "Assign to users",
+      "calculate": "Calculate",
+      "cancel": "Cancel",
+      "checkout": "Check out",
+      "close": "Close",
+      "configure": "Configure",
       "create": "Create",
       "delete": "Delete",
+      "discount": "Give concession",
+      "edit": "Edit",
+      "edit_lop": "Edit LOP",
+      "evaluate": "Evaluate",
       "export": "Export",
       "import": "Import",
-      "reset_password": "Reset password",
-      "revoke_sessions": "Sign out devices",
-      "assign": "Assign to users",
-      "manage": "Change plan",
-      "publish": "Publish",
-      "break_glass_report": "Break-glass report",
-      "broadcast": "Send emergency codes",
-      "abha_create": "Create ABHA",
-      "print": "Print",
-      "view_sensitive": "See unmasked IDs",
-      "merge": "Merge",
-      "cancel": "Cancel",
-      "call": "Call next",
-      "sign": "Sign",
-      "addendum": "Add addendum",
-      "view_confidential": "See confidential notes",
-      "acknowledge": "Acknowledge",
-      "use": "Use emergency access",
-      "start": "Start",
-      "finish": "Finish",
-      "certificate": "Issue certificate",
-      "share": "Share",
-      "dispose": "Disposition",
-      "transfer": "Transfer bed",
-      "block_bed": "Block bed",
-      "approve": "Approve",
-      "advise": "Advise discharge",
-      "summary_edit": "Edit summary",
-      "summary_sign": "Sign summary",
-      "clear": "Give clearance",
-      "discharge": "Discharge",
-      "gate_pass": "Gate pass",
-      "complete": "Complete",
-      "mar_give": "Give medication",
-      "mar_witness": "Witness high-alert drug",
-      "give": "Give handover",
-      "receive": "Receive",
-      "checklist": "Safety checklist",
-      "anaesthesia_record": "Anaesthesia record",
-      "implants": "Implants & consumables",
-      "code": "Code",
-      "release": "Release",
-      "notify": "Notify doctor",
-      "collect": "Collect sample",
-      "print_labels": "Print labels",
-      "reject": "Reject sample",
-      "enter_result": "Enter results",
-      "verify": "Verify",
-      "send": "Send",
-      "amend": "Amend",
-      "schedule": "Schedule",
-      "mark_scanned": "Mark scanned",
-      "dispense": "Dispense",
-      "discount": "Give discount",
-      "record": "Record entry",
-      "witness": "Witness",
       "issue": "Issue",
-      "post": "Post",
-      "resolve": "Resolve",
-      "view_rates": "See rates",
-      "add_charge": "Add charge",
-      "remove_charge": "Remove charge",
-      "interim_bill": "Interim bill",
-      "final_bill": "Final bill",
-      "reopen": "Reopen bill",
-      "refund": "Refund",
-      "credit_note": "Credit note",
-      "close": "Close",
-      "approve_variance": "Approve cash variance",
-      "submit": "Submit",
-      "update_status": "Update status",
-      "settle": "Settle",
-      "write_off": "Write off",
-      "reverse": "Reverse",
+      "lock": "Lock marks",
+      "manage": "Change plan",
+      "moderate": "Moderate",
       "pay": "Pay",
+      "post": "Post",
+      "print": "Print",
+      "promote": "Promote",
+      "publish": "Publish",
+      "receive": "Return",
       "reconcile": "Reconcile",
-      "generate": "Generate",
-      "terminate": "Terminate",
-      "view_salary": "See salary",
-      "approve_swap": "Approve swaps",
-      "approve_regularization": "Approve regularisation",
-      "apply_on_behalf": "Apply on behalf",
-      "reimburse": "Reimburse",
-      "calculate": "Calculate",
-      "edit_lop": "Edit LOP",
-      "mark_delivered": "Mark delivered",
-      "investigate": "Investigate",
+      "refund": "Refund",
+      "reset_password": "Reset password",
+      "resolve": "Resolve",
+      "reverse": "Reverse",
+      "revoke_sessions": "Sign out devices",
       "run": "Run",
-      "configure": "Configure",
-      "lend": "Lend & return"
+      "schedule": "Schedule",
+      "send": "Send",
+      "share": "Share",
+      "sign": "Sign",
+      "start": "Start",
+      "terminate": "Terminate",
+      "track": "Live tracking",
+      "unlock": "Unlock marks",
+      "view": "View",
+      "view_salary": "See salary",
+      "view_sensitive": "See unmasked IDs"
     },
     "scopes": {
       "OWN": "Own records",
+      "CLASS": "My classes",
       "DEPARTMENT": "My departments",
-      "WARD": "My wards",
-      "BRANCH": "My branch",
-      "ALL": "All branches"
+      "BRANCH": "My campus",
+      "ALL": "All campuses"
     },
     "limits": {
-      "billing_discountMaxPct": "Max discount on a bill",
-      "billing_refundMax": "Max refund without approval",
-      "pharmacy_discountMaxPct": "Max pharmacy discount",
-      "procurement_poApproveMax": "Max purchase order to approve",
-      "inventory_adjustmentMax": "Max stock write-off"
+      "fees_discountMaxPct": "Max fee concession at the counter",
+      "fees_refundMax": "Max refund without approval",
+      "inventory_poApproveMax": "Max purchase order to approve",
+      "finance_expenseApproveMax": "Max expense to approve"
     },
     "modulePage": {
       "onTheWay": "This screen is on the way",
@@ -466,12 +388,11 @@
       "roleCapabilities": "What your role can do on this page",
       "moreInModule": "More in {{name}}",
       "phases": {
-        "1": "Phase 1 — OPD clinic",
-        "2": "Phase 2 — Diagnostics, pharmacy & stores",
-        "3": "Phase 3 — IPD & nursing",
-        "4": "Phase 4 — Emergency, OT, insurance",
-        "5": "Phase 5 — People & money",
-        "6": "Phase 6 — Engagement & integrations"
+        "0": "Phase 0 — Platform",
+        "1": "Phase 1 — MVP (Nov 2026 – Apr 2027)",
+        "2": "Phase 2 — Growth (May – Oct 2027)",
+        "3": "Phase 3 — Full suite (Nov 2027 – Apr 2028)",
+        "4": "Phase 4 — Scale (May – Oct 2028)"
       },
       "phaseN": "Phase {{phase}}",
       "sensitive": "Sensitive"

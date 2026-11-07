@@ -11,7 +11,7 @@ const letterheadSchema = new Schema({
   align: { type: String, default: 'LEFT' },
   showLogo: { type: Boolean, default: true },
   showContacts: { type: Boolean, default: true },
-  ids: { type: [String], default: ['registrationNo', 'nabhNo'] },
+  ids: { type: [String], default: ['registrationNo', 'affiliationNo'] },
   tagline: String,
   accentColor: String,
   footerText: String,

@@ -2,10 +2,10 @@ import clsx from 'clsx'
 import { BadgeCheck } from 'lucide-react'
 
 /**
- * A small "verified" tick beside a name: a patient's ABHA confirmed with ABDM, a staff member's
+ * A small "verified" tick beside a name: a student's APAAR ID confirmed, a staff member's
  * confirmed email, an institution checked by the platform. `title` says what was verified (hover and
  * screen readers); `label` shows it as text too. `tone="warning"` for verified-but-check (e.g. the
- * name on the ABHA differs from the record).
+ * name on the ID differs from the record).
  */
 export default function VerifiedBadge({ title, label, tone = 'success', size = 'sm', className }) {
   const color = tone === 'warning' ? 'text-amber-600' : 'text-success-600'

@@ -5,7 +5,7 @@ import { isOid } from '../db.js'
 import { AppError, badRequest, conflict } from '../errors.js'
 
 // Emailed six-digit codes for staff and platform owners: the second sign-in step, proving an
-// email address, and a forgotten password. The same rules as the patients' SMS codes
+// email address, and a forgotten password. The same rules as the families' SMS codes
 // (services/otp.js): stored hashed, 10 minutes, five tries claimed atomically, used once, and
 // at most three codes per email and purpose in 15 minutes. The caller emails the code.
 

@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 /**
  * Automated CI Translation Guardrail for SchoolGiant.
- * Enforces 100% key parity across all 12 Indic and RTL languages:
- *   en, hi, kn, ta, te, ml, mr, gu, bn, pa, or, ur
+ * Enforces 100% key parity across every language in SUPPORTED_LANGUAGES
+ * (packages/shared/src/languages.js). English only at launch; switching a language on
+ * there makes this check require its locale files.
  *
  * Checks:
  *   1. Namespace Parity: Every namespace in English exists in all target locales.
@@ -14,11 +15,12 @@
 import { readdirSync, readFileSync, existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { SUPPORTED_LANGUAGES } from '@schoolgiant/shared'
 
 const ROOT = join(fileURLToPath(new URL('.', import.meta.url)), '..')
 const LOCALES_DIR = join(ROOT, 'src', 'i18n', 'locales')
 
-const EXPECTED_LANGUAGES = ['en', 'hi', 'kn', 'ta', 'te', 'ml', 'mr', 'gu', 'bn', 'pa', 'or', 'ur']
+const EXPECTED_LANGUAGES = SUPPORTED_LANGUAGES.map((l) => l.code)
 
 function flattenKeys(obj, prefix = '') {
   const result = {}
@@ -190,9 +192,9 @@ for (const lang of targetLanguages) {
 
 console.log('----------------------------------------------------')
 if (hasFailures) {
-  console.error(`\n❌ i18n Lint Failed with ${totalErrors} issue(s). Key parity across all 12 locales is required.`)
+  console.error(`\n❌ i18n Lint Failed with ${totalErrors} issue(s). Key parity across every supported language is required.`)
   process.exit(1)
 } else {
-  console.log(`\n✓ SUCCESS: 100% translation key parity across all 12 languages. Zero missing keys or broken placeholders.`)
+  console.log(`\n✓ SUCCESS: 100% translation key parity across ${EXPECTED_LANGUAGES.length} language(s). Zero missing keys or broken placeholders.`)
   process.exit(0)
 }

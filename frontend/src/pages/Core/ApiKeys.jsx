@@ -94,7 +94,7 @@ function KeyModal({ meta, apiKey, preset, onClose, onSaved }) {
         </FormField>
         <Note>{t('admin.apiKeys.scopesNote')}</Note>
         <FormField label={t('admin.apiKeys.originsLabel')} hint={t('admin.apiKeys.originsHint')} error={errors.allowedOrigins}>
-          <Textarea rows={2} value={f.origins} onChange={(e) => setF({ ...f, origins: e.target.value })} placeholder="https://www.yourhospital.com" />
+          <Textarea rows={2} value={f.origins} onChange={(e) => setF({ ...f, origins: e.target.value })} placeholder="https://www.yourschool.edu.in" />
         </FormField>
       </div>
     </Modal>

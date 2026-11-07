@@ -26,7 +26,7 @@ const formBody = z.object({
   code: z.string().trim().toUpperCase().regex(/^[A-Z][A-Z0-9_]{1,23}$/, 'Capitals, digits and _, starting with a letter'),
   name: z.string().trim().min(2, 'Name the form').max(120),
   description: optionalText(300),
-  use: z.enum(FORM_USES.map((u) => u.value)).default('OPD_CONSULT'),
+  use: z.enum(FORM_USES.map((u) => u.value)).default('SURVEY'),
   specialities: z.array(z.string().trim().max(60)).max(10).default([]),
   definition: definition.optional(),
 })

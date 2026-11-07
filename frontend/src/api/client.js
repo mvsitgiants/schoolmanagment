@@ -75,9 +75,10 @@ api.interceptors.request.use(withIdle)
 
 // Money writes carry an Idempotency-Key (backend platform/idempotency.js). The same request sent
 // again — a double-click while the first is in flight, or Save pressed again after a reply that
-// never arrived — reuses the key, so the server answers with the first result instead of billing
+// never arrived — reuses the key, so the server answers with the first result instead of charging
 // twice. A definite answer frees the key: a later, deliberate identical request is new work.
-const MONEY_WRITE = /\/v1\/(billing\/(bills(\/[^/]+\/(payments|cancel|credit-notes))?|ip-accounts\/[^/]+\/(deposits|refund|final))|pharmacy\/sales(\/[^/]+\/(cancel|return))?|procurement\/(grn|purchase-returns)|integrations\/payments\/transactions\/[^/]+\/refund)$/
+// The fee and accounts routes listed here arrive with those modules.
+const MONEY_WRITE = /\/v1\/(fees\/(collect|receipts\/[^/]+\/(cancel|refund))|finance\/(payments|journals))$/
 const KEY_TTL_MS = 10 * 60_000
 const openKeys = new Map() // `${url}\n${body}` → { key, at }
 const newKey = () => (globalThis.crypto?.randomUUID?.() ?? `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}${Math.random().toString(36).slice(2)}`)

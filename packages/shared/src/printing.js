@@ -49,16 +49,16 @@ export const LETTERHEAD_MODES = [
 /** Registration numbers the letterhead can show, from the institution profile. */
 export const LETTERHEAD_IDS = [
   { value: 'registrationNo', label: 'Registration no.' },
-  { value: 'nabhNo', label: 'NABH' },
+  { value: 'affiliationNo', label: 'Board affiliation no.' },
   { value: 'gstin', label: 'GSTIN' },
-  { value: 'hfrId', label: 'HFR ID' },
+  { value: 'udiseCode', label: 'UDISE code' },
 ]
 
 export const LETTERHEAD_DEFAULTS = {
   align: 'LEFT', // LEFT · CENTER
   showLogo: true,
   showContacts: true,
-  ids: ['registrationNo', 'nabhNo'],
+  ids: ['registrationNo', 'affiliationNo'],
   tagline: '',
   accentColor: '', // '' = the institution's brand colour
   footerText: '',

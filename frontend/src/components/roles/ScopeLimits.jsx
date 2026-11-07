@@ -7,8 +7,7 @@ import { useCatalogLabel } from '../../hooks/useCatalogLabel'
 import { moduleKeys } from './catalogUtils'
 import { useFormat } from '../../context/SettingsContext'
 import { getCurrentUser } from '../../api/auth'
-
-const ALL = ['OWN', 'DEPARTMENT', 'WARD', 'BRANCH', 'ALL']
+import { DATA_SCOPES } from '@schoolgiant/shared'
 
 /**
  * Which records a role sees per module, money limits that send bigger actions to
@@ -36,7 +35,7 @@ export default function ScopeLimits({ catalog, selected, fullAccess, dataScopes,
               <span className="flex-1 text-sm font-medium text-ink">{t('admin.scopeLimits.defaultForAll')}</span>
               <div className="w-48">
                 <Select value={def} disabled={readOnly} onChange={(e) => onScopes({ ...dataScopes, default: e.target.value })}>
-                  {['OWN', 'DEPARTMENT', 'BRANCH', 'ALL'].map((s) => <option key={s} value={s}>{labels[s]}</option>)}
+                  {DATA_SCOPES.map((s) => <option key={s} value={s}>{labels[s]}</option>)}
                 </Select>
               </div>
             </div>
@@ -53,7 +52,7 @@ export default function ScopeLimits({ catalog, selected, fullAccess, dataScopes,
                       <div className="w-48">
                         <Select value={dataScopes[m.id] || ''} disabled={readOnly} onChange={(e) => setScope(m.id, e.target.value)}>
                           <option value="">{t('admin.scopeLimits.defaultOption', { scope: labels[m.scopes.includes(def) ? def : m.scopes[m.scopes.length - 1]] })}</option>
-                          {ALL.filter((s) => m.scopes.includes(s)).map((s) => <option key={s} value={s}>{labels[s]}</option>)}
+                          {DATA_SCOPES.filter((s) => m.scopes.includes(s)).map((s) => <option key={s} value={s}>{labels[s]}</option>)}
                         </Select>
                       </div>
                     </li>

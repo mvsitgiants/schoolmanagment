@@ -12,29 +12,29 @@ const DAY = 864e5
 
 describe('plans and limits', () => {
   it('blocks adding users beyond the plan limit', async () => {
-    const h = await newInstitution('STARTER') // 10 users
+    const h = await newInstitution('STARTER') // 40 users
     await Tenant.updateOne({ _id: h.tenant._id }, { $set: { limitsOverride: { users: 2 } } })
     const admin = await signIn(app, h.email, h.password)
     const role = (await admin.get('/api/v1/core/roles')).body.data[0]
     const ok = await admin.post('/api/v1/core/users').send({ name: 'Two', email: 'two@x.test', roleIds: [role.id] })
     expect(ok.status).toBe(201)
-    expect(ok.body.data.tempPassword).toMatch(/^\w+-\d{4}-\w+$/)
+    expect(ok.body.data.tempPassword).toMatch(/^\w{4}-\w{4}-\w{4}$/)
     const over = await admin.post('/api/v1/core/users').send({ name: 'Three', email: 'three@x.test', roleIds: [role.id] })
     expect(over.status).toBe(422)
-    expect(over.body.message).toMatch(/plan allows 2 users/)
+    expect(over.body.message).toMatch(/plan allows 2 staff logins/)
   })
 
   it('changing plan during the trial switches modules without an invoice', async () => {
     const h = await newInstitution('STARTER')
     const admin = await signIn(app, h.email, h.password)
     const preview = (await admin.post('/api/v1/core/subscription/preview').send({ planCode: 'GROWTH' })).body.data
-    expect(preview.modulesAdded).toContain('ipd')
+    expect(preview.modulesAdded).toContain('timetable')
     expect(preview.invoiceNeeded).toBe(false)
     const res = await admin.post('/api/v1/core/subscription/change-plan').send({ planCode: 'GROWTH' })
     expect(res.status).toBe(200)
     expect(res.body.data.invoice).toBeNull()
     const me = (await admin.get('/api/v1/auth/me')).body.data
-    expect(me.enabledModules).toContain('ipd')
+    expect(me.enabledModules).toContain('timetable')
   })
 
   it('subscribing raises an invoice; recording the payment activates the period', async () => {
@@ -43,7 +43,7 @@ describe('plans and limits', () => {
     const res = await admin.post('/api/v1/core/subscription/subscribe').send({ planCode: 'STARTER', cycle: 'YEARLY' })
     expect(res.status).toBe(200)
     const inv = res.body.data.invoice
-    expect(inv.total).toBe(2999000 + Math.round(2999000 * 0.18))
+    expect(inv.total).toBe(7500000 + Math.round(7500000 * 0.18))
     const owner = await signIn(app, 'owner@schoolgiant.test', 'Owner@123')
     const paid = await owner.post(`/api/v1/superadmin/tenants/${h.tenant._id}/invoices/${inv.id}/pay`).send({ method: 'BANK_TRANSFER', reference: 'UTR1' })
     expect(paid.status).toBe(200)

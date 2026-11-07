@@ -20,8 +20,6 @@ const ACTIONS = {
   'PATCH /plans/:code': 'Updated a plan',
   'PATCH /settings': 'Changed platform settings',
   'POST /settings/test-email': 'Sent a test email',
-  'POST /settings/abdm/test': 'Tested the ABDM connection',
-  'POST /settings/abdm/bridge': 'Registered the ABDM callback URL',
   'POST /coupons': 'Created a coupon',
   'PATCH /coupons/:id': 'Updated a coupon',
   'PATCH /role-templates/:code': 'Updated a role template',

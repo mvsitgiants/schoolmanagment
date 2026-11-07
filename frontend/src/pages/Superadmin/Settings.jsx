@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Building2, Check, Copy, CreditCard, Mail, Megaphone, MessageSquareText, PlugZap, Radio, Send, Settings2, ShieldCheck, UserPlus } from 'lucide-react'
+import { Building2, Check, Copy, CreditCard, Mail, Megaphone, MessageSquareText, Send, Settings2, UserPlus } from 'lucide-react'
 import { FormField, Input, Note, PageContainer, PageHeader, Panel, SegmentedControl, StatusPill, Textarea } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { Switch } from '../../components/app/Controls'
-import { fetchPlatformSettings, registerPlatformAbdmBridge, savePlatformSettings, sendPlatformTestEmail, sendPlatformTestSms, testPlatformAbdm } from '../../api/superadmin'
+import { fetchPlatformSettings, savePlatformSettings, sendPlatformTestEmail, sendPlatformTestSms } from '../../api/superadmin'
 import { getCurrentUser } from '../../api/auth'
 import { apiUrl } from '../../api/client'
 import { useSnackbar } from '../../context/SnackbarContext'
@@ -13,7 +13,6 @@ import { useSnackbar } from '../../context/SnackbarContext'
 const COMPANY = ['name', 'legalName', 'gstin', 'stateCode', 'address', 'supportEmail', 'supportPhone']
 const EMAIL = ['host', 'port', 'secure', 'user', 'pass', 'fromName', 'fromEmail', 'replyTo']
 const RAZORPAY = ['keyId', 'keySecret', 'webhookSecret']
-const ABDM = ['mode', 'clientId', 'clientSecret', 'cmId']
 const SMS = ['provider', 'senderId', 'authKey', 'route', 'otpTemplateId', 'otpText']
 const pick = (obj, keys) => Object.fromEntries(keys.map((k) => [k, obj?.[k] ?? (k === 'secure' ? false : k === 'port' ? null : k === 'provider' ? 'NONE' : '')]))
 
@@ -151,10 +150,10 @@ function SmsPanel({ data }) {
   ]
   return (
     <Panel icon={MessageSquareText} title={t('superadmin.settings.sms.title', 'Text messages (SMS)')}
-      subtitle={t('superadmin.settings.sms.subtitle', 'Sends one-time codes — patient portal sign-in, online booking, the check-in kiosk — for institutions that haven’t connected their own SMS account. An institution’s own account always comes first.')}
+      subtitle={t('superadmin.settings.sms.subtitle', 'Sends one-time codes — parent and student app sign-in — for institutions that haven’t connected their own SMS account. An institution’s own account always comes first.')}
       actions={<>{status}<Button size="sm" icon={Check} loading={save.isPending} disabled={!dirty} onClick={() => save.mutate()}>{t('superadmin.settings.save')}</Button></>}>
       <SegmentedControl value={form.provider} onChange={set('provider')} options={providers} />
-      {form.provider === 'TEST' && <Note tone="info" className="mt-4">{t('superadmin.settings.sms.testNote', 'Test mode: nothing leaves the server and the code shows on the patient’s screen. Not available in production.')}</Note>}
+      {form.provider === 'TEST' && <Note tone="info" className="mt-4">{t('superadmin.settings.sms.testNote', 'Test mode: nothing leaves the server and the code shows on the person’s screen. Not available in production.')}</Note>}
       {form.provider === 'MSG91' && (
         <div className="mt-4 grid sm:grid-cols-2 gap-4">
           <FormField label={t('superadmin.settings.sms.authKey', 'MSG91 auth key')} error={errors.authKey}>
@@ -225,66 +224,6 @@ function PaymentsPanel({ data }) {
   )
 }
 
-/** The platform's ABDM integrator account: every institution links its facility (HIP id) under it. */
-function AbdmPanel({ data }) {
-  const { t } = useTranslation('superadmin')
-  const qc = useQueryClient()
-  const { showSuccess, showError } = useSnackbar()
-  const { form, set, errors, save, dirty } = useSection(data, 'abdm', ABDM)
-  const [result, setResult] = useState(null)
-  const test = useMutation({
-    mutationFn: testPlatformAbdm,
-    onSuccess: (r) => { setResult(r); qc.setQueryData(['sa-settings'], r.settings) },
-    onError: (e) => showError(e.message),
-  })
-  const bridge = useMutation({
-    mutationFn: registerPlatformAbdmBridge,
-    onSuccess: () => showSuccess(t('superadmin.settings.abdm.registered')),
-    onError: (e) => showError(e.message),
-  })
-  if (!form) return null
-  // where ABDM sends link tokens and link results, for every institution
-  const hook = new URL(apiUrl('/v1/hooks/abdm'), window.location.origin).href
-  const copy = async () => { try { await navigator.clipboard.writeText(hook); showSuccess(t('superadmin.settings.payments.copied')) } catch { /* no clipboard access */ } }
-  const configured = !!(data.abdm?.clientId && data.abdm?.clientSecretSet)
-  const status = data.abdm?.verifiedAt
-    ? <StatusPill tone="success">{t('superadmin.settings.abdm.connected')}</StatusPill>
-    : <StatusPill tone={configured ? 'warning' : 'neutral'}>{t(configured ? 'superadmin.settings.email.untested' : 'superadmin.settings.email.notSet')}</StatusPill>
-  return (
-    <Panel icon={ShieldCheck} title={t('superadmin.settings.abdm.title')} subtitle={t('superadmin.settings.abdm.subtitle')}
-      actions={<>{status}<Button size="sm" icon={Check} loading={save.isPending} disabled={!dirty} onClick={() => save.mutate()}>{t('superadmin.settings.save')}</Button></>}>
-      <div className="space-y-4">
-        <SegmentedControl options={[{ value: 'SANDBOX', label: t('superadmin.settings.abdm.sandbox') }, { value: 'LIVE', label: t('superadmin.settings.abdm.live') }]} value={form.mode || 'SANDBOX'} onChange={set('mode')} />
-        {form.mode === 'LIVE' && <Note tone="warning">{t('superadmin.settings.abdm.liveWarning')}</Note>}
-        <div className="grid sm:grid-cols-2 gap-4">
-          <FormField label={t('superadmin.settings.abdm.clientId')} error={errors.clientId}>
-            <Input value={form.clientId} onChange={set('clientId')} placeholder="SBX_…" autoComplete="off" />
-          </FormField>
-          <FormField label={t('superadmin.settings.abdm.clientSecret')} error={errors.clientSecret}>
-            <Input type="password" autoComplete="new-password" value={form.clientSecret} onChange={set('clientSecret')} placeholder={data.abdm?.clientSecretSet ? t('superadmin.settings.email.passKept') : ''} />
-          </FormField>
-          <FormField label={t('superadmin.settings.abdm.cmId')} hint={t('superadmin.settings.abdm.cmIdHint')} error={errors.cmId}>
-            <Input value={form.cmId} onChange={set('cmId')} placeholder={form.mode === 'LIVE' ? 'abdm' : 'sbx'} autoComplete="off" />
-          </FormField>
-        </div>
-        <div className="flex flex-wrap items-center gap-3">
-          <Button variant="secondary" icon={PlugZap} loading={test.isPending} disabled={dirty || !configured} title={dirty ? t('superadmin.settings.email.saveFirst') : undefined} onClick={() => test.mutate()}>{t('superadmin.settings.abdm.test')}</Button>
-        </div>
-        {result && <Note tone={result.ok ? 'success' : 'danger'}>{result.message}</Note>}
-      </div>
-      <div className="mt-5 pt-4 border-t border-border">
-        <p className="text-sm font-medium text-ink">{t('superadmin.settings.abdm.callbackTitle')}</p>
-        <p className="text-xs text-ink-muted mt-0.5">{t('superadmin.settings.abdm.callbackHint')}</p>
-        <div className="mt-3 rounded-lg border border-border bg-bg px-3 py-2 flex items-center gap-2">
-          <code className="flex-1 min-w-0 truncate text-xs text-ink-muted">{hook}</code>
-          <Button size="sm" variant="ghost" icon={Copy} onClick={copy}>{t('superadmin.settings.payments.copy')}</Button>
-        </div>
-        <Button size="sm" variant="secondary" icon={Radio} className="mt-3" loading={bridge.isPending} disabled={dirty || !configured} onClick={() => bridge.mutate()}>{t('superadmin.settings.abdm.register')}</Button>
-      </div>
-    </Panel>
-  )
-}
-
 /** ISO time → the value a datetime-local field shows (in this browser's time zone). */
 const localInput = (iso) => { if (!iso) return ''; const d = new Date(iso); return new Date(+d - d.getTimezoneOffset() * 60_000).toISOString().slice(0, 16) }
 
@@ -346,7 +285,7 @@ function SignupPanel({ data }) {
   )
 }
 
-/** Platform owner settings: who the platform is, how it sends email and takes payment, its ABDM account, whether anyone can sign up. */
+/** Platform owner settings: who the platform is, how it sends email and takes payment, whether anyone can sign up. */
 export default function PlatformSettings() {
   const { t } = useTranslation('superadmin')
   const { data, isLoading } = useQuery({ queryKey: ['sa-settings'], queryFn: fetchPlatformSettings })
@@ -365,7 +304,6 @@ export default function PlatformSettings() {
           <div className="flex flex-col gap-6">
             <CompanyPanel data={data} />
             <PaymentsPanel data={data} />
-            <AbdmPanel data={data} />
             <NoticePanel data={data} />
             <SignupPanel data={data} />
           </div>

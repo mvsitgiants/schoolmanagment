@@ -61,9 +61,9 @@
     "choose": "Choose language"
   },
   "portal": {
-    "title": "Patient portal",
-    "notAvailable": "This patient portal isn’t available",
-    "contactHospital": "Please contact the hospital.",
+    "title": "Parent & student app",
+    "notAvailable": "This app isn’t available",
+    "contactInstitution": "Please contact the institution.",
     "nav": {
       "home": "Home",
       "book": "Book",
@@ -75,41 +75,41 @@
   },
   "auth": {
     "signIn": "Sign in",
-    "welcomeBack": "Welcome back. Use the email your hospital gave you.",
+    "welcomeBack": "Welcome back. Use the email your institution gave you.",
     "email": "Email",
-    "emailPlaceholder": "you@hospital.com",
+    "emailPlaceholder": "you@institution.com",
     "password": "Password",
     "rememberMe": "Remember this device",
-    "chooseHospital": "Choose a hospital",
-    "worksAtHospitals": "{{email}} works at {{count}} hospitals. Which one do you want to open?",
+    "chooseInstitution": "Choose an institution",
+    "worksAtInstitutions": "{{email}} works at {{count}} institutions. Which one do you want to open?",
     "hidePassword": "Hide password",
     "showPassword": "Show password",
-    "newInstitution": "New hospital? <link>Start a 14-day free trial</link>",
+    "newInstitution": "New institution? <link>Start a 14-day free trial</link>",
     "signup": {
       "title": "Start your free trial",
       "intro": "14 days on any plan, no card needed. You can change the plan at any time.",
-      "closed": "Self sign-up is closed right now. Please contact us to set up your hospital.",
+      "closed": "Self sign-up is closed right now. Please contact us to set up your institution.",
       "pickPlan": "1. Pick a plan",
       "monthly": "Monthly",
       "yearly": "Yearly · 2 months free",
       "popular": "Popular",
       "pricePerMonth": "<price>{{price}}</price><unit> / month + GST</unit>",
       "planLimits": "{{modules}} modules · up to {{users}} users",
-      "planLimitsBeds": "{{modules}} modules · up to {{users}} users · {{beds}} beds",
-      "yourHospital": "2. Your hospital",
-      "institutionName": "Hospital or clinic name",
-      "hospitalNamePlaceholder": "e.g. City Care Hospital",
+      "yourInstitution": "2. Your institution",
+      "institutionName": "Institution or clinic name",
+      "institutionNamePlaceholder": "e.g. City Care Institution",
       "city": "City",
       "cityPlaceholder": "e.g. Bengaluru",
       "yourName": "Your name",
       "workEmail": "Work email",
       "mobile": "Mobile",
       "passwordRule": "At least 8 characters, with a letter and a number.",
-      "create": "Create my hospital workspace",
-      "adminNote": "You become the hospital’s administrator, with full access. You then create roles for your team and decide what each role can see and do.",
+      "create": "Create my institution workspace",
+      "adminNote": "You become the institution’s administrator, with full access. You then create roles for your team and decide what each role can see and do.",
       "haveAccount": "Already have an account? <link>Sign in</link>",
       "codeSent": "We sent a 6-digit code to {{sentTo}}. Enter it to confirm your email — your workspace is created right after.",
-      "verifyCreate": "Confirm and create my workspace"
+      "verifyCreate": "Confirm and create my workspace",
+      "planLimitsStudents": "{{modules}} modules · up to {{users}} staff logins · {{students}} students"
     },
     "code": {
       "title": "Check your email",
@@ -124,7 +124,7 @@
       "link": "Forgot password?",
       "back": "Back to sign in",
       "title": "Reset your password",
-      "intro": "Enter your sign-in email. If it's a confirmed address, we'll email you a code to choose a new password. Otherwise ask your hospital administrator to reset it.",
+      "intro": "Enter your sign-in email. If it's a confirmed address, we'll email you a code to choose a new password. Otherwise ask your institution administrator to reset it.",
       "send": "Email me a code",
       "sent": "If {{sentTo}} is a confirmed address on an account, a code is on its way. Enter it with your new password.",
       "newPassword": "New password",
@@ -135,7 +135,7 @@
     },
     "invite": {
       "titlePlain": "Your invite",
-      "title": "Welcome to {{hospital}}",
+      "title": "Welcome to {{institution}}",
       "intro": "Hello {{name}} — choose a password for {{email}} to finish setting up your account.",
       "save": "Save password and sign in",
       "missing": "This link is incomplete. Open the invite from your email again."
@@ -150,29 +150,22 @@
     },
     "enterBoth": "Please enter your email and password.",
     "showcase": {
-      "intro": "One system for the whole hospital — front desk, OPD, wards, lab, pharmacy, billing, insurance and accounts, all working from the same patient record.",
-      "intro2": "From registration to discharge every department hands its work to the next, so nobody writes the same thing twice.",
+      "intro": "One system for your whole school or college — admissions, attendance, exams, fees, staff and parents, all working from the same student record.",
+      "intro2": "From the first enquiry to the leaving certificate, every office hands its work to the next, so nobody writes the same thing twice.",
       "screens": "Product screens",
       "keyModules": "Key modules",
-      "more": "…and 29 more, from radiology and OT to CSSD, insurance and accounts.",
-      "slides": {
-        "opd": "OPD visits",
-        "beds": "Bed board",
-        "billing": "Billing",
-        "radiology": "Radiology viewer and report",
-        "home": "Hospital overview"
-      },
+      "more": "…and {{count}} more, from timetable and transport to hostel, placements and accreditation.",
       "modules": {
-        "opd": "OPD",
-        "ipd": "Inpatients",
-        "lab": "Laboratory",
-        "pharmacy": "Pharmacy",
-        "billing": "Billing",
-        "hr": "HR & payroll"
+        "students": "Students",
+        "attendance": "Attendance",
+        "exams": "Exams & report cards",
+        "fees": "Fees",
+        "communication": "Notices & messages",
+        "portal": "Parent app"
       }
     },
     "welcomeTo": "Welcome to",
-    "newHospitalQ": "New hospital?",
+    "newInstitutionQ": "New institution?",
     "startTrial": "Start a free trial",
     "backToSignIn": "← Back to sign in",
     "differentAccount": "← Use a different account",
@@ -180,7 +173,7 @@
     "enterPassword": "Enter your password",
     "capsLock": "Caps Lock is on",
     "rememberShort": "Remember me",
-    "dataPrivate": "Each hospital’s data is kept separate and private."
+    "dataPrivate": "Each institution’s data is kept separate and private."
   },
   "home": {
     "goodMorning": "Good morning",
@@ -198,10 +191,10 @@
     "soon": "soon"
   },
   "search": {
-    "placeholder": "Search patients, files, bills…",
+    "placeholder": "Search screens…",
     "screen": "Screen",
     "searching": "Searching…",
-    "noMatch": "No match for “{{query}}”. Try a screen name, or a patient's name, UHID or mobile number."
+    "noMatch": "No match for “{{query}}”. Try a screen name."
   },
   "common": {
     "print": "Print",
@@ -209,7 +202,6 @@
     "side": "Side",
     "category": "Category",
     "priority": "Priority",
-    "diagnosis": "Diagnosis",
     "choose": "Choose…",
     "date": "Date",
     "yes": "Yes",
@@ -221,22 +213,22 @@
     "nothingHere": "Nothing here",
     "close": "Close",
     "name": "Name",
-    "patient": "Patient",
     "status": "Status",
     "saved": "Saved.",
     "pickOne": "Pick one",
-    "bed": "Bed",
     "none": "none",
     "show": "Show",
     "all": "All",
     "reason": "Reason",
     "type": "Type",
-    "doctor": "Doctor",
     "median": "Median",
     "average": "Average",
     "no": "No",
     "description": "Description",
-    "mode": "Mode"
+    "mode": "Mode",
+    "class": "Class",
+    "admissionNo": "Adm. no.",
+    "guardian": "Parent"
   },
   "signOut": "Sign out",
   "notFound": {

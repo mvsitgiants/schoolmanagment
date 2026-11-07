@@ -56,7 +56,7 @@ export default function DataTable({
   // had never opened anything.
   rowKey = 'id', selectedId, onSelect, onRowClick,
   emptyIcon: EmptyIcon = Inbox, emptyTitle, emptyHint, emptyAction,
-  // the query's error and its refetch: a failed load must not read as "nothing here" (a nurse or
+  // the query's error and its refetch: a failed load must not read as "nothing here" (a teacher or
   // pharmacist would decide there is no work) — it shows what went wrong and a Retry instead
   error, onRetry,
   title, toolbar, exportable = false, exportName = 'export', exportAll,

@@ -107,12 +107,12 @@ notificationRuleSchema.index({ tenantId: 1, event: 1 }, { unique: true })
 export const NotificationRule = model('NotificationRule', notificationRuleSchema, 'notification_rules')
 
 /**
- * A link sent to a patient for one document (prescription, lab report). The token is
- * the only key: long, random, expiring, and every opening is logged on the patient.
+ * A link sent to a family for one document (report card, fee receipt). The token is
+ * the only key: long, random, expiring, and every opening is logged on the student.
  */
 const shareLinkSchema = new Schema({
   token: { type: String, required: true },
-  kind: { type: String, required: true }, // RX · LAB_REPORT
+  kind: { type: String, required: true }, // REPORT_CARD · FEE_RECEIPT …
   entityId: { type: String, required: true },
   studentId: ObjectId,
   expiresAt: { type: Date, required: true },

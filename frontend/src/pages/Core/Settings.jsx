@@ -65,7 +65,7 @@ function Group({ group, name, onDirtyChange }) {
   useEffect(() => { onDirtyChange?.(hasChanges) }, [hasChanges, onDirtyChange])
   const save = useMutation({
     mutationFn: () => saveModuleSettings(group.module, changed),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['module-settings'] }); qc.invalidateQueries({ queryKey: ['patient-meta'] }); setErrors({}); showSuccess(t('settings.page.saved', { name })) },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['module-settings'] }); qc.invalidateQueries({ queryKey: ['student-meta'] }); setErrors({}); showSuccess(t('settings.page.saved', { name })) },
     onError: (e) => { setErrors(e.response?.data?.details?.fields ?? {}); showError(e.message) },
   })
   return (

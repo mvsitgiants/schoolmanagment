@@ -1,124 +1,76 @@
 {
   "notifications": {
     "events": {
-      "appointments_booked": {
+      "portal_otp": {
         "SMS": {
-          "body": "Dear {{patient.name}}, your appointment with {{doctor.name}} is on {{appt.date}} at {{appt.time}} (ref {{appt.no}}). - {{hospital.name}}"
+          "body": "{{otp.code}} is your code for {{institution.name}}. It is valid for {{otp.minutes}} minutes. Do not share it."
         },
         "WHATSAPP": {
-          "body": "Hello {{patient.firstName}},\nYour appointment is booked.\n\nDoctor: {{doctor.name}}\nWhen: {{appt.date}}, {{appt.time}}\nRef: {{appt.no}}\n\nPlease come 10 minutes early. To change it, call {{hospital.phone}}.\n{{hospital.name}}"
+          "body": "{{otp.code}} is your code for {{institution.name}}. It is valid for {{otp.minutes}} minutes. Do not share it."
         },
         "EMAIL": {
-          "subject": "Appointment booked: {{appt.date}} at {{appt.time}}",
-          "body": "Dear {{patient.name}},\n\nYour appointment with {{doctor.name}} is booked for {{appt.date}} at {{appt.time}}.\nReference: {{appt.no}}\n\nPlease come 10 minutes early. To change it, call {{hospital.phone}}.\n\n{{hospital.name}}"
-        }
-      },
-      "appointments_rescheduled": {
-        "SMS": {
-          "body": "Dear {{patient.name}}, your appointment {{appt.no}} is moved to {{appt.date}} at {{appt.time}} with {{doctor.name}}. - {{hospital.name}}"
-        },
-        "WHATSAPP": {
-          "body": "Hello {{patient.firstName}},\nYour appointment has moved.\n\nNow: {{appt.date}}, {{appt.time}} with {{doctor.name}}\nWas: {{appt.oldDate}}, {{appt.oldTime}}\nRef: {{appt.no}}\n\n{{hospital.name}}"
-        },
-        "EMAIL": {
-          "subject": "Appointment moved to {{appt.date}} at {{appt.time}}",
-          "body": "Dear {{patient.name}},\n\nYour appointment {{appt.no}} is now on {{appt.date}} at {{appt.time}} with {{doctor.name}} (it was {{appt.oldDate}}, {{appt.oldTime}}).\n\n{{hospital.name}}"
-        }
-      },
-      "appointments_cancelled": {
-        "SMS": {
-          "body": "Dear {{patient.name}}, your appointment {{appt.no}} on {{appt.date}} at {{appt.time}} is cancelled. Call {{hospital.phone}} to book again. - {{hospital.name}}"
-        },
-        "WHATSAPP": {
-          "body": "Hello {{patient.firstName}},\nYour appointment with {{doctor.name}} on {{appt.date}} at {{appt.time}} is cancelled.\nCall {{hospital.phone}} to book a new time.\n\n{{hospital.name}}"
-        },
-        "EMAIL": {
-          "subject": "Appointment cancelled",
-          "body": "Dear {{patient.name}},\n\nYour appointment {{appt.no}} with {{doctor.name}} on {{appt.date}} at {{appt.time}} is cancelled.\nCall {{hospital.phone}} to book a new time.\n\n{{hospital.name}}"
-        }
-      },
-      "appointments_reminder": {
-        "SMS": {
-          "body": "Reminder: {{patient.name}}, your appointment with {{doctor.name}} is {{appt.when}} at {{appt.time}} (ref {{appt.no}}). - {{hospital.name}}"
-        },
-        "WHATSAPP": {
-          "body": "Hello {{patient.firstName}},\nA reminder of your appointment {{appt.when}}.\n\nDoctor: {{doctor.name}}\nWhen: {{appt.date}}, {{appt.time}}\nRef: {{appt.no}}\n\nCan’t come? Call {{hospital.phone}}.\n{{hospital.name}}"
-        },
-        "EMAIL": {
-          "subject": "Reminder: appointment {{appt.when}} at {{appt.time}}",
-          "body": "Dear {{patient.name}},\n\nThis is a reminder of your appointment with {{doctor.name}} {{appt.when}}, {{appt.date}} at {{appt.time}}.\nReference: {{appt.no}}\n\nIf you can’t come, please call {{hospital.phone}}.\n\n{{hospital.name}}"
-        }
-      },
-      "opd_rx_issued": {
-        "SMS": {
-          "body": "Dear {{patient.name}}, your prescription {{rx.no}} from {{doctor.name}}: {{rx.link}} {{followUp.text}} - {{hospital.name}}"
-        },
-        "WHATSAPP": {
-          "body": "Hello {{patient.firstName}},\nYour prescription from {{doctor.name}} ({{visit.date}}) is ready.\n\nView or download: {{rx.link}}\n\n{{followUp.text}}\n{{hospital.name}}"
-        },
-        "EMAIL": {
-          "subject": "Your prescription {{rx.no}} from {{hospital.name}}",
-          "body": "Dear {{patient.name}},\n\nYour prescription from {{doctor.name}} ({{visit.date}}) is ready. View or download it here:\n{{rx.link}}\n\n{{followUp.text}}\n\n{{hospital.name}}"
-        }
-      },
-      "lab_report_ready": {
-        "SMS": {
-          "body": "Dear {{patient.name}}, your lab report is ready: {{report.link}} - {{hospital.name}}"
-        },
-        "WHATSAPP": {
-          "body": "Hello {{patient.firstName}},\nYour lab report is ready ({{report.tests}}).\n\nView or download: {{report.link}}\n\n{{hospital.name}}"
-        },
-        "EMAIL": {
-          "subject": "Your lab report from {{hospital.name}}",
-          "body": "Dear {{patient.name}},\n\nYour lab report ({{report.tests}}) is ready. View or download it here:\n{{report.link}}\n\n{{hospital.name}}"
-        }
-      },
-      "patients_otp": {
-        "SMS": {
-          "body": "{{otp.code}} is your code for {{hospital.name}}. It is valid for {{otp.minutes}} minutes. Do not share it."
-        },
-        "WHATSAPP": {
-          "body": "{{otp.code}} is your code for {{hospital.name}}. It is valid for {{otp.minutes}} minutes. Do not share it."
-        },
-        "EMAIL": {
-          "subject": "Your code for {{hospital.name}}",
+          "subject": "Your code for {{institution.name}}",
           "body": "{{otp.code}} is your code. It is valid for {{otp.minutes}} minutes."
         }
       },
-      "billing_bill_created": {
+      "attendance_absent": {
         "SMS": {
-          "body": "Dear {{patient.name}}, bill {{bill.no}} for {{bill.amount}} at {{hospital.name}}. Paid {{bill.paid}}, due {{bill.due}}. Thank you."
+          "body": "Dear Parent, {{student.name}} ({{student.class}}) is absent today, {{attendance.date}}. - {{institution.name}}"
         },
         "WHATSAPP": {
-          "body": "Hello {{patient.firstName}},\nThank you for visiting {{hospital.name}}.\n\nBill: {{bill.no}}\nAmount: {{bill.amount}}\nPaid: {{bill.paid}}\nBalance: {{bill.due}}"
+          "body": "Dear {{guardian.name}},\n{{student.firstName}} ({{student.class}}) was marked absent today, {{attendance.date}}.\n\nIf this is unexpected, please call {{institution.phone}}.\n{{institution.name}}"
         },
         "EMAIL": {
-          "subject": "Your bill {{bill.no}} from {{hospital.name}}",
-          "body": "Dear {{patient.name}},\n\nBill {{bill.no}}: {{bill.amount}}\nPaid: {{bill.paid}}\nBalance due: {{bill.due}}\n\nThank you,\n{{hospital.name}}"
+          "subject": "{{student.firstName}} is absent today",
+          "body": "Dear {{guardian.name}},\n\n{{student.name}} ({{student.class}}) was marked absent today, {{attendance.date}}.\nIf this is unexpected, please call {{institution.phone}}.\n\n{{institution.name}}"
         }
       },
-      "feedback_requested": {
+      "fees_receipt": {
         "SMS": {
-          "body": "Dear {{patient.firstName}}, how was your {{feedback.visit}} at {{hospital.name}}? Tell us in 2 minutes: {{feedback.link}}"
+          "body": "Received {{receipt.amount}} for {{student.name}} ({{student.admissionNo}}), receipt {{receipt.no}}. Balance {{fees.due}}. - {{institution.name}}"
         },
         "WHATSAPP": {
-          "body": "Hello {{patient.firstName}},\nThank you for choosing {{hospital.name}}. How was your {{feedback.visit}}?\n\nTell us in 2 minutes: {{feedback.link}}\n\nThe link works for {{feedback.days}} days."
+          "body": "Dear {{guardian.name}},\nThank you. We received {{receipt.amount}} for {{student.name}} on {{receipt.date}}.\n\nReceipt: {{receipt.no}}\nBalance due: {{fees.due}}\n\n{{institution.name}}"
         },
         "EMAIL": {
-          "subject": "How was your {{feedback.visit}} at {{hospital.name}}?",
-          "body": "Dear {{patient.name}},\n\nThank you for choosing {{hospital.name}}. Please tell us about your {{feedback.visit}} — it takes two minutes:\n{{feedback.link}}\n\nThe link works for {{feedback.days}} days.\n\n{{hospital.name}}"
+          "subject": "Fee receipt {{receipt.no}} — {{student.name}}",
+          "body": "Dear {{guardian.name}},\n\nWe received {{receipt.amount}} for {{student.name}} ({{student.admissionNo}}) on {{receipt.date}}.\nReceipt: {{receipt.no}}\nBalance due: {{fees.due}}\n\nThank you,\n{{institution.name}}"
         }
       },
-      "radiology_images_shared": {
+      "fees_due_reminder": {
         "SMS": {
-          "body": "{{hospital.name}} has shared {{share.study}} images of {{share.patient}} with you: {{share.link}} (until {{share.expires}})."
+          "body": "Dear Parent, fees of {{fees.due}} for {{student.name}} are due by {{fees.dueDate}}. Pay online: {{pay.link}} - {{institution.name}}"
         },
         "WHATSAPP": {
-          "body": "Hello {{recipient.name}},\n{{share.by}} at {{hospital.name}} has shared the images of {{share.study}} ({{share.patient}}) with you.\n\nOpen: {{share.link}}\nThe link works until {{share.expires}}."
+          "body": "Dear {{guardian.name}},\nA gentle reminder: fees of {{fees.due}} for {{student.firstName}} ({{student.class}}) are due by {{fees.dueDate}}.\n\nPay online: {{pay.link}}\n\n{{institution.name}}"
         },
         "EMAIL": {
-          "subject": "Imaging shared with you: {{share.study}} — {{hospital.name}}",
-          "body": "Dear {{recipient.name}},\n\n{{share.by}} at {{hospital.name}} has shared the images of {{share.study}} for {{share.patient}} with you.\n\nOpen them here: {{share.link}}\nThe link works until {{share.expires}}. If a PIN is needed, the hospital will give it to you separately.\n\n{{hospital.name}}"
+          "subject": "Fees due by {{fees.dueDate}} — {{student.name}}",
+          "body": "Dear {{guardian.name}},\n\nFees of {{fees.due}} for {{student.name}} ({{student.class}}) are due by {{fees.dueDate}}.\nYou can pay online here: {{pay.link}}\n\n{{institution.name}}"
+        }
+      },
+      "exams_results_published": {
+        "SMS": {
+          "body": "Results of {{exam.name}} for {{student.name}} are out: {{result.link}} - {{institution.name}}"
+        },
+        "WHATSAPP": {
+          "body": "Dear {{guardian.name}},\nThe {{exam.name}} report card of {{student.firstName}} is ready.\n\nView it: {{result.link}}\n\n{{institution.name}}"
+        },
+        "EMAIL": {
+          "subject": "{{exam.name}} report card — {{student.name}}",
+          "body": "Dear {{guardian.name}},\n\nThe {{exam.name}} report card of {{student.name}} ({{student.class}}) is ready.\nView and download it here: {{result.link}}\n\n{{institution.name}}"
+        }
+      },
+      "communication_notice": {
+        "SMS": {
+          "body": "New notice from {{institution.name}}: {{notice.title}}. Read: {{notice.link}}"
+        },
+        "WHATSAPP": {
+          "body": "Dear {{guardian.name}},\nNew notice: {{notice.title}}\n\nRead it here: {{notice.link}}\n\n{{institution.name}}"
+        },
+        "EMAIL": {
+          "subject": "{{notice.title}} — {{institution.name}}",
+          "body": "Dear {{guardian.name}},\n\nA new notice has been published: {{notice.title}}\nRead it here: {{notice.link}}\n\n{{institution.name}}"
         }
       }
     }

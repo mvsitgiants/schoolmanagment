@@ -13,7 +13,7 @@ import { getSetting } from './settings.js'
 
 const cache = new Map() // `${tenantId}:${userId}` → { version, access }
 
-const SCOPE_RANK = { OWN: 1, DEPARTMENT: 2, WARD: 2, BRANCH: 3, ALL: 4 }
+const SCOPE_RANK = { OWN: 1, CLASS: 2, DEPARTMENT: 2, BRANCH: 3, ALL: 4 }
 
 export async function bumpAccessVersion(tenantId) {
   await Tenant.updateOne({ _id: tenantId }, { $inc: { accessVersion: 1 } })
@@ -98,7 +98,7 @@ export const moduleEnabled = (auth, moduleId) =>
 
 export const can = (auth, key) => !!auth?.superadmin || hasPermissionIn(auth?.permissions, key)
 
-/** The caller's data scope for a module: OWN · DEPARTMENT · WARD · BRANCH · ALL. */
+/** The caller's data scope for a module: OWN · CLASS · DEPARTMENT · BRANCH (campus) · ALL. */
 export function scopeOf(auth, moduleId) {
   if (auth?.superadmin || auth?.fullAccess) return 'ALL'
   return auth?.dataScopes?.[moduleId] || auth?.dataScopes?.default || 'BRANCH'

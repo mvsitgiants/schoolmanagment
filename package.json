@@ -20,5 +20,6 @@
   },
   "engines": {
     "node": ">=20"
-  }
+  },
+  "description": "SchoolGiant \u2014 full-suite SaaS for schools, colleges and coaching institutes"
 }

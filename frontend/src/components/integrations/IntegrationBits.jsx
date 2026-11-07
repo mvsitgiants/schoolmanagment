@@ -80,7 +80,7 @@ export function RevealOnceModal({ open, onClose, title, secret, children }) {
  * Provider settings panel: on/off, sandbox/live, plain fields and secrets from the provider
  * definition (packages/shared integrations.js), save and test connection.
  */
-/** `modes={false}`: the provider's sandbox / live is not this institution's choice (ABDM: the platform account's). */
+/** `modes={false}`: the provider's sandbox / live is not this institution's choice (e.g. a provider run on the platform's own account). */
 export function ProviderConfigPanel({ provider, saved, onSave, onTest, canConfigure, children, title, modes = true }) {
   const { t } = useTranslation('integrations')
   const qc = useQueryClient()

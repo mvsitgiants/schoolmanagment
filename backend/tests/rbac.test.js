@@ -29,9 +29,9 @@ describe('role designer rules', () => {
   })
 
   it('keeps a page view whenever an action on that page is granted', async () => {
-    const res = await admin.post('/api/v1/core/roles').send({ name: 'Ward nurse', permissions: ['nursing.chart.mar_give'] })
+    const res = await admin.post('/api/v1/core/roles').send({ name: 'Marks locker', permissions: ['exams.marks.lock'] })
     expect(res.status).toBe(201)
-    expect(res.body.data.permissions).toEqual(['nursing.chart.mar_give', 'nursing.chart.view'])
+    expect(res.body.data.permissions).toEqual(['exams.marks.lock', 'exams.marks.view'])
   })
 
   it('drops unknown permission keys', async () => {
@@ -40,9 +40,9 @@ describe('role designer rules', () => {
   })
 
   it('creates recommended roles from templates, once', async () => {
-    const first = await admin.post('/api/v1/core/roles/from-templates').send({ codes: ['FRONT_DESK', 'CASHIER'] })
+    const first = await admin.post('/api/v1/core/roles/from-templates').send({ codes: ['FRONT_DESK', 'ACCOUNTANT'] })
     expect(first.status).toBe(201)
-    expect(first.body.data.created.map((r) => r.name)).toEqual(['Front Desk', 'Cashier'])
+    expect(first.body.data.created.map((r) => r.name)).toEqual(['Front Desk', 'Accountant'])
     const again = await admin.post('/api/v1/core/roles/from-templates').send({ codes: ['FRONT_DESK'] })
     expect(again.body.data.created).toHaveLength(0)
     expect(again.body.data.skipped[0].reason).toMatch(/already exists/)
@@ -56,7 +56,7 @@ describe('permissions are enforced on the API', () => {
     const viewer = await signIn(app, 'viewer@test.test', 'Staff@123')
     expect(viewer.me.permissions).toEqual(['core.departments.view', 'core.users.view'])
     expect((await viewer.get('/api/v1/core/users')).status).toBe(200)
-    const denied = await viewer.post('/api/v1/core/departments').send({ name: 'X-ray', code: 'XRAY', type: 'DIAGNOSTIC' })
+    const denied = await viewer.post('/api/v1/core/departments').send({ name: 'Transport', code: 'TRAN', type: 'SUPPORT' })
     expect(denied.status).toBe(403)
     expect(denied.body.details.missing).toEqual(['core.departments.create'])
   })
@@ -66,9 +66,9 @@ describe('permissions are enforced on the API', () => {
     await makeUser(role.id, 'grows@test.test')
     const user = await signIn(app, 'grows@test.test', 'Staff@123')
     expect((await user.get('/api/v1/core/departments')).status).toBe(200) // list is open to every user
-    expect((await user.post('/api/v1/core/departments').send({ name: 'ENT', code: 'ENT', type: 'CLINICAL' })).status).toBe(403)
+    expect((await user.post('/api/v1/core/departments').send({ name: 'Arts', code: 'ARTS', type: 'ACADEMIC' })).status).toBe(403)
     await admin.patch(`/api/v1/core/roles/${role.id}`).send({ permissions: ['core.users.view', 'core.departments.create'] })
-    expect((await user.post('/api/v1/core/departments').send({ name: 'ENT', code: 'ENT', type: 'CLINICAL' })).status).toBe(201)
+    expect((await user.post('/api/v1/core/departments').send({ name: 'Arts', code: 'ARTS', type: 'ACADEMIC' })).status).toBe(201)
   })
 
   it('no escalation: a role manager cannot grant what they do not hold', async () => {
@@ -77,7 +77,7 @@ describe('permissions are enforced on the API', () => {
     const rm = await signIn(app, 'rm@test.test', 'Staff@123')
     const ok = await rm.post('/api/v1/core/roles').send({ name: 'Small', permissions: ['core.users.view'] })
     expect(ok.status).toBe(201)
-    const bad = await rm.post('/api/v1/core/roles').send({ name: 'Bigger', permissions: ['billing.invoices.cancel'] })
+    const bad = await rm.post('/api/v1/core/roles').send({ name: 'Bigger', permissions: ['fees.invoices.cancel'] })
     expect(bad.status).toBe(403)
     const full = await rm.post('/api/v1/core/roles').send({ name: 'Boss', fullAccess: true })
     expect(full.status).toBe(403)
@@ -97,17 +97,17 @@ describe('permissions are enforced on the API', () => {
   })
 
   it('a switched-off module hides its pages from every role', async () => {
-    const off = await admin.post('/api/v1/core/modules/diet').send({ enabled: false })
+    const off = await admin.post('/api/v1/core/modules/library').send({ enabled: false })
     expect(off.status).toBe(200)
     const me = (await admin.get('/api/v1/auth/me')).body.data
-    expect(me.enabledModules).not.toContain('diet')
-    const blocked = await admin.post('/api/v1/core/modules/ipd').send({ enabled: false })
-    expect(blocked.status).toBe(409) // nursing, ot … still need it
+    expect(me.enabledModules).not.toContain('library')
+    const blocked = await admin.post('/api/v1/core/modules/students').send({ enabled: false })
+    expect(blocked.status).toBe(409) // attendance, exams, fees … still need it
   })
 
   it('cannot switch on a module outside the plan', async () => {
-    const res = await admin.post('/api/v1/core/modules/payroll').send({ enabled: true })
+    const res = await admin.post('/api/v1/core/modules/hostel').send({ enabled: true })
     expect(res.status).toBe(409)
-    expect(res.body.message).toMatch(/not part of the Institution plan/)
+    expect(res.body.message).toMatch(/not part of the Growth plan/)
   })
 })

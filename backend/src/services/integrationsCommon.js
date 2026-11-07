@@ -15,7 +15,7 @@ import { escapeRegex, listResponse } from '../platform/validate.js'
 //   · IntegrationConfig per institution per provider — settings in clear, secrets encrypted,
 //     never sent back (the screen sees `set` and the last 4);
 //   · callProvider() — every outgoing call: timeout, retry for idempotent calls, and one
-//     IntegrationLog row with a redacted outline (never secrets, OTPs or clinical values);
+//     IntegrationLog row with a redacted outline (never secrets, OTPs or personal details);
 //   · logInbound() — the same row for webhooks and device pushes;
 //   · keys — random, shown once, stored as a sha-256 hash; compared in constant time;
 //   · outbound URL guard — blocks private, loopback and link-local addresses (SSRF).
@@ -54,7 +54,7 @@ export const newHookKey = () => randomBytes(18).toString('base64url')
 const SECRET_KEY = /secret|password|passwd|pass$|token|otp|authkey|auth_key|api[-_]?key|authorization|signature|pin$|aadhaar|loginid|otpvalue|cvv|card_?number|vpa|contact|email|mobile|phone|customer|prefill|^mobiles$|^address$/i
 const CLINICAL_KEY = /^(value|values|result|results|obx|comment|diagnosis|notes?)$/i
 
-/** Outline of a payload for the log: secrets and clinical values masked, long text cut. */
+/** Outline of a payload for the log: secrets and personal details masked, long text cut. */
 export function redact(value, depth = 0) {
   if (value === null || value === undefined) return value
   if (depth > 4) return '…'
@@ -174,8 +174,8 @@ export async function asHookOwner(provider, hookKey, fn) {
 // ───────────────────────────────────────────────────────── log
 
 export async function writeLog(row) {
-  // the integration log belongs to an institution; platform-level calls (the ABDM account test,
-  // callbacks not yet matched to an institution) go to the server log
+  // the integration log belongs to an institution; platform-level calls (callbacks not yet
+  // matched to an institution) go to the server log
   if (!getContext()?.tenantId) {
     logger.info({ provider: row.provider, operation: row.operation, status: row.status, httpStatus: row.httpStatus, error: row.error }, 'platform integration call')
     return
