@@ -52,11 +52,14 @@ Needs Node 20+.
 
 ```bash
 npm install
-npm run dev:db          # terminal 1 — embedded MongoDB replica set on :27018 (no Docker needed)
-npm run seed -- --reset # once — plans, role templates, platform owner and two demo institutions
-npm run dev:api         # terminal 2 — API on http://localhost:4100
-npm run dev:web         # terminal 3 — app on http://localhost:5190
+npm run dev             # starts MongoDB (:27018), adds demo data, then the API (:4100) and the app (:5190)
 ```
+
+Open http://localhost:5190. `npm run dev` reuses anything already running on those ports, and
+Ctrl+C stops what it started. Run the parts separately if you prefer, each in its own terminal,
+**from the project folder**: `npm run dev:db`, `npm run dev:api`, `npm run dev:web`
+(start `dev:db` first — the API needs the database). `npm run seed -- --reset` wipes the database
+and recreates the demo data.
 
 Ports differ from Hospital Samadhan (27017 / 4000 / 5180), so both can run side by side.
 Docker alternative: `docker compose -f docker/docker-compose.yml up -d` (MongoDB :27018,

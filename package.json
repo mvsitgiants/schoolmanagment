@@ -9,6 +9,7 @@
     "frontend"
   ],
   "scripts": {
+    "dev": "node scripts/dev.mjs",
     "dev:db": "npm run db --workspace @schoolgiant/backend",
     "dev:api": "npm run dev --workspace @schoolgiant/backend",
     "dev:web": "npm run dev --workspace @schoolgiant/frontend",
@@ -21,5 +22,5 @@
   "engines": {
     "node": ">=20"
   },
-  "description": "SchoolGiant \u2014 full-suite SaaS for schools, colleges and coaching institutes"
+  "description": "SchoolGiant — full-suite SaaS for schools, colleges and coaching institutes"
 }

@@ -1,5 +1,5 @@
 import { createApp } from './app.js'
-import { config } from './config.js'
+import { config, isLocalMongo } from './config.js'
 import { connectDb } from './platform/db.js'
 import { runAsSystem } from './platform/context.js'
 import { logger } from './platform/logger.js'
@@ -23,7 +23,19 @@ if (config.storage === 'disk') {
   await access(config.uploadDir, fsc.W_OK).catch(() => { throw new Error(`UPLOAD_DIR ${config.uploadDir} is not writable.`) })
 }
 
-await connectDb(config.mongoUrl)
+try {
+  await connectDb(config.mongoUrl)
+} catch (err) {
+  // The usual first-run mistake: the API started before its database. Say what to do, not just the stack.
+  if (err?.name === 'MongooseServerSelectionError' && isLocalMongo()) {
+    logger.fatal(`Cannot reach MongoDB at ${config.mongoUrl.replace(/\/\/[^@]*@/, '//')}.\n`
+      + '  Easiest: from the project folder run   npm run dev   (starts the database, API and web app together)\n'
+      + '  Or start just the database first:     npm run dev:db   (or: docker compose -f docker/docker-compose.yml up -d)\n'
+      + '  First time only, then:               npm run seed -- --reset')
+    process.exit(1)
+  }
+  throw err
+}
 
 const app = createApp()
 const server = app.listen(config.port, () => logger.info(`API ready on http://localhost:${config.port}`))

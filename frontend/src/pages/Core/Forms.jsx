@@ -25,7 +25,7 @@ function NewFormModal({ onClose }) {
   const { t } = useTranslation('admin')
   const navigate = useNavigate()
   const { showError } = useSnackbar()
-  const [f, setF] = useState({ name: '', code: '', use: 'OPD_CONSULT', codeTouched: false })
+  const [f, setF] = useState({ name: '', code: '', use: 'SURVEY', codeTouched: false })
   const [errors, setErrors] = useState({})
   const create = useMutation({
     mutationFn: () => createForm({ name: f.name, code: f.code, use: f.use }),

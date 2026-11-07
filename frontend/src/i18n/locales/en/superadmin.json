@@ -8,7 +8,8 @@
       "markTitle": "Verify {{name}}?",
       "removeTitle": "Remove verification from {{name}}?",
       "removeMsg": "The institution loses its Verified badge until it is checked again.",
-      "userVerified": "Email confirmed"
+      "userVerified": "Email confirmed",
+      "markMsg": "Only after checking the institution's legal name, registration number, board affiliation, UDISE code and GSTIN against documents. The institution sees a Verified badge; it is removed automatically if they change those details."
     },
     "tenantStatus": {
       "TRIAL": "Trial",

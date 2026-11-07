@@ -1,7 +1,9 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import request from 'supertest'
 import { Tenant, SubscriptionInvoice } from '../src/models/platform.js'
-import { runBillingCycle } from '../src/services/subscription.js'
+import { Student } from '../src/models/students.js'
+import { runAsTenant } from '../src/platform/context.js'
+import { assertWithinLimit, runBillingCycle } from '../src/services/subscription.js'
 import { asSystem, newInstitution, signIn, startDb, stopDb } from './helpers.js'
 
 let app
@@ -22,6 +24,17 @@ describe('plans and limits', () => {
     const over = await admin.post('/api/v1/core/users').send({ name: 'Three', email: 'three@x.test', roleIds: [role.id] })
     expect(over.status).toBe(422)
     expect(over.body.message).toMatch(/plan allows 2 staff logins/)
+  })
+
+  it('counts active students against the plan’s student limit', async () => {
+    const h = await newInstitution('STARTER') // 500 students
+    await Tenant.updateOne({ _id: h.tenant._id }, { $set: { limitsOverride: { students: 1 } } })
+    await runAsTenant(h.tenant._id, () => Student.create({ admissionNo: 'S1', firstName: 'One' }))
+    const admin = await signIn(app, h.email, h.password)
+    const sub = (await admin.get('/api/v1/core/subscription')).body.data
+    expect(sub.usage.students).toBe(1)
+    expect(sub.limits.students).toBe(1)
+    await expect(assertWithinLimit(h.tenant._id, 'students', 1)).rejects.toThrow(/plan allows 1 students/)
   })
 
   it('changing plan during the trial switches modules without an invoice', async () => {

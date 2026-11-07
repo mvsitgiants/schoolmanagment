@@ -26,7 +26,7 @@ router.get('/settings', async (req, res) => {
 
 const hex = z.string().regex(/^#[0-9a-fA-F]{6}$/, 'Use a colour like #0E7C86').optional().or(z.literal('').transform(() => undefined))
 // A logo is either a link (https://…) or an image uploaded from the profile page, stored inline as a data URL so it
-// shows everywhere without a sign-in (prints/PDFs, patient portal, public pages). SVG is not accepted (it can carry script).
+// shows everywhere without a sign-in (prints/PDFs, parent app, public pages). SVG is not accepted (it can carry script).
 const LOGO_DATA_URL = /^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/]+={0,2}$/
 const logo = z.union([
   optionalText(500).refine((v) => !v || /^(https?:\/\/|\/)/i.test(v), 'Enter a web address (https://…) or upload an image'),
@@ -50,9 +50,9 @@ router.patch('/settings', requirePermission('core.profile.edit'), async (req, re
   const before = { name: tenant.name, ...(tenant.toObject().profile ?? {}) }
   before.logoUrl = auditValue(before.logoUrl)
   if (input.name) tenant.name = input.name
-  // A GSTIN or ABDM facility (HFR) ID belongs to one institution on the platform — the same institution
+  // A GSTIN or UDISE+ code belongs to one institution on the platform — the same institution
   // signing up again (a second free trial) shows up here.
-  for (const [field, label] of [['gstin', 'GSTIN'], ['udiseCode', 'ABDM facility (HFR) ID']]) {
+  for (const [field, label] of [['gstin', 'GSTIN'], ['udiseCode', 'UDISE+ code']]) {
     const v = input[field]
     if (v && v !== tenant.profile?.[field] && await Tenant.exists({ _id: { $ne: tenant._id }, [`profile.${field}`]: v })) {
       throw conflict(`Another institution on the platform already uses this ${label}. If it is yours, contact support to join the two accounts.`, { fields: { [field]: 'Already registered' } })

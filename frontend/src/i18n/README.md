@@ -1,7 +1,8 @@
 # Translations (i18n)
 
-i18next + react-i18next. 13 languages: `en` plus `hi kn ta te ml mr gu bn pa or ur`
-(`packages/shared/src/languages.js` → `SUPPORTED_LANGUAGES`).
+i18next + react-i18next. **English only at launch** — every string still lives in `locales/en/*.json`,
+so a language is added by switching its row on in `packages/shared/src/languages.js` (`SUPPORTED_LANGUAGES`)
+and adding `locales/<code>/` with the same files. `npm run lint:i18n` checks every switched-on language is complete.
 
 ## Files
 
@@ -15,7 +16,6 @@ locales/<lang>/<namespace>.json
 | `ui` | shared components — `components/system`, `components/ui`, `layouts` (`ui.table.*`, `ui.modal.*`, …) | before first render |
 | `nav` | top bar / menu chrome (sign out, alerts, …) | before first render |
 | `catalog` | module / page / action / category names from `packages/shared/src/catalog.js`, keyed by id | before first render |
-| `portal` | patient portal (keys are **not** wrapped, see below) | when a portal screen mounts |
 | `<module>` | one per module: `cssd`, `assets`, `quality`, `inventory`, `procurement`, … | when a screen calls `useTranslation('<module>')` |
 
 **Module files keep their prefix as the single top-level key**, so keys in code are unchanged:
@@ -34,7 +34,7 @@ t('actions.save')                       // common keys still resolve (fallback n
 ## Adding a module
 
 1. Put its keys in `locales/en/<module>.json` as `{ "<module>": { … } }` — **not** in `common.json`.
-2. Add the same file, translated, for every other language (`hi kn ta te ml mr gu bn pa or ur`).
+2. Add the same file, translated, for every other language switched on in `SUPPORTED_LANGUAGES` (none yet).
    Keep `{{placeholders}}` identical; use `_one` / `_other` suffixes for counts (`t('x', { count })`).
 3. In each component of that module: `useTranslation('<module>')`. A screen that also needs another
    module's keys: `useTranslation(['<module>', '<other>'])` (first one is looked up first).
@@ -56,8 +56,8 @@ that name, merged, then removed from `common.json`.)
   forgot to name its namespace — but name it, otherwise the translation never loads.
 - `changeLanguage(code)` loads every namespace in use for the new language, then switches.
   Order of preference at sign-in: the user's saved language (`/auth/me` → `language`) → this
-  browser's choice (`localStorage.hx_language`) → hospital default (`core.defaultAppLanguage`
-  setting) → `en`. The patient portal defaults to the patient's preferred language.
+  browser's choice (`localStorage.hx_language`) → institution default (`core.defaultAppLanguage`
+  setting) → `en`. The parent app will default to the family's preferred language.
 - Script fonts (Noto Sans Devanagari, Tamil, …, Noto Nastaliq Urdu) are added only when that
   language is active (`fonts.js`); `index.css` picks them per `:lang()`.
 

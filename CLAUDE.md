@@ -31,6 +31,6 @@ Product plan: https://claude.ai/artifact/7pWLPDqtDcypPDESqt8fNy. Reference codeb
 
 ## Commands
 
-`npm test` · `npm run build` · `npm run lint:i18n` · `npm run lint:pages` ·
+`npm run dev` (db + seed + api + web) · `npm test` · `npm run build` · `npm run lint:i18n` · `npm run lint:pages` ·
 `npm run dev:db` / `dev:api` / `dev:web` · `npm run seed -- --reset`
 Dev ports: MongoDB 27018, API 4100, web 5190.

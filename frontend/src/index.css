@@ -62,7 +62,7 @@ html { font-size: 16px; }
   html { font-size: 14.5px; }
 }
 
-/* Touch screens (phones, tablets on the ward): iOS zooms the whole page into any text field whose
+/* Touch screens (phones, tablets in a classroom): iOS zooms the whole page into any text field whose
    text is under 16px, and the zoom stays after typing. The UI keeps its smaller type everywhere
    else — only the fields themselves are 16px. (Tap-target heights: Form.jsx / Button.jsx.) */
 @media (pointer: coarse) {
@@ -103,7 +103,7 @@ h1, h2, h3, h4, .font-display {
 
 /* visible keyboard focus, everywhere */
 :focus-visible {
-  outline: 2px solid rgb(var(--brand-500)); /* the hospital's own brand colour */
+  outline: 2px solid rgb(var(--brand-500)); /* the institution's own brand colour */
   outline-offset: 2px;
   border-radius: 4px;
 }
@@ -118,7 +118,7 @@ h1, h2, h3, h4, .font-display {
 .scroll-hide::-webkit-scrollbar { display: none; }
 
 /* sign-in pages (login, sign-up, invite, verify email, forgot password): always blue, whatever a
-   hospital's own brand colour is — nobody is signed in yet, so there's no hospital to take it from.
+   institution's own brand colour is — nobody is signed in yet, so there's no institution to take it from.
    Overrides the --brand-* ramp for everything inside, so the pages' brand-* classes turn blue
    (the same as the ERP's sign-in). */
 .auth-blue {
@@ -172,5 +172,3 @@ h1, h2, h3, h4, .font-display {
    shrinks a column's minimum content width, and an auto-layout table then squeezes
    text columns down to one word per line.  */
 
-/* radiology: while the image viewer is docked beside the report, the call/chat button hides */
-.hx-viewer-docked .hx-comms-dock { display: none; }

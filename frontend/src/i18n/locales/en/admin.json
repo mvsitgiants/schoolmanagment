@@ -30,7 +30,7 @@
         "noDepartments": "No departments yet.",
         "imaging": "Imaging they report",
         "imagingHint": "Radiologists: new studies of these modalities are announced to them; “My modalities” filters their list. None = all.",
-        "branch": "Branch",
+        "branch": "Campus",
         "mainInstitution": "Main institution",
         "password": "Password",
         "generateTemp": "Generate a temporary password",
@@ -99,14 +99,14 @@
     },
     "numberSeries": {
       "title": "Number series",
-      "subtitle": "How UHIDs, bills, receipts and visit numbers look. Numbers are never reused.",
+      "subtitle": "How admission numbers, receipts, certificates and employee codes look. Numbers are never reused.",
       "tokens": {
         "label": "Tokens:",
         "seq": "running number with 6 digits",
         "year": "year",
         "month": "month",
         "day": "day",
-        "branch": "branch code",
+        "branch": "campus code",
         "resetRule": "The running number restarts at 1 when the reset period changes — include the matching date token so numbers stay unique."
       },
       "cols": {
@@ -116,7 +116,7 @@
         "next": "Next number"
       },
       "moduleOff": "module off",
-      "perBranch": "per branch",
+      "perBranch": "per campus",
       "issued": "{{issued}} issued · last {{last}}",
       "noneIssued": "None issued yet",
       "customised": "customised",
@@ -659,8 +659,8 @@
       "plusGst": "+ GST",
       "planUsers_one": "{{count}} user",
       "planUsers_other": "{{count}} users",
-      "planBranches_one": "{{count}} branch",
-      "planBranches_other": "{{count}} branches",
+      "planBranches_one": "{{count}} campus",
+      "planBranches_other": "{{count}} campuses",
       "whatEachIncludes": "What each plan includes",
       "module": "Module",
       "invoices": "Invoices",
@@ -1151,7 +1151,7 @@
       "added": "Added",
       "recentDeliveries": "Recent deliveries",
       "originsLabel": "Allowed websites",
-      "originsHint": "Only for keys used from a website's pages in the browser: one address per line, e.g. https://www.yourhospital.com. Leave empty for keys used only from servers.",
+      "originsHint": "Only for keys used from a website's pages in the browser: one address per line, e.g. https://www.yourschool.edu.in. Leave empty for keys used only from servers.",
       "originsShort": "Websites: {{list}}",
       "websitePresetName": "Institution website"
     },
@@ -1214,7 +1214,17 @@
       "noMembers": "No one has this role yet",
       "noMembersHint": "Give it to people from Users.",
       "manageUsers": "Manage users →",
-      "historyLabel": "Changes to this role"
+      "historyLabel": "Changes to this role",
+      "sod": {
+        "fees_collect_create__fees_invoices_cancel": "Collects fees and can cancel receipts",
+        "fees_collect_create__fees_refunds_refund": "Collects fees and refunds them",
+        "exams_marks_create__exams_results_publish": "Enters marks and publishes the results",
+        "exams_marks_lock__exams_marks_unlock": "Locks marks and can unlock them again",
+        "payroll_runs_calculate__payroll_runs_pay": "Calculates and pays payroll",
+        "payroll_runs_approve__payroll_runs_pay": "Approves and pays payroll",
+        "inventory_purchase-orders_create__inventory_purchase-orders_approve": "Creates and approves purchase orders",
+        "finance_expenses_create__finance_expenses_approve": "Records and approves the same expense"
+      }
     },
     "approvals": {
       "title": "Approvals",
@@ -1315,7 +1325,7 @@
     "scopeLimits": {
       "recordsTitle": "Which records can this role see?",
       "recordsIntro": "Pages decide <em>where</em> a user can go; scope decides <em>whose records</em> they see there.",
-      "fullAccessRecords": "Full-access roles always see every record in every branch.",
+      "fullAccessRecords": "Full-access roles always see every record in every campus.",
       "defaultForAll": "Default for every module",
       "tickFirst": "Tick pages in a module first — modules with record-level scope then appear here.",
       "defaultOption": "Default ({{scope}})",
@@ -1373,7 +1383,7 @@
         "role": "Role",
         "user": "User",
         "department": "Department",
-        "branch": "Branch",
+        "branch": "Campus",
         "module": "Module",
         "tenant": "Institution"
       },
@@ -1394,12 +1404,12 @@
       "removedCount_other": "Removed ({{count}})"
     },
     "branches": {
-      "title": "Branches",
-      "subtitle": "The institutions and centres your organisation runs. Every institution has a main branch.",
+      "title": "Campuses",
+      "subtitle": "The institutions and centres your organisation runs. Every institution has a main campus.",
       "editTitle": "Edit {{name}}",
-      "newBranch": "New branch",
-      "addBranch": "Add branch",
-      "branchName": "Branch name",
+      "newBranch": "New campus",
+      "addBranch": "Add campus",
+      "branchName": "Campus name",
       "namePlaceholder": "e.g. City Care – Whitefield",
       "code": "Code",
       "codeHint": "Used in document numbers",
@@ -1408,9 +1418,9 @@
       "state": "State",
       "pincode": "PIN code",
       "phone": "Phone",
-      "gstinHint": "If this branch bills under its own GST number",
-      "branch": "Branch",
-      "mainBranch": "Main branch",
+      "gstinHint": "If this campus bills under its own GST number",
+      "branch": "Campus",
+      "mainBranch": "Main campus",
       "location": "Location",
       "attendanceSites": "Attendance sites",
       "outline": "outline",
@@ -1418,10 +1428,10 @@
       "sites_other": "{{count}} sites",
       "staff": "Staff",
       "inactive": "Inactive",
-      "onYourPlan": "Branches on your plan",
-      "planFull": "You're using every branch your {{plan}} plan includes. <link>Upgrade</link> to add more.",
+      "onYourPlan": "Campuses on your plan",
+      "planFull": "You're using every campus your {{plan}} plan includes. <link>Upgrade</link> to add more.",
       "sharedNote": "Students and staff are shared across campuses; fees, stock and timetables belong to one campus. Each campus can have its own GSTIN and document numbering.",
-      "saved": "Branch saved."
+      "saved": "Campus saved."
     },
     "customFields": {
       "title": "Custom fields",
@@ -1555,13 +1565,15 @@
       "subtitle": "Your own forms — admission questions, surveys, assessment rubrics and health records. Published forms are what staff and families fill.",
       "newForm": "New form",
       "create": "Create",
-      "namePlaceholder": "e.g. Asthma review",
+      "namePlaceholder": "e.g. Term-end parent feedback",
       "code": "Code",
-      "codeHint": "Short and unique, e.g. ASTHMA_REVIEW.",
+      "codeHint": "Short and unique, e.g. PARENT_FEEDBACK.",
       "usedAs": "Used as",
       "uses": {
-        "OPD_CONSULT": "Consult section",
-        "ASSESSMENT": "Assessment / score"
+        "ADMISSION": "Admission form section",
+        "SURVEY": "Survey",
+        "ASSESSMENT": "Assessment / rubric",
+        "HEALTH": "Health record"
       },
       "status": {
         "DRAFT": "Draft",
@@ -1652,7 +1664,7 @@
       "archivedNote": "Archived — this form can’t be used. Bring it back to change or use it.",
       "fixMarked": "Fix the marked fields, then publish again.",
       "previewNote": "This is what the person filling it sees. Try it: calculations and “show only if” work here.",
-      "specialities": "Specialities",
+      "specialities": "Tags (classes or departments)",
       "commaSeparated": "Comma separated",
       "description": "Description",
       "descriptionPlaceholder": "What it is for, shown when someone picks it",
