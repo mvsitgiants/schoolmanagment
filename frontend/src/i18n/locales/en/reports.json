@@ -1,0 +1,317 @@
+{
+  "reports": {
+    "title": "Report library",
+    "subtitle": "Standard reports for every module you use — run, filter, export.",
+    "loading": "Loading…",
+    "search": "Find a report",
+    "noneAvailable": "No reports for your role yet. Reports appear for the modules your role can see.",
+    "run": "Run",
+    "runAgain": "Run again",
+    "saveAs": "Save as…",
+    "save": "Save",
+    "saved": "Report saved.",
+    "saveTitle": "Save this report",
+    "name": "Name",
+    "saveHint": "Saved reports keep these inputs and columns. Date ranges like “This month” move on by themselves. Find them in Reports › Report builder, where they can be shared and sent on a schedule.",
+    "cantRun": "Your role can see reports but not run them.",
+    "noInputs": "This report needs no inputs.",
+    "columnsPick": "Columns ({{shown}} of {{total}})",
+    "ranAt": "Ran {{at}} · {{count}} rows",
+    "total": "Total",
+    "noRows": "No rows for these inputs",
+    "from": "From",
+    "to": "To",
+    "pick": "Pick one",
+    "allClasses": "All classes",
+    "thisMonth": "This month",
+    "alwaysToday": "Blank = today, whenever it runs",
+    "ranges": {
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "thisWeek": "This week",
+      "lastWeek": "Last week",
+      "thisMonth": "This month",
+      "lastMonth": "Last month",
+      "thisYear": "This financial year",
+      "custom": "Pick dates…"
+    },
+    "months": {
+      "1": "January",
+      "2": "February",
+      "3": "March",
+      "4": "April",
+      "5": "May",
+      "6": "June",
+      "7": "July",
+      "8": "August",
+      "9": "September",
+      "10": "October",
+      "11": "November",
+      "12": "December"
+    },
+    "groups": {
+      "students": "Students",
+      "attendance": "Attendance",
+      "fees": "Fees",
+      "exams": "Exams",
+      "homework": "Homework",
+      "certificates": "Certificates"
+    },
+    "frequency": {
+      "DAILY": "Every day",
+      "WEEKLY": "Every week (Monday)",
+      "MONTHLY": "Every month (1st)"
+    },
+    "list": {
+      "students.strength": {
+        "label": "Class strength",
+        "desc": "Students in each section, by gender."
+      },
+      "students.admissions": {
+        "label": "Admissions",
+        "desc": "Students admitted between two dates."
+      },
+      "students.contacts": {
+        "label": "Guardian contact list",
+        "desc": "Every student of a section with the primary guardian’s phone and email."
+      },
+      "students.birthdays": {
+        "label": "Birthdays",
+        "desc": "Students whose birthday falls in a month."
+      },
+      "attendance.daily": {
+        "label": "Daily attendance",
+        "desc": "Each section on a day: present, absent, late, on leave — and which sections were not marked."
+      },
+      "attendance.defaulters": {
+        "label": "Low attendance",
+        "desc": "Students below a percentage over a period."
+      },
+      "fees.collection": {
+        "label": "Fee collection",
+        "desc": "Money received each day, by payment mode."
+      },
+      "fees.headwise": {
+        "label": "Collection by fee head",
+        "desc": "What the money received was for — tuition, transport, lab … — over a period."
+      },
+      "fees.classDues": {
+        "label": "Dues by class",
+        "desc": "Billed, collected and outstanding for each section this year."
+      },
+      "fees.concessions": {
+        "label": "Concessions given",
+        "desc": "Approved concessions and how much they took off this year’s invoices."
+      },
+      "exams.toppers": {
+        "label": "Toppers",
+        "desc": "The top students of each section in an exam."
+      },
+      "exams.subjects": {
+        "label": "Subject analysis",
+        "desc": "For each section and subject of an exam: average, highest, lowest and pass rate."
+      },
+      "homework.summary": {
+        "label": "Homework set",
+        "desc": "Homework set over a period, by teacher and subject, and how much was handed in."
+      },
+      "certificates.issued": {
+        "label": "Certificates issued",
+        "desc": "Certificates issued over a period, by kind."
+      }
+    },
+    "params": {
+      "students.admissions": {
+        "range": "Admitted between"
+      },
+      "students.contacts": {
+        "sectionId": "Class"
+      },
+      "students.birthdays": {
+        "month": "Month"
+      },
+      "attendance.daily": {
+        "date": "Date"
+      },
+      "attendance.defaulters": {
+        "range": "Period",
+        "below": "Below (%)",
+        "sectionId": "Class"
+      },
+      "fees.collection": {
+        "range": "Period"
+      },
+      "fees.headwise": {
+        "range": "Period"
+      },
+      "exams.toppers": {
+        "examId": "Exam",
+        "top": "How many per class"
+      },
+      "exams.subjects": {
+        "examId": "Exam"
+      },
+      "homework.summary": {
+        "range": "Set between"
+      },
+      "certificates.issued": {
+        "range": "Issued between"
+      }
+    },
+    "columns": {
+      "students.strength": {
+        "class": "Class",
+        "section": "Section",
+        "boys": "Boys",
+        "girls": "Girls",
+        "other": "Other",
+        "total": "Total"
+      },
+      "students.admissions": {
+        "admissionDate": "Admitted on",
+        "admissionNo": "Admission no.",
+        "name": "Student",
+        "class": "Class",
+        "gender": "Gender",
+        "guardian": "Guardian",
+        "mobile": "Mobile"
+      },
+      "students.contacts": {
+        "rollNo": "Roll",
+        "name": "Student",
+        "admissionNo": "Admission no.",
+        "guardian": "Guardian",
+        "relation": "Relation",
+        "mobile": "Mobile",
+        "email": "Email"
+      },
+      "students.birthdays": {
+        "day": "Day",
+        "name": "Student",
+        "class": "Class",
+        "dob": "Date of birth",
+        "age": "Turns"
+      },
+      "attendance.daily": {
+        "class": "Class",
+        "strength": "Strength",
+        "present": "Present",
+        "absent": "Absent",
+        "late": "Late",
+        "leave": "On leave",
+        "pct": "Attendance",
+        "takenBy": "Marked by"
+      },
+      "attendance.defaulters": {
+        "class": "Class",
+        "rollNo": "Roll",
+        "name": "Student",
+        "days": "Days marked",
+        "attended": "Attended",
+        "absent": "Absent",
+        "pct": "Attendance",
+        "guardian": "Guardian",
+        "mobile": "Mobile"
+      },
+      "fees.collection": {
+        "date": "Date",
+        "receipts": "Receipts",
+        "CASH": "Cash",
+        "UPI": "UPI",
+        "CARD": "Card",
+        "CHEQUE": "Cheque / DD",
+        "BANK_TRANSFER": "Bank transfer",
+        "ONLINE": "Online",
+        "refunds": "Refunds",
+        "net": "Net"
+      },
+      "fees.headwise": {
+        "head": "Fee head",
+        "amount": "Collected",
+        "share": "Share"
+      },
+      "fees.classDues": {
+        "class": "Class",
+        "students": "Students with dues",
+        "billed": "Billed",
+        "paid": "Collected",
+        "due": "Outstanding",
+        "overdue": "Overdue",
+        "pct": "Collected"
+      },
+      "fees.concessions": {
+        "name": "Student",
+        "class": "Class",
+        "reason": "Reason",
+        "value": "Concession",
+        "amount": "Taken off",
+        "approvedBy": "Approved by"
+      },
+      "exams.toppers": {
+        "class": "Class",
+        "rank": "Rank",
+        "name": "Student",
+        "total": "Total",
+        "max": "Out of",
+        "pct": "Percentage",
+        "grade": "Grade"
+      },
+      "exams.subjects": {
+        "class": "Class",
+        "subject": "Subject",
+        "students": "Students",
+        "average": "Average %",
+        "highest": "Highest",
+        "lowest": "Lowest",
+        "passPct": "Passed",
+        "absent": "Absent"
+      },
+      "homework.summary": {
+        "teacher": "Teacher",
+        "subject": "Subject",
+        "class": "Class",
+        "count": "Homework",
+        "handedIn": "Handed in"
+      },
+      "certificates.issued": {
+        "issueDate": "Date",
+        "certificateNo": "Number",
+        "kind": "Kind",
+        "name": "Student",
+        "class": "Class",
+        "purpose": "Purpose",
+        "status": "Status"
+      }
+    },
+    "builder": {
+      "title": "Report builder",
+      "subtitle": "Your saved reports — share them with roles, or have them sent on a schedule.",
+      "new": "New saved report",
+      "newTitle": "New saved report",
+      "editTitle": "Edit saved report",
+      "namePlaceholder": "e.g. Monday attendance check",
+      "report": "Report",
+      "columns": "Columns",
+      "shareWith": "Share with roles",
+      "shareHint": "People with these roles see it in their list. Each still sees only what their role allows.",
+      "sendOnSchedule": "Send it on a schedule",
+      "frequency": "How often",
+      "at": "At",
+      "people": "People (a notification in their bell)",
+      "emails": "Also email to",
+      "emailsHint": "Separate addresses with commas. The email has the first rows and a link to the full report.",
+      "owner": "Saved by",
+      "you": "You",
+      "schedule": "Schedule",
+      "notScheduled": "Not scheduled",
+      "lastSent": "Last sent {{at}} · {{count}} rows",
+      "edit": "Edit",
+      "delete": "Delete",
+      "deleteConfirm": "Delete “{{name}}”?",
+      "deleted": "Saved report deleted.",
+      "back": "Back to saved reports",
+      "empty": "No saved reports yet",
+      "emptyHint": "Run a report in the library and use “Save as…”, or make one here."
+    }
+  }
+}

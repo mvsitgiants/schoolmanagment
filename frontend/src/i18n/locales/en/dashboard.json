@@ -2,5 +2,64 @@
   "commandCenter": "Command centre",
   "homeHero": {
     "greetingName": "{{greeting}}, {{name}}"
+  },
+  "dashboard": {
+    "command": {
+      "title": "Command centre",
+      "subtitle": "{{date}} · {{year}}",
+      "loading": "Loading today…",
+      "refresh": "Refresh",
+      "open": "Open",
+      "noYear": "Add an academic year to see the day’s picture (Academic setup › Academic years & terms).",
+      "waiting": "Waiting for you",
+      "pending": {
+        "leave_one": "leave request",
+        "leave_other": "leave requests",
+        "concessions_one": "concession to approve",
+        "concessions_other": "concessions to approve",
+        "dayEnd_one": "cash difference to approve",
+        "dayEnd_other": "cash differences to approve",
+        "tc_one": "TC request",
+        "tc_other": "TC requests"
+      },
+      "students": "Students",
+      "studentsSub": "{{boys}} boys · {{girls}} girls",
+      "attendanceToday": "Attendance today",
+      "attendanceSub": "{{absent}} absent · {{marked}}/{{total}} classes marked",
+      "collectedToday": "Fees collected today",
+      "collectedMonth": "{{amount}} this month",
+      "outstanding": "Fees outstanding",
+      "overdueSub_one": "{{amount}} overdue · {{count}} student",
+      "overdueSub_other": "{{amount}} overdue · {{count}} students",
+      "attendance": "Attendance",
+      "attendanceTrend": "Last 7 days",
+      "unmarked_one": "{{count}} class not marked yet: {{list}}",
+      "unmarked_other": "{{count}} classes not marked yet: {{list}}",
+      "allMarked": "Every class is marked.",
+      "fees": "Fee collection",
+      "collectionTrend": "Last 14 days",
+      "receiptsToday_one": "{{count}} receipt today",
+      "receiptsToday_other": "{{count}} receipts today",
+      "exams": "Exams",
+      "sheetsLocked": "{{locked}} of {{total}} mark sheets locked",
+      "noExams": "No exams coming up.",
+      "thisWeek": "This week and month",
+      "homeworkSet": "Homework set this week",
+      "dueToday": "{{count}} due today",
+      "newAdmissions": "New admissions",
+      "thisMonth": "this month",
+      "certificates": "Certificates issued",
+      "resultsOut": "Exams with results out",
+      "updated": "Updated {{at}}. Refreshes every 5 minutes."
+    },
+    "today": {
+      "title": "Today",
+      "attendance": "Attendance {{pct}}% ({{marked}}/{{total}} classes)",
+      "fees": "{{amount}} collected",
+      "students_one": "{{count}} student",
+      "students_other": "{{count}} students",
+      "waiting_one": "{{count}} waiting for you",
+      "waiting_other": "{{count}} waiting for you"
+    }
   }
 }

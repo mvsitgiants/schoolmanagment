@@ -55,20 +55,19 @@ async function placeOf(sectionId) {
 const guardianOf = (s, rel) => s.guardians?.find((g) => g.relation === rel)?.name ?? null
 
 /**
- * Fees paid in a financial year, by fee head: each receipt's money is shared over the installments it
- * paid, and inside an installment over its fees (after concession). Refunds made in the year come off.
+ * Share receipts' money over fee heads: each receipt over the installments it paid, and inside an
+ * installment over its fees (after concession); the late fee (and rounding) is its own line.
+ * Returns { heads: [{ name, code, amount }] (largest first), tuitionShare: Map(paymentId → 0..1) }.
  */
-export async function feesPaidIn(studentId, fyLabel) {
-  const fy = financialYearOf(`${fyLabel.slice(0, 4)}-06-01`)
-  const [payments, refunds, heads] = await Promise.all([
-    FeePayment.find({ studentId, status: 'VALID', date: { $gte: fy.from, $lte: fy.to } }).lean(),
-    FeeRefund.find({ studentId, date: { $gte: fy.from, $lte: fy.to } }).lean(),
+export async function splitByHead(payments) {
+  const [heads, invoiceRows] = await Promise.all([
     FeeHead.find().select('name code').lean(),
+    FeeInvoice.find({ _id: { $in: payments.flatMap((p) => p.allocations.map((a) => a.invoiceId)) } }).lean(),
   ])
-  const invoices = new Map((await FeeInvoice.find({ _id: { $in: payments.flatMap((p) => p.allocations.map((a) => a.invoiceId)) } }).lean()).map((i) => [String(i._id), i]))
+  const invoices = new Map(invoiceRows.map((i) => [String(i._id), i]))
   const headOf = new Map(heads.map((h) => [String(h._id), h]))
   const byHead = new Map()
-  const receiptTuitionShare = new Map()
+  const tuitionShare = new Map()
   const add = (name, code, amount) => { const prev = byHead.get(name) ?? { name, code, amount: 0 }; prev.amount += amount; byHead.set(name, prev) }
   for (const p of payments) {
     let tuition = 0
@@ -78,23 +77,33 @@ export async function feesPaidIn(studentId, fyLabel) {
       const lines = inv.lines.map((l) => ({ ...l, net: Math.max(0, (l.amount ?? 0) - (l.concession ?? 0)) }))
       const base = lines.reduce((n, l) => n + l.net, 0) + (inv.lateFee ?? 0)
       let given = 0
-      lines.forEach((l) => {
+      for (const l of lines) {
         const share = base ? Math.floor((a.amount * l.net) / base) : 0
         given += share
         const h = headOf.get(String(l.feeHeadId))
         add(h?.name ?? l.name ?? 'Other', h?.code ?? null, share)
         if (TUITION_HEAD_CODES.includes(h?.code)) tuition += share
-      })
-      if (a.amount - given) add('Late fee', 'LATE', a.amount - given) // the late fee and rounding
+      }
+      if (a.amount - given) add('Late fee', 'LATE', a.amount - given)
     }
-    receiptTuitionShare.set(String(p._id), p.amount ? tuition / p.amount : 0)
+    tuitionShare.set(String(p._id), p.amount ? tuition / p.amount : 0)
   }
+  return { heads: [...byHead.values()].filter((h) => h.amount > 0).sort((a, b) => b.amount - a.amount), tuitionShare }
+}
+
+/** Fees paid for a student in a financial year, by fee head, less refunds made in the year. */
+export async function feesPaidIn(studentId, fyLabel) {
+  const fy = financialYearOf(`${fyLabel.slice(0, 4)}-06-01`)
+  const [payments, refunds] = await Promise.all([
+    FeePayment.find({ studentId, status: 'VALID', date: { $gte: fy.from, $lte: fy.to } }).lean(),
+    FeeRefund.find({ studentId, date: { $gte: fy.from, $lte: fy.to } }).lean(),
+  ])
+  const { heads, tuitionShare } = await splitByHead(payments)
   const refunded = refunds.reduce((n, r) => n + r.amount, 0)
-  const tuitionRefunded = Math.round(refunds.reduce((n, r) => n + r.amount * (receiptTuitionShare.get(String(r.paymentId)) ?? 0), 0))
-  const list = [...byHead.values()].filter((h) => h.amount > 0).sort((a, b) => b.amount - a.amount)
+  const tuitionRefunded = Math.round(refunds.reduce((n, r) => n + r.amount * (tuitionShare.get(String(r.paymentId)) ?? 0), 0))
   const paid = payments.reduce((n, p) => n + p.amount, 0)
-  const tuition = list.filter((h) => TUITION_HEAD_CODES.includes(h.code)).reduce((n, h) => n + h.amount, 0)
-  return { fy: fy.label, from: fy.from, to: fy.to, receipts: payments.length, paid, refunded, total: paid - refunded, tuition: Math.max(0, tuition - tuitionRefunded), heads: list }
+  const tuition = heads.filter((h) => TUITION_HEAD_CODES.includes(h.code)).reduce((n, h) => n + h.amount, 0)
+  return { fy: fy.label, from: fy.from, to: fy.to, receipts: payments.length, paid, refunded, total: paid - refunded, tuition: Math.max(0, tuition - tuitionRefunded), heads }
 }
 
 /** What the certificate will state for this student, by kind. */

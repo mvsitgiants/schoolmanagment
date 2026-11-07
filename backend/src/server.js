@@ -4,6 +4,7 @@ import { connectDb } from './platform/db.js'
 import { runAsSystem } from './platform/context.js'
 import { logger } from './platform/logger.js'
 import { schedule, stopJobs } from './platform/jobs.js'
+import { runDueSchedules } from './services/reports.js'
 import { access, mkdir } from 'node:fs/promises'
 import { constants as fsc } from 'node:fs'
 import mongoose from 'mongoose'
@@ -64,6 +65,12 @@ schedule('webhooks', webhooks, { firstMs: 15_000, everyMs: 60_000 })
 
 // Module jobs (absence alerts, fee reminders, report schedules …) are scheduled here as
 // each module is built — always through schedule() so only one instance runs each.
+
+// Saved reports sent on a schedule (Reports › Report builder): every 15 minutes, the ones that are due.
+const reportSchedules = () => runDueSchedules()
+  .then((n) => n && logger.info({ reports: n }, 'scheduled reports sent'))
+  .catch((err) => logger.error({ err }, 'scheduled reports failed'))
+schedule('report-schedules', reportSchedules, { firstMs: 60_000, everyMs: 15 * 60_000 })
 
 // ───────────────────────────────────────────────────────── graceful shutdown
 // A deploy or restart sends SIGTERM. Stop taking new work, let requests in flight finish (their

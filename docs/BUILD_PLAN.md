@@ -63,10 +63,10 @@ academic setup and students first, because everything else points at a student.
 | 3 | Attendance ✅ (code written, not yet run) | Daily or period-wise marking (phone-friendly), absence alerts, student leave, registers, reports | Notification engine, HR attendance screens | 3 | A |
 | 4 | Exams & report cards ✅ (code written, not yet run; combined term / board formats pending) | Exam setup, schedule, marks entry and locking, grading, results publishing, report card designer (CBSE / state formats), hall tickets | Print/PDF engine, approvals | 6 | A |
 | 5 | Homework & lessons ✅ (code written, not yet run) | Lesson plans, syllabus tracker, homework with attachments and submissions | Files and comments | 2 | A |
-| 6 | Communication hub | Notices and circulars, bulk SMS / WhatsApp / email, delivery log, parent–teacher chat | Messaging providers, staff chat (comms) | 6 | B |
+| 6 | Communication hub (moved to last — after the parent app) | Notices and circulars, bulk SMS / WhatsApp / email, delivery log, parent–teacher chat | Messaging providers, staff chat (comms) | 6 | B |
 | 7 | Fees ✅ (code written, not yet run; online payment pending) | Fee heads and structures, installments, concessions with approval, collection counter, receipts, Razorpay / UPI online payment, dues reminders, refunds, day-end | Billing, receipts, day-end, payments integration, approvals | 8 | B |
 | 8 | Certificates ✅ (code written, not yet run) | Bonafide, character, leaving certificates; QR verification; register | Certificates, public verify page | 2 | B |
-| 9 | Dashboard & reports | Principal command centre (attendance, fee collection, results), report library | Analytics, report builder | 3 | B |
+| 9 | Dashboard & reports ✅ (code written, not yet run) | Principal command centre (attendance, fee collection, results), report library | Analytics, report builder | 3 | B |
 | 10 | Parent & student app | Attendance, homework, fees and payment, results, notices, chat; OTP sign-in. PWA first, then React Native | Patient portal, OTP sign-in | 12 | C |
 
 ---

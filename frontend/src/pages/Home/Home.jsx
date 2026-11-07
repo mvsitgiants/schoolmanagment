@@ -1,8 +1,12 @@
 import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { ChevronRight } from 'lucide-react'
+import { BellRing, ChevronRight } from 'lucide-react'
+import { formatINR } from '@schoolgiant/shared'
 import { PageContainer } from '../../components/system'
+import { fetchCommandCentre } from '../../api/dashboard'
+import { hasPermission } from '../../api/auth'
 import useAuthUser from '../../hooks/useAuthUser'
 import { useCatalogLabel } from '../../hooks/useCatalogLabel'
 import { navFor } from '../../catalog/nav'
@@ -13,6 +17,28 @@ const greetingKey = () => {
   if (h >= 5 && h < 12) return 'home.goodMorning'
   if (h >= 12 && h < 17) return 'home.goodAfternoon'
   return 'home.goodEvening'
+}
+
+/** For people with the command centre: today in one line — attendance, fees, what's waiting. */
+function TodayStrip() {
+  const { t } = useTranslation('dashboard')
+  const { data: d } = useQuery({ queryKey: ['command-centre'], queryFn: fetchCommandCentre, staleTime: 60_000 })
+  if (!d) return null
+  const bits = [
+    d.attendance && t('dashboard.today.attendance', { pct: d.attendance.pct ?? '—', marked: d.attendance.marked, total: d.attendance.sections }),
+    d.fees && t('dashboard.today.fees', { amount: formatINR(d.fees.today, { decimals: 0 }) }),
+    d.students && t('dashboard.today.students', { count: d.students.active }),
+  ].filter(Boolean)
+  const waiting = d.pending.reduce((n, p) => n + p.count, 0)
+  if (!bits.length && !waiting) return null
+  return (
+    <Link to="/dashboard/command" className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-1 rounded-xl border border-brand-200 bg-brand-50 px-4 py-3 text-sm text-brand-800 hover:bg-brand-100/70">
+      <span className="font-semibold">{t('dashboard.today.title')}</span>
+      {bits.map((b) => <span key={b}>{b}</span>)}
+      {waiting > 0 && <span className="inline-flex items-center gap-1 text-amber-700"><BellRing size={14} /> {t('dashboard.today.waiting', { count: waiting })}</span>}
+      <ChevronRight size={16} className="ms-auto" />
+    </Link>
+  )
 }
 
 /**
@@ -41,6 +67,8 @@ export default function Home() {
           <span>{today}</span>
         </p>
       </div>
+
+      {hasPermission('dashboard.command.view') && <TodayStrip />}
 
       {nav.map((cat) => (
         <section key={cat.id} className="mt-8">
