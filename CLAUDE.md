@@ -18,7 +18,9 @@ Product plan: https://claude.ai/artifact/7pWLPDqtDcypPDESqt8fNy. Reference codeb
 
 ## Adding a module (pattern)
 
-1. Catalog entry exists already — check pages/actions still fit.
+1. Catalog entry exists already — check pages/actions still fit. Reference module to copy: Academic setup
+   (`models/academics.js`, `services/academics.js`, `routes/academics.js`, `pages/Academics/*`, `tests/academics.test.js`).
+   Pickers on other screens: `GET /api/v1/academics/lookup`; "My classes" scope: `mySectionIds()` in services/academics.js.
 2. Model(s) in `backend/src/models/<module>.js` with `tenantPlugin`.
 3. Service in `backend/src/services/<module>.js`, routes in `backend/src/routes/<module>.js`
    (`requirePermission('<module>.<page>.<action>')`), mounted in `backend/src/app.js`.

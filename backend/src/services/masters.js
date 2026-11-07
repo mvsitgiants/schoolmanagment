@@ -1,5 +1,6 @@
 import { MODULES, permKey } from '@schoolgiant/shared'
 import { PrintTemplate } from '../models/printing.js'
+import { AcademicYear, ClassLevel, GradingScheme, Subject } from '../models/academics.js'
 import { Branch, CustomFieldDef, Department, Role, User } from '../models/tenant.js'
 import { can, moduleEnabled } from '../platform/access.js'
 
@@ -15,7 +16,11 @@ export const MASTER_SOURCES = {
   'core.roles': Role,
   'core.custom-fields': CustomFieldDef,
   'core.print-templates': PrintTemplate,
-  // module masters join as they are built: 'academics.classes': Section, 'fees.structures': FeeStructure, …
+  'academics.years': AcademicYear,
+  'academics.classes': ClassLevel,
+  'academics.subjects': Subject,
+  'academics.grading': GradingScheme,
+  // module masters join as they are built: 'fees.structures': FeeStructure, …
 }
 
 async function countOf(Model) {

@@ -7,6 +7,7 @@ import { runAsTenant } from '../platform/context.js'
 import { withTransaction } from '../platform/db.js'
 import { getPlan, recordEvent } from './subscription.js'
 import { syncModulesToPlan } from './modules.js'
+import { ensureAcademicSetup } from './academics.js'
 
 const DAY = 864e5
 
@@ -78,7 +79,9 @@ export async function provisionTenant({
     await recordEvent(tenant._id, 'TRIAL_STARTED', { to: plan.code, note: `${days}-day free trial` })
     return { tenant, ...result }
   })
-  // Starter content every institution can edit later (classes, subjects, fee heads …) is added
-  // here as each module is built: await runAsTenant(out.tenant._id, () => ensureAcademicSetup())
+  // Starter content every institution can edit later; each module adds its own here.
+  await runAsTenant(out.tenant._id, async () => {
+    await ensureAcademicSetup() // the current academic year with two terms, a 9-point grading scheme
+  })
   return out
 }

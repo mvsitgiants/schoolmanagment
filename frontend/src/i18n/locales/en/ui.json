@@ -389,6 +389,16 @@
       "durHour": "{{h}} h",
       "durDayHour": "{{d}} d {{h}} h",
       "durDay": "{{d}} d"
+    },
+    "print": {
+      "preparingTitle": "Preparing…",
+      "preparing": "Preparing the document…",
+      "preparingPdf": "Preparing PDF…",
+      "downloadPdf": "Download PDF",
+      "pdfUnavailable": "PDF isn’t available just now — use Print instead.",
+      "failedTitle": "Could not print",
+      "failed": "The document could not be prepared.",
+      "blocked": "Your browser blocked the print window. Allow pop-ups for this site and try again."
     }
   }
 }

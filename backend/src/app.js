@@ -8,6 +8,9 @@ import { contextMiddleware } from './platform/context.js'
 import { errorHandler, notFoundHandler } from './platform/errors.js'
 import { logger } from './platform/logger.js'
 import { requireTrustedOrigin } from './platform/middleware.js'
+import academicsRoutes from './routes/academics.js'
+import documentRoutes from './routes/documents.js'
+import studentRoutes from './routes/students.js'
 import authRoutes from './routes/auth.js'
 import coreRoutes from './routes/core/index.js'
 import { commentsRouter, filesRouter } from './routes/files.js'
@@ -101,7 +104,10 @@ export function createApp() {
   app.use('/api/v1/superadmin', superadminRoutes)
   app.use('/api/v1/files', filesRouter)
   app.use('/api/v1/comments', commentsRouter)
-  // Module routes (students, attendance, fees …) mount here as each module is built.
+  // Module routes mount here as each module is built.
+  app.use('/api/v1/academics', academicsRoutes)
+  app.use('/api/v1/students', studentRoutes)
+  app.use('/api/v1/documents', documentRoutes)
 
   app.use(notFoundHandler)
   app.use(errorHandler)

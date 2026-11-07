@@ -6,7 +6,6 @@ import { DEFAULT_PLANS, ROLE_TEMPLATES } from '@schoolgiant/shared'
 import { config } from '../config.js'
 import { Plan, PlatformUser, RoleTemplate, Tenant } from '../models/platform.js'
 import { Branch, Department, Role } from '../models/tenant.js'
-import { Student } from '../models/students.js'
 import { enabledModuleIds } from '../platform/access.js'
 import { hashPassword } from '../platform/auth/tokens.js'
 import { runAsTenant, runWithContext } from '../platform/context.js'
@@ -15,6 +14,10 @@ import { provisionTenant } from '../services/provisioning.js'
 import { createFromTemplates } from '../services/roles.js'
 import { addCycle, issueInvoice, recordPayment, runBillingCycle } from '../services/subscription.js'
 import { createUser } from '../services/users.js'
+import { quickSetup, saveSection, setAllocation } from '../services/academics.js'
+import { AcademicYear, ClassLevel, Section, Subject } from '../models/academics.js'
+import { admitStudent } from '../services/students.js'
+import { User } from '../models/tenant.js'
 
 const DAY = 864e5
 const reset = process.argv.includes('--reset')
@@ -95,16 +98,40 @@ async function seedGreenValley() {
     for (const [name, email, designation, roleCode, dept] of STAFF) {
       await createUser({ name, email, designation, roleIds: [roles[roleCode]], departmentIds: [depts[dept]._id], password: 'Demo@123' }, auth)
     }
-    // A handful of students so plan usage and family messages have something to point at.
-    // (The Students module brings classes, sections and the admission flow.)
+    // Classes Nursery–12 with sections A and B (and the common subjects), the default year.
+    await quickSetup({ preset: 'K12', sectionsPerClass: 2, addSubjects: true })
+    const userId = async (email) => (await User.findOne({ email }).select('_id').lean())._id
+    const neha = await userId('teacher@greenvalley.test')
+    const rahul = await userId('rahul.science@greenvalley.test')
+    const c8 = await ClassLevel.findOne({ code: '8' }).lean()
+    const [s8a, s8b] = await Section.find({ classId: c8._id }).sort({ name: 1 }).lean()
+    await saveSection(s8a._id, { classTeacherId: neha, room: '204', capacity: 40 })
+    await saveSection(s8b._id, { classTeacherId: rahul, room: '205', capacity: 40 })
+    const subj = async (code) => (await Subject.findOne({ code }).select('_id').lean())._id
+    for (const sec of [s8a, s8b]) {
+      await setAllocation({ sectionId: sec._id, subjectId: await subj('MATH'), teacherId: neha })
+      await setAllocation({ sectionId: sec._id, subjectId: await subj('SCI'), teacherId: rahul })
+    }
+    // A handful of students in Class 8 so plan usage, sections and family messages have
+    // something to point at. (The Students module brings the admission flow.)
+    // Students go through the same admission service a school uses (numbers, history, limits).
+    const FATHERS = ['Rohit', 'Amit', 'Suresh', 'Vikram', 'Anil', 'Rajesh', 'Manoj', 'Sanjay']
+    const MOTHERS = ['Neha', 'Priya', 'Kavita', 'Sunita', 'Anjali', 'Pooja', 'Meena', 'Ritu']
+    const year = (await AcademicYear.findOne({ isCurrent: true }).lean())
     for (let i = 0; i < 24; i++) {
       const firstName = FIRST[i % FIRST.length]
       const lastName = LAST[(i * 7) % LAST.length]
-      await Student.create({
-        admissionNo: `2026${String(i + 1).padStart(4, '0')}`, firstName, lastName, gender: i % 2 ? 'FEMALE' : 'MALE',
-        dob: `${2012 + (i % 6)}-0${1 + (i % 9)}-1${i % 9}`,
-        guardians: [{ name: `${i % 3 ? 'Mr.' : 'Mrs.'} ${lastName}`, relation: i % 3 ? 'FATHER' : 'MOTHER', mobile: `98450${String(20000 + i).padStart(5, '0')}`, isPrimary: true }],
-      })
+      const sec = i % 2 ? s8b : s8a
+      await admitStudent({
+        firstName, lastName, gender: [0, 1, 2, 3, 4, 10, 12, 14].includes(i % 16) ? 'MALE' : 'FEMALE',
+        dob: `2013-0${1 + (i % 9)}-1${i % 9}`, sectionId: sec._id, rollNo: String(Math.floor(i / 2) + 1),
+        admissionDate: year.startDate, category: ['GENERAL', 'OBC', 'GENERAL', 'SC'][i % 4], nationality: 'Indian',
+        address: { line: `${12 + i}, ${['MG Road', 'Outer Ring Road', 'HSR Layout', 'Whitefield Main Road'][i % 4]}`, city: 'Bengaluru', state: 'Karnataka', pincode: `5600${String(30 + (i % 9))}` },
+        guardians: [
+          { name: `${FATHERS[i % 8]} ${lastName}`, relation: 'FATHER', mobile: `98450${String(20000 + i).padStart(5, '0')}`, occupation: ['Engineer', 'Business', 'Teacher', 'Doctor'][i % 4], isPrimary: i % 3 !== 0 },
+          { name: `${MOTHERS[i % 8]} ${lastName}`, relation: 'MOTHER', mobile: `98860${String(30000 + i).padStart(5, '0')}`, email: `${MOTHERS[i % 8].toLowerCase()}.${lastName.toLowerCase()}${i}@example.com`, isPrimary: i % 3 === 0 },
+        ],
+      }, auth, null)
     }
   })
 }
@@ -146,7 +173,7 @@ async function main() {
   console.log(`
 Seed complete.
   Platform owner      ${config.superadmin.email} / ${config.superadmin.password}
-  Green Valley (paid) admin@greenvalley.test / Admin@123 — school on the Growth plan, 2 campuses, 24 students
+  Green Valley (paid) admin@greenvalley.test / Admin@123 — school on the Growth plan, 2 campuses, classes Nursery–12, 24 students in Class 8
   Staff               principal@, teacher@, rahul.science@, accounts@, admissions@, frontdesk@greenvalley.test / Demo@123
   Sunrise (trial)     admin@sunrise.test / Admin@123 — college on a Higher Ed trial, only the Institution Admin role
 `)

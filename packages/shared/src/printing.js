@@ -13,7 +13,7 @@ export const PRINT_DOCS = [
   { value: 'FEE_INVOICE', label: 'Fee invoice / challan', module: 'fees', paper: 'A4', ready: false, server: false },
   { value: 'REPORT_CARD', label: 'Report card', module: 'exams', paper: 'A4', ready: false, server: false },
   { value: 'HALL_TICKET', label: 'Hall ticket', module: 'exams', paper: 'A5', ready: false, server: false },
-  { value: 'TRANSFER_CERTIFICATE', label: 'Transfer certificate', module: 'students', paper: 'A4', ready: false, server: false },
+  { value: 'TRANSFER_CERTIFICATE', label: 'Transfer certificate', module: 'students', paper: 'A4', ready: true, server: true },
   { value: 'BONAFIDE', label: 'Bonafide & character certificates', module: 'certificates', paper: 'A4', ready: false, server: false },
   { value: 'ADMISSION_FORM', label: 'Admission form', module: 'students', paper: 'A4', ready: false, server: false },
   { value: 'STUDENT_ID_CARD', label: 'Student ID card', module: 'students', paper: 'CARD_PORTRAIT', ready: false, server: false, many: true },

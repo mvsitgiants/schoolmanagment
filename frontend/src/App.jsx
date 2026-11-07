@@ -38,6 +38,21 @@ const CoreMasters = lazy(() => import('./pages/Core/Masters'))
 const PrintTemplates = lazy(() => import('./pages/Core/PrintTemplates'))
 const ApiKeys = lazy(() => import('./pages/Core/ApiKeys'))
 
+// Academic setup
+const AcademicYears = lazy(() => import('./pages/Academics/Years'))
+const AcademicClasses = lazy(() => import('./pages/Academics/Classes'))
+const AcademicSubjects = lazy(() => import('./pages/Academics/Subjects'))
+const AcademicGrading = lazy(() => import('./pages/Academics/Grading'))
+const AcademicAllocation = lazy(() => import('./pages/Academics/Allocation'))
+
+// Students
+const StudentAdmit = lazy(() => import('./pages/Students/Admit'))
+const StudentDirectory = lazy(() => import('./pages/Students/Directory'))
+const StudentProfile = lazy(() => import('./pages/Students/Profile'))
+const StudentGuardians = lazy(() => import('./pages/Students/Guardians'))
+const StudentPromotion = lazy(() => import('./pages/Students/Promotion'))
+const StudentTransfer = lazy(() => import('./pages/Students/Transfer'))
+
 // A module page that isn't built yet shows its catalog entry; unknown paths show NotFound.
 const ModulePage = lazy(() => import('./pages/ModulePage'))
 const NotFound = lazy(() => import('./pages/NotFound'))
@@ -115,6 +130,20 @@ export default function App() {
           <Route path="core/print-templates" element={<PrintTemplates />} />
           <Route path="core/api-keys" element={<ApiKeys />} />
           <Route path="approvals" element={<Approvals />} />
+          <Route path="academics" element={<Navigate to="/academics/classes" replace />} />
+          <Route path="academics/years" element={<AcademicYears />} />
+          <Route path="academics/classes" element={<AcademicClasses />} />
+          <Route path="academics/subjects" element={<AcademicSubjects />} />
+          <Route path="academics/grading" element={<AcademicGrading />} />
+          <Route path="academics/allocation" element={<AcademicAllocation />} />
+          <Route path="students" element={<Navigate to="/students/directory" replace />} />
+          <Route path="students/admit" element={<StudentAdmit />} />
+          <Route path="students/directory" element={<StudentDirectory />} />
+          <Route path="students/profile" element={<StudentProfile />} />
+          <Route path="students/profile/:id" element={<StudentProfile />} />
+          <Route path="students/guardians" element={<StudentGuardians />} />
+          <Route path="students/promotion" element={<StudentPromotion />} />
+          <Route path="students/transfer" element={<StudentTransfer />} />
           <Route path=":moduleId/:pageId/*" element={<ModulePage />} />
           <Route path="*" element={<NotFound />} />
         </Route>

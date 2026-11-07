@@ -5,6 +5,7 @@ students, attendance, exams and report cards, fees, staff and payroll, transport
 library, parent app, accreditation and placements — one platform, sold per institution.
 
 - **Product plan** (modules, roadmap, pricing, go-to-market): https://claude.ai/artifact/7pWLPDqtDcypPDESqt8fNy
+- **Build plan** (every phase: modules, order, sprints, reuse, gates): [docs/BUILD_PLAN.md](docs/BUILD_PLAN.md)
 - **Built on** the platform layer of Hospital Samadhan (`../hospital-management`): same stack,
   same tenancy, roles, subscription and engines — clinical modules removed.
 

@@ -1,0 +1,49 @@
+{{!-- Transfer / leaving certificate (A4). Rows follow the usual Indian school TC; an institution
+      edits this template in Administration › Print templates (board formats differ). --}}
+<style>
+  h1 { font-size: 13pt; text-align: center; letter-spacing: .08em; text-transform: uppercase; margin: 5mm 0 1mm }
+  .no { display: flex; justify-content: space-between; font-size: 9pt; color: #5B616E; margin-bottom: 5mm }
+  table.tc { width: 100%; border-collapse: collapse; font-size: 10pt }
+  table.tc td { padding: 2.2mm 2mm; border-bottom: 1px solid #E3E5EA; vertical-align: top }
+  table.tc td.n { width: 8mm; color: #8B90A0 }
+  table.tc td.k { width: 72mm; color: #3A3F4B }
+  table.tc td.v { font-weight: 600 }
+  .sign { margin-top: 18mm; display: flex; justify-content: space-between; gap: 10mm; font-size: 9.5pt }
+  .sign div { flex: 1; text-align: center; border-top: 1px solid #8B90A0; padding-top: 2mm }
+  .draft, .void { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 54pt; font-weight: 800; transform: rotate(-20deg); pointer-events: none }
+  .draft { color: rgba(185,130,31,.16) } .void { color: rgba(214,69,69,.16) }
+</style>
+{{#if tc.requested}}<div class="draft">{{t "students.print.tc.stampDraft" "NOT YET ISSUED"}}</div>{{/if}}
+{{#if tc.cancelled}}<div class="void">{{t "students.print.tc.stampCancelled" "CANCELLED"}}</div>{{/if}}
+{{#> letterhead}}{{/letterhead}}
+<h1>{{t "students.print.tc.title" "Transfer certificate"}}</h1>
+<div class="no">
+  <span>{{t "students.print.tc.tcNo" "TC No."}} <b class="mono">{{#if tc.no}}{{tc.no}}{{else}}—{{/if}}</b></span>
+  <span>{{t "students.print.tc.admissionNo" "Admission No."}} <b class="mono">{{student.admissionNo}}</b></span>
+</div>
+<table class="tc">
+  <tr><td class="n">1.</td><td class="k">{{t "students.print.tc.name" "Name of the student"}}</td><td class="v">{{student.name}}</td></tr>
+  <tr><td class="n">2.</td><td class="k">{{t "students.print.tc.father" "Father’s name"}}</td><td class="v">{{#if student.father}}{{student.father}}{{else}}—{{/if}}</td></tr>
+  <tr><td class="n">3.</td><td class="k">{{t "students.print.tc.mother" "Mother’s name"}}</td><td class="v">{{#if student.mother}}{{student.mother}}{{else}}—{{/if}}</td></tr>
+  <tr><td class="n">4.</td><td class="k">{{t "students.print.tc.nationality" "Nationality"}}</td><td class="v">{{student.nationality}}</td></tr>
+  <tr><td class="n">5.</td><td class="k">{{t "students.print.tc.category" "Category (SC / ST / OBC / General)"}}</td><td class="v">{{#if student.category}}{{student.category}}{{else}}—{{/if}}</td></tr>
+  <tr><td class="n">6.</td><td class="k">{{t "students.print.tc.dob" "Date of birth (in figures and words)"}}</td><td class="v">{{#if student.dob}}{{date student.dob}} · {{student.dobWords}}{{else}}—{{/if}}</td></tr>
+  <tr><td class="n">7.</td><td class="k">{{t "students.print.tc.admitted" "Date of first admission, with class"}}</td><td class="v">{{#if student.admissionDate}}{{date student.admissionDate}}{{/if}}{{#if student.firstClass}} · {{student.firstClass}}{{/if}}</td></tr>
+  <tr><td class="n">8.</td><td class="k">{{t "students.print.tc.lastClass" "Class in which the student last studied"}}</td><td class="v">{{tc.lastClass}}</td></tr>
+  <tr><td class="n">9.</td><td class="k">{{t "students.print.tc.promotion" "Whether qualified for promotion"}}</td><td class="v">{{#if tc.promotedTo}}{{tc.promotedTo}}{{else}}—{{/if}}</td></tr>
+  <tr><td class="n">10.</td><td class="k">{{t "students.print.tc.fees" "Fees paid up to"}}</td><td class="v">{{#if tc.feesPaidUpTo}}{{tc.feesPaidUpTo}}{{else}}—{{/if}}</td></tr>
+  <tr><td class="n">11.</td><td class="k">{{t "students.print.tc.leavingDate" "Date of leaving the school"}}</td><td class="v">{{date tc.leavingDate}}</td></tr>
+  <tr><td class="n">12.</td><td class="k">{{t "students.print.tc.reason" "Reason for leaving"}}</td><td class="v">{{tc.reason}}{{#if tc.reasonText}} — {{tc.reasonText}}{{/if}}</td></tr>
+  <tr><td class="n">13.</td><td class="k">{{t "students.print.tc.conduct" "General conduct"}}</td><td class="v">{{tc.conduct}}</td></tr>
+  {{#if student.apaarId}}<tr><td class="n">14.</td><td class="k">{{t "students.print.tc.apaar" "APAAR ID"}}</td><td class="v mono">{{student.apaarId}}</td></tr>{{/if}}
+  {{#if student.pen}}<tr><td class="n"></td><td class="k">{{t "students.print.tc.pen" "PEN (UDISE+)"}}</td><td class="v mono">{{student.pen}}</td></tr>{{/if}}
+  {{#if tc.remarks}}<tr><td class="n"></td><td class="k">{{t "students.print.tc.remarks" "Remarks"}}</td><td class="v">{{lines tc.remarks}}</td></tr>{{/if}}
+  <tr><td class="n"></td><td class="k">{{t "students.print.tc.issueDate" "Date of issue"}}</td><td class="v">{{#if tc.issuedAt}}{{date tc.issuedAt}}{{else}}—{{/if}}</td></tr>
+</table>
+<div class="sign">
+  <div>{{t "students.print.tc.classTeacher" "Class teacher"}}</div>
+  <div>{{t "students.print.tc.checkedBy" "Checked by"}}</div>
+  <div>{{t "students.print.tc.principal" "Principal"}}{{#if tc.issuedBy}}<br/><span class="muted">{{t "students.print.tc.issuedBy" "Issued by {{name}}" name=tc.issuedBy}}</span>{{/if}}</div>
+</div>
+{{#if tc.cancelled}}<p class="muted" style="margin-top:4mm">{{t "students.print.tc.cancelledNote" "Cancelled: {{reason}}" reason=tc.cancelReason}}</p>{{/if}}
+{{> footer}}
