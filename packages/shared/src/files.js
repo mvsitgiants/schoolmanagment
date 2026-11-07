@@ -32,6 +32,7 @@ export const FILE_CATEGORY_LABEL = Object.fromEntries(FILE_CATEGORIES.map((c) =>
 /** Records that can carry files and comments. */
 export const RECORD_TYPES = {
   student: 'Student',
+  homework: 'Homework',
 }
 
 export const COMMENT_MAX = 2000

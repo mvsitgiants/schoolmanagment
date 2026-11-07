@@ -53,6 +53,31 @@ const StudentGuardians = lazy(() => import('./pages/Students/Guardians'))
 const StudentPromotion = lazy(() => import('./pages/Students/Promotion'))
 const StudentTransfer = lazy(() => import('./pages/Students/Transfer'))
 
+// Attendance
+const AttendanceMark = lazy(() => import('./pages/Attendance/Mark'))
+const AttendanceRegister = lazy(() => import('./pages/Attendance/Register'))
+const AttendanceLeave = lazy(() => import('./pages/Attendance/Leave'))
+const AttendanceReports = lazy(() => import('./pages/Attendance/Reports'))
+// Fees
+const FeeStructures = lazy(() => import('./pages/Fees/Structures'))
+const FeeCollect = lazy(() => import('./pages/Fees/Collect'))
+const FeeInvoices = lazy(() => import('./pages/Fees/Invoices'))
+const FeeDues = lazy(() => import('./pages/Fees/Dues'))
+const FeeConcessions = lazy(() => import('./pages/Fees/Concessions'))
+const FeeRefunds = lazy(() => import('./pages/Fees/Refunds'))
+const FeeDayEnd = lazy(() => import('./pages/Fees/DayEnd'))
+// Exams
+const ExamSchedule = lazy(() => import('./pages/Exams/Schedule'))
+const ExamHallTickets = lazy(() => import('./pages/Exams/HallTickets'))
+const ExamMarks = lazy(() => import('./pages/Exams/Marks'))
+const ExamResults = lazy(() => import('./pages/Exams/Results'))
+const ExamReportCards = lazy(() => import('./pages/Exams/ReportCards'))
+const ExamSetup = lazy(() => import('./pages/Exams/Setup'))
+// Homework & lessons
+const HomeworkPage = lazy(() => import('./pages/Homework/Homework'))
+const LessonPlans = lazy(() => import('./pages/Homework/LessonPlans'))
+const SyllabusTracker = lazy(() => import('./pages/Homework/Syllabus'))
+
 // A module page that isn't built yet shows its catalog entry; unknown paths show NotFound.
 const ModulePage = lazy(() => import('./pages/ModulePage'))
 const NotFound = lazy(() => import('./pages/NotFound'))
@@ -144,6 +169,30 @@ export default function App() {
           <Route path="students/guardians" element={<StudentGuardians />} />
           <Route path="students/promotion" element={<StudentPromotion />} />
           <Route path="students/transfer" element={<StudentTransfer />} />
+          <Route path="attendance" element={<Navigate to="/attendance/mark" replace />} />
+          <Route path="attendance/mark" element={<AttendanceMark />} />
+          <Route path="attendance/register" element={<AttendanceRegister />} />
+          <Route path="attendance/leave" element={<AttendanceLeave />} />
+          <Route path="attendance/reports" element={<AttendanceReports />} />
+          <Route path="fees" element={<Navigate to="/fees/collect" replace />} />
+          <Route path="fees/structures" element={<FeeStructures />} />
+          <Route path="fees/collect" element={<FeeCollect />} />
+          <Route path="fees/invoices" element={<FeeInvoices />} />
+          <Route path="fees/dues" element={<FeeDues />} />
+          <Route path="fees/concessions" element={<FeeConcessions />} />
+          <Route path="fees/refunds" element={<FeeRefunds />} />
+          <Route path="fees/day-end" element={<FeeDayEnd />} />
+          <Route path="exams" element={<Navigate to="/exams/schedule" replace />} />
+          <Route path="exams/schedule" element={<ExamSchedule />} />
+          <Route path="exams/hall-tickets" element={<ExamHallTickets />} />
+          <Route path="exams/marks" element={<ExamMarks />} />
+          <Route path="exams/results" element={<ExamResults />} />
+          <Route path="exams/report-cards" element={<ExamReportCards />} />
+          <Route path="exams/setup" element={<ExamSetup />} />
+          <Route path="homework" element={<Navigate to="/homework/homework" replace />} />
+          <Route path="homework/homework" element={<HomeworkPage />} />
+          <Route path="homework/lesson-plans" element={<LessonPlans />} />
+          <Route path="homework/syllabus" element={<SyllabusTracker />} />
           <Route path=":moduleId/:pageId/*" element={<ModulePage />} />
           <Route path="*" element={<NotFound />} />
         </Route>

@@ -1,8 +1,7 @@
 import { HISTORY_EVENTS, LEAVING_REASONS, TC_STATUS, ageYears, isValidAadhaar, sectionLabel } from '@schoolgiant/shared'
 import { AcademicYear, ClassLevel, Section } from '../models/academics.js'
 import { Student, TransferCertificate, studentName } from '../models/students.js'
-import { Branch } from '../models/tenant.js'
-import { can, scopeOf } from '../platform/access.js'
+import { can } from '../platform/access.js'
 import { audit, diffFields } from '../platform/audit.js'
 import { blindIndex, decrypt, encrypt } from '../platform/crypto.js'
 import { clean, isOid, withTransaction } from '../platform/db.js'
@@ -12,7 +11,7 @@ import { cell, checkRow, compact } from '../platform/importRows.js'
 import { nextNumber } from '../platform/numbering.js'
 import { institutionNow } from '../platform/time.js'
 import { escapeRegex, listResponse } from '../platform/validate.js'
-import { currentYear, mySectionIds } from './academics.js'
+import { currentYear, sectionsInScope } from './academics.js'
 import { assertWithinLimit } from './subscription.js'
 
 // Students (module `students`): admission, the directory, Student 360, guardians, promotion at
@@ -31,19 +30,8 @@ const NUMERIC = { locale: 'en', numericOrdering: true }
 
 /** Mongo filter limiting students to the caller's data scope (null = no limit). */
 export async function scopeFilter(auth) {
-  const scope = scopeOf(auth, 'students')
-  if (scope === 'ALL') return null
-  if (scope === 'BRANCH') {
-    if (!auth.user?.branchId) return null // a user on the main campus with no campus set sees the whole institution
-    const main = (await Branch.findOne({ isDefault: true }).select('_id').lean())?._id
-    const onMine = String(auth.user.branchId) === String(main)
-    const sections = await Section.find(onMine ? { $or: [{ branchId: auth.user.branchId }, { branchId: null }] } : { branchId: auth.user.branchId }).select('_id').lean()
-    return { sectionId: { $in: sections.map((s) => s._id) } }
-  }
-  // CLASS, DEPARTMENT, OWN: the sections this user teaches or is class teacher of
-  const year = await currentYear()
-  const mine = year ? await mySectionIds(auth.userId, year._id) : []
-  return { sectionId: { $in: mine } }
+  const ids = await sectionsInScope(auth, 'students')
+  return ids ? { sectionId: { $in: ids } } : null
 }
 
 async function assertInScope(student, auth) {

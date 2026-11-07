@@ -8,6 +8,8 @@ import { withTransaction } from '../platform/db.js'
 import { getPlan, recordEvent } from './subscription.js'
 import { syncModulesToPlan } from './modules.js'
 import { ensureAcademicSetup } from './academics.js'
+import { ensureFeeSetup } from './fees.js'
+import { ensureExamSetup } from './exams.js'
 
 const DAY = 864e5
 
@@ -82,6 +84,8 @@ export async function provisionTenant({
   // Starter content every institution can edit later; each module adds its own here.
   await runAsTenant(out.tenant._id, async () => {
     await ensureAcademicSetup() // the current academic year with two terms, a 9-point grading scheme
+    await ensureFeeSetup() // the usual fee heads
+    await ensureExamSetup() // unit test, half-yearly, annual …
   })
   return out
 }

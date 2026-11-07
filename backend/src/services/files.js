@@ -2,6 +2,7 @@ import { createHash, randomUUID } from 'node:crypto'
 import { COMMENT_MAX, FILE_CATEGORY_LABEL, FILE_MAX_MB, FILE_TYPES, RECORD_TYPES } from '@schoolgiant/shared'
 import { Attachment, Comment } from '../models/engines.js'
 import { Student, studentName } from '../models/students.js'
+import { homeworkRecord } from './homework.js'
 import { can, moduleEnabled } from '../platform/access.js'
 import { audit } from '../platform/audit.js'
 import { clean, isOid, oid } from '../platform/db.js'
@@ -21,6 +22,11 @@ const RECORDS = {
   student: {
     module: 'students', view: ['students.profile.view'], add: ['students.profile.edit', 'students.admit.create'],
     load: async (id) => { const st = await Student.findById(id).lean(); return st && { studentId: st._id, name: `${studentName(st)} (${st.admissionNo})` } },
+  },
+  // A homework's worksheet, reference PDF or photos of the board — seen by whoever may see the homework.
+  homework: {
+    module: 'homework', view: ['homework.homework.view'], add: ['homework.homework.create', 'homework.homework.edit'],
+    load: (id, auth) => homeworkRecord(id, auth).catch(() => null),
   },
 }
 

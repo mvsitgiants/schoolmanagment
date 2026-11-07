@@ -1,0 +1,122 @@
+{
+  "attendance": {
+    "all": "All",
+    "loading": "Loading…",
+    "marks": {
+      "P": "Present",
+      "A": "Absent",
+      "L": "Late",
+      "HD": "Half day",
+      "LV": "On leave"
+    },
+    "short": {
+      "P": "P",
+      "A": "A",
+      "L": "L",
+      "HD": "H",
+      "LV": "Lv"
+    },
+    "board": {
+      "mine": "My classes",
+      "others": "Other sections",
+      "taken": "Taken",
+      "pending": "Not taken",
+      "counts": "{{present}} present · {{absent}} absent of {{total}}",
+      "strength_one": "{{count}} student",
+      "strength_other": "{{count}} students",
+      "pendingCount_one": "{{count}} section still to mark.",
+      "pendingCount_other": "{{count}} sections still to mark.",
+      "allTaken": "Every section is marked.",
+      "none": "No sections to mark. Teachers see the sections they are class teacher of or teach (Academic setup › Teacher allocation)."
+    },
+    "mark": {
+      "title": "Mark attendance",
+      "subtitle": "{{date}}",
+      "date": "Date",
+      "period": "Period",
+      "periodN": "Period {{n}}",
+      "back": "Back to sections",
+      "takenBy": "Marked by {{name}} · {{at}}",
+      "notTaken": "Not marked yet — everyone starts as present.",
+      "notWorkingDay": "This is not a working day (Settings › Working days). Mark it only if school was open.",
+      "readOnly": {
+        "FUTURE": "Attendance can’t be marked for a future date.",
+        "TOO_OLD": "This day is too far back to correct with your role. Ask someone allowed to edit attendance.",
+        "NO_PERMISSION": "Your role can see this attendance but not change it."
+      },
+      "noStudents": "No students in this section.",
+      "allPresent": "Mark everyone present",
+      "onLeave": "On approved leave",
+      "markFor": "Mark for {{name}}",
+      "unsaved": "Not saved yet",
+      "save": "Save attendance",
+      "saveChanges": "Save changes",
+      "saved": "Saved — {{present}} present, {{absent}} absent."
+    },
+    "register": {
+      "title": "Attendance register",
+      "subtitle": "A section’s month: every day, every student, with totals.",
+      "section": "Section",
+      "month": "Month",
+      "roll": "Roll",
+      "student": "Student",
+      "present": "Present",
+      "absent": "Absent",
+      "tableTitle": "{{section}} · {{taken}} days marked",
+      "empty": "No students.",
+      "legend": "P present · A absent · L late · H half day · Lv on leave. A greyed name has moved out of the section."
+    },
+    "leave": {
+      "title": "Student leave",
+      "subtitle": "Leave asked for by parents or staff. Approved leave marks the student “on leave” for those days.",
+      "new": "Add leave",
+      "newTitle": "Leave for a student",
+      "find": "Find the student",
+      "findPlaceholder": "Name or admission no.",
+      "pick": "Pick the student",
+      "student": "Student",
+      "from": "From",
+      "to": "To",
+      "dates": "Dates",
+      "reason": "Reason",
+      "askedBy": "Asked by",
+      "statusLabel": "Status",
+      "status": {
+        "PENDING": "Waiting for approval",
+        "APPROVED": "Approved",
+        "REJECTED": "Not approved",
+        "CANCELLED": "Cancelled"
+      },
+      "save": "Save",
+      "added": "Leave added.",
+      "approve": "Approve",
+      "reject": "Don’t approve",
+      "approved": "Leave approved.",
+      "rejected": "Leave not approved.",
+      "cancel": "Cancel leave",
+      "cancelConfirm": "Cancel the leave of {{name}}?",
+      "cancelHint": "Days already marked stay as they are.",
+      "cancelled": "Leave cancelled.",
+      "empty": "No leave here."
+    },
+    "reports": {
+      "title": "Attendance reports",
+      "subtitle": "Attendance over a period. Students under {{min}}% are flagged.",
+      "from": "From",
+      "to": "To",
+      "allSections": "All sections",
+      "sections": "Sections",
+      "taken": "Sections with attendance",
+      "belowMin": "Students under the minimum",
+      "section": "Section",
+      "daysTaken": "Days marked",
+      "average": "Average",
+      "absences": "Absences",
+      "belowMinShort": "Under {{min}}%",
+      "studentsTitle": "{{section}} · {{days}} days marked",
+      "leave": "On leave",
+      "empty": "No sections.",
+      "noStudents": "No students."
+    }
+  }
+}

@@ -7,6 +7,10 @@ export const BUILT_PAGES = new Set([
   'core.masters', 'core.print-templates', 'core.api-keys',
   'academics.years', 'academics.classes', 'academics.subjects', 'academics.grading', 'academics.allocation',
   'students.admit', 'students.directory', 'students.profile', 'students.guardians', 'students.promotion', 'students.transfer',
+  'attendance.mark', 'attendance.register', 'attendance.leave', 'attendance.reports',
+  'fees.structures', 'fees.collect', 'fees.invoices', 'fees.dues', 'fees.concessions', 'fees.refunds', 'fees.day-end',
+  'exams.schedule', 'exams.hall-tickets', 'exams.marks', 'exams.results', 'exams.report-cards', 'exams.setup',
+  'homework.homework', 'homework.lesson-plans', 'homework.syllabus',
 ])
 
 export const isBuilt = (moduleId, pageId) => BUILT_PAGES.has(`${moduleId}.${pageId}`)

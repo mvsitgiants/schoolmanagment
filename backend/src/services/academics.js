@@ -4,6 +4,7 @@ import {
 import { AcademicYear, ClassLevel, GradingScheme, Section, Subject, TeacherAllocation } from '../models/academics.js'
 import { Student } from '../models/students.js'
 import { Branch, Department, User } from '../models/tenant.js'
+import { scopeOf } from '../platform/access.js'
 import { audit, diffFields } from '../platform/audit.js'
 import { clean, isOid, withTransaction } from '../platform/db.js'
 import { badRequest, conflict, notFound } from '../platform/errors.js'
@@ -525,6 +526,25 @@ export async function mySectionIds(userId, academicYearId) {
   ])
   const yearSections = new Set((await Section.find({ academicYearId: year._id, _id: { $in: user?.sectionIds ?? [] } }).select('_id').lean()).map((s) => String(s._id)))
   return [...new Set([...own.map((s) => String(s._id)), ...allocs.map((a) => String(a.sectionId)), ...yearSections])]
+}
+
+/**
+ * Section ids a user may work with in a module, by the role's data scope for that module:
+ * ALL → null (no limit) · BRANCH → sections on the user's campus · CLASS / DEPARTMENT / OWN → the
+ * sections they teach (mySectionIds). Sections without a campus belong to the main campus.
+ */
+export async function sectionsInScope(auth, moduleId) {
+  const scope = scopeOf(auth, moduleId)
+  if (scope === 'ALL') return null
+  if (scope === 'BRANCH') {
+    if (!auth.user?.branchId) return null // on the main campus with no campus set: the whole institution
+    const main = (await Branch.findOne({ isDefault: true }).select('_id').lean())?._id
+    const onMain = String(auth.user.branchId) === String(main)
+    const rows = await Section.find(onMain ? { $or: [{ branchId: auth.user.branchId }, { branchId: null }] } : { branchId: auth.user.branchId }).select('_id').lean()
+    return rows.map((r) => String(r._id))
+  }
+  const year = await currentYear()
+  return year ? mySectionIds(auth.userId, year._id) : []
 }
 
 /** The small picture every screen needs: years, the current one, its sections, subjects. */

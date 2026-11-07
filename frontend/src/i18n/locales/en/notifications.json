@@ -61,6 +61,18 @@
           "body": "Dear {{guardian.name}},\n\nThe {{exam.name}} report card of {{student.name}} ({{student.class}}) is ready.\nView and download it here: {{result.link}}\n\n{{institution.name}}"
         }
       },
+      "homework_assigned": {
+        "SMS": {
+          "body": "{{homework.subject}} homework for {{student.firstName}}: {{homework.title}}, due {{homework.dueDate}}. - {{institution.name}}"
+        },
+        "WHATSAPP": {
+          "body": "Dear {{guardian.name}},\n{{homework.subject}} homework for {{student.firstName}} ({{student.class}}):\n{{homework.title}}\n\nDue: {{homework.dueDate}}\n\n{{institution.name}}"
+        },
+        "EMAIL": {
+          "subject": "{{homework.subject}} homework — {{student.name}}",
+          "body": "Dear {{guardian.name}},\n\n{{homework.subject}} homework has been set for {{student.name}} ({{student.class}}):\n{{homework.title}}\n\nDue: {{homework.dueDate}}\n\n{{institution.name}}"
+        }
+      },
       "communication_notice": {
         "SMS": {
           "body": "New notice from {{institution.name}}: {{notice.title}}. Read: {{notice.link}}"

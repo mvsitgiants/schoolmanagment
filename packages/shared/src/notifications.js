@@ -64,6 +64,9 @@ const VAR_HELP = {
   'pay.link': 'Link to pay online',
   'exam.name': 'Exam name, e.g. Half-yearly 2026',
   'result.link': 'Link to the report card',
+  'homework.subject': 'Subject of the homework',
+  'homework.title': 'What the homework is',
+  'homework.dueDate': 'When it is due, e.g. Thu, 9 Oct',
   'notice.title': 'Title of the notice',
   'notice.link': 'Link to read the notice',
   'otp.code': 'The one-time code',
@@ -127,6 +130,16 @@ export const NOTIFY_EVENTS = [
     },
   },
   {
+    event: 'homework.assigned', module: 'homework', label: 'Homework set',
+    when: 'When a teacher sets homework for a class and chooses to tell families.',
+    vars: [...STUDENT, 'homework.subject', 'homework.title', 'homework.dueDate', ...INSTITUTION],
+    defaults: {
+      SMS: { enabled: false, body: '{{homework.subject}} homework for {{student.firstName}}: {{homework.title}}, due {{homework.dueDate}}. - {{institution.name}}' },
+      WHATSAPP: { enabled: true, body: 'Dear {{guardian.name}},\n{{homework.subject}} homework for {{student.firstName}} ({{student.class}}):\n{{homework.title}}\n\nDue: {{homework.dueDate}}\n\n{{institution.name}}' },
+      EMAIL: { enabled: false, subject: '{{homework.subject}} homework — {{student.name}}', body: 'Dear {{guardian.name}},\n\n{{homework.subject}} homework has been set for {{student.name}} ({{student.class}}):\n{{homework.title}}\n\nDue: {{homework.dueDate}}\n\n{{institution.name}}' },
+    },
+  },
+  {
     event: 'communication.notice', module: 'communication', label: 'Notice or circular',
     when: 'When a notice is published to families.',
     vars: [...STUDENT, 'notice.title', 'notice.link', ...INSTITUTION],
@@ -151,6 +164,7 @@ export const TEMPLATE_SAMPLE = {
   pay: { link: 'https://pay.example.in/p/k3Xb9QmT' },
   exam: { name: 'Half-yearly 2026' },
   result: { link: 'https://app.example.in/r/Hq7Zt4Wn' },
+  homework: { subject: 'Mathematics', title: 'Exercise 4.2, questions 1–10', dueDate: 'Thu, 9 Oct' },
   notice: { title: 'Annual Day on 20 December', link: 'https://app.example.in/n/Vb3kQ9xT' },
   otp: { code: '482913', minutes: 10 },
 }

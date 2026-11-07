@@ -9,7 +9,11 @@ import { errorHandler, notFoundHandler } from './platform/errors.js'
 import { logger } from './platform/logger.js'
 import { requireTrustedOrigin } from './platform/middleware.js'
 import academicsRoutes from './routes/academics.js'
+import attendanceRoutes from './routes/attendance.js'
 import documentRoutes from './routes/documents.js'
+import feeRoutes from './routes/fees.js'
+import examRoutes from './routes/exams.js'
+import homeworkRoutes from './routes/homework.js'
 import studentRoutes from './routes/students.js'
 import authRoutes from './routes/auth.js'
 import coreRoutes from './routes/core/index.js'
@@ -107,6 +111,10 @@ export function createApp() {
   // Module routes mount here as each module is built.
   app.use('/api/v1/academics', academicsRoutes)
   app.use('/api/v1/students', studentRoutes)
+  app.use('/api/v1/attendance', attendanceRoutes)
+  app.use('/api/v1/fees', feeRoutes)
+  app.use('/api/v1/exams', examRoutes)
+  app.use('/api/v1/homework', homeworkRoutes)
   app.use('/api/v1/documents', documentRoutes)
 
   app.use(notFoundHandler)

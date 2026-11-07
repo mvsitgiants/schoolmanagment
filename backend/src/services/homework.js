@@ -1,0 +1,454 @@
+import { LESSON_STATUS, SUBMISSION_STATUS, sectionLabel, submissionCounts, syllabusProgress } from '@schoolgiant/shared'
+import { ClassLevel, Section, Subject, TeacherAllocation } from '../models/academics.js'
+import { Homework, LessonPlan, Syllabus, SyllabusDone } from '../models/homework.js'
+import { Student, studentName } from '../models/students.js'
+import { User } from '../models/tenant.js'
+import { scopeOf } from '../platform/access.js'
+import { audit } from '../platform/audit.js'
+import { clean, isOid, oid, withTransaction } from '../platform/db.js'
+import { badRequest, conflict, forbidden, notFound } from '../platform/errors.js'
+import { emit } from '../platform/events.js'
+import { institutionNow } from '../platform/time.js'
+import { escapeRegex, listResponse } from '../platform/validate.js'
+import { currentYear, sectionsInScope } from './academics.js'
+import { humanDate } from './notify.js'
+
+// Homework & lessons (module `homework`). Which sections someone sees follows the role's data scope
+// for `homework` (services/academics.js sectionsInScope). With a narrow scope (CLASS, DEPARTMENT,
+// OWN) a teacher works only on the subjects they teach in a section (Academic setup › Teacher
+// allocation), or on every subject of a section they are class teacher of; homework and lesson
+// plans someone else made can be changed by their author, the class teacher, or a wider scope.
+
+const idStr = (v) => (v ? String(v) : null)
+const fieldsError = (fields, message = 'Some details need fixing.') => badRequest(message, { fields })
+const today = async () => (await institutionNow()).date
+const NARROW = ['CLASS', 'DEPARTMENT', 'OWN']
+const wide = (auth) => !NARROW.includes(scopeOf(auth, 'homework'))
+const byRoll = { locale: 'en', numericOrdering: true }
+
+async function requireYear() {
+  const y = await currentYear()
+  if (!y) throw conflict('Add an academic year first (Academic setup › Academic years & terms).')
+  return y
+}
+
+/** A section the caller may see, with its class and labels. */
+async function sectionFor(sectionId, auth) {
+  if (!isOid(sectionId)) throw notFound('Section')
+  const section = await Section.findById(sectionId).lean()
+  if (!section) throw notFound('Section')
+  const allowed = await sectionsInScope(auth, 'homework')
+  if (allowed && !allowed.includes(String(section._id))) throw notFound('Section')
+  const cls = await ClassLevel.findById(section.classId).lean()
+  return { ...section, cls, label: sectionLabel(cls, section), short: sectionLabel(cls, section, { short: true }) }
+}
+
+/** May the caller teach (set homework, plan, tick the syllabus for) this subject in this section? */
+async function mayTeach(auth, section, subjectId) {
+  if (wide(auth)) return true
+  if (String(section.classTeacherId) === String(auth.userId)) return true
+  const [alloc, user] = await Promise.all([
+    TeacherAllocation.exists({ sectionId: section._id, subjectId, teacherId: auth.userId }),
+    User.findById(auth.userId).select('sectionIds').lean(),
+  ])
+  return !!alloc || (user?.sectionIds ?? []).some((id) => String(id) === String(section._id))
+}
+
+/** May the caller change a plan / homework someone made? Its author, the class teacher, or a wider scope. */
+const mayChange = (auth, doc, section) => wide(auth) || String(doc.teacherId) === String(auth.userId) || String(section.classTeacherId) === String(auth.userId)
+
+async function subjectNames(ids) {
+  return new Map((await Subject.find({ _id: { $in: ids } }).select('name code').lean()).map((s) => [String(s._id), s.name]))
+}
+
+async function sectionLabels(ids) {
+  const sections = await Section.find({ _id: { $in: ids } }).lean()
+  const classes = new Map((await ClassLevel.find({ _id: { $in: sections.map((s) => s.classId) } }).select('name code').lean()).map((c) => [String(c._id), c]))
+  return new Map(sections.map((s) => [String(s._id), { label: sectionLabel(classes.get(String(s.classId)), s), short: sectionLabel(classes.get(String(s.classId)), s, { short: true }), classId: String(s.classId) }]))
+}
+
+// ───────────────────────────────────────────────────────── what the caller may pick
+
+/**
+ * This year's sections the caller may work with, each with the subjects they may pick there; and
+ * the classes of those sections with their subjects (for the syllabus screen).
+ */
+export async function homeworkLookup(auth) {
+  const year = await currentYear()
+  if (!year) return { year: null, sections: [], classes: [] }
+  const allowed = await sectionsInScope(auth, 'homework')
+  const sections = await Section.find({ academicYearId: year._id, active: { $ne: false }, ...(allowed && { _id: { $in: allowed } }) }).lean()
+  const [classes, allocs, user] = await Promise.all([
+    ClassLevel.find({ _id: { $in: sections.map((s) => s.classId) } }).select('name code order subjectIds').sort({ order: 1 }).lean(),
+    TeacherAllocation.find({ sectionId: { $in: sections.map((s) => s._id) } }).select('sectionId subjectId teacherId').lean(),
+    User.findById(auth.userId).select('sectionIds').lean(),
+  ])
+  const cls = new Map(classes.map((c) => [String(c._id), c]))
+  const isWide = wide(auth)
+  const extra = new Set((user?.sectionIds ?? []).map(String))
+  const allSubjectIds = new Set([...classes.flatMap((c) => c.subjectIds.map(String)), ...allocs.map((a) => String(a.subjectId))])
+  const names = await subjectNames([...allSubjectIds])
+  const list = (ids) => [...new Set(ids.map(String))].filter((id) => names.has(id)).map((id) => ({ id, name: names.get(id) })).sort((a, b) => a.name.localeCompare(b.name))
+  const out = sections
+    .filter((s) => cls.has(String(s.classId)))
+    .sort((a, b) => (cls.get(String(a.classId)).order - cls.get(String(b.classId)).order) || a.name.localeCompare(b.name))
+    .map((s) => {
+      const c = cls.get(String(s.classId))
+      const here = allocs.filter((a) => String(a.sectionId) === String(s._id))
+      const full = isWide || String(s.classTeacherId) === String(auth.userId) || extra.has(String(s._id))
+      const subjectIds = full ? [...c.subjectIds, ...here.map((a) => a.subjectId)] : here.filter((a) => String(a.teacherId) === String(auth.userId)).map((a) => a.subjectId)
+      return { id: String(s._id), classId: String(s.classId), label: sectionLabel(c, s), short: sectionLabel(c, s, { short: true }), subjects: list(subjectIds) }
+    })
+  const classRows = classes.map((c) => ({
+    id: String(c._id), name: c.name, code: c.code,
+    subjects: list(out.filter((s) => s.classId === String(c._id)).flatMap((s) => s.subjects.map((x) => x.id))),
+  })).filter((c) => c.subjects.length)
+  return { year: { id: String(year._id), name: year.name, startDate: year.startDate, endDate: year.endDate }, sections: out, classes: classRows }
+}
+
+// ───────────────────────────────────────────────────────── syllabus
+
+const unitsDto = (units = []) => units.map((u) => ({ id: String(u._id), name: u.name, topics: (u.topics ?? []).map((t) => ({ id: String(t._id), name: t.name, periods: t.periods ?? null })) }))
+
+/** Every class × subject the caller works with, and how far each section has got. */
+export async function syllabusOverview(auth) {
+  const look = await homeworkLookup(auth)
+  if (!look.year) return { year: null, rows: [] }
+  const syllabi = await Syllabus.find({ academicYearId: look.year.id }).lean()
+  const sectionIds = look.sections.map((s) => s.id)
+  const done = await SyllabusDone.aggregate([
+    { $match: { academicYearId: oid(look.year.id), sectionId: { $in: sectionIds.map(oid) } } },
+    { $group: { _id: { sectionId: '$sectionId', subjectId: '$subjectId' }, topics: { $addToSet: '$topicId' } } },
+  ])
+  const doneOf = new Map(done.map((d) => [`${d._id.sectionId}:${d._id.subjectId}`, d.topics.map(String)]))
+  const rows = []
+  for (const c of look.classes) {
+    for (const sub of c.subjects) {
+      const syl = syllabi.find((x) => String(x.classId) === c.id && String(x.subjectId) === sub.id)
+      const units = unitsDto(syl?.units)
+      const sections = look.sections.filter((s) => s.classId === c.id && s.subjects.some((x) => x.id === sub.id))
+      rows.push({
+        key: `${c.id}:${sub.id}`, classId: c.id, className: c.name, subjectId: sub.id, subject: sub.name,
+        topics: units.reduce((n, u) => n + u.topics.length, 0), units: units.length, updatedBy: syl?.updatedBy ?? null, updatedAt: syl?.updatedAt ?? null,
+        sections: sections.map((s) => {
+          const { topics, done: n, pct } = syllabusProgress(units, doneOf.get(`${s.id}:${sub.id}`) ?? [])
+          return { id: s.id, short: s.short, topics, done: n, pct }
+        }),
+      })
+    }
+  }
+  return { year: look.year, rows }
+}
+
+/** One class's syllabus for a subject, with each section's ticks. */
+export async function getSyllabus({ classId, subjectId }, auth) {
+  const year = await requireYear()
+  if (!isOid(classId) || !isOid(subjectId)) throw notFound('Syllabus')
+  const look = await homeworkLookup(auth)
+  const cls = look.classes.find((c) => c.id === String(classId))
+  if (!cls || !cls.subjects.some((s) => s.id === String(subjectId))) throw notFound('Syllabus')
+  const [syl, subject] = await Promise.all([Syllabus.findOne({ academicYearId: year._id, classId, subjectId }).lean(), Subject.findById(subjectId).select('name').lean()])
+  const units = unitsDto(syl?.units)
+  const sections = look.sections.filter((s) => s.classId === String(classId) && s.subjects.some((x) => x.id === String(subjectId)))
+  const done = await SyllabusDone.find({ sectionId: { $in: sections.map((s) => s.id) }, subjectId }).lean()
+  return {
+    year: look.year, classId: String(classId), className: cls.name, subjectId: String(subjectId), subject: subject?.name ?? '?',
+    units, updatedBy: syl?.updatedBy ?? null, updatedAt: syl?.updatedAt ?? null,
+    canEditStructure: wide(auth) || sections.length > 0,
+    sections: sections.map((s) => {
+      const mine = done.filter((d) => String(d.sectionId) === s.id)
+      return {
+        id: s.id, label: s.label, short: s.short,
+        ticks: Object.fromEntries(mine.map((d) => [String(d.topicId), { date: d.date, by: d.by, fromPlan: !!d.lessonPlanId }])),
+        ...syllabusProgress(units, mine.map((d) => String(d.topicId))),
+      }
+    }),
+  }
+}
+
+/**
+ * Save a syllabus. Units and topics keep their ids (sections' ticks hang off them); a topic left out
+ * is removed with its ticks, and lesson plans stop pointing at it.
+ */
+export async function saveSyllabus({ classId, subjectId, units }, auth, req) {
+  const year = await requireYear()
+  const current = await getSyllabus({ classId, subjectId }, auth) // checks the caller may see it
+  if (!current.canEditStructure) throw forbidden('You can’t change this syllabus.')
+  const errors = {}
+  units.forEach((u, i) => {
+    if (!u.name?.trim()) errors[`units.${i}.name`] = 'Name the unit'
+    ;(u.topics ?? []).forEach((t, j) => { if (!t.name?.trim()) errors[`units.${i}.topics.${j}.name`] = 'Name the topic' })
+  })
+  if (Object.keys(errors).length) throw fieldsError(errors)
+  const known = new Set(current.units.flatMap((u) => [u.id, ...u.topics.map((t) => t.id)]))
+  const keepId = (id) => (id && known.has(String(id)) ? id : undefined)
+  const next = units.map((u) => ({ ...(keepId(u.id) && { _id: u.id }), name: u.name.trim(), topics: (u.topics ?? []).map((t) => ({ ...(keepId(t.id) && { _id: t.id }), name: t.name.trim(), periods: t.periods || undefined })) }))
+  const kept = new Set(next.flatMap((u) => u.topics.map((t) => String(t._id ?? ''))).filter(Boolean))
+  const removed = current.units.flatMap((u) => u.topics.map((t) => t.id)).filter((id) => !kept.has(id))
+  await withTransaction(async () => {
+    await Syllabus.updateOne({ academicYearId: year._id, classId, subjectId }, { $set: { units: next, updatedBy: auth.user?.name } }, { upsert: true })
+    if (removed.length) {
+      await SyllabusDone.deleteMany({ subjectId, topicId: { $in: removed } })
+      await LessonPlan.updateMany({ subjectId, topicIds: { $in: removed } }, { $pull: { topicIds: { $in: removed } } })
+    }
+  })
+  const topics = next.reduce((n, u) => n + u.topics.length, 0)
+  await audit({ action: 'UPDATE', module: 'homework', entityType: 'syllabus', entityId: `${classId}:${subjectId}`, entityName: `${current.className} · ${current.subject}`, summary: `Saved the ${current.subject} syllabus of ${current.className}: ${next.length} unit(s), ${topics} topic(s)${removed.length ? `; removed ${removed.length}` : ''}` }, req)
+  return getSyllabus({ classId, subjectId }, auth)
+}
+
+async function topicIdsOf(classId, subjectId, academicYearId) {
+  const syl = await Syllabus.findOne({ academicYearId, classId, subjectId }).lean()
+  return new Set((syl?.units ?? []).flatMap((u) => u.topics.map((t) => String(t._id))))
+}
+
+async function tick({ year, section, subjectId, topicIds, date, lessonPlanId }, auth) {
+  if (!topicIds.length) return
+  await SyllabusDone.bulkWrite(topicIds.map((topicId) => ({
+    updateOne: {
+      filter: { sectionId: section._id, subjectId, topicId },
+      update: { $setOnInsert: { academicYearId: year._id, date, by: auth.user?.name, byId: auth.userId, ...(lessonPlanId && { lessonPlanId }) } },
+      upsert: true,
+    },
+  })))
+}
+
+/** Tick topics as taught (or untick them) in a section. */
+export async function markTopics({ sectionId, subjectId, topicIds, done = true, date }, auth, req) {
+  const year = await requireYear()
+  const section = await sectionFor(sectionId, auth)
+  if (!await mayTeach(auth, section, subjectId)) throw forbidden('You don’t teach this subject in this class.')
+  const valid = await topicIdsOf(section.classId, subjectId, year._id)
+  if (topicIds.some((id) => !valid.has(String(id)))) throw badRequest('Some topics are not in this syllabus.')
+  if (done) await tick({ year, section, subjectId, topicIds, date: date || await today() }, auth)
+  else await SyllabusDone.deleteMany({ sectionId: section._id, subjectId, topicId: { $in: topicIds } })
+  const subject = (await subjectNames([subjectId])).get(String(subjectId))
+  await audit({ action: 'UPDATE', module: 'homework', entityType: 'syllabus', entityId: `${section.classId}:${subjectId}`, entityName: `${section.short} · ${subject}`, summary: `${done ? 'Ticked' : 'Unticked'} ${topicIds.length} ${subject} topic(s) for ${section.short}` }, req)
+  return getSyllabus({ classId: section.classId, subjectId }, auth)
+}
+
+// ───────────────────────────────────────────────────────── lesson plans
+
+async function planRows(rows, auth) {
+  const [labels, subjects] = await Promise.all([sectionLabels(rows.map((r) => r.sectionId)), subjectNames(rows.map((r) => r.subjectId))])
+  const syllabi = await Syllabus.find({ subjectId: { $in: rows.map((r) => r.subjectId) } }).select('units').lean()
+  const topicName = new Map(syllabi.flatMap((s) => s.units.flatMap((u) => u.topics.map((t) => [String(t._id), t.name]))))
+  const sections = new Map((await Section.find({ _id: { $in: rows.map((r) => r.sectionId) } }).select('classTeacherId').lean()).map((s) => [String(s._id), s]))
+  return rows.map((r) => ({
+    ...clean(r), academicYearId: String(r.academicYearId), sectionId: String(r.sectionId), subjectId: String(r.subjectId), teacherId: idStr(r.teacherId),
+    topicIds: (r.topicIds ?? []).map(String), topics: (r.topicIds ?? []).map((id) => topicName.get(String(id))).filter(Boolean),
+    section: labels.get(String(r.sectionId))?.short ?? '?', classId: labels.get(String(r.sectionId))?.classId ?? null, subject: subjects.get(String(r.subjectId)) ?? '?',
+    statusLabel: LESSON_STATUS[r.status]?.label, canChange: mayChange(auth, r, sections.get(String(r.sectionId)) ?? {}),
+  }))
+}
+
+export async function listPlans({ from, to, sectionId, subjectId }, auth) {
+  const year = await requireYear()
+  const allowed = await sectionsInScope(auth, 'homework')
+  const filter = { academicYearId: year._id }
+  if (allowed) filter.sectionId = { $in: allowed }
+  if (sectionId) {
+    if (allowed && !allowed.includes(String(sectionId))) throw notFound('Section')
+    filter.sectionId = sectionId
+  }
+  if (subjectId) filter.subjectId = subjectId
+  if (from || to) filter.date = { ...(from && { $gte: from }), ...(to && { $lte: to }) }
+  const rows = await LessonPlan.find(filter).sort({ date: 1, period: 1, createdAt: 1 }).limit(500).lean()
+  return planRows(rows, auth)
+}
+
+async function planFor(id, auth) {
+  if (!isOid(id)) throw notFound('Lesson plan')
+  const p = await LessonPlan.findById(id)
+  if (!p) throw notFound('Lesson plan')
+  const section = await sectionFor(p.sectionId, auth)
+  return { p, section }
+}
+
+export async function savePlan(id, input, auth, req) {
+  const year = await requireYear()
+  const section = await sectionFor(input.sectionId, auth)
+  if (!await mayTeach(auth, section, input.subjectId)) throw forbidden('You don’t teach this subject in this class.')
+  if (input.date < year.startDate || input.date > year.endDate) throw fieldsError({ date: `Inside ${year.name}` })
+  const valid = await topicIdsOf(section.classId, input.subjectId, year._id)
+  if ((input.topicIds ?? []).some((t) => !valid.has(String(t)))) throw fieldsError({ topicIds: 'Pick topics from this class’s syllabus' })
+  let plan
+  if (id) {
+    const found = await planFor(id, auth)
+    if (!mayChange(auth, found.p, found.section)) throw forbidden('Only the teacher who wrote this plan (or the class teacher) can change it.')
+    plan = found.p
+  } else {
+    plan = new LessonPlan({ academicYearId: year._id, teacherId: auth.userId, teacher: auth.user?.name })
+  }
+  Object.assign(plan, {
+    sectionId: section._id, subjectId: input.subjectId, date: input.date, period: input.period || undefined, title: input.title, topicIds: input.topicIds ?? [],
+    objectives: input.objectives || undefined, method: input.method || undefined, resources: input.resources || undefined, homeworkNote: input.homeworkNote || undefined,
+  })
+  await plan.save()
+  await audit({ action: id ? 'UPDATE' : 'CREATE', module: 'homework', entityType: 'lesson_plan', entityId: String(plan._id), entityName: plan.title, summary: `${id ? 'Updated' : 'Planned'} “${plan.title}” for ${section.short} on ${plan.date}` }, req)
+  return (await planRows([plan.toObject()], auth))[0]
+}
+
+export async function deletePlan(id, auth, req) {
+  const { p, section } = await planFor(id, auth)
+  if (!mayChange(auth, p, section)) throw forbidden('Only the teacher who wrote this plan (or the class teacher) can delete it.')
+  await LessonPlan.deleteOne({ _id: p._id })
+  await audit({ action: 'DELETE', module: 'homework', entityType: 'lesson_plan', entityId: String(p._id), entityName: p.title, summary: `Deleted the lesson plan “${p.title}” (${section.short}, ${p.date})` }, req)
+  return { deleted: true }
+}
+
+/** Taught (its topics are ticked in the syllabus), not taken, or back to planned. */
+export async function setPlanStatus(id, { status, reflection }, auth, req) {
+  const year = await requireYear()
+  const { p, section } = await planFor(id, auth)
+  if (!mayChange(auth, p, section)) throw forbidden('Only the teacher who wrote this plan (or the class teacher) can change it.')
+  Object.assign(p, { status, reflection: reflection || p.reflection, doneAt: status === 'DONE' ? new Date() : undefined })
+  await p.save()
+  if (status === 'DONE') await tick({ year, section, subjectId: p.subjectId, topicIds: p.topicIds, date: p.date, lessonPlanId: p._id }, auth)
+  await audit({ action: 'UPDATE', module: 'homework', entityType: 'lesson_plan', entityId: String(p._id), entityName: p.title, summary: `Marked “${p.title}” (${section.short}) as ${LESSON_STATUS[status]?.label.toLowerCase()}` }, req)
+  return (await planRows([p.toObject()], auth))[0]
+}
+
+// ───────────────────────────────────────────────────────── homework
+
+async function strengthOf(sectionIds) {
+  const rows = await Student.aggregate([{ $match: { sectionId: { $in: sectionIds }, status: 'ACTIVE' } }, { $group: { _id: '$sectionId', n: { $sum: 1 } } }])
+  return new Map(rows.map((r) => [String(r._id), r.n]))
+}
+
+export async function listHomework(q, paging, auth) {
+  const year = await requireYear()
+  const t = await today()
+  const allowed = await sectionsInScope(auth, 'homework')
+  const filter = { academicYearId: year._id }
+  if (allowed) filter.sectionId = { $in: allowed }
+  if (q.sectionId) {
+    if (allowed && !allowed.includes(String(q.sectionId))) throw notFound('Section')
+    filter.sectionId = q.sectionId
+  }
+  if (q.subjectId) filter.subjectId = q.subjectId
+  if (q.mine) filter.teacherId = auth.userId
+  if (q.when === 'OPEN') filter.dueDate = { $gte: t }
+  if (q.when === 'PAST') filter.dueDate = { $lt: t }
+  if (paging.search) filter.title = new RegExp(escapeRegex(paging.search), 'i')
+  const [rows, total] = await Promise.all([
+    Homework.find(filter).sort({ dueDate: q.when === 'OPEN' ? 1 : -1, createdAt: -1 }).skip(paging.skip).limit(paging.pageSize).lean(),
+    Homework.countDocuments(filter),
+  ])
+  const [labels, subjects, strength] = await Promise.all([sectionLabels(rows.map((r) => r.sectionId)), subjectNames(rows.map((r) => r.subjectId)), strengthOf(rows.map((r) => r.sectionId))])
+  return listResponse(rows.map((r) => ({
+    id: String(r._id), sectionId: String(r.sectionId), subjectId: String(r.subjectId), title: r.title, details: r.details ?? '', setDate: r.setDate, dueDate: r.dueDate,
+    needsSubmission: r.needsSubmission, teacher: r.teacher, notifiedAt: r.notifiedAt ?? null, overdue: r.dueDate < t,
+    section: labels.get(String(r.sectionId))?.short ?? '?', subject: subjects.get(String(r.subjectId)) ?? '?',
+    counts: submissionCounts(r.entries, strength.get(String(r.sectionId)) ?? r.entries.length),
+  })), total, paging)
+}
+
+async function homeworkFor(id, auth) {
+  if (!isOid(id)) throw notFound('Homework')
+  const h = await Homework.findById(id)
+  if (!h) throw notFound('Homework')
+  const section = await sectionFor(h.sectionId, auth)
+  return { h, section }
+}
+
+export async function getHomework(id, auth) {
+  const { h, section } = await homeworkFor(id, auth)
+  const [students, subjects] = await Promise.all([
+    Student.find({ sectionId: section._id, status: 'ACTIVE' }).collation(byRoll).sort({ rollNo: 1, firstName: 1 }).select('firstName middleName lastName admissionNo rollNo').lean(),
+    subjectNames([h.subjectId]),
+  ])
+  const entry = new Map(h.entries.map((e) => [String(e.studentId), e]))
+  return {
+    id: String(h._id), sectionId: String(h.sectionId), subjectId: String(h.subjectId), title: h.title, details: h.details ?? '', setDate: h.setDate, dueDate: h.dueDate,
+    needsSubmission: h.needsSubmission, teacher: h.teacher, teacherId: idStr(h.teacherId), notifiedAt: h.notifiedAt ?? null,
+    section: section.label, sectionShort: section.short, subject: subjects.get(String(h.subjectId)) ?? '?',
+    canChange: mayChange(auth, h, section), overdue: h.dueDate < await today(),
+    counts: submissionCounts(h.entries.filter((e) => students.some((s) => String(s._id) === String(e.studentId))), students.length),
+    students: students.map((s) => {
+      const e = entry.get(String(s._id))
+      return { id: String(s._id), name: studentName(s), admissionNo: s.admissionNo, rollNo: s.rollNo ?? null, status: e?.status ?? 'PENDING', statusLabel: SUBMISSION_STATUS[e?.status ?? 'PENDING']?.label, remark: e?.remark ?? '', at: e?.at ?? null, by: e?.by ?? null }
+    }),
+  }
+}
+
+/** Tell each family of a section about a homework (Notification rules › Homework set). */
+async function notifyFamilies(h, section, subject) {
+  const students = await Student.find({ sectionId: section._id, status: 'ACTIVE' }).select('_id').lean()
+  for (const s of students) {
+    await emit('homework.assigned', { studentId: String(s._id), entity: { type: 'homework', id: h._id }, data: { student: { class: section.short }, homework: { subject, title: h.title, dueDate: humanDate(h.dueDate) } } })
+  }
+  await Homework.updateOne({ _id: h._id }, { $set: { notifiedAt: new Date() } })
+  return students.length
+}
+
+/** Set homework for one or more sections of a subject (one homework per section). */
+export async function createHomework(input, auth, req) {
+  const year = await requireYear()
+  const t = await today()
+  const setDate = input.setDate || t
+  if (input.dueDate < setDate) throw fieldsError({ dueDate: 'On or after the day it is set' })
+  if (input.dueDate > year.endDate) throw fieldsError({ dueDate: `Inside ${year.name}` })
+  const sections = []
+  for (const sid of [...new Set(input.sectionIds)]) {
+    const section = await sectionFor(sid, auth)
+    if (!await mayTeach(auth, section, input.subjectId)) throw forbidden(`You don’t teach this subject in ${section.short}.`)
+    sections.push(section)
+  }
+  const subject = (await subjectNames([input.subjectId])).get(String(input.subjectId))
+  if (!subject) throw fieldsError({ subjectId: 'Pick a subject' })
+  const created = await Homework.insertMany(sections.map((s) => ({
+    academicYearId: year._id, sectionId: s._id, subjectId: input.subjectId, title: input.title, details: input.details || undefined,
+    setDate, dueDate: input.dueDate, needsSubmission: input.needsSubmission !== false, teacherId: auth.userId, teacher: auth.user?.name,
+  })))
+  let told = 0
+  if (input.notify) for (const [i, h] of created.entries()) told += await notifyFamilies(h, sections[i], subject)
+  await audit({ action: 'CREATE', module: 'homework', entityType: 'homework', entityId: String(created[0]._id), entityName: input.title, summary: `Set ${subject} homework “${input.title}” for ${sections.map((s) => s.short).join(', ')}, due ${input.dueDate}${told ? `; told ${told} famil${told === 1 ? 'y' : 'ies'}` : ''}` }, req)
+  return { created: created.length, ids: created.map((h) => String(h._id)), notified: told }
+}
+
+export async function updateHomework(id, input, auth, req) {
+  const { h, section } = await homeworkFor(id, auth)
+  if (!mayChange(auth, h, section)) throw forbidden('Only the teacher who set this homework (or the class teacher) can change it.')
+  if (input.dueDate && input.dueDate < h.setDate) throw fieldsError({ dueDate: 'On or after the day it was set' })
+  for (const k of ['title', 'details', 'dueDate', 'needsSubmission']) if (input[k] !== undefined) h[k] = input[k]
+  await h.save()
+  await audit({ action: 'UPDATE', module: 'homework', entityType: 'homework', entityId: String(h._id), entityName: h.title, summary: `Updated homework “${h.title}” (${section.short})` }, req)
+  return getHomework(id, auth)
+}
+
+export async function deleteHomework(id, auth, req) {
+  const { h, section } = await homeworkFor(id, auth)
+  if (!mayChange(auth, h, section)) throw forbidden('Only the teacher who set this homework (or the class teacher) can delete it.')
+  await Homework.deleteOne({ _id: h._id })
+  await audit({ action: 'DELETE', module: 'homework', entityType: 'homework', entityId: String(h._id), entityName: h.title, summary: `Deleted homework “${h.title}” (${section.short})` }, req)
+  return { deleted: true }
+}
+
+/** Record who handed it in (and the teacher's remark). Only the students sent are changed. */
+export async function saveSubmissions(id, entries, auth, req) {
+  const { h, section } = await homeworkFor(id, auth)
+  if (!await mayTeach(auth, section, h.subjectId) && !mayChange(auth, h, section)) throw forbidden('You can’t check this homework.')
+  if (!h.needsSubmission) throw conflict('This homework doesn’t need handing in.')
+  const roster = new Set((await Student.find({ sectionId: section._id, status: 'ACTIVE' }).select('_id').lean()).map((s) => String(s._id)))
+  if (entries.some((e) => !roster.has(e.studentId))) throw badRequest('Some students are not in this class.')
+  const byStudent = new Map(h.entries.map((e) => [String(e.studentId), e]))
+  for (const e of entries) {
+    const prev = byStudent.get(e.studentId)
+    const changed = !prev || prev.status !== e.status || (prev.remark ?? '') !== (e.remark ?? '')
+    if (!changed) continue
+    byStudent.set(e.studentId, { studentId: e.studentId, status: e.status, remark: e.remark || undefined, at: new Date(), by: auth.user?.name })
+  }
+  h.entries = [...byStudent.values()].filter((e) => e.status !== 'PENDING' || e.remark)
+  await h.save()
+  const counts = submissionCounts(h.entries, roster.size)
+  await audit({ action: 'UPDATE', module: 'homework', entityType: 'homework', entityId: String(h._id), entityName: h.title, summary: `Checked homework “${h.title}” (${section.short}): ${counts.handedIn} of ${roster.size} handed in` }, req)
+  return getHomework(id, auth)
+}
+
+/** For Files: a homework's name, access-checked by the caller's sections. */
+export async function homeworkRecord(id, auth) {
+  const { h, section } = await homeworkFor(id, auth)
+  return { name: `${h.title} (${section.short})`, canAdd: mayChange(auth, h, section) }
+}
+

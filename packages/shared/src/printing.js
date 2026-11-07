@@ -9,10 +9,10 @@
  * until then the letterhead and paper can already be set up.
  */
 export const PRINT_DOCS = [
-  { value: 'FEE_RECEIPT', label: 'Fee receipt', module: 'fees', paper: 'A5', ready: false, server: false },
+  { value: 'FEE_RECEIPT', label: 'Fee receipt', module: 'fees', paper: 'A5', ready: true, server: true },
   { value: 'FEE_INVOICE', label: 'Fee invoice / challan', module: 'fees', paper: 'A4', ready: false, server: false },
-  { value: 'REPORT_CARD', label: 'Report card', module: 'exams', paper: 'A4', ready: false, server: false },
-  { value: 'HALL_TICKET', label: 'Hall ticket', module: 'exams', paper: 'A5', ready: false, server: false },
+  { value: 'REPORT_CARD', label: 'Report card', module: 'exams', paper: 'A4', ready: true, server: true },
+  { value: 'HALL_TICKET', label: 'Hall ticket', module: 'exams', paper: 'A5', ready: true, server: true },
   { value: 'TRANSFER_CERTIFICATE', label: 'Transfer certificate', module: 'students', paper: 'A4', ready: true, server: true },
   { value: 'BONAFIDE', label: 'Bonafide & character certificates', module: 'certificates', paper: 'A4', ready: false, server: false },
   { value: 'ADMISSION_FORM', label: 'Admission form', module: 'students', paper: 'A4', ready: false, server: false },

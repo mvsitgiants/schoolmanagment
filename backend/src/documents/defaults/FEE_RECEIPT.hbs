@@ -1,0 +1,50 @@
+{{!-- Fee receipt (A5). One receipt can pay several installments; each is listed with the fees in it. --}}
+<style>
+  h1 { font-size: 12pt; text-align: center; letter-spacing: .08em; text-transform: uppercase; margin: 4mm 0 2mm }
+  .meta { display: flex; justify-content: space-between; gap: 6mm; font-size: 9pt; margin-bottom: 3mm }
+  .meta b { font-weight: 600 }
+  table.r { width: 100%; border-collapse: collapse; font-size: 9pt }
+  table.r th { text-align: left; font-weight: 600; color: #5B616E; border-bottom: 1px solid #C8CCD4; padding: 1.5mm 1mm }
+  table.r td { padding: 1.2mm 1mm; border-bottom: 1px solid #EEF0F3; vertical-align: top }
+  table.r .n { text-align: right; white-space: nowrap }
+  table.r tr.ins td { font-weight: 600; background: #F6F7F9 }
+  .tot { margin-top: 3mm; display: flex; justify-content: space-between; font-size: 10.5pt; font-weight: 700 }
+  .words { font-size: 9pt; color: #3A3F4B; margin-top: 1mm }
+  .foot { margin-top: 8mm; display: flex; justify-content: space-between; font-size: 9pt }
+  .void { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 46pt; font-weight: 800; color: rgba(214,69,69,.16); transform: rotate(-20deg); pointer-events: none }
+</style>
+{{#if receipt.cancelled}}<div class="void">{{t "fees.print.receipt.stampCancelled" "CANCELLED"}}</div>{{/if}}
+{{#> letterhead}}{{/letterhead}}
+<h1>{{t "fees.print.receipt.title" "Fee receipt"}}</h1>
+<div class="meta">
+  <div>
+    <div>{{t "fees.print.receipt.no" "Receipt No."}} <b class="mono">{{receipt.no}}</b></div>
+    <div>{{t "fees.print.receipt.date" "Date"}} <b>{{date receipt.date}}</b></div>
+  </div>
+  <div style="text-align:right">
+    <div><b>{{student.name}}</b></div>
+    <div>{{student.class}}{{#if student.rollNo}} · {{t "fees.print.receipt.roll" "Roll {{no}}" no=student.rollNo}}{{/if}}</div>
+    <div class="muted">{{t "fees.print.receipt.admissionNo" "Adm. No."}} <span class="mono">{{student.admissionNo}}</span></div>
+  </div>
+</div>
+<table class="r">
+  <thead><tr><th>{{t "fees.print.receipt.particulars" "Particulars"}}</th><th class="n">{{t "fees.print.receipt.amount" "Amount"}}</th></tr></thead>
+  <tbody>
+    {{#each items}}
+      <tr class="ins"><td>{{installment}} <span class="muted">({{t "fees.print.receipt.due" "due {{date}}" date=(date dueDate)}})</span></td><td class="n">{{money paid}}</td></tr>
+      {{#each lines}}<tr><td>&nbsp;&nbsp;{{name}}{{#if concession}} <span class="muted">({{t "fees.print.receipt.less" "less {{amount}} concession" amount=(money concession)}})</span>{{/if}}</td><td class="n muted">{{money amount}}</td></tr>{{/each}}
+      {{#if lateFee}}<tr><td>&nbsp;&nbsp;{{t "fees.print.receipt.lateFee" "Late fee"}}</td><td class="n muted">{{money lateFee}}</td></tr>{{/if}}
+    {{/each}}
+  </tbody>
+</table>
+<div class="tot"><span>{{t "fees.print.receipt.received" "Amount received"}}</span><span>{{money receipt.amount}}</span></div>
+<div class="words">{{words receipt.amount}}</div>
+<div class="words">{{t "fees.print.receipt.paidBy" "Paid by {{mode}}" mode=receipt.mode}}{{#if receipt.reference}} · {{t "fees.print.receipt.ref" "Ref. {{ref}}" ref=receipt.reference}}{{/if}}</div>
+{{#if balance}}<div class="words">{{t "fees.print.receipt.balance" "Balance still due: {{amount}}" amount=(money balance)}}</div>{{/if}}
+{{#if receipt.refunded}}<div class="words">{{t "fees.print.receipt.refunded" "Refunded on this receipt: {{amount}}" amount=(money receipt.refunded)}}</div>{{/if}}
+{{#if receipt.cancelled}}<div class="words">{{t "fees.print.receipt.cancelledNote" "Cancelled: {{reason}}" reason=receipt.cancelReason}}</div>{{/if}}
+<div class="foot">
+  <span class="muted">{{t "fees.print.receipt.collectedBy" "Received by {{name}}" name=receipt.collectedBy}}</span>
+  <span>{{t "fees.print.receipt.signature" "Authorised signatory"}}</span>
+</div>
+{{> footer}}
