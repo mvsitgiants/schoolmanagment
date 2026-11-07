@@ -1,0 +1,909 @@
+{
+  "settings": {
+    "page": {
+      "title": "Settings",
+      "subtitle": "How each module behaves in your hospital. Only modules you have switched on are listed.",
+      "module": "Module",
+      "sections": "Settings sections",
+      "find": "Find a setting…",
+      "noMatch": "No setting matches “{{q}}”.",
+      "count_one": "{{count}} setting",
+      "count_other": "{{count}} settings",
+      "save": "Save {{name}} settings",
+      "saved": "{{name}} settings saved.",
+      "unsaved_one": "{{count}} unsaved change",
+      "unsaved_other": "{{count}} unsaved changes",
+      "leaveTitle": "Leave without saving?",
+      "leaveMessage": "Your changes to {{name}} settings will be lost.",
+      "discard": "Discard changes"
+    },
+    "defs": {
+      "patients": {
+        "requiredFields": {
+          "label": "Required at registration",
+          "help": "Name and gender are always required.",
+          "options": {
+            "mobile": "Mobile number",
+            "age": "Date of birth / age",
+            "lastName": "Last name",
+            "address": "Address",
+            "pincode": "PIN code",
+            "idDocument": "ID document",
+            "emergencyContact": "Emergency contact",
+            "photo": "Photo"
+          }
+        },
+        "duplicateCheck": {
+          "label": "Check for duplicates while registering",
+          "help": "Looks for the same mobile, Aadhaar or a similar name with the same age."
+        },
+        "blockOnExactDuplicate": {
+          "label": "Block registration when the same Aadhaar exists"
+        },
+        "idTypes": {
+          "label": "ID documents accepted",
+          "options": {
+            "AADHAAR": "Aadhaar",
+            "PAN": "PAN",
+            "PASSPORT": "Passport",
+            "VOTER": "Voter ID",
+            "DL": "Driving licence"
+          }
+        },
+        "defaultCategory": {
+          "label": "Default patient category",
+          "options": {
+            "GENERAL": "General",
+            "SENIOR": "Senior citizen",
+            "STAFF": "Staff / family",
+            "BPL": "BPL / scheme",
+            "CORPORATE": "Corporate",
+            "VIP": "VIP"
+          }
+        },
+        "defaultState": {
+          "label": "Default state",
+          "help": "Pre-filled on the registration form."
+        },
+        "defaultCity": {
+          "label": "Default city"
+        },
+        "defaultLanguage": {
+          "label": "Default communication language",
+          "options": {
+            "English": "English",
+            "Hindi": "हिन्दी (Hindi)",
+            "Kannada": "ಕನ್ನಡ (Kannada)",
+            "Tamil": "தமிழ் (Tamil)",
+            "Telugu": "తెలుగు (Telugu)",
+            "Malayalam": "മലയാളം (Malayalam)",
+            "Marathi": "मराठी (Marathi)",
+            "Gujarati": "ગુજરાતી (Gujarati)",
+            "Bengali": "বাংলা (Bengali)",
+            "Punjabi": "ਪੰਜਾਬੀ (Punjabi)",
+            "Odia": "ଓଡ଼ିଆ (Odia)",
+            "Urdu": "اردو (Urdu)"
+          }
+        },
+        "seniorAge": {
+          "label": "Senior citizen from age",
+          "help": "Patients this old are suggested the Senior citizen category."
+        },
+        "cardFooter": {
+          "label": "Text on the patient card"
+        }
+      },
+      "appointments": {
+        "defaultSlotMinutes": {
+          "label": "Default slot length (minutes)"
+        },
+        "allowOverbooking": {
+          "label": "Allow booking a slot that is already taken",
+          "help": "For walk-ins at busy clinics. Overbooked slots are marked."
+        },
+        "followUpDays": {
+          "label": "Follow-up window (days)",
+          "help": "A visit to the same doctor within this many days is booked as a follow-up."
+        },
+        "bookingHorizonDays": {
+          "label": "Book up to (days ahead)"
+        },
+        "remindDayBefore": {
+          "label": "Remind patients the day before",
+          "help": "About 24 hours before the appointment, by the channels set in Notification rules."
+        },
+        "remindHoursBefore": {
+          "label": "Remind again this many hours before",
+          "help": "0 turns the second reminder off."
+        },
+        "noShowAfterMinutes": {
+          "label": "Mark no-show this many minutes after the slot",
+          "help": "Booked patients who never checked in. 0 leaves it to the front desk."
+        },
+        "onlineBooking": {
+          "label": "Patients can book online",
+          "help": "A public booking page (link on Doctors & schedules). Patients confirm their mobile number with a one-time SMS code."
+        },
+        "onlineDaysAhead": {
+          "label": "Online booking up to (days ahead)"
+        }
+      },
+      "portal": {
+        "enabled": {
+          "label": "Patients can sign in to the portal",
+          "help": "With their mobile number and a one-time SMS code. Off: the portal address shows nothing."
+        },
+        "features": {
+          "label": "What patients can do",
+          "options": {
+            "BOOK": "Book and cancel appointments",
+            "LAB": "Lab reports",
+            "RAD": "Radiology reports",
+            "RX": "Prescriptions",
+            "DISCHARGE": "Discharge summaries",
+            "BILLS": "Bills and receipts"
+          }
+        },
+        "familyAccess": {
+          "label": "Family members on one mobile share one sign-in",
+          "help": "Off: a patient picks who they are once they sign in, and sees only their own records."
+        },
+        "bookingDaysAhead": {
+          "label": "Patients can book up to (days ahead)"
+        },
+        "maxOpenBookings": {
+          "label": "Upcoming portal bookings allowed per patient"
+        },
+        "cancelHoursBefore": {
+          "label": "Patients can cancel up to (hours before)",
+          "help": "0: right up to the appointment time."
+        }
+      },
+      "queue": {
+        "seniorPriority": {
+          "label": "Seniors go ahead in the queue",
+          "help": "Uses the senior-citizen age from Settings › Patients."
+        },
+        "announce": {
+          "label": "Announce tokens on the TV display"
+        },
+        "announceLanguage": {
+          "label": "Announcement language",
+          "options": {
+            "en-IN": "English (India)",
+            "hi-IN": "Hindi (हिन्दी)",
+            "kn-IN": "Kannada (ಕನ್ನಡ)",
+            "ta-IN": "Tamil (தமிழ்)",
+            "te-IN": "Telugu (తెలుగు)",
+            "ml-IN": "Malayalam (മലയാളം)",
+            "mr-IN": "Marathi (मराठी)",
+            "gu-IN": "Gujarati (ગુજરાતી)",
+            "bn-IN": "Bengali (বাংলা)",
+            "pa-IN": "Punjabi (ਪੰਜਾਬੀ)",
+            "or-IN": "Odia (ଓଡ଼ିଆ)",
+            "ur-IN": "Urdu (اردو)"
+          }
+        }
+      },
+      "opd": {
+        "requireVitals": {
+          "label": "Vitals must be recorded before the doctor signs",
+          "help": "Off: the doctor sees a reminder but can still sign."
+        },
+        "signRequiresPin": {
+          "label": "Doctors sign consults with a PIN",
+          "help": "Each doctor sets a 4–6 digit signing PIN in My workspace."
+        },
+        "rxLanguage": {
+          "label": "Prescription directions language",
+          "help": "Directions are printed in English and, below them, in this language.",
+          "options": {
+            "PATIENT": "Patient's preferred language",
+            "en": "English only",
+            "hi": "हिन्दी (Hindi)",
+            "kn": "ಕನ್ನಡ (Kannada)",
+            "ta": "தமிழ் (Tamil)",
+            "te": "తెలుగు (Telugu)",
+            "ml": "മലയാളം (Malayalam)",
+            "mr": "मराठी (Marathi)",
+            "gu": "ગુજરાતી (Gujarati)",
+            "bn": "বাংলা (Bengali)",
+            "pa": "ਪੰਜਾਬੀ (Punjabi)",
+            "or": "ଓଡ଼ିଆ (Odia)",
+            "ur": "اردو (Urdu)"
+          }
+        },
+        "showVitalsOnRx": {
+          "label": "Print vitals on the prescription"
+        },
+        "rxFooter": {
+          "label": "Footer on the prescription"
+        },
+        "bookFollowUp": {
+          "label": "Book the follow-up when the doctor signs",
+          "help": "Takes the first free slot with the same doctor on the follow-up date. The patient is told."
+        }
+      },
+      "clinical": {
+        "breakGlassHours": {
+          "label": "Emergency access (break-the-glass) lasts (hours)",
+          "help": "Opening a chart outside one’s usual access is logged, the administrators are told, and access ends after this long."
+        }
+      },
+      "billing": {
+        "chargeConsultation": {
+          "label": "Charge the consultation when the patient checks in",
+          "help": "Uses the doctor’s new / follow-up fee from Doctors & schedules."
+        },
+        "chargeOrders": {
+          "label": "Charge tests and procedures when the doctor signs",
+          "help": "They wait at the billing counter as pending items."
+        },
+        "allowDue": {
+          "label": "Allow saving a bill that is not fully paid",
+          "help": "The balance shows as due and can be collected later."
+        },
+        "roundOff": {
+          "label": "Round bills to the nearest rupee"
+        },
+        "upiId": {
+          "label": "UPI ID for QR payments",
+          "help": "e.g. citycare@okaxis — the counter shows a QR with the exact amount."
+        },
+        "printFormat": {
+          "label": "Receipt printer",
+          "options": {
+            "A5": "A5 sheet",
+            "THERMAL": "80 mm thermal roll"
+          }
+        },
+        "billFooter": {
+          "label": "Footer on bills"
+        }
+      },
+      "lab": {
+        "collectOnlyWhenBilled": {
+          "label": "Collect samples only after the tests are billed",
+          "help": "Off: collect first and bill later (common for inpatients and emergencies)."
+        },
+        "verifyRequiresPin": {
+          "label": "Pathologists verify results with their signing PIN"
+        },
+        "autoVerifyNormal": {
+          "label": "Verify automatically when every value is normal",
+          "help": "Abnormal and critical results always need a pathologist."
+        },
+        "reportFooter": {
+          "label": "Footer on lab reports"
+        }
+      },
+      "ipd": {
+        "bedChargeRule": {
+          "label": "How bed days are counted",
+          "options": {
+            "MIDNIGHT": "Each calendar day (discharge day free)",
+            "PER_24H": "Each 24 hours from admission"
+          }
+        },
+        "clearances": {
+          "label": "Clearances needed before discharge",
+          "options": {
+            "SUMMARY": "Discharge summary signed",
+            "BILLING": "Final bill settled",
+            "PHARMACY": "Unused medicines returned",
+            "NURSING": "Nursing handover"
+          }
+        },
+        "requireDeposit": {
+          "label": "Ask for the minimum deposit at admission",
+          "help": "The minimum is set per bed category. Emergencies can still be admitted with a reason."
+        },
+        "consentText": {
+          "label": "General consent read to the patient at admission"
+        }
+      },
+      "nursing": {
+        "vitalsEveryHours": {
+          "label": "Take vitals every (hours)",
+          "help": "Patients whose last vitals are older than this show as due on the ward board."
+        },
+        "ewsAlertScore": {
+          "label": "Warn at early-warning score (NEWS2)"
+        },
+        "marWindowMinutes": {
+          "label": "A dose counts as on time within (minutes)"
+        },
+        "highAlertWitness": {
+          "label": "High-alert medicines need a second nurse to witness"
+        },
+        "verifyMedOrders": {
+          "label": "A pharmacist checks medicine orders before they reach the nurses",
+          "help": "A STAT dose can be given before the check."
+        },
+        "issueDays": {
+          "label": "Pharmacy issues medicines for (days) at a time"
+        },
+        "scanToGive": {
+          "label": "Scan the wristband and the medicine before charting a dose given",
+          "help": "Off: scanning is optional and the MAR records whether it was done."
+        },
+        "chargeConsumables": {
+          "label": "Charge consumables used from ward stock to the patient"
+        }
+      },
+      "emergency": {
+        "triageScale": {
+          "label": "Triage scale",
+          "options": {
+            "ESI": "Emergency Severity Index (ESI)",
+            "MTS": "Manchester triage (MTS)"
+          }
+        },
+        "bays": {
+          "label": "ER bays (comma-separated)"
+        },
+        "chargeRegistration": {
+          "label": "Charge the ER registration fee on arrival",
+          "help": "Treatment never waits for payment; charges are settled when the patient leaves or move to the admission."
+        }
+      },
+      "ot": {
+        "dayStart": {
+          "label": "Theatres open at (HH:MM)"
+        },
+        "dayEnd": {
+          "label": "Theatres close at (HH:MM)"
+        },
+        "turnoverMinutes": {
+          "label": "Cleaning time between cases (minutes)",
+          "help": "Kept free after each case when checking for clashes."
+        },
+        "signOpNoteWithPin": {
+          "label": "Surgeons sign the operation note with their PIN"
+        }
+      },
+      "insurance": {
+        "finalBillNeedsFinalApproval": {
+          "label": "Hold the final bill until the payer’s final approval",
+          "help": "Off: the final bill uses whatever amount is approved so far as the payer’s share."
+        },
+        "defaultCreditDays": {
+          "label": "Payer credit period (days)",
+          "help": "Used for new payers; claims older than this show as overdue."
+        },
+        "tdsPct": {
+          "label": "TDS usually deducted on settlements (%)",
+          "help": "Pre-filled when recording a settlement."
+        }
+      },
+      "mrd": {
+        "codingTargetDays": {
+          "label": "Code a discharge within (days)",
+          "help": "Coding tasks older than this show as late."
+        },
+        "completeWithinDays": {
+          "label": "Records complete within (days of discharge)",
+          "help": "Incomplete records older than this show as overdue to the doctor."
+        },
+        "requestTatDays": {
+          "label": "Release requested records within (days)",
+          "help": "The turnaround promised to the person asking."
+        },
+        "requestFee": {
+          "label": "Usual fee for a copy of the records (₹)",
+          "help": "Filled in on a new request; can be changed or waived."
+        }
+      },
+      "cssd": {
+        "sterilizers": {
+          "label": "Sterilisers (comma-separated)"
+        },
+        "expiringSoonDays": {
+          "label": "Show sterile sets as expiring soon (days ahead)"
+        }
+      },
+      "bloodbank": {
+        "intervalMaleDays": {
+          "label": "Days between whole-blood donations — men",
+          "help": "NBTC: at least 90 days."
+        },
+        "intervalFemaleDays": {
+          "label": "Days between whole-blood donations — women",
+          "help": "NBTC: at least 120 days."
+        },
+        "separationWindowHours": {
+          "label": "Prepare FFP, platelets and cryo within (hours of collection)"
+        },
+        "sampleValidHours": {
+          "label": "A patient’s cross-match sample is valid for (hours)"
+        },
+        "requireAhg": {
+          "label": "Red-cell cross-match needs the AHG (indirect Coombs) phase",
+          "help": "Off: an immediate-spin cross-match is enough when the antibody screen is negative."
+        },
+        "reservationHours": {
+          "label": "Hold cross-matched units for the patient for (hours)",
+          "help": "Unissued reservations go back to stock after this."
+        },
+        "returnWindowMinutes": {
+          "label": "Unused units can come back to stock within (minutes of issue)",
+          "help": "Later returns are discarded."
+        },
+        "nearExpiryDays": {
+          "label": "Warn about units expiring within (days)",
+          "help": "Short-lived platelets warn in their last day."
+        },
+        "storageUnits": {
+          "label": "Storage equipment (comma-separated)"
+        },
+        "chargeIssues": {
+          "label": "Charge issued units to the patient",
+          "help": "Processing charge per unit, on the patient’s bill or inpatient account."
+        },
+        "chargeWb": {
+          "label": "Processing charge — whole blood (₹ per unit)"
+        },
+        "chargePrbc": {
+          "label": "Processing charge — packed red cells (₹ per unit)"
+        },
+        "chargeFfp": {
+          "label": "Processing charge — fresh frozen plasma (₹ per unit)"
+        },
+        "chargePlt": {
+          "label": "Processing charge — platelet concentrate (₹ per unit)"
+        },
+        "chargeCryo": {
+          "label": "Processing charge — cryoprecipitate (₹ per unit)"
+        }
+      },
+      "housekeeping": {
+        "verifyBedCleaning": {
+          "label": "A supervisor checks a cleaned bed before it is free",
+          "help": "Off: a bed is free as soon as the cleaner marks it done."
+        },
+        "bedTargetMinutes": {
+          "label": "Target time to turn a bed around (minutes)"
+        }
+      },
+      "ambulance": {
+        "chargeTrips": {
+          "label": "Charge completed trips to the patient",
+          "help": "Posted on the patient’s bill, or on the inpatient account when the patient is admitted."
+        },
+        "baseFareBls": {
+          "label": "Base fare — BLS ambulance (₹)"
+        },
+        "baseFareAls": {
+          "label": "Base fare — ALS ambulance (₹)"
+        },
+        "baseFareTransport": {
+          "label": "Base fare — patient transport (₹)"
+        },
+        "baseFareHearse": {
+          "label": "Base fare — hearse (₹)"
+        },
+        "includedKm": {
+          "label": "Kilometres included in the base fare"
+        },
+        "perKm": {
+          "label": "Rate per km beyond that (₹)"
+        },
+        "freeWaitMinutes": {
+          "label": "Free waiting time at pickup (minutes)"
+        },
+        "waitingPer15Min": {
+          "label": "Waiting charge per 15 minutes after that (₹)"
+        },
+        "oxygenCharge": {
+          "label": "Oxygen used in transit (₹ per trip)"
+        },
+        "ventilatorCharge": {
+          "label": "Ventilator used in transit (₹ per trip)"
+        },
+        "docWarnDays": {
+          "label": "Warn about vehicle insurance, fitness and PUC expiry (days before)"
+        }
+      },
+      "hrms": {
+        "weekOffDays": {
+          "label": "Weekly off days (staff not on a roster)",
+          "help": "Rostered staff follow their roster; an employee can have their own weekly off.",
+          "options": {
+            "SUN": "Sunday",
+            "MON": "Monday",
+            "TUE": "Tuesday",
+            "WED": "Wednesday",
+            "THU": "Thursday",
+            "FRI": "Friday",
+            "SAT": "Saturday"
+          }
+        },
+        "defaultShift": {
+          "label": "Shift code for staff not on a roster",
+          "help": "A code from Duty roster › Shifts, e.g. G (general, 09:00–17:00)."
+        },
+        "lateGraceMinutes": {
+          "label": "Late after this many minutes past the shift start"
+        },
+        "earlyGraceMinutes": {
+          "label": "Early exit when leaving this many minutes before the shift end"
+        },
+        "halfDayBelowPct": {
+          "label": "Half day when worked less than (% of the shift)"
+        },
+        "absentBelowPct": {
+          "label": "Absent when worked less than (% of the shift)",
+          "help": "A punch with no partner (forgot to punch out or in) is flagged as a missed punch; only the paired time counts until it is corrected, so a lone punch is absent."
+        },
+        "maxWeeklyHours": {
+          "label": "Most hours a person may be rostered in a week"
+        },
+        "minRestHours": {
+          "label": "Least rest between two shifts (hours)",
+          "help": "Catches a night shift followed by the next morning."
+        },
+        "attendanceCalc": {
+          "label": "Worked time is counted",
+          "help": "Paired: staff can punch out and back in several times a day (breaks, going home in a split shift) and only the time between each in and its out counts. First to last: the time from the first punch to the last.",
+          "options": {
+            "PAIRED": "Pair every in with its out (breaks are not worked time)",
+            "FIRST_LAST": "First punch to last punch"
+          }
+        },
+        "minBreakMinutes": {
+          "label": "Breaks shorter than this are counted as worked (minutes)",
+          "help": "Paired counting only. 0 deducts every break."
+        },
+        "selfAttendance": {
+          "label": "Staff can mark themselves in and out (My workspace)"
+        },
+        "geofence": {
+          "label": "Where staff may mark themselves in and out",
+          "help": "Checks the phone’s or browser’s location against the attendance sites of the person’s branch (Core › Branches). The location is read only at the moment they mark attendance — never tracked. Biometric, imported and HR-entered punches are not checked. HR can exempt field staff on their employee record.",
+          "options": {
+            "OFF": "Off — anywhere",
+            "WARN": "Allow, but flag punches outside an attendance site",
+            "REQUIRED": "Block — only within an attendance site"
+          }
+        },
+        "geofenceMaxAccuracyM": {
+          "label": "Refuse a location rougher than (metres)",
+          "help": "Phones indoors can be off by a few hundred metres; the punch is refused (or flagged) when the location is less accurate than this."
+        },
+        "roundingMinutes": {
+          "label": "Round worked time to the nearest (minutes)",
+          "help": "0 keeps worked time exact; 5 or 15 rounds each day’s net worked time before it is judged (half day, overtime). Attendance policies can set their own."
+        },
+        "compOffMinMinutes": {
+          "label": "List overtime for approval from (minutes beyond the shift)",
+          "help": "Leave › Setup › Overtime: net time worked beyond the shift (or on a day off) of at least this much waits for a decision — comp-off, paid, or rejected."
+        },
+        "credentialAlertDays": {
+          "label": "Warn about expiring licences and certificates (days before)",
+          "help": "Each warning goes out once; another when it has expired."
+        },
+        "documentAlertDays": {
+          "label": "Warn about expiring HR documents (days before)"
+        },
+        "leaveYearStartMonth": {
+          "label": "Leave year starts in",
+          "options": {
+            "1": "January",
+            "2": "February",
+            "3": "March",
+            "4": "April",
+            "5": "May",
+            "6": "June",
+            "7": "July",
+            "8": "August",
+            "9": "September",
+            "10": "October",
+            "11": "November",
+            "12": "December"
+          }
+        },
+        "idCardOrientation": {
+          "label": "Staff ID card layout",
+          "help": "Both are the standard bank-card size (CR80) that fits card holders, lanyards and card printers.",
+          "options": {
+            "PORTRAIT": "Portrait — upright, 54 × 85.6 mm",
+            "LANDSCAPE": "Landscape — sideways, 85.6 × 54 mm"
+          }
+        },
+        "idCardTitle": {
+          "label": "Heading on the staff ID card",
+          "help": "Printed in the coloured band, e.g. Staff ID card or Employee identity card."
+        },
+        "idCardColor": {
+          "label": "Staff ID card colour",
+          "help": "A colour code like #0E7C86. Leave it blank to use the hospital’s brand colour from the Hospital profile."
+        },
+        "idCardFields": {
+          "label": "Shown on the staff ID card",
+          "help": "The name and employee code are always printed. The QR code is a link that shows on any phone whether the card is valid.",
+          "options": {
+            "PHOTO": "Photo",
+            "DESIGNATION": "Designation",
+            "DEPARTMENT": "Department",
+            "BRANCH": "Branch",
+            "BLOOD_GROUP": "Blood group",
+            "EMERGENCY": "Emergency contact",
+            "MOBILE": "Mobile number",
+            "JOINING_DATE": "Joining date",
+            "VALID_UNTIL": "Valid until",
+            "QR": "QR code"
+          }
+        },
+        "idCardValidYears": {
+          "label": "Staff ID cards are valid for (years)",
+          "help": "Valid until = the day the card is printed plus this many years. 0: the card has no expiry date."
+        },
+        "idCardBack": {
+          "label": "Print a back side on staff ID cards",
+          "help": "Each card’s back follows its front, so double-sided printing lines up."
+        },
+        "idCardBackText": {
+          "label": "Rules printed on the back of the card"
+        },
+        "idCardReturnText": {
+          "label": "Return note on the back of the card",
+          "help": "Followed by the hospital’s name, address and phone number."
+        },
+        "idCardSignatory": {
+          "label": "Caption under the signature line",
+          "help": "e.g. HR Manager or Medical Superintendent."
+        }
+      },
+      "diet": {
+        "chargeMeals": {
+          "label": "Charge each delivered meal to the inpatient account"
+        }
+      },
+      "feedback": {
+        "askAfterDischarge": {
+          "label": "Send a feedback link when an inpatient is discharged",
+          "help": "Not sent after a death or when the patient absconded."
+        },
+        "askAfterOpd": {
+          "label": "Send a feedback link when the doctor signs an OPD consult"
+        },
+        "linkDays": {
+          "label": "Feedback links work for (days)"
+        },
+        "complaintFromDetractor": {
+          "label": "Open a complaint when a patient scores 0–6",
+          "help": "Patient relations then calls the patient back."
+        },
+        "slaCriticalHours": {
+          "label": "Resolve critical complaints within (hours)"
+        },
+        "slaHighHours": {
+          "label": "Resolve high-priority complaints within (hours)"
+        },
+        "slaMediumHours": {
+          "label": "Resolve medium-priority complaints within (hours)"
+        },
+        "slaLowHours": {
+          "label": "Resolve low-priority complaints within (hours)"
+        }
+      },
+      "radiology": {
+        "scanOnlyWhenBilled": {
+          "label": "Scan only after the study is billed"
+        },
+        "signRequiresPin": {
+          "label": "Radiologists sign reports with their signing PIN"
+        },
+        "pcpndtRequired": {
+          "label": "Obstetric ultrasound needs Form F before scanning (PC & PNDT Act)",
+          "help": "Switch off only where the Act does not apply."
+        },
+        "reportFooter": {
+          "label": "Footer on imaging reports"
+        },
+        "imageMaxFileMb": {
+          "label": "Largest image file accepted (MB)",
+          "help": "Per DICOM or photo file uploaded to an imaging study."
+        },
+        "imageMaxExamMb": {
+          "label": "Images allowed per study (MB, all files together)",
+          "help": "1024 MB = 1 GB. A thin-slice CT can be several hundred MB."
+        },
+        "portalImages": {
+          "label": "Patients can view their images in the patient portal",
+          "help": "Only for studies whose report is signed, and only when the portal shows radiology reports."
+        },
+        "anonymiseDefault": {
+          "label": "Tick “Remove patient identity” by default when sharing or exporting a study",
+          "help": "Staff can still untick it for a patient’s own CD."
+        },
+        "alwaysAnonymiseShares": {
+          "label": "Always remove patient identity from images shared with outside doctors",
+          "help": "Shared links then show only age and sex, and images are de-identified as they are opened. Text burned into ultrasound or screen-capture images can’t be removed."
+        }
+      },
+      "inventory": {
+        "nearExpiryDays": {
+          "label": "Warn about expiry this many days ahead"
+        },
+        "countTolerancePct": {
+          "label": "Physical count: recount a line when it differs from the system by more than (%)",
+          "help": "0 means every line with any difference is counted a second time before the count can be submitted."
+        },
+        "countBlindDefault": {
+          "label": "Physical count: blind counts by default (counters do not see the system quantity)"
+        },
+        "countPostBySeparateUser": {
+          "label": "Physical count: someone who did not count must approve and post it",
+          "help": "Switch off only where one person runs the store alone."
+        }
+      },
+      "pharmacy": {
+        "allowSubstitution": {
+          "label": "Allow dispensing another brand of the same generic"
+        },
+        "saleWithoutRx": {
+          "label": "Allow counter sales without a prescription",
+          "help": "Schedule H1 and X medicines always need the prescriber’s name."
+        },
+        "drugLicenceNo": {
+          "label": "Drug licence numbers (printed on bills)",
+          "help": "e.g. KA-B12-20B/1234, KA-B12-21B/1234"
+        },
+        "billFooter": {
+          "label": "Footer on pharmacy bills"
+        }
+      },
+      "finance": {
+        "autoPost": {
+          "label": "Post bills, receipts, purchases and payroll to the ledger automatically",
+          "help": "Off: nothing posts on its own; use Journals › Rebuild postings for a period when you are ready."
+        },
+        "doctorTdsPct": {
+          "label": "TDS on doctor payouts (%)",
+          "help": "Section 194J. Pre-filled on new payout rules."
+        },
+        "supplierTdsPct": {
+          "label": "TDS usually deducted on supplier payments (%)",
+          "help": "Pre-filled when recording a supplier payment."
+        },
+        "matchWindowDays": {
+          "label": "Bank reconciliation: match entries within (days)",
+          "help": "A statement line is suggested against book entries of the same amount this many days either side."
+        }
+      },
+      "assets": {
+        "warnDays": {
+          "label": "Flag warranty, AMC/CMC, PM and calibration due within (days)",
+          "help": "Shown as “due soon” on the register and the maintenance list."
+        },
+        "alertDays": {
+          "label": "Notify the biomedical team this many days before warranty, AMC/CMC or calibration runs out",
+          "help": "Comma-separated; one notification at each, and one more once it has run out."
+        },
+        "pmMonthsHigh": {
+          "label": "Default PM frequency — high-risk equipment (months)"
+        },
+        "pmMonthsMedium": {
+          "label": "Default PM frequency — medium-risk equipment (months)"
+        },
+        "pmMonthsLow": {
+          "label": "Default PM frequency — low-risk equipment (months)"
+        },
+        "calibrationMonths": {
+          "label": "Default calibration frequency (months)"
+        },
+        "pmLeadDays": {
+          "label": "Open the PM / calibration work order this many days before it is due"
+        },
+        "notifyAllBreakdowns": {
+          "label": "Notify the biomedical team of every new breakdown",
+          "help": "Off: only critical breakdowns and critical equipment ring the bell."
+        }
+      },
+      "core": {
+        "defaultAppLanguage": {
+          "label": "Default hospital language",
+          "help": "Default interface language for staff and patient portal.",
+          "options": {
+            "en": "English (English)",
+            "hi": "हिन्दी (Hindi)",
+            "kn": "ಕನ್ನಡ (Kannada)",
+            "ta": "தமிழ் (Tamil)",
+            "te": "తెలుగు (Telugu)",
+            "ml": "മലയാളം (Malayalam)",
+            "mr": "मराठी (Marathi)",
+            "gu": "ગુજરાતી (Gujarati)",
+            "bn": "বাংলা (Bengali)",
+            "pa": "ਪੰਜਾਬੀ (Punjabi)",
+            "or": "ଓଡ଼ିଆ (Odia)",
+            "ur": "اردو (Urdu)"
+          }
+        },
+        "enabledLanguages": {
+          "label": "Enabled languages for this hospital",
+          "help": "Which languages appear in the language selector dropdown.",
+          "options": {
+            "en": "English (English)",
+            "hi": "हिन्दी (Hindi)",
+            "kn": "ಕನ್ನಡ (Kannada)",
+            "ta": "தமிழ் (Tamil)",
+            "te": "తెలుగు (Telugu)",
+            "ml": "മലയാളം (Malayalam)",
+            "mr": "मराठी (Marathi)",
+            "gu": "ગુજરાતી (Gujarati)",
+            "bn": "বাংলা (Bengali)",
+            "pa": "ਪੰਜਾਬੀ (Punjabi)",
+            "or": "ଓଡ଼ିଆ (Odia)",
+            "ur": "اردو (Urdu)"
+          }
+        },
+        "sessionIdleMinutes": {
+          "label": "Default sign-out after inactivity (minutes)",
+          "help": "Roles can set their own value."
+        },
+        "patientMessageLanguage": {
+          "label": "Send patient messages in their language",
+          "help": "SMS, WhatsApp and email use the patient’s preferred language for the standard texts; a text you have edited in Notification rules is sent as written. SMS in an Indian language is delivered only if that version is also registered on DLT."
+        },
+        "patientLinkDays": {
+          "label": "Links sent to patients work for (days)",
+          "help": "Prescriptions and lab reports sent by WhatsApp, SMS or email."
+        },
+        "weekStartsOn": {
+          "label": "Week starts on",
+          "options": {
+            "MONDAY": "Monday",
+            "SUNDAY": "Sunday"
+          }
+        }
+      },
+      "comms": {
+        "reRingMinutes": {
+          "label": "Ring again when nobody has answered for (minutes)"
+        },
+        "maxRings": {
+          "label": "Ring each person at most (times)",
+          "help": "After that the call shows as missed for them."
+        },
+        "escalateMinutes": {
+          "label": "Escalate when nobody is on the way after (minutes)",
+          "help": "Counted from the call, then again from each escalation."
+        },
+        "escalateTo": {
+          "label": "Routine and urgent calls escalate to",
+          "help": "Each further step goes one level wider (backup on-call → head of department → whole department).",
+          "options": {
+            "BACKUP_ONCALL": "Backup on-call (second, then consultant on call)",
+            "DEPARTMENT_HEAD": "Head of the department",
+            "DEPARTMENT": "The whole department"
+          }
+        },
+        "maxEscalations": {
+          "label": "Escalation steps at most",
+          "help": "0 turns escalation off."
+        },
+        "codeEscalateTo": {
+          "label": "Unanswered emergency codes escalate to",
+          "options": {
+            "EVERYONE": "Everyone in the hospital (branch)",
+            "DEPARTMENT": "The whole department",
+            "NONE": "Do not escalate (keep ringing)"
+          }
+        },
+        "autoCloseMinutes": {
+          "label": "Close routine and urgent calls left open after (minutes)",
+          "help": "Emergency codes never close on their own — someone gives the all clear."
+        },
+        "chatAnnouncementsOnly": {
+          "label": "Hospital-wide chat is for announcements only",
+          "help": "On: only people who manage chat can post in the “Everyone” channel; everyone still reads it."
+        },
+        "chatRetentionDays": {
+          "label": "Keep chat messages for (days)",
+          "help": "0 keeps them. Older messages and their attachments are removed by a nightly job."
+        }
+      }
+    }
+  }
+}

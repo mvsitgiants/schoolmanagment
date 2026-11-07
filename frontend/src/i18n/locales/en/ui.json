@@ -1,0 +1,448 @@
+{
+  "ui": {
+    "table": {
+      "emptyTitle": "Nothing to show",
+      "selectAllOnPage": "Select all rows on this page",
+      "selectRow": "Select row",
+      "openDetails": "Open details",
+      "loadFailed": "Couldn’t load this list",
+      "retry": "Retry"
+    },
+    "pagination": {
+      "showing": "Showing {{from}} to {{to}} of {{total}} entries"
+    },
+    "docViewer": {
+      "loadFailed": "The file could not be loaded.",
+      "xlsxFailed": "This spreadsheet could not be displayed — download it instead.",
+      "openFailed": "Could not open this file.",
+      "docxFailed": "This Word file could not be displayed — download it instead.",
+      "opening": "Opening {{name}}…",
+      "downloadInstead": "Download instead",
+      "sheetEmpty": "This sheet is empty.",
+      "noPreviewExt": "No in-app preview for <code>.{{ext}}</code> files.",
+      "noPreviewExtLegacy": "No in-app preview for <code>.{{ext}}</code> files (older / PowerPoint Office formats).",
+      "noPreviewThis": "No in-app preview for this files.",
+      "downloadToOpen": "Download to open it",
+      "viewing": "Viewing {{name}}",
+      "truncated": "Showing the first part only — download for the full file.",
+      "zoomOut": "Zoom out",
+      "resetZoom": "Reset zoom",
+      "zoomIn": "Zoom in",
+      "openInNewTab": "Open in a new tab"
+    },
+    "common": {
+      "download": "Download",
+      "closeEsc": "Close (Esc)",
+      "export": "Export",
+      "cancel": "Cancel",
+      "loading": "Loading…",
+      "apply": "Apply",
+      "delete": "Delete",
+      "save": "Save",
+      "edit": "Edit",
+      "remove": "Remove",
+      "view": "View",
+      "nothingHere": "Nothing here",
+      "close": "Close",
+      "total": "Total",
+      "history": "History",
+      "user": "User",
+      "on": "On",
+      "off": "Off",
+      "loadOlder": "Load older"
+    },
+    "form": {
+      "noMatches": "No matches.",
+      "noMatchesFor": "No matches for \"{{query}}\"."
+    },
+    "importExport": {
+      "records": "records",
+      "noRows": "No rows found in that file.",
+      "readFailed": "Could not read that file.",
+      "imported": "Imported {{n}} {{label}}.",
+      "partial_one": "Imported {{imported}}. {{count}} row still need fixing.",
+      "partial_other": "Imported {{imported}}. {{count}} rows still need fixing.",
+      "importFailed": "Could not import {{label}}.",
+      "exportFailed": "Could not export {{label}}.",
+      "import": "Import",
+      "template": "Template",
+      "title": "Import {{label}}",
+      "rowsParsed_zero": "{{count}} row parsed from the file.",
+      "rowsParsed_one": "{{count}} row parsed from the file.",
+      "rowsParsed_other": "{{count}} rows parsed from the file.",
+      "fieldsNeedFixing_one": "{{count}} field needs fixing",
+      "fieldsNeedFixing_other": "{{count}} fields need fixing",
+      "importRows_zero": "Import {{count}} row",
+      "importRows_one": "Import {{count}} row",
+      "importRows_other": "Import {{count}} rows",
+      "resources": {
+        "items": "items",
+        "openingStock": "opening stock lines",
+        "suppliers": "suppliers",
+        "labTests": "test rows",
+        "users": "users",
+        "departments": "departments",
+        "studies": "studies",
+        "prices": "prices"
+      },
+      "credentialsDownloaded": "Temporary passwords downloaded — hand them out; each works for {{hours}} hours and must be changed at first sign-in."
+    },
+    "dateRange": {
+      "today": "Today",
+      "last7": "Last 7 days",
+      "last30": "Last 30 days",
+      "thisMonth": "This month",
+      "lastMonth": "Last month",
+      "thisQuarter": "This quarter",
+      "thisFy": "This financial year",
+      "lastFy": "Last financial year",
+      "customRange": "Custom range",
+      "fromDate": "From date",
+      "toDate": "To date"
+    },
+    "comments": {
+      "justNow": "just now",
+      "minAgo": "{{n}} min ago",
+      "hoursAgo": "{{n}} h ago",
+      "discussion": "Discussion",
+      "deleteTitle": "Delete comment?",
+      "edited": "edited",
+      "reply": "Reply",
+      "writeReply": "Write a reply…",
+      "collapsedPrompt": "{{label}} — add a comment for the team…",
+      "empty": "No comments yet.",
+      "addPlaceholder": "Add a comment for the team…",
+      "sendHint": "⌘/Ctrl + Enter to send",
+      "comment": "Comment"
+    },
+    "attachments": {
+      "files": "Files",
+      "saveFirst": "Save the record first, then add files.",
+      "tooBig": "“{{name}}” is over {{max}} MB.",
+      "filesAdded_one": "File added.",
+      "filesAdded_other": "{{count}} files added.",
+      "uploadFailed": "Upload failed.",
+      "downloadFailed": "Download failed.",
+      "removeTitle": "Remove “{{name}}”?",
+      "removeReason": "Why is it being removed?",
+      "removePlaceholder": "e.g. Added to the wrong patient",
+      "removed": "File removed. It stays in the record’s history.",
+      "removeFailed": "Could not remove.",
+      "dropToAdd": "Drop to add",
+      "kindOfFile": "Kind of file",
+      "upload": "Upload",
+      "hint": "PDF, photos or Word files up to {{max}} MB. Drag them in or paste a screenshot.",
+      "empty": "No files yet.",
+      "viewName": "View {{name}}",
+      "onRecord": "on {{type}}"
+    },
+    "record": {
+      "overview": "Overview",
+      "relatedCount": "Related ({{n}})",
+      "timeline": "Timeline"
+    },
+    "confirm": {
+      "enterValue": "Enter a value",
+      "areYouSure": "Are you sure?",
+      "confirm": "Confirm"
+    },
+    "charts": {
+      "noActivity": "No activity in this window yet",
+      "total": "total",
+      "noData": "No data yet.",
+      "noDataYet": "No data yet",
+      "gaugeAria": "{{value}} percent",
+      "gaugeAriaTarget": "{{value}} percent, target {{target}} percent",
+      "target": "Target {{target}}%",
+      "viewAs": "View as",
+      "chartView": "Chart",
+      "tableView": "Table",
+      "period": "Period",
+      "value": "Value"
+    },
+    "quickLinks": {
+      "jumpTo": "Jump to"
+    },
+    "history": {
+      "empty": "No recorded changes yet.",
+      "system": "System",
+      "moreAdded": "+{{n}} more added",
+      "moreRemoved": "+{{n}} more removed"
+    },
+    "railList": {
+      "empty": "Nothing to show."
+    },
+    "search": {
+      "placeholder": "Search…",
+      "patient": "Patient"
+    },
+    "rankBars": {
+      "empty": "Nothing in this period"
+    },
+    "phone": {
+      "call": "Call {{number}}"
+    },
+    "bulk": {
+      "countSelected": "{{n}} selected",
+      "clearSelection": "Clear selection"
+    },
+    "topbar": {
+      "justNow": "just now",
+      "minutesAgo_one": "{{count}} min ago",
+      "minutesAgo_other": "{{count}} min ago",
+      "hoursAgo_one": "{{count}} h ago",
+      "hoursAgo_other": "{{count}} h ago",
+      "daysAgo_one": "{{count}} d ago",
+      "daysAgo_other": "{{count}} d ago",
+      "newNotification": "New notification!",
+      "openMenu": "Open menu",
+      "scanCode": "Scan a code",
+      "scanCodeHint": "Scan a code with the camera",
+      "platformOwner": "Platform owner",
+      "compactHint": "Tighter spacing, so more rows fit on screen"
+    },
+    "mobileTabs": {
+      "scan": "Scan",
+      "account": "Account"
+    },
+    "password": {
+      "title": "Change password",
+      "submit": "Change password",
+      "current": "Current password",
+      "new": "New password",
+      "confirm": "Confirm new password",
+      "minLength": "At least 8 characters.",
+      "mismatch": "The passwords don't match.",
+      "otherDevicesNote": "You'll stay signed in here; every other device is signed out.",
+      "changeFailed": "Could not change the password."
+    },
+    "network": {
+      "offlineHint": "Offline - Click for network details",
+      "slowHint": "Slow network connection - Click for details",
+      "statusHint": "Network status",
+      "offline": "Offline",
+      "reconnecting": "Reconnecting…",
+      "slow": "Slow network",
+      "connected": "Connected",
+      "title": "Network Status",
+      "status": {
+        "good": "good",
+        "slow": "slow",
+        "offline": "offline",
+        "reconnecting": "reconnecting"
+      },
+      "offlineDetail": "No internet connection detected or server is unreachable. Offline changes will sync once connection returns.",
+      "slowDetail": "Network connection is slow or experiencing high latency. Screen updates, calls, and chat messages may be delayed.",
+      "reconnectingDetail": "Re-establishing live real-time connection to the hospital server.",
+      "goodDetail": "Connection is stable and operating normally.",
+      "latency": "Latency (RTT)",
+      "measuring": "Measuring…",
+      "effectiveSpeed": "Effective Speed",
+      "standard": "Standard",
+      "checking": "Checking…",
+      "testConnection": "Test connection",
+      "dismiss": "Dismiss"
+    },
+    "timeline": {
+      "empty": "No history recorded yet."
+    },
+    "layout": {
+      "subscriptionInactive": "Your subscription is not active",
+      "goToSubscription": "Go to Subscription & billing",
+      "subscriptionDataSafe": "Your data is safe — everything opens again as soon as the subscription is renewed.",
+      "moduleOff": "{{name}} isn't switched on",
+      "openModules": "Open Modules",
+      "moduleOffDetail": "It isn't part of this hospital's plan, or an administrator switched it off.",
+      "deniedTitle": "You don't have access to this page",
+      "goHome": "Go to my home page",
+      "deniedWithRoles": "Your role (<b>{{roles}}</b>) can't open <b>{{page}}</b>. An administrator can grant it in Roles & permissions:",
+      "denied": "Your role can't open <b>{{page}}</b>. An administrator can grant it in Roles & permissions:",
+      "tempPassword": "You signed in with a temporary password. Choose your own to keep your account safe."
+    },
+    "idle": {
+      "title": "Still there?",
+      "body_one": "For your security, you'll be signed out in {{count}} second.",
+      "body_other": "For your security, you'll be signed out in {{count}} seconds.",
+      "stay": "Stay signed in",
+      "signOut": "Sign out now",
+      "signedOut_one": "You were signed out after {{count}} minute without activity.",
+      "signedOut_other": "You were signed out after {{count}} minutes without activity."
+    },
+    "superadmin": {
+      "overview": "Overview",
+      "hospitals": "Hospitals",
+      "invoices": "Invoices",
+      "plans": "Plans",
+      "roleTemplates": "Role templates",
+      "settings": "Settings",
+      "consoleTitle": "Platform console",
+      "closeMenu": "Close menu",
+      "coupons": "Coupons",
+      "staff": "Staff",
+      "audit": "Audit log"
+    },
+    "language": {
+      "change": "Change language",
+      "search": "Search language...",
+      "none": "No languages found"
+    },
+    "sidebar": {
+      "mainNavigation": "Main navigation",
+      "closeMenu": "Close menu",
+      "soon": "soon",
+      "plan": "{{name}} plan",
+      "daysLeft_one": "{{count}} day left",
+      "daysLeft_other": "{{count}} days left",
+      "modulesAvailable_one": "{{count}} module available to you",
+      "modulesAvailable_other": "{{count}} modules available to you",
+      "subscription": {
+        "trial": "Trial",
+        "active": "Active",
+        "pastDue": "Payment due",
+        "trialExpired": "Trial ended",
+        "suspended": "Suspended",
+        "cancelled": "Cancelled"
+      }
+    },
+    "controls": {
+      "lockedHint": "You don't hold this permission yourself, so you can't grant it",
+      "tempPassword": {
+        "title": "Temporary password",
+        "done": "Done",
+        "share": "Share this with <b>{{name}}</b>. It is shown only once; they will be asked to choose their own password after signing in.",
+        "shareWithEmail": "Share this with <b>{{name}}</b> ({{email}}). It is shown only once; they will be asked to choose their own password after signing in.",
+        "copy": "Copy",
+        "copied": "Copied"
+      }
+    },
+    "approvalSteps": {
+      "step": "Step {{n}}",
+      "orSeparator": " or ",
+      "approvedBy": "Approved by {{name}}",
+      "rejectedBy": "Rejected by {{name}}",
+      "waitingFor": "Waiting for {{names}}",
+      "nobody": "Nobody can approve this yet — no role has the right permission and limit.",
+      "next": "Next",
+      "notReached": "Not reached"
+    },
+    "consultForms": {
+      "removeForm": "Remove {{name}}",
+      "nothingFilled": "Nothing filled in.",
+      "addForm": "Add a form…",
+      "noFormsPublished": "No forms are published yet (Administration › Form builder)."
+    },
+    "printPreview": {
+      "title": "Print preview",
+      "document": "Document",
+      "preprintedHeader": "Pre-printed header",
+      "preprintedFooter": "Pre-printed footer",
+      "yourHospital": "Your hospital",
+      "printedOn": "Printed {{date}}",
+      "docs": {
+        "RX": "Prescription",
+        "OPD_BILL": "OPD bill & receipt",
+        "LAB_REPORT": "Lab report",
+        "RAD_REPORT": "Radiology report",
+        "PHARMACY_BILL": "Pharmacy bill",
+        "CERTIFICATE": "Certificates & letters",
+        "DISCHARGE_SUMMARY": "Discharge summary",
+        "IPD_BILL": "Inpatient bill",
+        "INTERIM_BILL": "Inpatient interim bill",
+        "GATE_PASS": "Gate pass",
+        "OT_NOTE": "Operation note",
+        "ER_RECORD": "ER record",
+        "MLC_INTIMATION": "MLC police intimation",
+        "ADMISSION_FORM": "Admission form & consent",
+        "DEPOSIT_RECEIPT": "Deposit receipt",
+        "HR_OFFER_LETTER": "Offer letter",
+        "HR_APPOINTMENT_LETTER": "Appointment letter",
+        "HR_RELIEVING_LETTER": "Relieving letter",
+        "HR_EXPERIENCE_LETTER": "Experience certificate",
+        "PAYSLIP": "Payslip",
+        "PURCHASE_ORDER": "Purchase order",
+        "CREDIT_NOTE": "Credit note"
+      }
+    },
+    "pdfButton": {
+      "downloadAsPdf": "Download as PDF"
+    },
+    "docPreview": {
+      "title": "Document preview"
+    },
+    "cameraScanner": {
+      "title": "Scan a code",
+      "hint": "Hold the QR code or barcode inside the frame.",
+      "keepScanning": "Keep scanning — each code is added as it is read.",
+      "done": "Done",
+      "starting": "Starting the camera…",
+      "torchOn": "Torch on",
+      "torchOff": "Torch off",
+      "typeCode": "Type the code",
+      "use": "Use",
+      "typeInstead": "Type the code instead",
+      "scanWithCamera": "Scan with camera",
+      "errors": {
+        "blocked": "The camera is blocked. Allow it for this site in the browser settings, then try again.",
+        "notFound": "No camera was found on this device.",
+        "inUse": "Another app is using the camera. Close it and try again.",
+        "couldNotStart": "The camera could not start.",
+        "httpsOnly": "The camera works only when the app is opened over https.",
+        "unsupported": "This browser cannot read codes from the camera. Type the code instead."
+      }
+    },
+    "scanAnything": {
+      "hint": "Patient card, wristband, gate pass, bill, sample tube, CSSD tray, equipment label or report QR.",
+      "title": "Scanned code",
+      "scanAgain": "Scan again",
+      "upi": "This is a UPI payment code. Scan it with a payments app.",
+      "externalLink": "This code is a link to another website. Open it only if you trust it.",
+      "noMatch": "Nothing you can open matches this code. Check it is this hospital’s card or label, or search for the patient by name."
+    },
+    "subscriptionBanner": {
+      "TRIAL_one": "Free trial · {{count}} day left",
+      "TRIAL_other": "Free trial · {{count}} days left",
+      "TRIAL_EXPIRED": "Your free trial has ended. Choose a plan to keep using the system.",
+      "PAST_DUE_one": "Payment overdue. Access stops in {{count}} day unless the invoice is paid.",
+      "PAST_DUE_other": "Payment overdue. Access stops in {{count}} days unless the invoice is paid.",
+      "SUSPENDED": "Your subscription is suspended. Pay the open invoice to restore access.",
+      "CANCELLED": "This subscription has been cancelled.",
+      "action": {
+        "CHOOSE_PLAN": "Choose a plan",
+        "VIEW_INVOICES": "View invoices"
+      }
+    },
+    "crash": {
+      "title": "Something went wrong on this screen",
+      "hint": "Your other work is safe. Reload the page; if it happens again, tell your administrator what you were doing.",
+      "reload": "Reload",
+      "tryAgain": "Try again"
+    },
+    "switchHospital": {
+      "menu": "Switch hospital",
+      "title": "Switch hospital",
+      "none": "Your email doesn't have a login at any other hospital.",
+      "password": "Password for this hospital",
+      "passwordHint": "Each hospital keeps its own password for you.",
+      "switch": "Switch",
+      "code": "Code from the email",
+      "codeSent": "This hospital asks for a sign-in code. We sent it to {{sentTo}}.",
+      "verify": "Verify and switch"
+    },
+    "sendToPatient": {
+      "title": "Send to patient",
+      "pick": "Send by:",
+      "send": "Send",
+      "cancel": "Cancel",
+      "noneSetUp": "No SMS, WhatsApp or email is set up for this hospital, so nothing can be sent. Print the report or download the PDF instead.",
+      "notSetUp": "Not set up: {{channels}}.",
+      "setUpLink": "Set up"
+    },
+    "overview": {
+      "durMin": "{{m}} min",
+      "durHourMin": "{{h}} h {{m}} min",
+      "durHour": "{{h}} h",
+      "durDayHour": "{{d}} d {{h}} h",
+      "durDay": "{{d}} d"
+    }
+  }
+}

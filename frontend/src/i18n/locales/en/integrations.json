@@ -1,0 +1,516 @@
+{
+  "integrations": {
+    "mode": {
+      "SANDBOX": "Sandbox / test",
+      "LIVE": "Live"
+    },
+    "health": {
+      "UNKNOWN": "Not checked",
+      "OK": "Connected",
+      "DEGRADED": "Errors lately",
+      "DOWN": "Not connecting"
+    },
+    "providers": {
+      "RAZORPAY": {
+        "label": "Razorpay",
+        "desc": "Cards, UPI, net banking and wallets. Payment links for the billing counter and checkout in the patient portal.",
+        "fields": {
+          "keyId": {
+            "label": "Key id"
+          }
+        },
+        "secrets": {
+          "keySecret": {
+            "label": "Key secret"
+          },
+          "webhookSecret": {
+            "label": "Webhook secret",
+            "hint": "The secret you typed when adding the webhook in the Razorpay dashboard."
+          }
+        }
+      },
+      "PAYU": {
+        "label": "PayU",
+        "desc": "Coming later."
+      },
+      "CASHFREE": {
+        "label": "Cashfree",
+        "desc": "Coming later."
+      },
+      "ABDM": {
+        "label": "ABDM gateway",
+        "desc": "Ayushman Bharat Digital Mission: ABHA creation and verification, and linking care contexts as a HIP.",
+        "fields": {
+          "clientId": {
+            "label": "Client id"
+          },
+          "hipId": {
+            "label": "HIP id (facility id)"
+          },
+          "hfrId": {
+            "label": "HFR id"
+          },
+          "hipName": {
+            "label": "Facility name as registered"
+          },
+          "cmId": {
+            "label": "Consent manager id"
+          }
+        },
+        "secrets": {
+          "clientSecret": {
+            "label": "Client secret"
+          }
+        }
+      },
+      "MESSAGING": {
+        "label": "Delivery reports",
+        "desc": "Receives delivery and read receipts from the SMS and WhatsApp providers.",
+        "secrets": {
+          "metaAppSecret": {
+            "label": "Meta app secret",
+            "hint": "Signs WhatsApp webhooks (X-Hub-Signature-256)."
+          },
+          "metaVerifyToken": {
+            "label": "Meta webhook verify token",
+            "hint": "Any long random text; type the same in the Meta app’s webhook setup."
+          }
+        }
+      },
+      "PACS": {
+        "label": "PACS (Orthanc)",
+        "desc": "Studies from the CT, X-ray, MRI and ultrasound machines arrive in the worklist on their own, and the machines pick the patient from a modality worklist.",
+        "fields": {
+          "baseUrl": {
+            "label": "Orthanc REST URL",
+            "hint": "The HTTPS address of Orthanc’s REST API (port 8042 behind TLS). Never the DICOM port."
+          },
+          "username": {
+            "label": "Orthanc user name",
+            "hint": "A user from Orthanc’s RegisteredUsers. Leave blank when you use a token."
+          },
+          "connection": {
+            "label": "How HMS hears of new studies"
+          },
+          "pollSeconds": {
+            "label": "Check for new studies every (seconds)",
+            "hint": "Pull mode only. 15–600."
+          },
+          "branchId": {
+            "label": "Branch this PACS serves"
+          },
+          "modalities": {
+            "label": "Modalities it serves",
+            "hint": "Blank: all. Comma-separated HMS modalities, e.g. CT, XR, MRI."
+          },
+          "mwl": {
+            "label": "Modality worklist"
+          },
+          "stationAets": {
+            "label": "Scheduled station AE title per modality",
+            "hint": "The AE title of each machine, so it lists only its own patients. Comma-separated MODALITY=AE."
+          },
+          "dicomModalityCodes": {
+            "label": "DICOM modality code per modality (optional)",
+            "hint": "Overrides the defaults (X-ray DX, ultrasound US, MRI MR, mammography MG…)."
+          },
+          "orthancAet": {
+            "label": "Orthanc AE title (shown to technicians)"
+          },
+          "dicomHost": {
+            "label": "Orthanc LAN address (shown to technicians)"
+          },
+          "dicomPort": {
+            "label": "DICOM port (shown to technicians)"
+          }
+        },
+        "secrets": {
+          "password": {
+            "label": "Orthanc password",
+            "hint": "Stored encrypted. Use a long random password, never Orthanc’s default."
+          },
+          "apiToken": {
+            "label": "Bearer token (instead of a password)",
+            "hint": "For an Orthanc behind an authenticating proxy or the authorization plugin."
+          },
+          "hookSecret": {
+            "label": "Push signing secret",
+            "hint": "Generate it below; the Orthanc plugin signs every push with it."
+          }
+        }
+      }
+    },
+    "orderStatus": {
+      "CREATED": "Waiting for payment",
+      "PAID": "Paid at gateway",
+      "APPLYING": "Receipting…",
+      "APPLIED": "Receipted",
+      "NEEDS_REVIEW": "Paid — needs review",
+      "FAILED": "Failed",
+      "EXPIRED": "Expired",
+      "CANCELLED": "Cancelled",
+      "REFUNDED": "Refunded"
+    },
+    "bits": {
+      "somethingWrong": "Something went wrong.",
+      "copy": "Copy",
+      "copied": "Copied",
+      "copyLink": "Copy link",
+      "secretSaved": "Saved (ends {{last4}}). Leave blank to keep it.",
+      "savedIt": "I’ve saved it",
+      "copyNow": "Copy it now. It is stored only as a hash (or encrypted) and will not be shown again.",
+      "providerSaved": "{{name}} saved.",
+      "useProvider": "Use {{name}}",
+      "liveWarning": "Live mode uses real money / real patient data. Test in sandbox first.",
+      "undoChanges": "Undo changes",
+      "saveFirst": "Save first",
+      "testConnection": "Test connection",
+      "ms": "{{ms}} ms",
+      "lastChangedBy": "Last changed by {{name}}"
+    },
+    "abha": {
+      "sendOtp": "Send OTP",
+      "verify": "Verify",
+      "title": "ABHA — Ayushman Bharat Health Account",
+      "flowShort": {
+        "CREATE_AADHAAR": "Create (Aadhaar)",
+        "VERIFY_MOBILE": "Find by mobile",
+        "VERIFY_ABHA": "Verify ABHA no."
+      },
+      "flow": {
+        "CREATE_AADHAAR": "Create ABHA with Aadhaar OTP",
+        "VERIFY_MOBILE": "Find ABHA by mobile OTP",
+        "VERIFY_ABHA": "Verify an ABHA number (Aadhaar OTP)"
+      },
+      "flowIntro": "{{flow}}. ABDM sends a one-time code to the patient.",
+      "aadhaar": "Aadhaar number",
+      "consentLabel": "Patient consent",
+      "consent": "The patient agrees to create an ABHA using their Aadhaar, and to share their Aadhaar details with ABDM for it.",
+      "mobile": "Mobile number",
+      "abhaNumber": "ABHA number",
+      "otp": "OTP",
+      "mobileForAbha": "Mobile number for the ABHA",
+      "mobileForAbhaHint": "Best the one linked to Aadhaar.",
+      "created": "ABHA created.",
+      "found_one": "{{count}} ABHA account found.",
+      "found_other": "{{count}} ABHA accounts found.",
+      "chooseOne": "Choose the one to use.",
+      "mobileValue": "Mobile {{mobile}}",
+      "useThis": "Use this"
+    },
+    "billOnline": {
+      "linkSent": "Payment link made and sent to the patient.",
+      "linkMade": "Payment link made — copy it to the patient.",
+      "title": "Online payment",
+      "link": "Link",
+      "portal": "Portal",
+      "linkFor": "Payment link for {{amount}}",
+      "sendSms": "Send by SMS"
+    },
+    "common": {
+      "when": "When",
+      "all": "All"
+    },
+    "abdm": {
+      "patientWithAbha": "Patient (with an ABHA)",
+      "recordType": "Record type",
+      "reference": "Reference",
+      "referencePlaceholder": "Visit / IP no.",
+      "shownAs": "Shown to the patient as",
+      "shownAsPlaceholder": "OPD visit, 7 Oct 2026 — Dr Rao",
+      "addCareContext": "Add care context",
+      "askToLink": "Ask ABDM to link",
+      "registered": "Callback URL registered with ABDM.",
+      "title": "ABDM",
+      "subtitle": "Ayushman Bharat Digital Mission: create and verify ABHA at registration, and link records to the patient’s ABHA as a health information provider (HIP).",
+      "apiWarning": "ABDM changes its APIs from time to time. This connector is built on the v3 sandbox contract; test every flow in sandbox before switching to live, and keep the facility’s HIP and HFR registration current.",
+      "callbackUrl": "Callback (bridge) URL",
+      "callbackHint": "ABDM sends link tokens and link results here. Register it once per client id.",
+      "register": "Register with ABDM",
+      "talkingTo": "Talking to: <code>{{gateway}}</code> · ABHA: <code>{{abha}}</code>",
+      "abhaTitle": "ABHA at registration",
+      "abhaSubtitle": "Front desk: Register patient › Create or verify ABHA (permission “Create ABHA”). Aadhaar numbers and OTPs are encrypted for ABDM and never stored or logged.",
+      "switchOnFirst": "Switch ABDM on first",
+      "tryLookup": "Try an ABHA lookup",
+      "switchOnToUse": "Switch ABDM on to use it.",
+      "ccTitle": "Care-context linking (HIP-initiated)",
+      "ccSubtitle": "Preview: asks ABDM for a link token for the patient, then links the visits you list when ABDM calls back.",
+      "sent": "Sent to ABDM. The result arrives on the callback.",
+      "abha": "ABHA",
+      "careContexts": "Care contexts",
+      "ccStatus": {
+        "REQUESTED": "Requested",
+        "LINKED": "Linked",
+        "FAILED": "Failed"
+      },
+      "empty": "Nothing linked yet",
+      "platformNotReady": "ABDM isn’t connected on the platform yet. Your software provider sets up the ABDM account; until then this hospital can save its facility details but not switch ABDM on.",
+      "viaPlatformSandbox": "Connected through the platform’s ABDM account (sandbox).",
+      "viaPlatformLive": "Connected through the platform’s ABDM account (live)."
+    },
+    "logs": {
+      "provider": {
+        "RAZORPAY": "Razorpay",
+        "ABDM": "ABDM",
+        "MSG91": "MSG91",
+        "WHATSAPP": "WhatsApp Cloud API",
+        "DEVICE": "Devices",
+        "WEBHOOK": "Outbound webhooks",
+        "PACS": "PACS (Orthanc)"
+      },
+      "status": {
+        "OK": "OK",
+        "ERROR": "Error",
+        "REJECTED": "Rejected",
+        "DUPLICATE": "Duplicate"
+      },
+      "entry": "Log entry",
+      "incoming": "Incoming",
+      "outgoing": "Outgoing",
+      "httpStatus": "HTTP status",
+      "timeTaken": "Time taken",
+      "attempts": "Attempts",
+      "requestId": "Request id",
+      "providerRef": "Provider reference",
+      "record": "Record",
+      "outline": "Outline (redacted)",
+      "title": "Integration logs",
+      "subtitle": "Every call to and from payment, messaging and ABDM providers, devices and webhooks — with what went wrong.",
+      "redactedNote": "Outlines are redacted: no secrets, keys, OTPs, Aadhaar numbers or result values are ever written here. Entries are deleted after {{days}} days.",
+      "last24h": "Last 24 h · {{status}}",
+      "search": "Operation, reference, request id, error…",
+      "providerCol": "Provider",
+      "operation": "Operation",
+      "time": "Time",
+      "empty": "Nothing logged in this period",
+      "emptyHint": "Calls appear here once a provider, device or webhook is in use."
+    },
+    "messaging": {
+      "msg91Title": "SMS — MSG91",
+      "msg91Subtitle": "MSG91 posts delivery reports to this address. Add it in MSG91 › Settings › Delivery report webhook.",
+      "reportUrl": "Delivery report URL",
+      "reportUrlHint": "The random part of the address is the password — keep it private.",
+      "notMsg91": "SMS isn’t sent with MSG91",
+      "testMsg91": "Test MSG91 key",
+      "waTitle": "WhatsApp Cloud API",
+      "waSubtitle": "Meta sends sent / delivered / read / failed for every message. Meta app › WhatsApp › Configuration › Webhook.",
+      "callbackUrl": "Callback URL",
+      "subscribeNote": "Subscribe the webhook to the <code>messages</code> field. Every call is checked against the app secret (X-Hub-Signature-256); calls that don’t match are refused and logged.",
+      "notCloudApi": "WhatsApp isn’t sent with the Cloud API",
+      "testWa": "Test WhatsApp token",
+      "title": "SMS & WhatsApp",
+      "subtitle": "How patient messages are sent — MSG91 or any SMS gateway, the WhatsApp Cloud API, SMTP email — and what the providers report back.",
+      "smsSent": "SMS sent (7 days)",
+      "confirmedDelivered_one": "{{count}} confirmed delivered",
+      "confirmedDelivered_other": "{{count}} confirmed delivered",
+      "waDelivered": "WhatsApp delivered / read",
+      "readCount_one": "{{count}} read",
+      "readCount_other": "{{count}} read",
+      "failed7": "Failed (7 days)",
+      "providers": "Providers",
+      "reports": "Delivery reports",
+      "sameSettings": "The same settings as Administration › <link>Notification rules</link> › Delivery. What each event says, and the {{sms}} DLT template ids, are set there."
+    },
+    "payments": {
+      "source": {
+        "BILLING": "Billing counter (payment link)",
+        "PORTAL": "Patient portal"
+      },
+      "webhookUrl": "Webhook URL",
+      "webhookHint": "Razorpay dashboard › Settings › Webhooks › Add: paste this URL, type a secret (save the same secret above) and tick the events below.",
+      "setupNote": "Billing makes a payment link for a bill’s balance (bill › Payment link); the patient portal shows a Pay button on bills when “Bills and receipts” is on. A captured payment becomes one receipt on the bill, made by the gateway — never twice, even when Razorpay repeats a webhook.",
+      "refundTitle": "Refund {{id}}",
+      "refundAmount": "Refund {{amount}}",
+      "amountRs": "Amount (₹)",
+      "upTo": "Up to {{amount}}",
+      "reason": "Reason",
+      "reasonPlaceholder": "e.g. Paid twice",
+      "refundNote": "This returns money at Razorpay only. Record the refund or credit note on the bill in Billing too, so the books and the bill agree.",
+      "checked": "Checked with the gateway.",
+      "linkCancelled": "Payment link cancelled.",
+      "search": "Bill, patient, order or payment id…",
+      "bill": "Bill",
+      "from": "From",
+      "amount": "Amount",
+      "empty": "No online payments yet",
+      "emptyHint": "Payment links from Billing and payments from the patient portal appear here.",
+      "checkGateway": "Check with gateway",
+      "cancelLink": "Cancel link",
+      "refund": "Refund",
+      "live": "Live",
+      "sandbox": "Sandbox",
+      "notReceipted": "Paid at the gateway but not receipted.",
+      "reviewHint": "Check the bill; then either “Check with gateway” to receipt it, or refund.",
+      "paymentLink": "Payment link",
+      "order": "Order",
+      "payment": "Payment",
+      "method": "Method",
+      "receipt": "Receipt",
+      "made": "Made",
+      "paid": "Paid",
+      "linkExpires": "Link expires",
+      "refunds": "Refunds",
+      "refundStarted": "Refund started at Razorpay.",
+      "title": "Payment gateway",
+      "subtitle": "Collect bills online — payment links from the counter and Pay in the patient portal — receipted automatically.",
+      "receipted30": "Receipted (30 days)",
+      "paymentsCount_one": "{{count}} payment",
+      "paymentsCount_other": "{{count}} payments",
+      "needsReview": "Needs review",
+      "setup": "Setup",
+      "transactions": "Transactions"
+    },
+    "devices": {
+      "type": {
+        "LAB_ANALYZER": "Lab analyzer",
+        "BIOMETRIC": "Biometric attendance",
+        "OTHER": "Other"
+      },
+      "status": {
+        "NEVER": "Never connected",
+        "OK": "Online",
+        "IDLE": "Quiet",
+        "ERROR": "Errors",
+        "DISABLED": "Disabled"
+      },
+      "editTitle": "Edit {{name}}",
+      "addTitle": "Add a device",
+      "addAndGetKey": "Add and get key",
+      "namePlaceholder": "Sysmex XN-550 (haematology)",
+      "typeCol": "Type",
+      "sendsDataAs": "Sends data as",
+      "location": "Location",
+      "locationPlaceholder": "Main lab, 1st floor",
+      "makeModel": "Make / model",
+      "serialNo": "Serial no.",
+      "csvNote": "CSV with a header row.",
+      "overHttpNote": "{{protocol}} over HTTP: most analyzers talk serial / TCP, so a small middleware (or the vendor’s LIS bridge) forwards each message to the endpoint.",
+      "mappingSaved": "Mapping saved.",
+      "mappingTitle": "Analyzer code → lab test parameter",
+      "mappingHint": "Codes without a row here are matched to a parameter with the same code on a test of that sample.",
+      "analyzerCode": "Analyzer code",
+      "test": "Test",
+      "testPick": "Test…",
+      "parameter": "Parameter",
+      "parameterPick": "Parameter…",
+      "addCode": "Add code",
+      "saveMapping": "Save mapping",
+      "newKeyFor": "New key for {{name}}",
+      "keyFor": "Key for {{name}}",
+      "enabled": "Device enabled.",
+      "disabled": "Device disabled — its key is refused until you enable it.",
+      "removeTitle": "Remove {{name}}?",
+      "removeMsg": "Its key stops working at once. Results and punches it sent stay.",
+      "removed": "Device removed.",
+      "newKeyTitle": "New key for {{name}}?",
+      "newKeyMsg": "The current key stops working at once. Put the new key in the device or middleware straight away.",
+      "issueKey": "Issue new key",
+      "title": "Devices & analyzers",
+      "subtitle": "Lab analyzers and biometric attendance devices that send data straight in — each with its own key.",
+      "add": "Add device",
+      "devices": "Devices",
+      "online24": "Online (24 h)",
+      "withErrors": "With errors",
+      "device": "Device",
+      "sends": "Sends",
+      "lastSeen": "Last seen",
+      "acceptedRejected": "Accepted / rejected",
+      "empty": "No devices yet",
+      "emptyHint": "Add an analyzer or a biometric device to get its key.",
+      "newKey": "New key",
+      "disable": "Disable",
+      "enable": "Enable",
+      "key": "Key",
+      "keyIssued": "Key issued",
+      "receivedAcceptedRejected": "Received / accepted / rejected",
+      "makeSerial": "Make / serial",
+      "endpoint": "Endpoint",
+      "endpointHint": "POST with the header X-Device-Key: <the device key>. Up to 240 calls a minute; batch where you can.",
+      "csvColsBiometric": "Columns: EmpCode, DateTime (or Date + Time), Direction.",
+      "csvColsLab": "Columns: SampleNo, Code, Value.",
+      "hl7Note": "ORU^R01: barcode from SPM-2 or OBR-3/OBR-2, code from OBX-3, value from OBX-5. The answer is an HL7 ACK.",
+      "astmNote": "ASTM E1394 records: barcode from O-3, code from R-3 (^^^code), value from R-4.",
+      "labNote": "Results come in as entered, not verified — a technologist verifies them in Lab › Verify (unless the lab’s auto-verify-normal setting is on). The sample must be received in the lab first.",
+      "biometricNote": "Punches are matched by employee code; the same punch sent twice is kept once. Attendance for those days is recalculated.",
+      "putKey": "Put it in the device or its middleware as the <code>X-Device-Key</code> header."
+    },
+    "pacs": {
+      "studyStatus": {
+        "MATCHED": "Linked to a study",
+        "SUGGESTED": "Possible match — confirm",
+        "UNMATCHED": "No matching order",
+        "IGNORED": "Ignored"
+      },
+      "connectionMode": {
+        "PULL": {
+          "label": "Pull — HMS checks Orthanc for new studies",
+          "hint": "Orthanc is reachable from the internet over HTTPS (cloud-hosted, published through a TLS proxy or tunnel, or over a VPN)."
+        },
+        "PUSH": {
+          "label": "Push — Orthanc tells HMS of each new study",
+          "hint": "Orthanc is behind the hospital’s NAT. A small plugin on Orthanc posts each stable study to HMS, signed."
+        }
+      },
+      "mwlMode": {
+        "OFF": "Off — technicians type the patient on the machine",
+        "ON_SCHEDULE": "When the study is scheduled",
+        "ON_ORDER": "As soon as the study is ordered"
+      },
+      "modality": {
+        "XR": "X-ray",
+        "USG": "Ultrasound",
+        "CT": "CT",
+        "MRI": "MRI",
+        "MAMMO": "Mammography",
+        "DEXA": "Bone density",
+        "CARDIO": "ECG / Echo / TMT"
+      },
+      "saved": "PACS settings saved.",
+      "connection": "Connection",
+      "useLink": "Use the PACS link",
+      "sandboxNote": "Sandbox allows an http:// Orthanc for a test bench. Use Live — https only — for real patients.",
+      "noRestUrl": "Without a REST URL HMS still files each pushed study and matches it, but cannot open its images or send worklist items itself. Forward the studies to a cloud Orthanc (setup step 6) and enter its URL to see images here.",
+      "whatServes": "What this PACS serves",
+      "allBranches": "All branches",
+      "noneAll": "None picked: all modalities.",
+      "noWorklistRest": "Orthanc has no worklist REST API: use the file-based helper (setup step 5).",
+      "shownToTechs": "Shown to technicians (where the machines send)",
+      "newSecretTitle": "Make a new push secret?",
+      "newSecretMsg": "The Orthanc plugin stops being accepted until you put the new secret in its .env file and restart it.",
+      "makeNewOne": "Make a new one",
+      "pushTitle": "Push from Orthanc",
+      "pushSubtitle": "For an Orthanc behind the hospital’s NAT: its plugin posts each stable study here, signed with the push secret (HMAC-SHA256, 5-minute window). The worklist address serves the file-based worklist helper.",
+      "pushAddress": "Push address (HMS_PACS_HOOK_URL)",
+      "pushAddressHint": "The random part identifies this hospital; every call must also be signed.",
+      "worklistAddress": "Worklist address (HMS_PACS_WORKLIST_URL)",
+      "worklistAddressHint": "Only for the file-based worklist (push mode or Orthanc older than 1.12.9).",
+      "pushSecretLabel": "Push secret:",
+      "notMadeYet": "not made yet",
+      "makeNewSecret": "Make a new secret",
+      "makePushSecret": "Make the push secret",
+      "lastPush": "Last push received {{when}}",
+      "pushSecret": "Push secret",
+      "putSecret": "Put it in the Orthanc PC’s .env file as HMS_PACS_HOOK_SECRET and restart Orthanc.",
+      "statusSubtitle": "What the link has done. Every call to Orthanc that fails is in Integration logs (provider PACS).",
+      "waitingMatch": "Waiting to be matched",
+      "health": "Health",
+      "lastSync": "Last sync",
+      "lastStudy": "Last study received",
+      "orthancInfo": "{{name}} {{version}} · AE {{aet}} · DICOMweb {{dicomWeb}}",
+      "runTest": "Run Test connection",
+      "worklistRest": "Worklist REST API",
+      "available": "Available",
+      "notAvailable": "Not available — use the file-based helper",
+      "imported": "Studies brought in",
+      "lastError": "Last error",
+      "lastErrorAt": "Last error ({{when}})",
+      "matchUnder": "Match studies under <link>Radiology › Worklist › Unmatched studies</link>.",
+      "guideTitle": "Setting up the PACS",
+      "guideSubtitle": "One Orthanc per hospital. The machines send to it on the LAN; HMS reaches it over HTTPS, or it reaches HMS.",
+      "guideWarning": "Never expose DICOM port 4242 to the internet, never keep Orthanc’s default password, and publish the REST API only over HTTPS (or not at all, in push mode).",
+      "title": "PACS",
+      "subtitle": "Link the hospital’s Orthanc: studies from the CT, X-ray, MRI and ultrasound machines reach the radiology worklist and open in the viewer, and the machines pick patients from the worklist.",
+      "privateNetwork": "This server may connect to private network addresses for the PACS (PACS_ALLOW_PRIVATE_NETWORK). Use that only where HMS runs inside the hospital or over a VPN."
+    }
+  }
+}

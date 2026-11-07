@@ -1,0 +1,176 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-bg: #F5F6F8;
+  --color-surface: #FFFFFF;
+  --color-surface-raised: #FFFFFF;
+  --color-border: #E4E7EC;
+  --color-ink: #12141C;
+  --color-ink-muted: #5B616E;
+  --color-ink-faint: #6E7484; /* 4.7:1 on white (AA); was #8B90A0 at 3.2:1 — too light for hints and secondary text */
+  /* the same colours as RGB channels, so Tailwind's opacity forms (bg-bg/60, border-border/70, text-ink-faint/50 …)
+     work; without them those classes silently rendered nothing */
+  --rgb-bg: 245 246 248;
+  --rgb-surface: 255 255 255;
+  --rgb-surface-raised: 255 255 255;
+  --rgb-border: 228 231 236;
+  --rgb-ink: 18 20 28;
+  --rgb-ink-muted: 91 97 110;
+  --rgb-ink-faint: 110 116 132;
+
+  /* Brand ramp as space-separated RGB channels so Tailwind's /opacity works.
+     Defaults are the built-in teal; SettingsContext overrides these at runtime
+     from the tenant's accent colour. */
+  --brand-50: 234 246 246;
+  --brand-100: 207 235 234;
+  --brand-200: 154 218 224;
+  --brand-300: 121 196 193;
+  --brand-400: 31 185 199;
+  --brand-500: 14 124 134;
+  --brand-600: 11 102 112;
+  --brand-700: 8 80 90;
+  --brand-800: 7 64 69;
+  --brand-900: 5 47 54;
+
+  /* Sidebar surface. The shipped default navy; SettingsContext overrides both from the
+     tenant's sidebar colour, deriving fg from the background's luminance. */
+  --sidebar-bg: 11 18 32;
+  --sidebar-fg: 255 255 255;
+}
+
+* {
+  border-color: var(--color-border);
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+/* Global type / control scale. Tailwind's spacing, text and control-height
+   utilities are rem-based, so nudging the root font-size proportionally
+   shrinks fonts, buttons, inputs, padding and gaps together on smaller
+   screens. px-based bits (icons, `text-[11px]`) stay put on purpose. */
+html { font-size: 16px; }
+
+@media (max-width: 1023.98px) {
+  html { font-size: 15.25px; }
+}
+
+@media (max-width: 767.98px) {
+  html { font-size: 14.5px; }
+}
+
+/* Touch screens (phones, tablets on the ward): iOS zooms the whole page into any text field whose
+   text is under 16px, and the zoom stays after typing. The UI keeps its smaller type everywhere
+   else — only the fields themselves are 16px. (Tap-target heights: Form.jsx / Button.jsx.) */
+@media (pointer: coarse) {
+  input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='color']):not([type='file']),
+  select,
+  textarea { font-size: 16px; }
+}
+
+/* Script fonts. Latin text and digits stay in Inter/Sora; the browser takes every Indic or Urdu
+   glyph from the script's Noto family, which i18n/fonts.js loads only while that language is
+   active (the <html lang> set by i18n/index.js). */
+:root:lang(hi), :root:lang(mr) { --font-script: 'Noto Sans Devanagari'; }
+:root:lang(bn) { --font-script: 'Noto Sans Bengali'; }
+:root:lang(gu) { --font-script: 'Noto Sans Gujarati'; }
+:root:lang(pa) { --font-script: 'Noto Sans Gurmukhi'; }
+:root:lang(kn) { --font-script: 'Noto Sans Kannada'; }
+:root:lang(ml) { --font-script: 'Noto Sans Malayalam'; }
+:root:lang(or) { --font-script: 'Noto Sans Oriya'; }
+:root:lang(ta) { --font-script: 'Noto Sans Tamil'; }
+:root:lang(te) { --font-script: 'Noto Sans Telugu'; }
+:root:lang(ur) { --font-script: 'Noto Nastaliq Urdu', 'Noto Sans Arabic'; }
+
+body {
+  background: var(--color-bg);
+  color: var(--color-ink);
+  font-family: 'Inter', var(--font-script, system-ui), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, .font-display {
+  font-family: 'Sora', var(--font-script, system-ui), system-ui, sans-serif;
+}
+
+.font-mono-num {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+/* visible keyboard focus, everywhere */
+:focus-visible {
+  outline: 2px solid rgb(var(--brand-500)); /* the hospital's own brand colour */
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* thin scrollbar for the dense data views */
+.scroll-thin::-webkit-scrollbar { height: 8px; width: 8px; }
+.scroll-thin::-webkit-scrollbar-thumb { background: #D6D9E0; border-radius: 999px; }
+.scroll-thin::-webkit-scrollbar-track { background: transparent; }
+
+/* hide scrollbar but keep scrollable */
+.scroll-hide { scrollbar-width: none; -ms-overflow-style: none; }
+.scroll-hide::-webkit-scrollbar { display: none; }
+
+/* sign-in pages (login, sign-up, invite, verify email, forgot password): always blue, whatever a
+   hospital's own brand colour is — nobody is signed in yet, so there's no hospital to take it from.
+   Overrides the --brand-* ramp for everything inside, so the pages' brand-* classes turn blue
+   (the same as the ERP's sign-in). */
+.auth-blue {
+  --brand-50: 239 246 255;
+  --brand-100: 219 234 254;
+  --brand-200: 191 219 254;
+  --brand-300: 147 197 253;
+  --brand-400: 96 165 250;
+  --brand-500: 59 135 227;
+  --brand-600: 46 119 214;
+  --brand-700: 33 99 189;
+  --brand-800: 30 80 150;
+  --brand-900: 28 64 120;
+}
+.auth-blue :focus-visible { outline-color: rgb(59 135 227); }
+.auth-blue input:focus-visible { outline: none; }
+
+/* content rises in on load */
+@keyframes auth-rise {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: none; }
+}
+.auth-rise { animation: auth-rise 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+
+/* ------------------------------------------------------------------ density
+   Compact layout, opt-in per viewer from the account menu (see utils/density.js).
+   It only tightens spacing on the shared structural components — nothing moves
+   or disappears — so a screen built from the design system gets denser for free.
+   Selectors are attribute + class, so they beat the Tailwind utility they override
+   without !important. */
+:root[data-density="compact"] .ui-page { gap: 1rem; }
+:root[data-density="compact"] .ui-cell { padding-top: 0.375rem; padding-bottom: 0.375rem; padding-left: 0.75rem; padding-right: 0.75rem; }
+:root[data-density="compact"] .ui-panel-body { padding: 0.875rem; }
+:root[data-density="compact"] .ui-panel-body:empty { padding: 0; }
+:root[data-density="compact"] .ui-panel-head { padding: 0.625rem 0.875rem; }
+:root[data-density="compact"] .ui-stat { padding: 0.625rem 0.75rem; }
+:root[data-density="compact"] table { font-size: 12.5px; }
+
+/* ------------------------------------------------------- long values in tables
+   Cells use `break-words` (overflow-wrap: break-word), which breaks an id or SKU
+   that has no spaces but leaves normal words intact. NOT `anywhere`: that also
+   shrinks a column's minimum content width, and an auto-layout table then squeezes
+   text columns down to one word per line.  */
+
+/* radiology: while the image viewer is docked beside the report, the call/chat button hides */
+.hx-viewer-docked .hx-comms-dock { display: none; }

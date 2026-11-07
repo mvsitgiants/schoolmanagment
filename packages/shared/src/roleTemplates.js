@@ -1,0 +1,158 @@
+import { MODULES } from './catalog.js'
+import { expandGrants } from './permissions.js'
+
+// Recommended roles an institution admin can create in one click.
+// A tenant COPIES a template into its own role; later template edits never
+// touch roles already created. Grants use the compact form of expandGrants():
+//   [module, pages, level]  level = V | W | A | F | '+action action'
+
+const VIEW_EVERYTHING = MODULES.filter((m) => m.id !== 'core').map((m) => [m.id, '*', 'V'])
+
+// What every teacher does, whatever they teach.
+const TEACHING = [
+  ['students', ['directory', 'profile'], 'V'],
+  ['attendance', ['mark'], 'W'],
+  ['attendance', ['register', 'reports'], 'V'],
+  ['homework', '*', 'A'],
+  ['exams', ['schedule', 'results'], 'V'],
+  ['exams', ['marks'], 'W'],
+  ['timetable', ['timetable'], 'V'],
+  ['lms', ['courses', 'live-classes', 'question-bank'], 'A'],
+  ['online-tests', '*', 'A'],
+  ['communication', ['messages', 'chat'], '+view create send'],
+  ['communication', ['notices'], 'V'],
+  ['events', ['calendar', 'ptm'], 'V'],
+  ['ai', ['question-papers', 'remarks'], 'W'],
+]
+
+// prettier-ignore
+const DEFS = [
+  { code: 'PRINCIPAL', name: 'Principal / Management', icon: 'Briefcase', homePage: '/dashboard/command',
+    description: 'Sees every screen and dashboard; publishes results, approves concessions, refunds, promotions and purchases.',
+    dataScopes: { default: 'ALL' },
+    limits: { 'fees.discountMaxPct': 100, 'fees.refundMax': 1000000, 'inventory.poApproveMax': 10000000, 'finance.expenseApproveMax': 10000000 },
+    grants: [
+      ...VIEW_EVERYTHING,
+      ['reports', '*', 'F'],
+      ['analytics', '*', 'F'],
+      ['exams', ['results', 'report-cards'], '+publish'],
+      ['students', ['promotion'], '+promote'],
+      ['students', ['transfer'], '+approve'],
+      ['fees', ['concessions'], '+approve'],
+      ['fees', ['invoices'], '+cancel'],
+      ['communication', ['notices'], 'A'],
+      ['communication', ['notices'], '+publish'],
+      ['hrms', ['leave'], '+approve'],
+      ['inventory', ['purchase-orders'], '+approve'],
+      ['finance', ['expenses'], '+approve'],
+      ['ai', '*', 'A'],
+    ] },
+  { code: 'CLASS_TEACHER', name: 'Class Teacher', icon: 'GraduationCap', homePage: '/attendance/mark',
+    description: 'Runs one class: attendance, student leave, homework, marks, report card remarks and parent messages.',
+    dataScopes: { default: 'CLASS' }, limits: {},
+    grants: [
+      ...TEACHING,
+      ['students', ['guardians'], 'V'],
+      ['attendance', ['leave'], 'A'],
+      ['exams', ['marks'], '+lock'],
+      ['exams', ['report-cards'], '+view print'],
+      ['exams', ['hall-tickets'], '+view print'],
+    ] },
+  { code: 'SUBJECT_TEACHER', name: 'Subject Teacher', icon: 'NotebookPen', homePage: '/homework/homework',
+    description: 'Teaches subjects across classes: period attendance, lesson plans, homework, marks, LMS and online tests.',
+    dataScopes: { default: 'CLASS' }, limits: {},
+    grants: TEACHING },
+  { code: 'ACCOUNTANT', name: 'Accountant', icon: 'IndianRupee', homePage: '/fees/collect',
+    description: 'Collects fees, issues receipts, sends dues reminders, closes the day and keeps the accounts.',
+    dataScopes: { default: 'BRANCH' }, limits: { 'fees.discountMaxPct': 10, 'fees.refundMax': 5000 },
+    grants: [
+      ['students', ['directory', 'profile', 'guardians'], 'V'],
+      ['fees', '*', 'A'],
+      ['fees', ['structures'], 'W'],
+      ['finance', '*', 'A'],
+      ['payroll', ['payslips', 'exports'], 'V'],
+      ['reports', ['library'], 'A'],
+    ] },
+  { code: 'ADMISSION_COUNSELLOR', name: 'Admission Counsellor', icon: 'UserPlus', homePage: '/admissions/enquiries',
+    description: 'Handles enquiries and follow-ups, applications, entrance tests and new admissions.',
+    dataScopes: { default: 'BRANCH' }, limits: {},
+    grants: [
+      ['admissions', ['enquiries', 'applications', 'tests', 'merit'], 'A'],
+      ['students', ['admit', 'directory'], 'W'],
+      ['fees', ['collect'], '+view create'],
+      ['communication', ['messages'], '+view create send'],
+    ] },
+  { code: 'FRONT_DESK', name: 'Front Desk', icon: 'ConciergeBell', homePage: '/frontoffice/visitors',
+    description: 'Visitor log, gate passes, complaints and certificate requests at the reception.',
+    dataScopes: { default: 'BRANCH' }, limits: {},
+    grants: [
+      ['frontoffice', '*', 'A'],
+      ['students', ['directory'], 'V'],
+      ['certificates', ['issue'], 'W'],
+      ['admissions', ['enquiries'], 'W'],
+    ] },
+  { code: 'HR_MANAGER', name: 'HR Manager', icon: 'UsersRound', homePage: '/hrms/employees',
+    description: 'Staff records, staff attendance, leave, recruitment, appraisal and payroll runs.',
+    dataScopes: { default: 'ALL' }, limits: {},
+    grants: [
+      ['hrms', '*', 'F'],
+      ['payroll', '*', 'A'],
+    ] },
+  { code: 'LIBRARIAN', name: 'Librarian', icon: 'Library', homePage: '/library/circulation',
+    description: 'Catalogue, issue and return, fines.',
+    dataScopes: { default: 'BRANCH' }, limits: {},
+    grants: [['library', '*', 'F'], ['students', ['directory'], 'V']] },
+  { code: 'TRANSPORT_MANAGER', name: 'Transport Manager', icon: 'Bus', homePage: '/transport/tracking',
+    description: 'Routes, vehicles, drivers, student assignment and live bus tracking.',
+    dataScopes: { default: 'BRANCH' }, limits: {},
+    grants: [['transport', '*', 'F'], ['students', ['directory'], 'V']] },
+  { code: 'HOSTEL_WARDEN', name: 'Hostel Warden', icon: 'BedDouble', homePage: '/hostel/allotment',
+    description: 'Rooms, allotment, outpasses, mess and hostel attendance.',
+    dataScopes: { default: 'BRANCH' }, limits: {},
+    grants: [['hostel', '*', 'F'], ['students', ['directory', 'profile', 'guardians'], 'V'], ['health', ['visits'], 'W']] },
+  { code: 'STORE_KEEPER', name: 'Store Keeper', icon: 'Boxes', homePage: '/inventory/stock',
+    description: 'Items, stock, uniform and book sales, purchase orders and the asset register.',
+    dataScopes: { default: 'BRANCH' }, limits: {},
+    grants: [['inventory', '*', 'A']] },
+  { code: 'NURSE', name: 'School Nurse', icon: 'HeartPulse', homePage: '/health/visits',
+    description: 'Health records, vaccinations, sick-room visits and incidents.',
+    dataScopes: { default: 'BRANCH' }, limits: {},
+    grants: [['health', '*', 'F'], ['students', ['directory', 'guardians'], 'V']] },
+  { code: 'HOD', name: 'Head of Department', icon: 'BookMarked', homePage: '/programs/outcomes',
+    description: 'College departments: programs and outcomes, semester registrations, attendance and results of the department.',
+    dataScopes: { default: 'DEPARTMENT' }, limits: {},
+    grants: [
+      ...TEACHING,
+      ['programs', '*', 'A'],
+      ['registration', ['requests'], 'A'],
+      ['coe', ['marks'], 'W'],
+      ['accreditation', '*', 'W'],
+      ['hrms', ['leave'], '+view approve'],
+    ] },
+  { code: 'EXAM_CONTROLLER', name: 'Controller of Examinations', icon: 'ScrollText', homePage: '/coe/marks',
+    description: 'College exams: marks, moderation, revaluation, grade cards and transcripts.',
+    dataScopes: { default: 'ALL' }, limits: {},
+    grants: [['coe', '*', 'F'], ['exams', '*', 'F'], ['programs', '*', 'V'], ['students', ['directory', 'profile'], 'V']] },
+  { code: 'PLACEMENT_OFFICER', name: 'Placement Officer', icon: 'Briefcase', homePage: '/placements/drives',
+    description: 'Companies, placement drives, eligibility and offers.',
+    dataScopes: { default: 'ALL' }, limits: {},
+    grants: [['placements', '*', 'F'], ['students', ['directory', 'profile'], 'V'], ['alumni', '*', 'V']] },
+  { code: 'IT_ADMIN', name: 'IT / Integration Admin', icon: 'Plug', homePage: '/integrations/payments',
+    description: 'Payment gateway, SMS and WhatsApp, devices, API keys and webhooks. Sees no student records.',
+    dataScopes: { default: 'ALL' }, limits: {},
+    grants: [
+      ['integrations', '*', 'F'],
+      ['core', ['api-keys'], 'F'],
+      ['core', ['notifications-setup', 'audit'], 'V'],
+    ] },
+]
+
+/** Templates with their grants expanded into permission keys. */
+export const ROLE_TEMPLATES = DEFS.map(({ grants, ...t }, i) => ({
+  ...t,
+  sortOrder: i + 1,
+  permissions: expandGrants(grants),
+}))
+
+/** Name of the one role every new tenant starts with. */
+export const ADMIN_ROLE_NAME = 'Institution Admin'

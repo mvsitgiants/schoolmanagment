@@ -1,0 +1,68 @@
+# Local infrastructure. MongoDB runs as a single-node replica set because
+# multi-document transactions (tenant provisioning, billing) need one.
+#
+#   docker compose -f docker/docker-compose.yml up -d
+#   MONGO_URL=mongodb://localhost:27017/schoolgiant?replicaSet=rs0
+#
+# No Docker? `npm run dev:db` starts an embedded MongoDB replica set instead.
+services:
+  mongo:
+    image: mongo:7
+    command: ["--replSet", "rs0", "--bind_ip_all", "--port", "27017"]
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: >
+        mongosh --quiet --eval "try { rs.status().ok } catch (e) { rs.initiate({_id:'rs0',members:[{_id:0,host:'localhost:27017'}]}).ok }"
+      interval: 5s
+      timeout: 10s
+      retries: 20
+
+  mailpit:
+    image: axllent/mailpit
+    ports:
+      - "8025:8025"
+      - "1025:1025"
+
+  # HTML → PDF for printed documents (backend/src/platform/pdf.js). Internal only: the API
+  # calls it, never the browser. Locally it listens on 127.0.0.1:3000 (GOTENBERG_URL=
+  # http://127.0.0.1:3000); in production drop `ports:` and point GOTENBERG_URL at
+  # http://gotenberg:3000 on the compose network (ideally an `internal: true` network with no
+  # internet egress). Hardening — the API already inlines images and strips scripts / URLs,
+  # these flags make Chromium refuse anything that gets through:
+  #   --chromium-disable-javascript      no script runs in a print
+  #   --chromium-allow-list              Chromium may load only the request's own files
+  #                                      (Gotenberg writes them under /tmp) and data: images
+  #   --chromium-deny-list               and never http(s) / ftp / ws / other file: URLs
+  #   --api-disable-download-from        no "downloadFrom" (Gotenberg fetching URLs for us)
+  #   --webhook-disable                  no webhook callbacks to arbitrary URLs
+  #   --libreoffice-disable-routes       only the Chromium HTML route is needed
+  # VERIFY: flag names and the allow/deny regex syntax against the Gotenberg 8 docs
+  # (https://gotenberg.dev/docs/configuration) — allow/deny lists are regular expressions
+  # matched against every URL Chromium requests; check data: URIs pass the allow-list.
+  gotenberg:
+    # gotenberg/gotenberg:8 + Noto fonts for the Indic scripts and Urdu (docker/gotenberg/Dockerfile)
+    build: ./gotenberg
+    image: schoolgiant/gotenberg:8-noto
+    command:
+      - gotenberg
+      - --chromium-disable-javascript=true
+      - --chromium-allow-list=^(file:///tmp/|data:image/).*
+      - --chromium-deny-list=^(https?|ftps?|wss?)://.*
+      - --chromium-allow-file-access-from-files=false
+      - --api-disable-download-from=true
+      - --webhook-disable=true
+      - --libreoffice-disable-routes=true
+      - --prometheus-disable-collect=true
+      - --api-timeout=60s
+      - --log-level=warn
+    ports:
+      - "127.0.0.1:3000:3000"
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+
+volumes:
+  mongo-data:

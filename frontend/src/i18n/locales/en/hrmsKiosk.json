@@ -1,0 +1,52 @@
+{
+  "hrmsKiosk": {
+    "title": "Attendance kiosk",
+    "cantReach": "Can’t reach the server. Check the tablet’s connection.",
+    "somethingWrong": "Something went wrong.",
+    "setup": {
+      "title": "Set up this kiosk",
+      "hint": "Paste the kiosk key from Staff & HR › Attendance › Setup › Kiosks. The tablet remembers it.",
+      "saveStart": "Save and start"
+    },
+    "kioskKey": "Kiosk key",
+    "triesLeft_one": "{{count}} try left.",
+    "triesLeft_other": "{{count}} tries left.",
+    "broken": {
+      "title": "This kiosk can’t record punches",
+      "tryAgain": "Try again",
+      "newKey": "Enter a new key"
+    },
+    "done": {
+      "seeYou": "See you, {{name}}",
+      "welcome": "Welcome, {{name}}",
+      "markedOut": "Marked out at <b>{{time}}</b>",
+      "markedIn": "Marked in at <b>{{time}}</b>",
+      "nextPerson": "Next person"
+    },
+    "punch": {
+      "title": "Mark your attendance",
+      "hint": "Your employee code and your kiosk PIN. In or out is worked out from your duty.",
+      "employeeCode": "Employee code",
+      "pin": "PIN",
+      "digitsEntered_one": "{{count}} digit entered",
+      "digitsEntered_other": "{{count}} digits entered",
+      "punch": "Punch",
+      "noPin": "No PIN yet? Set one in My workspace › Account & security."
+    },
+    "unpair": {
+      "settings": "Kiosk settings",
+      "title": "Unpair this kiosk",
+      "unpair": "Unpair",
+      "hint": "Enter this kiosk’s key to remove it from this tablet. Staff can’t punch here until a key is entered again.",
+      "wrongKey": "That isn’t this kiosk’s key. Ask HR — they can reissue it from Attendance › Setup › Kiosks."
+    },
+    "scan": {
+      "button": "Scan ID card",
+      "title": "Scan your ID card",
+      "hint": "Hold the QR code or barcode on your staff ID card up to the camera.",
+      "cardScanned": "ID card scanned — now enter your PIN",
+      "change": "Change",
+      "notACard": "That isn’t a staff ID card. Try again, or type your employee code."
+    }
+  }
+}

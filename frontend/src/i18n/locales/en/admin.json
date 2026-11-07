@@ -1,0 +1,1907 @@
+{
+  "admin": {
+    "users": {
+      "title": "Users",
+      "subtitle": "Everyone who signs in, with the roles that decide what they can see and do.",
+      "addUser": "Add user",
+      "you": "(you)",
+      "never": "Never",
+      "searchPlaceholder": "Search name, email, mobile…",
+      "resetPassword": "Reset password",
+      "signOutDevices": "Sign out devices",
+      "deactivate": "Deactivate",
+      "reactivate": "Re-activate",
+      "form": {
+        "addTitle": "Add a user",
+        "editTitle": "Edit {{name}}",
+        "saveChanges": "Save changes",
+        "fullName": "Full name",
+        "fullNamePlaceholder": "e.g. Dr. Kavya Reddy",
+        "designation": "Designation",
+        "designationPlaceholder": "e.g. Staff nurse",
+        "email": "Email (sign-in)",
+        "mobile": "Mobile",
+        "roles": "Roles",
+        "rolesHint": "A user can hold more than one role — they get everything each role allows.",
+        "noRoles": "No roles yet.",
+        "fullAccess": "Full access",
+        "departments": "Departments",
+        "departmentsHint": "Used when a role sees “{{scope}}” only.",
+        "noDepartments": "No departments yet.",
+        "imaging": "Imaging they report",
+        "imagingHint": "Radiologists: new studies of these modalities are announced to them; “My modalities” filters their list. None = all.",
+        "branch": "Branch",
+        "mainHospital": "Main hospital",
+        "password": "Password",
+        "generateTemp": "Generate a temporary password",
+        "setNow": "Set a password now",
+        "passwordPlaceholder": "8+ characters, a letter and a number",
+        "alsoStaff": "Also add to staff (HR)",
+        "alsoStaffHint": "Creates their employee record in Staff & HR, linked to this login — no need to add them again in HR.",
+        "sendInvite": "Email an invite — they choose their own password"
+      },
+      "cols": {
+        "name": "Name",
+        "roles": "Roles",
+        "designation": "Designation",
+        "lastSignIn": "Last sign-in",
+        "status": "Status"
+      },
+      "status": {
+        "active": "Active",
+        "invited": "Invited",
+        "inactive": "Inactive"
+      },
+      "filters": {
+        "status": "Status",
+        "role": "Role",
+        "department": "Department",
+        "all": "All"
+      },
+      "stats": {
+        "activeUsers": "Active users",
+        "seatsLeft": "{{left}} seats left of {{limit}}",
+        "unlimited": "Unlimited seats",
+        "keptForHistory": "Kept for history",
+        "fullAccessAdmins": "Full-access admins",
+        "alwaysOne": "At least one is always kept",
+        "severalPerUser": "Assign several per user"
+      },
+      "empty": {
+        "noMatch": "No users match your search",
+        "none": "No users here",
+        "tryDifferent": "Try a different name or email."
+      },
+      "drawer": {
+        "subtitle": "User",
+        "email": "Email",
+        "added": "Added",
+        "emailConfirmed": "confirmed",
+        "emailNotConfirmed": "not confirmed"
+      },
+      "confirm": {
+        "deactivateTitle": "Deactivate {{name}}?",
+        "deactivateMessage": "They are signed out everywhere and can’t sign in until re-activated. Their records and history stay.",
+        "resetTitle": "Reset {{name}}’s password?",
+        "resetMessage": "A new temporary password is created and they are signed out of every device."
+      },
+      "toast": {
+        "deactivated": "{{name}} deactivated.",
+        "reactivated": "{{name}} re-activated.",
+        "signedOut_one": "Signed out of {{count}} device.",
+        "signedOut_other": "Signed out of {{count}} devices.",
+        "added": "{{name}} added.",
+        "saved": "Changes saved.",
+        "invited": "Added {{name}}. An invite is on its way to {{email}}.",
+        "inviteSent": "A new invite is on its way to {{email}}."
+      },
+      "resendInvite": "Send a new invite"
+    },
+    "numberSeries": {
+      "title": "Number series",
+      "subtitle": "How UHIDs, bills, receipts and visit numbers look. Numbers are never reused.",
+      "tokens": {
+        "label": "Tokens:",
+        "seq": "running number with 6 digits",
+        "year": "year",
+        "month": "month",
+        "day": "day",
+        "branch": "branch code",
+        "resetRule": "The running number restarts at 1 when the reset period changes — include the matching date token so numbers stay unique."
+      },
+      "cols": {
+        "document": "Document",
+        "pattern": "Pattern",
+        "reset": "Running number restarts",
+        "next": "Next number"
+      },
+      "moduleOff": "module off",
+      "perBranch": "per branch",
+      "issued": "{{issued}} issued · last {{last}}",
+      "noneIssued": "None issued yet",
+      "customised": "customised",
+      "saved": "{{doc}} numbers will look like {{example}}.",
+      "problems": {
+        "empty": "Enter a pattern",
+        "tooLong": "Keep it under 40 characters",
+        "noSeq": "Include a running number, e.g. {SEQ:5}",
+        "badChars": "Use letters, digits, - and / only",
+        "unknownToken": "Unknown token {{token}}"
+      },
+      "docs": {
+        "UHID": {
+          "label": "Patient UHID",
+          "hint": "One per patient, shared by every branch."
+        },
+        "APPOINTMENT": {
+          "label": "Appointment"
+        },
+        "OP_VISIT": {
+          "label": "OPD visit"
+        },
+        "IP_ADMISSION": {
+          "label": "IP admission"
+        },
+        "GATE_PASS": {
+          "label": "Gate pass"
+        },
+        "ER_VISIT": {
+          "label": "Emergency visit"
+        },
+        "MLC": {
+          "label": "Medico-legal case"
+        },
+        "OT_CASE": {
+          "label": "Operation"
+        },
+        "PREAUTH": {
+          "label": "Pre-authorisation"
+        },
+        "CLAIM": {
+          "label": "Insurance claim"
+        },
+        "MRD_REQUEST": {
+          "label": "Medical record request"
+        },
+        "CSSD_CYCLE": {
+          "label": "Sterilisation cycle"
+        },
+        "CSSD_ISSUE": {
+          "label": "CSSD issue"
+        },
+        "AMB_REQUEST": {
+          "label": "Ambulance request"
+        },
+        "AMB_TRIP": {
+          "label": "Ambulance trip"
+        },
+        "EMPLOYEE": {
+          "label": "Employee code",
+          "hint": "One per employee, shared by every branch."
+        },
+        "HR_REQUISITION": {
+          "label": "Staff requisition"
+        },
+        "EXPENSE_CLAIM": {
+          "label": "Expense claim"
+        },
+        "PAYROLL_RUN": {
+          "label": "Payroll run"
+        },
+        "PAYSLIP": {
+          "label": "Payslip",
+          "hint": "Dated by the payroll month, not the day it is calculated."
+        },
+        "PAYROLL_LOAN": {
+          "label": "Staff loan / advance"
+        },
+        "PAGE_CALL": {
+          "label": "Staff call / code"
+        },
+        "COMPLAINT": {
+          "label": "Complaint"
+        },
+        "BILL": {
+          "label": "Bill / invoice"
+        },
+        "RECEIPT": {
+          "label": "Receipt"
+        },
+        "RX": {
+          "label": "Prescription"
+        },
+        "CERTIFICATE": {
+          "label": "Certificate / letter"
+        },
+        "RAD_ACCESSION": {
+          "label": "Imaging accession"
+        },
+        "LAB_SAMPLE": {
+          "label": "Lab sample"
+        },
+        "LAB_DISPATCH": {
+          "label": "Outsourced-test dispatch"
+        },
+        "PH_BILL": {
+          "label": "Pharmacy bill"
+        },
+        "PH_RETURN": {
+          "label": "Pharmacy return"
+        },
+        "PO": {
+          "label": "Purchase order"
+        },
+        "GRN": {
+          "label": "Goods receipt"
+        },
+        "PURCHASE_REQ": {
+          "label": "Purchase requisition"
+        },
+        "DEBIT_NOTE": {
+          "label": "Purchase return (debit note)"
+        },
+        "TRANSFER": {
+          "label": "Stock transfer"
+        },
+        "INDENT": {
+          "label": "Indent"
+        },
+        "ADJUSTMENT": {
+          "label": "Stock adjustment"
+        },
+        "STOCK_COUNT": {
+          "label": "Physical stock count"
+        },
+        "FIN_JOURNAL": {
+          "label": "Journal voucher"
+        },
+        "FIN_RECEIPT": {
+          "label": "Receipt voucher"
+        },
+        "FIN_PAYMENT": {
+          "label": "Payment voucher"
+        },
+        "FIN_CONTRA": {
+          "label": "Contra voucher"
+        },
+        "FIN_SALES": {
+          "label": "Sales voucher"
+        },
+        "FIN_PURCHASE": {
+          "label": "Purchase voucher"
+        },
+        "DOC_PAYOUT": {
+          "label": "Doctor payout statement"
+        },
+        "INCIDENT": {
+          "label": "Incident report"
+        },
+        "QUALITY_AUDIT": {
+          "label": "Quality audit"
+        },
+        "HAI_CASE": {
+          "label": "Infection (HAI) case"
+        },
+        "BB_DONOR": {
+          "label": "Blood donor ID",
+          "hint": "One per donor, kept for every later donation."
+        },
+        "BB_UNIT": {
+          "label": "Blood bag / unit number",
+          "hint": "Printed as the bag barcode; components add a letter (R, F, P, C)."
+        },
+        "BB_REQUEST": {
+          "label": "Blood request"
+        },
+        "BB_ISSUE": {
+          "label": "Blood issue"
+        },
+        "ASSET_TAG": {
+          "label": "Equipment asset tag",
+          "hint": "Printed on the asset’s barcode / QR label."
+        },
+        "ASSET_WO": {
+          "label": "Maintenance work order"
+        },
+        "ASSET_BREAKDOWN": {
+          "label": "Equipment breakdown ticket"
+        }
+      },
+      "resets": {
+        "NEVER": "Never",
+        "YEAR": "Every year",
+        "FY": "Every financial year (April)",
+        "MONTH": "Every month",
+        "DAY": "Every day"
+      }
+    },
+    "printTemplates": {
+      "docs": {
+        "RX": "Prescription",
+        "OPD_BILL": "OPD bill & receipt",
+        "LAB_REPORT": "Lab report",
+        "RAD_REPORT": "Radiology report",
+        "PHARMACY_BILL": "Pharmacy bill",
+        "CERTIFICATE": "Certificates & letters",
+        "DISCHARGE_SUMMARY": "Discharge summary",
+        "IPD_BILL": "Inpatient bill",
+        "INTERIM_BILL": "Inpatient interim bill",
+        "GATE_PASS": "Gate pass",
+        "OT_NOTE": "Operation note",
+        "ER_RECORD": "ER record",
+        "MLC_INTIMATION": "MLC police intimation",
+        "ADMISSION_FORM": "Admission form & consent",
+        "DEPOSIT_RECEIPT": "Deposit receipt",
+        "HR_OFFER_LETTER": "Offer letter",
+        "HR_APPOINTMENT_LETTER": "Appointment letter",
+        "HR_RELIEVING_LETTER": "Relieving letter",
+        "HR_EXPERIENCE_LETTER": "Experience certificate",
+        "PAYSLIP": "Payslip",
+        "PURCHASE_ORDER": "Purchase order",
+        "HR_ID_CARD": "Staff ID card",
+        "CREDIT_NOTE": "Credit note"
+      },
+      "papers": {
+        "A4": "A4 (210 × 297 mm)",
+        "A5": "A5 (148 × 210 mm)",
+        "LETTER": "Letter (8.5 × 11 in)",
+        "THERMAL_80": "Receipt roll (80 mm)",
+        "CARD_PORTRAIT": "ID card, upright (54 × 85.6 mm)",
+        "CARD_LANDSCAPE": "ID card, sideways (85.6 × 54 mm)"
+      },
+      "modes": {
+        "FULL": {
+          "label": "Print our letterhead",
+          "hint": "Logo, name, address and registrations at the top."
+        },
+        "PREPRINTED": {
+          "label": "Pre-printed stationery",
+          "hint": "Leave blank space at the top and bottom for paper that already has the letterhead."
+        },
+        "NONE": {
+          "label": "No letterhead",
+          "hint": "Just the hospital name in one line, e.g. for receipt rolls."
+        }
+      },
+      "title": "Print templates",
+      "subtitle": "Your letterhead, and for every printed document its paper, margins, footer — and the document itself, as an editable template.",
+      "tabs": {
+        "documents": "Documents",
+        "letterhead": "Letterhead"
+      },
+      "layoutLine": "{{paper}} · {{mode}}",
+      "layoutLineLandscape": "{{paper}} landscape · {{mode}}",
+      "shortModes": {
+        "FULL": "Our letterhead",
+        "PREPRINTED": "Pre-printed paper",
+        "NONE": "None"
+      },
+      "idLabels": {
+        "registrationNo": "Registration no.",
+        "nabhNo": "NABH",
+        "gstin": "GSTIN",
+        "hfrId": "HFR ID"
+      },
+      "letterhead": {
+        "title": "Letterhead",
+        "subtitle": "Printed at the top of every document that uses “Print our letterhead”.",
+        "saved": "Letterhead saved. Every document prints with it from now on.",
+        "profileNote": "The name, logo, address, phone and registration numbers come from the <link>hospital profile</link>. Here you choose how they are laid out.",
+        "alignment": "Alignment",
+        "alignLeftHint": "Hospital on the left, the document’s own details on the right.",
+        "alignCenterHint": "Hospital centred; the document’s details under it.",
+        "alignLeft": "Left",
+        "alignCenter": "Centred",
+        "logo": "Logo",
+        "noLogo": "(none uploaded)",
+        "contacts": "Phone, email and website",
+        "ids": "Registration numbers to show",
+        "notInProfile": "not in the profile",
+        "tagline": "Tagline",
+        "taglineHint": "One line under the name, e.g. “Caring since 1998”.",
+        "accent": "Accent colour",
+        "accentHint": "The hospital name and the rule under the letterhead. Empty uses your brand colour.",
+        "useBrand": "Use brand colour",
+        "footer": "Footer for every document",
+        "footerHint": "e.g. “24 × 7 emergency: 080 4000 1000”. A template can replace it.",
+        "save": "Save letterhead"
+      },
+      "previewA4": "Preview · A4",
+      "previewPaper": "Preview · {{paper}}",
+      "preview": "Preview",
+      "latestRecord": "your latest record",
+      "standardLayout": "Standard layout",
+      "usesSoon": "Uses templates soon",
+      "docSubtitle": "Prints with “{{name}}”. Add templates for other stationery and choose the default.",
+      "newTemplate": "New template",
+      "notReady": "The {{doc}} printout does not read these templates yet; it will once it is switched over. Templates you save now apply from then.",
+      "builtIn": "Built in",
+      "nowDefault": "{{name}} is now the default.",
+      "default": "Default",
+      "changedBy": "changed by {{name}}",
+      "makeDefault": "Make default",
+      "copyName": "{{name}} copy",
+      "savedTemplate": "{{name}} saved.",
+      "deleted": "{{name}} deleted.",
+      "deleteTitle": "Delete {{name}}?",
+      "deleteDefaultMsg": "It is the default: the next template takes over, or the standard layout if there is none.",
+      "deleteMsg": "Documents keep printing with the default template.",
+      "deleteConfirm": "Delete template",
+      "editTitle": "Edit “{{name}}”",
+      "newTitle": "New {{doc}} template",
+      "namePlaceholder": "e.g. Pre-printed stationery",
+      "paper": "Paper",
+      "orientation": "Orientation",
+      "portrait": "Portrait",
+      "landscape": "Landscape",
+      "headerSpace": "Space for printed header (mm)",
+      "footerSpace": "Space for printed footer (mm)",
+      "marginsMm": "Margins (mm)",
+      "margins": {
+        "top": "Top",
+        "right": "Right",
+        "bottom": "Bottom",
+        "left": "Left"
+      },
+      "marginAria": {
+        "top": "Top margin",
+        "right": "Right margin",
+        "bottom": "Bottom margin",
+        "left": "Left margin"
+      },
+      "textSize": "Text size",
+      "textSizeHint": "100% is the standard size.",
+      "footerText": "Footer text",
+      "footerTextHint": "Replaces the letterhead footer on this document only. Leave empty to use it.",
+      "qrCode": "QR code",
+      "qrToVerify": "QR code to verify",
+      "printedOnDate": "Printed on date",
+      "printedOnQuoted": "“Printed on” date",
+      "defaultFor": "Default for {{doc}}",
+      "inUse": "In use",
+      "docBody": "Document body",
+      "customise": "Customise",
+      "useStandard": "Use the standard layout",
+      "standardBodyNote": "Prints with the standard {{doc}}. Customise to change what it shows and how — the template is Handlebars HTML, filled with the record’s data when printed.",
+      "templateBody": "Template body",
+      "showVars": "Show the data you can use",
+      "hideVars": "Hide the data you can use",
+      "helpers": "Helpers:",
+      "examples": "Examples:",
+      "saveTemplate": "Save template",
+      "cardNote": "ID cards print edge to edge at the card size, without the letterhead — the design draws its own header. The card colour, the fields shown, the back side and its texts are set in Settings › Staff & HR.",
+      "designPicker": {
+        "title": "Pick a starting design",
+        "subtitle": "Each design follows the card settings in Settings › Staff & HR. After picking, you can change anything and preview it live.",
+        "use": "Use this design"
+      },
+      "designs": {
+        "modern": {
+          "name": "Modern",
+          "hint": "Gradient header, the photo set over it, a facts grid with QR and an emergency strip."
+        },
+        "classic": {
+          "name": "Classic",
+          "hint": "Solid colour band with the logo, a framed photo, a details table and a coloured footer."
+        },
+        "minimal": {
+          "name": "Minimal",
+          "hint": "Plenty of white space, a small logo, a large name and a thin accent line."
+        },
+        "corporate": {
+          "name": "Corporate",
+          "hint": "A coloured panel with the logo and photo, details on white and a barcode."
+        }
+      }
+    },
+    "notificationSetup": {
+      "channels": {
+        "SMS": "SMS",
+        "WHATSAPP": "WhatsApp",
+        "EMAIL": "Email"
+      },
+      "statuses": {
+        "QUEUED": "Queued",
+        "SENDING": "Sending",
+        "SENT": "Sent",
+        "FAILED": "Failed",
+        "SKIPPED": "Not sent"
+      },
+      "providers": {
+        "SMS": {
+          "NONE": "Off",
+          "TEST": "Test mode (log only)",
+          "HTTP": "SMS gateway (HTTP API)",
+          "MSG91": "MSG91"
+        },
+        "WHATSAPP": {
+          "NONE": "Off",
+          "TEST": "Test mode (log only)",
+          "META": "WhatsApp Cloud API (Meta)",
+          "HTTP": "WhatsApp provider (HTTP API)"
+        },
+        "EMAIL": {
+          "NONE": "Off",
+          "TEST": "Test mode (log only)",
+          "SMTP": "SMTP server"
+        }
+      },
+      "events": {
+        "appointments_booked": {
+          "label": "Appointment booked",
+          "when": "As soon as an appointment is booked."
+        },
+        "appointments_rescheduled": {
+          "label": "Appointment moved",
+          "when": "When an appointment gets a new date, time or doctor."
+        },
+        "appointments_cancelled": {
+          "label": "Appointment cancelled",
+          "when": "When the hospital cancels an appointment."
+        },
+        "appointments_reminder": {
+          "label": "Appointment reminder",
+          "when": "A day before, and a few hours before (Settings › Appointments)."
+        },
+        "opd_rx_issued": {
+          "label": "Prescription",
+          "when": "When the doctor signs a consult with medicines."
+        },
+        "lab_report_ready": {
+          "label": "Lab report ready",
+          "when": "When every test on a lab order is verified."
+        },
+        "patients_otp": {
+          "label": "One-time code",
+          "when": "When someone books online or checks in at the kiosk with their mobile number."
+        },
+        "billing_bill_created": {
+          "label": "Bill and receipt",
+          "when": "When a bill is saved at the billing counter."
+        },
+        "feedback_requested": {
+          "label": "Feedback request",
+          "when": "After discharge or a signed OPD consult (Settings › Feedback)."
+        },
+        "radiology_images_shared": {
+          "label": "Imaging shared with a doctor",
+          "when": "When staff share a study’s images with an outside doctor and type in their mobile or email."
+        }
+      },
+      "varHelp": {
+        "patient_name": "Patient’s full name",
+        "patient_firstName": "Patient’s first name",
+        "patient_uhid": "UHID",
+        "hospital_name": "Hospital name",
+        "hospital_phone": "Hospital phone",
+        "appt_no": "Appointment number",
+        "appt_date": "Appointment date, e.g. Tue, 7 Oct",
+        "appt_time": "Appointment time, e.g. 10:30 AM",
+        "appt_oldDate": "Date before rescheduling",
+        "appt_oldTime": "Time before rescheduling",
+        "appt_reason": "Reason given for cancelling",
+        "doctor_name": "Doctor’s name",
+        "bill_no": "Bill number",
+        "bill_amount": "Bill amount, e.g. ₹850",
+        "bill_paid": "Amount paid",
+        "bill_due": "Balance due",
+        "appt_when": "“today” or “tomorrow”",
+        "rx_no": "Prescription number",
+        "rx_link": "Link to view and download the prescription",
+        "visit_date": "Date of the visit",
+        "followUp_text": "The next visit, if one was booked (empty otherwise)",
+        "report_link": "Link to view and download the report",
+        "report_tests": "Tests on the report",
+        "otp_code": "The one-time code",
+        "otp_minutes": "Minutes the code stays valid",
+        "feedback_link": "Link to the feedback form",
+        "feedback_visit": "“visit” or “stay”",
+        "feedback_days": "Days the link works",
+        "share_link": "Link to the shared images",
+        "share_study": "The imaging study, e.g. CT Brain",
+        "share_patient": "Patient’s name",
+        "share_expires": "When the link stops working",
+        "share_by": "Who shared it",
+        "recipient_name": "The doctor it is sent to"
+      },
+      "title": "Notification rules",
+      "subtitle": "The SMS, WhatsApp and email patients get when something happens — the wording, how it is sent, and what went out.",
+      "tabs": {
+        "messages": "Patient messages",
+        "delivery": "Delivery",
+        "log": "Message log"
+      },
+      "alwaysOn": "Always on — online booking and the kiosk need it",
+      "yourWording": "Your wording",
+      "defaultWording": "Default wording",
+      "subject": "Subject",
+      "message": "Message",
+      "smsCount_one": "{{count}} character · {{parts}} SMS with sample values",
+      "smsCount_other": "{{count}} characters · {{parts}} SMS with sample values",
+      "smsCountUnicode_one": "{{count}} character · {{parts}} SMS (Unicode) with sample values",
+      "smsCountUnicode_other": "{{count}} characters · {{parts}} SMS (Unicode) with sample values",
+      "dltId": "DLT template id",
+      "dltIdHint": "Indian SMS gateways need the id of the template registered on DLT. The message must match it word for word.",
+      "dltIdPlaceholder": "e.g. 1207160000000012345",
+      "approvedTemplate": "Approved template",
+      "approvedTemplateHint": "For the Cloud API. Blank sends the text above.",
+      "language": "Language",
+      "templateValues": "Template values, in order",
+      "previewSample": "Preview with sample values",
+      "empty": "Empty",
+      "savedRule": "Saved “{{name}}”.",
+      "undoChanges": "Undo changes",
+      "consentNote": "Patients get these only if they agreed to that channel at registration, and only once the channel is set up under Delivery.",
+      "secretSaved": "Saved. Leave blank to keep it.",
+      "method": "Method",
+      "bodyAs": "Body as",
+      "form": "Form",
+      "body": "Body",
+      "headers": "Headers",
+      "headerName": "Header name",
+      "headerValue": "Header value",
+      "removeHeader": "Remove header",
+      "addHeader": "Add header",
+      "apiKey": "API key",
+      "placeholders": "Placeholders:",
+      "toIs": "is 91XXXXXXXXXX",
+      "to10Is": "the last 10 digits",
+      "encodedNote": "Values are encoded for the URL or JSON body automatically.",
+      "deliverySaved": "{{channel}} delivery saved.",
+      "offSubtitle": "Off — messages on this channel are listed as not sent.",
+      "testSubtitle": "Test mode — messages are written to the log but not sent. Good for training.",
+      "sendWith": "Send with",
+      "senderId": "Sender id",
+      "senderIdHint": "The 6-letter header registered on DLT, e.g. CTYCRE.",
+      "senderIdHintShort": "The 6-letter DLT header, e.g. CTYCRE.",
+      "msg91Key": "MSG91 auth key",
+      "route": "Route",
+      "transactional": "Transactional",
+      "promotional": "Promotional",
+      "msg91Note": "Each message needs its DLT template id (Patient messages › SMS). Delivery reports: Integrations › SMS & WhatsApp.",
+      "phoneNumberId": "Phone number id",
+      "accessToken": "Access token",
+      "apiVersion": "API version",
+      "smtpServer": "SMTP server",
+      "port": "Port",
+      "sslPort": "SSL (port 465)",
+      "userName": "User name",
+      "password": "Password",
+      "from": "From",
+      "sendTestTo": "Send a test to",
+      "mobileNumber": "Mobile number",
+      "saveFirst": "Save first",
+      "sendTest": "Send test",
+      "sentTo": "Sent to {{to}}.",
+      "sentToTest": "Sent to {{to}} (test mode — logged only).",
+      "notSent": "Not sent: {{reason}}",
+      "requeued": "Queued to send again.",
+      "all": "All",
+      "last7Days": "Last 7 days · {{status}}:",
+      "searchPlaceholder": "Search patient, number or text…",
+      "channel": "Channel",
+      "cols": {
+        "when": "When",
+        "to": "To"
+      },
+      "testMessage": "Test message",
+      "emptyTitle": "No messages yet",
+      "emptyHint": "Book an appointment or save a bill: the patient’s messages appear here.",
+      "sendAgain": "Send again",
+      "sentWith": "Sent with",
+      "attempts": "Attempts",
+      "providerRef": "Provider reference",
+      "dltTemplate": "DLT template",
+      "waTemplate": "WhatsApp template"
+    },
+    "workflows": {
+      "types": {
+        "billing_discount": {
+          "label": "Discount above the limit",
+          "help": "A cashier asks before saving a bill with a bigger discount than their role allows. Once approved, they can save that patient’s bill with up to the approved discount, once."
+        },
+        "billing_cancel": {
+          "label": "Cancel a bill",
+          "help": "For a bill the cashier can’t cancel alone: someone else’s, from an earlier day, or with a refund above their limit. Approving cancels the bill; the refund is recorded at the cashier’s counter."
+        }
+      },
+      "title": "Workflows & approvals",
+      "subtitle": "When a role can’t do something on its own, who may say yes. Add a second step for big amounts.",
+      "emptyTitle": "No approvals for your modules yet",
+      "emptyHint": "Approvals arrive with the modules that need them — Billing first.",
+      "noLimit": "no limit",
+      "upTo": "up to {{value}}",
+      "saved": "Saved the rule for “{{name}}”.",
+      "approvalsOn": "Approvals on",
+      "whoCanApprove": "Who can approve today: anyone holding <b>{{approver}}</b>, within their role’s <b>{{limit}}</b>, and never the person who asked.",
+      "noApprover": "No role can approve this yet. Give a role “{{approver}}” in Roles & permissions.",
+      "offNote": "Off: nobody can ask for this approval. People whose role can’t do it on their own are simply refused.",
+      "stepName": "Step name",
+      "stepNamePlaceholder": "e.g. Billing manager",
+      "onlyAbove": "only above",
+      "onlyAboveAria": "Only above",
+      "removeStep": "Remove step",
+      "whoDecides": "Who decides this step",
+      "onlyRoles": "Only people with {{roles}}.",
+      "orSeparator": " or ",
+      "anyApprover": "Anyone who can approve (above).",
+      "addStep": "Add a step",
+      "permitHours": "An approval stays usable for (hours)",
+      "expiryHours": "A request expires after (hours)",
+      "saveRule": "Save rule",
+      "undoChanges": "Undo changes"
+    },
+    "subscription": {
+      "limits": {
+        "users": "Users",
+        "branches": "Branches",
+        "beds": "Beds",
+        "storageGb": "Storage"
+      },
+      "title": "Subscription & billing",
+      "subtitle": "Your plan, what you use, and your invoices.",
+      "status": {
+        "TRIAL": "Free trial",
+        "ACTIVE": "Active",
+        "PAST_DUE": "Payment due",
+        "TRIAL_EXPIRED": "Trial ended",
+        "SUSPENDED": "Suspended",
+        "CANCELLED": "Cancelled"
+      },
+      "invStatus": {
+        "DUE": "Due",
+        "PAID": "Paid",
+        "VOID": "Void"
+      },
+      "kinds": {
+        "NEW": "New subscription",
+        "RENEWAL": "Renewal",
+        "PLAN_CHANGE": "Plan change"
+      },
+      "events": {
+        "VERIFIED": "Hospital verified",
+        "VERIFICATION_REMOVED": "Verification removed",
+        "TRIAL_STARTED": "Free trial started",
+        "PLAN_CHANGED": "Plan changed",
+        "INVOICE_ISSUED": "Invoice issued",
+        "PAYMENT_RECORDED": "Payment received",
+        "STATUS_CHANGED": "Status changed",
+        "TRIAL_EXTENDED": "Trial extended",
+        "LIMITS_CHANGED": "Limits changed",
+        "INVOICE_VOIDED": "Invoice voided"
+      },
+      "cycleYearly": "yearly",
+      "cycleMonthly": "monthly",
+      "yearly": "Yearly",
+      "monthly": "Monthly",
+      "yearlyFree": "Yearly · 2 months free",
+      "subscribeTo": "Subscribe to {{plan}}",
+      "switchTo": "Switch to {{plan}}",
+      "upgradeTo": "Upgrade to {{plan}}",
+      "switchToYearly": "Switch to yearly",
+      "switchToMonthly": "Switch to monthly",
+      "yourPlan": "Your plan",
+      "subscribeAndInvoice": "Subscribe & get invoice",
+      "confirmChange": "Confirm change",
+      "tooSmall": "The {{plan}} plan is too small for what you use today: {{problems}}. Reduce usage first or pick a bigger plan.",
+      "problem": "{{used}} {{what}} (limit {{limit}})",
+      "modulesAdded": "Modules added ({{count}})",
+      "modulesRemoved": "Modules switched off ({{count}})",
+      "removedNote": "Their data is kept. Roles keep these permissions and get them back if you upgrade again.",
+      "gstPct": "GST {{pct}}%",
+      "totalPerYear": "Total per year",
+      "totalPerMonth": "Total per month",
+      "invoiceNote": "A new billing period starts today and an invoice is raised, due in 7 days. Access to the new plan starts right away.",
+      "trialSwitchNote": "You are on a free trial — the switch is immediate and free. Your trial end date does not change.",
+      "invoiceRaised": "Invoice raised. Pay it to activate the subscription.",
+      "planChanged": "Plan changed. Your menu now shows the new plan’s modules.",
+      "currentPlan": "Current plan",
+      "pricePerYear": "{{price}} / year + GST",
+      "pricePerMonth": "{{price}} / month + GST",
+      "moduleCount_one": "{{count}} module",
+      "moduleCount_other": "{{count}} modules",
+      "trialEnds": "Trial ends",
+      "trialEndsDays_one": "{{date}} ({{count}} day)",
+      "trialEndsDays_other": "{{date}} ({{count}} days)",
+      "currentPeriod": "Current period",
+      "billing": "Billing",
+      "openInvoice": "Open invoice",
+      "none": "None",
+      "dueBy": "Due by",
+      "customerSince": "Customer since",
+      "payNote": "Pay by bank transfer or UPI using the invoice number as reference. Online card/UPI checkout is coming soon; your account manager records the payment and the subscription activates immediately.",
+      "usage": "Usage",
+      "usageNote": "Beds and storage are counted once the IPD module and file storage are in use.",
+      "plans": "Plans",
+      "mostPopular": "Most popular",
+      "perMonth": "/ month",
+      "billedYearly": "{{price}} billed yearly",
+      "billedMonthly": "billed monthly",
+      "plusGst": "+ GST",
+      "planUsers_one": "{{count}} user",
+      "planUsers_other": "{{count}} users",
+      "planBranches_one": "{{count}} branch",
+      "planBranches_other": "{{count}} branches",
+      "planBeds_one": "{{count}} bed",
+      "planBeds_other": "{{count}} beds",
+      "whatEachIncludes": "What each plan includes",
+      "module": "Module",
+      "invoices": "Invoices",
+      "invoice": "Invoice",
+      "type": "Type",
+      "period": "Period",
+      "total": "Total",
+      "paidOn": "Paid {{date}}",
+      "dueOn": "Due {{date}}",
+      "noInvoices": "No invoices yet",
+      "noInvoicesTrial": "You are on a free trial — the first invoice is raised when you subscribe.",
+      "activity": "Activity",
+      "nothingYet": "Nothing yet.",
+      "printPdf": "Print / save PDF",
+      "billedTo": "Billed to",
+      "plan": "Plan",
+      "issued": "Issued",
+      "paymentRef": "Payment reference",
+      "subscription": "Subscription",
+      "print": {
+        "taxInvoice": "Tax invoice",
+        "sac": "SaaS subscription · SAC 998314",
+        "issuedOn": "Issued {{date}}",
+        "dueOn": "Due {{date}}",
+        "status": "Status:",
+        "planLine": "{{plan}} plan · {{cycle}}",
+        "paidOn": "Paid on {{date}} by {{method}}.",
+        "paidOnRef": "Paid on {{date}} by {{method}} (ref {{ref}}).",
+        "button": "Print"
+      },
+      "payNow": "Pay {{amount}} now",
+      "payOnlineNote": "Pay by card, UPI or net banking. The subscription stays active as soon as the payment goes through.",
+      "checkoutFailed": "The payment window didn’t open. Check your connection, or allow checkout.razorpay.com, and try again.",
+      "paymentDone": "Payment received. Thank you — your subscription is active.",
+      "paymentFlagged": "We received your payment, but this invoice was already settled. It will be refunded — no action needed.",
+      "paymentFailed": "The payment didn’t go through. No money was taken; you can try again.",
+      "discount": "Discount",
+      "cgst": "CGST {{pct}}%",
+      "sgst": "SGST {{pct}}%",
+      "igst": "IGST {{pct}}%",
+      "coupon": "Coupon code",
+      "couponPlaceholder": "Have a code?",
+      "couponApply": "Apply",
+      "couponRemove": "Remove",
+      "couponApplied": "{{code}} applied — the price above includes it.",
+      "downloadPdf": "Download PDF",
+      "pdfFailed": "The PDF couldn’t be made just now. Use Print instead."
+    },
+    "allPages": {
+      "title": "All pages & actions",
+      "subtitle": "Everything in your {{plan}} plan — what Hospital Admin can open. Use it as the map when designing roles.",
+      "roles": "Roles",
+      "stats": {
+        "modules": "Modules",
+        "moreOnBigger_one": "{{count}} more on bigger plans",
+        "moreOnBigger_other": "{{count}} more on bigger plans",
+        "everythingIncluded": "Everything is included",
+        "pages": "Pages",
+        "pagesSub": "Each one can be given to a role",
+        "actions": "Actions",
+        "actionsSub": "View, create, approve, sign…",
+        "sensitive": "Sensitive actions",
+        "sensitiveSub": "Flagged when granted"
+      },
+      "searchPlaceholder": "Find a page or action…",
+      "setupPage": "Setup page",
+      "soon": "soon",
+      "lockedTitle": "On bigger plans or switched off ({{count}})",
+      "comparePlans": "Compare plans →"
+    },
+    "masters": {
+      "title": "Masters hub",
+      "subtitle": "Every master list and set-up screen in one place, with how much is in each.",
+      "stats": {
+        "lists": "Master lists",
+        "listsSub": "Lists with records",
+        "records": "Records",
+        "recordsSub": "Across those lists",
+        "inactive": "Inactive records",
+        "inactiveSub": "Switched off, kept for history",
+        "screens": "Set-up screens",
+        "screensSub": "Your role can open"
+      },
+      "searchPlaceholder": "Find a list or setting…",
+      "noMatch": "Nothing matches your search.",
+      "noScreens": "Your role cannot open any set-up screen.",
+      "soon": "Soon",
+      "recordCount_one": "<b>{{n}}</b> record",
+      "recordCount_other": "<b>{{n}}</b> records",
+      "inactiveCount": "{{n}} inactive",
+      "updatedOn": "updated {{date}}"
+    },
+    "modules": {
+      "title": "Modules",
+      "subtitle": "Switch modules on or off within your plan. A switched-off module disappears from every menu.",
+      "switchedOn": "{{name}} switched on.",
+      "switchedOff": "{{name}} switched off.",
+      "confirmOff": {
+        "title": "Switch off {{name}}?",
+        "message": "Its pages disappear from every role’s menu. Data is kept, and role permissions come back when you switch it on again.",
+        "confirm": "Switch off"
+      },
+      "stats": {
+        "switchedOn": "Switched on",
+        "ofInPlan_one": "of {{count}} in your {{plan}} plan",
+        "ofInPlan_other": "of {{count}} in your {{plan}} plan",
+        "onBiggerPlans": "On bigger plans",
+        "upgradeToUnlock": "Upgrade to unlock",
+        "youHaveEverything": "You have everything"
+      },
+      "dependencyNote": "Some modules need others — IPD needs Billing, Nursing needs IPD. Switch the needed module on first; a module others depend on can't be switched off until they are.",
+      "reason": {
+        "alwaysOn": "Always on",
+        "notInPlan": "Not in the {{plan}} plan",
+        "neededBy": "Needed by {{names}}",
+        "needsFirst": "Needs {{names}} first"
+      },
+      "switchLabel": "{{name}} on/off",
+      "upgrade": "Upgrade",
+      "pageCount_one": "{{count}} page",
+      "pageCount_other": "{{count}} pages",
+      "arrivesInPhase": "arrives in phase {{phase}}",
+      "hub": {
+        "standardPlan": "Standard",
+        "planBadge": "{{plan}} Plan",
+        "activeSummary": "{{on}} active · {{pages}} pages unlocked",
+        "subscriptionPlans": "Subscription & Plans",
+        "planCoverage": "Plan Module Coverage",
+        "lockedCount": "{{count}} locked",
+        "allUnlocked": "All unlocked",
+        "totalPages": "{{count}} total pages",
+        "searchModules": "Search modules…",
+        "filterByStatus": "Filter By Status",
+        "allModules": "All Modules",
+        "activeCount": "Active ({{count}})",
+        "inactive": "Inactive",
+        "lockedFilter": "Locked ({{count}})",
+        "moduleCategories": "Module Categories",
+        "allCategories": "All Categories",
+        "dependencyEngine": "Dependency Engine",
+        "unlockedPages": "Unlocked Pages",
+        "workflowsAvailable": "Workflows available across menu",
+        "mandatoryCore": "Mandatory Core",
+        "alwaysActive": "Always active for security & compliance",
+        "filteredCategory": "Filtered category:",
+        "viewAllCategories": "View All Categories",
+        "noMatchTitle": "No modules match your filter",
+        "noMatchHint": "Try clearing your search query or switching your status filter to “All Modules”.",
+        "resetFilters": "Reset all filters",
+        "oneModule": "1 module",
+        "moduleCount": "{{count}} modules",
+        "switchedOnCount": "{{count}} switched on",
+        "mandatory": "Mandatory",
+        "active": "Active",
+        "off": "Off",
+        "coreSystem": "Core System",
+        "planLocked": "Plan Locked",
+        "requiredByOne": "Required by 1 module",
+        "requiredByMany": "Required by {{count}} modules",
+        "requiresModule": "Requires {{name}}",
+        "requiresDeps": "Requires {{count}} dependencies",
+        "activeWorkflow": "Active Workflow",
+        "readyToEnable": "Ready to Enable"
+      }
+    },
+    "roles": {
+      "title": "Roles & permissions",
+      "subtitle": "Decide what each role can see (pages) and do (actions), and whose records it sees.",
+      "compare": "Compare",
+      "newRole": "New role",
+      "builtIn": "Built-in",
+      "fullAccess": "Full access",
+      "modules_one": "{{count}} module",
+      "modules_other": "{{count}} modules",
+      "permissions_one": "{{count}} permission",
+      "permissions_other": "{{count}} permissions",
+      "sensitiveActions": "Sensitive actions",
+      "sensitiveCount_one": "{{count}} sensitive",
+      "sensitiveCount_other": "{{count}} sensitive",
+      "sameBothSteps": "Same person does both steps",
+      "dutyOverlap_one": "{{count}} duty overlap",
+      "dutyOverlap_other": "{{count}} duty overlaps",
+      "open": "Open",
+      "duplicate": "Duplicate",
+      "empty": "No roles yet",
+      "note": "Changes to a role reach its users on their next click — nobody needs to sign out. Every change is kept in the role's history and the audit log.",
+      "cols": {
+        "role": "Role",
+        "users": "Users",
+        "access": "Access",
+        "seesRecords": "Sees records",
+        "flags": "Flags"
+      },
+      "stats": {
+        "roles": "Roles",
+        "designed_one": "{{count}} designed by your team",
+        "designed_other": "{{count}} designed by your team",
+        "usersWithRole": "Users with a role",
+        "holdSeveral": "A user can hold several",
+        "toReview": "Roles to review",
+        "toReviewSub": "Sensitive actions or duty overlap"
+      },
+      "onlyAdmin": {
+        "title": "Only the Hospital Admin role exists",
+        "body": "Create roles for your team — Front Desk, Doctor, Nurse, Cashier… Start from 22 recommended roles or design your own, then decide page by page what each can do.",
+        "pickRecommended": "Pick recommended roles",
+        "blank": "Blank role"
+      },
+      "delete": {
+        "title": "Delete “{{name}}”?",
+        "confirm": "Delete role",
+        "members_one": "<b>{{count}} user</b> has this role. Choose the role they move to — their access changes on their next click.",
+        "members_other": "<b>{{count}} users</b> have this role. Choose the role they move to — their access changes on their next click.",
+        "moveTo": "Move members to",
+        "chooseRole": "Choose a role…",
+        "noMembers": "No one has this role. Deleting it can't be undone, but its history stays in the audit log."
+      },
+      "toast": {
+        "cloned": "Created “{{name}}”. Adjust it and save.",
+        "deleted": "Deleted “{{name}}”."
+      }
+    },
+    "roleCompare": {
+      "title": "Compare roles",
+      "subtitle": "See exactly how roles differ — page by page, action by action.",
+      "roles": "Roles",
+      "remove": "Remove {{name}}",
+      "addRole": "Add a role…",
+      "onlyDiff": "Only differences",
+      "pickTwo": "Pick at least two roles",
+      "pickTwoHint": "Add up to four roles to compare their pages and actions.",
+      "pageAction": "Page · action",
+      "unlimited": "∞ permissions",
+      "same": "These roles grant exactly the same permissions.",
+      "nothing": "None of these roles grant anything."
+    },
+    "setupHub": {
+      "title": "Set up {{name}}",
+      "yourHospital": "your hospital",
+      "subtitle": "A few steps and your team can start working without paper.",
+      "allSet": "All set — your workspace is ready.",
+      "stepsDone": "{{done}} of {{total}} steps done",
+      "next": "Next: {{title}}",
+      "clinicalNote": "Clinical modules (OPD, IPD, Lab, Pharmacy…) open as their phases are built. Roles you create now already include their pages, so access is ready the day each module arrives.",
+      "teamTitle": "Team & roles",
+      "teamSubtitle": "Every hospital starts with one role. Create the rest for your team, then decide page by page what each can see and do.",
+      "builtIn": "built-in",
+      "you": "you",
+      "administrators": "administrators",
+      "fullAccess": "Full access — can open all <b>{{pages}} pages</b> in <b>{{modules}} modules</b> of your plan ({{actions}} actions).",
+      "seeAllPages": "See all pages",
+      "yourRoles": "Your roles:",
+      "createFromRecs": "Create roles from recommendations — you can change everything later:",
+      "alreadyCreated": "Already created",
+      "notInPlan": "Its modules are not in your plan",
+      "templateMeta_one": "{{count}} permission · {{modules}}",
+      "templateMeta_other": "{{count}} permissions · {{modules}}",
+      "createRoles_one": "Create {{count}} role",
+      "createRoles_other": "Create {{count}} roles",
+      "createRolesNone": "Create roles",
+      "blankRole": "Start with a blank role",
+      "selectAll": "Select all {{count}}",
+      "created_one": "Created {{count}} role. Open any of them to fine-tune what it can see and do.",
+      "created_other": "Created {{count}} roles. Open any of them to fine-tune what it can see and do.",
+      "createdSkipped_one": "Created {{count}} role · {{skipped}} skipped. Open any of them to fine-tune what it can see and do.",
+      "createdSkipped_other": "Created {{count}} roles · {{skipped}} skipped. Open any of them to fine-tune what it can see and do.",
+      "steps": {
+        "profile": {
+          "title": "Hospital profile",
+          "hint": "Address, contact numbers and registration details used on every print."
+        },
+        "branding": {
+          "title": "Logo & colours",
+          "hint": "Your logo and brand colour across the app and printouts."
+        },
+        "departments": {
+          "title": "Departments",
+          "hint": "Clinical and support departments with specialities."
+        },
+        "roles": {
+          "title": "Team & roles",
+          "hint": "Decide what each role can see and do. Start from recommended roles."
+        },
+        "users": {
+          "title": "Invite your staff",
+          "hint": "Create logins and give each person a role."
+        },
+        "subscription": {
+          "title": "Choose a plan",
+          "hint": "Pick the plan that fits and keep the workspace running after the trial."
+        }
+      },
+      "hub": {
+        "pagesUnlocked": "Pages Unlocked",
+        "activeModules": "Active Modules",
+        "rootPrivileges": "Root Privileges",
+        "rolesConfigured": "Roles configured for {{name}} staff. Click to review or adjust permissions.",
+        "openRoleDirectory": "Open Role Directory →",
+        "userCount": "{{count}} users",
+        "rolesIntro": "Ready-to-use clinical, nursing, front-office and diagnostic roles. Each role maps to real hospital workflows.",
+        "allRoles": "All Roles",
+        "clinical": "Clinical",
+        "frontOffice": "Front Office",
+        "diagnostics": "Diagnostics",
+        "filterTemplates": "Filter role templates…",
+        "permsShort": "perms",
+        "clearSelection": "Clear selection ({{count}})",
+        "overallReadiness": "Overall Readiness",
+        "milestonesComplete": "{{done}} of {{total}} milestones complete",
+        "clinicalWings": "Clinical Wings",
+        "departmentsActive": "Departments active (min. 3)",
+        "configuredRoles": "Configured Roles",
+        "accessTiers": "Access tiers provisioned",
+        "staffAccounts": "Staff Accounts",
+        "usersInvited": "Users invited to system",
+        "completedCount": "{{count}} Completed",
+        "pendingCount": "{{count}} Pending",
+        "totalSetupTime": "~5 min total setup",
+        "recommendedNext": "Recommended Next Action",
+        "priority": "Priority",
+        "milestonesTitle": "Core Onboarding Milestones",
+        "milestonesSubtitle": "Complete these 6 foundational configurations to enable paperless hospital operations.",
+        "finishedCount": "{{done}}/{{total}} Finished",
+        "step": "Step",
+        "completed": "Completed",
+        "pending": "Pending",
+        "reviewSettings": "Review Settings",
+        "configureMilestone": "Configure Milestone",
+        "modularArchitecture": "Modular Clinical Architecture",
+        "ready": "Ready",
+        "viewAllModules": "View All Modules",
+        "profileTitle": "Hospital Profile & Letterhead",
+        "profileSubtitle": "Official hospital details shown on Rx, Lab Reports, Inpatient Bills and Discharge Summaries.",
+        "editProfile": "Edit Hospital Profile",
+        "letterheadPreview": "Letterhead & Document Header Live Simulation",
+        "regLabel": "Reg:",
+        "departmentsTitle": "Clinical & Support Departments",
+        "departmentsSubtitle": "Organize your medical specialities, wards, diagnostic centers and support teams.",
+        "manageDepartments": "Manage Departments",
+        "doctorsAssigned": "{{count}} doctors assigned",
+        "modulesTitle": "Hospital Samadhan modules architecture",
+        "modulesSubtitle": "Full suite of specialized clinical and administrative workflows designed for Indian hospitals.",
+        "exploreAllPages": "Explore All Pages",
+        "navOverview": "Overview & Checklist",
+        "navProfile": "Hospital Profile",
+        "navDepartments": "Departments & Wings",
+        "navRoles": "Team & Role Access",
+        "navModules": "Clinical Ecosystem",
+        "liveOperational": "Live & Operational",
+        "onboardingCenter": "Onboarding Command Center",
+        "milestonesCompleted": "{{done}} of {{total}} milestones completed",
+        "loadingChecklist": "Loading checklist…",
+        "allPagesDirectory": "All Pages Directory",
+        "profileSettings": "Profile Settings",
+        "workspaceSetupHub": "Workspace Setup Hub",
+        "readiness": "Readiness",
+        "setupNavigation": "Setup Navigation",
+        "nextMilestone": "Next Milestone",
+        "configureStep": "Configure Step",
+        "stepBadges": {
+          "profile": "Identity & Info",
+          "branding": "Logo & Colors",
+          "departments": "Clinical Structure",
+          "roles": "Governance & RBAC",
+          "users": "Staff Accounts",
+          "subscription": "Hospital Plan"
+        },
+        "clinicalModules": {
+          "opd": {
+            "name": "OPD Consultation",
+            "tag": "Outpatient",
+            "desc": "Queues, doctor desk, vitals & electronic prescriptions"
+          },
+          "ipd": {
+            "name": "IPD & Wards",
+            "tag": "Inpatient",
+            "desc": "Bed matrix, admissions, daily rounds & discharge summaries"
+          },
+          "emergency": {
+            "name": "Emergency & Triage",
+            "tag": "Emergency",
+            "desc": "ESI triage, red/yellow/green bays & MLC intimation"
+          },
+          "lab": {
+            "name": "Laboratory (LIS)",
+            "tag": "Diagnostics",
+            "desc": "Worklists, normal ranges, panic values & report signing"
+          },
+          "radiology": {
+            "name": "Radiology & PACS",
+            "tag": "Imaging",
+            "desc": "DICOM web viewer, ultrasound, CT/MRI & radiologist notes"
+          },
+          "pharmacy": {
+            "name": "Pharmacy & Dispensing",
+            "tag": "Medicines",
+            "desc": "Rx queue, batch tracking, expiry & POS billing"
+          },
+          "ot": {
+            "name": "Operating Theatre",
+            "tag": "Surgical",
+            "desc": "Theatre slots, WHO safety checklist & PAC assessment"
+          },
+          "cssd": {
+            "name": "CSSD & Sterilization",
+            "tag": "Sterile",
+            "desc": "Sets, autoclaving cycles & pack tracking"
+          },
+          "billing": {
+            "name": "Billing & Cashier",
+            "tag": "Finance",
+            "desc": "Interim bills, deposits, insurance claims & TPA"
+          },
+          "hrms": {
+            "name": "HRMS & Payroll",
+            "tag": "Staffing",
+            "desc": "Biometric attendance, shift rosters, salary & leaves"
+          }
+        }
+      }
+    },
+    "apiKeys": {
+      "title": "API keys & webhooks",
+      "subtitle": "Let other systems read and write data with scoped keys, and tell them when things happen with signed webhooks.",
+      "deliveryLog": "Delivery log",
+      "tabs": {
+        "keys": "API keys",
+        "webhooks": "Webhooks"
+      },
+      "viewAll": "View all",
+      "editTitle": "Edit {{name}}",
+      "newKey": "New API key",
+      "createKey": "Create key",
+      "namePlaceholder": "Lab partner integration",
+      "expiresOn": "Expires on",
+      "expiresHint": "Blank: never",
+      "scopesLabel_one": "What it may do ({{count}})",
+      "scopesLabel_other": "What it may do ({{count}})",
+      "scopesNote": "Give the least it needs. Keys can never manage users, roles, keys, modules or the subscription, and never get sensitive actions.",
+      "revoke": "Revoke",
+      "revokeConfirm": {
+        "title": "Revoke {{name}}?",
+        "message": "Anything using it stops working at once. This can’t be undone."
+      },
+      "revoked": "Key revoked.",
+      "keysNote": "Call the API with <code>{{header}}</code>. Each key is shown once, then kept only as a hash.",
+      "cols": {
+        "key": "Key",
+        "permissions": "Permissions",
+        "expires": "Expires",
+        "lastUsed": "Last used",
+        "when": "When",
+        "webhook": "Webhook",
+        "event": "Event",
+        "events": "Events",
+        "lastDelivery": "Last delivery"
+      },
+      "never": "Never",
+      "state": {
+        "ACTIVE": "Active",
+        "EXPIRED": "Expired",
+        "REVOKED": "Revoked"
+      },
+      "emptyTitle": "No API keys",
+      "emptyHint": "Create one for each system that reads or writes data here.",
+      "revealTitle": "API key — {{name}}",
+      "newWebhook": "New webhook",
+      "addWebhook": "Add webhook",
+      "webhookNamePlaceholder": "Data warehouse",
+      "mode": "Mode",
+      "modes": {
+        "SANDBOX": "Sandbox / test",
+        "LIVE": "Live"
+      },
+      "sandbox": "Sandbox",
+      "live": "Live",
+      "urlHintSandbox": "Sandbox allows http://. Private and local network addresses are always refused.",
+      "urlHintLive": "Must be https://. Private and local network addresses are refused.",
+      "eventsLabel_one": "Events ({{count}})",
+      "eventsLabel_other": "Events ({{count}})",
+      "events": {
+        "appointments_booked": "Appointment booked",
+        "appointments_rescheduled": "Appointment moved",
+        "appointments_cancelled": "Appointment cancelled",
+        "appointments_no_show": "Appointment no-show",
+        "opd_consult_signed": "OPD consult signed",
+        "opd_rx_issued": "Prescription issued",
+        "lab_report_ready": "Lab report ready",
+        "billing_bill_created": "Bill created",
+        "billing_payment_received": "Payment received",
+        "billing_bill_cancelled": "Bill cancelled",
+        "billing_final_bill_created": "IPD final bill",
+        "billing_deposit_changed": "Deposit changed",
+        "ipd_discharged": "Patient discharged",
+        "pharmacy_sale_created": "Pharmacy sale",
+        "insurance_preauth_approved": "Pre-auth approved",
+        "insurance_claim_settled": "Claim settled",
+        "procurement_po_approved": "Purchase order approved",
+        "procurement_grn_posted": "Goods received",
+        "hrms_employee_onboarded": "Employee joined",
+        "hrms_employee_terminated": "Employee exited",
+        "payroll_paid": "Payroll paid",
+        "ambulance_trip_completed": "Ambulance trip completed",
+        "integrations_payment_captured": "Online payment captured"
+      },
+      "deliveryStatus": {
+        "PENDING": "Pending",
+        "RETRYING": "Retrying",
+        "SUCCESS": "Delivered",
+        "FAILED": "Failed"
+      },
+      "queuedAgain": "Queued again.",
+      "attempts_one": "{{count}} attempt",
+      "attempts_other": "{{count}} attempts",
+      "sendAgain": "Send again",
+      "noDeliveries": "No deliveries yet",
+      "newSecretTitle": "New signing secret — {{name}}",
+      "secretTitle": "Signing secret — {{name}}",
+      "webhookOn": "Webhook on.",
+      "webhookPaused": "Webhook paused.",
+      "removeConfirm": {
+        "title": "Remove {{name}}?",
+        "message": "Pending deliveries are dropped."
+      },
+      "webhookRemoved": "Webhook removed.",
+      "rotateConfirm": {
+        "title": "New signing secret?",
+        "message": "Signatures made with the old secret stop matching at once. Update the receiving side straight away.",
+        "confirm": "Rotate"
+      },
+      "webhooksNote": "Each delivery is a POST of JSON signed with <code>{{sig}}</code> (HMAC-SHA256 of <code>{{body}}</code>). De-duplicate on <code>{{id}}</code>. Failures are retried after {{minutes}} minutes.",
+      "paused": "Paused",
+      "pausedFailing": "Paused (failing)",
+      "noWebhooks": "No webhooks",
+      "noWebhooksHint": "Send events like “bill created” or “lab report ready” to your own systems.",
+      "sendTest": "Send test",
+      "rotateSecret": "Rotate secret",
+      "pause": "Pause",
+      "turnOn": "Turn on",
+      "testDelivered": "Delivered — the endpoint answered {{status}} in {{ms}} ms.",
+      "testFailed": "Not delivered: {{error}}",
+      "signingSecret": "Signing secret",
+      "consecutiveFailures": "Consecutive failures",
+      "added": "Added",
+      "recentDeliveries": "Recent deliveries",
+      "originsLabel": "Allowed websites",
+      "originsHint": "Only for keys used from a website's pages in the browser: one address per line, e.g. https://www.yourhospital.com. Leave empty for keys used only from servers.",
+      "originsShort": "Websites: {{list}}",
+      "websitePresetName": "Hospital website"
+    },
+    "roleEditor": {
+      "sod": {
+        "procurement_purchase-orders_create__procurement_purchase-orders_approve": "Creates and approves purchase orders",
+        "billing_opd-bill_create__billing_invoices_cancel": "Raises bills and can cancel them",
+        "lab_worklist_enter_result__lab_verify_verify": "Enters and verifies the same lab results",
+        "payroll_runs_calculate__payroll_runs_pay": "Calculates and pays payroll",
+        "payroll_runs_calculate__payroll_runs_approve": "Calculates and approves the same payroll",
+        "payroll_runs_approve__payroll_runs_pay": "Approves and pays payroll",
+        "inventory_adjustments_create__inventory_adjustments_approve": "Writes off stock and approves the write-off",
+        "insurance_claims_settle__insurance_claims_write_off": "Records claim settlements and writes off what the payer did not pay"
+      },
+      "toast": {
+        "created": "Role \"{{name}}\" created.",
+        "saved_one": "Saved — {{count}} user gets the change on their next click.",
+        "saved_other": "Saved — {{count}} users get the change on their next click."
+      },
+      "nameRequired": "Give the role a name.",
+      "confirm": {
+        "fullTitle": "Grant full access?",
+        "fullMessage": "Everyone with \"{{name}}\" will be able to open every page and do every action in every module, including managing users, roles and the subscription.",
+        "fullConfirm": "Grant full access",
+        "sensitiveTitle": "Grant sensitive actions?",
+        "sensitiveMessage_one": "This role will hold {{count}} sensitive action, such as {{examples}}.",
+        "sensitiveMessage_other": "This role will hold {{count}} sensitive actions, such as {{examples}}.",
+        "saveRole": "Save role",
+        "discardTitle": "Discard changes?",
+        "discardMessage": "Your changes to this role have not been saved.",
+        "discard": "Discard"
+      },
+      "loadError": "Could not load this role.",
+      "subtitleNew": "Name the role, then tick what it may see and do.",
+      "subtitleSystem": "Built-in administrator role — always has full access.",
+      "subtitleMembers_one": "{{count}} user · changes apply on their next click",
+      "subtitleMembers_other": "{{count}} users · changes apply on their next click",
+      "create": "Create role",
+      "lockedNote": "<b>{{name}}</b> was created with your hospital. It always has every page and action of every module in your plan — including modules you add later — and can't be renamed, reduced or deleted. <link>See all pages it can open →</link>",
+      "holdsRole": "You hold this role yourself, so you can view it but not change it.",
+      "startFrom": "Start from",
+      "startFromHint": "Copies a recommended role. You can change everything after.",
+      "templateOption_one": "{{name}} — {{count}} permission",
+      "templateOption_other": "{{name}} — {{count}} permissions",
+      "roleName": "Role name",
+      "roleNamePlaceholder": "e.g. Staff Nurse",
+      "description": "Description",
+      "descriptionHint": "Shown in the role list and when assigning roles.",
+      "descriptionPlaceholder": "e.g. Ward nursing: vitals, medication rounds, handover.",
+      "homePage": "Lands on after sign-in",
+      "homePageHint": "Their home page; Home if empty.",
+      "home": "Home",
+      "fullAccessDesc": "Everything in every module, now and in future — same as Hospital Admin.",
+      "fullAccessOnlyAdmin": "Only a full-access administrator can switch this on.",
+      "granted": "Granted",
+      "viewEverything": "View everything",
+      "clearAll": "Clear all",
+      "sensitiveCount_one": "{{count}} sensitive action",
+      "sensitiveCount_other": "{{count}} sensitive actions",
+      "more": "+{{count}} more",
+      "sodWarning": "<b>Same person does both steps:</b> {{message}}. Allowed, but usually split between two roles.",
+      "tabs": {
+        "pages": "Pages & actions",
+        "scope": "Scope & limits",
+        "members": "Members ({{count}})"
+      },
+      "fullAccessPanel": "This role has <b>full access</b> — every page and action of every enabled module, including ones added later.",
+      "seeAllPages": "See all pages and actions →",
+      "switchOff": "Switch off <b>Full access</b> to choose pages one by one.",
+      "noMembers": "No one has this role yet",
+      "noMembersHint": "Give it to people from Users.",
+      "manageUsers": "Manage users →",
+      "historyLabel": "Changes to this role"
+    },
+    "approvals": {
+      "title": "Approvals",
+      "subtitle": "Requests that need someone else’s yes — a discount above the limit, cancelling a bill. Decide here; the requester is told at once.",
+      "agoMinutes_one": "{{count}} min ago",
+      "agoMinutes_other": "{{count}} min ago",
+      "agoHours_one": "{{count}} h ago",
+      "agoHours_other": "{{count}} h ago",
+      "agoDays_one": "{{count}} day ago",
+      "agoDays_other": "{{count}} days ago",
+      "openBill": "Open bill {{bill}}",
+      "openPatient": "Open patient",
+      "details": {
+        "discount": "Discount",
+        "billBeforeDiscount": "Bill before discount",
+        "reasonOnBill": "Reason on the bill",
+        "items": "Items",
+        "bill": "Bill",
+        "refund": "Refund",
+        "reason": "Reason"
+      },
+      "toast": {
+        "passedOn": "Approved — passed on to the next step.",
+        "approvedSummary": "Approved. {{summary}}.",
+        "approved": "Approved. The requester has been told.",
+        "rejected": "Rejected. The requester sees your reason.",
+        "withdrawn": "Request withdrawn."
+      },
+      "approval": "Approval",
+      "approve": "Approve",
+      "reject": "Reject",
+      "withdraw": "Withdraw",
+      "sayWhy": "Say why — the requester sees this",
+      "status": {
+        "PENDING": "Waiting",
+        "APPROVED": "Approved",
+        "USED": "Done",
+        "REJECTED": "Rejected",
+        "WITHDRAWN": "Withdrawn",
+        "EXPIRED": "Expired",
+        "FAILED": "Could not complete"
+      },
+      "askedByAt": "Asked by {{name}} · {{at}}",
+      "reasonQuote": "“{{reason}}” — {{name}}",
+      "steps": "Steps",
+      "validUntil": "Approved and not used yet. Valid until {{at}}.",
+      "usedOn": "Used on {{ref}}.",
+      "couldNotBeDone": "Approved, but it could not be done: {{error}}",
+      "expiresIfNobody": "Expires {{at}} if nobody decides.",
+      "noteLabel": "Note to the requester",
+      "noteHint": "Optional when approving; required when rejecting.",
+      "notePlaceholder": "e.g. OK for this visit only",
+      "tabs": {
+        "waiting": "Waiting for me",
+        "waitingCount_one": "Waiting for me ({{count}})",
+        "waitingCount_other": "Waiting for me ({{count}})",
+        "mine": "My requests",
+        "all": "All requests"
+      },
+      "cols": {
+        "asked": "Asked",
+        "request": "Request",
+        "askedBy": "Asked by",
+        "value": "Value"
+      },
+      "stepOf": "step {{n}} of {{total}}",
+      "emptyWaiting": "Nothing is waiting for you",
+      "emptyRequests": "No requests yet",
+      "emptyWaitingHint": "Requests your role can decide will show here, and in the bell.",
+      "emptyRequestsHint": "When your role can’t do something on its own, the screen offers “Ask for approval”."
+    },
+    "permissionMatrix": {
+      "searchPlaceholder": "Search pages and actions…",
+      "show": "Show",
+      "all": "All",
+      "granted": "Granted",
+      "collapseAll": "Collapse all",
+      "expandAll": "Expand all",
+      "collapse": "Collapse",
+      "expand": "Expand",
+      "allOf": "All of {{module}}",
+      "shared": "(shared)",
+      "presetNone": "None",
+      "presetView": "View only",
+      "page": "Page",
+      "tickColumn": "Tick {{action}} on every page",
+      "moreActions": "More actions",
+      "setupTitle": "Setup / master page",
+      "setup": "setup",
+      "actionOnly": "(action only)",
+      "sensitive": "Sensitive",
+      "noMatch": "No pages match “{{query}}”.",
+      "notOn": "Not switched on for this hospital ({{count}})",
+      "switchedOff": "Switched off in Modules",
+      "notInPlan": "Not in the current plan",
+      "upgrade": "upgrade"
+    },
+    "scopeLimits": {
+      "recordsTitle": "Which records can this role see?",
+      "recordsIntro": "Pages decide <em>where</em> a user can go; scope decides <em>whose records</em> they see there.",
+      "fullAccessRecords": "Full-access roles always see every record in every branch.",
+      "defaultForAll": "Default for every module",
+      "tickFirst": "Tick pages in a module first — modules with record-level scope then appear here.",
+      "defaultOption": "Default ({{scope}})",
+      "fromProfile": "Departments, wards and branch come from each user’s profile in Users.",
+      "limitsTitle": "Limits",
+      "limitsIntro": "Above a limit the action is not refused — it goes to an approver instead. Leave empty for no limit.",
+      "fullAccessLimits": "Full-access roles have no limits.",
+      "noLimitModules": "None of the modules with limits (billing, pharmacy, purchase, stores) are switched on.",
+      "percentOfBill": "Percent of the bill",
+      "rupees": "Rupees",
+      "noLimit": "No limit",
+      "sessionTitle": "Session & security",
+      "idle": "Sign out after inactivity",
+      "idleHint": "Shorter for shared ward and counter computers",
+      "idleDefault": "Hospital default (Administration › Settings)",
+      "minutes_one": "{{count}} minute",
+      "minutes_other": "{{count}} minutes",
+      "hours_one": "{{count}} hour",
+      "hours_other": "{{count}} hours",
+      "require2fa": "Require 2-step sign-in",
+      "require2faHint": "Recommended for roles that can see patient records or money.",
+      "currencyAmount": "Amount ({{cur}})",
+      "require2faNoEmail": "The platform can’t send email yet, so this has no effect until it can."
+    },
+    "sidebarPreview": {
+      "title": "Menu preview",
+      "modules_one": "{{count}} module",
+      "modules_other": "{{count}} modules",
+      "pages_one": "{{count}} page",
+      "pages_other": "{{count}} pages",
+      "home": "Home",
+      "empty": "Nothing yet — tick a page’s View to add it to this role’s menu."
+    },
+    "auditLog": {
+      "title": "Audit log",
+      "subtitle": "Who changed what, and when — every change to roles, users, settings and the plan.",
+      "breakGlassReport": "Break-glass report",
+      "searchPlaceholder": "Search who or what…",
+      "all": "All",
+      "action": "Action",
+      "record": "Record",
+      "actions": {
+        "CREATE": "Created",
+        "UPDATE": "Updated",
+        "DELETE": "Deleted",
+        "LOGIN": "Signed in",
+        "LOGIN_FAILED": "Sign-in failed",
+        "LOGOUT": "Signed out",
+        "SECURITY": "Security",
+        "PLAN_CHANGE": "Plan change",
+        "VIEW": "Opened a chart",
+        "BREAK_GLASS": "Emergency access"
+      },
+      "entities": {
+        "role": "Role",
+        "user": "User",
+        "department": "Department",
+        "branch": "Branch",
+        "module": "Module",
+        "tenant": "Hospital"
+      },
+      "when": "When",
+      "who": "Who",
+      "whatHappened": "What happened",
+      "itemsChanged": "{{changes}} items",
+      "empty": "Nothing recorded for these filters",
+      "entry": "Audit entry",
+      "ipAddress": "IP address",
+      "fieldChanges": "Field changes",
+      "field": "Field",
+      "before": "Before",
+      "after": "After",
+      "addedCount_one": "Added ({{count}})",
+      "addedCount_other": "Added ({{count}})",
+      "removedCount_one": "Removed ({{count}})",
+      "removedCount_other": "Removed ({{count}})"
+    },
+    "branches": {
+      "title": "Branches",
+      "subtitle": "The hospitals and centres your organisation runs. Every hospital has a main branch.",
+      "editTitle": "Edit {{name}}",
+      "newBranch": "New branch",
+      "addBranch": "Add branch",
+      "branchName": "Branch name",
+      "namePlaceholder": "e.g. City Care – Whitefield",
+      "code": "Code",
+      "codeHint": "Used in document numbers",
+      "address": "Address",
+      "city": "City",
+      "state": "State",
+      "pincode": "PIN code",
+      "phone": "Phone",
+      "gstinHint": "If this branch bills under its own GST number",
+      "branch": "Branch",
+      "mainBranch": "Main branch",
+      "location": "Location",
+      "attendanceSites": "Attendance sites",
+      "outline": "outline",
+      "sites_one": "{{count}} site",
+      "sites_other": "{{count}} sites",
+      "staff": "Staff",
+      "inactive": "Inactive",
+      "onYourPlan": "Branches on your plan",
+      "planFull": "You're using every branch your {{plan}} plan includes. <link>Upgrade</link> to add more.",
+      "sharedNote": "Patients are shared across branches; beds, bills and stock belong to one branch. Each branch can have its own GSTIN and document numbering.",
+      "saved": "Branch saved."
+    },
+    "customFields": {
+      "title": "Custom fields",
+      "subtitle": "Add your own fields to records — they appear on the forms and can be shown in lists.",
+      "newTitle": "New custom field",
+      "editTitle": "Edit “{{label}}”",
+      "addField": "Add field",
+      "newField": "New field",
+      "label": "Label",
+      "labelPlaceholder": "e.g. Diet preference",
+      "type": "Type",
+      "typeHint": "The type can't change once values exist.",
+      "types": {
+        "TEXT": "Text",
+        "NUMBER": "Number",
+        "DATE": "Date",
+        "BOOL": "Yes / no",
+        "SELECT": "Pick one",
+        "MULTI": "Pick several"
+      },
+      "entities": {
+        "patient": "Patient"
+      },
+      "tableTitle": "{{entity}} fields",
+      "options": "Options",
+      "optionsHint": "Separate with commas",
+      "optionsPlaceholder": "Vegetarian, Non-vegetarian, Jain",
+      "helpText": "Help text",
+      "helpPlaceholder": "Shown under the field",
+      "required": "Required",
+      "showAsColumn": "Show as list column",
+      "showInList": "Show in list",
+      "deleted": "Field deleted.",
+      "moveUp": "Move up",
+      "moveDown": "Move down",
+      "field": "Field",
+      "inList": "In list",
+      "deleteConfirm": {
+        "title": "Delete “{{label}}”?",
+        "message": "Values already entered stay on the records but are no longer shown."
+      },
+      "emptyTitle": "No custom fields yet",
+      "emptyHint": "Add fields your hospital needs on every patient — diet preference, employer, local ID…",
+      "note": "Switching a field off hides it from forms without losing values. Only switched-off fields can be deleted.",
+      "saved": "Custom field saved."
+    },
+    "departments": {
+      "title": "Departments",
+      "subtitle": "Clinical, diagnostic and support departments — used for staff, roles that see “my department”, and reports.",
+      "editTitle": "Edit {{name}}",
+      "newDepartment": "New department",
+      "addDepartment": "Add department",
+      "namePlaceholder": "e.g. Cardiology",
+      "code": "Code",
+      "type": "Type",
+      "types": {
+        "CLINICAL": "Clinical",
+        "DIAGNOSTIC": "Diagnostic",
+        "NURSING": "Nursing",
+        "SUPPORT": "Support",
+        "ADMINISTRATIVE": "Administrative"
+      },
+      "head": "Head of department",
+      "headCol": "Head",
+      "notSet": "Not set",
+      "specialities": "Specialities",
+      "specialitiesHint": "Comma separated, e.g. Interventional cardiology, Electrophysiology",
+      "description": "Description",
+      "deleted": "Department deleted.",
+      "supportAdmin": "Support & admin",
+      "searchPlaceholder": "Search name, code, speciality…",
+      "all": "All",
+      "department": "Department",
+      "staff": "Staff",
+      "inactive": "Inactive",
+      "deleteConfirm": {
+        "title": "Delete {{name}}?",
+        "staffAssigned": "Staff are assigned — deactivate it instead.",
+        "cantUndo": "This can’t be undone."
+      },
+      "noMatch": "No departments match",
+      "emptyTitle": "No departments yet",
+      "emptyHint": "Add the departments your hospital runs — Medicine, Surgery, Pathology, Nursing…",
+      "saved": "Department saved."
+    },
+    "hospitalProfile": {
+      "verified": "Verified",
+      "verifiedHint": "Verified by the platform. Changing the name, legal name, registration number, HFR id, GSTIN or PAN removes the badge until it is checked again.",
+      "notVerifiedHint": "Not verified yet. Ask support to verify your hospital's legal details.",
+      "title": "Hospital profile",
+      "subtitle": "Used on every printout, bill and report, and across the app.",
+      "saved": "Hospital profile saved.",
+      "saveChanges": "Save changes",
+      "identity": "Identity",
+      "contact": "Contact & address",
+      "regional": "Regional formats",
+      "fields": {
+        "name": "Hospital name (shown in the app)",
+        "legalName": "Legal name (on bills)",
+        "registrationNo": "Registration number",
+        "nabhNo": "NABH accreditation no.",
+        "hfrId": "ABDM facility (HFR) ID",
+        "phone": "Phone",
+        "email": "Email",
+        "website": "Website",
+        "address": "Address",
+        "city": "City",
+        "state": "State",
+        "pincode": "PIN code",
+        "country": "Country"
+      },
+      "dateFormat": "Date format",
+      "timezone": "Time zone",
+      "currency": "Currency",
+      "branding": "Branding",
+      "logoUrl": "Logo",
+      "logoHint": "A square image works best — upload a PNG, JPG or WebP, or paste a link",
+      "brandColour": "Brand colour",
+      "customColour": "Custom colour",
+      "menuColour": "Menu colour",
+      "menuColourHint": "The first three are shades of your brand colour and follow it when it changes.",
+      "preview": "Preview",
+      "primaryButton": "Primary button",
+      "letterhead": "Printout letterhead",
+      "uploadLogo": "Upload logo",
+      "replaceLogo": "Replace",
+      "removeLogo": "Remove",
+      "logoUploaded": "Uploaded image",
+      "logoOrLink": "Or paste a link (https://…)",
+      "logoTypeError": "Choose a PNG, JPG or WebP image.",
+      "logoTooBig": "That image is still too large after shrinking — try a smaller one."
+    },
+    "forms": {
+      "title": "Form builder",
+      "subtitle": "Your own clinical forms — consult sections and scored assessments. Doctors add published forms to the consult; they print with the prescription.",
+      "newForm": "New form",
+      "create": "Create",
+      "namePlaceholder": "e.g. Asthma review",
+      "code": "Code",
+      "codeHint": "Short and unique, e.g. ASTHMA_REVIEW.",
+      "usedAs": "Used as",
+      "uses": {
+        "OPD_CONSULT": "Consult section",
+        "ASSESSMENT": "Assessment / score"
+      },
+      "status": {
+        "DRAFT": "Draft",
+        "PUBLISHED": "Published",
+        "ARCHIVED": "Archived"
+      },
+      "fieldTypes": {
+        "TEXT": "Short text",
+        "TEXTAREA": "Long text",
+        "NUMBER": "Number",
+        "DATE": "Date",
+        "SELECT": "Pick one",
+        "MULTI": "Pick several",
+        "YESNO": "Yes / no",
+        "SCORE": "Scored question",
+        "CALC": "Calculated",
+        "TOTAL": "Score total",
+        "INFO": "Note for the reader"
+      },
+      "tabs": {
+        "inUse": "In use",
+        "drafts": "Drafts",
+        "archived": "Archived",
+        "design": "Design",
+        "preview": "Preview"
+      },
+      "cols": {
+        "form": "Form",
+        "fields": "Fields",
+        "changed": "Changed"
+      },
+      "fieldsInSections_one": "{{fields}} in {{count}} section",
+      "fieldsInSections_other": "{{fields}} in {{count}} sections",
+      "changesNotPublished": "changes not published",
+      "changesNotPublishedYet": "changes not published yet",
+      "versionPublished": "version {{version}} published {{at}}",
+      "neverPublished": "never published",
+      "empty": "No forms here",
+      "field": {
+        "text": "Text",
+        "questionOrLabel": "Question or label",
+        "labelPlaceholder": "e.g. Fasting sugar",
+        "codeHint": "Used in formulas and reports.",
+        "type": "Type",
+        "required": "Required",
+        "mustAnswer": "Must be answered to sign",
+        "helpText": "Help text",
+        "helpPlaceholder": "Optional hint under the field",
+        "unit": "Unit",
+        "unitPlaceholder": "e.g. mg/dL",
+        "min": "Lowest allowed",
+        "max": "Highest allowed",
+        "formula": "Formula",
+        "formulaHint": "Codes of number fields above, with + − × ÷ ( ). E.g. WT / ((HT / 100) * (HT / 100))",
+        "decimals": "Decimals",
+        "choices": "Choices, one per line",
+        "answersPoints": "Answers and points",
+        "answer": "Answer",
+        "points": "Points",
+        "removeAnswer": "Remove answer",
+        "addAnswer": "Add an answer",
+        "bands": "What the total means (optional)",
+        "bandsHint": "Adds up every scored question above it.",
+        "from": "From",
+        "to": "To",
+        "bandPlaceholder": "e.g. Moderate",
+        "removeBand": "Remove band",
+        "addBand": "Add a band",
+        "showOnlyIf": "Show only if",
+        "alwaysShow": "Always show",
+        "isAnswered": "…is answered",
+        "isAnsweredHint": "Several answers? Separate them with commas. Yes/no: YES or NO; scores: the points."
+      },
+      "published": "Published version {{version}}. Doctors fill this version from now on.",
+      "copied": "Copied. You are editing the copy.",
+      "archiveConfirm": {
+        "title": "Archive “{{name}}”?",
+        "message": "Doctors can no longer add it. Forms already filled stay as they are."
+      },
+      "archive": "Archive",
+      "archived": "Archived.",
+      "backInUse": "Back in use.",
+      "allForms": "All forms",
+      "copy": "Copy",
+      "bringBack": "Bring back",
+      "saveDraft": "Save draft",
+      "publish": "Publish",
+      "archivedNote": "Archived — doctors can’t add this form. Bring it back to change or use it.",
+      "fixMarked": "Fix the marked fields, then publish again.",
+      "previewNote": "This is what the doctor sees. Try it: calculations and “show only if” work here.",
+      "specialities": "Specialities",
+      "commaSeparated": "Comma separated",
+      "description": "Description",
+      "descriptionPlaceholder": "What it is for, shown to doctors when they pick it",
+      "sectionTitle": "Section title",
+      "oneCol": "1 col",
+      "moveSectionUp": "Move section up",
+      "moveSectionDown": "Move section down",
+      "deleteSection": "Delete section",
+      "untitledField": "Untitled field",
+      "onlyIf": "only if {{field}}",
+      "needsFixing": "needs fixing",
+      "moveUp": "Move up",
+      "moveDown": "Move down",
+      "deleteField": "Delete field",
+      "addField": "Add a field…",
+      "addSection": "Add a section"
+    }
+  }
+}

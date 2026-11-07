@@ -1,0 +1,132 @@
+{
+  "frontoffice": {
+    "appointment": "Appointment",
+    "bookAppointment": "Book an appointment",
+    "checkIn": "Check in",
+    "confirm": "Confirm",
+    "startConsult": "Start consult",
+    "complete": "Complete",
+    "reschedule": "Reschedule",
+    "noShow": "No-show",
+    "cancel": "Cancel",
+    "overbooked": "Overbooked",
+    "openConsult": "Open consult",
+    "collectFee": "Collect fee",
+    "patient": "Patient",
+    "uhidAgeSex": "UHID · age/sex",
+    "doctor": "Doctor",
+    "when": "When",
+    "visitType": "Visit type",
+    "bookedVia": "Booked via",
+    "mobile": "Mobile",
+    "notes": "Notes",
+    "cancelledBecause": "Cancelled because",
+    "queuePriority": "Queue priority at check-in",
+    "priorityHint": "Auto gives seniors priority (Settings › Queue).",
+    "auto": "Auto",
+    "moveToAnotherTime": "Move to another time",
+    "moveAppointment": "Move appointment",
+    "keepCurrentTime": "Keep current time",
+    "history": "History",
+    "newPatient": "New patient",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "ageYears": "Age (years)",
+    "gender": "Gender",
+    "pincode": "PIN code",
+    "consentNotice": "The patient agrees the hospital may store and use their health information for their care.",
+    "registerAndUse": "Register & use",
+    "firstVisitRegister": "First visit? Register a new patient",
+    "chooseDoctor": "Choose a doctor…",
+    "date": "Date",
+    "time": "Time",
+    "stepPatient": "1 · Patient",
+    "stepDoctorTime": "2 · Doctor & time",
+    "stepDetails": "3 · Details",
+    "book": "Book",
+    "apptStatus": {
+      "BOOKED": "Booked",
+      "CONFIRMED": "Confirmed",
+      "CHECKED_IN": "Checked in",
+      "IN_CONSULT": "In consult",
+      "COMPLETED": "Completed",
+      "CANCELLED": "Cancelled",
+      "NO_SHOW": "No-show"
+    },
+    "apptTypes": {
+      "NEW": "New consultation",
+      "FOLLOW_UP": "Follow-up",
+      "TELE": "Teleconsultation",
+      "PROCEDURE": "Procedure"
+    },
+    "apptSources": {
+      "DESK": "Front desk",
+      "PHONE": "Phone",
+      "ONLINE": "Online",
+      "WHATSAPP": "WhatsApp",
+      "WALK_IN": "Walk-in",
+      "FOLLOW_UP": "Booked at the consult",
+      "PORTAL": "Patient portal"
+    },
+    "priorities": {
+      "EMERGENCY": "Emergency",
+      "VIP": "VIP",
+      "SENIOR": "Senior / differently abled",
+      "NORMAL": "Normal"
+    },
+    "priorityBadge": {
+      "EMERGENCY": "Emergency",
+      "VIP": "VIP",
+      "SENIOR": "Senior"
+    },
+    "tokenStatus": {
+      "WAITING": "waiting",
+      "CALLED": "called",
+      "SERVING": "with doctor",
+      "DONE": "done",
+      "SKIPPED": "skipped",
+      "CANCELLED": "cancelled"
+    },
+    "waited": {
+      "minutes": "{{count}} min",
+      "hoursMinutes": "{{h}} h {{m}} min"
+    },
+    "slots": {
+      "pickDoctorDate": "Pick a doctor and a date.",
+      "notAvailable": "Not available — {{reason}}.",
+      "noSessions": "No sessions on this day. Pick another date.",
+      "free": "{{count}} free",
+      "passed": "Passed",
+      "unavailable": "Doctor unavailable",
+      "booked": "{{count}} booked",
+      "freeSlot": "Free",
+      "legend": "Amber = already booked (overbooking). Struck out = passed or the doctor is unavailable."
+    },
+    "apptDrawer": {
+      "checkedInToken": "Checked in — token {{token}}.",
+      "checkedInVisit": "Checked in, visit {{visit}}.",
+      "checkedInTokenVisit": "Checked in — token {{token}}, visit {{visit}}.",
+      "cancelledWaitlist_one": "Cancelled. {{count}} patient on the waitlist wants this doctor that day — see Appointments › Waitlist.",
+      "cancelledWaitlist_other": "Cancelled. {{count}} patients on the waitlist want this doctor that day — see Appointments › Waitlist.",
+      "statusDone": "{{status}}.",
+      "moved": "Moved to {{date}} at {{time}}.",
+      "cancelTitle": "Cancel {{no}}?",
+      "reason": "Reason",
+      "reasonPlaceholder": "e.g. Patient called to cancel",
+      "cancelAppointment": "Cancel appointment"
+    },
+    "booking": {
+      "tooMuch": "Your hospital requires more details at registration ({{fields}}). Use Patients › Register patient, then book.",
+      "genderM": "M",
+      "genderF": "F",
+      "genderOther": "Other",
+      "booked": "Booked {{no}}: {{patient}} with {{doctor}}.",
+      "bookedOverbooked": "Booked {{no}}: {{patient}} with {{doctor}} (overbooked).",
+      "onLeaveToday": "(on leave today)",
+      "fees": "Consultation {{fee}} (follow-up {{followUp}})",
+      "visitTypeHint": "Auto picks follow-up when they saw this doctor recently.",
+      "notesPlaceholder": "Reason for visit, special needs…",
+      "markConfirmed": "Mark as confirmed"
+    }
+  }
+}
