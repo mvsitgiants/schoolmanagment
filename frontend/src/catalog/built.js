@@ -11,6 +11,7 @@ export const BUILT_PAGES = new Set([
   'fees.structures', 'fees.collect', 'fees.invoices', 'fees.dues', 'fees.concessions', 'fees.refunds', 'fees.day-end',
   'exams.schedule', 'exams.hall-tickets', 'exams.marks', 'exams.results', 'exams.report-cards', 'exams.setup',
   'homework.homework', 'homework.lesson-plans', 'homework.syllabus',
+  'certificates.issue', 'certificates.register',
 ])
 
 export const isBuilt = (moduleId, pageId) => BUILT_PAGES.has(`${moduleId}.${pageId}`)

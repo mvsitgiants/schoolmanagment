@@ -1,0 +1,197 @@
+{
+  "certificates": {
+    "all": "All",
+    "loading": "Loading…",
+    "kinds": {
+      "BONAFIDE": { "label": "Bonafide certificate", "hint": "That the student studies here this year." },
+      "CHARACTER": { "label": "Character certificate", "hint": "The student’s conduct while here." },
+      "STUDY": { "label": "Study certificate", "hint": "The classes and years the student studied here — for former students too." },
+      "FEE": { "label": "Fee paid certificate", "hint": "Fees paid in a financial year, tuition shown separately (income tax, section 80C)." },
+      "MERIT": { "label": "Merit / participation certificate", "hint": "An achievement or event. Can be issued to many students at once." }
+    },
+    "status": {
+      "ISSUED": "Issued",
+      "CANCELLED": "Cancelled"
+    },
+    "purposes": {
+      "Passport": "Passport",
+      "Bankaccount": "Bank account",
+      "Scholarship": "Scholarship",
+      "Incometax80C": "Income tax (80C)",
+      "Busrailconcession": "Bus / rail concession",
+      "Visa": "Visa",
+      "Aadhaar": "Aadhaar",
+      "Competitionsports": "Competition / sports",
+      "Other": "Other"
+    },
+    "conducts": {
+      "Excellent": "Excellent",
+      "Verygood": "Very good",
+      "Good": "Good",
+      "Satisfactory": "Satisfactory"
+    },
+    "issue": {
+      "title": "Issue certificates",
+      "subtitle": "Bonafide, character, study, fee paid and merit certificates — numbered, printed and verifiable by QR.",
+      "which": "Certificate",
+      "student": "Student",
+      "students": "Students",
+      "class": "Class",
+      "pickClass": "Pick a class",
+      "picked_one": "{{count}} picked",
+      "picked_other": "{{count}} picked",
+      "pickAll": "Pick all",
+      "details": "Details",
+      "conduct": "Conduct",
+      "fromClass": "First class here",
+      "toClass": "Last class here",
+      "classHint": "Leave blank to use the student’s record",
+      "fy": "Financial year",
+      "fyLabel": "April–March {{fy}}",
+      "event": "Event or achievement",
+      "eventPlaceholder": "e.g. Annual Sports Meet 2026",
+      "achievement": "Position / award",
+      "achievementHint": "Leave blank for a participation certificate",
+      "achievementPlaceholder": "e.g. First place, 100 m",
+      "eventDate": "Held on",
+      "purpose": "Purpose",
+      "noPurpose": "Not stated",
+      "purposeText": "Say what for",
+      "remarks": "Remarks",
+      "remarksHint": "Printed at the end of the certificate",
+      "issue": "Issue and print",
+      "issueMany_one": "Issue {{count}} and print",
+      "issueMany_other": "Issue {{count}} and print",
+      "numberHint": "Each certificate gets the next number (Settings › Number series) and a QR code to verify it.",
+      "issued": "Certificate {{no}} issued.",
+      "issuedMany_one": "{{count}} certificate issued.",
+      "issuedMany_other": "{{count}} certificates issued.",
+      "preparing": "Preparing the certificates…",
+      "earlier": "Earlier certificates"
+    },
+    "preview": {
+      "title": "What it will say",
+      "pickStudent": "Pick a student to see what the certificate will say.",
+      "pickStudents": "Pick a class and tick the students.",
+      "many": "{{count}} certificates for “{{event}}”.",
+      "name": "Name",
+      "admissionNo": "Admission No.",
+      "class": "Class",
+      "parent": "Parent",
+      "dob": "Date of birth",
+      "conduct": "Conduct",
+      "from": "From",
+      "to": "To",
+      "tillDate": "Till date",
+      "classes": "Classes",
+      "refunded": "Less: refunded",
+      "total": "Total paid in {{fy}}",
+      "tuition": "Of which tuition"
+    },
+    "register": {
+      "title": "Certificate register",
+      "subtitle": "Every certificate issued.",
+      "count_one": "{{count}} certificate",
+      "count_other": "{{count}} certificates",
+      "search": "Number, student, admission no. or purpose",
+      "from": "From",
+      "to": "To",
+      "no": "Certificate",
+      "date": "Date",
+      "kind": "Kind",
+      "student": "Student",
+      "purpose": "Purpose",
+      "by": "Issued by",
+      "prints_one": "printed {{count}} time",
+      "prints_other": "printed {{count}} times",
+      "status": "Status",
+      "print": "Print",
+      "copyLink": "Copy verify link",
+      "copied": "Verify link copied.",
+      "cancel": "Cancel certificate",
+      "cancelReason": "Why?",
+      "cancelConfirm": {
+        "title": "Cancel {{no}}?",
+        "message": "Anyone who scans its QR will see it as cancelled. Issue a new one if it needs correcting."
+      },
+      "cancelled": "Certificate cancelled.",
+      "empty": "No certificates issued yet",
+      "noMatch": "No certificates match these filters"
+    },
+    "verify": {
+      "validTitle": "This certificate is genuine",
+      "valid": "Issued by {{institution}} and still valid.",
+      "cancelledTitle": "This certificate was cancelled",
+      "cancelled": "{{institution}} cancelled it on {{date}}. Don’t accept it; ask the institution for a new one.",
+      "notFoundTitle": "Certificate not found",
+      "notFound": "No certificate has the code {{code}}. Check the code, or contact the institution that issued it.",
+      "certificate": "Certificate",
+      "no": "Number",
+      "issued": "Issued on",
+      "name": "Issued to",
+      "class": "Class",
+      "event": "For",
+      "institution": "Institution",
+      "compare": "Compare these details with the paper you were given."
+    },
+    "print": {
+      "stampCancelled": "CANCELLED",
+      "title": {
+        "BONAFIDE": "Bonafide certificate",
+        "CHARACTER": "Character certificate",
+        "STUDY": "Study certificate",
+        "FEE": "Fee paid certificate",
+        "MERIT": "Certificate of merit"
+      },
+      "no": "Certificate No.",
+      "date": "Date",
+      "childOf": {
+        "m": "son of",
+        "f": "daughter of",
+        "x": "ward of"
+      },
+      "he": {
+        "m": "he",
+        "f": "she",
+        "x": "they"
+      },
+      "His": {
+        "m": "His",
+        "f": "Her",
+        "x": "Their"
+      },
+      "bonafide": {
+        "text": "This is to certify that <b>{{name}}</b>{{parent}}, Admission No. {{admissionNo}}, is a bonafide student of this institution, studying in <b>{{cls}}</b> in the academic year {{year}}."
+      },
+      "dobLine": "{{his}} date of birth, as per our records, is {{dob}}.",
+      "character": {
+        "textIs": "This is to certify that <b>{{name}}</b>{{parent}}, Admission No. {{admissionNo}}, is a student of this institution since {{from}}.",
+        "textWas": "This is to certify that <b>{{name}}</b>{{parent}}, Admission No. {{admissionNo}}, was a student of this institution from {{from}} to {{to}}.",
+        "conduct": "To the best of our knowledge {{he}} bears a good moral character. {{his}} conduct has been <b>{{conduct}}</b>."
+      },
+      "study": {
+        "textIs": "This is to certify that <b>{{name}}</b>{{parent}}, Admission No. {{admissionNo}}, has been studying in this institution since {{from}} (admitted to {{fromClass}}) and is now in <b>{{toClass}}</b>.",
+        "textWas": "This is to certify that <b>{{name}}</b>{{parent}}, Admission No. {{admissionNo}}, studied in this institution from <b>{{fromClass}}</b> ({{from}}) to <b>{{toClass}}</b> ({{to}})."
+      },
+      "fee": {
+        "text": "This is to certify that the following fees were paid to this institution for <b>{{name}}</b> ({{cls}}, Admission No. {{admissionNo}}) during the financial year <b>{{fy}}</b>:",
+        "refunded": "Less: refunded",
+        "total": "Total paid",
+        "tuition": "Of this, the tuition fee is <b>{{amount}}</b> ({{words}})."
+      },
+      "merit": {
+        "intro": "This certificate is proudly presented to",
+        "ofClass": "of {{cls}}",
+        "for": "for",
+        "in": "in",
+        "participation": "for taking part in",
+        "on": "held on {{date}}"
+      },
+      "purpose": "This certificate is issued on request for the purpose of {{purpose}}.",
+      "scan": "Scan to verify",
+      "coordinator": "Teacher in charge",
+      "signature": "Principal",
+      "cancelledNote": "Cancelled: {{reason}}"
+    }
+  }
+}

@@ -14,6 +14,7 @@ import documentRoutes from './routes/documents.js'
 import feeRoutes from './routes/fees.js'
 import examRoutes from './routes/exams.js'
 import homeworkRoutes from './routes/homework.js'
+import certificateRoutes from './routes/certificates.js'
 import studentRoutes from './routes/students.js'
 import authRoutes from './routes/auth.js'
 import coreRoutes from './routes/core/index.js'
@@ -115,6 +116,7 @@ export function createApp() {
   app.use('/api/v1/fees', feeRoutes)
   app.use('/api/v1/exams', examRoutes)
   app.use('/api/v1/homework', homeworkRoutes)
+  app.use('/api/v1/certificates', certificateRoutes)
   app.use('/api/v1/documents', documentRoutes)
 
   app.use(notFoundHandler)

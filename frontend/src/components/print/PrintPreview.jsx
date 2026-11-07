@@ -14,7 +14,7 @@ function sampleBody(docType) {
     REPORT_CARD: [['English', '86 / 100', 'A2'], ['Mathematics', '92 / 100', 'A1'], ['Science', '78 / 100', 'B1']],
     HALL_TICKET: [['English', '14/10/2026', '9:30 AM'], ['Mathematics', '16/10/2026', '9:30 AM'], ['Science', '18/10/2026', '9:30 AM']],
     TRANSFER_CERTIFICATE: [['Date of admission', '02/04/2019'], ['Class last studied', 'VIII'], ['Conduct', 'Good']],
-    BONAFIDE: [['This is to certify that', 'Aarav Sharma is a bonafide student of this school, studying in Class VIII-A in the year 2026-27.']],
+    CERTIFICATE: [['This is to certify that', 'Aarav Sharma is a bonafide student of this school, studying in Class VIII-A in the year 2026-27.']],
     PAYSLIP: [['Basic', '₹32,000'], ['Dearness allowance', '₹6,400'], ['Provident fund', '−₹3,840']],
     }[docType] ?? [['Item', 'Detail']]
   return `<table>${rows.map((r) => `<tr>${r.map((c) => `<td>${esc(c)}</td>`).join('')}</tr>`).join('')}</table>`

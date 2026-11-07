@@ -22,6 +22,9 @@ import { FeePayment } from '../models/fees.js'
 import { receiptPrintData } from '../services/fees.js'
 import { PAYMENT_MODE_LABEL, RESULT_STATUS, gradeFor } from '@schoolgiant/shared'
 import { hallTicketData, latestCandidate, reportCardData } from '../services/exams.js'
+import { certificatePrintData, latestCertificate } from '../services/certificates.js'
+import { CERTIFICATE_KIND_BY } from '@schoolgiant/shared'
+import { translateDoc } from './engine.js'
 
 const latestId = async (Model, filter, sort) => (await Model.findOne(filter).sort(sort).select('_id').lean())?._id
 const V = {
@@ -100,6 +103,25 @@ function reportCardModel({ candidate: c, exam, year, student, place, papers, ent
   }
 }
 
+function certificateModel({ certificate: c, verifyUrl }) {
+  const sn = c.snapshot ?? {}
+  const kid = sn.gender === 'MALE' ? 'm' : sn.gender === 'FEMALE' ? 'f' : 'x'
+  return {
+    certificate: {
+      no: c.certificateNo, kind: c.kind, kindLabel: CERTIFICATE_KIND_BY[c.kind]?.label ?? c.kind, issueDate: c.issueDate, purpose: c.purpose, remarks: c.remarks,
+      cancelled: c.status === 'CANCELLED', cancelReason: c.cancelReason, issuedBy: c.issuedBy, reprint: (c.prints ?? 0) > 0,
+      bonafide: c.kind === 'BONAFIDE', character: c.kind === 'CHARACTER', study: c.kind === 'STUDY', fee: c.kind === 'FEE', merit: c.kind === 'MERIT',
+    },
+    student: {
+      ...sn, kid, parent: sn.father || sn.mother || null, studying: sn.studying ?? sn.status === 'ACTIVE',
+      // ", son of Rajesh Sharma" — the relation word is translated in the template's language
+      parentPhrase: sn.father || sn.mother ? `, ${translateDoc(sn.language || 'en', `certificates.print.childOf.${kid}`, kid === 'm' ? 'son of' : kid === 'f' ? 'daughter of' : 'ward of')} ${sn.father || sn.mother}` : '',
+    },
+    fees: sn.fees ?? null,
+    verify: { url: verifyUrl, code: c.verifyCode },
+  }
+}
+
 export const DOCS = {
   FEE_RECEIPT: {
     perms: ['fees.invoices.print', 'fees.collect.view'],
@@ -132,5 +154,13 @@ export const DOCS = {
     title: (m) => `Report card · ${m.exam.name} · ${m.student.name}`,
     sample: () => latestCandidate({ computedAt: { $ne: null } }),
     variables: [V.institution, 'exam.name, exam.year, exam.term, exam.published', 'student.name, student.admissionNo, student.rollNo, student.class, student.dob, student.father, student.mother', 'subjects[] {subject, maxMarks, passMarks, marks, absent, exempt, grade, below} · activities[] {subject, grade}', 'result.total, result.max, result.pct, result.grade, result.rank, result.label, result.pass, result.failed[]', 'attendance.present, attendance.working, attendance.pct · remark, remarkBy · scheme, bands[] {grade, min, max, remark}', V.layout],
+  },
+  CERTIFICATE: {
+    perms: ['certificates.issue.print', 'certificates.register.view'],
+    load: (id, auth) => certificatePrintData(id, auth),
+    model: certificateModel,
+    title: (m) => `${m.certificate.kindLabel} ${m.certificate.no} · ${m.student.name}`,
+    sample: () => latestCertificate(),
+    variables: [V.institution, 'certificate.no, certificate.kind, certificate.kindLabel, certificate.issueDate, certificate.purpose, certificate.remarks, certificate.cancelled, certificate.bonafide / character / study / fee / merit', 'student.name, student.admissionNo, student.class, student.yearName, student.dob, student.father, student.mother, student.parent, student.kid (m / f / x), student.admissionDate, student.conduct, student.from, student.to, student.fromClass, student.toClass, student.event, student.achievement, student.eventDate', 'fees.fy, fees.total, fees.tuition, fees.heads[] {name, amount}', 'verify.url, verify.code · {{qr verify.url 22}}', V.layout],
   },
 }

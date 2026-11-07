@@ -77,6 +77,10 @@ const ExamSetup = lazy(() => import('./pages/Exams/Setup'))
 const HomeworkPage = lazy(() => import('./pages/Homework/Homework'))
 const LessonPlans = lazy(() => import('./pages/Homework/LessonPlans'))
 const SyllabusTracker = lazy(() => import('./pages/Homework/Syllabus'))
+// Certificates
+const CertificateIssue = lazy(() => import('./pages/Certificates/Issue'))
+const CertificateRegister = lazy(() => import('./pages/Certificates/Register'))
+const VerifyCertificate = lazy(() => import('./pages/Public/VerifyCertificate'))
 
 // A module page that isn't built yet shows its catalog entry; unknown paths show NotFound.
 const ModulePage = lazy(() => import('./pages/ModulePage'))
@@ -113,6 +117,7 @@ export default function App() {
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/accept-invite" element={<AcceptInvitePage />} />
         <Route path="/verify-email" element={<VerifyEmailPage />} />
+        <Route path="/verify/:code" element={<VerifyCertificate />} />
 
         <Route path="/superadmin" element={<AuthGuard><SuperadminLayout /></AuthGuard>}>
           <Route index element={<SaDashboard />} />
@@ -193,6 +198,9 @@ export default function App() {
           <Route path="homework/homework" element={<HomeworkPage />} />
           <Route path="homework/lesson-plans" element={<LessonPlans />} />
           <Route path="homework/syllabus" element={<SyllabusTracker />} />
+          <Route path="certificates" element={<Navigate to="/certificates/issue" replace />} />
+          <Route path="certificates/issue" element={<CertificateIssue />} />
+          <Route path="certificates/register" element={<CertificateRegister />} />
           <Route path=":moduleId/:pageId/*" element={<ModulePage />} />
           <Route path="*" element={<NotFound />} />
         </Route>

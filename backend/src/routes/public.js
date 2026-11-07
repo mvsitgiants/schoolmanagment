@@ -18,12 +18,20 @@ import { confirmEmailFrom } from '../services/users.js'
 import { Types } from 'mongoose'
 import { BLOCKED_STATUSES, effectiveStatus } from '../services/subscription.js'
 import { buildMe, openTenantSession } from './auth.js'
+import { verifyCertificate } from '../services/certificates.js'
 
 const router = Router()
 
 /** The maintenance / announcement banner (Superadmin › Settings), for the sign-in page and the app. */
 router.get('/notice', async (req, res) => {
   res.json({ data: await currentNotice() })
+})
+
+/** Is this certificate genuine? The QR on every certificate opens /verify/<code>, which asks here. */
+const verifyLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: config.isTest ? 1000 : 60, message: { message: 'Too many checks. Try again in a few minutes.' } })
+router.get('/verify/certificate/:code', verifyLimiter, async (req, res) => {
+  res.setHeader('Cache-Control', 'no-store')
+  res.json({ data: await verifyCertificate(req.params.code) })
 })
 
 router.get('/plans', async (req, res) => {
