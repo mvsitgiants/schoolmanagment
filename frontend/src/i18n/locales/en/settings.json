@@ -234,6 +234,89 @@
           "help": "In My workspace. Otherwise HR applies on their behalf."
         }
       },
+      "transport": {
+        "alertNear": {
+          "label": "Tell families when the bus is near their stop"
+        },
+        "nearMetres": {
+          "label": "Near means within (metres)"
+        },
+        "arriveMetres": {
+          "label": "At the stop means within (metres)"
+        },
+        "alertRide": {
+          "label": "Tell families when their child gets on and off"
+        },
+        "docWarnDays": {
+          "label": "Warn about vehicle papers this many days before expiry"
+        }
+      },
+      "library": {
+        "studentLimit": {
+          "label": "Books a student can have at once"
+        },
+        "staffLimit": {
+          "label": "Books a staff member can have at once"
+        },
+        "studentDays": {
+          "label": "Loan period for students (days)"
+        },
+        "staffDays": {
+          "label": "Loan period for staff (days)"
+        },
+        "renewals": {
+          "label": "Times a loan can be renewed"
+        },
+        "finePerDay": {
+          "label": "Late fine a day (₹)",
+          "help": "0: no late fines."
+        },
+        "fineMax": {
+          "label": "Most a late fine can be for one book (₹)",
+          "help": "0: no limit."
+        },
+        "graceDays": {
+          "label": "Days late before a fine starts"
+        },
+        "staffFines": {
+          "label": "Charge late fines to staff"
+        },
+        "blockWithFines": {
+          "label": "No new books while a fine is unpaid"
+        },
+        "blockOverdue": {
+          "label": "No new books while one is overdue"
+        },
+        "remindDaysBefore": {
+          "label": "Remind families this many days before a book is due",
+          "help": "0: no reminder before the due date."
+        },
+        "overdueEveryDays": {
+          "label": "Remind about an overdue book every (days)",
+          "help": "0: no overdue reminders."
+        }
+      },
+      "events": {
+        "remindDayBefore": {
+          "label": "Remind families the day before an event",
+          "help": "Only for events that ask for it (the box on the event)."
+        },
+        "calendarHolidays": {
+          "label": "Show holidays from Staff & HR on the calendar"
+        },
+        "calendarExams": {
+          "label": "Show exam dates on the calendar"
+        },
+        "weekStartsSunday": {
+          "label": "Calendar weeks start on Sunday"
+        },
+        "ptmSlotMinutes": {
+          "label": "Parent–teacher meeting slot (minutes)"
+        },
+        "ptmReminder": {
+          "label": "Remind families of their meeting slot the day before"
+        }
+      },
       "finance": {
         "autoPost": {
           "label": "Post fees, refunds and payroll to the books on their own",

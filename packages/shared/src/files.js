@@ -37,7 +37,11 @@ export const RECORD_TYPES = {
   application: 'Admission application',
   employee: 'Staff record',
   candidate: 'Job candidate',
+  library_title: 'Library e-book',
+  school_event: 'Event (circular, form)',
+  gallery_album: 'Photo album',
   expense: 'Expense',
+  lms_item: 'Study material',
 }
 
 export const COMMENT_MAX = 2000

@@ -27,6 +27,11 @@ import timetableRoutes from './routes/timetable.js'
 import hrmsRoutes from './routes/hrms.js'
 import payrollRoutes from './routes/payroll.js'
 import financeRoutes from './routes/finance.js'
+import lmsRoutes from './routes/lms.js'
+import onlineTestRoutes from './routes/onlineTests.js'
+import transportRoutes from './routes/transport.js'
+import libraryRoutes from './routes/library.js'
+import eventRoutes from './routes/events.js'
 import studentRoutes from './routes/students.js'
 import authRoutes from './routes/auth.js'
 import coreRoutes from './routes/core/index.js'
@@ -141,6 +146,11 @@ export function createApp() {
   app.use('/api/v1/hrms', hrmsRoutes)
   app.use('/api/v1/payroll', payrollRoutes)
   app.use('/api/v1/finance', financeRoutes)
+  app.use('/api/v1/lms', lmsRoutes)
+  app.use('/api/v1/online-tests', onlineTestRoutes)
+  app.use('/api/v1/transport', transportRoutes)
+  app.use('/api/v1/library', libraryRoutes)
+  app.use('/api/v1/events', eventRoutes)
   app.use('/api/v1/family/:slug', familyRouter)
   app.use('/api/v1/documents', documentRoutes)
 

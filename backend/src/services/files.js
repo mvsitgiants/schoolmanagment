@@ -8,6 +8,10 @@ import { Application } from '../models/admissions.js'
 import { Candidate, Employee } from '../models/hrms.js'
 import { employeeScope } from './hrmsCommon.js'
 import { expenseRecord } from './financeExpenses.js'
+import { lmsItemRecord } from './lms.js'
+import { libraryTitleRecord } from './library.js'
+import { eventRecord } from './events.js'
+import { albumRecord } from './eventsGallery.js'
 import { can, moduleEnabled } from '../platform/access.js'
 import { audit } from '../platform/audit.js'
 import { clean, isOid, oid } from '../platform/db.js'
@@ -50,6 +54,11 @@ const RECORDS = {
     module: 'hrms', view: ['hrms.employees.view_sensitive'], add: ['hrms.employees.edit'],
     load: async (id, auth) => { const e = await Employee.findOne({ _id: id, ...employeeScope(auth) }).select('name employeeCode').lean(); return e && { name: `${e.name} (${e.employeeCode})` } },
   },
+  // Study material on a course item: worksheets, slides, PDFs — students download them in the app.
+  lms_item: {
+    module: 'lms', view: ['lms.courses.view'], add: ['lms.courses.create', 'lms.courses.edit'],
+    load: (id, auth) => lmsItemRecord(id, auth),
+  },
   // An expense's bill, quotation or delivery note.
   expense: {
     module: 'finance', view: ['finance.expenses.view'], add: ['finance.expenses.create', 'finance.expenses.approve'],
@@ -60,6 +69,21 @@ const RECORDS = {
   candidate: {
     module: 'hrms', view: ['hrms.hiring.view'], add: ['hrms.hiring.create', 'hrms.hiring.edit'],
     load: async (id) => { const c = await Candidate.findById(id).select('name').lean(); return c && { name: c.name } },
+  },
+  // An e-book's files (PDF, EPUB …): families open them in the app's e-library when the title is shown to them.
+  library_title: {
+    module: 'library', view: ['library.catalogue.view'], add: ['library.catalogue.create', 'library.catalogue.edit'],
+    load: (id) => libraryTitleRecord(id),
+  },
+  // An event's circular, consent form or programme sheet.
+  school_event: {
+    module: 'events', view: ['events.calendar.view'], add: ['events.calendar.create', 'events.calendar.edit'],
+    load: (id) => eventRecord(id),
+  },
+  // A photo album's photos (families see them in the app once the album is published).
+  gallery_album: {
+    module: 'events', view: ['events.gallery.view'], add: ['events.gallery.create'],
+    load: (id) => albumRecord(id),
   },
 }
 

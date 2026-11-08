@@ -138,6 +138,7 @@ export const POSTING_SOURCES = {
   FEE_REFUND: { label: 'Fee refund', module: 'fees' },
   PAYROLL_RUN: { label: 'Payroll', module: 'payroll' },
   EXPENSE: { label: 'Expense', module: 'finance' },
+  LIBRARY_FINE: { label: 'Library fine', module: 'library' },
   MANUAL: { label: 'Manual', module: 'finance' },
 }
 

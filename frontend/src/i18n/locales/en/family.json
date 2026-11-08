@@ -15,7 +15,14 @@
       "results": "Results",
       "more": "More",
       "notices": "Notices",
-      "chat": "Messages"
+      "chat": "Messages",
+      "learning": "Learning",
+      "tests": "Tests",
+      "bus": "Bus",
+      "library": "Library",
+      "calendar": "Calendar",
+      "meetings": "Meetings",
+      "photos": "Photos"
     },
     "marks": {
       "P": "Present",
@@ -226,6 +233,165 @@
       "placeholder": "Write your message…",
       "send": "Send",
       "etiquette": "Teachers reply during school hours. For anything urgent, please call the school."
+    },
+    "learning": {
+      "courses": "Courses",
+      "none": "No study material yet.",
+      "back": "All courses",
+      "doneOf": "{{done}} of {{total}} done",
+      "markDone": "Mark as done",
+      "undo": "Mark as not done",
+      "minutes_one": "{{count}} minute",
+      "minutes_other": "{{count}} minutes",
+      "open": "Open",
+      "live": "Live classes",
+      "liveNow": "Live now",
+      "join": "Join",
+      "joinHint": "Join opens a few minutes before the class starts.",
+      "recordings": "Recordings"
+    },
+    "tests": {
+      "none": "No online tests yet.",
+      "meta": "{{q}} questions · {{m}} marks · {{min}} minutes",
+      "opensOn": "Opens {{when}}",
+      "openUntil": "Open until {{when}}",
+      "closed": "Closed",
+      "start": "Start test",
+      "carryOn": "Carry on",
+      "seeResult": "Result: {{total}} / {{max}}",
+      "submitted": "Submitted",
+      "attempts": "Attempts: {{used}} of {{allowed}}",
+      "back": "All tests",
+      "qOf": "Question {{n}} of {{total}}",
+      "marks_one": "{{count}} mark",
+      "marks_other": "{{count}} marks",
+      "negative": "−{{n}} if wrong",
+      "pickAll": "Pick every right answer.",
+      "yourAnswer": "Your answer",
+      "clear": "Clear my answer",
+      "prev": "Back",
+      "next": "Next",
+      "goTo": "Go to question {{n}}",
+      "submit": "Submit",
+      "submitTitle": "Submit the test?",
+      "submitHint": "You have answered {{done}} of {{total}}. You can’t change your answers after this.",
+      "leftWarning_one": "You left the test. Leave once more and it is submitted.",
+      "leftWarning_other": "You left the test. {{count}} more times and it is submitted.",
+      "pass": "Pass",
+      "fail": "Not passed",
+      "pending_one": "{{count}} answer is still to be marked by the teacher.",
+      "pending_other": "{{count}} answers are still to be marked by the teacher.",
+      "notYet": {
+        "IMMEDIATE": "Your marks will be here shortly.",
+        "AFTER_CLOSE": "Submitted. Marks are shown after the test closes.",
+        "MANUAL": "Submitted. Your teacher will share the marks."
+      },
+      "yours": "(yours)",
+      "youWrote": "You wrote:",
+      "answer": "Answer:"
+    },
+    "bus": {
+      "none": "Not on the school bus",
+      "noneHint": "If your child takes the bus, ask the school office to add them to a route.",
+      "liveTitle": "Where the bus is",
+      "minutesAway_one": "About {{count}} minute from your stop",
+      "minutesAway_other": "About {{count}} minutes from your stop",
+      "onTheWay": "The bus is on its way",
+      "seenAt": "Seen at {{time}}",
+      "km": "{{km}} km away",
+      "map": "Bus on the map",
+      "openMap": "Open in maps",
+      "today": "Today",
+      "kinds": {
+        "PICKUP": "Morning pickup",
+        "DROP": "Afternoon drop"
+      },
+      "status": {
+        "NOT_STARTED": "Not started yet",
+        "RUNNING": "On the way",
+        "DONE": "Finished"
+      },
+      "passedStop": "reached your stop",
+      "events": {
+        "BOARDED": "Got on {{time}}",
+        "DROPPED": "Got off {{time}}",
+        "ABSENT": "Not at the stop"
+      },
+      "routeTitle": "Route and stop",
+      "stop": "Stop: {{name}}",
+      "pickupAt": "Pickup {{time}}",
+      "dropAt": "Drop {{time}}",
+      "vehicle": "Vehicle {{reg}}",
+      "driver": "Driver: {{name}}",
+      "attendant": "Attendant: {{name}}",
+      "call": "Call"
+    },
+    "library": {
+      "out": "Books out",
+      "noneOut": "No library books out",
+      "dueOn": "Due back {{date}}",
+      "late_one": "{{count}} day late",
+      "late_other": "{{count}} days late",
+      "dueToday": "Due today",
+      "daysLeft_one": "{{count}} day left",
+      "daysLeft_other": "{{count}} days left",
+      "fineSoFar": "Late fine so far: {{amount}}",
+      "fines": "Fines to pay",
+      "reasons": {
+        "LATE": "Late return",
+        "LOST": "Lost book",
+        "DAMAGED": "Damaged book",
+        "OTHER": "Library charge"
+      },
+      "payAtLibrary": "{{amount}} to pay at the library.",
+      "ebooks": "E-library",
+      "open": "Open",
+      "past": "Read before",
+      "lost": "Lost"
+    },
+    "calendar": {
+      "empty": "Nothing on the calendar for the next three months",
+      "sources": {
+        "HOLIDAY": "Holiday",
+        "EXAM": "Exam",
+        "PTM": "Parent–teacher meeting"
+      },
+      "consentAsk": "Do you give permission?",
+      "rsvpAsk": "Will your child come?",
+      "consentYes": "I give permission",
+      "consentNo": "No",
+      "going": "Going",
+      "notGoing": "Not going",
+      "youReplied": "You replied: {{answer}}",
+      "notePlaceholder": "A note for the school (optional)",
+      "replyBy": "Reply by {{date}}. You can change your reply until then."
+    },
+    "meetings": {
+      "none": "No parent–teacher meetings",
+      "noneHint": "When the school sets one up, you book a time with each teacher here.",
+      "online": "video call",
+      "bookBy": "Book by {{date}}",
+      "closed": "Booking has closed — call the school to change a time.",
+      "yourTime": "Your time: {{time}}",
+      "join": "Join the call",
+      "cancel": "Cancel",
+      "pickTime": "Pick a time",
+      "full": "Every slot is taken — please call the school.",
+      "notBooked": "Not booked",
+      "status": {
+        "BOOKED": "Booked",
+        "ATTENDED": "Met",
+        "NO_SHOW": "Missed",
+        "CANCELLED": "Cancelled"
+      }
+    },
+    "photos": {
+      "none": "No photos yet",
+      "back": "All albums",
+      "save": "Save",
+      "close": "Close",
+      "count_one": "{{count}} photo",
+      "count_other": "{{count}} photos"
     }
   }
 }

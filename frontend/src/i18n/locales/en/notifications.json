@@ -73,6 +73,138 @@
           "body": "Dear {{guardian.name}},\n\n{{homework.subject}} homework has been set for {{student.name}} ({{student.class}}):\n{{homework.title}}\n\nDue: {{homework.dueDate}}\n\n{{institution.name}}"
         }
       },
+      "lms_live_class": {
+        "SMS": {
+          "body": "{{live.subject}} live class for {{student.firstName}} {{live.status}}: {{live.date}} {{live.time}}. Join in the app. - {{institution.name}}"
+        },
+        "WHATSAPP": {
+          "body": "Dear {{guardian.name}},\n{{live.subject}} live class for {{student.firstName}} ({{student.class}}) {{live.status}}:\n{{live.title}}\n\n{{live.date}} at {{live.time}}\nJoin from the app: {{live.link}}\n\n{{institution.name}}"
+        },
+        "EMAIL": {
+          "subject": "{{live.subject}} live class — {{live.date}}",
+          "body": "Dear {{guardian.name}},\n\nA {{live.subject}} live class for {{student.name}} ({{student.class}}) {{live.status}}:\n{{live.title}}\n{{live.date}} at {{live.time}}\n\nJoin from the app: {{live.link}}\n\n{{institution.name}}"
+        }
+      },
+      "tests_published": {
+        "SMS": {
+          "body": "{{test.subject}} online test for {{student.firstName}}: {{test.title}}, {{test.opens}} to {{test.closes}}. - {{institution.name}}"
+        },
+        "WHATSAPP": {
+          "body": "Dear {{guardian.name}},\nAn online {{test.subject}} test for {{student.firstName}} ({{student.class}}):\n{{test.title}} — {{test.minutes}} minutes\n\nOpen from {{test.opens}} to {{test.closes}}\nIn the app: {{test.link}}\n\n{{institution.name}}"
+        },
+        "EMAIL": {
+          "subject": "Online test: {{test.title}}",
+          "body": "Dear {{guardian.name}},\n\nAn online {{test.subject}} test for {{student.name}} ({{student.class}}): {{test.title}}, {{test.minutes}} minutes.\nIt can be taken from {{test.opens}} to {{test.closes}} in the app: {{test.link}}\n\n{{institution.name}}"
+        }
+      },
+      "transport_near": {
+        "SMS": {
+          "body": "School bus ({{bus.route}}) is about {{bus.minutes}} min from {{bus.stop}}. - {{institution.name}}"
+        },
+        "WHATSAPP": {
+          "body": "Dear {{guardian.name}},\nThe school bus ({{bus.route}}, {{bus.vehicle}}) is about {{bus.minutes}} minutes from {{bus.stop}} for the {{bus.trip}}.\n\n{{institution.name}}"
+        },
+        "EMAIL": {
+          "subject": "School bus near {{bus.stop}}",
+          "body": "Dear {{guardian.name}},\n\nThe school bus ({{bus.route}}) is about {{bus.minutes}} minutes from {{bus.stop}}.\n\n{{institution.name}}"
+        }
+      },
+      "transport_ride": {
+        "SMS": {
+          "body": "{{student.firstName}} {{bus.event}} the school bus at {{bus.stop}}, {{bus.time}}. - {{institution.name}}"
+        },
+        "WHATSAPP": {
+          "body": "Dear {{guardian.name}},\n{{student.firstName}} {{bus.event}} the school bus ({{bus.route}}) at {{bus.stop}}, {{bus.time}}.\n\n{{institution.name}}"
+        },
+        "EMAIL": {
+          "subject": "{{student.firstName}} — school bus",
+          "body": "Dear {{guardian.name}},\n\n{{student.name}} {{bus.event}} the school bus ({{bus.route}}) at {{bus.stop}}, {{bus.time}}.\n\n{{institution.name}}"
+        }
+      },
+      "library_due": {
+        "SMS": {
+          "body": "{{student.firstName}}: library book \"{{library.title}}\" is due back on {{library.dueDate}}. - {{institution.name}}"
+        },
+        "WHATSAPP": {
+          "body": "Dear {{guardian.name}},\n{{student.firstName}}’s library book “{{library.title}}” is due back on {{library.dueDate}}.\n\n{{institution.name}}"
+        },
+        "EMAIL": {
+          "subject": "Library book due — {{library.title}}",
+          "body": "Dear {{guardian.name}},\n\n{{student.name}}’s library book “{{library.title}}” is due back on {{library.dueDate}}.\n\n{{institution.name}}"
+        }
+      },
+      "library_overdue": {
+        "SMS": {
+          "body": "{{student.firstName}}: library book \"{{library.title}}\" was due on {{library.dueDate}} ({{library.days}} days late, fine {{library.fine}}). - {{institution.name}}"
+        },
+        "WHATSAPP": {
+          "body": "Dear {{guardian.name}},\n{{student.firstName}}’s library book “{{library.title}}” was due back on {{library.dueDate}} and is {{library.days}} days late. Fine so far: {{library.fine}}.\n\nPlease return it to the library.\n{{institution.name}}"
+        },
+        "EMAIL": {
+          "subject": "Library book overdue — {{library.title}}",
+          "body": "Dear {{guardian.name}},\n\n{{student.name}}’s library book “{{library.title}}” was due back on {{library.dueDate}} and is {{library.days}} days late. Fine so far: {{library.fine}}.\n\n{{institution.name}}"
+        }
+      },
+      "events_announced": {
+        "SMS": {
+          "body": "{{event.title}} on {{event.date}} {{event.time}} at {{event.venue}}. - {{institution.name}}"
+        },
+        "WHATSAPP": {
+          "body": "Dear {{guardian.name}},\n{{event.title}}: {{event.date}} {{event.time}}, {{event.venue}}.\n\nDetails: {{event.link}}\n{{institution.name}}"
+        },
+        "EMAIL": {
+          "subject": "{{event.title}} — {{event.date}}",
+          "body": "Dear {{guardian.name}},\n\n{{event.title}}\nWhen: {{event.date}} {{event.time}}\nWhere: {{event.venue}}\n\nDetails: {{event.link}}\n\n{{institution.name}}"
+        }
+      },
+      "events_reply": {
+        "SMS": {
+          "body": "{{event.title}} ({{event.date}}): {{event.question}} Reply in the app by {{event.replyBy}}: {{event.link}} - {{institution.name}}"
+        },
+        "WHATSAPP": {
+          "body": "Dear {{guardian.name}},\n{{event.title}} on {{event.date}}.\n\n{{event.question}}\nPlease reply in the app by {{event.replyBy}}: {{event.link}}\n\n{{institution.name}}"
+        },
+        "EMAIL": {
+          "subject": "Please reply — {{event.title}}",
+          "body": "Dear {{guardian.name}},\n\n{{event.title}} on {{event.date}}.\n{{event.question}}\nPlease reply in the app by {{event.replyBy}}: {{event.link}}\n\n{{institution.name}}"
+        }
+      },
+      "events_reminder": {
+        "SMS": {
+          "body": "Reminder: {{event.title}} tomorrow {{event.time}} at {{event.venue}}. - {{institution.name}}"
+        },
+        "WHATSAPP": {
+          "body": "Dear {{guardian.name}},\nA reminder: {{event.title}} is tomorrow, {{event.date}} {{event.time}}, {{event.venue}}.\n\n{{institution.name}}"
+        },
+        "EMAIL": {
+          "subject": "Tomorrow: {{event.title}}",
+          "body": "Dear {{guardian.name}},\n\nA reminder: {{event.title}} is tomorrow, {{event.date}} {{event.time}}, {{event.venue}}.\n\n{{institution.name}}"
+        }
+      },
+      "events_ptm_open": {
+        "SMS": {
+          "body": "{{ptm.title}} on {{ptm.date}}. Book a slot in the app by {{ptm.bookBy}}: {{ptm.link}} - {{institution.name}}"
+        },
+        "WHATSAPP": {
+          "body": "Dear {{guardian.name}},\n{{ptm.title}} is on {{ptm.date}}. Please book a time to meet {{student.firstName}}’s teachers by {{ptm.bookBy}}:\n{{ptm.link}}\n\n{{institution.name}}"
+        },
+        "EMAIL": {
+          "subject": "{{ptm.title}} — book a slot",
+          "body": "Dear {{guardian.name}},\n\n{{ptm.title}} is on {{ptm.date}}. Please book a time by {{ptm.bookBy}}: {{ptm.link}}\n\n{{institution.name}}"
+        }
+      },
+      "events_ptm_booked": {
+        "SMS": {
+          "body": "{{ptm.title}}: meet {{ptm.teacher}} on {{ptm.date}} at {{ptm.time}}, {{ptm.room}}. - {{institution.name}}"
+        },
+        "WHATSAPP": {
+          "body": "Dear {{guardian.name}},\nYour meeting with {{ptm.teacher}} about {{student.firstName}}: {{ptm.date}} at {{ptm.time}}, {{ptm.room}}.\n\n{{institution.name}}"
+        },
+        "EMAIL": {
+          "subject": "{{ptm.title}} — {{ptm.date}} {{ptm.time}}",
+          "body": "Dear {{guardian.name}},\n\nYour meeting with {{ptm.teacher}} about {{student.name}}: {{ptm.date}} at {{ptm.time}}, {{ptm.room}}.\n\n{{institution.name}}"
+        }
+      },
       "communication_message": {
         "SMS": {
           "body": "{{message.text}} - {{institution.name}}"

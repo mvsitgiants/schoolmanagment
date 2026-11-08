@@ -30,6 +30,11 @@ export const INTEGRATION_PROVIDERS = [
   { id: 'PAYU', kind: 'PAYMENTS', label: 'PayU', available: false, desc: 'Coming later.', fields: [], secrets: [] },
   { id: 'CASHFREE', kind: 'PAYMENTS', label: 'Cashfree', available: false, desc: 'Coming later.', fields: [], secrets: [] },
   {
+    id: 'GPS', kind: 'DEVICES', label: 'Bus GPS devices', available: true,
+    desc: 'GPS trackers on the buses post their position here (generic JSON, or the OsmAnd / Traccar protocol most trackers speak).',
+    fields: [], secrets: [],
+  },
+  {
     id: 'MESSAGING', kind: 'MESSAGING', label: 'Delivery reports', available: true,
     desc: 'Receives delivery and read receipts from the SMS and WhatsApp providers.',
     fields: [],
@@ -58,6 +63,7 @@ export const LOG_STATUSES = {
 /** Every provider / source a log row can name. */
 export const LOG_PROVIDERS = [
   { value: 'RAZORPAY', label: 'Razorpay' },
+  { value: 'GPS', label: 'Bus GPS' },
   { value: 'MSG91', label: 'MSG91' },
   { value: 'WHATSAPP', label: 'WhatsApp Cloud API' },
   { value: 'DEVICE', label: 'Devices' },

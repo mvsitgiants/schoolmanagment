@@ -20,6 +20,11 @@ import {
 } from '../services/portalAuth.js'
 import { BLOCKED_STATUSES, effectiveStatus } from '../services/subscription.js'
 import { createAppOrder, verifyAppPayment } from '../services/feePayments.js'
+import { courseView, itemFile, joinLive, learningFor, markItem } from '../services/lmsFamily.js'
+import { busFor } from '../services/transport.js'
+import { ebookFile, libraryFor } from '../services/libraryFamily.js'
+import { familyAlbum, familyAlbums, familyCalendar, familyEventReply, familyMeetingBook, familyMeetingCancel, familyMeetings, familyPhoto } from '../services/eventsFamily.js'
+import { attemptView, logEvent, resultView, saveAnswer, startTest, submitAttempt, testsFor } from '../services/onlineTests.js'
 
 const ymd = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Use YYYY-MM-DD')
 
@@ -160,6 +165,76 @@ familyRouter.get('/students/:studentId/homework/:homeworkId/files/:fileId', asyn
   res.setHeader('Content-Security-Policy', "default-src 'none'; sandbox")
   await new Promise((resolve, reject) => { stream.on('error', reject); stream.on('end', resolve); stream.pipe(res) })
 })
+// learning: courses, material, live classes
+familyRouter.get('/students/:studentId/learning', async (req, res) => { res.json({ data: await learningFor(req.family, sid(req)) }) })
+familyRouter.get('/students/:studentId/learning/courses/:courseId', async (req, res) => { res.json({ data: await courseView(req.family, sid(req), req.params.courseId) }) })
+familyRouter.post('/students/:studentId/learning/courses/:courseId/items/:itemId', async (req, res) => {
+  const { done } = z.object({ done: z.boolean().default(true) }).parse(req.body ?? {})
+  res.json({ data: await markItem(req.family, sid(req), req.params.courseId, req.params.itemId, done) })
+})
+familyRouter.get('/students/:studentId/learning/courses/:courseId/items/:itemId/files/:fileId', async (req, res) => {
+  const { file, stream } = await itemFile(req.family, sid(req), req.params.courseId, req.params.itemId, req.params.fileId)
+  res.setHeader('Content-Type', file.mime)
+  res.setHeader('Content-Length', String(file.size))
+  res.setHeader('Content-Disposition', `${req.query.download === '1' ? 'attachment' : 'inline'}; filename*=UTF-8''${encodeURIComponent(file.fileName)}`)
+  res.setHeader('Content-Security-Policy', "default-src 'none'; sandbox")
+  await new Promise((resolve, reject) => { stream.on('error', reject); stream.on('end', resolve); stream.pipe(res) })
+})
+familyRouter.post('/students/:studentId/learning/live/:liveId/join', async (req, res) => { res.json({ data: await joinLive(req.family, sid(req), req.params.liveId) }) })
+// online tests: list, start (or carry on), save answers as they go, report leaving the test, submit, result
+// calendar, parent–teacher meetings, photos
+familyRouter.get('/students/:studentId/calendar', async (req, res) => {
+  const q = z.object({ from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(), to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional() }).parse(req.query)
+  res.json({ data: await familyCalendar(req.family, sid(req), q) })
+})
+familyRouter.put('/students/:studentId/events/:eventId/reply', async (req, res) => {
+  const body = z.object({ answer: z.enum(['YES', 'NO']), note: z.string().trim().max(300).optional() }).parse(req.body)
+  res.json({ data: await familyEventReply(req.family, sid(req), req.params.eventId, body) })
+})
+familyRouter.get('/students/:studentId/meetings', async (req, res) => { res.json({ data: await familyMeetings(req.family, sid(req)) }) })
+familyRouter.post('/students/:studentId/meetings/:sessionId/book', async (req, res) => {
+  const body = z.object({ hostId: z.string().regex(/^[a-f0-9]{24}$/i), time: z.string().regex(/^\d{2}:\d{2}$/) }).parse(req.body)
+  res.json({ data: await familyMeetingBook(req.family, sid(req), req.params.sessionId, body) })
+})
+familyRouter.delete('/students/:studentId/meetings/bookings/:bookingId', async (req, res) => { res.json({ data: await familyMeetingCancel(req.family, sid(req), req.params.bookingId) }) })
+familyRouter.get('/students/:studentId/albums', async (req, res) => { res.json({ data: await familyAlbums(req.family, sid(req)) }) })
+familyRouter.get('/students/:studentId/albums/:albumId', async (req, res) => { res.json({ data: await familyAlbum(req.family, sid(req), req.params.albumId) }) })
+familyRouter.get('/students/:studentId/albums/:albumId/photos/:fileId', async (req, res) => {
+  const { file, stream } = await familyPhoto(req.family, sid(req), req.params.albumId, req.params.fileId)
+  res.setHeader('Content-Type', file.mime)
+  res.setHeader('Content-Length', String(file.size))
+  res.setHeader('Cache-Control', 'private, max-age=86400')
+  res.setHeader('Content-Disposition', `${req.query.download === '1' ? 'attachment' : 'inline'}; filename*=UTF-8''${encodeURIComponent(file.fileName)}`)
+  res.setHeader('Content-Security-Policy', "default-src 'none'; sandbox")
+  await new Promise((resolve, reject) => { stream.on('error', reject); stream.on('end', resolve); stream.pipe(res) })
+})
+
+// library: books out, fines, the e-library
+familyRouter.get('/students/:studentId/library', async (req, res) => { res.json({ data: await libraryFor(req.family, sid(req)) }) })
+familyRouter.get('/students/:studentId/library/ebooks/:titleId/files/:fileId', async (req, res) => {
+  const { file, stream } = await ebookFile(req.family, sid(req), req.params.titleId, req.params.fileId)
+  res.setHeader('Content-Type', file.mime)
+  res.setHeader('Content-Length', String(file.size))
+  res.setHeader('Content-Disposition', `${req.query.download === '1' ? 'attachment' : 'inline'}; filename*=UTF-8''${encodeURIComponent(file.fileName)}`)
+  res.setHeader('Content-Security-Policy', "default-src 'none'; sandbox")
+  await new Promise((resolve, reject) => { stream.on('error', reject); stream.on('end', resolve); stream.pipe(res) })
+})
+
+// the school bus: route, stop, today's trips, where the bus is
+familyRouter.get('/students/:studentId/bus', async (req, res) => { res.json({ data: await busFor(req.family, sid(req)) }) })
+
+familyRouter.get('/students/:studentId/tests', async (req, res) => { res.json({ data: await testsFor(req.family, sid(req)) }) })
+familyRouter.post('/students/:studentId/tests/:testId/start', async (req, res) => { res.json({ data: await startTest(req.family, sid(req), req.params.testId) }) })
+familyRouter.get('/students/:studentId/attempts/:attemptId', async (req, res) => { res.json({ data: await attemptView(req.family, sid(req), req.params.attemptId) }) })
+familyRouter.put('/students/:studentId/attempts/:attemptId/answers', async (req, res) => {
+  const body = z.object({ index: z.coerce.number().int().min(0).max(500), value: z.union([z.string().max(20000), z.number(), z.array(z.number()).max(10), z.null()]) }).parse(req.body)
+  res.json({ data: await saveAnswer(req.family, sid(req), req.params.attemptId, body) })
+})
+familyRouter.post('/students/:studentId/attempts/:attemptId/events', async (req, res) => {
+  res.json({ data: await logEvent(req.family, sid(req), req.params.attemptId, z.object({ type: z.enum(['BLUR', 'FOCUS', 'FULLSCREEN_EXIT', 'FULLSCREEN_ENTER']) }).parse(req.body)) })
+})
+familyRouter.post('/students/:studentId/attempts/:attemptId/submit', async (req, res) => { res.json({ data: await submitAttempt(req.family, sid(req), req.params.attemptId) }) })
+familyRouter.get('/students/:studentId/attempts/:attemptId/result', async (req, res) => { res.json({ data: await resultView(req.family, sid(req), req.params.attemptId) }) })
 familyRouter.get('/students/:studentId/fees', async (req, res) => { res.json({ data: await feesFor(req.family, sid(req)) }) })
 // pay online: an order for what is due now, then Checkout's signed response
 const payLimiter = limit(15 * 60_000, 30, 'Too many payment tries. Try again in a few minutes.')

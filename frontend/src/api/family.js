@@ -61,3 +61,36 @@ export const familyChatSend = (slug, id, body) => fpost(slug, `${st(id)}/chat`, 
 // pay fees online (the school's own Razorpay account)
 export const familyPayStart = (slug, id) => fpost(slug, `${st(id)}/pay`)
 export const familyPayVerify = (slug, id, body) => fpost(slug, `${st(id)}/pay/verify`, body)
+
+// learning (LMS)
+export const familyLearning = (slug, id) => fget(slug, `${st(id)}/learning`)
+export const familyCourse = (slug, id, courseId) => fget(slug, `${st(id)}/learning/courses/${courseId}`)
+export const familyMarkItem = (slug, id, courseId, itemId, done) => fpost(slug, `${st(id)}/learning/courses/${courseId}/items/${itemId}`, { done })
+export const familyJoinLive = (slug, id, liveId) => fpost(slug, `${st(id)}/learning/live/${liveId}/join`)
+export const familyItemFileUrl = (slug, id, courseId, itemId, fileId) => `${API_BASE_URL}${base(slug)}${st(id)}/learning/courses/${courseId}/items/${itemId}/files/${fileId}`
+
+// online tests
+export const familyTests = (slug, id) => fget(slug, `${st(id)}/tests`)
+export const familyStartTest = (slug, id, testId) => fpost(slug, `${st(id)}/tests/${testId}/start`)
+export const familyAttempt = (slug, id, attemptId) => fget(slug, `${st(id)}/attempts/${attemptId}`)
+export const familySaveAnswer = async (slug, id, attemptId, body) => (await family.put(`${base(slug)}${st(id)}/attempts/${attemptId}/answers`, body)).data.data
+export const familyTestEvent = (slug, id, attemptId, type) => fpost(slug, `${st(id)}/attempts/${attemptId}/events`, { type })
+export const familySubmitTest = (slug, id, attemptId) => fpost(slug, `${st(id)}/attempts/${attemptId}/submit`)
+export const familyTestResult = (slug, id, attemptId) => fget(slug, `${st(id)}/attempts/${attemptId}/result`)
+
+// school bus (transport)
+export const familyBus = (slug, id) => fget(slug, `${st(id)}/bus`)
+
+// library
+export const familyLibrary = (slug, id) => fget(slug, `${st(id)}/library`)
+export const familyEbookFileUrl = (slug, id, titleId, fileId) => `${API_BASE_URL}${base(slug)}${st(id)}/library/ebooks/${titleId}/files/${fileId}`
+
+// calendar, parent–teacher meetings, photos
+export const familyCalendar = (slug, id, params) => fget(slug, `${st(id)}/calendar`, params)
+export const familyEventReply = async (slug, id, eventId, body) => (await family.put(`${base(slug)}${st(id)}/events/${eventId}/reply`, body)).data.data
+export const familyMeetings = (slug, id) => fget(slug, `${st(id)}/meetings`)
+export const familyBookMeeting = (slug, id, sessionId, body) => fpost(slug, `${st(id)}/meetings/${sessionId}/book`, body)
+export const familyCancelMeeting = async (slug, id, bookingId) => (await family.delete(`${base(slug)}${st(id)}/meetings/bookings/${bookingId}`)).data.data
+export const familyAlbums = (slug, id) => fget(slug, `${st(id)}/albums`)
+export const familyAlbum = (slug, id, albumId) => fget(slug, `${st(id)}/albums/${albumId}`)
+export const familyPhotoUrl = (slug, id, albumId, fileId) => `${API_BASE_URL}${base(slug)}${st(id)}/albums/${albumId}/photos/${fileId}`

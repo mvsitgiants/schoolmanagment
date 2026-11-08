@@ -4,6 +4,7 @@ import { config } from '../config.js'
 import { contextMiddleware } from '../platform/context.js'
 import { handlePlatformWebhook } from '../services/platformPayments.js'
 import { handleRazorpayWebhook } from '../services/feePayments.js'
+import { handleGpsHook } from '../services/transport.js'
 
 // Inbound integrations: /api/v1/hooks — public (no sign-in), so each call proves itself with the
 // provider's signature, checked on the raw body. Mounted BEFORE express.json() in app.js:
@@ -29,5 +30,11 @@ router.post('/platform/razorpay', hookLimiter, async (req, res) => {
 router.post('/razorpay/:hookKey', hookLimiter, async (req, res) => {
   send(res, await handleRazorpayWebhook(req.params.hookKey, Buffer.isBuffer(req.body) ? req.body : Buffer.alloc(0), req.headers))
 })
+
+// ── bus GPS trackers (Transport › Vehicles shows the address): JSON posts, or the OsmAnd / Traccar Client query
+// (?id=&lat=&lon=&speed=&timestamp=) as GET or POST. The key in the address is the secret; trackers can't sign.
+const gps = async (req, res) => { send(res, await handleGpsHook(req.params.hookKey, req.query, Buffer.isBuffer(req.body) ? req.body : Buffer.alloc(0))) }
+router.get('/gps/:hookKey', hookLimiter, gps)
+router.post('/gps/:hookKey', hookLimiter, gps)
 
 export default router

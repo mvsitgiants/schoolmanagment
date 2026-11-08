@@ -80,14 +80,14 @@ accounts are mostly ports — the hospital versions are mature.
 | --- | --- | --- | --- |
 | Admissions CRM ✅ (code written, not yet run) | Enquiries (website, ads, walk-in), follow-ups, online application, entrance test, merit list, seat allotment | Forms engine, public pages | 6 |
 | Timetable ✅ (code written, not yet run) | Constraint-based generator, substitutions, rooms | Scheduling engine, roster | 6 |
-| LMS | Courses and material, live classes (Zoom / Meet / Jitsi), question bank | Files | 5 |
-| Online tests | MCQ and written tests, timer, basic proctoring, auto-evaluation | Forms engine (scoring) | 4 |
+| LMS ✅ (code written, not yet run) | Courses and material, live classes (Zoom / Meet / Jitsi), question bank | Files | 5 |
+| Online tests ✅ (code written, not yet run) | MCQ and written tests, timer, basic proctoring, auto-evaluation | Forms engine (scoring) | 4 |
 | Accounts ✅ (code written, not yet run) | Ledgers, journals, expenses, bank reconciliation, GST, Tally export | Finance module — port | 4 |
 | Staff & HR ✅ (code written, not yet run) | Staff records, staff attendance (biometric), leave, recruitment, appraisal | HRMS — port | 4 |
 | Payroll ✅ (code written, not yet run) | Salary structures, runs, payslips, PF / ESI / TDS, bank exports | Payroll — port | 3 |
-| Transport | Routes, stops, vehicles, student assignment, GPS live tracking, pickup alerts | Ambulance (maps, vehicles) | 5 |
-| Library | Catalogue, barcode issue/return, fines | Inventory patterns | 3 |
-| Events & calendar | Calendar, PTM slot booking, gallery | Appointments / scheduling | 3 |
+| Transport ✅ (code written, not yet run) | Routes, stops, vehicles, student assignment, GPS live tracking, pickup alerts | Ambulance (maps, vehicles) | 5 |
+| Library ✅ (code written, not yet run) | Catalogue, barcode issue/return, fines | Inventory patterns | 3 |
+| Events & calendar ✅ (code written, not yet run) | Calendar, PTM slot booking, gallery | Appointments / scheduling | 3 |
 | Analytics | Academic performance, fee collection, campus comparison | Analytics, charts | 3 |
 | AI assistant | Question paper generator, report-card remarks, assistant over own data (Claude API) | — new | 5 |
 | Integrations | School's own Razorpay, WhatsApp / SMS providers, biometric and RFID devices, delivery reports | Integrations — port | 3 |

@@ -23,7 +23,7 @@ const idStr = (v) => (v ? String(v) : null)
 const fieldsError = (fields, message = 'Some details need fixing.') => badRequest(message, { fields })
 const today = async () => (await institutionNow()).date
 const NARROW = ['CLASS', 'DEPARTMENT', 'OWN']
-const wide = (auth) => !NARROW.includes(scopeOf(auth, 'homework'))
+const wide = (auth, moduleId = 'homework') => !NARROW.includes(scopeOf(auth, moduleId))
 const byRoll = { locale: 'en', numericOrdering: true }
 
 async function requireYear() {
@@ -73,10 +73,11 @@ async function sectionLabels(ids) {
  * This year's sections the caller may work with, each with the subjects they may pick there; and
  * the classes of those sections with their subjects (for the syllabus screen).
  */
-export async function homeworkLookup(auth) {
+/** The sections and subjects the caller may pick (their own classes on a narrow scope). Also used by LMS. */
+export async function homeworkLookup(auth, moduleId = 'homework') {
   const year = await currentYear()
   if (!year) return { year: null, sections: [], classes: [] }
-  const allowed = await sectionsInScope(auth, 'homework')
+  const allowed = await sectionsInScope(auth, moduleId)
   const sections = await Section.find({ academicYearId: year._id, active: { $ne: false }, ...(allowed && { _id: { $in: allowed } }) }).lean()
   const [classes, allocs, user] = await Promise.all([
     ClassLevel.find({ _id: { $in: sections.map((s) => s.classId) } }).select('name code order subjectIds').sort({ order: 1 }).lean(),
@@ -84,7 +85,7 @@ export async function homeworkLookup(auth) {
     User.findById(auth.userId).select('sectionIds').lean(),
   ])
   const cls = new Map(classes.map((c) => [String(c._id), c]))
-  const isWide = wide(auth)
+  const isWide = wide(auth, moduleId)
   const extra = new Set((user?.sectionIds ?? []).map(String))
   const allSubjectIds = new Set([...classes.flatMap((c) => c.subjectIds.map(String)), ...allocs.map((a) => String(a.subjectId))])
   const names = await subjectNames([...allSubjectIds])

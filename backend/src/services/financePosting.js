@@ -1,5 +1,6 @@
 import { incomeKeyForHead } from '@schoolgiant/shared'
 import { Expense, FinanceConfig, Journal } from '../models/finance.js'
+import { LibraryFine } from '../models/library.js'
 import { FeeHead, FeeInvoice, FeePayment, FeeRefund } from '../models/fees.js'
 import { Payslip, PayrollRun } from '../models/payroll.js'
 import { Student, studentName } from '../models/students.js'
@@ -27,6 +28,8 @@ import { loadChart, postEntry } from './finance.js'
 //   Payroll paid          salaries + employer PF/ESI/LWF             bank (net), PF/ESI/PT/LWF/TDS payable,
 //                                                                    staff loans, staff recoveries
 //   Expense paid          the expense head                           cash / bank, TDS payable
+//   Library fine paid     cash / bank                                late fees & fines
+//   (payment cancelled)   the fine's voucher mirrored
 
 const sum = (rows, f = (x) => x) => rows.reduce((s, r) => s + (f(r) || 0), 0)
 
@@ -207,6 +210,38 @@ export async function postExpense(x, chart) {
   }, chart)
 }
 
+// ───────────────────────────────────────────────────────── library fines
+
+const borrowerParty = (b) => b && { type: b.kind === 'STAFF' ? 'EMPLOYEE' : 'STUDENT', id: b.id, name: `${b.name}${b.code ? ` (${b.code})` : ''}` }
+
+/** A library fine collected: Dr the money, Cr late fees & fines. Keyed by the receipt, so paid again after a cancel posts again. */
+export async function postLibraryFine(f, chart) {
+  if (f.status !== 'PAID' || !f.paid?.receiptNo || !f.amount) return null
+  const money = await moneyFor(chart, f.paid.mode)
+  return postEntry({
+    key: `LIBRARY_FINE:${f._id}:PAID:${f.paid.receiptNo}`, type: 'RECEIPT', date: f.paid.date, branchId: f.branchId, reference: f.paid.reference,
+    narration: `Library fine ${f.paid.receiptNo} — ${f.borrower?.name ?? ''}${f.title ? `: ${f.title}` : ''}`,
+    lines: [{ account: money._id, amount: f.amount, party: borrowerParty(f.borrower) }, { account: 'INC_LATE_FEE', amount: -f.amount }],
+    source: { type: 'LIBRARY_FINE', id: f._id, no: f.paid.receiptNo, event: 'PAID', module: 'library' },
+  }, chart)
+}
+
+/** Each cancelled payment of a fine: its voucher mirrored on the day it was cancelled. */
+export async function postLibraryFineCancels(f, chart) {
+  let last = null
+  for (const c of f.cancelled ?? []) {
+    const received = await Journal.findOne({ postingKey: `LIBRARY_FINE:${f._id}:PAID:${c.receiptNo}` }).lean()
+    if (!received) continue
+    last = await postEntry({
+      key: `LIBRARY_FINE:${f._id}:CANCELLED:${c.receiptNo}`, type: 'RECEIPT', date: c.on && c.on > c.date ? c.on : c.date, branchId: f.branchId,
+      narration: `Library fine ${c.receiptNo} cancelled${c.reason ? ` — ${c.reason}` : ''}`,
+      lines: received.lines.map((l) => ({ account: l.accountId, amount: l.credit - l.debit, party: l.party, note: l.note })),
+      source: { type: 'LIBRARY_FINE', id: f._id, no: c.receiptNo, event: 'CANCELLED', module: 'library' },
+    }, chart)
+  }
+  return last
+}
+
 // ───────────────────────────────────────────────────────── listeners and rebuild
 
 const byId = (Model, fn) => async (id, chart) => {
@@ -220,6 +255,8 @@ const HANDLERS = {
   'fees.receipt_cancelled': ['fees', (p) => p.entity?.id, byId(FeePayment, postReceiptCancel)],
   'fees.refund': ['fees', (p) => p.entity?.id, byId(FeeRefund, postFeeRefund)],
   'payroll.paid': ['payroll', (p) => p.entity?.id, byId(PayrollRun, postPayrollRun)],
+  'library.fine_paid': ['library', (p) => p.entity?.id, byId(LibraryFine, postLibraryFine)],
+  'library.fine_cancelled': ['library', (p) => p.entity?.id, byId(LibraryFine, postLibraryFineCancels)],
 }
 
 let registered = false
@@ -268,6 +305,10 @@ export async function rebuildPostings({ from, to }, req) {
     await run('FEE_REFUND', await FeeRefund.find({ date: range }).lean(), (r) => postFeeRefund(r, chart))
   }
   if (enabled.has('payroll')) await run('PAYROLL_RUN', await PayrollRun.find({ status: 'PAID', 'paid.date': range }).lean(), (r) => postPayrollRun(r, chart))
+  if (enabled.has('library')) {
+    await run('LIBRARY_FINE', await LibraryFine.find({ status: 'PAID', 'paid.date': range }).lean(), (f) => postLibraryFine(f, chart))
+    await run('LIBRARY_FINE', await LibraryFine.find({ 'cancelled.date': range }).lean(), (f) => postLibraryFineCancels(f, chart))
+  }
   await run('EXPENSE', await Expense.find({ status: 'PAID', 'paid.date': range }).lean(), (x) => postExpense(x, chart))
   await audit({ action: 'UPDATE', module: 'finance', entityType: 'ledger', entityName: `${from} – ${to}`, summary: `Rebuilt postings for ${from} to ${to}: ${counts.posted} posted, ${counts.existing} already there${counts.failed ? `, ${counts.failed} failed` : ''}` }, req)
   return counts

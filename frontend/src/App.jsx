@@ -115,6 +115,23 @@ const FinJournals = lazy(() => import('./pages/Finance/Journals'))
 const FinExpenses = lazy(() => import('./pages/Finance/Expenses'))
 const FinBank = lazy(() => import('./pages/Finance/Bank'))
 const FinReports = lazy(() => import('./pages/Finance/Reports'))
+// LMS
+const LmsCourses = lazy(() => import('./pages/Lms/Courses'))
+const LmsLive = lazy(() => import('./pages/Lms/LiveClasses'))
+const LmsQuestions = lazy(() => import('./pages/Lms/QuestionBank'))
+// Online tests
+const OtTests = lazy(() => import('./pages/OnlineTests/Tests'))
+const OtAttempts = lazy(() => import('./pages/OnlineTests/Attempts'))
+const TrRoutes = lazy(() => import('./pages/Transport/Routes'))
+const TrVehicles = lazy(() => import('./pages/Transport/Vehicles'))
+const TrAssignments = lazy(() => import('./pages/Transport/Assignments'))
+const TrTracking = lazy(() => import('./pages/Transport/Tracking'))
+const LibCatalogue = lazy(() => import('./pages/Library/Catalogue'))
+const LibCirculation = lazy(() => import('./pages/Library/Circulation'))
+const LibFines = lazy(() => import('./pages/Library/Fines'))
+const EvCalendar = lazy(() => import('./pages/Events/Calendar'))
+const EvPtm = lazy(() => import('./pages/Events/Ptm'))
+const EvGallery = lazy(() => import('./pages/Events/Gallery'))
 const StudentIdCards = lazy(() => import('./pages/Students/IdCards'))
 // Dashboard & reports
 const CommandCentre = lazy(() => import('./pages/Dashboard/Command'))
@@ -258,6 +275,26 @@ export default function App() {
           <Route path="finance/expenses" element={<FinExpenses />} />
           <Route path="finance/bank" element={<FinBank />} />
           <Route path="finance/reports" element={<FinReports />} />
+          <Route path="lms" element={<Navigate to="/lms/courses" replace />} />
+          <Route path="lms/courses" element={<LmsCourses />} />
+          <Route path="lms/live-classes" element={<LmsLive />} />
+          <Route path="lms/question-bank" element={<LmsQuestions />} />
+          <Route path="online-tests" element={<Navigate to="/online-tests/tests" replace />} />
+          <Route path="online-tests/tests" element={<OtTests />} />
+          <Route path="online-tests/attempts" element={<OtAttempts />} />
+          <Route path="transport" element={<Navigate to="/transport/routes" replace />} />
+          <Route path="transport/routes" element={<TrRoutes />} />
+          <Route path="transport/vehicles" element={<TrVehicles />} />
+          <Route path="transport/assignments" element={<TrAssignments />} />
+          <Route path="transport/tracking" element={<TrTracking />} />
+          <Route path="library" element={<Navigate to="/library/circulation" replace />} />
+          <Route path="library/catalogue" element={<LibCatalogue />} />
+          <Route path="library/circulation" element={<LibCirculation />} />
+          <Route path="library/fines" element={<LibFines />} />
+          <Route path="events" element={<Navigate to="/events/calendar" replace />} />
+          <Route path="events/calendar" element={<EvCalendar />} />
+          <Route path="events/ptm" element={<EvPtm />} />
+          <Route path="events/gallery" element={<EvGallery />} />
           <Route path="attendance" element={<Navigate to="/attendance/mark" replace />} />
           <Route path="attendance/mark" element={<AttendanceMark />} />
           <Route path="attendance/register" element={<AttendanceRegister />} />

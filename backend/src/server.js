@@ -7,6 +7,9 @@ import { schedule, stopJobs } from './platform/jobs.js'
 import { runDueSchedules } from './services/reports.js'
 import { settleStuckPayments } from './services/feePayments.js'
 import { sweepAllExits } from './services/hrms.js'
+import { sweepExpired } from './services/onlineTests.js'
+import { sendAllReminders } from './services/libraryDesk.js'
+import { sendAllEventReminders } from './services/eventsPtm.js'
 import { access, mkdir } from 'node:fs/promises'
 import { constants as fsc } from 'node:fs'
 import mongoose from 'mongoose'
@@ -85,6 +88,24 @@ const staffExits = () => sweepAllExits()
   .then((n) => n && logger.info({ staff: n }, 'staff exits closed'))
   .catch((err) => logger.error({ err }, 'staff exit sweep failed'))
 schedule('staff-exits', staffExits, { firstMs: 120_000, everyMs: 60 * 60_000 })
+
+// Online test attempts left open past their deadline (the student closed the app): submitted and marked. Every minute.
+const testDeadlines = () => sweepExpired()
+  .then((n) => n && logger.info({ attempts: n }, 'timed-out test attempts submitted'))
+  .catch((err) => logger.error({ err }, 'test attempt sweep failed'))
+schedule('test-deadlines', testDeadlines, { firstMs: 45_000, everyMs: 60_000 })
+
+// Library books due tomorrow and overdue: families reminded (from 8 am the institution's time, each book once a day). Hourly.
+const libraryReminders = () => sendAllReminders()
+  .then((n) => n && logger.info({ reminders: n }, 'library reminders sent'))
+  .catch((err) => logger.error({ err }, 'library reminders failed'))
+schedule('library-reminders', libraryReminders, { firstMs: 150_000, everyMs: 60 * 60_000 })
+
+// Tomorrow's events (those that asked) and parent–teacher meeting slots: families reminded, from 4 pm their time. Hourly.
+const eventReminders = () => sendAllEventReminders()
+  .then((n) => n && logger.info({ reminders: n }, 'event reminders sent'))
+  .catch((err) => logger.error({ err }, 'event reminders failed'))
+schedule('event-reminders', eventReminders, { firstMs: 165_000, everyMs: 60 * 60_000 })
 
 // ───────────────────────────────────────────────────────── graceful shutdown
 // A deploy or restart sends SIGTERM. Stop taking new work, let requests in flight finish (their

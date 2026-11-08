@@ -37,6 +37,7 @@
       "FEE_REFUND": "Fee refund",
       "PAYROLL_RUN": "Payroll",
       "EXPENSE": "Expense",
+      "LIBRARY_FINE": "Library fine",
       "MANUAL": "By hand"
     },
     "expenseStatus": {

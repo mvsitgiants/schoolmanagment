@@ -4,6 +4,11 @@
     "features": {
       "ATTENDANCE": "Attendance and leave",
       "HOMEWORK": "Homework",
+      "LEARNING": "Study material and live classes",
+      "TESTS": "Online tests",
+      "BUS": "School bus and live tracking",
+      "LIBRARY": "Library books and e-library",
+      "EVENTS": "Calendar, parent–teacher meetings and photos",
       "FEES": "Fees and receipts",
       "RESULTS": "Results and report cards",
       "CERTIFICATES": "Certificates",

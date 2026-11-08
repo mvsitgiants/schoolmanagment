@@ -12,6 +12,11 @@ export const familyPath = (slug) => `/app/${slug}`
 export const FAMILY_FEATURES = [
   { value: 'ATTENDANCE', module: 'attendance', label: 'Attendance and leave' },
   { value: 'HOMEWORK', module: 'homework', label: 'Homework' },
+  { value: 'LEARNING', module: 'lms', label: 'Study material and live classes' },
+  { value: 'TESTS', module: 'online-tests', label: 'Online tests' },
+  { value: 'BUS', module: 'transport', label: 'School bus' },
+  { value: 'LIBRARY', module: 'library', label: 'Library books and e-library' },
+  { value: 'EVENTS', module: 'events', label: 'Calendar, parent–teacher meetings and photos' },
   { value: 'FEES', module: 'fees', label: 'Fees and receipts', setting: 'showFees' },
   { value: 'RESULTS', module: 'exams', label: 'Results and report cards', setting: 'showMarks' },
   { value: 'CERTIFICATES', module: 'certificates', label: 'Certificates' },

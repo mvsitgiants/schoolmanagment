@@ -36,10 +36,10 @@ import { familyConversations, familySend, familyThread, markNoticeRead, noticeFi
 
 const today = async () => (await institutionNow()).date
 const off = () => new AppError(404, 'This isn’t available in your school’s app.', { code: 'FEATURE_OFF' })
-const need = (f, feature) => { if (!f.features.includes(feature)) throw off() }
+export const need = (f, feature) => { if (!f.features.includes(feature)) throw off() }
 
 /** The student a family asked about — one of theirs, or 404. */
-function studentFor(f, id) {
+export function studentFor(f, id) {
   const s = f.students.find((x) => String(x._id) === String(id))
   if (!s) throw notFound('Student')
   return s

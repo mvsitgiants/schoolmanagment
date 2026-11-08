@@ -13,6 +13,13 @@ import FamilyLogin from './Login'
 import FamilyHome from './Home'
 import FamilyAttendance from './Attendance'
 import FamilyHomework from './Homework'
+import FamilyLearning from './Learning'
+import FamilyTests from './Tests'
+import FamilyBus from './Bus'
+import FamilyLibrary from './Library'
+import FamilyCalendar from './Calendar'
+import FamilyMeetings from './Meetings'
+import FamilyPhotos from './Photos'
 import FamilyFees from './Fees'
 import FamilyResults from './Results'
 import FamilyMore from './More'
@@ -106,6 +113,13 @@ export default function FamilyApp() {
               <Route index element={<FamilyHome />} />
               <Route path="attendance" element={<FamilyAttendance />} />
               <Route path="homework" element={<FamilyHomework />} />
+              <Route path="learning" element={<FamilyLearning />} />
+              <Route path="tests" element={<FamilyTests />} />
+              <Route path="bus" element={<FamilyBus />} />
+              <Route path="library" element={<FamilyLibrary />} />
+              <Route path="calendar" element={<FamilyCalendar />} />
+              <Route path="meetings" element={<FamilyMeetings />} />
+              <Route path="photos" element={<FamilyPhotos />} />
               <Route path="fees" element={<FamilyFees />} />
               <Route path="results" element={<FamilyResults />} />
               <Route path="notices" element={<FamilyNotices />} />

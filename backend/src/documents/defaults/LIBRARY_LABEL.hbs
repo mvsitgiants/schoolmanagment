@@ -1,0 +1,23 @@
+{{!-- Library book labels (A4 sheet, 3 × 8 stickers of 70 × 37 mm): the accession number as a barcode, the title and
+      call number. Data from services/library.js (labelsPrint). Set the page margins to 0 for label sheets. --}}
+<style>
+  .sheet { display: grid; grid-template-columns: repeat(3, 70mm); grid-auto-rows: 37mm; justify-content: center }
+  .label { box-sizing: border-box; padding: 2.5mm 3.5mm; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; break-inside: avoid }
+  .school { font-size: 6.5pt; color: #5B616E; text-transform: uppercase; letter-spacing: .04em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
+  .title { font-size: 8.5pt; font-weight: 600; line-height: 1.2; max-height: 2.4em; overflow: hidden }
+  .meta { font-size: 7pt; color: #3A3F4B; white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
+  .code { text-align: center }
+  .code svg { max-width: 100%; height: 10mm }
+  .no { font-family: ui-monospace, Menlo, monospace; font-size: 8pt; letter-spacing: .08em; text-align: center }
+</style>
+<div class="sheet">
+  {{#each labels}}
+  <div class="label">
+    <div class="school">{{../institution.name}}</div>
+    <div class="title">{{title}}</div>
+    <div class="meta">{{#if callNo}}{{callNo}}{{/if}}{{#if author}} · {{author}}{{/if}}{{#if shelf}} · {{t "library.print.shelf" "Shelf"}} {{shelf}}{{/if}}</div>
+    <div class="code">{{barcode accessionNo 10}}</div>
+    <div class="no">{{accessionNo}}</div>
+  </div>
+  {{/each}}
+</div>

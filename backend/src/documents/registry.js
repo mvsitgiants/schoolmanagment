@@ -29,6 +29,7 @@ import { certificatePrintData, latestCertificate } from '../services/certificate
 import { CERTIFICATE_KIND_BY } from '@schoolgiant/shared'
 import { translateDoc } from './engine.js'
 import { latestPayslipId, payslipModel, payslipPrint } from '../services/payrollRuns.js'
+import { labelsModel, labelsPrint, latestCopyId } from '../services/library.js'
 
 const latestId = async (Model, filter, sort) => (await Model.findOne(filter).sort(sort).select('_id').lean())?._id
 const V = {
@@ -192,6 +193,17 @@ export const DOCS = {
       'theme {color, dark, deep, tint, soft, ink, light}',
       'students[] {name, admissionNo, class, rollNo, dob, bloodGroup, guardian, guardianRelation, guardianPhone, address, photo, initials, verifyUrl, qrImage, barcodeImage}',
     ],
+  },
+  // ── Library book labels: many copies at once (GET /documents/LIBRARY_LABEL?ids=… — copy ids, or title ids for all
+  // their copies). Data from services/library.js labelsPrint.
+  LIBRARY_LABEL: {
+    perms: ['library.catalogue.view'],
+    many: true,
+    load: (ids) => labelsPrint(ids),
+    model: labelsModel,
+    title: (m) => `Library labels (${m.count})`,
+    sample: () => latestCopyId(),
+    variables: ['institution.name', 'labels[] {accessionNo, title, author, callNo, shelf} · count · {{barcode accessionNo 10}}'],
   },
   // ── Payslip (data from services/payrollRuns.js). Staff print their own from My workspace (/payroll/me/payslips/:id/print).
   PAYSLIP: {
