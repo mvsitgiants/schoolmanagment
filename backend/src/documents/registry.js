@@ -17,7 +17,10 @@
 
 import { CATEGORY_LABEL_OF, LEAVING_REASON_LABEL_OF, dateInWords } from './words.js'
 import { TransferCertificate } from '../models/students.js'
-import { tcPrintData } from '../services/students.js'
+import { studentIdCards, tcPrintData } from '../services/students.js'
+import { studentIdCardModel, withPaper } from './studentIdCard.js'
+import { Student } from '../models/students.js'
+import { AppError, notFound } from '../platform/errors.js'
 import { FeePayment } from '../models/fees.js'
 import { receiptPrintData } from '../services/fees.js'
 import { PAYMENT_MODE_LABEL, RESULT_STATUS, gradeFor } from '@schoolgiant/shared'
@@ -162,5 +165,31 @@ export const DOCS = {
     title: (m) => `${m.certificate.kindLabel} ${m.certificate.no} · ${m.student.name}`,
     sample: () => latestCertificate(),
     variables: [V.institution, 'certificate.no, certificate.kind, certificate.kindLabel, certificate.issueDate, certificate.purpose, certificate.remarks, certificate.cancelled, certificate.bonafide / character / study / fee / merit', 'student.name, student.admissionNo, student.class, student.yearName, student.dob, student.father, student.mother, student.parent, student.kid (m / f / x), student.admissionDate, student.conduct, student.from, student.to, student.fromClass, student.toClass, student.event, student.achievement, student.eventDate', 'fees.fy, fees.total, fees.tuition, fees.heads[] {name, amount}', 'verify.url, verify.code · {{qr verify.url 22}}', V.layout],
+  },
+  // ── Student ID cards: many students at once (GET /documents/STUDENT_ID_CARD?ids=…), a front page and — with the back
+  // side switched on — a back page each, so double-sided printing lines up. Data from services/students.js studentIdCards.
+  STUDENT_ID_CARD: {
+    perms: ['students.id-cards.view', 'students.id-cards.print'],
+    many: true,
+    load: async (ids, auth) => {
+      const d = await studentIdCards((Array.isArray(ids) ? ids : [ids]).map(String), auth)
+      if (!d.students.length) throw notFound('Student')
+      if (d.students.every((x) => x.status !== 'ACTIVE')) throw new AppError(409, 'No ID cards to print — every student picked has left.', { code: 'NO_CARDS' })
+      return d
+    },
+    model: studentIdCardModel,
+    // no saved template: the card setting (Settings › Students) turns the card sideways
+    paper: (raw) => (raw.settings?.orientation === 'LANDSCAPE' ? 'CARD_LANDSCAPE' : null),
+    forPaper: withPaper,
+    title: (m) => (m.students.length === 1 ? `ID card · ${m.students[0].name}` : `Student ID cards (${m.students.length})`),
+    sample: () => latestId(Student, { status: 'ACTIVE' }, { updatedAt: -1 }),
+    variables: [
+      'institution.name, institution.logoUrl, institution.color, institution.address, institution.phone, institution.email, institution.website',
+      'settings.orientation, settings.landscape · settings.title (empty: the standard heading) · settings.color · settings.fields[] · settings.year',
+      'settings.show {photo, roll, dob, bloodGroup, guardian, guardianPhone, address, validUntil, qr} — the fields switched on',
+      'settings.back · settings.backText, settings.backTextStandard · settings.returnText, settings.returnTextStandard · settings.signatory · settings.issued, settings.validUntil',
+      'theme {color, dark, deep, tint, soft, ink, light}',
+      'students[] {name, admissionNo, class, rollNo, dob, bloodGroup, guardian, guardianRelation, guardianPhone, address, photo, initials, verifyUrl, qrImage, barcodeImage}',
+    ],
   },
 }

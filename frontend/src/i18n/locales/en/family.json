@@ -1,0 +1,225 @@
+{
+  "family": {
+    "title": "Parent app",
+    "notAvailable": "This school’s app isn’t available",
+    "contactSchool": "Please contact the school office.",
+    "featureOff": "Your school doesn’t show this in the app.",
+    "whichChild": "Which child",
+    "cancel": "Cancel",
+    "nav": {
+      "label": "App",
+      "home": "Home",
+      "attendance": "Attendance",
+      "homework": "Homework",
+      "fees": "Fees",
+      "results": "Results",
+      "more": "More",
+      "notices": "Notices",
+      "chat": "Messages"
+    },
+    "marks": {
+      "P": "Present",
+      "A": "Absent",
+      "L": "Late",
+      "HD": "Half day",
+      "LV": "On leave"
+    },
+    "weekdays": {
+      "1": "M",
+      "2": "T",
+      "3": "W",
+      "4": "T",
+      "5": "F",
+      "6": "S",
+      "7": "S"
+    },
+    "months": {
+      "1": "January",
+      "2": "February",
+      "3": "March",
+      "4": "April",
+      "5": "May",
+      "6": "June",
+      "7": "July",
+      "8": "August",
+      "9": "September",
+      "10": "October",
+      "11": "November",
+      "12": "December"
+    },
+    "result": {
+      "PASS": "Pass",
+      "FAIL": "Needs to improve",
+      "INCOMPLETE": "Marks missing"
+    },
+    "invoice": {
+      "UNPAID": "Unpaid",
+      "PARTIAL": "Part paid",
+      "PAID": "Paid",
+      "CANCELLED": "Cancelled"
+    },
+    "submission": {
+      "PENDING": "Not yet",
+      "SUBMITTED": "Submitted",
+      "LATE": "Submitted late",
+      "CHECKED": "Checked",
+      "MISSING": "Not done"
+    },
+    "relation": {
+      "FATHER": "Father",
+      "MOTHER": "Mother",
+      "GUARDIAN": "Guardian"
+    },
+    "login": {
+      "title": "Sign in",
+      "subtitle": "Attendance, homework, fees and results from {{name}}, on your phone.",
+      "mobile": "Mobile number",
+      "mobileHint": "The number the school has for you as a parent or guardian.",
+      "mobileHintStudents": "A parent’s number from the school’s records — or, for senior students, your own.",
+      "sendCode": "Send code",
+      "codeSent": "If {{phone}} is registered with {{school}}, a {{digits}}-digit code is on its way by SMS. It works for {{minutes}} minutes.",
+      "testMode": "Test mode — no SMS is sent. The code is {{code}}.",
+      "code": "Code",
+      "signIn": "Sign in",
+      "newCode": "Send a new code",
+      "privacy": "Only your own children’s details are shown. {{name}} can see when you sign in."
+    },
+    "contact": {
+      "title": "Contact the school",
+      "whatsapp": "WhatsApp the school",
+      "directions": "Directions"
+    },
+    "home": {
+      "hello": "Today for",
+      "today": "Today · {{date}}",
+      "notMarked": "Attendance not marked yet",
+      "noAttendanceYet": "No attendance this month yet",
+      "monthPct": "{{pct}}% this month · {{absent}} day(s) absent",
+      "homeworkDue_one": "{{count}} homework due",
+      "homeworkDue_other": "{{count}} homework due",
+      "noHomework": "No homework due",
+      "due": "due {{date}}",
+      "feesDue": "{{amount}} fees due",
+      "feesClear": "No fees due",
+      "overdue": "{{amount}} overdue",
+      "nextDue": "Next due {{date}}",
+      "examFrom": "From {{date}} — see the timetable",
+      "result": "{{exam}} result",
+      "notices": "Notices",
+      "allNotices": "All",
+      "unread": "New",
+      "chatUnread_one": "{{count}} new message from a teacher",
+      "chatUnread_other": "{{count}} new messages from teachers"
+    },
+    "attendance": {
+      "prev": "Previous month",
+      "next": "Next month",
+      "noneYet": "Nothing marked this month",
+      "pct": "{{pct}}% attendance"
+    },
+    "leave": {
+      "title": "Leave",
+      "ask": "Ask for leave",
+      "from": "From",
+      "to": "To",
+      "reason": "Reason",
+      "reasonPlaceholder": "e.g. Fever — doctor’s advice to rest",
+      "send": "Send to class teacher",
+      "hint": "The class teacher sees it at once and decides; you’ll see the answer here.",
+      "none": "No leave asked for",
+      "withdraw": "Withdraw",
+      "status": {
+        "PENDING": "Waiting",
+        "APPROVED": "Approved",
+        "REJECTED": "Not approved",
+        "CANCELLED": "Withdrawn"
+      }
+    },
+    "homework": {
+      "upcoming": "Upcoming",
+      "past": "Past",
+      "noneUpcoming": "No homework due — enjoy!",
+      "nonePast": "No past homework",
+      "dueToday": "Due today",
+      "due": "Due {{date}}"
+    },
+    "fees": {
+      "dueNow": "Fees due",
+      "overdue": "{{amount}} of it is overdue",
+      "summary": "{{year}}: {{billed}} billed, {{paid}} paid",
+      "payAtSchool": "Pay at the school office. Online payment in the app is coming soon.",
+      "installments": "Installments",
+      "dueOn": "Due {{date}}",
+      "concession": "{{amount}} concession",
+      "noInvoices": "No fees billed yet",
+      "receipts": "Receipts",
+      "noReceipts": "No payments yet",
+      "refunded": "{{amount}} refunded"
+    },
+    "results": {
+      "title": "Results",
+      "hallTicket": "Hall ticket",
+      "rank": "Rank {{rank}}",
+      "openCard": "Open the report card",
+      "none": "No results yet",
+      "noneHint": "Results show here once the school publishes them."
+    },
+    "certificates": {
+      "title": "Certificates",
+      "none": "No certificates yet",
+      "noneHint": "Certificates the school issues (bonafide, fee paid …) appear here to download.",
+      "kinds": {
+        "BONAFIDE": "Bonafide certificate",
+        "CHARACTER": "Character certificate",
+        "STUDY": "Study certificate",
+        "FEE": "Fee paid certificate",
+        "MERIT": "Merit certificate"
+      }
+    },
+    "profile": {
+      "class": "Class",
+      "year": "Year",
+      "roll": "Roll no.",
+      "admissionNo": "Admission no.",
+      "classTeacher": "Class teacher",
+      "dob": "Date of birth",
+      "bloodGroup": "Blood group",
+      "wrong": "Something wrong? Tell the school office — they keep the records."
+    },
+    "more": {
+      "help": "Need help?",
+      "signedInAs": "Signed in with {{mobile}}",
+      "signOut": "Sign out",
+      "install": "Add this app to your home screen: in Chrome tap ⋮ › Add to Home screen; on iPhone tap Share › Add to Home Screen."
+    },
+    "notices": {
+      "none": "No notices right now",
+      "categories": {
+        "General": "General",
+        "Holiday": "Holiday",
+        "Event": "Event",
+        "Exam": "Exam",
+        "Fees": "Fees",
+        "Transport": "Transport",
+        "Circular": "Circular",
+        "Urgent": "Urgent"
+      }
+    },
+    "chat": {
+      "conversations": "Conversations",
+      "none": "No messages yet",
+      "noneHint": "Write to your child’s class teacher or a subject teacher below.",
+      "writeTo": "Write to a teacher",
+      "allStarted": "You have a conversation with each teacher above.",
+      "noTeachers": "Your child’s class has no teachers set yet. Please call the school office.",
+      "back": "Back",
+      "you": "You",
+      "firstHint": "Write your message to {{name}} below.",
+      "removed": "This message was removed by the school.",
+      "closed": "The school has closed this conversation. Please call the school office.",
+      "placeholder": "Write your message…",
+      "send": "Send",
+      "etiquette": "Teachers reply during school hours. For anything urgent, please call the school."
+    }
+  }
+}

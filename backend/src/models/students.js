@@ -75,10 +75,16 @@ const studentSchema = new Schema({
   },
   history: { type: [historySchema], default: [] },
   leaving: { date: String, reason: String, tcId: ObjectId, tcNo: String },
+  /** A small PNG / JPEG / WebP data URL (ID cards, the profile); left out of lists — ask for `+photo`. */
+  photo: { type: String, select: false },
+  /** The ID card's public check code (its QR), given the first time a card is printed and kept for reprints. */
+  cardCode: String,
   customFields: { type: Schema.Types.Mixed, default: undefined },
 }, { timestamps: true, minimize: false })
 studentSchema.plugin(tenantPlugin)
 studentSchema.index({ tenantId: 1, admissionNo: 1 }, { unique: true })
+// the public card check looks a code up across institutions
+studentSchema.index({ cardCode: 1 }, { unique: true, partialFilterExpression: { cardCode: { $type: 'string' } } })
 studentSchema.index({ tenantId: 1, status: 1, sectionId: 1, rollNo: 1 })
 studentSchema.index({ tenantId: 1, status: 1, placeKey: 1, rollNo: 1 })
 studentSchema.index({ tenantId: 1, classId: 1, status: 1 })

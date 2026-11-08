@@ -73,6 +73,30 @@
           "body": "Dear {{guardian.name}},\n\n{{homework.subject}} homework has been set for {{student.name}} ({{student.class}}):\n{{homework.title}}\n\nDue: {{homework.dueDate}}\n\n{{institution.name}}"
         }
       },
+      "communication_message": {
+        "SMS": {
+          "body": "{{message.text}} - {{institution.name}}"
+        },
+        "WHATSAPP": {
+          "body": "Dear {{guardian.name}},\n{{message.text}}\n\n{{institution.name}}"
+        },
+        "EMAIL": {
+          "subject": "{{message.subject}} — {{institution.name}}",
+          "body": "Dear {{guardian.name}},\n\n{{message.text}}\n\n{{institution.name}}"
+        }
+      },
+      "communication_chat": {
+        "SMS": {
+          "body": "{{chat.teacher}} replied about {{student.firstName}}. Read: {{chat.link}} - {{institution.name}}"
+        },
+        "WHATSAPP": {
+          "body": "Dear {{guardian.name}},\n{{chat.teacher}} has replied to your message about {{student.firstName}}.\n\nRead it in the app: {{chat.link}}\n\n{{institution.name}}"
+        },
+        "EMAIL": {
+          "subject": "A reply from {{chat.teacher}} — {{student.name}}",
+          "body": "Dear {{guardian.name}},\n\n{{chat.teacher}} has replied to your message about {{student.name}}.\nRead it in the app: {{chat.link}}\n\n{{institution.name}}"
+        }
+      },
       "communication_notice": {
         "SMS": {
           "body": "New notice from {{institution.name}}: {{notice.title}}. Read: {{notice.link}}"

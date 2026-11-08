@@ -91,3 +91,25 @@ export function isValidAadhaar(v) {
   s.split('').reverse().map(Number).forEach((n, i) => { c = VD[c][VP[i % 8][n]] })
   return c === 0
 }
+
+// ───────────────────────────────────────────────────────── student ID cards
+
+/** What a student ID card can show besides the name, class and admission number (always printed). */
+export const STUDENT_ID_CARD_FIELDS = [
+  { value: 'PHOTO', label: 'Photo' },
+  { value: 'ROLL', label: 'Roll number' },
+  { value: 'DOB', label: 'Date of birth' },
+  { value: 'BLOOD_GROUP', label: 'Blood group' },
+  { value: 'GUARDIAN', label: 'Parent / guardian' },
+  { value: 'GUARDIAN_PHONE', label: 'Parent’s phone' },
+  { value: 'ADDRESS', label: 'Home address' },
+  { value: 'VALID_UNTIL', label: 'Valid until (end of the academic year)' },
+  { value: 'QR', label: 'QR code (check the card online)' },
+]
+export const ID_CARD_ORIENTATIONS = [
+  { value: 'PORTRAIT', label: 'Portrait — upright, 54 × 85.6 mm' },
+  { value: 'LANDSCAPE', label: 'Landscape — sideways, 85.6 × 54 mm' },
+]
+/** A photo kept on the record: a small PNG / JPEG / WebP data URL (shrunk in the browser before upload). */
+export const PHOTO_DATA_URL = /^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/]+={0,2}$/
+export const PHOTO_MAX_CHARS = 280_000

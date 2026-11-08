@@ -1,6 +1,8 @@
+import { randomInt } from 'node:crypto'
 import { HISTORY_EVENTS, LEAVING_REASONS, TC_STATUS, ageYears, isValidAadhaar, sectionLabel } from '@schoolgiant/shared'
 import { AcademicYear, ClassLevel, Section } from '../models/academics.js'
 import { Student, TransferCertificate, studentName } from '../models/students.js'
+import { Tenant } from '../models/platform.js'
 import { can } from '../platform/access.js'
 import { audit, diffFields } from '../platform/audit.js'
 import { blindIndex, decrypt, encrypt } from '../platform/crypto.js'
@@ -10,6 +12,8 @@ import { emit } from '../platform/events.js'
 import { cell, checkRow, compact } from '../platform/importRows.js'
 import { nextNumber } from '../platform/numbering.js'
 import { institutionNow } from '../platform/time.js'
+import { getSettings } from '../platform/settings.js'
+import { runAsSystem } from '../platform/context.js'
 import { escapeRegex, listResponse } from '../platform/validate.js'
 import { currentYear, sectionsInScope } from './academics.js'
 import { assertWithinLimit } from './subscription.js'
@@ -470,4 +474,101 @@ export async function tcPrintData(id, auth) {
   const s = await Student.findById(tc.studentId).lean()
   await assertInScope(s, auth)
   return { tc, student: s }
+}
+
+// ───────────────────────────────────────────────────────── ID cards and photos
+
+const CARD_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'
+const newCardCode = () => Array.from({ length: 10 }, () => CARD_ALPHABET[randomInt(CARD_ALPHABET.length)]).join('')
+
+/** Give each student a card check code the first time their card is printed; kept, so reprints carry the same link. */
+async function ensureCardCodes(rows) {
+  for (const s of rows.filter((x) => !x.cardCode && x.status === 'ACTIVE')) {
+    for (let tries = 0; tries < 3 && !s.cardCode; tries++) {
+      try {
+        await Student.updateOne({ _id: s._id, cardCode: { $exists: false } }, { $set: { cardCode: newCardCode() } })
+      } catch (err) {
+        if (err?.code !== 11000) throw err // another card has that code already: make a new one
+      }
+      s.cardCode = (await Student.findById(s._id).select('cardCode').lean())?.cardCode
+    }
+  }
+}
+
+/** What the student ID card prints for each of `ids` (in the caller's scope, in the order asked). */
+export async function studentIdCards(ids, auth) {
+  const f = await scopeFilter(auth)
+  const [rows, s, tenant, year, now] = await Promise.all([
+    Student.find({ _id: { $in: ids }, ...(f ?? {}) }).select('+photo admissionNo firstName middleName lastName rollNo dob bloodGroup sectionId status guardians address cardCode').lean(),
+    getSettings('students'),
+    Tenant.findById(auth.tenantId).select('name profile').lean(),
+    currentYear(),
+    institutionNow(),
+  ])
+  await ensureCardCodes(rows)
+  const sections = await Section.find({ _id: { $in: rows.map((r) => r.sectionId).filter(Boolean) } }).lean()
+  const classes = new Map((await ClassLevel.find({ _id: { $in: sections.map((x) => x.classId) } }).select('name code').lean()).map((c) => [String(c._id), c]))
+  const label = new Map(sections.map((x) => [String(x._id), sectionLabel(classes.get(String(x.classId)), x)]))
+  const byId = new Map(rows.map((r) => [String(r._id), r]))
+  const p = tenant?.profile ?? {}
+  return {
+    students: ids.map((id) => byId.get(String(id))).filter(Boolean).map((x) => {
+      const g = x.guardians?.find((y) => y.isPrimary) ?? x.guardians?.[0]
+      return {
+        id: String(x._id), name: studentName(x), admissionNo: x.admissionNo, class: label.get(String(x.sectionId)) ?? '', rollNo: x.rollNo ?? null, dob: x.dob ?? null,
+        bloodGroup: x.bloodGroup ?? null, guardian: g?.name ?? null, guardianRelation: g?.relation ?? null, guardianPhone: g?.mobile ?? null,
+        address: [x.address?.line, x.address?.city, x.address?.pincode].filter(Boolean).join(', ') || null,
+        photo: x.photo ?? null, status: x.status, cardCode: x.cardCode ?? null,
+      }
+    }),
+    settings: { orientation: s.idCardOrientation, title: s.idCardTitle, color: s.idCardColor, fields: s.idCardFields, back: s.idCardBack, backText: s.idCardBackText, returnText: s.idCardReturnText, signatory: s.idCardSignatory },
+    institution: {
+      name: tenant?.name ?? '', logoUrl: p.logoUrl || null, color: p.primaryColor || null,
+      address: [p.addressLine, p.city, [p.state, p.pincode].filter(Boolean).join(' ')].filter(Boolean).join(', '), phone: p.phone || null, email: p.email || null, website: p.website || null,
+    },
+    today: now.date, validUntil: year?.endDate ?? null, yearName: year?.name ?? null,
+  }
+}
+
+/** A section's students for the ID cards screen: who has a photo, who has had a card. */
+export async function idCardList(sectionId, auth) {
+  if (!isOid(sectionId)) throw notFound('Section')
+  const allowed = await sectionsInScope(auth, 'students')
+  if (allowed && !allowed.includes(String(sectionId))) throw notFound('Section')
+  const rows = await Student.find({ sectionId, status: 'ACTIVE' }).collation({ locale: 'en', numericOrdering: true }).sort({ rollNo: 1, firstName: 1 })
+    .select('admissionNo firstName middleName lastName rollNo cardCode bloodGroup').lean()
+  const withPhoto = new Set((await Student.find({ _id: { $in: rows.map((r) => r._id) }, photo: { $exists: true, $ne: '' } }).select('_id').lean()).map((r) => String(r._id)))
+  return rows.map((r) => ({ id: String(r._id), name: studentName(r), admissionNo: r.admissionNo, rollNo: r.rollNo ?? null, bloodGroup: r.bloodGroup ?? null, hasPhoto: withPhoto.has(String(r._id)), printed: !!r.cardCode }))
+}
+
+export async function getStudentPhoto(id, auth) {
+  if (!isOid(id)) throw notFound('Student')
+  const s = await Student.findById(id).select('+photo sectionId').lean()
+  if (!s) throw notFound('Student')
+  await assertInScope(s, auth)
+  return { photo: s.photo || null }
+}
+
+export async function setStudentPhoto(id, photo, auth, req) {
+  if (!isOid(id)) throw notFound('Student')
+  const s = await Student.findById(id)
+  if (!s) throw notFound('Student')
+  await assertInScope(s, auth)
+  s.photo = photo || undefined
+  await s.save()
+  await audit({ action: 'UPDATE', module: 'students', entityType: 'student', entityId: String(s._id), entityName: `${studentName(s)} (${s.admissionNo})`, studentId: s._id, summary: photo ? 'Updated the student’s photo' : 'Removed the student’s photo' }, req)
+  return { photo: photo || null }
+}
+
+/** Public: the card's QR. Only what the card itself shows — name and class — and whether the holder studies here now. */
+export async function verifyStudentCard(code) {
+  const want = String(code ?? '').trim().toUpperCase()
+  if (!/^[A-Z0-9]{8,14}$/.test(want)) return { found: false }
+  return runAsSystem(async () => {
+    const s = await Student.findOne({ cardCode: want }).setOptions({ allTenants: true }).select('firstName middleName lastName status sectionId tenantId').lean()
+    if (!s) return { found: false }
+    const [t, sec] = await Promise.all([Tenant.findById(s.tenantId).select('name profile.city').lean(), s.sectionId ? Section.findById(s.sectionId).setOptions({ allTenants: true }).lean() : null])
+    const cls = sec ? await ClassLevel.findById(sec.classId).setOptions({ allTenants: true }).select('name code').lean() : null
+    return { found: true, valid: s.status === 'ACTIVE', name: studentName(s), class: s.status === 'ACTIVE' && sec ? sectionLabel(cls, sec) : null, institution: { name: t?.name ?? null, city: t?.profile?.city ?? null } }
+  })
 }

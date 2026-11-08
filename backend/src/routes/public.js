@@ -19,6 +19,7 @@ import { Types } from 'mongoose'
 import { BLOCKED_STATUSES, effectiveStatus } from '../services/subscription.js'
 import { buildMe, openTenantSession } from './auth.js'
 import { verifyCertificate } from '../services/certificates.js'
+import { verifyStudentCard } from '../services/students.js'
 
 const router = Router()
 
@@ -32,6 +33,11 @@ const verifyLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: config.isTest
 router.get('/verify/certificate/:code', verifyLimiter, async (req, res) => {
   res.setHeader('Cache-Control', 'no-store')
   res.json({ data: await verifyCertificate(req.params.code) })
+})
+/** A student ID card's QR: does the holder study here now? (name and class only — what the card shows) */
+router.get('/verify/student/:code', verifyLimiter, async (req, res) => {
+  res.setHeader('Cache-Control', 'no-store')
+  res.json({ data: await verifyStudentCard(req.params.code) })
 })
 
 router.get('/plans', async (req, res) => {

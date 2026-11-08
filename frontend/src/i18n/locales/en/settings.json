@@ -111,6 +111,52 @@
             "apaar": "APAAR ID",
             "photo": "Photo"
           }
+        },
+        "idCardOrientation": {
+          "label": "Student ID card layout",
+          "help": "Both are the standard bank-card size (CR80) that fits card holders, lanyards and card printers.",
+          "options": {
+            "PORTRAIT": "Portrait — upright, 54 × 85.6 mm",
+            "LANDSCAPE": "Landscape — sideways, 85.6 × 54 mm"
+          }
+        },
+        "idCardTitle": {
+          "label": "Heading on the student ID card",
+          "help": "Printed in the coloured band, e.g. Student ID card or Identity card."
+        },
+        "idCardColor": {
+          "label": "Student ID card colour",
+          "help": "A colour code like #0E7C86. Leave it blank to use the brand colour from the institution profile."
+        },
+        "idCardFields": {
+          "label": "Shown on the student ID card",
+          "help": "The name, class and admission number are always printed.",
+          "options": {
+            "PHOTO": "Photo",
+            "ROLL": "Roll number",
+            "DOB": "Date of birth",
+            "BLOOD_GROUP": "Blood group",
+            "GUARDIAN": "Parent / guardian",
+            "GUARDIAN_PHONE": "Parent’s phone",
+            "ADDRESS": "Home address",
+            "VALID_UNTIL": "Valid until (end of the academic year)",
+            "QR": "QR code (check the card online)"
+          }
+        },
+        "idCardBack": {
+          "label": "Print a back side on student ID cards",
+          "help": "Each card’s back follows its front, so double-sided printing lines up."
+        },
+        "idCardBackText": {
+          "label": "Rules printed on the back of the card"
+        },
+        "idCardReturnText": {
+          "label": "Return note on the back of the card",
+          "help": "Followed by the institution’s name, address and phone number."
+        },
+        "idCardSignatory": {
+          "label": "Caption under the signature line",
+          "help": "e.g. Principal or Headmistress."
         }
       },
       "attendance": {
@@ -194,6 +240,10 @@
         "showMarks": {
           "label": "Show marks and report cards in the app",
           "help": "Only results that have been published."
+        },
+        "chat": {
+          "label": "Families can message teachers in the app",
+          "help": "The class teacher and the subject teachers of the child’s class. Needs the Communication hub."
         }
       }
     }

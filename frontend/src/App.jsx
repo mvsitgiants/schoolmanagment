@@ -81,10 +81,21 @@ const SyllabusTracker = lazy(() => import('./pages/Homework/Syllabus'))
 const CertificateIssue = lazy(() => import('./pages/Certificates/Issue'))
 const CertificateRegister = lazy(() => import('./pages/Certificates/Register'))
 const VerifyCertificate = lazy(() => import('./pages/Public/VerifyCertificate'))
+const VerifyStudent = lazy(() => import('./pages/Public/VerifyStudent'))
+const StudentIdCards = lazy(() => import('./pages/Students/IdCards'))
 // Dashboard & reports
 const CommandCentre = lazy(() => import('./pages/Dashboard/Command'))
 const ReportLibrary = lazy(() => import('./pages/Reports/Library'))
 const ReportBuilder = lazy(() => import('./pages/Reports/Builder'))
+// Parent & student app
+const FamilyApp = lazy(() => import('./pages/Family/FamilyApp'))
+const PortalSettings = lazy(() => import('./pages/Portal/Settings'))
+const PortalContent = lazy(() => import('./pages/Portal/Content'))
+// Communication hub
+const CommNotices = lazy(() => import('./pages/Communication/Notices'))
+const CommMessages = lazy(() => import('./pages/Communication/Messages'))
+const CommChat = lazy(() => import('./pages/Communication/Chat'))
+const CommLog = lazy(() => import('./pages/Communication/Log'))
 
 // A module page that isn't built yet shows its catalog entry; unknown paths show NotFound.
 const ModulePage = lazy(() => import('./pages/ModulePage'))
@@ -121,7 +132,9 @@ export default function App() {
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/accept-invite" element={<AcceptInvitePage />} />
         <Route path="/verify-email" element={<VerifyEmailPage />} />
+        <Route path="/verify/student/:code" element={<VerifyStudent />} />
         <Route path="/verify/:code" element={<VerifyCertificate />} />
+        <Route path="/app/:slug/*" element={<FamilyApp />} />
 
         <Route path="/superadmin" element={<AuthGuard><SuperadminLayout /></AuthGuard>}>
           <Route index element={<SaDashboard />} />
@@ -178,6 +191,7 @@ export default function App() {
           <Route path="students/guardians" element={<StudentGuardians />} />
           <Route path="students/promotion" element={<StudentPromotion />} />
           <Route path="students/transfer" element={<StudentTransfer />} />
+          <Route path="students/id-cards" element={<StudentIdCards />} />
           <Route path="attendance" element={<Navigate to="/attendance/mark" replace />} />
           <Route path="attendance/mark" element={<AttendanceMark />} />
           <Route path="attendance/register" element={<AttendanceRegister />} />
@@ -210,6 +224,14 @@ export default function App() {
           <Route path="reports" element={<Navigate to="/reports/library" replace />} />
           <Route path="reports/library" element={<ReportLibrary />} />
           <Route path="reports/builder" element={<ReportBuilder />} />
+          <Route path="portal" element={<Navigate to="/portal/settings" replace />} />
+          <Route path="portal/settings" element={<PortalSettings />} />
+          <Route path="portal/content" element={<PortalContent />} />
+          <Route path="communication" element={<Navigate to="/communication/notices" replace />} />
+          <Route path="communication/notices" element={<CommNotices />} />
+          <Route path="communication/messages" element={<CommMessages />} />
+          <Route path="communication/chat" element={<CommChat />} />
+          <Route path="communication/log" element={<CommLog />} />
           <Route path=":moduleId/:pageId/*" element={<ModulePage />} />
           <Route path="*" element={<NotFound />} />
         </Route>

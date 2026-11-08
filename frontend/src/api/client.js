@@ -131,8 +131,12 @@ function noticeDown() {
 }
 const EXPIRED_MESSAGE = 'Your session has expired. Please sign in again.'
 
+// pages for people who aren't staff (the family app, the certificate check) never bounce to the staff sign-in
+const onPublicPage = () => /^\/(app|verify)\//.test(window.location.pathname)
+
 function forceLogin(message) {
   localStorage.removeItem(USER_KEY)
+  if (onPublicPage()) return
   if (window.location.pathname !== '/login') {
     // A full reload drops any toast, so the login page picks the reason up from here.
     if (message) sessionStorage.setItem(REASON_KEY, message)
@@ -300,7 +304,7 @@ api.interceptors.response.use(
 if (typeof window !== 'undefined' && !window.__erpSessionWatch) {
   window.__erpSessionWatch = true
   const watch = () => {
-    if (!loggedIn() || document.visibilityState !== 'visible' || window.location.pathname === '/login') return
+    if (!loggedIn() || document.visibilityState !== 'visible' || window.location.pathname === '/login' || onPublicPage()) return
     verifyOrLogout()
   }
   document.addEventListener('visibilitychange', watch)

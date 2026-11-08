@@ -24,3 +24,9 @@ export const fetchTcs = (status) => get(`${BASE}/tc`, { status: status || undefi
 export const requestTc = (body) => post(`${BASE}/tc`, body)
 export const issueTc = (id) => post(`${BASE}/tc/${id}/issue`)
 export const cancelTc = (id, reason) => post(`${BASE}/tc/${id}/cancel`, { reason })
+
+export const fetchIdCardList = (sectionId) => get(`${BASE}/id-cards`, { sectionId })
+export const fetchStudentPhoto = (id) => get(`${BASE}/${id}/photo`)
+export const saveStudentPhoto = async (id, photo) => (await api.put(`${BASE}/${id}/photo`, { photo })).data.data
+/** No sign-in needed: the QR on a student ID card. */
+export const verifyStudentCard = async (code) => (await api.get(`/v1/public/verify/student/${encodeURIComponent(code)}`)).data.data

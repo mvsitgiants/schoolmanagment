@@ -14,6 +14,7 @@ import { emit } from '../platform/events.js'
 import { getSettings } from '../platform/settings.js'
 import { institutionNow } from '../platform/time.js'
 import { sectionsInScope, yearOrCurrent } from './academics.js'
+import { familyLink } from './familyLink.js'
 
 // Exams & report cards (module `exams`). An exam belongs to a year and some classes; each class has
 // a paper per subject (date, time, max / pass marks). Once scheduled, every student of those classes
@@ -635,9 +636,10 @@ export async function sendReportCards(examId, { sectionId, resend = false }, aut
   const active = new Set((await Student.find({ _id: { $in: rows.map((r) => r.studentId) }, status: 'ACTIVE' }).select('_id').lean()).map((s) => String(s._id)))
   const label = new Map(sections.map((s) => [String(s._id), s.short]))
   let sent = 0
+  const link = await familyLink('results')
   for (const r of rows) {
     if (!active.has(String(r.studentId))) continue
-    await emit('exams.results_published', { studentId: String(r.studentId), entity: { type: 'exam_candidate', id: r._id }, data: { student: { class: label.get(String(r.sectionId)) ?? '' }, exam: { name: e.name }, result: { link: '' } } })
+    await emit('exams.results_published', { studentId: String(r.studentId), entity: { type: 'exam_candidate', id: r._id }, data: { student: { class: label.get(String(r.sectionId)) ?? '' }, exam: { name: e.name }, result: { link } } })
     sent++
   }
   if (rows.length) await ExamCandidate.updateMany({ _id: { $in: rows.map((r) => r._id) } }, { $set: { notifiedAt: new Date() } })

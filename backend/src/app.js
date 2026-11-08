@@ -17,6 +17,8 @@ import homeworkRoutes from './routes/homework.js'
 import certificateRoutes from './routes/certificates.js'
 import dashboardRoutes from './routes/dashboard.js'
 import reportRoutes from './routes/reports.js'
+import { familyRouter, portalRouter } from './routes/portal.js'
+import communicationRoutes from './routes/communication.js'
 import studentRoutes from './routes/students.js'
 import authRoutes from './routes/auth.js'
 import coreRoutes from './routes/core/index.js'
@@ -121,6 +123,9 @@ export function createApp() {
   app.use('/api/v1/certificates', certificateRoutes)
   app.use('/api/v1/dashboard', dashboardRoutes)
   app.use('/api/v1/reports', reportRoutes)
+  app.use('/api/v1/portal', portalRouter)
+  app.use('/api/v1/communication', communicationRoutes)
+  app.use('/api/v1/family/:slug', familyRouter)
   app.use('/api/v1/documents', documentRoutes)
 
   app.use(notFoundHandler)

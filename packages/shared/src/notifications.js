@@ -67,6 +67,10 @@ const VAR_HELP = {
   'homework.subject': 'Subject of the homework',
   'homework.title': 'What the homework is',
   'homework.dueDate': 'When it is due, e.g. Thu, 9 Oct',
+  'message.subject': 'Subject of the message (email)',
+  'message.text': 'The message itself',
+  'chat.teacher': 'The teacher who wrote',
+  'chat.link': 'Link to the conversation in the app',
   'notice.title': 'Title of the notice',
   'notice.link': 'Link to read the notice',
   'otp.code': 'The one-time code',
@@ -140,6 +144,26 @@ export const NOTIFY_EVENTS = [
     },
   },
   {
+    event: 'communication.message', module: 'communication', label: 'Message to families',
+    when: 'When staff send a message from Communication › Send messages (the channels they tick).',
+    vars: [...STUDENT, 'message.subject', 'message.text', ...INSTITUTION],
+    defaults: {
+      SMS: { enabled: true, body: '{{message.text}} - {{institution.name}}' },
+      WHATSAPP: { enabled: true, body: 'Dear {{guardian.name}},\n{{message.text}}\n\n{{institution.name}}' },
+      EMAIL: { enabled: true, subject: '{{message.subject}} — {{institution.name}}', body: 'Dear {{guardian.name}},\n\n{{message.text}}\n\n{{institution.name}}' },
+    },
+  },
+  {
+    event: 'communication.chat', module: 'communication', label: 'Teacher replied in chat',
+    when: 'When a teacher replies to a family in the app’s messages.',
+    vars: [...STUDENT, 'chat.teacher', 'chat.link', ...INSTITUTION],
+    defaults: {
+      SMS: { enabled: false, body: '{{chat.teacher}} replied about {{student.firstName}}. Read: {{chat.link}} - {{institution.name}}' },
+      WHATSAPP: { enabled: true, body: 'Dear {{guardian.name}},\n{{chat.teacher}} has replied to your message about {{student.firstName}}.\n\nRead it in the app: {{chat.link}}\n\n{{institution.name}}' },
+      EMAIL: { enabled: false, subject: 'A reply from {{chat.teacher}} — {{student.name}}', body: 'Dear {{guardian.name}},\n\n{{chat.teacher}} has replied to your message about {{student.name}}.\nRead it in the app: {{chat.link}}\n\n{{institution.name}}' },
+    },
+  },
+  {
     event: 'communication.notice', module: 'communication', label: 'Notice or circular',
     when: 'When a notice is published to families.',
     vars: [...STUDENT, 'notice.title', 'notice.link', ...INSTITUTION],
@@ -165,6 +189,8 @@ export const TEMPLATE_SAMPLE = {
   exam: { name: 'Half-yearly 2026' },
   result: { link: 'https://app.example.in/r/Hq7Zt4Wn' },
   homework: { subject: 'Mathematics', title: 'Exercise 4.2, questions 1–10', dueDate: 'Thu, 9 Oct' },
+  message: { subject: 'School closed tomorrow', text: 'School stays closed tomorrow, Thursday, because of heavy rain.' },
+  chat: { teacher: 'Ms Kavita Rao', link: 'https://app.example.in/app/green-valley/chat' },
   notice: { title: 'Annual Day on 20 December', link: 'https://app.example.in/n/Vb3kQ9xT' },
   otp: { code: '482913', minutes: 10 },
 }

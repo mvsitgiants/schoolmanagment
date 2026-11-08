@@ -1,8 +1,9 @@
 import { Router } from 'express'
-import { BLOOD_GROUPS, CONDUCT_OPTIONS, GENDERS, GUARDIAN_RELATIONS, LEAVING_REASONS, PROMOTION_OUTCOMES, STUDENT_CATEGORIES } from '@schoolgiant/shared'
+import { BLOOD_GROUPS, CONDUCT_OPTIONS, GENDERS, GUARDIAN_RELATIONS, LEAVING_REASONS, PHOTO_DATA_URL, PHOTO_MAX_CHARS, PROMOTION_OUTCOMES, STUDENT_CATEGORIES } from '@schoolgiant/shared'
 import { can } from '../platform/access.js'
 import { authenticate, requireModule, requirePermission, subscriptionGate, tenantOnly } from '../platform/middleware.js'
 import { email, mobile, objectId, optionalText, pageParams, z } from '../platform/validate.js'
+import { getStudentPhoto, idCardList, setStudentPhoto } from '../services/students.js'
 import {
   admitStudent, cancelTc, getStudent, importStudents, issueTc, listGuardians, listStudents, listTcs, promotionPreview, requestTc,
   runPromotion, setStudentStatus, updateStudent,
@@ -107,6 +108,20 @@ router.post('/tc/:id/cancel', requirePermission('students.transfer.create', 'stu
 })
 
 // ───────────────────────────────────────────────────────── one student
+
+// ───────────────────────────────────────────────────────── ID cards and photos
+
+router.get('/id-cards', requirePermission('students.id-cards.view'), async (req, res) => {
+  res.json({ data: await idCardList(objectId.parse(req.query.sectionId), req.auth) })
+})
+const photo = z.literal('').or(z.string().max(PHOTO_MAX_CHARS, 'The photo is too large — use one under 200 KB').regex(PHOTO_DATA_URL, 'Upload a PNG, JPG or WebP image'))
+router.get('/:id/photo', requirePermission('students.profile.view', 'students.id-cards.view'), async (req, res) => {
+  res.setHeader('Cache-Control', 'private, no-store')
+  res.json({ data: await getStudentPhoto(objectId.parse(req.params.id), req.auth) })
+})
+router.put('/:id/photo', requirePermission('students.profile.edit', 'students.id-cards.print'), async (req, res) => {
+  res.json({ data: await setStudentPhoto(objectId.parse(req.params.id), z.object({ photo }).parse(req.body).photo, req.auth, req) })
+})
 
 router.get('/:id', requirePermission('students.profile.view'), async (req, res) => {
   res.json({ data: await getStudent(req.params.id, req.auth, req, { reveal: req.query.reveal === '1' }) })

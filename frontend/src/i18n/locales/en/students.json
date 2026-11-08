@@ -282,7 +282,63 @@
         "principal": "Principal",
         "issuedBy": "Issued by {{name}}",
         "cancelledNote": "Cancelled: {{reason}}"
+      },
+      "idCard": {
+        "tag": "Student ID card",
+        "admissionNo": "Admission no.",
+        "roll": "Roll no.",
+        "bloodGroup": "Blood group",
+        "dob": "Date of birth",
+        "validUntil": "Valid until",
+        "parent": "Parent",
+        "rules": "This card is the property of the school. Carry it every day. Report a lost card to the office at once.",
+        "guardian": "Parent / guardian",
+        "address": "Address",
+        "issued": "Issued",
+        "returnTo": "If found, please return to:",
+        "phone": "Phone {{phone}}",
+        "signatory": "Principal"
       }
+    },
+    "photo": {
+      "title": "Photo",
+      "hint": "Used on the ID card. Square, face clearly visible.",
+      "add": "Add photo",
+      "change": "Change",
+      "remove": "Remove photo",
+      "saved": "Photo saved.",
+      "removed": "Photo removed.",
+      "wrongType": "Use a PNG, JPG or WebP picture.",
+      "tooBig": "That picture is too large even after shrinking. Try another."
+    },
+    "idCards": {
+      "title": "ID cards",
+      "subtitle": "Print students’ ID cards — front and back, standard card size — with photo and a QR that anyone can scan to check the card.",
+      "design": "Card design",
+      "printAll_one": "Print {{count}} card",
+      "printAll_other": "Print all {{count}}",
+      "printSelected": "Print selected",
+      "print": "Print card",
+      "preparing": "Preparing the ID cards…",
+      "missingPhotos_one": "{{count}} student has no photo yet — the card prints their initials. Tap the camera to add one.",
+      "missingPhotos_other": "{{count}} students have no photo yet — their cards print initials. Tap the camera to add photos.",
+      "photo": "Photo",
+      "roll": "Roll",
+      "card": "Card",
+      "printed": "Printed before",
+      "notYet": "Not printed",
+      "empty": "No students in this class",
+      "hint": "The layout, colour, fields and the text on the back are set in Settings › Students. A reprint keeps the same QR."
+    },
+    "verifyCard": {
+      "validTitle": "This ID card is valid",
+      "valid": "{{name}} is a student of {{school}}.",
+      "invalidTitle": "This ID card is no longer valid",
+      "invalid": "{{name}} is no longer a student of {{school}}. Don’t accept this card.",
+      "notFoundTitle": "Card not found",
+      "notFound": "No student card has this code. Check the card, or contact the school.",
+      "class": "Class",
+      "compare": "Compare the name with the card you were shown."
     }
   }
 }

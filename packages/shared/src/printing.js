@@ -16,7 +16,7 @@ export const PRINT_DOCS = [
   { value: 'TRANSFER_CERTIFICATE', label: 'Transfer certificate', module: 'students', paper: 'A4', ready: true, server: true },
   { value: 'CERTIFICATE', label: 'Certificates (bonafide, character, study, fee, merit)', module: 'certificates', paper: 'A4', ready: true, server: true },
   { value: 'ADMISSION_FORM', label: 'Admission form', module: 'students', paper: 'A4', ready: false, server: false },
-  { value: 'STUDENT_ID_CARD', label: 'Student ID card', module: 'students', paper: 'CARD_PORTRAIT', ready: false, server: false, many: true },
+  { value: 'STUDENT_ID_CARD', label: 'Student ID card', module: 'students', paper: 'CARD_PORTRAIT', ready: true, server: true, many: true },
   { value: 'PAYSLIP', label: 'Payslip', module: 'payroll', paper: 'A4', ready: false, server: false },
   { value: 'HR_OFFER_LETTER', label: 'Offer letter', module: 'hrms', paper: 'A4', ready: false, server: false },
   { value: 'STAFF_ID_CARD', label: 'Staff ID card', module: 'hrms', paper: 'CARD_PORTRAIT', ready: false, server: false, many: true },

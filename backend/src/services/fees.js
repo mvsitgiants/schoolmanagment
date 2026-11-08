@@ -16,6 +16,7 @@ import { institutionNow } from '../platform/time.js'
 import { escapeRegex, listResponse } from '../platform/validate.js'
 import { currentYear, yearOrCurrent } from './academics.js'
 import { humanDate } from './notify.js'
+import { familyLink } from './familyLink.js'
 
 // Fees (module `fees`). A structure says what a year costs for some classes and when it is due;
 // "Generate invoices" raises one invoice per student per installment (approved concessions
@@ -451,6 +452,7 @@ export async function listDues({ sectionId, overdueOnly }, auth) {
 /** "Fee due reminder" to each family (by the channels set in Notification rules). */
 export async function sendReminders(studentIds, auth, req) {
   const t = await today()
+  const payLink = await familyLink('fees')
   let sent = 0
   for (const id of studentIds) {
     const s = await studentInScope(id, auth).catch(() => null)
@@ -460,7 +462,7 @@ export async function sendReminders(studentIds, auth, req) {
     if (!due) continue
     const place = await placeOf(s.sectionId)
     const next = open.find((i) => i.dueDate >= t) ?? open[0]
-    await emit('fees.due_reminder', { studentId: String(s._id), data: { student: { class: place?.short ?? '' }, fees: { due: formatINR(due), dueDate: humanDate(next.dueDate) }, pay: { link: '' } } })
+    await emit('fees.due_reminder', { studentId: String(s._id), data: { student: { class: place?.short ?? '' }, fees: { due: formatINR(due), dueDate: humanDate(next.dueDate) }, pay: { link: payLink } } })
     sent++
   }
   await audit({ action: 'SEND', module: 'fees', entityType: 'fee_reminder', entityId: 'reminders', entityName: 'Fee reminders', summary: `Sent fee reminders to ${sent} famil${sent === 1 ? 'y' : 'ies'}` }, req)

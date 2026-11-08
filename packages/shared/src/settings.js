@@ -3,6 +3,7 @@
 // otherwise the default applies. Administration › Settings renders this list,
 // grouped by module (a module's settings show once the module is switched on).
 import { SUPPORTED_LANGUAGES } from './languages.js'
+import { ID_CARD_ORIENTATIONS, STUDENT_ID_CARD_FIELDS } from './students.js'
 
 export const SETTING_TYPES = ['bool', 'text', 'number', 'select', 'multi']
 
@@ -25,6 +26,14 @@ export const SETTINGS = [
   // ── Students
   { module: 'students', key: 'admissionNoPrefix', type: 'text', label: 'Admission number prefix', default: '', help: 'Shown before the running number, e.g. GV. The pattern itself is set in Number series.' },
   { module: 'students', key: 'requiredFields', type: 'multi', label: 'Required at admission', default: ['dob', 'gender', 'guardianMobile'], options: [{ value: 'dob', label: 'Date of birth' }, { value: 'gender', label: 'Gender' }, { value: 'guardianMobile', label: 'Guardian mobile' }, { value: 'guardianEmail', label: 'Guardian email' }, { value: 'address', label: 'Address' }, { value: 'aadhaar', label: 'Aadhaar' }, { value: 'apaar', label: 'APAAR ID' }, { value: 'photo', label: 'Photo' }], help: 'Name and class are always required.' },
+  { module: 'students', key: 'idCardOrientation', type: 'select', label: 'Student ID card layout', default: 'PORTRAIT', options: ID_CARD_ORIENTATIONS, help: 'Both are the standard bank-card size (CR80) that fits card holders, lanyards and card printers.' },
+  { module: 'students', key: 'idCardTitle', type: 'text', label: 'Heading on the student ID card', default: 'Student ID card', help: 'Printed in the coloured band, e.g. Student ID card or Identity card.' },
+  { module: 'students', key: 'idCardColor', type: 'text', label: 'Student ID card colour', default: '', pattern: '^#[0-9a-fA-F]{6}$', patternError: 'Use a colour like #0E7C86', help: 'A colour code like #0E7C86. Leave it blank to use the brand colour from the institution profile.' },
+  { module: 'students', key: 'idCardFields', type: 'multi', label: 'Shown on the student ID card', default: ['PHOTO', 'ROLL', 'BLOOD_GROUP', 'GUARDIAN', 'GUARDIAN_PHONE', 'VALID_UNTIL', 'QR'], options: STUDENT_ID_CARD_FIELDS, help: 'The name, class and admission number are always printed.' },
+  { module: 'students', key: 'idCardBack', type: 'bool', label: 'Print a back side on student ID cards', default: true, help: 'Each card’s back follows its front, so double-sided printing lines up.' },
+  { module: 'students', key: 'idCardBackText', type: 'text', label: 'Rules printed on the back of the card', default: 'This card is the property of the school. Carry it every day. Report a lost card to the office at once.' },
+  { module: 'students', key: 'idCardReturnText', type: 'text', label: 'Return note on the back of the card', default: 'If found, please return to:', help: 'Followed by the institution’s name, address and phone number.' },
+  { module: 'students', key: 'idCardSignatory', type: 'text', label: 'Caption under the signature line', default: 'Principal', help: 'e.g. Principal or Headmistress.' },
 
   // ── Attendance
   { module: 'attendance', key: 'mode', type: 'select', label: 'Attendance is taken', default: 'DAILY', options: [{ value: 'DAILY', label: 'Once a day, by the class teacher' }, { value: 'PERIOD', label: 'Every period, by the subject teacher' }] },
@@ -52,6 +61,7 @@ export const SETTINGS = [
   { module: 'portal', key: 'studentLogins', type: 'bool', label: 'Students get their own sign-in', default: false, help: 'Usually on for senior classes and colleges. Off: only parents sign in.' },
   { module: 'portal', key: 'showFees', type: 'bool', label: 'Show fees and online payment in the app', default: true },
   { module: 'portal', key: 'showMarks', type: 'bool', label: 'Show marks and report cards in the app', default: true, help: 'Only results that have been published.' },
+  { module: 'portal', key: 'chat', type: 'bool', label: 'Families can message teachers in the app', default: true, help: 'The class teacher and the subject teachers of the child’s class. Needs the Communication hub.' },
 ]
 
 export const SETTING_BY_KEY = Object.fromEntries(SETTINGS.map((s) => [`${s.module}.${s.key}`, s]))

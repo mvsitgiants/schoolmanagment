@@ -7,6 +7,7 @@ import { HISTORY_EVENTS, STUDENT_STATUS, TC_STATUS } from '@schoolgiant/shared'
 import { Attachments, FactGrid, Modal, Note, PageContainer, Panel, RecordHero, StatusPill, Tabs, Timeline, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
 import StudentForm, { studentBody, studentFormValues } from '../../components/students/StudentForm'
+import StudentPhoto from '../../components/students/StudentPhoto'
 import { fetchStudent, setStudentStatus, updateStudent } from '../../api/students'
 import { hasPermission } from '../../api/auth'
 import { printDocument } from '../../components/print/printDocument'
@@ -150,9 +151,14 @@ export default function Profile() {
       )}
 
       {tab === 'documents' && (
-        <Panel title={t('students.profile.tabs.documents')} subtitle={t('students.profile.documentsHint')}>
-          <Attachments entityType="student" entityId={s.id} canAdd={canEdit || hasPermission('students.admit.create')} />
-        </Panel>
+        <div className="grid lg:grid-cols-[14rem_1fr] gap-6 items-start">
+          <Panel title={t('students.photo.title')} subtitle={t('students.photo.hint')}>
+            <StudentPhoto studentId={s.id} name={s.name} canEdit={canEdit || hasPermission('students.id-cards.print')} />
+          </Panel>
+          <Panel title={t('students.profile.tabs.documents')} subtitle={t('students.profile.documentsHint')}>
+            <Attachments entityType="student" entityId={s.id} canAdd={canEdit || hasPermission('students.admit.create')} />
+          </Panel>
+        </div>
       )}
 
       {tab === 'history' && (
