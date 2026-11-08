@@ -14,6 +14,7 @@
     "dev:api": "npm run dev --workspace @schoolgiant/backend",
     "dev:web": "npm run dev --workspace @schoolgiant/frontend",
     "seed": "npm run seed --workspace @schoolgiant/backend --",
+    "seed:demo": "npm run seed:demo --workspace @schoolgiant/backend",
     "test": "npm test --workspace @schoolgiant/backend --",
     "build": "npm run build --workspace @schoolgiant/frontend",
     "lint:pages": "npm run lint:pages --workspace @schoolgiant/frontend",

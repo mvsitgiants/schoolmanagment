@@ -115,6 +115,7 @@ export async function ensureFeeSetup() {
 // ───────────────────────────────────────────────────────── heads
 
 export async function listHeads() {
+  await ensureFeeSetup() // institutions made before the starter heads existed get them now
   return clean(await FeeHead.find().sort({ active: -1, name: 1 }).lean())
 }
 

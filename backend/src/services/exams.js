@@ -101,6 +101,7 @@ export async function ensureExamSetup() {
 }
 
 export async function listTypes() {
+  await ensureExamSetup() // institutions made before the starter types existed get them now
   return clean(await ExamType.find().sort({ active: -1, name: 1 }).lean())
 }
 

@@ -32,6 +32,22 @@ describe('tenant isolation', () => {
       .rejects.toThrow(/Cross-tenant/)
   })
 
+  it('scopes bulkWrite to the current tenant: upserts carry it, updates can’t reach another tenant', async () => {
+    const a = await newInstitution()
+    const b = await newInstitution()
+    await runAsTenant(a.tenant._id, () => Department.bulkWrite([
+      { updateOne: { filter: { code: 'SCI' }, update: { $set: { name: 'Science', type: 'ACADEMIC' } }, upsert: true } },
+      { insertOne: { document: { name: 'Sports', code: 'SPRT', type: 'SUPPORT' } } },
+    ]))
+    const mine = await runAsTenant(a.tenant._id, () => Department.find({ code: { $in: ['SCI', 'SPRT'] } }).lean())
+    expect(mine).toHaveLength(2)
+    expect(mine.every((d) => String(d.tenantId) === String(a.tenant._id))).toBe(true)
+    // B renames "everything" with code SCI — only its own records (none) change
+    await runAsTenant(b.tenant._id, () => Department.bulkWrite([{ updateMany: { filter: { code: 'SCI' }, update: { $set: { name: 'Hacked' } } } }]))
+    expect((await runAsTenant(a.tenant._id, () => Department.findOne({ code: 'SCI' }).lean())).name).toBe('Science')
+    await expect(runAsTenant(b.tenant._id, () => Department.bulkWrite([{ insertOne: { document: { name: 'X', code: 'X', type: 'ACADEMIC', tenantId: a.tenant._id } } }]))).rejects.toThrow(/Cross-tenant/)
+  })
+
   it('a user of institution A cannot read institution B through the API', async () => {
     const a = await newInstitution()
     const b = await newInstitution()

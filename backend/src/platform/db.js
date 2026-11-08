@@ -27,6 +27,11 @@ function sessionPlugin(schema) {
     const session = getContext()?.session
     if (session && !this.$session()) this.$session(session)
   })
+  // Model.bulkWrite has no query middleware: join the transaction through its options
+  schema.pre('bulkWrite', function (ops, options) {
+    const session = getContext()?.session
+    if (session && !options?.session) return mongoose.overwriteMiddlewareArguments(ops, { ...(options ?? {}), session })
+  })
 }
 mongoose.plugin(sessionPlugin)
 
@@ -53,6 +58,25 @@ export function tenantPlugin(schema) {
   schema.pre('aggregate', function () {
     const tenantId = tenantScope(this.options)
     if (tenantId) this.pipeline().unshift({ $match: { tenantId: new mongoose.Types.ObjectId(String(tenantId)) } })
+  })
+
+  // Model.bulkWrite skips query and document middleware: every operation is scoped to the context tenant here —
+  // filters get the tenant (so an upsert inserts it too), inserted and replacing documents carry it.
+  schema.pre('bulkWrite', function (ops, options) {
+    const tenantId = tenantScope(options)
+    if (!tenantId) return
+    const tid = new mongoose.Types.ObjectId(String(tenantId))
+    for (const op of ops) {
+      const [kind] = Object.keys(op)
+      const body = op[kind]
+      if (kind === 'insertOne') {
+        if (body.document.tenantId && String(body.document.tenantId) !== String(tid)) throw new AppError(403, 'Cross-tenant write blocked.', { code: 'CROSS_TENANT' })
+        body.document.tenantId = tid
+        continue
+      }
+      body.filter = { ...(body.filter ?? {}), tenantId: tid }
+      if (kind === 'replaceOne') body.replacement = { ...body.replacement, tenantId: tid }
+    }
   })
 
   // 'validate' runs before 'save' (and before the required check), so stamp here.

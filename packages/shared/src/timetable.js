@@ -169,8 +169,12 @@ export function generateTimetable({ days, periods, lessons, locked = [], blocked
         unbook(other)
         if (fits(u, day, period)) {
           const ou = { ...other, lab: !!other.roomId && labs.includes(other.roomId) }
+          // take the slot first, then find the moved lesson a home — otherwise its "free" slot can be this very one
+          place(u, day, period)
+          const mine = entries[entries.length - 1]
           const alt = best(ou)
-          if (alt) { place(u, day, period); place(ou, alt.day, alt.period); pick = { done: true }; break outer }
+          if (alt) { place(ou, alt.day, alt.period); pick = { done: true }; break outer }
+          unbook(mine)
         }
         book(other)
       }

@@ -134,7 +134,7 @@ export async function issueBooks({ kind, id, codes, dueOn, override = false }, a
   }
   const made = []
   for (const c of copies) {
-    const claimed = await LibraryCopy.findOneAndUpdate({ _id: c._id, status: 'AVAILABLE' }, { $set: { status: 'ISSUED' } }, { new: true })
+    const claimed = await LibraryCopy.findOneAndUpdate({ _id: c._id, status: 'AVAILABLE' }, { $set: { status: 'ISSUED' } }, { returnDocument: 'after' })
     if (!claimed) throw conflict(`${c.accessionNo} was just issued at another desk.`)
     try {
       const loan = await LibraryLoan.create({
