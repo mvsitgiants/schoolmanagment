@@ -25,6 +25,7 @@ import { institutionNow } from '../platform/time.js'
 import { currentYear } from './academics.js'
 import { renderDocument } from './documents.js'
 import { notifyUsers } from './notify.js'
+import { onlinePaymentsOn } from './feePayments.js'
 import { familyConversations, familySend, familyThread, markNoticeRead, noticeFile, noticesFor, teachersFor } from './communication.js'
 
 // The family side of the parent & student app (routes/portal.js `familyRouter`), and the school's
@@ -228,7 +229,7 @@ export async function feesFor(f, id) {
     },
     invoices: invoices.map((i) => ({ id: String(i._id), installment: i.installment, dueDate: i.dueDate, net: i.net, paid: i.paid, balance: i.balance, concession: i.concession, status: i.status, statusLabel: INVOICE_STATUS[i.status]?.label, overdue: i.balance > 0 && i.dueDate < t })),
     receipts: payments.map((p) => ({ id: String(p._id), receiptNo: p.receiptNo, date: p.date, amount: p.amount, refunded: p.refunded ?? 0, mode: p.mode, modeLabel: PAYMENT_MODE_LABEL[p.mode] ?? p.mode })),
-    onlinePayment: false, // Razorpay / UPI comes with Fees › online payment
+    onlinePayment: await onlinePaymentsOn(f.enabledModules), // the school's own gateway (Fees › Online payments)
   }
 }
 

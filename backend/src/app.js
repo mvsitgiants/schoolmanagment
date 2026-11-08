@@ -1,3 +1,4 @@
+import { registerFinanceListeners } from './services/financePosting.js'
 import cookieParser from 'cookie-parser'
 import cors from 'cors'
 import express from 'express'
@@ -19,6 +20,13 @@ import dashboardRoutes from './routes/dashboard.js'
 import reportRoutes from './routes/reports.js'
 import { familyRouter, portalRouter } from './routes/portal.js'
 import communicationRoutes from './routes/communication.js'
+import feePaymentRoutes from './routes/feePayments.js'
+import admissionRoutes from './routes/admissions.js'
+import admissionPublicRoutes from './routes/admissionsPublic.js'
+import timetableRoutes from './routes/timetable.js'
+import hrmsRoutes from './routes/hrms.js'
+import payrollRoutes from './routes/payroll.js'
+import financeRoutes from './routes/finance.js'
 import studentRoutes from './routes/students.js'
 import authRoutes from './routes/auth.js'
 import coreRoutes from './routes/core/index.js'
@@ -58,6 +66,7 @@ async function dbReady() {
 export function createApp() {
   registerNotificationListeners()
   registerWebhookListeners()
+  registerFinanceListeners()
   const app = express()
   app.set('trust proxy', 1)
   app.disable('x-powered-by')
@@ -107,6 +116,7 @@ export function createApp() {
   }
   app.get('/api/health/ready', ready)
   app.get('/api/health', ready)
+  app.use('/api/v1/public/admissions/:slug', admissionPublicRoutes)
   app.use('/api/v1/public', publicRoutes)
   app.use('/api/v1/auth', authRoutes)
   app.use('/api/v1/core', coreRoutes)
@@ -117,6 +127,7 @@ export function createApp() {
   app.use('/api/v1/academics', academicsRoutes)
   app.use('/api/v1/students', studentRoutes)
   app.use('/api/v1/attendance', attendanceRoutes)
+  app.use('/api/v1/fees/online', feePaymentRoutes)
   app.use('/api/v1/fees', feeRoutes)
   app.use('/api/v1/exams', examRoutes)
   app.use('/api/v1/homework', homeworkRoutes)
@@ -125,6 +136,11 @@ export function createApp() {
   app.use('/api/v1/reports', reportRoutes)
   app.use('/api/v1/portal', portalRouter)
   app.use('/api/v1/communication', communicationRoutes)
+  app.use('/api/v1/admissions', admissionRoutes)
+  app.use('/api/v1/timetable', timetableRoutes)
+  app.use('/api/v1/hrms', hrmsRoutes)
+  app.use('/api/v1/payroll', payrollRoutes)
+  app.use('/api/v1/finance', financeRoutes)
   app.use('/api/v1/family/:slug', familyRouter)
   app.use('/api/v1/documents', documentRoutes)
 

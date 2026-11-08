@@ -2,16 +2,41 @@ import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { AlertTriangle, CheckCircle2, IndianRupee, Printer, Receipt, Wallet } from 'lucide-react'
+import { AlertTriangle, CheckCircle2, Copy, IndianRupee, Link2, Printer, Receipt, Wallet } from 'lucide-react'
 import { INVOICE_STATUS, MODES_WITH_REFERENCE, PAYMENT_MODES, formatINR, toPaise, toRupees } from '@schoolgiant/shared'
 import { DataTable, FormField, Input, Note, PageContainer, PageHeader, Panel, Select, StatCardRow, StatusPill, Textarea } from '../../components/system'
 import Button from '../../components/ui/Button'
 import StudentPicker from '../../components/fees/StudentPicker'
-import { collectFee, fetchFeeLedger } from '../../api/fees'
+import { collectFee, createPaymentLink, fetchFeeLedger, fetchOnlineStatus } from '../../api/fees'
 import { hasPermission } from '../../api/auth'
 import { printDocument } from '../../components/print/printDocument'
 import { useSnackbar } from '../../context/SnackbarContext'
 import { useFormat } from '../../context/SettingsContext'
+
+/** With online payment on: a Razorpay link for what is due now, to send the parent (SMS from Razorpay, or copy). */
+function OnlineLink({ studentId }) {
+  const { t } = useTranslation('fees')
+  const { showSuccess, showError } = useSnackbar()
+  const { data: status } = useQuery({ queryKey: ['online-status'], queryFn: fetchOnlineStatus, staleTime: 300_000 })
+  const [notify, setNotify] = useState(true)
+  const [link, setLink] = useState(null)
+  const make = useMutation({ mutationFn: () => createPaymentLink(studentId, { notify }), onSuccess: (r) => { setLink(r); showSuccess(notify ? t('fees.collect.linkSent') : t('fees.collect.linkMade')) }, onError: (e) => showError(e.message) })
+  if (!status?.on) return null
+  const copy = async () => { try { await navigator.clipboard.writeText(link.shortUrl); showSuccess(t('fees.online.copied')) } catch { showError(link.shortUrl) } }
+  return (
+    <div className="rounded-lg border border-border p-3 space-y-2">
+      <p className="text-xs font-medium text-ink-muted">{t('fees.collect.orLink')}</p>
+      {link?.shortUrl ? (
+        <div className="flex items-center gap-2"><span className="flex-1 text-xs font-mono-num break-all">{link.shortUrl}</span><Button size="sm" variant="ghost" icon={Copy} aria-label={t('fees.online.copy')} onClick={copy} /></div>
+      ) : (
+        <>
+          <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={notify} onChange={(e) => setNotify(e.target.checked)} className="rounded border-border text-brand-500 focus:ring-brand-500" />{t('fees.collect.linkSms')}</label>
+          <Button size="sm" variant="secondary" icon={Link2} className="w-full" loading={make.isPending} onClick={() => make.mutate()}>{t('fees.collect.makeLink')}</Button>
+        </>
+      )}
+    </div>
+  )
+}
 
 /** The counter: find the student, see what is due, take the money, print the receipt. */
 export default function Collect() {
@@ -122,6 +147,7 @@ export default function Collect() {
                       </label>
                     )}
                     <FormField label={t('fees.collect.note')}><Textarea rows={2} value={form.note} onChange={(e) => setForm((f) => ({ ...f, note: e.target.value }))} /></FormField>
+                    <OnlineLink studentId={studentId} />
                     <Button className="w-full" loading={save.isPending} disabled={!toPaise(form.amount) || (needsRef && !form.reference.trim())} onClick={() => save.mutate()}>
                       {t('fees.collect.submit', { amount: formatINR(toPaise(form.amount)) })}
                     </Button>

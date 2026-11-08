@@ -3,6 +3,7 @@ import rateLimit from 'express-rate-limit'
 import { config } from '../config.js'
 import { contextMiddleware } from '../platform/context.js'
 import { handlePlatformWebhook } from '../services/platformPayments.js'
+import { handleRazorpayWebhook } from '../services/feePayments.js'
 
 // Inbound integrations: /api/v1/hooks — public (no sign-in), so each call proves itself with the
 // provider's signature, checked on the raw body. Mounted BEFORE express.json() in app.js:
@@ -23,6 +24,10 @@ const send = (res, [status, body]) => (typeof body === 'string' ? res.status(sta
 // the platform's own account (institutions paying subscription invoices), set in Superadmin › Settings
 router.post('/platform/razorpay', hookLimiter, async (req, res) => {
   send(res, await handlePlatformWebhook(Buffer.isBuffer(req.body) ? req.body : Buffer.alloc(0), req.headers))
+})
+// the school's own account: fee payments from the parent app and payment links (Fees › Online payments)
+router.post('/razorpay/:hookKey', hookLimiter, async (req, res) => {
+  send(res, await handleRazorpayWebhook(req.params.hookKey, Buffer.isBuffer(req.body) ? req.body : Buffer.alloc(0), req.headers))
 })
 
 export default router

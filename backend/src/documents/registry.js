@@ -28,6 +28,7 @@ import { hallTicketData, latestCandidate, reportCardData } from '../services/exa
 import { certificatePrintData, latestCertificate } from '../services/certificates.js'
 import { CERTIFICATE_KIND_BY } from '@schoolgiant/shared'
 import { translateDoc } from './engine.js'
+import { latestPayslipId, payslipModel, payslipPrint } from '../services/payrollRuns.js'
 
 const latestId = async (Model, filter, sort) => (await Model.findOne(filter).sort(sort).select('_id').lean())?._id
 const V = {
@@ -191,5 +192,14 @@ export const DOCS = {
       'theme {color, dark, deep, tint, soft, ink, light}',
       'students[] {name, admissionNo, class, rollNo, dob, bloodGroup, guardian, guardianRelation, guardianPhone, address, photo, initials, verifyUrl, qrImage, barcodeImage}',
     ],
+  },
+  // ── Payslip (data from services/payrollRuns.js). Staff print their own from My workspace (/payroll/me/payslips/:id/print).
+  PAYSLIP: {
+    perms: ['payroll.payslips.view'],
+    load: (id, auth) => payslipPrint(id, auth),
+    model: payslipModel,
+    title: (m) => `${m.payslip.no} · ${m.employee.name}`,
+    sample: () => latestPayslipId(),
+    variables: [V.institution, 'payslip.no, payslip.monthLabel, payslip.runNo, payslip.status, payslip.draft, payslip.paid, payslip.paidOn, payslip.paidMode, payslip.reference', 'employee.name, employee.code, employee.designation, employee.departmentName, employee.branchName, employee.joiningDate, employee.lastWorkingDate, employee.panMasked, employee.uanMasked, employee.esiMasked, employee.bankName, employee.accountMasked, employee.paymentModeLabel · structureName', 'attendance.daysInMonth, attendance.baseDays, attendance.payDays, attendance.lop, attendance.lopEdited, attendance.lopReason, attendance.present, attendance.leave', 'earnings[] / deductions[] {code, label, amount, basis} · rows[] {earning, deduction} · employer[] {label, amount} · loans[] {label, amount}', 'totals.gross, totals.deductions, totals.net, totals.employerContributions · ytd {label, gross, pf, esi, pt, tds, net} · {{words totals.net}}', 'fnf {lastWorkingDate, leaveDays, leaveEncashment, gratuity, serviceYears, countedYears, noticeDays, noticeServed, noticeRecovery, note}', V.layout],
   },
 }

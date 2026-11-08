@@ -4,6 +4,10 @@ import { Attachment, Comment } from '../models/engines.js'
 import { Student, studentName } from '../models/students.js'
 import { homeworkRecord } from './homework.js'
 import { noticeRecord } from './communication.js'
+import { Application } from '../models/admissions.js'
+import { Candidate, Employee } from '../models/hrms.js'
+import { employeeScope } from './hrmsCommon.js'
+import { expenseRecord } from './financeExpenses.js'
 import { can, moduleEnabled } from '../platform/access.js'
 import { audit } from '../platform/audit.js'
 import { clean, isOid, oid } from '../platform/db.js'
@@ -29,11 +33,33 @@ const RECORDS = {
     module: 'homework', view: ['homework.homework.view'], add: ['homework.homework.create', 'homework.homework.edit'],
     load: (id, auth) => homeworkRecord(id, auth).catch(() => null),
   },
+  // An applicant's papers: birth certificate, last report card, transfer certificate, photo — seen in the application.
+  application: {
+    module: 'admissions', view: ['admissions.applications.view'], add: ['admissions.applications.create', 'admissions.applications.edit'],
+    load: async (id) => { const a = await Application.findById(id).select('applicationNo child status').lean(); return a && { name: `${a.applicationNo} · ${[a.child?.firstName, a.child?.lastName].filter(Boolean).join(' ')}`, locked: a.status === 'ADMITTED' } },
+    locked: (rec) => (rec.locked ? 'This applicant has been admitted; add files to the student’s record instead.' : null),
+  },
   // A notice's circular (PDF), photos or forms — families download them in the app.
   notice: {
     module: 'communication', view: ['communication.notices.view'], add: ['communication.notices.create', 'communication.notices.edit'],
     load: (id) => noticeRecord(id),
     locked: (rec) => (rec.locked ? 'This notice was withdrawn.' : null),
+  },
+  // A staff member's papers: appointment letter, degree certificates, ID proofs, experience letters.
+  employee: {
+    module: 'hrms', view: ['hrms.employees.view_sensitive'], add: ['hrms.employees.edit'],
+    load: async (id, auth) => { const e = await Employee.findOne({ _id: id, ...employeeScope(auth) }).select('name employeeCode').lean(); return e && { name: `${e.name} (${e.employeeCode})` } },
+  },
+  // An expense's bill, quotation or delivery note.
+  expense: {
+    module: 'finance', view: ['finance.expenses.view'], add: ['finance.expenses.create', 'finance.expenses.approve'],
+    load: (id) => expenseRecord(id),
+    locked: (rec) => (rec.locked ? 'This expense was cancelled.' : null),
+  },
+  // A job candidate's CV, certificates and demo-class notes.
+  candidate: {
+    module: 'hrms', view: ['hrms.hiring.view'], add: ['hrms.hiring.create', 'hrms.hiring.edit'],
+    load: async (id) => { const c = await Candidate.findById(id).select('name').lean(); return c && { name: c.name } },
   },
 }
 

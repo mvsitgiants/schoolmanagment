@@ -19,6 +19,7 @@ import {
   FAMILY_COOKIE, clearFamilyCookie, endFamilySession, readFamilySession, sendFamilyCode, setFamilyCookie, verifyFamilyCode,
 } from '../services/portalAuth.js'
 import { BLOCKED_STATUSES, effectiveStatus } from '../services/subscription.js'
+import { createAppOrder, verifyAppPayment } from '../services/feePayments.js'
 
 const ymd = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Use YYYY-MM-DD')
 
@@ -160,6 +161,13 @@ familyRouter.get('/students/:studentId/homework/:homeworkId/files/:fileId', asyn
   await new Promise((resolve, reject) => { stream.on('error', reject); stream.on('end', resolve); stream.pipe(res) })
 })
 familyRouter.get('/students/:studentId/fees', async (req, res) => { res.json({ data: await feesFor(req.family, sid(req)) }) })
+// pay online: an order for what is due now, then Checkout's signed response
+const payLimiter = limit(15 * 60_000, 30, 'Too many payment tries. Try again in a few minutes.')
+familyRouter.post('/students/:studentId/pay', payLimiter, async (req, res) => { res.json({ data: await createAppOrder(req.family, sid(req)) }) })
+familyRouter.post('/students/:studentId/pay/verify', payLimiter, async (req, res) => {
+  const body = z.object({ orderId: z.string().max(60), paymentId: z.string().max(60), signature: z.string().max(200) }).parse(req.body)
+  res.json({ data: await verifyAppPayment(req.family, sid(req), body) })
+})
 familyRouter.get('/students/:studentId/results', async (req, res) => { res.json({ data: await resultsFor(req.family, sid(req)) }) })
 familyRouter.get('/students/:studentId/certificates', async (req, res) => { res.json({ data: await certificatesFor(req.family, sid(req)) }) })
 familyRouter.get('/students/:studentId/profile', async (req, res) => { res.json({ data: await profileFor(req.family, sid(req)) }) })

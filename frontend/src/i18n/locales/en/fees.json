@@ -146,7 +146,12 @@
       "lastReceipt": "Receipt {{no}} for {{amount}} saved. Still due: {{balance}}.",
       "print": "Print receipt",
       "receipts": "Receipts",
-      "noReceipts": "No payments yet."
+      "noReceipts": "No payments yet.",
+      "orLink": "Or send a payment link",
+      "linkSms": "Razorpay texts the link to the parent",
+      "makeLink": "Make payment link",
+      "linkSent": "Payment link sent to the parent.",
+      "linkMade": "Payment link ready — copy it to send."
     },
     "invoices": {
       "title": "Invoices & receipts",
@@ -362,6 +367,76 @@
         "collectedBy": "Received by {{name}}",
         "signature": "Authorised signatory"
       }
+    },
+    "online": {
+      "title": "Online payments",
+      "subtitle": "Families pay fees online — from the parent app or a payment link — into the school’s own Razorpay account. Each payment becomes a fee receipt by itself.",
+      "account": "Razorpay account",
+      "test": "Test connection",
+      "enabled": "Families can pay fees online",
+      "mode": "Mode",
+      "modes": {
+        "SANDBOX": "Test (sandbox)",
+        "LIVE": "Live"
+      },
+      "keyId": "Key id",
+      "keySecret": "Key secret",
+      "webhookSecret": "Webhook secret",
+      "secretSet": "Saved (…{{last4}}). Leave blank to keep it.",
+      "secretNotSet": "Not saved yet",
+      "save": "Save",
+      "saved": "Saved.",
+      "keysHint": "From the Razorpay dashboard › Account & settings › API keys. Use test keys first; switch to live keys and Live mode when you are ready.",
+      "webhook": "Webhook",
+      "webhookHint": "In the Razorpay dashboard › Webhooks, add this address with the webhook secret you typed here, and tick these events. Payments are receipted from it even when a parent closes the app too soon.",
+      "events": "Events to tick",
+      "copy": "Copy",
+      "copied": "Copied.",
+      "receiptHint": "Online payments are receipted as ONLINE with no collector, so they are not in anyone’s day-end cash. A refund here returns the money; record it in Fees › Refunds too.",
+      "k": {
+        "received": "Received (30 days)",
+        "count_one": "{{count}} payment",
+        "count_other": "{{count}} payments",
+        "waiting": "Waiting for payment",
+        "review": "Needs review",
+        "refunded": "Refunded"
+      },
+      "transactions": "Online payments",
+      "search": "Student, admission no. or Razorpay id",
+      "statusLabel": "Status",
+      "when": "When",
+      "student": "Student",
+      "source": "From",
+      "amount": "Amount",
+      "reference": "Razorpay id",
+      "sources": {
+        "COUNTER": "Payment link",
+        "APP": "Parent app"
+      },
+      "status": {
+        "CREATED": "Waiting for payment",
+        "PAID": "Paid at gateway",
+        "APPLYING": "Receipting…",
+        "APPLIED": "Receipted",
+        "NEEDS_REVIEW": "Paid — needs review",
+        "FAILED": "Failed",
+        "EXPIRED": "Expired",
+        "CANCELLED": "Cancelled",
+        "REFUNDED": "Refunded"
+      },
+      "sync": "Check with Razorpay",
+      "synced": "Checked with Razorpay.",
+      "cancelLink": "Cancel link",
+      "cancelConfirm": "Cancel this payment link?",
+      "cancelled": "Link cancelled.",
+      "refund": "Refund",
+      "refundReason": "Why?",
+      "refunded": "Refund started at Razorpay.",
+      "refundConfirm": {
+        "title": "Refund {{amount}} to the family?",
+        "message": "Razorpay returns the money to how they paid (5–7 working days). Record the refund in Fees › Refunds as well."
+      },
+      "empty": "No online payments yet"
     }
   }
 }

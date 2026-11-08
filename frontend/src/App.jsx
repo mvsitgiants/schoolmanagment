@@ -66,6 +66,7 @@ const FeeDues = lazy(() => import('./pages/Fees/Dues'))
 const FeeConcessions = lazy(() => import('./pages/Fees/Concessions'))
 const FeeRefunds = lazy(() => import('./pages/Fees/Refunds'))
 const FeeDayEnd = lazy(() => import('./pages/Fees/DayEnd'))
+const FeeOnline = lazy(() => import('./pages/Fees/Online'))
 // Exams
 const ExamSchedule = lazy(() => import('./pages/Exams/Schedule'))
 const ExamHallTickets = lazy(() => import('./pages/Exams/HallTickets'))
@@ -82,6 +83,38 @@ const CertificateIssue = lazy(() => import('./pages/Certificates/Issue'))
 const CertificateRegister = lazy(() => import('./pages/Certificates/Register'))
 const VerifyCertificate = lazy(() => import('./pages/Public/VerifyCertificate'))
 const VerifyStudent = lazy(() => import('./pages/Public/VerifyStudent'))
+const PublicApply = lazy(() => import('./pages/Public/Apply'))
+// Admissions
+const AdmEnquiries = lazy(() => import('./pages/Admissions/Enquiries'))
+const AdmApplications = lazy(() => import('./pages/Admissions/Applications'))
+const AdmTests = lazy(() => import('./pages/Admissions/Tests'))
+const AdmMerit = lazy(() => import('./pages/Admissions/Merit'))
+const AdmSettings = lazy(() => import('./pages/Admissions/Settings'))
+// Timetable
+const TimetablePage = lazy(() => import('./pages/Timetable/Timetable'))
+const TtSubstitutions = lazy(() => import('./pages/Timetable/Substitutions'))
+const TtRooms = lazy(() => import('./pages/Timetable/Rooms'))
+// Staff & HR
+const HrEmployees = lazy(() => import('./pages/Hrms/Employees'))
+const HrEmployeeProfile = lazy(() => import('./pages/Hrms/EmployeeProfile'))
+const HrAttendance = lazy(() => import('./pages/Hrms/Attendance'))
+const HrLeave = lazy(() => import('./pages/Hrms/Leave'))
+const HrHolidays = lazy(() => import('./pages/Hrms/Holidays'))
+const HrHiring = lazy(() => import('./pages/Hrms/Hiring'))
+const HrPerformance = lazy(() => import('./pages/Hrms/Performance'))
+// Payroll
+const PayStructures = lazy(() => import('./pages/Payroll/Structures'))
+const PayStatutory = lazy(() => import('./pages/Payroll/Statutory'))
+const PayLoans = lazy(() => import('./pages/Payroll/Loans'))
+const PayRuns = lazy(() => import('./pages/Payroll/Runs'))
+const PayPayslips = lazy(() => import('./pages/Payroll/Payslips'))
+const PayExports = lazy(() => import('./pages/Payroll/Exports'))
+// Accounts
+const FinAccounts = lazy(() => import('./pages/Finance/Accounts'))
+const FinJournals = lazy(() => import('./pages/Finance/Journals'))
+const FinExpenses = lazy(() => import('./pages/Finance/Expenses'))
+const FinBank = lazy(() => import('./pages/Finance/Bank'))
+const FinReports = lazy(() => import('./pages/Finance/Reports'))
 const StudentIdCards = lazy(() => import('./pages/Students/IdCards'))
 // Dashboard & reports
 const CommandCentre = lazy(() => import('./pages/Dashboard/Command'))
@@ -133,6 +166,8 @@ export default function App() {
         <Route path="/accept-invite" element={<AcceptInvitePage />} />
         <Route path="/verify-email" element={<VerifyEmailPage />} />
         <Route path="/verify/student/:code" element={<VerifyStudent />} />
+        <Route path="/apply/:slug" element={<PublicApply />} />
+        <Route path="/apply/:slug/status" element={<PublicApply track />} />
         <Route path="/verify/:code" element={<VerifyCertificate />} />
         <Route path="/app/:slug/*" element={<FamilyApp />} />
 
@@ -192,6 +227,37 @@ export default function App() {
           <Route path="students/promotion" element={<StudentPromotion />} />
           <Route path="students/transfer" element={<StudentTransfer />} />
           <Route path="students/id-cards" element={<StudentIdCards />} />
+          <Route path="admissions" element={<Navigate to="/admissions/enquiries" replace />} />
+          <Route path="admissions/enquiries" element={<AdmEnquiries />} />
+          <Route path="admissions/applications" element={<AdmApplications />} />
+          <Route path="admissions/tests" element={<AdmTests />} />
+          <Route path="admissions/merit" element={<AdmMerit />} />
+          <Route path="admissions/settings" element={<AdmSettings />} />
+          <Route path="timetable" element={<Navigate to="/timetable/timetable" replace />} />
+          <Route path="timetable/timetable" element={<TimetablePage />} />
+          <Route path="timetable/substitutions" element={<TtSubstitutions />} />
+          <Route path="timetable/rooms" element={<TtRooms />} />
+          <Route path="hrms" element={<Navigate to="/hrms/employees" replace />} />
+          <Route path="hrms/employees" element={<HrEmployees />} />
+          <Route path="hrms/employees/:id" element={<HrEmployeeProfile />} />
+          <Route path="hrms/attendance" element={<HrAttendance />} />
+          <Route path="hrms/leave" element={<HrLeave />} />
+          <Route path="hrms/holidays" element={<HrHolidays />} />
+          <Route path="hrms/hiring" element={<HrHiring />} />
+          <Route path="hrms/performance" element={<HrPerformance />} />
+          <Route path="payroll" element={<Navigate to="/payroll/runs" replace />} />
+          <Route path="payroll/structures" element={<PayStructures />} />
+          <Route path="payroll/statutory" element={<PayStatutory />} />
+          <Route path="payroll/loans" element={<PayLoans />} />
+          <Route path="payroll/runs" element={<PayRuns />} />
+          <Route path="payroll/payslips" element={<PayPayslips />} />
+          <Route path="payroll/exports" element={<PayExports />} />
+          <Route path="finance" element={<Navigate to="/finance/journals" replace />} />
+          <Route path="finance/accounts" element={<FinAccounts />} />
+          <Route path="finance/journals" element={<FinJournals />} />
+          <Route path="finance/expenses" element={<FinExpenses />} />
+          <Route path="finance/bank" element={<FinBank />} />
+          <Route path="finance/reports" element={<FinReports />} />
           <Route path="attendance" element={<Navigate to="/attendance/mark" replace />} />
           <Route path="attendance/mark" element={<AttendanceMark />} />
           <Route path="attendance/register" element={<AttendanceRegister />} />
@@ -205,6 +271,7 @@ export default function App() {
           <Route path="fees/concessions" element={<FeeConcessions />} />
           <Route path="fees/refunds" element={<FeeRefunds />} />
           <Route path="fees/day-end" element={<FeeDayEnd />} />
+          <Route path="fees/online" element={<FeeOnline />} />
           <Route path="exams" element={<Navigate to="/exams/schedule" replace />} />
           <Route path="exams/schedule" element={<ExamSchedule />} />
           <Route path="exams/hall-tickets" element={<ExamHallTickets />} />

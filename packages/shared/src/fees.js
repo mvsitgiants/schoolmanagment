@@ -74,3 +74,22 @@ export function allocateOldestFirst(invoices, amount) {
   }
   return { allocations: out, left }
 }
+
+// ───────────────────────────────────────────────────────── online payment (the school's own Razorpay account)
+
+/** An online payment through the gateway: an order (the parent app's checkout) or a payment link (sent from the counter). */
+export const GATEWAY_ORDER_STATUSES = {
+  CREATED: { label: 'Waiting for payment', tone: 'info' },
+  PAID: { label: 'Paid at gateway', tone: 'info' },
+  APPLYING: { label: 'Receipting…', tone: 'info' },
+  APPLIED: { label: 'Receipted', tone: 'success' },
+  NEEDS_REVIEW: { label: 'Paid — needs review', tone: 'danger' },
+  FAILED: { label: 'Failed', tone: 'danger' },
+  EXPIRED: { label: 'Expired', tone: 'neutral' },
+  CANCELLED: { label: 'Cancelled', tone: 'neutral' },
+  REFUNDED: { label: 'Refunded', tone: 'warning' },
+}
+export const GATEWAY_ORDER_SOURCES = { COUNTER: 'Payment link from the fee counter', APP: 'Parent app' }
+/** Every online payment is receipted as ONLINE; the gateway's method (upi, card …) goes in the receipt note. */
+export const GATEWAY_RECEIPT_MODE = 'ONLINE'
+export const GATEWAY_WEBHOOK_EVENTS = ['payment.captured', 'payment.failed', 'order.paid', 'payment_link.paid', 'payment_link.expired', 'payment_link.cancelled', 'refund.processed', 'refund.failed']

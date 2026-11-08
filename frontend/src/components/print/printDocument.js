@@ -87,3 +87,8 @@ async function openPrint(docType, id, load, { preparing, closeOnError = false } 
     return { ok: false, error: message, code }
   }
 }
+
+/** Print HTML the caller loads itself (a staff member's own payslip from My workspace): `printHtml('PAYSLIP', () => fetchMyPayslipHtml(id))`. */
+export async function printHtml(docType, load) {
+  return (await openPrint(docType, null, async () => ({ html: await load() }))).ok
+}

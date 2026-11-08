@@ -5,6 +5,8 @@ import { runAsSystem } from './platform/context.js'
 import { logger } from './platform/logger.js'
 import { schedule, stopJobs } from './platform/jobs.js'
 import { runDueSchedules } from './services/reports.js'
+import { settleStuckPayments } from './services/feePayments.js'
+import { sweepAllExits } from './services/hrms.js'
 import { access, mkdir } from 'node:fs/promises'
 import { constants as fsc } from 'node:fs'
 import mongoose from 'mongoose'
@@ -71,6 +73,18 @@ const reportSchedules = () => runDueSchedules()
   .then((n) => n && logger.info({ reports: n }, 'scheduled reports sent'))
   .catch((err) => logger.error({ err }, 'scheduled reports failed'))
 schedule('report-schedules', reportSchedules, { firstMs: 60_000, everyMs: 15 * 60_000 })
+
+// Online fee payments left half-receipted by a crash: settled from the receipts, or put up for review. Never re-receipts.
+const stuckPayments = () => settleStuckPayments()
+  .then((n) => n && logger.warn({ payments: n }, 'stuck online payments settled'))
+  .catch((err) => logger.error({ err }, 'stuck payment sweep failed'))
+schedule('fee-payment-sweep', stuckPayments, { firstMs: 90_000, everyMs: 10 * 60_000 })
+
+// Staff whose last working day has passed: moved to "left", their login switched off. Hourly (each institution by its own date).
+const staffExits = () => sweepAllExits()
+  .then((n) => n && logger.info({ staff: n }, 'staff exits closed'))
+  .catch((err) => logger.error({ err }, 'staff exit sweep failed'))
+schedule('staff-exits', staffExits, { firstMs: 120_000, everyMs: 60 * 60_000 })
 
 // ───────────────────────────────────────────────────────── graceful shutdown
 // A deploy or restart sends SIGTERM. Stop taking new work, let requests in flight finish (their

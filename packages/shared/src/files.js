@@ -34,6 +34,10 @@ export const RECORD_TYPES = {
   student: 'Student',
   homework: 'Homework',
   notice: 'Notice',
+  application: 'Admission application',
+  employee: 'Staff record',
+  candidate: 'Job candidate',
+  expense: 'Expense',
 }
 
 export const COMMENT_MAX = 2000

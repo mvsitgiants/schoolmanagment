@@ -132,7 +132,7 @@ function noticeDown() {
 const EXPIRED_MESSAGE = 'Your session has expired. Please sign in again.'
 
 // pages for people who aren't staff (the family app, the certificate check) never bounce to the staff sign-in
-const onPublicPage = () => /^\/(app|verify)\//.test(window.location.pathname)
+const onPublicPage = () => /^\/(app|verify|apply)\//.test(window.location.pathname)
 
 function forceLogin(message) {
   localStorage.removeItem(USER_KEY)

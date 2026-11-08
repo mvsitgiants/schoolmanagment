@@ -137,3 +137,41 @@ webhookDeliverySchema.index({ status: 1, nextAttemptAt: 1 })
 webhookDeliverySchema.index({ createdAt: 1 }, { expireAfterSeconds: 30 * 24 * 3600 })
 
 export const WebhookDelivery = model('WebhookDelivery', webhookDeliverySchema, 'webhook_deliveries')
+
+// ───────────────────────────────────────────────────────── online fee payments
+
+/**
+ * One try at paying fees online through the school's own gateway: a Checkout order (the parent app) or a payment
+ * link (sent from the fee counter). Made for what the student owed then; a captured payment becomes ONE fee receipt.
+ */
+const gatewayOrderSchema = new Schema({
+  provider: { type: String, required: true },
+  kind: { type: String, required: true }, // ORDER · LINK
+  source: { type: String, required: true }, // GATEWAY_ORDER_SOURCES: COUNTER · APP
+  mode: String, // SANDBOX · LIVE when it was made
+  studentId: { type: Schema.Types.ObjectId, required: true },
+  studentName: String,
+  admissionNo: String,
+  branchId: Schema.Types.ObjectId,
+  amount: { type: Number, required: true }, // paise
+  currency: { type: String, default: 'INR' },
+  providerOrderId: { type: String, required: true }, // order_… / plink_…
+  providerPaymentId: String, // pay_…
+  shortUrl: String,
+  method: String, // upi · card · netbanking …
+  status: { type: String, default: 'CREATED' }, // GATEWAY_ORDER_STATUSES
+  paidAt: Date,
+  appliedAt: Date,
+  receiptNos: [String],
+  error: String,
+  refunds: [{ refundId: String, amount: Number, status: String, reason: String, by: String, at: Date }],
+  refundingUntil: Date,
+  expiresAt: Date,
+  createdBy: String,
+}, { timestamps: true })
+gatewayOrderSchema.plugin(tenantPlugin)
+gatewayOrderSchema.index({ tenantId: 1, provider: 1, providerOrderId: 1 }, { unique: true })
+gatewayOrderSchema.index({ tenantId: 1, provider: 1, providerPaymentId: 1 }, { unique: true, partialFilterExpression: { providerPaymentId: { $type: 'string' } } })
+gatewayOrderSchema.index({ tenantId: 1, studentId: 1, createdAt: -1 })
+gatewayOrderSchema.index({ tenantId: 1, status: 1, createdAt: -1 })
+export const GatewayOrder = model('GatewayOrder', gatewayOrderSchema, 'gateway_orders')

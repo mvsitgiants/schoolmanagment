@@ -258,6 +258,7 @@ export const MODULES = [
       pg('dues', 'Dues & reminders', 'V X send'),
       pg('refunds', 'Refunds', 'V C refund!'),
       pg('day-end', 'Day-end closing', 'V close approve_variance!'),
+      pg('online', 'Online payments', 'V configure refund!'),
     ] },
   { id: 'finance', name: 'Accounts', category: 'finance', icon: 'Landmark', deps: ['fees'], phase: 2, scopes: SITE_SCOPES,
     desc: 'Ledgers, income and expense, bank reconciliation, GST and Tally export.',
@@ -284,6 +285,8 @@ export const MODULES = [
     desc: 'Salary structures, payroll runs, payslips, PF/ESI/TDS and bank exports.',
     pages: [
       pg('structures', 'Salary structures', 'V C E D', { setup: true }),
+      pg('statutory', 'Statutory rules', 'V E', { setup: true }),
+      pg('loans', 'Loans & advances', 'V C E'),
       pg('runs', 'Payroll runs', 'V C calculate Ap! pay!'),
       pg('payslips', 'Payslips', 'V edit_lop'),
       pg('exports', 'Bank & statutory exports', 'V X'),

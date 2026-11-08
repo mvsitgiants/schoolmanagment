@@ -159,6 +159,99 @@
           "help": "e.g. Principal or Headmistress."
         }
       },
+      "admissions": {
+        "onlineApplication": {
+          "label": "Families can apply online",
+          "help": "The application page at <app>/apply/<your school>; the mobile number is checked with a one-time code."
+        },
+        "websiteEnquiry": {
+          "label": "Take enquiries from the website",
+          "help": "A short enquiry form on the same page, for families not ready to apply."
+        },
+        "ageCutoff": {
+          "label": "Age is counted on (day-month)",
+          "help": "The day of the admission year on which a child’s age is counted for eligibility."
+        },
+        "followUpDays": {
+          "label": "Follow up a new enquiry within (days)"
+        },
+        "offerDays": {
+          "label": "Days a family has to accept an offered seat"
+        }
+      },
+      "hrms": {
+        "weeklyOffDays": {
+          "label": "Staff weekly off",
+          "help": "A staff record can have its own weekly off.",
+          "options": {
+            "MON": "Mon",
+            "TUE": "Tue",
+            "WED": "Wed",
+            "THU": "Thu",
+            "FRI": "Fri",
+            "SAT": "Sat",
+            "SUN": "Sun"
+          }
+        },
+        "saturdaysOff": {
+          "label": "Saturdays off",
+          "help": "For example the 2nd and 4th Saturday of every month.",
+          "options": {
+            "1": "1st",
+            "2": "2nd",
+            "3": "3rd",
+            "4": "4th",
+            "5": "5th"
+          }
+        },
+        "leaveYearStartMonth": {
+          "label": "Leave year starts in",
+          "help": "Yearly leave is credited, and unused leave carried forward, at this month.",
+          "options": {
+            "1": "January",
+            "2": "February",
+            "3": "March",
+            "4": "April",
+            "5": "May",
+            "6": "June",
+            "7": "July",
+            "8": "August",
+            "9": "September",
+            "10": "October",
+            "11": "November",
+            "12": "December"
+          }
+        },
+        "lateAfter": {
+          "label": "Late after (HH:MM)",
+          "help": "Arriving after this is marked late. Leave empty to not track late arrival."
+        },
+        "attendanceEditDays": {
+          "label": "Staff attendance can be corrected up to (days back)"
+        },
+        "selfLeave": {
+          "label": "Staff apply for leave themselves",
+          "help": "In My workspace. Otherwise HR applies on their behalf."
+        }
+      },
+      "finance": {
+        "autoPost": {
+          "label": "Post fees, refunds and payroll to the books on their own",
+          "help": "Fee receipts, refunds, cancelled receipts and paid payroll make their vouchers as they happen."
+        },
+        "onlineToGateway": {
+          "label": "Online fee payments go to “Payment gateway in transit”",
+          "help": "On: a contra voucher moves them to the bank when the gateway settles. Off: straight to the main bank account."
+        },
+        "expenseAutoApproveUpTo": {
+          "label": "Expenses up to this amount need no approval (₹)",
+          "help": "0: every expense is approved before it is paid."
+        },
+        "matchWindowDays": {
+          "label": "Bank matching window (days)",
+          "help": "A statement line matches a book entry of the same amount this many days apart."
+        }
+      },
       "attendance": {
         "mode": {
           "label": "Attendance is taken",

@@ -164,6 +164,9 @@
           "label": "Employee code",
           "hint": "One per employee, shared by every campus."
         },
+        "REQUISITION": {
+          "label": "Vacancy"
+        },
         "PAYSLIP": {
           "label": "Payslip",
           "hint": "Dated by the payroll month, not the day it is calculated."

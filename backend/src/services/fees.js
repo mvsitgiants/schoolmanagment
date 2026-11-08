@@ -250,6 +250,16 @@ export async function generateInvoices(id, auth, req) {
 
 // ───────────────────────────────────────────────────────── a student's account
 
+/** What a student owes right now, late fees included: { due, lateFee, student } — for online payment. */
+export async function amountDueNow(studentId) {
+  const s = isOid(studentId) ? await Student.findById(studentId).lean() : null
+  if (!s) throw notFound('Student')
+  const [cfg, t] = await Promise.all([feeSettings(), today()])
+  const open = await FeeInvoice.find({ studentId: s._id, status: { $in: ['UNPAID', 'PARTIAL'] } }).lean()
+  const lateFee = open.reduce((n, i) => n + Math.max(0, lateFeeFor({ dueDate: i.dueDate, balance: i.balance }, t, cfg) - (i.lateFee ?? 0)), 0)
+  return { due: open.reduce((n, i) => n + i.balance, 0) + lateFee, lateFee, student: s }
+}
+
 export async function studentLedger(studentId, auth) {
   const s = await studentInScope(studentId, auth)
   const [cfg, t, place] = await Promise.all([feeSettings(), today(), placeOf(s.sectionId)])
@@ -284,7 +294,7 @@ export async function studentLedger(studentId, auth) {
  * Take a payment. The late fee due on each overdue installment is charged first (unless waived by
  * someone who may give concessions at the counter), then the money pays installments oldest first.
  */
-export async function collect({ studentId, amount, mode, reference, waiveLateFee = false, note, invoiceIds }, auth, req) {
+export async function collect({ studentId, amount, mode, reference, waiveLateFee = false, note, invoiceIds, online = false }, auth, req) {
   const s = await studentInScope(studentId, auth)
   if (amount <= 0) throw fieldsError({ amount: 'Enter the amount received' })
   if (waiveLateFee && !can(auth, 'fees.collect.discount')) throw forbidden('Your role can’t waive late fees.')
@@ -301,7 +311,8 @@ export async function collect({ studentId, amount, mode, reference, waiveLateFee
     }
     const due = invoices.reduce((n, i) => n + i.balance, 0)
     if (amount > due) throw fieldsError({ amount: `More than the ${formatINR(due)} due` })
-    if (!cfg.allowPartial && amount < due) throw fieldsError({ amount: `Collect the full ${formatINR(due)} (part payments are switched off)` })
+    // an online payment was made for what was due when it started; a late fee added since doesn't refuse it
+    if (!online && !cfg.allowPartial && amount < due) throw fieldsError({ amount: `Collect the full ${formatINR(due)} (part payments are switched off)` })
     const { allocations } = allocateOldestFirst(invoices.map((i) => ({ id: String(i._id), dueDate: i.dueDate, balance: i.balance })), amount)
     for (const a of allocations) {
       const inv = invoices.find((i) => String(i._id) === a.invoiceId)
@@ -346,6 +357,7 @@ export async function cancelReceipt(id, reason, auth, req) {
     await p.save()
   })
   await audit({ action: 'CANCEL', module: 'fees', entityType: 'fee_payment', entityId: String(p._id), entityName: p.receiptNo, studentId: p.studentId, summary: `Cancelled receipt ${p.receiptNo} (${formatINR(p.amount)}): ${reason}` }, req)
+  await emit('fees.receipt_cancelled', { entity: { type: 'fee_payment', id: p._id } }) // the books mirror its voucher
   return clean(p.toObject())
 }
 
@@ -377,7 +389,7 @@ export async function refundReceipt(id, { amount, mode, reference, reason }, aut
     return r
   })
   await audit({ action: 'CREATE', module: 'fees', entityType: 'fee_refund', entityId: String(refund._id), entityName: refund.refundNo, studentId: p.studentId, summary: `Refunded ${formatINR(amount)} on receipt ${p.receiptNo}: ${reason}` }, req)
-  await emit('fees.refund', { studentId: String(p.studentId), refundNo: refund.refundNo, amount })
+  await emit('fees.refund', { studentId: String(p.studentId), entity: { type: 'fee_refund', id: refund._id }, refundNo: refund.refundNo, amount })
   return clean(refund.toObject())
 }
 

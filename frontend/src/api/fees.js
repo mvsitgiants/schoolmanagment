@@ -40,3 +40,17 @@ export const fetchDaySummary = (params) => get(`${BASE}/day-end`, params)
 export const fetchDayClosings = (params) => get(`${BASE}/day-end/closings`, params)
 export const closeFeeDay = (body) => post(`${BASE}/day-end/close`, body)
 export const approveDayVariance = (id) => post(`${BASE}/day-end/${id}/approve`)
+
+// online payment on the school's own Razorpay account (/api/v1/fees/online)
+const ONLINE = '/v1/fees/online'
+const put = async (url, body) => (await api.put(url, body)).data.data
+export const fetchOnlineStatus = () => get(`${ONLINE}/status`)
+export const fetchOnlineConfig = () => get(`${ONLINE}/config`)
+export const saveOnlineConfig = (body) => put(`${ONLINE}/config`, body)
+export const testOnlineConfig = () => post(`${ONLINE}/config/test`)
+export const fetchOnlineOrders = (params) => list(`${ONLINE}/orders`, params)
+export const syncOnlineOrder = (id) => post(`${ONLINE}/orders/${id}/sync`)
+export const cancelOnlineOrder = (id) => post(`${ONLINE}/orders/${id}/cancel`)
+export const refundOnlineOrder = (id, body) => post(`${ONLINE}/orders/${id}/refund`, body)
+export const fetchStudentOnline = (studentId) => get(`${ONLINE}/students/${studentId}`)
+export const createPaymentLink = (studentId, body) => post(`${ONLINE}/students/${studentId}/link`, body)

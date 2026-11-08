@@ -220,7 +220,8 @@
         "invoices": "Fee invoices & receipts",
         "dues": "Dues & reminders",
         "refunds": "Refunds",
-        "day-end": "Day-end closing"
+        "day-end": "Day-end closing",
+        "online": "Online payments"
       },
       "finance": {
         "accounts": "Chart of accounts",
@@ -239,6 +240,8 @@
       },
       "payroll": {
         "structures": "Salary structures",
+        "statutory": "Statutory rules",
+        "loans": "Loans & advances",
         "runs": "Payroll runs",
         "payslips": "Payslips",
         "exports": "Bank & statutory exports"

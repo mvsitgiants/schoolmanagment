@@ -154,7 +154,13 @@
       "noInvoices": "No fees billed yet",
       "receipts": "Receipts",
       "noReceipts": "No payments yet",
-      "refunded": "{{amount}} refunded"
+      "refunded": "{{amount}} refunded",
+      "payNow": "Pay {{amount}} now",
+      "payHint": "UPI, cards or net banking, through the school’s Razorpay. Any late fee due today is added.",
+      "checkoutFailed": "The payment window couldn’t open. Check your internet and try again.",
+      "paid": "Paid — thank you. Receipt {{receipt}} is below.",
+      "paidReview": "We received your payment; the school will confirm it shortly.",
+      "payFailed": "The payment didn’t go through. No money was taken, or it will be returned."
     },
     "results": {
       "title": "Results",

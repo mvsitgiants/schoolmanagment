@@ -97,6 +97,54 @@
           "body": "Dear {{guardian.name}},\n\n{{chat.teacher}} has replied to your message about {{student.name}}.\nRead it in the app: {{chat.link}}\n\n{{institution.name}}"
         }
       },
+      "admissions_enquiry": {
+        "SMS": {
+          "body": "Thank you for your enquiry about {{applicant.class}} admission for {{applicant.name}}. We will call you soon. - {{institution.name}}"
+        },
+        "WHATSAPP": {
+          "body": "Dear {{guardian.name}},\nThank you for your interest in {{institution.name}}. We have your enquiry for {{applicant.name}} ({{applicant.class}}) and will call you soon.\n\nFor questions: {{institution.phone}}"
+        },
+        "EMAIL": {
+          "subject": "Your admission enquiry — {{institution.name}}",
+          "body": "Dear {{guardian.name}},\n\nThank you for your enquiry about {{applicant.class}} admission for {{applicant.name}}. We will contact you soon.\n\n{{institution.name}}"
+        }
+      },
+      "admissions_application": {
+        "SMS": {
+          "body": "Application {{application.no}} for {{applicant.name}} ({{applicant.class}}) received. Track it: {{application.link}} - {{institution.name}}"
+        },
+        "WHATSAPP": {
+          "body": "Dear {{guardian.name}},\nWe have received the application for {{applicant.name}} ({{applicant.class}}).\n\nApplication no.: {{application.no}}\nTrack it here: {{application.link}}\n\n{{institution.name}}"
+        },
+        "EMAIL": {
+          "subject": "Application {{application.no}} received — {{institution.name}}",
+          "body": "Dear {{guardian.name}},\n\nWe have received the application for {{applicant.name}} ({{applicant.class}}).\nApplication number: {{application.no}}\nYou can check it here: {{application.link}}\n\n{{institution.name}}"
+        }
+      },
+      "admissions_test": {
+        "SMS": {
+          "body": "{{test.name}} for {{applicant.name}} ({{application.no}}): {{test.when}} at {{test.venue}}. - {{institution.name}}"
+        },
+        "WHATSAPP": {
+          "body": "Dear {{guardian.name}},\n{{applicant.name}} is invited for the {{test.name}}.\n\nWhen: {{test.when}}\nWhere: {{test.venue}}\nApplication no.: {{application.no}}\n\n{{institution.name}}"
+        },
+        "EMAIL": {
+          "subject": "{{test.name}} — {{applicant.name}}",
+          "body": "Dear {{guardian.name}},\n\n{{applicant.name}} is invited for the {{test.name}} on {{test.when}} at {{test.venue}}.\nApplication number: {{application.no}}\n\n{{institution.name}}"
+        }
+      },
+      "admissions_offer": {
+        "SMS": {
+          "body": "Congratulations! {{applicant.name}} is offered a seat in {{applicant.class}}. Please confirm by {{offer.until}}: {{application.link}} - {{institution.name}}"
+        },
+        "WHATSAPP": {
+          "body": "Dear {{guardian.name}},\nCongratulations! {{applicant.name}} is offered a seat in {{applicant.class}} at {{institution.name}}.\n\nPlease confirm by {{offer.until}}: {{application.link}}\nApplication no.: {{application.no}}"
+        },
+        "EMAIL": {
+          "subject": "Seat offered — {{applicant.name}}, {{applicant.class}}",
+          "body": "Dear {{guardian.name}},\n\nCongratulations! {{applicant.name}} is offered a seat in {{applicant.class}}.\nPlease confirm by {{offer.until}}: {{application.link}}\nApplication number: {{application.no}}\n\n{{institution.name}}"
+        }
+      },
       "communication_notice": {
         "SMS": {
           "body": "New notice from {{institution.name}}: {{notice.title}}. Read: {{notice.link}}"

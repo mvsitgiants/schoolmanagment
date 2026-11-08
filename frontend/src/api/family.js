@@ -57,3 +57,7 @@ export const familyChatTeachers = (slug, id) => fget(slug, `${st(id)}/chat/teach
 export const familyChats = (slug, id) => fget(slug, `${st(id)}/chat`)
 export const familyChatThread = (slug, id, conversationId) => fget(slug, `${st(id)}/chat/${conversationId}`)
 export const familyChatSend = (slug, id, body) => fpost(slug, `${st(id)}/chat`, body)
+
+// pay fees online (the school's own Razorpay account)
+export const familyPayStart = (slug, id) => fpost(slug, `${st(id)}/pay`)
+export const familyPayVerify = (slug, id, body) => fpost(slug, `${st(id)}/pay/verify`, body)
