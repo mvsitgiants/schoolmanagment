@@ -1,8 +1,8 @@
-import { MARK_BY, attendancePct, countMarks, daysBetween, monthRange, sectionLabel, weekdayCode } from '@schoolgiant/shared'
+import { MARK_BY, attendancePct, countMarks, dayFromPeriods, daysBetween, monthRange, sectionLabel, takesDaily, takesPeriods, weekdayCode } from '@schoolgiant/shared'
 import { AttendanceSheet, StudentLeave } from '../models/attendance.js'
 import { AcademicYear, ClassLevel, Section, Subject } from '../models/academics.js'
 import { Student, studentName } from '../models/students.js'
-import { can } from '../platform/access.js'
+import { can, scopeOf } from '../platform/access.js'
 import { audit } from '../platform/audit.js'
 import { clean, isOid } from '../platform/db.js'
 import { badRequest, conflict, forbidden, notFound } from '../platform/errors.js'
@@ -11,6 +11,7 @@ import { getSettings } from '../platform/settings.js'
 import { institutionNow } from '../platform/time.js'
 import { currentYear, mySectionIds, sectionsInScope } from './academics.js'
 import { humanDate } from './notify.js'
+import { periodPlan, periodsOf, teacherPeriods } from './attendancePeriods.js'
 
 // Student attendance (module `attendance`). A teacher marks a section for a day (or a period);
 // absences can tell the family at once (Notification rules › Absence alert). Who may mark which
@@ -22,7 +23,21 @@ const idStr = (v) => (v ? String(v) : null)
 
 async function settings() {
   const [att, core] = await Promise.all([getSettings('attendance'), getSettings('core')])
-  return { ...att, workingDays: core.workingDays ?? [] }
+  return { mode: 'DAILY', dayFrom: 'FIRST', dayMinPct: 50, periodMarkers: 'TIMETABLE', ...att, workingDays: core.workingDays ?? [] }
+}
+
+/**
+ * May the caller mark this period? With "its teacher in the timetable" (the default): the period's teacher or substitute,
+ * the class teacher, or staff whose attendance scope is the whole campus / institution. Returns null when allowed, else the reason.
+ */
+function periodBlock(cfg, auth, slot, section) {
+  // staff who see the whole campus or institution (principal, coordinator, office) may mark any period; teachers on
+  // "my classes" only their own (every teacher can edit attendance, so that permission alone says nothing here)
+  if (cfg.periodMarkers === 'ANYONE' || ['ALL', 'BRANCH'].includes(scopeOf(auth, 'attendance'))) return null
+  if (String(section.classTeacherId ?? '') === String(auth.userId)) return null
+  if (slot?.teacherId && String(slot.teacherId) === String(auth.userId)) return null
+  if (!slot?.teacherId) return null // no teacher in the timetable for that period: whoever may mark the class
+  return 'NOT_YOUR_PERIOD'
 }
 
 /** The section with its class and year, checked against the caller's scope. */
@@ -69,8 +84,16 @@ export async function todayBoard(auth, { date } = {}) {
   const strength = new Map(counts.map((c) => [String(c._id), c.n]))
   const mine = new Set(auth.userId ? await mySectionIds(auth.userId, year._id) : [])
   const cfg = await settings()
+  const periodsOn = takesPeriods(cfg.mode)
+  const plan = periodsOn ? await periodPlan(sections.map((s) => s._id), day) : new Map()
+  const taken = (sectionId, period) => sheets.some((x) => String(x.sectionId) === String(sectionId) && x.period === period)
+  // the teacher's own periods today (theirs in the timetable, and the ones they cover)
+  const myPeriods = periodsOn && auth.userId ? (await teacherPeriods(auth.userId, day))
+    .filter((p) => !allowed || allowed.includes(p.sectionId))
+    .map((p) => ({ ...p, taken: taken(p.sectionId, p.period) })) : []
   return {
-    date: day, today, mode: cfg.mode, markBefore: cfg.markBefore, workingDay: cfg.workingDays.includes(weekdayCode(day)),
+    date: day, today, mode: cfg.mode, dayFrom: cfg.dayFrom, markBefore: cfg.markBefore, workingDay: cfg.workingDays.includes(weekdayCode(day)),
+    myPeriods,
     sections: sections.map((s) => {
       const c = classes.get(String(s.classId))
       const own = sheets.filter((x) => String(x.sectionId) === String(s._id))
@@ -78,8 +101,10 @@ export async function todayBoard(auth, { date } = {}) {
       return {
         id: String(s._id), label: sectionLabel(c, s), short: sectionLabel(c, s, { short: true }), classOrder: c?.order ?? 999, sectionName: s.name,
         strength: strength.get(String(s._id)) ?? 0, mine: mine.has(String(s._id)),
+        // every period: the day counts as taken once its first period is (the day sheet is built from them)
         taken: cfg.mode === 'PERIOD' ? own.length > 0 : !!daySheet, periodsTaken: own.filter((x) => x.period > 0).map((x) => x.period),
-        counts: daySheet?.counts ?? null, takenBy: daySheet?.takenBy ?? null, takenAt: daySheet?.takenAt ?? null,
+        periods: periodsOn ? (plan.get(String(s._id)) ?? []).map((p) => ({ period: p.period, start: p.start, end: p.end, subject: p.subject, teacher: p.teacher, taken: taken(s._id, p.period) })) : undefined,
+        counts: daySheet?.counts ?? null, takenBy: daySheet?.takenBy ?? null, takenAt: daySheet?.takenAt ?? null, derived: !!daySheet?.derived,
       }
     }).sort((a, b) => Number(b.mine) - Number(a.mine) || a.classOrder - b.classOrder || a.sectionName.localeCompare(b.sectionName)),
   }
@@ -100,9 +125,13 @@ export async function getSheet({ sectionId, date, period = 0 }, auth) {
   ])
   const leave = await onLeave(students.map((s) => s._id), day)
   const saved = new Map((sheet?.entries ?? []).map((e) => [String(e.studentId), e]))
-  const rule = editRule(day, today, cfg, auth)
+  let rule = editRule(day, today, cfg, auth)
+  const slot = period > 0 ? (await periodsOf(section._id, day)).find((p) => p.period === period) ?? null : null
+  if (rule.canEdit && period > 0) { const why = periodBlock(cfg, auth, slot, section); if (why) rule = { canEdit: false, reason: why } }
+  // every period: the day's sheet is worked out from the periods and isn't marked by hand
+  if (rule.canEdit && period === 0 && !takesDaily(cfg.mode)) rule = { canEdit: false, reason: 'DERIVED' }
   return {
-    section: { id: String(section._id), label }, date: day, period, today, mode: cfg.mode,
+    section: { id: String(section._id), label }, date: day, period, today, mode: cfg.mode, slot, derived: !!sheet?.derived,
     workingDay: cfg.workingDays.includes(weekdayCode(day)), taken: !!sheet, takenBy: sheet?.takenBy ?? null, takenAt: sheet?.takenAt ?? null,
     updatedBy: sheet?.updatedBy ?? null, updatedAt: sheet?.updatedAt ?? null, subjectId: idStr(sheet?.subjectId), ...rule,
     students: students.map((s) => {
@@ -119,13 +148,19 @@ export async function getSheet({ sectionId, date, period = 0 }, auth) {
  * Save a sheet: every mark checked, counts kept, a line in the audit log. Students newly marked
  * absent on today's daily sheet raise `attendance.absent` (the family message, when switched on).
  */
-export async function saveSheet({ sectionId, date, period = 0, subjectId, entries }, auth, req) {
+export async function saveSheet({ sectionId, date, period = 0, subjectId: givenSubject, entries }, auth, req) {
+  let subjectId = givenSubject
   const { section, label, short, year } = await sectionFor(sectionId, auth)
   if (year.closed) throw conflict(`${year.name} is closed.`)
   const cfg = await settings()
   const today = (await institutionNow()).date
   if (date < year.startDate || date > year.endDate) throw badRequest(`${date} is outside ${year.name}.`)
-  if (cfg.mode !== 'PERIOD' && period !== 0) throw badRequest('This institution takes attendance once a day.')
+  if (!takesPeriods(cfg.mode) && period !== 0) throw badRequest('This institution takes attendance once a day.')
+  if (!takesDaily(cfg.mode) && period === 0) throw badRequest('The day’s attendance is worked out from the periods — mark a period instead.')
+  const slot = period > 0 ? (await periodsOf(section._id, date)).find((p) => p.period === period) ?? null : null
+  if (period > 0 && !slot) throw badRequest(`There is no period ${period} in this class’s bell schedule.`)
+  if (period > 0 && periodBlock(cfg, auth, slot, section)) throw forbidden(`Period ${period} of ${short} is ${slot.teacher ?? 'another teacher'}’s${slot.subject ? ` (${slot.subject})` : ''}.`)
+  if (period > 0 && !subjectId && slot?.subjectId) subjectId = slot.subjectId
   const existing = await AttendanceSheet.findOne({ sectionId: section._id, date, period })
   const rule = editRule(date, today, cfg, auth)
   if (!rule.canEdit) {
@@ -149,10 +184,10 @@ export async function saveSheet({ sectionId, date, period = 0, subjectId, entrie
   const by = auth.user?.name
   let sheet
   if (existing) {
-    Object.assign(existing, { entries: marks, counts, subjectId: subjectId || existing.subjectId, updatedBy: by })
+    Object.assign(existing, { entries: marks, counts, subjectId: subjectId || existing.subjectId, teacherId: existing.teacherId ?? slot?.teacherId ?? undefined, updatedBy: by, ...(period === 0 && { derived: false }) })
     sheet = await existing.save()
   } else {
-    sheet = await AttendanceSheet.create({ academicYearId: year._id, sectionId: section._id, date, period, subjectId: subjectId || undefined, entries: marks, counts, takenById: auth.userId, takenBy: by, takenAt: new Date() })
+    sheet = await AttendanceSheet.create({ academicYearId: year._id, sectionId: section._id, date, period, subjectId: subjectId || undefined, teacherId: slot?.teacherId ?? (period > 0 ? auth.userId : undefined), entries: marks, counts, takenById: auth.userId, takenBy: by, takenAt: new Date() })
   }
   const changed = existing ? marks.filter((e) => before.get(String(e.studentId)) !== e.status) : marks
   await audit({
@@ -162,6 +197,8 @@ export async function saveSheet({ sectionId, date, period = 0, subjectId, entrie
       ? `Corrected attendance of ${short} for ${date}: ${changed.length} change(s)`
       : `Marked attendance of ${short} for ${date}: ${counts.P + counts.L} present, ${counts.A} absent`,
   }, req)
+  // every period: rebuild the day's sheet from the periods (the register, reports and the family alert read it)
+  if (period > 0 && cfg.mode === 'PERIOD') await rebuildDay({ section, year, date, short, today, cfg, by })
   // the family hears once, the first time a child is marked absent today (not on corrections back to absent later in the week)
   if (cfg.absentAlert && period === 0 && date === today) {
     const nowAbsent = marks.filter((e) => e.status === 'A' && before.get(String(e.studentId)) !== 'A')
@@ -170,6 +207,68 @@ export async function saveSheet({ sectionId, date, period = 0, subjectId, entrie
     }
   }
   return getSheet({ sectionId, date, period }, auth)
+}
+
+/**
+ * The day sheet of a section worked out from its period sheets (mode "every period"), by the rule in settings: the
+ * first period marked, or the share of periods attended. A student who becomes absent for the day today raises the
+ * family alert once, like a daily sheet.
+ */
+async function rebuildDay({ section, year, date, short, today, cfg, by }) {
+  const periods = await AttendanceSheet.find({ sectionId: section._id, date, period: { $gt: 0 } }).lean()
+  const existing = await AttendanceSheet.findOne({ sectionId: section._id, date, period: 0 })
+  const before = new Map((existing?.entries ?? []).map((e) => [String(e.studentId), e.status]))
+  const entries = dayFromPeriods(periods, { rule: cfg.dayFrom, minPct: Number(cfg.dayMinPct) || 50 }).map((e) => ({ studentId: e.studentId, status: e.status }))
+  const counts = countMarks(entries)
+  if (existing) {
+    Object.assign(existing, { entries, counts, derived: true, updatedBy: by })
+    await existing.save()
+  } else if (entries.length) {
+    await AttendanceSheet.create({ academicYearId: year._id, sectionId: section._id, date, period: 0, derived: true, entries, counts, takenBy: by, takenAt: new Date() })
+  }
+  if (cfg.absentAlert && date === today) {
+    for (const e of entries.filter((x) => x.status === 'A' && before.get(String(x.studentId)) !== 'A')) {
+      await emit('attendance.absent', { studentId: String(e.studentId), data: { student: { class: short }, attendance: { date: humanDate(date) } }, entity: { type: 'attendance_sheet', id: existing?._id ?? section._id } })
+    }
+  }
+}
+
+// ───────────────────────────────────────────────────────── subject-wise (period sheets)
+
+/**
+ * Subject-wise attendance of one section between two dates, from its period sheets: for each subject the periods
+ * held, and each student's attended / marked periods and %. Students under the minimum in any subject are flagged.
+ */
+export async function subjectReport({ from, to, sectionId }, auth) {
+  if (from > to) throw badRequest('The start date is after the end date.')
+  const cfg = await settings()
+  const minimum = Number(cfg.minimumPct) || 0
+  const { section, label } = await sectionFor(sectionId, auth)
+  const [sheets, students] = await Promise.all([
+    AttendanceSheet.find({ sectionId: section._id, date: { $gte: from, $lte: to }, period: { $gt: 0 } }).select('date period subjectId teacherId entries').lean(),
+    Student.find({ sectionId: section._id, status: 'ACTIVE' }).collation({ locale: 'en', numericOrdering: true }).sort({ rollNo: 1, firstName: 1 }).select('firstName middleName lastName admissionNo rollNo').lean(),
+  ])
+  const subjectIds = [...new Set(sheets.map((s) => idStr(s.subjectId) ?? 'NONE'))]
+  const names = new Map((await Subject.find({ _id: { $in: subjectIds.filter(isOid) } }).select('name code').lean()).map((x) => [String(x._id), x]))
+  const subjects = subjectIds.map((id) => {
+    const own = sheets.filter((s) => (idStr(s.subjectId) ?? 'NONE') === id)
+    const all = countMarks(own.flatMap((s) => s.entries))
+    return { id, name: id === 'NONE' ? null : names.get(id)?.name ?? '?', code: names.get(id)?.code ?? null, periods: own.length, pct: attendancePct(all) }
+  }).sort((a, b) => (a.name ?? '~').localeCompare(b.name ?? '~'))
+  const rows = students.map((st) => {
+    const by = {}
+    let below = 0
+    for (const sub of subjects) {
+      const marks = sheets.filter((s) => (idStr(s.subjectId) ?? 'NONE') === sub.id).map((s) => s.entries.find((e) => String(e.studentId) === String(st._id))).filter(Boolean)
+      const c = countMarks(marks)
+      const pct = attendancePct(c)
+      if (pct != null && pct < minimum) below++
+      by[sub.id] = { counts: c, pct }
+    }
+    const overall = attendancePct(countMarks(sheets.map((s) => s.entries.find((e) => String(e.studentId) === String(st._id))).filter(Boolean)))
+    return { id: String(st._id), name: studentName(st), admissionNo: st.admissionNo, rollNo: st.rollNo ?? null, bySubject: by, pct: overall, belowSubjects: below }
+  })
+  return { from, to, minimumPct: minimum, mode: cfg.mode, section: { id: String(section._id), label }, periodsTaken: sheets.length, subjects, students: rows }
 }
 
 // ───────────────────────────────────────────────────────── register (a month)
@@ -216,7 +315,7 @@ export async function attendanceReport({ from, to, sectionId }, auth) {
       const pct = attendancePct(c)
       return { id: String(s._id), name: studentName(s), admissionNo: s.admissionNo, rollNo: s.rollNo ?? null, counts: c, pct, below: pct != null && pct < minimum }
     })
-    return { from, to, minimumPct: minimum, section: { id: String(section._id), label }, daysTaken: sheets.length, students: rows }
+    return { from, to, minimumPct: minimum, mode: cfg.mode, section: { id: String(section._id), label }, daysTaken: sheets.length, students: rows }
   }
   const year = await currentYear()
   const allowed = await sectionsInScope(auth, 'attendance')
@@ -233,7 +332,7 @@ export async function attendanceReport({ from, to, sectionId }, auth) {
     const c = classes.get(String(s.classId))
     return { id: String(s._id), label: sectionLabel(c, s), short: sectionLabel(c, s, { short: true }), classOrder: c?.order ?? 999, sectionName: s.name, daysTaken: own.length, counts: total, pct: attendancePct(total), below }
   }).sort((a, b) => a.classOrder - b.classOrder || a.sectionName.localeCompare(b.sectionName))
-  return { from, to, minimumPct: minimum, sections: rows }
+  return { from, to, minimumPct: minimum, mode: cfg.mode, sections: rows }
 }
 
 // ───────────────────────────────────────────────────────── student leave

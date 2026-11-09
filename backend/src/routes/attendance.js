@@ -3,7 +3,7 @@ import { MARK_VALUES } from '@schoolgiant/shared'
 import { authenticate, requireModule, requirePermission, subscriptionGate, tenantOnly } from '../platform/middleware.js'
 import { objectId, optionalText, z } from '../platform/validate.js'
 import {
-  applyLeave, attendanceReport, cancelLeave, decideLeave, getSheet, listLeave, monthRegister, saveSheet, todayBoard,
+  applyLeave, attendanceReport, cancelLeave, decideLeave, getSheet, listLeave, monthRegister, saveSheet, subjectReport, todayBoard,
 } from '../services/attendance.js'
 
 // Student attendance: /api/v1/attendance/*
@@ -40,6 +40,10 @@ router.get('/register', requirePermission('attendance.register.view'), async (re
 router.get('/reports', requirePermission('attendance.reports.view'), async (req, res) => {
   const q = z.object({ from: ymd, to: ymd, sectionId: objectId.optional() }).parse(req.query)
   res.json({ data: await attendanceReport(q, req.auth) })
+})
+router.get('/subject-report', requirePermission('attendance.reports.view'), async (req, res) => {
+  const q = z.object({ from: ymd, to: ymd, sectionId: objectId }).parse(req.query)
+  res.json({ data: await subjectReport(q, req.auth) })
 })
 
 // ───────────────────────────────────────────────────────── student leave

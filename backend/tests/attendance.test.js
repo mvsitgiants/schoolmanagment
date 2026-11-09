@@ -104,3 +104,59 @@ describe('student leave', () => {
     expect(s.students.find((x) => x.id === diya.id).status).toBe('LV')
   })
 })
+
+describe('period-wise attendance', () => {
+  // a section of its own, so the daily sheets above are left alone
+  let psec
+  let kids
+  const periodSheet = async (period) => (await admin.get(`${api}/sheet?sectionId=${psec.id}&date=${today}&period=${period}`)).body.data
+  const mark = (period, statuses) => admin.put(`${api}/sheet`).send({ sectionId: psec.id, date: today, period, entries: kids.map((k, i) => ({ studentId: k.id, status: statuses[i] })) })
+  beforeAll(async () => {
+    const c12 = (await admin.get('/api/v1/academics/classes')).body.data.classes.find((c) => c.code === '12')
+    psec = c12.sections[0]
+    for (const [i, name] of ['Ira', 'Om'].entries()) {
+      await admin.post('/api/v1/students').send({ firstName: name, rollNo: String(i + 1), sectionId: psec.id, guardians: [{ name: `Parent ${name}`, mobile: `98451000${i}1` }] }).expect(201)
+    }
+    kids = (await periodSheet(1)).students
+  })
+  afterAll(async () => { await admin.patch('/api/v1/core/settings/modules/attendance').send({ mode: 'DAILY', dayFrom: 'FIRST' }) })
+
+  it('once a day refuses period sheets', async () => {
+    expect((await mark(1, ['P', 'P'])).status).toBe(400)
+  })
+
+  it('every period: the day is worked out from the first period marked, and can’t be marked by hand', async () => {
+    await admin.patch('/api/v1/core/settings/modules/attendance').send({ mode: 'PERIOD', dayFrom: 'FIRST' }).expect(200)
+    expect((await mark(2, ['A', 'P'])).status).toBe(200)
+    expect((await mark(3, ['P', 'A'])).status).toBe(200)
+    const day = (await admin.get(`${api}/sheet?sectionId=${psec.id}&date=${today}`)).body.data
+    expect(day).toMatchObject({ derived: true, taken: true, canEdit: false, reason: 'DERIVED' })
+    expect(day.students.map((s) => s.status)).toEqual(['A', 'P']) // period 2 was the first marked
+    expect((await admin.put(`${api}/sheet`).send({ sectionId: psec.id, date: today, entries: kids.map((k) => ({ studentId: k.id, status: 'P' })) })).status).toBe(400)
+    expect((await mark(99, ['P', 'P'])).status).toBe(400) // no such period in the bell schedule
+  })
+
+  it('every period, by share: present once enough periods are attended', async () => {
+    await admin.patch('/api/v1/core/settings/modules/attendance').send({ dayFrom: 'SHARE', dayMinPct: 60 }).expect(200)
+    await mark(4, ['P', 'A']).expect(200) // Ira 2 of 3 (67%), Om 1 of 3 (33%)
+    const day = (await admin.get(`${api}/sheet?sectionId=${psec.id}&date=${today}`)).body.data
+    expect(day.students.map((s) => s.status)).toEqual(['P', 'A'])
+  })
+
+  it('the subject-wise report counts each student’s periods', async () => {
+    const rep = (await admin.get(`${api}/subject-report?sectionId=${psec.id}&from=${today}&to=${today}`)).body.data
+    expect(rep.periodsTaken).toBe(3)
+    const ira = rep.students.find((s) => s.name === 'Ira')
+    expect(ira.pct).toBeCloseTo(66.7, 0)
+  })
+
+  it('both: the class teacher’s day sheet stays the day, and periods are marked as well', async () => {
+    await admin.patch('/api/v1/core/settings/modules/attendance').send({ mode: 'BOTH' }).expect(200)
+    const tomorrowless = (await admin.put(`${api}/sheet`).send({ sectionId: psec.id, date: today, entries: kids.map((k) => ({ studentId: k.id, status: 'P' })) }))
+    expect(tomorrowless.status).toBe(200)
+    expect(tomorrowless.body.data.students.map((s) => s.status)).toEqual(['P', 'P'])
+    expect((await mark(5, ['A', 'P'])).status).toBe(200)
+    const day = (await admin.get(`${api}/sheet?sectionId=${psec.id}&date=${today}`)).body.data
+    expect(day.students.map((s) => s.status)).toEqual(['P', 'P']) // not rebuilt from the periods
+  })
+})

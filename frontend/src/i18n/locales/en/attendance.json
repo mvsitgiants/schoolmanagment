@@ -35,7 +35,9 @@
         "present": "Present",
         "ofMarked": "of {{count}} marked",
         "absent": "Absent"
-      }
+      },
+      "myPeriods": "My periods today",
+      "periodsTaken": "{{done}} of {{total}} periods marked"
     },
     "mark": {
       "title": "Mark attendance",
@@ -50,7 +52,9 @@
       "readOnly": {
         "FUTURE": "Attendance can’t be marked for a future date.",
         "TOO_OLD": "This day is too far back to correct with your role. Ask someone allowed to edit attendance.",
-        "NO_PERMISSION": "Your role can see this attendance but not change it."
+        "NO_PERMISSION": "Your role can see this attendance but not change it.",
+        "NOT_YOUR_PERIOD": "This period is another teacher’s in the timetable. Its teacher, the substitute, the class teacher or the office can mark it.",
+        "DERIVED": "The day’s attendance is worked out from the periods. Mark a period and the day updates by itself."
       },
       "noStudents": "No students in this section.",
       "allPresent": "Mark everyone present",
@@ -59,7 +63,21 @@
       "unsaved": "Not saved yet",
       "save": "Save attendance",
       "saveChanges": "Save changes",
-      "saved": "Saved — {{present}} present, {{absent}} absent."
+      "saved": "Saved — {{present}} present, {{absent}} absent.",
+      "substitute": "substitute",
+      "covering": "You are covering this period",
+      "derivedNote": "Worked out from the periods marked today.",
+      "dayTab": "Day (class teacher)",
+      "dayTabWorked": "Day (from the periods)",
+      "modeNote": {
+        "PERIOD": "Attendance is taken every period; the day’s attendance comes from {{rule}}.",
+        "BOTH": "The class teacher marks the day; subject teachers mark their periods for subject-wise attendance.",
+        "DAILY": ""
+      },
+      "dayFrom": {
+        "FIRST": "the first period marked",
+        "SHARE": "the share of periods attended"
+      }
     },
     "register": {
       "title": "Attendance register",
@@ -134,7 +152,20 @@
       "leave": "On leave",
       "empty": "No sections.",
       "noStudents": "No students.",
-      "overall": "Overall attendance"
+      "overall": "Overall attendance",
+      "viewOverall": "Overall",
+      "viewSubject": "By subject",
+      "periodsTaken": "Periods marked",
+      "subjectsN_one": "{{count}} subject",
+      "subjectsN_other": "{{count}} subjects",
+      "periodsN_one": "{{count}} period",
+      "periodsN_other": "{{count}} periods",
+      "subjectTitle": "{{section}} · {{periods}} periods marked",
+      "belowIn_one": "Under the minimum in {{count}} subject",
+      "belowIn_other": "Under the minimum in {{count}} subjects",
+      "noSubject": "No subject",
+      "allPeriods": "All periods",
+      "noPeriods": "No periods marked in these dates."
     }
   }
 }

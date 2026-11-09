@@ -338,9 +338,30 @@
       "attendance": {
         "mode": {
           "label": "Attendance is taken",
+          "help": "Every period: the day’s attendance is worked out from the periods (see below). Both: the class teacher’s daily register stays the day’s attendance; the periods give subject-wise attendance.",
           "options": {
             "DAILY": "Once a day, by the class teacher",
-            "PERIOD": "Every period, by the subject teacher"
+            "PERIOD": "Every period, by the subject teacher",
+            "BOTH": "Both — once a day by the class teacher, and every period by the subject teacher"
+          }
+        },
+        "dayFrom": {
+          "label": "With every period: the day’s attendance comes from",
+          "options": {
+            "FIRST": "The first period marked that day",
+            "SHARE": "The share of periods attended"
+          }
+        },
+        "dayMinPct": {
+          "label": "Present for the day when at least this % of periods are attended",
+          "help": "Used when the day comes from the share of periods."
+        },
+        "periodMarkers": {
+          "label": "Who marks a period",
+          "help": "Staff who see attendance for the whole campus or institution (principal, coordinator, office) can always mark any period.",
+          "options": {
+            "TIMETABLE": "Its teacher in the published timetable (or the substitute), and the class teacher",
+            "ANYONE": "Anyone who may mark attendance for the class"
           }
         },
         "absentAlert": {

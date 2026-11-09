@@ -23,6 +23,9 @@ const sheetSchema = new Schema({
   /** 0 = the day's attendance; 1, 2, … = that period (period-wise mode). */
   period: { type: Number, default: 0 },
   subjectId: { type: ObjectId, ref: 'Subject' },
+  teacherId: { type: ObjectId, ref: 'User' }, // a period's teacher (from the timetable, or the substitute)
+  /** A day sheet worked out from the day's periods (mode "every period") — rebuilt each time a period is saved. */
+  derived: { type: Boolean, default: false },
   entries: { type: [entrySchema], default: [] },
   counts: { P: Number, A: Number, L: Number, HD: Number, LV: Number, total: Number },
   takenById: ObjectId,

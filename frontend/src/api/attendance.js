@@ -12,6 +12,7 @@ export const fetchSheet = ({ sectionId, date, period = 0 }) => get(`${BASE}/shee
 export const saveSheet = (body) => put(`${BASE}/sheet`, body)
 export const fetchRegister = (sectionId, month) => get(`${BASE}/register`, { sectionId, month })
 export const fetchAttendanceReport = ({ from, to, sectionId }) => get(`${BASE}/reports`, { from, to, sectionId: sectionId || undefined })
+export const fetchSubjectReport = ({ from, to, sectionId }) => get(`${BASE}/subject-report`, { from, to, sectionId })
 
 export const fetchStudentLeave = (params) => get(`${BASE}/leave`, params)
 export const applyStudentLeave = (body) => post(`${BASE}/leave`, body)

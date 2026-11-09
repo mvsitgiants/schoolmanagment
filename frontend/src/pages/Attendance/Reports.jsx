@@ -3,10 +3,10 @@ import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import clsx from 'clsx'
 import { BarChart3, CalendarCheck, ChevronLeft, LayoutGrid, Percent, TriangleAlert } from 'lucide-react'
-import { CodeBadge, ColorChip, DataTable, FormField, Input, LevelBar, Note, PageContainer, PageHeader, PersonCell, StatCardRow, TONE } from '../../components/system'
-import { attendancePct } from '@schoolgiant/shared'
+import { CodeBadge, ColorChip, DataTable, FormField, Input, LevelBar, Note, PageContainer, PageHeader, PersonCell, SegmentedControl, StatCardRow, TONE } from '../../components/system'
+import { attendancePct, takesPeriods } from '@schoolgiant/shared'
 import Button from '../../components/ui/Button'
-import { fetchAttendanceReport } from '../../api/attendance'
+import { fetchAttendanceReport, fetchSubjectReport } from '../../api/attendance'
 
 /** Attendance % as a coloured figure over a thin bar: red under the minimum (75% when none is set), amber under 90%, else green. */
 export function PctCell({ value, min }) {
@@ -29,6 +29,7 @@ export default function Reports() {
   const [from, setFrom] = useState('')
   const [to, setTo] = useState('')
   const [sectionId, setSectionId] = useState('')
+  const [view, setView] = useState('overall') // one section: overall, or by subject (period-wise attendance)
   useEffect(() => {
     const d = new Date()
     setTo(d.toISOString().slice(0, 10))
@@ -36,6 +37,8 @@ export default function Reports() {
   }, [])
   const ready = !!from && !!to
   const { data, isLoading, error } = useQuery({ queryKey: ['attendance-report', from, to, sectionId], queryFn: () => fetchAttendanceReport({ from, to, sectionId }), enabled: ready })
+  const bySubject = view === 'subject' && !!sectionId && takesPeriods(data?.mode)
+  const { data: subj, isLoading: subjLoading } = useQuery({ queryKey: ['attendance-subject-report', from, to, sectionId], queryFn: () => fetchSubjectReport({ from, to, sectionId }), enabled: ready && bySubject })
   const min = data?.minimumPct ?? 0
   // every section's marks added up, for the overall figure on the tiles
   const overall = data?.sections ? attendancePct(data.sections.reduce((m, s) => { for (const k of ['P', 'A', 'L', 'HD', 'LV', 'total']) m[k] += s.counts?.[k] ?? 0; return m }, { P: 0, A: 0, L: 0, HD: 0, LV: 0, total: 0 })) : null
@@ -47,7 +50,10 @@ export default function Reports() {
       <div className="flex flex-wrap items-end gap-3 mb-4">
         <FormField label={t('attendance.reports.from')}><Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} /></FormField>
         <FormField label={t('attendance.reports.to')}><Input type="date" value={to} min={from} onChange={(e) => setTo(e.target.value)} /></FormField>
-        {sectionId && <Button variant="ghost" icon={ChevronLeft} onClick={() => setSectionId('')}>{t('attendance.reports.allSections')}</Button>}
+        {sectionId && <Button variant="ghost" icon={ChevronLeft} onClick={() => { setSectionId(''); setView('overall') }}>{t('attendance.reports.allSections')}</Button>}
+        {sectionId && takesPeriods(data?.mode) && (
+          <SegmentedControl className="ms-auto" value={view} onChange={setView} options={[{ value: 'overall', label: t('attendance.reports.viewOverall') }, { value: 'subject', label: t('attendance.reports.viewSubject') }]} />
+        )}
       </div>
       {error && <Note tone="warning">{error.message}</Note>}
 
@@ -72,7 +78,30 @@ export default function Reports() {
         </>
       )}
 
-      {data && sectionId && (
+      {bySubject && subj && (
+        <>
+          <StatCardRow items={[
+            { icon: CalendarCheck, tone: 'brand', label: t('attendance.reports.periodsTaken'), value: subj.periodsTaken, sub: t('attendance.reports.subjectsN', { count: subj.subjects.length }) },
+            ...subj.subjects.filter((x) => x.name).slice(0, 3).map((x) => ({ icon: Percent, tone: x.pct == null ? 'neutral' : x.pct < (min || 75) ? 'danger' : x.pct < 90 ? 'warning' : 'success', label: x.name, value: x.pct == null ? '—' : `${x.pct}%`, sub: t('attendance.reports.periodsN', { count: x.periods }), progress: x.pct ?? undefined })),
+          ]} />
+          <DataTable rows={subj.students} loading={subjLoading} exportable exportName={`attendance-subjects-${subj.section?.label}-${from}-${to}`}
+            title={t('attendance.reports.subjectTitle', { section: subj.section?.label, periods: subj.periodsTaken })}
+            columns={[
+              { key: 'rollNo', header: t('attendance.register.roll'), width: 60, render: (v) => <CodeBadge>{v}</CodeBadge> },
+              { key: 'name', header: t('attendance.register.student'), mobilePrimary: true, render: (v, r) => <PersonCell name={v} sub={r.belowSubjects ? t('attendance.reports.belowIn', { count: r.belowSubjects }) : r.admissionNo} /> },
+              ...subj.subjects.map((x) => ({
+                key: `s-${x.id}`, header: x.name ?? t('attendance.reports.noSubject'), align: 'right', mobileHidden: subj.subjects.length > 4,
+                sortable: true, sortAccessor: (r) => r.bySubject[x.id]?.pct ?? -1,
+                render: (_, r) => pctCell(r.bySubject[x.id]?.pct ?? null, min),
+              })),
+              { key: 'pct', header: t('attendance.reports.allPeriods'), align: 'right', sortable: true, render: (v) => pctCell(v, min) },
+            ]}
+            rowTone={(r) => (r.belowSubjects ? 'danger' : undefined)}
+            emptyIcon={BarChart3} emptyTitle={t('attendance.reports.noPeriods')} />
+        </>
+      )}
+
+      {data && sectionId && !bySubject && (
         <DataTable rows={data.students ?? []} loading={isLoading} exportable exportName={`attendance-${data.section?.label}-${from}-${to}`}
           title={t('attendance.reports.studentsTitle', { section: data.section?.label, days: data.daysTaken })}
           columns={[

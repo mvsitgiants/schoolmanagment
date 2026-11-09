@@ -60,3 +60,37 @@ export function monthRange(ym) {
   const last = new Date(Date.UTC(y, m, 0)).getUTCDate()
   return { from: `${ym}-01`, to: `${ym}-${String(last).padStart(2, '0')}` }
 }
+
+/** The ways attendance is taken (Settings › Attendance › mode). */
+export const ATTENDANCE_MODES = ['DAILY', 'PERIOD', 'BOTH']
+/** Periods are marked in these modes; the day sheet is the class teacher's in DAILY and BOTH. */
+export const takesPeriods = (mode) => mode === 'PERIOD' || mode === 'BOTH'
+export const takesDaily = (mode) => mode !== 'PERIOD'
+
+/**
+ * The day's mark of each student, worked out from the day's period sheets (mode "every period").
+ *   sheets  [{ period, entries: [{ studentId, status }] }]
+ *   rule    'FIRST' — the earliest period marked decides the day
+ *           'SHARE' — present (P) when the periods attended (late = attended, half day = ½) reach `minPct` %;
+ *                     on leave (LV) when on leave in every period; absent (A) otherwise
+ * Returns [{ studentId, status, periods }] — `periods` is how many periods the student was marked in.
+ */
+export function dayFromPeriods(sheets = [], { rule = 'FIRST', minPct = 50 } = {}) {
+  const ordered = [...sheets].filter((s) => s.period > 0).sort((a, b) => a.period - b.period)
+  const per = new Map()
+  for (const sh of ordered) {
+    for (const e of sh.entries ?? []) {
+      const k = String(e.studentId)
+      if (!per.has(k)) per.set(k, [])
+      per.get(k).push(e.status)
+    }
+  }
+  return [...per.entries()].map(([studentId, marks]) => {
+    if (rule !== 'SHARE') return { studentId, status: marks[0], periods: marks.length }
+    if (marks.every((m) => m === 'LV')) return { studentId, status: 'LV', periods: marks.length }
+    const counted = marks.filter((m) => m !== 'LV')
+    const attended = counted.reduce((n, m) => n + (MARK_BY[m]?.weight ?? 0), 0)
+    const pct = counted.length ? (attended / counted.length) * 100 : 0
+    return { studentId, status: pct >= minPct ? (marks[0] === 'L' ? 'L' : 'P') : 'A', periods: marks.length }
+  })
+}

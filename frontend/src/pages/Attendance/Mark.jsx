@@ -3,9 +3,9 @@ import { useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import clsx from 'clsx'
-import { CalendarCheck, CheckCheck, ChevronLeft, LayoutGrid, UserCheck, UserX } from 'lucide-react'
-import { ATTENDANCE_MARKS, countMarks } from '@schoolgiant/shared'
-import { ColorChip, FormField, Input, Note, PageContainer, PageHeader, PersonCell, Select, StatCardRow, StatusPill, TONE } from '../../components/system'
+import { BookOpen, CalendarCheck, CheckCheck, ChevronLeft, Clock, LayoutGrid, UserCheck, UserX } from 'lucide-react'
+import { ATTENDANCE_MARKS, countMarks, takesDaily, takesPeriods } from '@schoolgiant/shared'
+import { Avatar, ColorChip, FormField, Input, Note, PageContainer, PageHeader, PersonCell, StatCardRow, StatusPill, TONE, Tabs } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { fetchAttendanceBoard, fetchSheet, saveSheet } from '../../api/attendance'
 import { useSnackbar } from '../../context/SnackbarContext'
@@ -51,8 +51,15 @@ function SheetView({ sectionId, date, period, onBack }) {
         <div className="flex items-center gap-2 min-w-0">
           <Button size="sm" variant="ghost" icon={ChevronLeft} onClick={onBack} aria-label={t('attendance.mark.back')} />
           <div className="min-w-0">
-            <p className="font-semibold text-ink truncate">{sheet.section.label}</p>
-            <p className="text-xs text-ink-muted">{sheet.taken ? t('attendance.mark.takenBy', { name: sheet.updatedBy || sheet.takenBy, at: dateTime(sheet.updatedAt || sheet.takenAt) }) : t('attendance.mark.notTaken')}</p>
+            <p className="font-semibold text-ink truncate">{sheet.section.label}{sheet.period > 0 && <span className="text-ink-muted font-normal"> · {t('attendance.mark.periodN', { n: sheet.period })}</span>}</p>
+            {sheet.slot && (
+              <p className="flex flex-wrap items-center gap-1.5 text-xs text-ink-muted">
+                {sheet.slot.start && <span className="tabular-nums">{sheet.slot.start}–{sheet.slot.end}</span>}
+                {sheet.slot.subject && <ColorChip label={sheet.slot.subject} seed={sheet.slot.subjectId} dot />}
+                {sheet.slot.teacher && <span className="inline-flex items-center gap-1"><Avatar name={sheet.slot.teacher} size={16} soft />{sheet.slot.teacher}{sheet.slot.substitute && ` · ${t('attendance.mark.substitute')}`}</span>}
+              </p>
+            )}
+            <p className="text-xs text-ink-muted">{sheet.derived ? t('attendance.mark.derivedNote') : sheet.taken ? t('attendance.mark.takenBy', { name: sheet.updatedBy || sheet.takenBy, at: dateTime(sheet.updatedAt || sheet.takenAt) }) : t('attendance.mark.notTaken')}</p>
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2 text-sm">
@@ -101,13 +108,19 @@ export default function Mark() {
   const { t } = useTranslation('attendance')
   const { date: fmt } = useFormat()
   const [date, setDate] = useState('')
-  const [period, setPeriod] = useState(0)
+  const [period, setPeriod] = useState(null) // null = the first period still to mark (period modes) or the day
   const [params] = useSearchParams()
   const [open, setOpen] = useState(() => params.get('sectionId')) // a link from the class board opens that section's sheet
   const { data: board, isLoading } = useQuery({ queryKey: ['attendance-board', date], queryFn: () => fetchAttendanceBoard(date) })
   const day = date || board?.today
-  useEffect(() => { if (board?.mode === 'PERIOD' && period === 0) setPeriod(1) }, [board, period])
+  const periodsOn = takesPeriods(board?.mode)
+  const dailyOn = takesDaily(board?.mode)
   const sections = board?.sections ?? []
+  const openSection = sections.find((s) => s.id === open)
+  const openPeriods = openSection?.periods ?? []
+  // which sheet to show for the open section: what was picked, else the first period not marked yet (or the day)
+  const shownPeriod = period ?? (periodsOn && !dailyOn ? (openPeriods.find((p) => !p.taken)?.period ?? openPeriods[0]?.period ?? 1) : 0)
+  const openAt = (sectionId, p = null) => { setOpen(sectionId); setPeriod(p) }
   const mine = sections.filter((s) => s.mine)
   const others = sections.filter((s) => !s.mine)
   const pending = sections.filter((s) => !s.taken).length
@@ -117,7 +130,7 @@ export default function Mark() {
   const marked = took.reduce((n, s) => n + (s.counts.total ?? 0), 0)
 
   const tile = (s) => (
-    <button key={s.id} type="button" onClick={() => setOpen(s.id)}
+    <button key={s.id} type="button" onClick={() => openAt(s.id)}
       className="text-start rounded-xl border border-border bg-surface p-4 shadow-card hover:border-brand-300 transition-colors">
       <div className="flex items-center justify-between gap-2">
         <ColorChip label={s.short} seed={`class-${s.classOrder}`} mono />
@@ -129,6 +142,15 @@ export default function Mark() {
           {[['P', 'success'], ['L', 'warning'], ['HD', 'info'], ['LV', 'neutral'], ['A', 'danger']].map(([k, tone]) => (s.counts[k] ? <span key={k} className={clsx('h-full', TONE[tone].fill)} style={{ width: `${(s.counts[k] / s.counts.total) * 100}%` }} /> : null))}
         </span>
       )}
+      {s.periods?.length > 0 && (
+        <span className="mt-2.5 flex gap-0.5" aria-hidden>
+          {s.periods.map((p) => (
+            <span key={p.period} title={[t('attendance.mark.periodN', { n: p.period }), p.subject, p.taken ? t('attendance.board.taken') : t('attendance.board.pending')].filter(Boolean).join(' · ')}
+              className={clsx('h-2 flex-1 rounded-sm', p.taken ? 'bg-success-500' : 'bg-black/[0.08]')} />
+          ))}
+        </span>
+      )}
+      {s.periods?.length > 0 && <span className="mt-1 block text-[10.5px] text-ink-faint">{t('attendance.board.periodsTaken', { done: s.periods.filter((p) => p.taken).length, total: s.periods.length })}</span>}
     </button>
   )
 
@@ -137,14 +159,18 @@ export default function Mark() {
       <PageHeader icon={CalendarCheck} title={t('attendance.mark.title')} subtitle={day ? t('attendance.mark.subtitle', { date: fmt(day) }) : undefined} />
       <div className="flex flex-wrap items-end gap-3 mb-5">
         <FormField label={t('attendance.mark.date')}><Input type="date" value={day ?? ''} max={board?.today} onChange={(e) => { setDate(e.target.value); setOpen(null) }} /></FormField>
-        {board?.mode === 'PERIOD' && (
-          <FormField label={t('attendance.mark.period')}>
-            <Select value={period} onChange={(e) => setPeriod(Number(e.target.value))}>{Array.from({ length: 10 }, (_, i) => i + 1).map((p) => <option key={p} value={p}>{t('attendance.mark.periodN', { n: p })}</option>)}</Select>
-          </FormField>
-        )}
+        {board && periodsOn && <Note icon={Clock} className="flex-1">{t(`attendance.mark.modeNote.${board.mode}`, { rule: t(`attendance.mark.dayFrom.${board.dayFrom ?? 'FIRST'}`) })}</Note>}
       </div>
       {open && day ? (
-        <SheetView sectionId={open} date={day} period={board?.mode === 'PERIOD' ? period : 0} onBack={() => setOpen(null)} />
+        <>
+          {periodsOn && openSection && (
+            <Tabs className="mb-4" value={String(shownPeriod)} onChange={(v) => setPeriod(Number(v))} tabs={[
+              { value: '0', label: dailyOn ? t('attendance.mark.dayTab') : t('attendance.mark.dayTabWorked') },
+              ...openPeriods.map((p) => ({ value: String(p.period), label: `${p.taken ? '✓ ' : ''}P${p.period}${p.subject ? ` · ${p.subject}` : ''}` })),
+            ]} />
+          )}
+          <SheetView key={`${open}|${shownPeriod}`} sectionId={open} date={day} period={periodsOn ? shownPeriod : 0} onBack={() => { setOpen(null); setPeriod(null) }} />
+        </>
       ) : (
         <>
           {isLoading && <p className="text-sm text-ink-faint">{t('attendance.loading')}</p>}
@@ -158,6 +184,27 @@ export default function Mark() {
             ]} />
           )}
           {board && sections.length > 0 && <p className="text-sm text-ink-muted mb-3">{pending ? t('attendance.board.pendingCount', { count: pending }) : t('attendance.board.allTaken')}</p>}
+          {board?.myPeriods?.length > 0 && (
+            <section className="mb-6">
+              <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-faint mb-2">{t('attendance.board.myPeriods')}</h2>
+              <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-4">
+                {board.myPeriods.map((p) => (
+                  <button key={`${p.sectionId}|${p.period}`} type="button" onClick={() => openAt(p.sectionId, p.period)}
+                    className={clsx('rounded-xl border p-4 text-start shadow-card transition-colors hover:border-brand-300', p.taken ? 'border-border bg-surface' : 'border-amber-200 bg-amber-50/40')}>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-xs font-semibold tabular-nums text-ink">{t('attendance.mark.periodN', { n: p.period })}{p.start ? ` · ${p.start}–${p.end}` : ''}</span>
+                      {p.taken ? <StatusPill tone="success">{t('attendance.board.taken')}</StatusPill> : <StatusPill tone="warning">{t('attendance.board.pending')}</StatusPill>}
+                    </div>
+                    <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                      <ColorChip label={p.short} seed={p.sectionId} mono />
+                      {p.subject && <span className="inline-flex items-center gap-1 text-sm text-ink"><BookOpen className="h-3.5 w-3.5 text-ink-faint" aria-hidden />{p.subject}</span>}
+                    </div>
+                    {p.substitute && <p className="mt-1 text-[11px] text-ink-faint">{t('attendance.mark.covering')}</p>}
+                  </button>
+                ))}
+              </div>
+            </section>
+          )}
           {mine.length > 0 && (
             <section className="mb-6">
               <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-faint mb-2">{t('attendance.board.mine')}</h2>
