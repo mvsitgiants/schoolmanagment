@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { ChevronLeft, Eye, EyeOff, Lock, LockOpen, Save, Scale, ShieldCheck, X } from 'lucide-react'
+import { ChevronLeft, Eye, EyeOff, Lock, LockOpen, Printer, Save, Scale, ScanBarcode, ShieldCheck, X } from 'lucide-react'
+import { ScanDialog, scanFeedback } from '../scan/Scanner'
+import { printDocument } from '../print/printDocument'
 import { COE_MODERATION_STATUS, internalTotalOf } from '@schoolgiant/shared'
 import { CodeBadge, DataTable, FormField, Input, Modal, Note, PersonCell, Select, StatCardRow, StatusPill, Textarea, usePrompt } from '../system'
 import Button from '../ui/Button'
@@ -34,6 +36,36 @@ function ModerationModal({ sheet, onClose, onSaved }) {
       </div>
       <p className="mt-3 text-xs text-ink-faint">{t('coe.moderation.note')}</p>
     </Modal>
+  )
+}
+
+/**
+ * External sheets: scan the sticker on an answer booklet (scanner gun or camera) and the cursor jumps to that dummy
+ * number's marks box; print the stickers (SCRIPT_LABEL) for the booklets before the exam.
+ */
+function ScriptScan({ entries, sheetId }) {
+  const { t } = useTranslation('coe')
+  const { showError } = useSnackbar()
+  const [code, setCode] = useState('')
+  const [camera, setCamera] = useState(false)
+  const jump = (raw) => {
+    const want = String(raw ?? '').trim().toUpperCase()
+    if (!want) return
+    const box = entries.some((e) => e.dummyNo === want) && document.querySelector(`input[aria-label="${CSS.escape(want)}"]`)
+    if (!box) { scanFeedback(false); showError(t('coe.sheet.scanNotFound', { code: want })); return }
+    box.scrollIntoView({ block: 'center', behavior: 'smooth' })
+    setTimeout(() => { box.focus(); box.select?.() }, 150)
+  }
+  return (
+    <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border bg-surface p-3">
+      <ScanBarcode className="w-5 h-5 text-ink-faint shrink-0" aria-hidden />
+      <form className="flex flex-1 min-w-[14rem] gap-2" onSubmit={(e) => { e.preventDefault(); jump(code); setCode('') }}>
+        <Input value={code} onChange={(e) => setCode(e.target.value)} placeholder={t('coe.sheet.scanPlaceholder')} aria-label={t('coe.sheet.scanLabel')} autoComplete="off" />
+        <Button type="button" variant="secondary" icon={ScanBarcode} aria-label={t('coe.sheet.scanCamera')} title={t('coe.sheet.scanCamera')} onClick={() => setCamera(true)} />
+      </form>
+      <Button size="sm" variant="ghost" icon={Printer} onClick={() => printDocument('SCRIPT_LABEL', sheetId)}>{t('coe.sheet.printStickers')}</Button>
+      <ScanDialog open={camera} onClose={() => setCamera(false)} onCode={jump} title={t('coe.sheet.scanLabel')} />
+    </div>
   )
 }
 
@@ -110,6 +142,7 @@ export default function SheetView({ sheetId, onBack }) {
   ]
   return (
     <div className="space-y-4">
+      {!internal && <ScriptScan entries={sheet.entries} sheetId={sheetId} />}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2 min-w-0">
           <Button size="sm" variant="ghost" icon={ChevronLeft} onClick={onBack} aria-label={t('coe.sheet.back')} />

@@ -312,7 +312,12 @@
       "open": "Open",
       "publicHint": "Put this link on your website and social pages. Switch online applications and website enquiries on in Settings › Admissions.",
       "goSettings": "Open settings",
-      "flowHint": "The flow: enquiries are followed up → families apply (desk or online) → applicants sit the test → the merit list is published → seats are offered from the top → an accepted offer is admitted as a student."
+      "flowHint": "The flow: enquiries are followed up → families apply (desk or online) → applicants sit the test → the merit list is published → seats are offered from the top → an accepted offer is admitted as a student.",
+      "posterTitle": "“Scan to enquire” QR",
+      "posterHint": "Put it on banners, flyers and the gate: parents scan it and land on the enquiry form — each enquiry comes into Admissions › Enquiries.",
+      "printPoster": "Print a poster",
+      "posterHeading": "Admissions open — scan to enquire",
+      "posterText": "Point your phone camera at the code, fill in a short form, and our admissions team will call you back."
     },
     "public": {
       "title": "Admissions",

@@ -12,6 +12,10 @@ import { on } from './dashboard.js'
 import { phonePunch } from './devices.js'
 import { candidateAtDoor } from './exams.js'
 import { passResult, readPass } from './passes.js'
+import { GatePass, Visitor } from '../models/frontOffice.js'
+import { StoreAsset } from '../models/inventory.js'
+import { campusFilter } from './frontOffice.js'
+import { institutionNow } from '../platform/time.js'
 import { scopeFilter } from './students.js'
 
 // Scan: one place that knows what a scanned code is. The app's Scan button, the gate scanner, the class
@@ -92,8 +96,18 @@ async function studentResult(s, auth) {
     on(auth, 'fees', 'fees.collect.view') && { key: 'collectFee', link: `/fees/collect?student=${s._id}` },
     on(auth, 'library', 'library.circulation.view') && { key: 'library', link: `/library/circulation?card=${encodeURIComponent(s.cardCode || s.admissionNo)}` },
   ].filter(Boolean)
+  // an approved gate pass for today: the gate marks the child out from the same scan
+  let gatePass = null
+  if (on(auth, 'frontoffice', 'frontoffice.gate-pass.create')) {
+    const today = (await institutionNow()).date
+    const p = await GatePass.findOne({ studentId: s._id, date: today, status: { $in: ['APPROVED', 'LEFT'] }, ...(await campusFilter(auth)) }).sort({ createdAt: -1 }).lean()
+    if (p) {
+      gatePass = { id: String(p._id), passNo: p.passNo, status: p.status, collector: p.collector?.name ?? null, relation: p.collector?.relation ?? null, reason: p.reason ?? null, leftAt: p.leftAt ?? null }
+      if (p.status === 'APPROVED') actions.unshift({ key: 'gatePassLeft', post: `/v1/scan/gate-pass/${p._id}/left` })
+    }
+  }
   return {
-    kind: 'STUDENT', id: String(s._id), title: studentName(s), subtitle: [place, s.admissionNo, s.rollNo && `Roll ${s.rollNo}`].filter(Boolean).join(' · '),
+    kind: 'STUDENT', id: String(s._id), title: studentName(s), subtitle: [place, s.admissionNo, s.rollNo && `Roll ${s.rollNo}`].filter(Boolean).join(' · '), gatePass,
     student: { id: String(s._id), name: studentName(s), admissionNo: s.admissionNo, sectionId: s.sectionId ? String(s.sectionId) : null, class: place },
     status: s.status === 'ACTIVE' ? null : s.status, actions,
   }
@@ -155,6 +169,39 @@ async function examResult(code, auth) {
   }
 }
 
+/**
+ * A visitor's badge (front office hands out numbered badges; cards print with VB-<no> as a QR): the visitor inside now
+ * holding it — scanned at the exit to check them out.
+ */
+async function visitorByBadge(code, auth) {
+  if (!on(auth, 'frontoffice', 'frontoffice.visitors.view', 'frontoffice.visitors.checkout')) return null
+  const badge = code.replace(/^VB-?/, '')
+  if (!badge || badge.length > 12) return null
+  const v = await Visitor.findOne({ badgeNo: { $in: [badge, badge.toLowerCase(), code] }, outAt: null, ...(await campusFilter(auth)) }).sort({ inAt: -1 }).lean()
+  if (!v) return null
+  return {
+    kind: 'VISITOR', id: String(v._id), title: v.name, subtitle: [v.purposeNote || v.purpose, v.hostName, v.studentName].filter(Boolean).join(' · '),
+    inAt: v.inAt, badgeNo: v.badgeNo, people: v.people ?? 1, mobile: v.mobile ?? null,
+    actions: on(auth, 'frontoffice', 'frontoffice.visitors.checkout') ? [{ key: 'visitorOut', post: `/v1/scan/visitor/${v._id}/check-out` }] : [],
+  }
+}
+/** An asset's tag: what it is, where it should be, who has it — and "seen here" for a physical audit. */
+export async function assetByTag(code, auth) {
+  if (!on(auth, 'inventory', 'inventory.assets.view')) return null
+  const a = await StoreAsset.findOne({ assetTag: code.toUpperCase() }).lean()
+  if (!a) return null
+  return {
+    kind: 'ASSET', id: String(a._id), title: a.name, subtitle: [a.assetTag, a.roomName || a.location, a.assignedTo?.name].filter(Boolean).join(' · '),
+    status: a.status === 'IN_USE' ? null : a.status, lastVerified: a.lastVerified?.at ? a.lastVerified : null,
+    actions: [
+      on(auth, 'inventory', 'inventory.assets.edit') && a.status !== 'DISPOSED' && { key: 'verifyAsset', post: `/v1/scan/asset/${a._id}/verify` },
+      { key: 'assets', link: `/inventory/assets?search=${encodeURIComponent(a.assetTag)}` },
+    ].filter(Boolean),
+  }
+}
+
+export const visitorAfterCheckout = (v) => ({ kind: 'VISITOR', id: v.id, title: v.name, subtitle: [v.purposeNote || v.purpose, v.hostName].filter(Boolean).join(' · '), inAt: v.inAt, outAt: v.outAt, badgeNo: v.badgeNo, actions: [] })
+
 function staffResult(e, auth) {
   return {
     kind: 'STAFF', id: String(e._id), title: e.name, subtitle: [e.employeeCode, e.designation].filter(Boolean).join(' · '), status: e.status === 'ACTIVE' ? null : e.status,
@@ -185,6 +232,8 @@ export async function resolveCode(raw, auth) {
       hit = e && staffResult(e, auth)
     }
   }
+  if (!hit && kind === 'TEXT') hit = await visitorByBadge(code, auth)
+  if (!hit && kind === 'TEXT') hit = await assetByTag(code, auth)
   return hit ?? { kind: 'UNKNOWN', id: null, title: code, subtitle: '', actions: kind === 'LINK' ? [{ key: 'open', link: code }] : [] }
 }
 

@@ -1,7 +1,7 @@
 // Exam controller documents (Exam controller › Grade cards & transcripts): a student's semester grade card (`id`: the
 // semester result) and the consolidated transcript (`id`: the student's program enrolment). Data from
 // services/coeResults.js. Both print PROVISIONAL until the results are published / the program is complete.
-import { examMonthLabel } from '../services/coe.js'
+import { examMonthLabel, latestExternalSheetId, scriptLabelsData } from '../services/coe.js'
 import { gradeCardData, latestSemesterResultId, latestTranscriptId, transcriptData } from '../services/coeResults.js'
 
 const num = (v) => (v === null || v === undefined ? null : Number(v))
@@ -61,5 +61,14 @@ export const COE_DOCS = {
       'result.cgpa, result.pct, result.multiplier, result.earned, result.required, result.arrears, result.classification, result.complete',
       'scale[] {grade, min, max, points}',
     ],
+  },
+  // answer-script stickers: the dummy number as a barcode, for anonymous marking (GET /documents/SCRIPT_LABEL/<sheetId>)
+  SCRIPT_LABEL: {
+    perms: ['coe.marks.view'],
+    load: (id, auth) => scriptLabelsData(id, auth),
+    model: (d) => ({ ...d, count: d.labels.length }),
+    title: (m) => `Script labels · ${m.course.code} · ${m.session.name}`,
+    sample: () => latestExternalSheetId(),
+    variables: ['institution.name', 'session.name, session.month', 'course.code, course.title', 'labels[] {dummyNo} · count · {{barcode dummyNo 10}}'],
   },
 }

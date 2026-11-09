@@ -134,7 +134,8 @@ export default function Apply({ track = false }) {
   const { t } = useTranslation('admissions')
   const { slug } = useParams()
   const { data: info, isLoading, error } = useQuery({ queryKey: ['public-admissions', slug], queryFn: () => publicAdmissions(slug), retry: false })
-  const [tab, setTab] = useState(track ? 'TRACK' : 'APPLY')
+  // a poster's QR opens straight on the enquiry form (?tab=enquire)
+  const [tab, setTab] = useState(() => (track ? 'TRACK' : new URLSearchParams(window.location.search).get('tab') === 'enquire' ? 'ENQUIRE' : 'APPLY'))
   const s = info?.school
   useEffect(() => {
     if (!s) return undefined

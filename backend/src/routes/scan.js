@@ -6,6 +6,11 @@ import { objectId, z } from '../platform/validate.js'
 import { phoneScanners } from '../services/devices.js'
 import { gateScan, mayUseScanner, myPunchCode, resolveCode } from '../services/scan.js'
 import { usePass } from '../services/passes.js'
+import { checkOutVisitor, markLeft } from '../services/frontOffice.js'
+import { verifyAsset } from '../services/inventoryAssets.js'
+import { forbidden } from '../platform/errors.js'
+import { on } from '../services/dashboard.js'
+import { assetByTag, visitorAfterCheckout } from '../services/scan.js'
 
 // Scan: /api/v1/scan/* — what a scanned code is (every signed-in member of staff; what comes back follows their
 // own modules, permissions and data scope), the phone gate scanners, and a member of staff's rotating punch code.
@@ -38,6 +43,22 @@ router.post('/passes/:kind/:id/:what', async (req, res) => {
   const { kind, what } = z.object({ kind: z.enum(['event', 'meeting', 'pickup']), what: z.enum(['check-in', 'hand-over']) }).parse(req.params)
   if ((kind === 'pickup') !== (what === 'hand-over')) throw notFound('Pass')
   res.json({ data: await usePass(kind, objectId.parse(req.params.id), req.auth, req) })
+})
+
+/** Front office at the gate: a visitor's badge scanned on the way out; a student out on an approved gate pass. */
+router.post('/visitor/:id/check-out', async (req, res) => {
+  if (!on(req.auth, 'frontoffice', 'frontoffice.visitors.checkout')) throw forbidden('Checking visitors out needs “Visitors › Check out”.')
+  res.json({ data: visitorAfterCheckout(await checkOutVisitor(objectId.parse(req.params.id), req.auth, req)) })
+})
+router.post('/asset/:id/verify', async (req, res) => {
+  if (!on(req.auth, 'inventory', 'inventory.assets.edit')) throw forbidden('Verifying assets needs “Assets › Edit”.')
+  const a = await verifyAsset(objectId.parse(req.params.id), req.auth, req)
+  res.json({ data: await assetByTag(a.assetTag, req.auth) })
+})
+router.post('/gate-pass/:id/left', async (req, res) => {
+  if (!on(req.auth, 'frontoffice', 'frontoffice.gate-pass.create')) throw forbidden('Marking a gate pass needs “Gate pass › Create”.')
+  const p = await markLeft(objectId.parse(req.params.id), req.auth, req)
+  res.json({ data: await resolveCode(p.admissionNo ?? '', req.auth).catch(() => null) ?? { kind: 'GATE_PASS', id: p.id, title: p.studentName ?? p.staffName ?? p.passNo, subtitle: p.passNo, actions: [] } })
 })
 
 /** My workspace: the code a member of staff shows at a gate scanner (rotates; fresh for 90 seconds). */

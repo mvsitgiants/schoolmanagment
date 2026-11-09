@@ -1,0 +1,21 @@
+{{!-- Asset tag labels (A4 sheet, 3 × 10 stickers of 70 × 29.7 mm): the tag as a barcode, the asset and where it lives.
+      Stick one on each asset; an audit scans them (Scan › Verify). Set the page margins to 0 for label sheets. --}}
+<style>
+  .sheet { display: grid; grid-template-columns: repeat(3, 70mm); grid-auto-rows: 29.7mm; justify-content: center }
+  .label { box-sizing: border-box; padding: 2mm 3.5mm; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; break-inside: avoid }
+  .school { font-size: 6pt; color: #5B616E; text-transform: uppercase; letter-spacing: .04em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
+  .name { font-size: 7.5pt; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
+  .code { text-align: center }
+  .code svg { max-width: 100%; height: 9mm }
+  .no { font-family: ui-monospace, Menlo, monospace; font-size: 8.5pt; font-weight: 700; letter-spacing: .08em; text-align: center }
+</style>
+<div class="sheet">
+  {{#each labels}}
+  <div class="label">
+    <div class="school">{{../institution.name}}</div>
+    <div class="name">{{name}}{{#if place}} · {{place}}{{/if}}</div>
+    <div class="code">{{barcode tag 9}}</div>
+    <div class="no">{{tag}}</div>
+  </div>
+  {{/each}}
+</div>

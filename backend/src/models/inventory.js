@@ -200,6 +200,7 @@ const assetSchema = new Schema({
   status: { type: String, default: 'IN_USE' }, // ASSET_STATUS
   maintenance: { type: [maintenanceSchema], default: [] },
   disposal: { date: String, method: String, amount: Number, reason: String, by: String, byId: ObjectId, at: Date },
+  lastVerified: { at: Date, by: String }, // physically seen in an audit — its tag scanned (Scan › Verify)
   note: String,
   createdBy: String,
 }, { timestamps: true })

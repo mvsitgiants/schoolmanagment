@@ -3,6 +3,7 @@
 import { PO_STATUS } from '@schoolgiant/shared'
 import { latestPoId, poPrintData } from '../services/inventoryPurchase.js'
 import { latestSaleId, salePrintData } from '../services/inventorySales.js'
+import { assetLabelsData, latestAssetId } from '../services/inventoryAssets.js'
 
 const MODE_LABEL = { CASH: 'Cash', UPI: 'UPI', CARD: 'Card' }
 
@@ -35,6 +36,16 @@ export function storeSaleModel({ sale: s, branch }) {
 }
 
 export const INVENTORY_DOCS = {
+  // asset tag labels: many at once (GET /documents/ASSET_LABEL?ids=…) — scanned in a physical audit (Scan › Verify)
+  ASSET_LABEL: {
+    perms: ['inventory.assets.view'],
+    many: true,
+    load: (ids) => assetLabelsData(ids),
+    model: (d) => ({ ...d, count: d.labels.length }),
+    title: (m) => `Asset labels (${m.count})`,
+    sample: () => latestAssetId(),
+    variables: ['institution.name', 'labels[] {tag, name, category, place} · count · {{barcode tag 9}}'],
+  },
   PURCHASE_ORDER: {
     perms: ['inventory.purchase-orders.view', 'inventory.purchase-orders.print'],
     load: (id, auth) => poPrintData(id, auth),

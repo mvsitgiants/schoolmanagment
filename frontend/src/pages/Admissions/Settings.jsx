@@ -2,7 +2,9 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { Copy, DoorOpen, ExternalLink, Plus, Settings2, X } from 'lucide-react'
+import { Copy, DoorOpen, ExternalLink, Plus, Printer, Settings2, X } from 'lucide-react'
+import QrCode from '../../components/scan/QrCode'
+import { printQrPoster } from '../../components/scan/printPoster'
 import { CYCLE_STATUS, MERIT_BASES } from '@schoolgiant/shared'
 import { ColorChip, DataTable, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, Panel, Select, StatusPill, Textarea, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
@@ -99,6 +101,15 @@ export default function AdmissionSettings() {
             <a href={link} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-sm text-brand-600 hover:underline"><ExternalLink size={14} />{t('admissions.settings.open')}</a>
           </div>
           <p className="text-xs text-ink-muted mt-2">{t('admissions.settings.publicHint')} {hasPermission('core.settings.view') && <Link to="/core/settings" className="text-brand-600 hover:underline">{t('admissions.settings.goSettings')}</Link>}</p>
+          <div className="mt-4 flex flex-col sm:flex-row items-center gap-4 rounded-xl border border-border bg-bg p-4">
+            <QrCode value={`${link}?tab=enquire`} size={132} label={t('admissions.settings.posterTitle')} className="rounded-lg bg-white p-1.5 shrink-0" />
+            <div className="min-w-0 text-center sm:text-start">
+              <p className="font-semibold text-ink">{t('admissions.settings.posterTitle')}</p>
+              <p className="text-sm text-ink-muted mt-0.5">{t('admissions.settings.posterHint')}</p>
+              <Button size="sm" variant="secondary" icon={Printer} className="mt-2"
+                onClick={() => printQrPoster({ title: t('admissions.settings.posterHeading'), text: t('admissions.settings.posterText'), url: `${link}?tab=enquire` })}>{t('admissions.settings.printPoster')}</Button>
+            </div>
+          </div>
         </Panel>
       )}
       <DataTable

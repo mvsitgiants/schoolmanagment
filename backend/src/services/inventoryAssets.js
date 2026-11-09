@@ -205,3 +205,18 @@ export async function deleteAsset(id, auth, req) {
   await audit({ action: 'DELETE', module: 'inventory', entityType: 'store_asset', entityId: String(a._id), entityName: a.assetTag, summary: `Deleted asset ${a.assetTag} · ${a.name}` }, req)
   return { deleted: true }
 }
+
+/** Asset labels (ASSET_LABEL, many): the tag as a barcode with the asset's name and place. `ids`: asset ids. */
+export async function assetLabelsData(ids) {
+  const rows = await StoreAsset.find({ _id: { $in: ids } }).select('assetTag name category roomName location').sort({ assetTag: 1 }).lean()
+  return { labels: rows.map((a) => ({ tag: a.assetTag, name: a.name, category: ASSET_CATEGORY_BY[a.category]?.label ?? a.category, place: a.roomName || a.location || '' })) }
+}
+export const latestAssetId = async () => (await StoreAsset.findOne().sort({ createdAt: -1 }).select('_id').lean())?._id ?? null
+
+/** An asset's tag scanned in a physical audit: seen now, by whom. */
+export async function verifyAsset(id, auth, req) {
+  const a = await StoreAsset.findOneAndUpdate({ _id: id }, { $set: { lastVerified: { at: new Date(), by: auth.user?.name } } }, { new: true }).lean()
+  if (!a) throw notFound('Asset')
+  await audit({ action: 'UPDATE', module: 'inventory', entityType: 'asset', entityId: String(a._id), entityName: a.assetTag, summary: `Verified ${a.assetTag} (${a.name}) in a physical audit` }, req)
+  return a
+}

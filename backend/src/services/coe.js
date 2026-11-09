@@ -504,3 +504,19 @@ export async function publishSession(sessionId, auth, req) {
 }
 
 export const failReasonLabel = (r) => (r ? COE_FAIL_REASONS[r] ?? r : null)
+
+/**
+ * Answer-script stickers (SCRIPT_LABEL): one per dummy number of an EXTERNAL sheet — the barcode the evaluator scans on
+ * Exam controller › Marks to jump to that script's box. No names, no register numbers: the sticker goes on the booklet.
+ */
+export async function scriptLabelsData(id, auth) {
+  const sh = (await sheetDoc(id, auth)).toObject()
+  if (sh.part !== 'EXTERNAL') throw badRequest('Script labels are for the external (answer script) sheet.')
+  const [session, course] = await Promise.all([CoeSession.findById(sh.sessionId).lean(), ProgramCourse.findById(sh.courseId).lean()])
+  return {
+    session: { name: session?.name ?? '', month: examMonthLabel(session?.examMonth) },
+    course: { code: course?.code ?? '', title: course?.title ?? '' },
+    labels: sh.entries.map((e) => e.dummyNo).filter(Boolean).sort().map((dummyNo) => ({ dummyNo })),
+  }
+}
+export const latestExternalSheetId = async () => (await CoeMarkSheet.findOne({ part: 'EXTERNAL' }).sort({ createdAt: -1 }).select('_id').lean())?._id ?? null

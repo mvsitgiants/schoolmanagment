@@ -124,7 +124,12 @@
       "saved": "Marks saved.",
       "locked": "Marks locked.",
       "unlocked": "Marks unlocked.",
-      "empty": "Nobody on this sheet"
+      "empty": "Nobody on this sheet",
+      "scanLabel": "Scan an answer booklet",
+      "scanPlaceholder": "Scan the booklet's sticker — jumps to its marks box",
+      "scanCamera": "Scan with the camera",
+      "scanNotFound": "{{code}} isn't on this sheet.",
+      "printStickers": "Print booklet stickers"
     },
     "moderation": {
       "open": "Moderation",

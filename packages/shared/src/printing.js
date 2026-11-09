@@ -28,6 +28,8 @@ export const PRINT_DOCS = [
   { value: 'ANSWER_KEY', label: 'Answer key and marking scheme', module: 'exams', paper: 'A4', ready: true, server: true },
   { value: 'GRADE_CARD', label: 'Grade card (semester)', module: 'coe', paper: 'A4', ready: true, server: true },
   { value: 'TRANSCRIPT', label: 'Consolidated transcript', module: 'coe', paper: 'A4', ready: true, server: true },
+  { value: 'ASSET_LABEL', label: 'Asset tag labels', module: 'inventory', paper: 'A4', ready: true, server: true, many: true },
+  { value: 'SCRIPT_LABEL', label: 'Answer-script stickers (dummy numbers)', module: 'coe', paper: 'A4', ready: true, server: true },
   { value: 'ATTAINMENT_REPORT', label: 'CO–PO attainment report', module: 'programs', paper: 'A4', ready: true, server: true },
   { value: 'DONATION_RECEIPT', label: 'Donation receipt (80G)', module: 'alumni', paper: 'A5', ready: true, server: true },
   { value: 'ACCREDITATION_SSR', label: 'Accreditation report summary (NAAC SSR / NIRF / AISHE)', module: 'accreditation', paper: 'A4', ready: true, server: true },
