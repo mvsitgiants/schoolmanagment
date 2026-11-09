@@ -5,7 +5,7 @@ import { objectId, optionalText, z } from '../platform/validate.js'
 import { publicBaseUrl } from '../services/integrationsCommon.js'
 import {
   assignStudent, board, deleteRoute, deleteVehicle, endAssignment, endTrip, exportAssignments, getRoute, gpsHook, listAssignments, listRoutes, listVehicles, markRide,
-  myRoutes, phonePosition, saveRoute, saveVehicle, staffLogins, startTrip, tripDetail, vehicleTrail,
+  myRoutes, phonePosition, saveRoute, saveVehicle, staffLogins, startTrip, tripDetail, vehicleBoard, vehicleTrail,
 } from '../services/transport.js'
 
 // Transport: /api/v1/transport — vehicles, routes and stops, students on routes, today's trips and live positions.
@@ -53,6 +53,7 @@ const positionBody = z.object({
 
 // ── vehicles
 router.get('/vehicles', requirePermission('transport.vehicles.view', 'transport.routes.view', 'transport.tracking.view'), async (req, res) => { res.json({ data: await listVehicles(req.auth) }) })
+router.get('/vehicles/board', requirePermission('transport.vehicles.view', 'transport.routes.view', 'transport.tracking.view'), async (req, res) => { res.json({ data: await vehicleBoard(req.auth) }) })
 router.post('/vehicles', requirePermission('transport.vehicles.create'), async (req, res) => { res.status(201).json({ data: await saveVehicle(null, vehicleBody.parse(req.body), req.auth, req) }) })
 router.patch('/vehicles/:id', requirePermission('transport.vehicles.edit'), async (req, res) => { res.json({ data: await saveVehicle(id(req), vehicleBody.parse(req.body), req.auth, req) }) })
 router.delete('/vehicles/:id', requirePermission('transport.vehicles.delete'), async (req, res) => { res.json({ data: await deleteVehicle(id(req), req.auth, req) }) })

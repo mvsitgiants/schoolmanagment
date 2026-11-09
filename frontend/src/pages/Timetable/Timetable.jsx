@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { CalendarDays, FilePlus2, Lock, LockOpen, Plus, Send, Settings2, Trash2, Wand2, X } from 'lucide-react'
 import { TIMETABLE_STATUS, WEEK_DAYS } from '@schoolgiant/shared'
@@ -171,10 +172,13 @@ export default function Timetable() {
   const canEdit = hasPermission('timetable.timetable.edit')
   const canPublish = hasPermission('timetable.timetable.publish')
   const me = getCurrentUser()?.user?.id
-  const [mode, setMode] = useState(canEdit ? 'all' : 'mine')
-  const [which, setWhich] = useState('draft')
-  const [view, setView] = useState('section')
-  const [of, setOf] = useState('')
+  // a link (class board, room board) can open one class's, teacher's or room's week: ?sectionId= / ?teacherId= / ?roomId=
+  const [params] = useSearchParams()
+  const linked = params.get('sectionId') ? ['section', params.get('sectionId')] : params.get('teacherId') ? ['teacher', params.get('teacherId')] : params.get('roomId') ? ['room', params.get('roomId')] : null
+  const [mode, setMode] = useState(canEdit || linked ? 'all' : 'mine')
+  const [which, setWhich] = useState(linked ? 'published' : 'draft')
+  const [view, setView] = useState(linked?.[0] ?? 'section')
+  const [of, setOf] = useState(linked?.[1] ?? '')
   const [editing, setEditing] = useState(null)
   const [rulesOpen, setRulesOpen] = useState(false)
   const [lastRun, setLastRun] = useState(null)
@@ -189,7 +193,7 @@ export default function Timetable() {
   const options = view === 'section' ? sections.map((s) => ({ value: s.id, label: s.label }))
     : view === 'teacher' ? teachers.map((x) => ({ value: x.id, label: x.name }))
       : rooms.map((r) => ({ value: r.id, label: r.code ? `${r.code} · ${r.name}` : r.name }))
-  useEffect(() => { if (!options.some((o) => o.value === of)) setOf(view === 'teacher' && me ? me : options[0]?.value ?? '') }, [view, options.length]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (options.length && !options.some((o) => o.value === of)) setOf(view === 'teacher' && me ? me : options[0]?.value ?? '') }, [view, options.length]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const gridQ = useQuery({ queryKey: ['timetable-grid', tt?.id, view, of], queryFn: () => fetchTimetableGrid(tt.id, view, of), enabled: !!tt?.id && !!of && mode === 'all' })
   const refresh = () => ['timetable', 'timetable-grid', 'timetable-load'].forEach((k) => qc.invalidateQueries({ queryKey: [k] }))

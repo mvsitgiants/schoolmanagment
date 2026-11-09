@@ -4,7 +4,7 @@ import { authenticate, requireModule, requirePermission, subscriptionGate, tenan
 import { objectId, optionalText, z } from '../platform/validate.js'
 import {
   awayOn, createSubstitution, deleteBell, deleteRoom, deleteSubstitution, generate, grid, listBells, listRooms, listSubstitutions, lockSection, myWeek,
-  overview, publish, saveBell, saveRoom, saveRules, setCell, startDraft, substitutionNeeds, teacherLoad, teachers,
+  overview, publish, roomBoard, saveBell, saveRoom, saveRules, setCell, startDraft, substitutionNeeds, teacherLoad, teachers,
 } from '../services/timetable.js'
 
 // Timetable: /api/v1/timetable/*
@@ -61,6 +61,9 @@ const roomSchema = z.object({
   capacity: z.coerce.number().int().min(0).max(5000).optional().or(z.literal('').transform(() => undefined)),
   sectionId: objectId.optional().or(z.literal('').transform(() => undefined)).nullable(),
   active: z.boolean().default(true),
+})
+router.get('/rooms/board', requirePermission('timetable.rooms.view', EDIT), async (req, res) => {
+  res.json({ data: await roomBoard({ at: typeof req.query.at === 'string' ? req.query.at : undefined }) })
 })
 router.get('/rooms', requirePermission('timetable.rooms.view', EDIT), async (req, res) => {
   res.json({ data: await listRooms() })

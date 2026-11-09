@@ -36,10 +36,11 @@ async function studentLabels(ids) {
   const students = await Student.find({ _id: { $in: ids } }).select('firstName middleName lastName admissionNo rollNo sectionId status guardians').lean()
   const sections = await Section.find({ _id: { $in: students.map((s) => s.sectionId).filter(Boolean) } }).lean()
   const cls = new Map((await ClassLevel.find({ _id: { $in: sections.map((s) => s.classId) } }).select('name code').lean()).map((c) => [String(c._id), c]))
-  const sec = new Map(sections.map((s) => [String(s._id), sectionLabel(cls.get(String(s.classId)), s, { short: true })]))
+  const sec = new Map(sections.map((s) => [String(s._id), { label: sectionLabel(cls.get(String(s.classId)), s, { short: true }), classId: String(s.classId), classCode: cls.get(String(s.classId))?.code ?? null, classTitle: cls.get(String(s.classId))?.name ?? null }]))
   return new Map(students.map((s) => {
     const g = (s.guardians ?? []).find((x) => x.isPrimary) ?? s.guardians?.[0]
-    return [String(s._id), { id: String(s._id), name: studentName(s), admissionNo: s.admissionNo, className: sec.get(String(s.sectionId)) ?? '', status: s.status, guardian: g?.name ?? null, mobile: g?.mobile ?? null }]
+    const c = sec.get(String(s.sectionId))
+    return [String(s._id), { id: String(s._id), name: studentName(s), admissionNo: s.admissionNo, className: c?.label ?? '', classId: c?.classId ?? null, classCode: c?.classCode ?? null, classTitle: c?.classTitle ?? null, status: s.status, guardian: g?.name ?? null, mobile: g?.mobile ?? null }]
   }))
 }
 
@@ -218,6 +219,51 @@ export async function board(auth, { date } = {}) {
       ...r, lastPosition: vehicles.get(String(r.vehicleId))?.lastPosition ?? null,
       trips: Object.keys(TRIP_KINDS).map((kind) => { const t = trips.find((x) => String(x.routeId) === r.id && x.kind === kind); return t ? tripOut(t) : { kind, status: 'NOT_STARTED' } }),
     })),
+  }
+}
+
+/** What a vehicle is doing today, from its routes' trips: on a trip now, done for now, not started, or no route. */
+const liveState = (routes) => {
+  if (!routes.length) return 'NO_ROUTE'
+  const trips = routes.flatMap((r) => r.trips)
+  if (trips.some((t) => t.status === 'RUNNING')) return 'ON_TRIP'
+  if (trips.some((t) => t.status === 'DONE')) return 'TRIP_DONE'
+  return 'NOT_STARTED'
+}
+
+/**
+ * The fleet as a board (Vehicles › Board): each vehicle with its routes, today's trips on them, and the students
+ * riding — in stop order, for the seat map. Riders count against the seats whichever way they ride.
+ */
+export async function vehicleBoard(auth) {
+  const [vehicles, b, assignments] = await Promise.all([listVehicles(auth), board(auth), listAssignments({}, auth)])
+  const stopOf = new Map(b.routes.flatMap((r) => r.stops.map((s) => [s.id, s])))
+  const routeIdx = new Map(b.routes.map((r, i) => [r.id, i]))
+  return {
+    date: b.date,
+    vehicles: vehicles.map((v) => {
+      const routes = b.routes.filter((r) => r.vehicleId === v.id).map((r) => ({
+        id: r.id, name: r.name, code: r.code ?? null, students: r.students,
+        stops: r.stops.map((s) => ({ id: s.id, name: s.name, order: s.order, pickupTime: s.pickupTime, dropTime: s.dropTime, students: s.students })),
+        trips: r.trips.map((t) => ({ id: t.id ?? null, kind: t.kind, status: t.status, startedAt: t.startedAt ?? null, endedAt: t.endedAt ?? null, startedBy: t.startedBy ?? null, reached: t.reached?.length ?? 0, stops: r.stops.length })),
+      }))
+      const mine = new Set(routes.map((r) => r.id))
+      const riders = assignments.filter((a) => mine.has(a.routeId)).map((a) => ({
+        id: a.id, studentId: a.studentId, name: a.student?.name ?? '', admissionNo: a.student?.admissionNo ?? null,
+        className: a.student?.className ?? '', classId: a.student?.classId ?? null, classCode: a.student?.classCode ?? null, classTitle: a.student?.classTitle ?? null,
+        routeId: a.routeId, route: a.route, stopId: a.stopId, stop: a.stop, stopOrder: stopOf.get(a.stopId)?.order ?? 0,
+        pickupTime: a.pickupTime, dropTime: a.dropTime, mode: a.mode,
+      })).sort((x, y) => (routeIdx.get(x.routeId) ?? 0) - (routeIdx.get(y.routeId) ?? 0) || x.stopOrder - y.stopOrder || x.name.localeCompare(y.name))
+      return {
+        id: v.id, regNo: v.regNo, type: v.type, capacity: v.capacity ?? 0, make: v.make ?? null, status: v.status,
+        driver: v.driver?.name ? { name: v.driver.name, mobile: v.driver.mobile ?? null } : null,
+        attendant: v.attendant?.name ? { name: v.attendant.name, mobile: v.attendant.mobile ?? null } : null,
+        docsState: v.docsState, licenceState: v.licenceState, docs: v.docs.filter((d) => d.state === 'EXPIRED' || d.state === 'DUE'),
+        lastPosition: v.lastPosition ?? null, map: v.map,
+        routes, riders, seated: riders.length, free: Math.max(0, (v.capacity ?? 0) - riders.length), over: Math.max(0, riders.length - (v.capacity ?? 0)),
+        live: liveState(routes),
+      }
+    }),
   }
 }
 

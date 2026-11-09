@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import clsx from 'clsx'
@@ -101,7 +102,8 @@ export default function Mark() {
   const { date: fmt } = useFormat()
   const [date, setDate] = useState('')
   const [period, setPeriod] = useState(0)
-  const [open, setOpen] = useState(null)
+  const [params] = useSearchParams()
+  const [open, setOpen] = useState(() => params.get('sectionId')) // a link from the class board opens that section's sheet
   const { data: board, isLoading } = useQuery({ queryKey: ['attendance-board', date], queryFn: () => fetchAttendanceBoard(date) })
   const day = date || board?.today
   useEffect(() => { if (board?.mode === 'PERIOD' && period === 0) setPeriod(1) }, [board, period])

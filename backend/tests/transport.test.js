@@ -117,6 +117,25 @@ describe('a route with a bus', () => {
     expect(board.routes[0].trips.find((t) => t.kind === 'PICKUP').status).toBe('RUNNING')
   })
 
+  it('draws the fleet board: seats, riders in stop order, today’s trip', async () => {
+    const data = (await admin.get(`${api}/vehicles/board`).expect(200)).body.data
+    const bus = data.vehicles.find((v) => v.id === vehicle.id)
+    expect(bus).toMatchObject({ regNo: 'KA01AB1234', capacity: 1, seated: 2, free: 0, over: 1, live: 'ON_TRIP', docsState: 'EXPIRED' })
+    expect(bus.driver).toEqual({ name: 'Suresh', mobile: '9845000699' })
+    expect(bus.docs.map((d) => d.kind)).toEqual(['INSURANCE'])
+    expect(bus.routes.map((r) => r.id)).toEqual([route.id])
+    expect(bus.routes[0].trips.find((t) => t.kind === 'PICKUP')).toMatchObject({ status: 'RUNNING', stops: 3 })
+    // Asha boards at Market Road (stop 2), Ravi at Temple Street (stop 3): seats fill in stop order
+    expect(bus.riders.map((r) => [r.name, r.stop, r.stopOrder, r.mode])).toEqual([['Asha', 'Market Road', 2, 'BOTH'], ['Ravi', 'Temple Street', 3, 'DROP']])
+    expect(bus.riders[0]).toMatchObject({ studentId: asha.id, routeId: route.id, classId: section.classId })
+    expect(bus.riders[0].className).toBe(section.short)
+    // a vehicle with no route shows as such
+    const spare = (await admin.post(`${api}/vehicles`).send({ regNo: 'KA01ZZ0001', type: 'VAN', capacity: 12 }).expect(201)).body.data
+    const again = (await admin.get(`${api}/vehicles/board`).expect(200)).body.data.vehicles.find((v) => v.id === spare.id)
+    expect(again).toMatchObject({ live: 'NO_ROUTE', seated: 0, free: 12, routes: [], riders: [] })
+    await admin.delete(`${api}/vehicles/${spare.id}`).expect(200)
+  })
+
   it('takes positions from the GPS device webhook', async () => {
     const { url } = (await admin.get(`${api}/gps-hook`).expect(200)).body.data
     const path = new URL(url).pathname

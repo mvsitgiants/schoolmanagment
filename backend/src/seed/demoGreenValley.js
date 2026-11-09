@@ -565,6 +565,30 @@ async function fillTimetable(admin) {
   return `generated (${g.placed} of ${g.wanted} periods placed${g.unplaced?.length ? `, ${g.unplaced.length} left for the timetable in-charge` : ''}), published from 1 June`
 }
 
+// ───────────────────────────────────────────────────────── rooms
+
+/** A home classroom for every section (pre-primary on the ground floor, then a floor per few classes), plus labs and halls. */
+async function fillRooms(admin) {
+  if ((await admin.get('/timetable/rooms')).length) return 'already there'
+  const floorOf = (code) => (['NUR', 'LKG', 'UKG', '1', '2'].includes(code) ? 0 : Number(code) <= 5 ? 1 : Number(code) <= 9 ? 2 : 3)
+  const used = {}
+  let n = 0
+  for (const sec of lookup.sections) {
+    const cls = lookup.classes.find((c) => c.id === sec.classId)
+    const floor = floorOf(cls?.code)
+    used[floor] = (used[floor] ?? 0) + 1
+    const no = floor ? String(floor * 100 + used[floor]) : `G${String(used[floor]).padStart(2, '0')}`
+    await admin.post('/timetable/rooms', { name: `Room ${no}`, code: floor ? `R${no}` : no, kind: 'CLASSROOM', capacity: 40, sectionId: sec.id })
+    n++
+  }
+  const extra = [
+    ['Physics lab', 'PHY-LAB', 'LAB', 30], ['Chemistry lab', 'CHE-LAB', 'LAB', 30], ['Biology lab', 'BIO-LAB', 'LAB', 30],
+    ['Computer lab', 'COMP-1', 'COMPUTER', 36], ['Assembly hall', 'HALL', 'HALL', 400], ['Library', 'LIB', 'LIBRARY', 60], ['Sports ground', 'GROUND', 'GROUND', 300],
+  ]
+  for (const [name, code, kind, capacity] of extra) await admin.post('/timetable/rooms', { name, code, kind, capacity })
+  return `${n} classrooms (each a section's home room) and ${extra.length} labs, halls and grounds`
+}
+
 // ───────────────────────────────────────────────────────── student attendance
 
 const isSchoolDay = (d) => {
@@ -839,6 +863,7 @@ async function main() {
   await step('Courses, question bank, online tests', () => fillLms(admin))
   await step('Teachers and subject allocation', () => fillTeachers(admin))
   await step('Timetable', () => fillTimetable(admin))
+  await step('Rooms', () => fillRooms(admin))
   await step('Student attendance', () => fillAttendance(admin))
   await step('Fees', () => fillFees(admin))
   await step('Exams and results', () => fillExams(admin))

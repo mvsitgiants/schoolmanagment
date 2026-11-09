@@ -1,6 +1,8 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { AttendanceSheet } from '../src/models/attendance.js'
 import { Student } from '../src/models/students.js'
 import { runAsTenant } from '../src/platform/context.js'
+import { institutionNow } from '../src/platform/time.js'
 import { mySectionIds } from '../src/services/academics.js'
 import { newInstitution, signIn, startDb, stopDb } from './helpers.js'
 
@@ -75,6 +77,22 @@ describe('classes, sections and subjects', () => {
     expect((await admin.post(`${api}/sections`).send({ classId: c3.id, name: 'C', capacity: 40 })).status).toBe(201)
   })
 
+  it('a section’s seating layout sets its capacity; clearing it keeps the capacity as typed', async () => {
+    const c4 = (await admin.get(`${api}/classes`)).body.data.classes.find((c) => c.code === '4')
+    const made = await admin.post(`${api}/sections`).send({ classId: c4.id, name: 'S', seating: { kind: 'BENCH', perBench: 3, columns: 3, rows: 6, numbering: 'CODE' } })
+    expect(made.status).toBe(201)
+    expect(made.body.data.capacity).toBe(54)
+    expect(made.body.data.seating).toMatchObject({ kind: 'BENCH', perBench: 3, columns: 3, rows: 6, numbering: 'CODE' })
+    // single desks seat one each, whatever perBench says
+    const desks = await admin.patch(`${api}/sections/${made.body.data.id}`).send({ seating: { kind: 'DESK', perBench: 4, columns: 5, rows: 6 } })
+    expect(desks.body.data.capacity).toBe(30)
+    expect(desks.body.data.seating).toMatchObject({ kind: 'DESK', perBench: 1, numbering: 'ROW' })
+    expect((await admin.patch(`${api}/sections/${made.body.data.id}`).send({ seating: { kind: 'BENCH', columns: 20, rows: 6 } })).status).toBe(400)
+    const cleared = await admin.patch(`${api}/sections/${made.body.data.id}`).send({ seating: null, capacity: 35 })
+    expect(cleared.body.data.capacity).toBe(35)
+    expect(cleared.body.data.seating).toBeUndefined()
+  })
+
   it('keeps records that are in use: a section with students, a class with sections, a subject on a class', async () => {
     const c3 = (await admin.get(`${api}/classes`)).body.data.classes.find((c) => c.code === '3')
     const sec = c3.sections.find((s) => s.name === 'A')
@@ -96,6 +114,43 @@ describe('classes, sections and subjects', () => {
     const real = (await admin.post(`${api}/subjects/import`).send({ rows: [rows[0]], dryRun: false })).body.data
     expect(real.imported).toBe(1)
     expect((await admin.get(`${api}/subjects`)).body.data.find((s) => s.code === 'SKT')).toMatchObject({ type: 'LANGUAGE' })
+  })
+})
+
+describe('class board', () => {
+  it('gives each section its boys / girls split and today\'s attendance', async () => {
+    const { year, classes } = (await admin.get(`${api}/classes`)).body.data
+    const c5 = classes.find((c) => c.code === '5')
+    const [secA, secB] = c5.sections
+    const today = await runAsTenant(h.tenant._id, async () => {
+      const [boy, girl, girl2] = await Student.create([
+        { admissionNo: 'B1', firstName: 'Kabir', gender: 'MALE', sectionId: secA.id, classId: c5.id },
+        { admissionNo: 'B2', firstName: 'Anika', gender: 'FEMALE', sectionId: secA.id, classId: c5.id },
+        { admissionNo: 'B3', firstName: 'Zoya', gender: 'FEMALE', sectionId: secA.id, classId: c5.id },
+      ])
+      await Student.create({ admissionNo: 'B4', firstName: 'Gone', gender: 'MALE', sectionId: secA.id, classId: c5.id, status: 'LEFT' })
+      const date = (await institutionNow()).date
+      await AttendanceSheet.create({
+        academicYearId: year.id, sectionId: secA.id, date, period: 0,
+        entries: [{ studentId: boy._id, status: 'P' }, { studentId: girl._id, status: 'P' }, { studentId: girl2._id, status: 'A' }],
+        counts: { P: 2, A: 1, L: 0, HD: 0, LV: 0, total: 3 }, takenBy: 'Admin',
+      })
+      return date
+    })
+    const board = (await admin.get(`${api}/board?yearId=${year.id}`)).body.data
+    expect(board).toMatchObject({ date: today, yearId: year.id })
+    const a = board.sections.find((s) => s.id === secA.id)
+    const b = board.sections.find((s) => s.id === secB.id)
+    expect(a.genders).toEqual({ MALE: 1, FEMALE: 2, OTHER: 0, UNSET: 0 }) // the student who left is not counted
+    expect(a.attendance).toMatchObject({ taken: true, pct: 66.7, takenBy: 'Admin' })
+    expect(b.genders).toEqual({ MALE: 0, FEMALE: 0, OTHER: 0, UNSET: 0 })
+    if (board.inYear && board.workingDay && !b.holiday) expect(b.attendance).toMatchObject({ taken: false, pct: null })
+    else expect(b.attendance).toBeNull()
+    // needs academics.classes.view — an accountant has no Academic setup access
+    const tpl = (await admin.post('/api/v1/core/roles/from-templates').send({ codes: ['ACCOUNTANT'] })).body.data.created[0]
+    await admin.post('/api/v1/core/users').send({ name: 'Board Outsider', email: 'outsider@school.test', roleIds: [tpl.id], password: 'Outs@1234' })
+    const o = await signIn(app, 'outsider@school.test', 'Outs@1234')
+    expect((await o.get(`${api}/board`)).status).toBe(403)
   })
 })
 

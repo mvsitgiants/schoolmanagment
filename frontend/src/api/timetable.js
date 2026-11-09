@@ -17,6 +17,7 @@ export const updateBell = (id, body) => put(`${BASE}/bells/${id}`, body)
 export const deleteBell = (id) => del(`${BASE}/bells/${id}`)
 
 export const fetchRooms = () => get(`${BASE}/rooms`)
+export const fetchRoomBoard = (at) => get(`${BASE}/rooms/board`, at ? { at } : undefined)
 export const createRoom = (body) => post(`${BASE}/rooms`, body)
 export const updateRoom = (id, body) => put(`${BASE}/rooms/${id}`, body)
 export const deleteRoom = (id) => del(`${BASE}/rooms/${id}`)

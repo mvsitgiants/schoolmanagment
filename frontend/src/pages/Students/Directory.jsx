@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { GraduationCap, UserPlus, UsersRound } from 'lucide-react'
@@ -17,9 +17,10 @@ export default function Directory() {
   const navigate = useNavigate()
   const qc = useQueryClient()
   const { date } = useFormat()
+  const [searchParams] = useSearchParams() // ?sectionId= / ?classId= — e.g. from the Class board
   const [search, setSearch] = useState('')
-  const [sectionId, setSectionId] = useState('')
-  const [classId, setClassId] = useState('')
+  const [sectionId, setSectionId] = useState(() => searchParams.get('sectionId') ?? '')
+  const [classId, setClassId] = useState(() => (searchParams.get('sectionId') ? '' : searchParams.get('classId') ?? ''))
   const [gender, setGender] = useState('')
   const [status, setStatus] = useState('ACTIVE')
   const [page, setPage] = useState(1)

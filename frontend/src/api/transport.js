@@ -9,6 +9,7 @@ const del = async (url) => (await api.delete(url)).data.data
 const BASE = '/v1/transport'
 
 export const fetchVehicles = () => get(`${BASE}/vehicles`)
+export const fetchVehicleBoard = () => get(`${BASE}/vehicles/board`)
 export const saveVehicle = (id, body) => (id ? patch(`${BASE}/vehicles/${id}`, body) : post(`${BASE}/vehicles`, body))
 export const deleteVehicle = (id) => del(`${BASE}/vehicles/${id}`)
 export const fetchVehicleTrail = (id, hours) => get(`${BASE}/vehicles/${id}/trail`, { hours })

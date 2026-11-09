@@ -99,6 +99,60 @@ export async function deleteRoom(id, req) {
   return { deleted: !used, deactivated: !!used }
 }
 
+/**
+ * Every room at a glance, right now: who is in it this period, what is next today, and how full its week is.
+ * A period with no room of its own is in the section's home room. Rooms follow the published timetable.
+ * `at` (HH:MM) looks at another time of today — for "what is on in period 5".
+ */
+export async function roomBoard({ at } = {}) {
+  const year = await yearOrCurrent()
+  const [rooms, pub, bells, days, clock] = await Promise.all([
+    listRooms(), Timetable.findOne({ academicYearId: year._id, status: 'PUBLISHED' }).lean(), bellsByClass(), workingDays(), institutionNow(),
+  ])
+  const time = /^\d{2}:\d{2}$/.test(at ?? '') ? at : clock.time
+  const day = weekdayCode(clock.date)
+  const schoolDay = !!pub && days.includes(day) && (!pub.effectiveFrom || clock.date >= pub.effectiveFrom)
+  const entries = pub ? await TimetableEntry.find({ timetableId: pub._id }).lean() : []
+  const home = new Map(rooms.filter((r) => r.sectionId && r.active).map((r) => [r.sectionId, r.id]))
+  const roomOf = (e) => idStr(e.roomId) ?? home.get(String(e.sectionId)) ?? null
+  const used = entries.filter(roomOf)
+  const sections = await Section.find({ _id: { $in: [...new Set(used.map((e) => String(e.sectionId)))] } }).select('classId').lean()
+  const classOf = new Map(sections.map((x) => [String(x._id), String(x.classId)]))
+  const [names, subjects] = await Promise.all([
+    labelMaps(used.map((e) => String(e.sectionId)), used.map((e) => idStr(e.teacherId)).filter(Boolean)),
+    Subject.find({ _id: { $in: used.map((e) => e.subjectId).filter(Boolean) } }).select('name code').lean().then((x) => new Map(x.map((s) => [String(s._id), s]))),
+  ])
+  const slotOf = (e) => bells.of(classOf.get(String(e.sectionId))).slots.find((sl) => sl.kind === 'PERIOD' && sl.no === e.period)
+
+  // where the day is, by the default bell: before school, a period, a break, after school
+  const frame = bells.def.slots
+  const slotNow = frame.find((sl) => sl.start <= time && time < sl.end) ?? null
+  const phase = !schoolDay ? 'CLOSED' : !frame.length || time < frame[0].start ? 'BEFORE' : time >= frame.at(-1).end ? 'AFTER' : slotNow?.kind === 'PERIOD' ? 'PERIOD' : 'BREAK'
+  const perWeek = Math.max(1, days.length * teachingPeriods(frame).length)
+
+  const out = rooms.map((r) => {
+    const mine = used.filter((e) => roomOf(e) === r.id)
+    const todays = (schoolDay ? mine.filter((e) => e.day === day) : []).map((e) => {
+      const sl = slotOf(e)
+      return {
+        period: e.period, start: sl?.start ?? null, end: sl?.end ?? null, sectionId: String(e.sectionId), classId: classOf.get(String(e.sectionId)) ?? null,
+        section: names.section.get(String(e.sectionId)) ?? '', subject: subjects.get(idStr(e.subjectId))?.name ?? '', teacher: names.teacher.get(idStr(e.teacherId)) ?? '',
+      }
+    }).sort((a, b) => a.period - b.period)
+    const current = todays.find((x) => x.start && x.start <= time && time < x.end) ?? null
+    const next = todays.find((x) => x.start && x.start > time) ?? null
+    const status = !r.active ? 'INACTIVE' : current ? 'IN_USE' : !schoolDay || phase === 'AFTER' ? 'CLOSED' : 'FREE'
+    return { ...r, status, current, next, today: todays, weekPeriods: mine.length, weekUse: Math.round((mine.length / perWeek) * 100) }
+  })
+  const counts = { total: out.length, IN_USE: 0, FREE: 0, CLOSED: 0, INACTIVE: 0 }
+  for (const r of out) counts[r.status] += 1
+  return {
+    now: { date: clock.date, time, day, schoolDay, phase, slot: slotNow && { kind: slotNow.kind, no: slotNow.no, label: slotNow.label ?? null, start: slotNow.start, end: slotNow.end } },
+    published: !!pub, timetableId: pub ? String(pub._id) : null, frame, perWeek, counts, rooms: out,
+    avgUse: out.filter((r) => r.active).length ? Math.round(out.filter((r) => r.active).reduce((n, r) => n + r.weekUse, 0) / out.filter((r) => r.active).length) : 0,
+  }
+}
+
 // ───────────────────────────────────────────────────────── versions
 
 async function workingDays() {
@@ -226,7 +280,12 @@ export async function grid(id, { view, of }, auth) {
     const allowed = await sectionsInScope(auth, 'timetable')
     if (allowed && !(view === 'teacher' && String(of) === String(auth.userId)) && !(view === 'section' && allowed.includes(String(of)))) throw forbidden('That timetable is outside your classes.')
   }
-  const filter = { timetableId: t._id, ...(view === 'teacher' ? { teacherId: of } : view === 'room' ? { roomId: of } : { sectionId: of }) }
+  // a room's week also has its home section's periods that name no room of their own
+  const homeOf = view === 'room' ? (await Room.findById(of).select('sectionId').lean())?.sectionId : null
+  const filter = {
+    timetableId: t._id,
+    ...(view === 'teacher' ? { teacherId: of } : view === 'room' ? (homeOf ? { $or: [{ roomId: of }, { roomId: null, sectionId: homeOf }] } : { roomId: of }) : { sectionId: of }),
+  }
   const [entries, bells, days] = await Promise.all([TimetableEntry.find(filter).lean(), bellsByClass(), workingDays()])
   let bell = bells.def
   if (view === 'section') { const s = await Section.findById(of).select('classId').lean(); if (s) bell = bells.of(s.classId) }

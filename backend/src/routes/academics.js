@@ -1,10 +1,10 @@
 import { Router } from 'express'
-import { CLASS_PRESETS, GRADING_KINDS, SUBJECT_TYPES } from '@schoolgiant/shared'
+import { CLASS_PRESETS, GRADING_KINDS, SEATING_KINDS, SEATING_LIMITS, SEAT_NUMBERING, SUBJECT_TYPES } from '@schoolgiant/shared'
 import { can } from '../platform/access.js'
 import { authenticate, requireModule, requirePermission, subscriptionGate, tenantOnly } from '../platform/middleware.js'
 import { objectId, optionalText, z } from '../platform/validate.js'
 import {
-  allocationGrid, deleteClass, deleteGrading, deleteSection, deleteSubject, deleteYear, importClasses, importSubjects, listClasses, listGrading,
+  allocationGrid, classBoard, deleteClass, deleteGrading, deleteSection, deleteSubject, deleteYear, importClasses, importSubjects, listClasses, listGrading,
   listSubjects, listYears, lookup, quickSetup, saveClass, saveGrading, saveSection, saveSubject, saveYear, setAllocation, setCurrentYear,
   setDefaultGrading, teacherOptions,
 } from '../services/academics.js'
@@ -126,11 +126,22 @@ const sectionSchema = z.object({
   classTeacherId: nullableId,
   capacity: z.coerce.number().int().min(1).max(500).optional().nullable(),
   room: optionalText(30),
+  seating: z.object({
+    kind: z.enum(Object.keys(SEATING_KINDS)),
+    perBench: z.coerce.number().int().min(SEATING_LIMITS.perBench[0]).max(SEATING_LIMITS.perBench[1]).optional(),
+    columns: z.coerce.number().int().min(SEATING_LIMITS.columns[0]).max(SEATING_LIMITS.columns[1]),
+    rows: z.coerce.number().int().min(SEATING_LIMITS.rows[0]).max(SEATING_LIMITS.rows[1]),
+    numbering: z.enum(Object.keys(SEAT_NUMBERING)).default('ROW'),
+  }).nullable().optional(),
   active: z.boolean().optional(),
 })
 
 router.get('/classes', requirePermission('academics.classes.view', 'academics.allocation.view'), async (req, res) => {
   res.json({ data: await listClasses(q(req).yearId) })
+})
+/** The Class board's extras: gender split and today's attendance per section (caller's data scope). */
+router.get('/board', requirePermission('academics.classes.view'), async (req, res) => {
+  res.json({ data: await classBoard(req.auth, q(req).yearId) })
 })
 router.post('/classes/import', requirePermission('academics.classes.import'), async (req, res) => {
   const { rows, dryRun } = importBody.parse(req.body)

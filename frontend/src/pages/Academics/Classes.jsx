@@ -2,12 +2,13 @@ import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import clsx from 'clsx'
-import { BookOpen, GraduationCap, Layers, Pencil, Plus, Sparkles, Trash2, Users } from 'lucide-react'
-import { CLASS_PRESETS } from '@schoolgiant/shared'
+import { BookOpen, GraduationCap, LayoutGrid, Layers, List, Pencil, Plus, Sparkles, Trash2, Users } from 'lucide-react'
+import { CLASS_PRESETS, SEATING_KINDS, SEATING_LIMITS, SEAT_NUMBERING, defaultSeating, normSeating, seatCapacity } from '@schoolgiant/shared'
 import {
-  ControlChip, DataTable, Drawer, FormField, HeaderButton, ImportExportButtons, Input, Modal, Note, PageContainer, PageHeader, Select, StatusPill, useConfirm, ColumnBars, LevelBar, StatCard, TONE, hueTone,
+  ControlChip, DataTable, Drawer, FormField, HeaderButton, ImportExportButtons, Input, Modal, Note, PageContainer, PageHeader, SegmentedControl, Select, StatusPill, useConfirm, ColumnBars, LevelBar, StatCard, TONE, hueTone,
 } from '../../components/system'
 import Button from '../../components/ui/Button'
+import ClassBoard, { SeatingPreview } from '../../components/academics/ClassBoard'
 import { Switch } from '../../components/app/Controls'
 import {
   createClass, createSection, deleteClass, deleteSection, fetchAcademicLookup, fetchClasses, fetchGrading, fetchSubjects, fetchTeachers,
@@ -108,17 +109,24 @@ function SectionForm({ cls, section, yearId, onClose, onSaved }) {
   const { data: teachers = [] } = useQuery({ queryKey: ['academic-teachers'], queryFn: fetchTeachers })
   const [form, setForm] = useState(() => ({ name: '', branchId: '', classTeacherId: '', capacity: '', room: '', active: true, ...section, branchId: section?.branchId ?? '', classTeacherId: section?.classTeacherId ?? '', capacity: section?.capacity ?? '', room: section?.room ?? '' }))
   const [errors, setErrors] = useState({})
+  // the room's seating: off → capacity typed by hand; on → capacity = the seats the layout has
+  const [seatingOn, setSeatingOn] = useState(!!section?.seating)
+  const [seating, setSeating] = useState(() => normSeating(section?.seating ?? defaultSeating(section?.capacity || 40)))
+  const setSeat = (k) => (e) => setSeating((x) => normSeating({ ...x, [k]: e?.target ? e.target.value : e }))
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e?.target ? e.target.value : e }))
   const save = useMutation({
     mutationFn: () => {
-      const body = { name: form.name, branchId: form.branchId || null, classTeacherId: form.classTeacherId || null, capacity: form.capacity === '' ? null : Number(form.capacity), room: form.room, ...(section && { active: form.active }) }
+      const body = {
+        name: form.name, branchId: form.branchId || null, classTeacherId: form.classTeacherId || null, room: form.room, ...(section && { active: form.active }),
+        ...(seatingOn ? { seating } : { seating: section?.seating ? null : undefined, capacity: form.capacity === '' ? null : Number(form.capacity) }),
+      }
       return section ? updateSection(section.id, body) : createSection({ ...body, classId: cls.id, academicYearId: yearId })
     },
     onSuccess: onSaved,
     onError: (e) => { setErrors(errorsOf(e)); showError(e.message) },
   })
   return (
-    <Modal open onClose={onClose} title={section ? t('academics.sections.editTitle', { name: section.label }) : t('academics.sections.newSection', { name: cls.name })} footer={<>
+    <Modal open size="lg" onClose={onClose} title={section ? t('academics.sections.editTitle', { name: section.label }) : t('academics.sections.newSection', { name: cls.name })} footer={<>
       <Button variant="secondary" onClick={onClose}>{t('actions.cancel')}</Button>
       <Button loading={save.isPending} disabled={!form.name} onClick={() => save.mutate()}>{t('actions.save')}</Button>
     </>}>
@@ -131,7 +139,9 @@ function SectionForm({ cls, section, yearId, onClose, onSaved }) {
             {teachers.map((u) => <option key={u.id} value={u.id}>{u.name}{u.designation ? ` — ${u.designation}` : ''}</option>)}
           </Select>
         </FormField>
-        <FormField label={t('academics.sections.capacity')} error={errors.capacity}><Input type="number" value={form.capacity} onChange={set('capacity')} placeholder="40" /></FormField>
+        <FormField label={t('academics.sections.capacity')} error={errors.capacity} hint={seatingOn ? t('academics.seating.fromLayout') : undefined}>
+          <Input type="number" value={seatingOn ? seatCapacity(seating) : form.capacity} onChange={set('capacity')} placeholder="40" disabled={seatingOn} />
+        </FormField>
         {branches.length > 1 && (
           <FormField label={t('academics.sections.campus')} error={errors.branchId}>
             <Select value={form.branchId} onChange={set('branchId')}>
@@ -139,6 +149,48 @@ function SectionForm({ cls, section, yearId, onClose, onSaved }) {
               {branches.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
             </Select>
           </FormField>
+        )}
+      </div>
+      <div className="mt-5 rounded-xl border border-border">
+        <label className="flex items-center justify-between gap-3 px-3 py-2.5 text-sm text-ink">
+          <span><span className="font-medium">{t('academics.seating.title')}</span><span className="block text-xs text-ink-faint">{t('academics.seating.hint')}</span></span>
+          <Switch checked={seatingOn} onChange={setSeatingOn} label={t('academics.seating.title')} />
+        </label>
+        {seatingOn && (
+          <div className="grid gap-4 border-t border-border p-3 sm:grid-cols-2">
+            <div className="space-y-3">
+              <FormField label={t('academics.seating.kind')}>
+                <SegmentedControl value={seating.kind} onChange={setSeat('kind')} options={Object.keys(SEATING_KINDS).map((k) => ({ value: k, label: t(`academics.board.sheet.kinds.${k}`, SEATING_KINDS[k].label) }))} />
+              </FormField>
+              {seating.kind === 'BENCH' && (
+                <FormField label={t('academics.seating.perBench')}>
+                  <Select value={seating.perBench} onChange={setSeat('perBench')}>
+                    {Array.from({ length: SEATING_LIMITS.perBench[1] }, (_, i) => i + 1).map((n) => <option key={n} value={n}>{t('academics.seating.perBenchN', { count: n })}</option>)}
+                  </Select>
+                </FormField>
+              )}
+              <div className="grid grid-cols-2 gap-3">
+                <FormField label={seating.kind === 'BENCH' ? t('academics.seating.columnsBench') : t('academics.seating.columnsDesk')}>
+                  <Select value={seating.columns} onChange={setSeat('columns')}>{Array.from({ length: SEATING_LIMITS.columns[1] }, (_, i) => i + 1).map((n) => <option key={n} value={n}>{n}</option>)}</Select>
+                </FormField>
+                <FormField label={t('academics.seating.rows')}>
+                  <Select value={seating.rows} onChange={setSeat('rows')}>{Array.from({ length: SEATING_LIMITS.rows[1] }, (_, i) => i + 1).map((n) => <option key={n} value={n}>{n}</option>)}</Select>
+                </FormField>
+              </div>
+              <FormField label={t('academics.seating.numbering')}>
+                <Select value={seating.numbering} onChange={setSeat('numbering')}>
+                  {Object.keys(SEAT_NUMBERING).map((k) => <option key={k} value={k}>{t(`academics.seating.numberings.${k}`, SEAT_NUMBERING[k].label)}</option>)}
+                </Select>
+              </FormField>
+              <p className="text-sm text-ink">{t('academics.seating.total', { count: seatCapacity(seating) })}
+                {section && section.studentCount > seatCapacity(seating) && <span className="block text-xs text-danger-600">{t('academics.seating.tooFew', { count: section.studentCount })}</span>}
+              </p>
+            </div>
+            <div>
+              <p className="mb-1.5 text-xs font-medium text-ink-muted">{t('academics.seating.preview')}</p>
+              <SeatingPreview seating={seating} />
+            </div>
+          </div>
         )}
       </div>
       {section && <label className="mt-4 flex items-center justify-between rounded-lg border border-border px-3 py-2.5 text-sm text-ink">{t('status.active')} <Switch checked={form.active} onChange={set('active')} label={t('status.active')} /></label>}
@@ -245,7 +297,9 @@ export default function Classes() {
   const [editing, setEditing] = useState(null)
   const [openId, setOpenId] = useState(null)
   const [quick, setQuick] = useState(false)
-  const refresh = () => { qc.invalidateQueries({ queryKey: ['academic-classes'] }); qc.invalidateQueries({ queryKey: ['academic-lookup'] }); qc.invalidateQueries({ queryKey: ['subjects'] }) }
+  const [view, setView] = useState('board')
+  const [sectionEdit, setSectionEdit] = useState(null) // { cls, section } — Edit from the board's section drawer
+  const refresh = () => { qc.invalidateQueries({ queryKey: ['academic-classes'] }); qc.invalidateQueries({ queryKey: ['academic-board'] }); qc.invalidateQueries({ queryKey: ['academic-lookup'] }); qc.invalidateQueries({ queryKey: ['subjects'] }) }
   const del = useMutation({ mutationFn: deleteClass, onSuccess: () => { refresh(); showSuccess(t('academics.classes.deleted')) }, onError: (e) => showError(e.message) })
 
   const year = data?.year
@@ -278,6 +332,10 @@ export default function Classes() {
             options={years.map((y) => y.name)} onChange={(name) => setYearId(years.find((y) => y.name === name)?.id ?? '')} />
           <span className="text-sm text-ink-muted lg:hidden">{t('academics.classes.totals', { classes: classes.length, sections: totals.sections, students: totals.students })}</span>
           {year.closed && <StatusPill tone="neutral">{t('academics.years.closedPill')}</StatusPill>}
+          <SegmentedControl className="ms-auto" value={view} onChange={setView} options={[
+            { value: 'board', label: t('academics.board.viewBoard'), icon: LayoutGrid },
+            { value: 'list', label: t('academics.board.viewList'), icon: List },
+          ]} />
         </div>
       )}
 
@@ -293,7 +351,11 @@ export default function Classes() {
         </div>
       )}
 
-      <DataTable
+      {view === 'board' ? (
+        <ClassBoard classes={classes} year={year} loading={isLoading} onOpenClass={(c) => setOpenId(c.id)}
+          onEditSection={(cls, section) => setSectionEdit({ cls, section })}
+          emptyAction={canCreate && year && !year.closed && <Button icon={Sparkles} onClick={() => setQuick(true)}>{t('academics.quickSetup.button')}</Button>} />
+      ) : <DataTable
         rows={classes}
         loading={isLoading}
         error={error}
@@ -344,9 +406,11 @@ export default function Classes() {
         onRowClick={(r) => setOpenId(r.id)}
         emptyIcon={Layers} emptyTitle={t('academics.classes.emptyTitle')} emptyHint={t('academics.classes.emptyHint')}
         emptyAction={canCreate && year && !year.closed && <Button icon={Sparkles} onClick={() => setQuick(true)}>{t('academics.quickSetup.button')}</Button>}
-      />
+      />}
 
       {open && year && <ClassDrawer cls={open} year={year} onClose={() => setOpenId(null)} onEditClass={() => setEditing(open)} onChanged={refresh} />}
+      {sectionEdit && year && <SectionForm cls={sectionEdit.cls} section={sectionEdit.section} yearId={year.id} onClose={() => setSectionEdit(null)}
+        onSaved={() => { refresh(); showSuccess(t('academics.sections.saved')); setSectionEdit(null) }} />}
       {editing && <ClassForm cls={editing === 'new' ? null : editing} onClose={() => setEditing(null)} onSaved={() => { refresh(); showSuccess(t('academics.classes.saved')); setEditing(null) }} />}
       {quick && year && <QuickSetup yearId={year.id} yearName={yearName(year.id) ?? year.name} onClose={() => setQuick(false)}
         onDone={(r) => { refresh(); setQuick(false); showSuccess(t('academics.quickSetup.done', { classes: r.classes, sections: r.sections, subjects: r.subjects })) }} />}

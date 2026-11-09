@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { AlertTriangle, ArrowLeftRight, Download, LogOut, Plus, Route as RouteIcon, Users } from 'lucide-react'
@@ -52,7 +53,8 @@ export default function Assignments() {
   const qc = useQueryClient()
   const confirm = useConfirm()
   const { showSuccess, showError } = useSnackbar()
-  const [routeId, setRouteId] = useState('')
+  const [urlParams] = useSearchParams()
+  const [routeId, setRouteId] = useState(urlParams.get('routeId') ?? '') // the vehicle board links here for one route
   const [search, setSearch] = useState('')
   const q = useDebouncedValue(search.trim(), 250)
   const [editing, setEditing] = useState(null)

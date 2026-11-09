@@ -88,6 +88,11 @@ const sectionSchema = new Schema({
   classTeacherId: { type: ObjectId, ref: 'User' },
   capacity: Number,
   room: { type: String, trim: true },
+  // the room's seating (shared seating.js): benches or single desks, how many across and deep, how seats are numbered
+  seating: {
+    type: new Schema({ kind: String, perBench: Number, columns: Number, rows: Number, numbering: String }, { _id: false }),
+    default: undefined,
+  },
   active: { type: Boolean, default: true },
 }, { timestamps: true })
 sectionSchema.plugin(tenantPlugin)

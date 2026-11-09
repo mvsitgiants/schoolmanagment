@@ -3,7 +3,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { BellRing, DoorOpen, FlaskConical, Library, Monitor, Pencil, Plus, School, Shapes, Star, Theater, Trash2, Trophy, X } from 'lucide-react'
 import { DEFAULT_BELL, ROOM_KINDS, SLOT_KINDS, checkBell, teachingPeriods } from '@schoolgiant/shared'
-import { CodeBadge, ColorChip, DataTable, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, Panel, Select, StatusPill, Tabs, useConfirm } from '../../components/system'
+import { CodeBadge, ColorChip, DataTable, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, Panel, SegmentedControl, Select, StatusPill, Tabs, useConfirm } from '../../components/system'
+import RoomBoard from '../../components/timetable/RoomBoard'
 import Button from '../../components/ui/Button'
 import { fetchAcademicLookup } from '../../api/academics'
 import { createBell, createRoom, deleteBell, deleteRoom, fetchBells, fetchRooms, updateBell, updateRoom } from '../../api/timetable'
@@ -66,6 +67,7 @@ function RoomsTab() {
   const confirm = useConfirm()
   const { showSuccess, showError } = useSnackbar()
   const [editing, setEditing] = useState(null)
+  const [view, setView] = useState('board')
   const { data: rows = [], isLoading, error, refetch } = useQuery({ queryKey: ['rooms'], queryFn: fetchRooms })
   const canEdit = hasPermission('timetable.rooms.edit')
   const canDelete = hasPermission('timetable.rooms.delete')
@@ -77,9 +79,12 @@ function RoomsTab() {
   const labs = rows.filter((r) => r.active && ['LAB', 'COMPUTER'].includes(r.kind)).length
   return (
     <>
-      <div className="flex justify-end mb-3"><HeaderButton icon={Plus} variant="primary" requires="timetable.rooms.create" onClick={() => setEditing('new')}>{t('timetable.rooms.new')}</HeaderButton></div>
+      <div className="flex items-center justify-between gap-3 mb-3">
+        <SegmentedControl value={view} onChange={setView} options={[{ value: 'board', label: t('timetable.board.board') }, { value: 'list', label: t('timetable.board.list') }]} />
+        <HeaderButton icon={Plus} variant="primary" requires="timetable.rooms.create" onClick={() => setEditing('new')}>{t('timetable.rooms.new')}</HeaderButton>
+      </div>
       {!isLoading && !labs && <Note className="mb-3">{t('timetable.rooms.noLabsHint')}</Note>}
-      <DataTable rows={rows} loading={isLoading} error={error} onRetry={refetch} columns={[
+      {view === 'board' ? <RoomBoard onEdit={canEdit ? setEditing : undefined} /> : <DataTable rows={rows} loading={isLoading} error={error} onRetry={refetch} columns={[
         { key: 'name', header: t('timetable.rooms.name'), mobilePrimary: true, render: (v, r) => <span className={r.active ? 'font-medium text-ink' : 'text-ink-faint line-through'}>{v}</span> },
         { key: 'code', header: t('timetable.rooms.code'), render: (v) => <CodeBadge>{v}</CodeBadge> },
         { key: 'kind', header: t('timetable.rooms.kind'), render: (v) => <ColorChip label={kindLabel(t, v)} seed={`room-${v}`} icon={KIND_ICON[v] ?? DoorOpen} /> },
@@ -93,8 +98,8 @@ function RoomsTab() {
               onClick={async () => { if (await confirm({ title: t('timetable.rooms.deleteConfirm', { name: r.name }), message: t('timetable.rooms.deleteHint'), confirmLabel: t('timetable.rooms.delete'), tone: 'danger' })) remove.mutate(r.id) }} />}
           </div>
         ) },
-      ]} onRowClick={canEdit ? (r) => setEditing(r) : undefined} emptyIcon={DoorOpen} emptyTitle={t('timetable.rooms.empty')} />
-      {editing && <RoomForm room={editing === 'new' ? null : editing} onClose={() => setEditing(null)} onSaved={() => { qc.invalidateQueries({ queryKey: ['rooms'] }); setEditing(null); showSuccess(t('timetable.rooms.saved')) }} />}
+      ]} onRowClick={canEdit ? (r) => setEditing(r) : undefined} emptyIcon={DoorOpen} emptyTitle={t('timetable.rooms.empty')} />}
+      {editing && <RoomForm room={editing === 'new' ? null : editing} onClose={() => setEditing(null)} onSaved={() => { qc.invalidateQueries({ queryKey: ['rooms'] }); qc.invalidateQueries({ queryKey: ['room-board'] }); setEditing(null); showSuccess(t('timetable.rooms.saved')) }} />}
     </>
   )
 }

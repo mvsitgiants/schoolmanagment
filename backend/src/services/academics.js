@@ -1,7 +1,10 @@
 import {
-  CLASS_PRESET_BY, DEFAULT_GRADING_BANDS, SUBJECT_PRESET, academicYearFor, checkGradingBands, checkYearDates, defaultTerms, sectionLabel, sectionNames,
+  CLASS_PRESET_BY, DEFAULT_GRADING_BANDS, SUBJECT_PRESET, academicYearFor, attendancePct, checkGradingBands, checkYearDates, defaultTerms, sectionLabel, sectionNames,
+  normSeating, seatCapacity, weekdayCode,
 } from '@schoolgiant/shared'
 import { AcademicYear, ClassLevel, GradingScheme, Section, Subject, TeacherAllocation } from '../models/academics.js'
+import { AttendanceSheet } from '../models/attendance.js'
+import { Holiday } from '../models/hrms.js'
 import { Student } from '../models/students.js'
 import { Branch, Department, User } from '../models/tenant.js'
 import { scopeOf } from '../platform/access.js'
@@ -9,7 +12,7 @@ import { audit, diffFields } from '../platform/audit.js'
 import { clean, isOid, withTransaction } from '../platform/db.js'
 import { badRequest, conflict, notFound } from '../platform/errors.js'
 import { checkRow, compact, cell } from '../platform/importRows.js'
-import { getSetting } from '../platform/settings.js'
+import { getSetting, getSettings } from '../platform/settings.js'
 import { institutionNow } from '../platform/time.js'
 import { escapeRegex } from '../platform/validate.js'
 
@@ -295,6 +298,67 @@ export async function listClasses(yearId) {
   }
 }
 
+/**
+ * The Class board's extras for every section of `year` the caller may see (academics data scope):
+ * the boys / girls split of active students and today's attendance (institution date).
+ * attendance: null on a holiday, a weekly off, outside the year, or for an inactive section;
+ * otherwise { taken, pct, counts, takenBy, takenAt } — in period-wise mode "taken" means any period
+ * was marked, and the counts are the day sheet's, else the earliest period's.
+ */
+export async function classBoard(auth, yearId) {
+  const year = await yearOrCurrent(yearId)
+  const today = (await institutionNow()).date
+  const allowed = await sectionsInScope(auth, 'academics')
+  const sections = await Section.find({ academicYearId: year._id, ...(allowed && { _id: { $in: allowed } }) }).select('_id branchId active').lean()
+  const ids = sections.map((s) => s._id)
+  const [genders, sheets, holidays, core, att, main] = await Promise.all([
+    Student.aggregate([
+      { $match: { status: 'ACTIVE', sectionId: { $in: ids } } },
+      { $group: { _id: { s: '$sectionId', g: { $ifNull: ['$gender', 'UNSET'] } }, n: { $sum: 1 } } },
+    ]),
+    AttendanceSheet.find({ date: today, sectionId: { $in: ids } }).select('sectionId period counts takenBy takenAt').sort({ period: 1 }).lean(),
+    Holiday.find({ date: today, forStudents: true, optional: false }).select('name branchIds').lean(),
+    getSettings('core'),
+    getSettings('attendance'),
+    Branch.findOne({ isDefault: true }).select('_id').lean(),
+  ])
+  const inYear = today >= year.startDate && today <= year.endDate
+  const workingDay = (core.workingDays ?? ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']).includes(weekdayCode(today))
+  const holidayFor = (branchId) => holidays.find((h) => !h.branchIds?.length || h.branchIds.some((b) => String(b) === String(branchId ?? main?._id)))?.name ?? null
+  const split = new Map()
+  for (const g of genders) {
+    const k = String(g._id.s)
+    if (!split.has(k)) split.set(k, { MALE: 0, FEMALE: 0, OTHER: 0, UNSET: 0 })
+    const row = split.get(k)
+    row[row[g._id.g] == null ? 'UNSET' : g._id.g] += g.n
+  }
+  const bySection = new Map()
+  for (const sh of sheets) {
+    const k = String(sh.sectionId)
+    if (!bySection.has(k)) bySection.set(k, [])
+    bySection.get(k).push(sh)
+  }
+  return {
+    date: today, yearId: String(year._id), inYear, workingDay, mode: att.mode ?? 'DAILY',
+    holiday: holidayFor(null),
+    sections: sections.map((s) => {
+      const holiday = holidayFor(s.branchId)
+      const own = bySection.get(String(s._id)) ?? []
+      const sheet = own.find((x) => x.period === 0) ?? own[0]
+      const off = !s.active || !inYear || !workingDay || !!holiday
+      return {
+        id: String(s._id),
+        genders: split.get(String(s._id)) ?? { MALE: 0, FEMALE: 0, OTHER: 0, UNSET: 0 },
+        holiday,
+        attendance: off && !sheet ? null : {
+          taken: !!sheet, pct: sheet ? attendancePct(sheet.counts) : null, counts: sheet?.counts ?? null,
+          takenBy: sheet?.takenBy ?? null, takenAt: sheet?.takenAt ?? null,
+        },
+      }
+    }),
+  }
+}
+
 async function checkRefs({ subjectIds = [], optionalSubjectIds = [], gradingSchemeId, departmentId }) {
   const errors = {}
   if (subjectIds.length && await Subject.countDocuments({ _id: { $in: subjectIds } }) !== new Set(subjectIds).size) errors.subjectIds = 'Unknown subject'
@@ -342,6 +406,9 @@ async function checkSectionRefs({ branchId, classTeacherId }) {
 
 export async function saveSection(id, input, req) {
   await checkSectionRefs(input)
+  // a set seating layout decides the capacity; clearing it (null) leaves the capacity as typed
+  if (input.seating) { input = { ...input, seating: normSeating(input.seating) }; input.capacity = seatCapacity(input.seating) }
+  else if (input.seating === null) input = { ...input, seating: undefined }
   if (!id) {
     const cls = await ClassLevel.findById(input.classId).lean()
     if (!cls) throw notFound('Class')
@@ -363,7 +430,7 @@ export async function saveSection(id, input, req) {
   Object.assign(s, rest)
   await s.save()
   if (before.name !== s.name) await refreshPlaceKeys({ _id: s._id })
-  await audit(AUDIT('section', { _id: s._id, name: sectionLabel(cls, s) }, `Updated section ${sectionLabel(cls, s)}`, { changes: diffFields(before, s.toObject(), ['name', 'branchId', 'classTeacherId', 'capacity', 'room', 'active']) }), req)
+  await audit(AUDIT('section', { _id: s._id, name: sectionLabel(cls, s) }, `Updated section ${sectionLabel(cls, s)}`, { changes: diffFields(before, s.toObject(), ['name', 'branchId', 'classTeacherId', 'capacity', 'room', 'seating', 'active']) }), req)
   return clean(s.toObject())
 }
 

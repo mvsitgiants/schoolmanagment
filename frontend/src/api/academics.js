@@ -35,6 +35,8 @@ export const deleteGrading = (id) => del(`${BASE}/grading/${id}`)
 
 // classes and sections
 export const fetchClasses = (yearId) => get(`${BASE}/classes`, { yearId: yearId || undefined })
+/** The Class board's extras per section: boys / girls split and today's attendance. */
+export const fetchClassBoard = (yearId) => get(`${BASE}/board`, { yearId: yearId || undefined })
 export const createClass = (body) => post(`${BASE}/classes`, body)
 export const updateClass = (id, body) => patch(`${BASE}/classes/${id}`, body)
 export const deleteClass = (id) => del(`${BASE}/classes/${id}`)
