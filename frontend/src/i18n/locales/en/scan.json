@@ -30,7 +30,10 @@
       "TC": "Transfer certificate",
       "EVENT_PASS": "Event pass",
       "MEETING_PASS": "Meeting pass",
-      "PICKUP_PASS": "Early-pickup pass"
+      "PICKUP_PASS": "Early-pickup pass",
+      "VISITOR": "Visitor",
+      "ASSET": "Asset",
+      "GATE_PASS": "Gate pass"
     },
     "status": {
       "CANCELLED": "Cancelled",
@@ -47,7 +50,10 @@
       "NOTICE": "On notice",
       "REQUESTED": "Requested, not issued",
       "USED": "Used",
-      "ACTIVE": "Valid today"
+      "ACTIVE": "Valid today",
+      "IN_STORE": "In store",
+      "UNDER_REPAIR": "Under repair",
+      "DISPOSED": "Disposed"
     },
     "action": {
       "profile": "Open student profile",
@@ -63,7 +69,13 @@
       "tcRegister": "Open the TC register",
       "checkIn": "Check in",
       "arrived": "Mark arrived",
-      "handOver": "Hand the child over"
+      "handOver": "Hand the child over",
+      "gatePassLeft": "Mark left on the gate pass",
+      "visitorOut": "Check the visitor out",
+      "verifyAsset": "Verify — seen here",
+      "assets": "Open assets",
+      "outpassOut": "Mark out on the outpass",
+      "outpassIn": "Mark back in"
     },
     "gate": {
       "title": "Gate scanner",
@@ -152,6 +164,24 @@
       "handedOver": "Handed over at {{time}} by {{by}}",
       "collectedBy": "To be collected by",
       "checkId": "Ask for photo ID and match the name before handing over."
+    },
+    "gatePass": {
+      "approved": "Approved gate pass {{no}} for today",
+      "left": "Left on the gate pass at {{time}}",
+      "with": "With {{name}} {{relation}}"
+    },
+    "visitor": {
+      "inSince": "In since {{time}} · badge {{badge}}",
+      "out": "Checked out at {{time}}"
+    },
+    "asset": {
+      "verified": "Last seen in an audit on {{when}} by {{by}}",
+      "never": "Not verified in an audit yet"
+    },
+    "outpass": {
+      "approved": "Approved outpass {{no}}",
+      "out": "Out on outpass {{no}} since {{time}}",
+      "returnBy": "Back by {{when}}"
     }
   }
 }

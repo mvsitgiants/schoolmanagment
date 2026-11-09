@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { BadgeCheck, CalendarRange, Clock, ConciergeBell, DoorOpen, LogOut, Phone, Search, UserPlus, Users } from 'lucide-react'
+import { BadgeCheck, CalendarRange, QrCode, Clock, ConciergeBell, DoorOpen, LogOut, Phone, Search, UserPlus, Users } from 'lucide-react'
 import { FO_ID_TYPES, FO_VISIT_PURPOSES, foDurationLabel } from '@schoolgiant/shared'
 import {
   CodeBadge, ColumnBars, DataTable, Drawer, EmptyState, FactGrid, FormField, Input, Modal, Note, PageContainer, PageHeader, Panel, PersonCell,
@@ -15,6 +15,7 @@ import { hasPermission } from '../../api/auth'
 import useDebouncedValue from '../../hooks/useDebouncedValue'
 import { useFormat } from '../../context/SettingsContext'
 import { useSnackbar } from '../../context/SnackbarContext'
+import { printQrCards } from '../../components/scan/printPoster'
 
 const EMPTY = { name: '', mobile: '', purpose: 'MEET_STAFF', purposeNote: '', from: '', people: 1, hostId: '', student: null, idType: '', idNumber: '', photo: '', badgeNo: '', vehicleNo: '', note: '' }
 const PAGE = 50
@@ -205,7 +206,28 @@ function LogTable({ rows, loading, onOpen, withDate = false, pagination, exportA
 }
 
 /** Front office › Visitor log: check visitors in and out; who is in the building now; today's and this week's numbers. */
+/** Numbered visitor badges with a QR (VB-<no>): hand one out at check-in (the badge field); the gate scans it on the way out. */
+function BadgeCards({ onClose }) {
+  const { t } = useTranslation('frontoffice')
+  const [from, setFrom] = useState(1)
+  const [to, setTo] = useState(30)
+  const n = Math.max(0, Math.min(200, Number(to) - Number(from) + 1))
+  return (
+    <Modal open onClose={onClose} size="sm" title={t('frontoffice.visitors.badgeCards')} footer={<>
+      <Button variant="secondary" onClick={onClose}>{t('frontoffice.common.cancel')}</Button>
+      <Button icon={QrCode} disabled={!n} onClick={() => { printQrCards({ title: t('frontoffice.visitors.badgeCards'), heading: t('frontoffice.visitors.badgeHeading'), items: Array.from({ length: n }, (_, i) => ({ code: `VB-${Number(from) + i}`, label: String(Number(from) + i) })) }); onClose() }}>{t('frontoffice.visitors.printBadges', { count: n })}</Button>
+    </>}>
+      <p className="text-sm text-ink-muted mb-3">{t('frontoffice.visitors.badgeCardsHint')}</p>
+      <div className="grid grid-cols-2 gap-3">
+        <FormField label={t('frontoffice.visitors.badgeFrom')}><Input type="number" min="1" value={from} onChange={(e) => setFrom(e.target.value)} /></FormField>
+        <FormField label={t('frontoffice.visitors.badgeTo')}><Input type="number" min="1" value={to} onChange={(e) => setTo(e.target.value)} /></FormField>
+      </div>
+    </Modal>
+  )
+}
+
 export default function FrontOfficeVisitors() {
+  const [badges, setBadges] = useState(false)
   const { t } = useTranslation('frontoffice')
   const L = useFoLabels()
   const qc = useQueryClient()
@@ -241,7 +263,11 @@ export default function FrontOfficeVisitors() {
   return (
     <PageContainer>
       <PageHeader icon={ConciergeBell} title={t('frontoffice.visitors.title')} subtitle={t('frontoffice.visitors.subtitle')}
-        actions={hasPermission('frontoffice.visitors.create') && <Button icon={UserPlus} onClick={() => setAdding(true)}>{t('frontoffice.visitors.checkIn')}</Button>} />
+        actions={<>
+          {hasPermission('frontoffice.visitors.create') && <Button variant="secondary" icon={QrCode} onClick={() => setBadges(true)}>{t('frontoffice.visitors.badgeCards')}</Button>}
+          {hasPermission('frontoffice.visitors.create') && <Button icon={UserPlus} onClick={() => setAdding(true)}>{t('frontoffice.visitors.checkIn')}</Button>}
+        </>} />
+      {badges && <BadgeCards onClose={() => setBadges(false)} />}
       {error && <EmptyState error={error} onRetry={refetch} />}
       {s && <StatCardRow items={[
         { icon: DoorOpen, tone: s.inside ? 'success' : 'neutral', label: t('frontoffice.visitors.statInside'), value: s.inside },

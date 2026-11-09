@@ -21,3 +21,30 @@ export async function printQrPoster({ title, text, url, footer }) {
   doc.body.append(box)
   setTimeout(() => w.print(), 300)
 }
+
+/**
+ * Print a sheet of QR cards (3 × 4 per A4 page): each with its code as a QR and a big label under it — visitor badges
+ * (VB-1 … VB-50) and the like. `items` [{ code, label, sub? }], `heading`: printed on each card above the QR.
+ */
+export async function printQrCards({ title, heading, items }) {
+  const svgs = await Promise.all(items.map((it) => QRCode.toString(it.code, { type: 'svg', errorCorrectionLevel: 'M', margin: 1 })))
+  const w = window.open('', '_blank', 'width=820,height=1000')
+  if (!w) return
+  const doc = w.document
+  doc.title = title
+  const style = doc.createElement('style')
+  style.textContent = '@page{size:A4;margin:8mm}body{margin:0;font-family:system-ui,sans-serif}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6mm}.card{border:1px dashed #999;border-radius:4mm;padding:4mm;text-align:center;break-inside:avoid;height:62mm;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center}.h{font-size:9pt;color:#555;text-transform:uppercase;letter-spacing:.06em}.q svg{width:34mm;height:34mm}.l{font-size:20pt;font-weight:800;letter-spacing:.06em;margin-top:2mm}.s{font-size:8pt;color:#555}'
+  doc.head.append(style)
+  const grid = doc.createElement('div'); grid.className = 'grid'
+  items.forEach((it, i) => {
+    const c = doc.createElement('div'); c.className = 'card'
+    const h = doc.createElement('div'); h.className = 'h'; h.textContent = heading
+    const q = doc.createElement('div'); q.className = 'q'; q.innerHTML = svgs[i] // qrcode's own SVG for our code
+    const l = doc.createElement('div'); l.className = 'l'; l.textContent = it.label
+    c.append(h, q, l)
+    if (it.sub) { const s = doc.createElement('div'); s.className = 's'; s.textContent = it.sub; c.append(s) }
+    grid.append(c)
+  })
+  doc.body.append(grid)
+  setTimeout(() => w.print(), 400)
+}

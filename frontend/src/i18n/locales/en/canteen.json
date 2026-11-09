@@ -1,15 +1,64 @@
 {
   "canteen": {
-    "categories": { "SNACK": "Snack", "MEAL": "Meal", "BEVERAGE": "Beverage" },
-    "marks": { "VEG": "Veg", "NON_VEG": "Non-veg", "EGG": "Contains egg" },
-    "tags": { "FRIED": "Fried", "SUGARY": "Sugary", "CAFFEINE": "Caffeine", "SPICY": "Spicy", "PACKAGED": "Packaged" },
-    "days": { "MON": "Mon", "TUE": "Tue", "WED": "Wed", "THU": "Thu", "FRI": "Fri", "SAT": "Sat", "SUN": "Sun" },
-    "txn": { "TOP_UP": "Top-up", "PURCHASE": "Purchase", "REFUND": "Refund to family", "ADJUSTMENT": "Adjustment" },
-    "orderStatus": { "PLACED": "Placed", "READY": "Ready", "COLLECTED": "Collected", "SERVED": "Served", "CANCELLED": "Cancelled" },
-    "payModes": { "WALLET": "Wallet", "CASH": "Cash" },
-    "modes": { "CASH": "Cash", "UPI": "UPI", "ONLINE": "Online", "BANK": "Bank transfer" },
-    "sources": { "COUNTER": "Counter", "PREORDER": "Pre-order" },
-    "topupStatus": { "CREATED": "Waiting for payment", "APPLIED": "Added to wallet", "FAILED": "Failed", "NEEDS_REVIEW": "Needs review" },
+    "categories": {
+      "SNACK": "Snack",
+      "MEAL": "Meal",
+      "BEVERAGE": "Beverage"
+    },
+    "marks": {
+      "VEG": "Veg",
+      "NON_VEG": "Non-veg",
+      "EGG": "Contains egg"
+    },
+    "tags": {
+      "FRIED": "Fried",
+      "SUGARY": "Sugary",
+      "CAFFEINE": "Caffeine",
+      "SPICY": "Spicy",
+      "PACKAGED": "Packaged"
+    },
+    "days": {
+      "MON": "Mon",
+      "TUE": "Tue",
+      "WED": "Wed",
+      "THU": "Thu",
+      "FRI": "Fri",
+      "SAT": "Sat",
+      "SUN": "Sun"
+    },
+    "txn": {
+      "TOP_UP": "Top-up",
+      "PURCHASE": "Purchase",
+      "REFUND": "Refund to family",
+      "ADJUSTMENT": "Adjustment"
+    },
+    "orderStatus": {
+      "PLACED": "Placed",
+      "READY": "Ready",
+      "COLLECTED": "Collected",
+      "SERVED": "Served",
+      "CANCELLED": "Cancelled"
+    },
+    "payModes": {
+      "WALLET": "Wallet",
+      "CASH": "Cash"
+    },
+    "modes": {
+      "CASH": "Cash",
+      "UPI": "UPI",
+      "ONLINE": "Online",
+      "BANK": "Bank transfer"
+    },
+    "sources": {
+      "COUNTER": "Counter",
+      "PREORDER": "Pre-order"
+    },
+    "topupStatus": {
+      "CREATED": "Waiting for payment",
+      "APPLIED": "Added to wallet",
+      "FAILED": "Failed",
+      "NEEDS_REVIEW": "Needs review"
+    },
     "menu": {
       "title": "Menu",
       "subtitle": "What the canteen sells, on which days, and today's sold-out switches.",
@@ -86,7 +135,8 @@
       "noTag": "No {{tag}}",
       "itemsBlocked_one": "{{count}} item blocked",
       "itemsBlocked_other": "{{count}} items blocked",
-      "nothingToday": "Nothing is on sale today. Check the menu's days."
+      "nothingToday": "Nothing is on sale today. Check the menu's days.",
+      "scanCamera": "Scan the ID card with the camera"
     },
     "wallet": {
       "balance": "Wallet balance",
@@ -139,7 +189,11 @@
       "title": "Orders",
       "subtitle": "The counter, the day's pre-orders from parents, and the day's takings.",
       "day": "Day",
-      "tabs": { "counter": "Counter", "preorders": "Pre-orders", "summary": "Day summary" },
+      "tabs": {
+        "counter": "Counter",
+        "preorders": "Pre-orders",
+        "summary": "Day summary"
+      },
       "walkIn": "Walk-in",
       "no": "Order",
       "student": "Student",
@@ -185,7 +239,11 @@
       "today": "Topped up today",
       "review": "Online top-ups to check",
       "reviewSub": "Paid but not added",
-      "filters": { "ALL": "All", "LOW": "Low balance", "LIMITED": "With controls" },
+      "filters": {
+        "ALL": "All",
+        "LOW": "Low balance",
+        "LIMITED": "With controls"
+      },
       "search": "Search name, admission no or card",
       "student": "Student",
       "todaySpend": "Today",

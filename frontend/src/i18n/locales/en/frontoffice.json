@@ -138,7 +138,14 @@
       "tabToday": "Today's log",
       "tabSearch": "Search the log",
       "search": "Name, mobile, badge or host",
-      "emptyLog": "No visitors"
+      "emptyLog": "No visitors",
+      "badgeCards": "Print badge cards",
+      "badgeHeading": "Visitor",
+      "badgeCardsHint": "Numbered cards with a QR code. Give one out at check-in (type its number in “Badge”); the gate scans it on the way out to check the visitor out.",
+      "badgeFrom": "From number",
+      "badgeTo": "To number",
+      "printBadges_one": "Print {{count}} card",
+      "printBadges_other": "Print {{count}} cards"
     },
     "passes": {
       "title": "Gate passes",

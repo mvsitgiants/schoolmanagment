@@ -24,6 +24,8 @@ async function allRows(fetchPage, params, max = 5000) {
 
 export const fetchStudents = (params) => list(BASE, params)
 export const fetchStudent = (id, { reveal = false } = {}) => get(`${BASE}/${id}`, reveal ? { reveal: 1 } : undefined)
+/** Student 360: the student's school life — a section per module the caller may see (attendance, fees, exams …). */
+export const fetchStudentOverview = (id) => get(`${BASE}/${id}/overview`)
 export const admitStudent = (body) => post(BASE, body)
 export const updateStudent = (id, body) => patch(`${BASE}/${id}`, body)
 export const setStudentStatus = (id, status) => post(`${BASE}/${id}/status`, { status })

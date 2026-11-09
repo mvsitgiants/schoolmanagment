@@ -14,6 +14,7 @@ import { candidateAtDoor } from './exams.js'
 import { passResult, readPass } from './passes.js'
 import { GatePass, Visitor } from '../models/frontOffice.js'
 import { StoreAsset } from '../models/inventory.js'
+import { Outpass } from '../models/hostel.js'
 import { campusFilter } from './frontOffice.js'
 import { institutionNow } from '../platform/time.js'
 import { scopeFilter } from './students.js'
@@ -106,8 +107,17 @@ async function studentResult(s, auth) {
       if (p.status === 'APPROVED') actions.unshift({ key: 'gatePassLeft', post: `/v1/scan/gate-pass/${p._id}/left` })
     }
   }
+  // a boarder at the hostel gate: an approved outpass to mark out, or one they are out on to mark back in
+  let outpass = null
+  if (on(auth, 'hostel', 'hostel.outpass.create', 'hostel.outpass.approve')) {
+    const o = await Outpass.findOne({ studentId: s._id, status: { $in: ['APPROVED', 'OUT'] } }).sort({ createdAt: -1 }).lean()
+    if (o) {
+      outpass = { id: String(o._id), no: o.outpassNo, status: o.status, leaveAt: o.leaveAt ?? null, returnBy: o.returnBy ?? null, outAt: o.outAt ?? null, reason: o.reason ?? null }
+      actions.unshift({ key: o.status === 'APPROVED' ? 'outpassOut' : 'outpassIn', post: `/v1/scan/outpass/${o._id}/${o.status === 'APPROVED' ? 'out' : 'in'}` })
+    }
+  }
   return {
-    kind: 'STUDENT', id: String(s._id), title: studentName(s), subtitle: [place, s.admissionNo, s.rollNo && `Roll ${s.rollNo}`].filter(Boolean).join(' · '), gatePass,
+    kind: 'STUDENT', id: String(s._id), title: studentName(s), subtitle: [place, s.admissionNo, s.rollNo && `Roll ${s.rollNo}`].filter(Boolean).join(' · '), gatePass, outpass,
     student: { id: String(s._id), name: studentName(s), admissionNo: s.admissionNo, sectionId: s.sectionId ? String(s.sectionId) : null, class: place },
     status: s.status === 'ACTIVE' ? null : s.status, actions,
   }

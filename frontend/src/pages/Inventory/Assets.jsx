@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import clsx from 'clsx'
-import { Archive, DoorOpen, IndianRupee, LayoutGrid, List, Package, Pencil, Plus, ShieldCheck, Trash2, Wrench } from 'lucide-react'
+import { Archive, DoorOpen, IndianRupee, LayoutGrid, List, Package, Pencil, Plus, ShieldCheck, Trash2, Wrench, Printer } from 'lucide-react'
 import { ASSET_CATEGORIES, ASSET_CONDITIONS, ASSET_DISPOSAL_METHODS, ASSET_MAINTENANCE_KINDS, ASSET_STATUS, formatINR } from '@schoolgiant/shared'
 import {
   CodeBadge, ColorChip, DataTable, DateCell, Drawer, EmptyState, Fact, FactGrid, FormField, HeaderButton, Input, LevelBar, Modal, Money, Note, PageContainer, PageHeader, Panel,
@@ -15,6 +15,7 @@ import useDebouncedValue from '../../hooks/useDebouncedValue'
 import { useSnackbar } from '../../context/SnackbarContext'
 import { useFormat } from '../../context/SettingsContext'
 import { ASSET_ICON, AssetPill, CampusSelect, ConditionPill, paiseOf, rupeesOf, useInventoryLabels, useInventoryMeta } from '../../components/inventory/InventoryKit'
+import { printDocuments } from '../../components/print/printDocument'
 
 const STATUS_DOT = { IN_USE: 'bg-emerald-500', IN_STORE: 'bg-blue-500', UNDER_REPAIR: 'bg-amber-500', DISPOSED: 'bg-slate-400' }
 
@@ -245,7 +246,7 @@ export default function Assets() {
   const [category, setCategory] = useState('')
   const [status, setStatus] = useState('ACTIVE')
   const [view, setView] = useState('board')
-  const [search, setSearch] = useState('')
+  const [search, setSearch] = useState(() => new URLSearchParams(window.location.search).get('search') ?? '') // a scanned tag opens here
   const q = useDebouncedValue(search.trim(), 300)
   const [editing, setEditing] = useState(null)
   const [open, setOpen] = useState(null)
@@ -266,6 +267,7 @@ export default function Assets() {
       <PageHeader icon={Package} title={t('inventory.assets.pageTitle')} subtitle={t('inventory.assets.pageSubtitle')}
         actions={<>
           <CampusSelect value={branchId} onChange={setBranchId} />
+          {rows.length > 0 && <HeaderButton icon={Printer} onClick={() => printDocuments('ASSET_LABEL', rows.slice(0, 300).map((a) => a.id))}>{t('inventory.assets.printLabels', { count: Math.min(rows.length, 300) })}</HeaderButton>}
           <HeaderButton icon={Plus} variant="primary" requires="inventory.assets.create" onClick={() => setEditing('new')}>{t('inventory.assets.new')}</HeaderButton>
         </>} />
       <SideNavLayout nav={<SideNav title={t('inventory.assets.categories')} value={category} onChange={(v) => setCategory(v ?? '')} items={[

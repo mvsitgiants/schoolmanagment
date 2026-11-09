@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { Award, BookCopy, CalendarHeart, CheckCircle2, DoorOpen, HandHelping, HelpCircle, Receipt, ScanQrCode, ShieldAlert, Ticket, UserRound, UsersRound } from 'lucide-react'
+import { Award, BookCopy, Boxes, CalendarHeart, DoorClosed, CheckCircle2, DoorOpen, HandHelping, HelpCircle, Receipt, ScanQrCode, ShieldAlert, Ticket, UserRound, UsersRound } from 'lucide-react'
 import { Modal, PhoneLink, StatusPill } from '../system'
 import Button from '../ui/Button'
 import { fetchGates, resolveCode } from '../../api/scan'
@@ -10,7 +10,7 @@ import api from '../../api/client'
 import { useFormat } from '../../context/SettingsContext'
 import { ScanDialog, scanFeedback } from './Scanner'
 
-const KIND_ICON = { EVENT_PASS: CalendarHeart, MEETING_PASS: UsersRound, PICKUP_PASS: HandHelping, TC: Award, HALL_TICKET: Ticket, STUDENT: UserRound, STAFF: UsersRound, BOOK: BookCopy, RECEIPT: Receipt, CERTIFICATE: Award, UNKNOWN: HelpCircle }
+const KIND_ICON = { VISITOR: DoorClosed, ASSET: Boxes, EVENT_PASS: CalendarHeart, MEETING_PASS: UsersRound, PICKUP_PASS: HandHelping, TC: Award, HALL_TICKET: Ticket, STUDENT: UserRound, STAFF: UsersRound, BOOK: BookCopy, RECEIPT: Receipt, CERTIFICATE: Award, UNKNOWN: HelpCircle }
 export const OPEN_SCAN_EVENT = 'sg:open-scan'
 export const openScan = () => window.dispatchEvent(new Event(OPEN_SCAN_EVENT))
 
@@ -100,6 +100,30 @@ export default function GlobalScan() {
                   {result.reason && <p className="mt-1 text-sm text-ink-muted">{result.reason}</p>}
                   {result.valid && <p className="mt-2 text-xs text-amber-700">{t('scan.pass.checkId')}</p>}
                 </div>
+              )}
+              {result.kind === 'STUDENT' && result.gatePass && (
+                <div className={`rounded-lg p-3 text-sm ${result.gatePass.status === 'LEFT' ? 'bg-success-50 text-success-800' : 'bg-amber-50 text-amber-900'}`}>
+                  <p className="font-semibold">{result.gatePass.status === 'LEFT' ? t('scan.gatePass.left', { time: time(result.gatePass.leftAt) }) : t('scan.gatePass.approved', { no: result.gatePass.passNo })}</p>
+                  {result.gatePass.collector && <p className="mt-0.5">{t('scan.gatePass.with', { name: result.gatePass.collector, relation: result.gatePass.relation ?? '' })}</p>}
+                  {result.gatePass.reason && <p className="mt-0.5 text-xs opacity-80">{result.gatePass.reason}</p>}
+                </div>
+              )}
+              {result.kind === 'STUDENT' && result.outpass && (
+                <div className={`rounded-lg p-3 text-sm ${result.outpass.status === 'OUT' ? 'bg-violet-50 text-violet-900' : 'bg-brand-50 text-brand-900'}`}>
+                  <p className="font-semibold">{result.outpass.status === 'OUT' ? t('scan.outpass.out', { no: result.outpass.no, time: time(result.outpass.outAt) }) : t('scan.outpass.approved', { no: result.outpass.no })}</p>
+                  {result.outpass.returnBy && <p className="mt-0.5">{t('scan.outpass.returnBy', { when: `${date(result.outpass.returnBy)} ${time(result.outpass.returnBy)}` })}</p>}
+                  {result.outpass.reason && <p className="mt-0.5 text-xs opacity-80">{result.outpass.reason}</p>}
+                </div>
+              )}
+              {result.kind === 'VISITOR' && (
+                <div className={`rounded-lg px-3 py-2.5 text-sm font-medium ${result.outAt ? 'bg-success-50 text-success-700' : 'bg-brand-50 text-brand-800'}`}>
+                  {result.outAt ? t('scan.visitor.out', { time: time(result.outAt) }) : t('scan.visitor.inSince', { time: time(result.inAt), badge: result.badgeNo ?? '—' })}
+                </div>
+              )}
+              {result.kind === 'ASSET' && (
+                <p className={`rounded-lg px-3 py-2.5 text-sm ${result.lastVerified ? 'bg-success-50 text-success-700' : 'bg-black/[0.04] text-ink-muted'}`}>
+                  {result.lastVerified ? t('scan.asset.verified', { when: date(result.lastVerified.at), by: result.lastVerified.by ?? '' }) : t('scan.asset.never')}
+                </p>
               )}
               {result.error && result.kind !== 'UNKNOWN' && <p className="text-sm text-danger-600">{result.error}</p>}
               {result.kind === 'UNKNOWN' && <p className="text-sm text-ink-muted">{result.error ?? t('scan.unknownHint')}</p>}

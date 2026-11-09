@@ -4,6 +4,7 @@ import { can } from '../platform/access.js'
 import { authenticate, requireModule, requirePermission, subscriptionGate, tenantOnly } from '../platform/middleware.js'
 import { email, mobile, objectId, optionalText, pageParams, z } from '../platform/validate.js'
 import { getStudentPhoto, idCardList, setStudentPhoto } from '../services/students.js'
+import { studentOverview } from '../services/student360.js'
 import {
   admitStudent, cancelTc, getStudent, importStudents, issueTc, listGuardians, listStudents, listTcs, promotionPreview, requestTc,
   runPromotion, setStudentStatus, updateStudent,
@@ -125,6 +126,11 @@ router.get('/:id/photo', requirePermission('students.profile.view', 'students.id
 })
 router.put('/:id/photo', requirePermission('students.profile.edit', 'students.id-cards.print'), async (req, res) => {
   res.json({ data: await setStudentPhoto(objectId.parse(req.params.id), z.object({ photo }).parse(req.body).photo, req.auth, req) })
+})
+
+// Student 360: the student's school life in one read — a section per module the caller may see (services/student360.js)
+router.get('/:id/overview', requirePermission('students.profile.view'), async (req, res) => {
+  res.json({ data: await studentOverview(objectId.parse(req.params.id), req.auth) })
 })
 
 router.get('/:id', requirePermission('students.profile.view'), async (req, res) => {

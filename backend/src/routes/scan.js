@@ -7,6 +7,8 @@ import { phoneScanners } from '../services/devices.js'
 import { gateScan, mayUseScanner, myPunchCode, resolveCode } from '../services/scan.js'
 import { usePass } from '../services/passes.js'
 import { checkOutVisitor, markLeft } from '../services/frontOffice.js'
+import { gateOutpass } from '../services/hostel.js'
+import { Student } from '../models/students.js'
 import { verifyAsset } from '../services/inventoryAssets.js'
 import { staffSelfPunch, staffSelfStatus } from '../services/selfAttendance.js'
 import { forbidden } from '../platform/errors.js'
@@ -50,6 +52,14 @@ router.post('/passes/:kind/:id/:what', async (req, res) => {
 router.post('/visitor/:id/check-out', async (req, res) => {
   if (!on(req.auth, 'frontoffice', 'frontoffice.visitors.checkout')) throw forbidden('Checking visitors out needs “Visitors › Check out”.')
   res.json({ data: visitorAfterCheckout(await checkOutVisitor(objectId.parse(req.params.id), req.auth, req)) })
+})
+/** Hostel gate: a boarder out on an approved outpass, or back in. The Scan sheet then shows the student again. */
+router.post('/outpass/:id/:dir', async (req, res) => {
+  if (!on(req.auth, 'hostel', 'hostel.outpass.create', 'hostel.outpass.approve')) throw forbidden('The hostel gate needs “Outpass › Create”.')
+  const { dir } = z.object({ dir: z.enum(['out', 'in']) }).parse(req.params)
+  const o = await gateOutpass(objectId.parse(req.params.id), dir === 'out' ? 'OUT' : 'IN', req.auth, req)
+  const s = o.studentId ? await Student.findById(o.studentId).select('admissionNo').lean() : null
+  res.json({ data: s ? await resolveCode(s.admissionNo, req.auth) : { kind: 'UNKNOWN', title: o.outpassNo ?? '', actions: [] } })
 })
 router.post('/asset/:id/verify', async (req, res) => {
   if (!on(req.auth, 'inventory', 'inventory.assets.edit')) throw forbidden('Verifying assets needs “Assets › Edit”.')

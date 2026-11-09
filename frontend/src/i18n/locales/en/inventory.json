@@ -518,7 +518,9 @@
       "method": "How",
       "soldFor": "Sold for (₹)",
       "disposed": "Asset disposed",
-      "disposedNote": "{{method}} on {{date}}: {{reason}}"
+      "disposedNote": "{{method}} on {{date}}: {{reason}}",
+      "printLabels_one": "Print {{count}} label",
+      "printLabels_other": "Print {{count}} labels"
     }
   }
 }

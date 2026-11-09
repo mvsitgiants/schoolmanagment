@@ -6,6 +6,7 @@ import { CANTEEN_CATEGORIES, canteenBlockReason, canteenTotal, canteenWalletChec
 import { FormField, Input, Modal, Note, PersonCell, SegmentedControl } from '../system'
 import Button from '../ui/Button'
 import { createOrder, fetchTodayMenu, fetchWallet, findStudents, topUpWallet } from '../../api/canteen'
+import { ScanDialog, cardCodeOf } from '../scan/Scanner'
 import { hasPermission } from '../../api/auth'
 import { useSnackbar } from '../../context/SnackbarContext'
 import { Balance, FoodMark, ItemTile, SpendBar, useCanteenLabels } from './CanteenKit'
@@ -84,8 +85,10 @@ export default function CounterPos() {
     // drop what the family has ruled out
     setCart((c) => Object.fromEntries(Object.entries(c).filter(([id]) => byId.get(id) && !canteenBlockReason(byId.get(id), s))))
   }
+  const [camera, setCamera] = useState(false)
+  // a scanner gun types the card code; the camera reads the card's QR (a check link) — both come down to the code
   const find = useMutation({
-    mutationFn: () => findStudents(q.trim()),
+    mutationFn: (code) => findStudents(cardCodeOf(code ?? q).trim()),
     onSuccess: (rows) => { if (rows.length === 1) pick(rows[0]); else setMatches(rows) },
     onError: (e) => showError(e.message),
   })
@@ -103,10 +106,14 @@ export default function CounterPos() {
     <div className="grid gap-4 lg:grid-cols-[300px_minmax(0,1fr)_320px] items-start">
       {/* who */}
       <section className="space-y-3 lg:sticky lg:top-4">
-        <form onSubmit={(e) => { e.preventDefault(); if (q.trim()) find.mutate() }} className="relative">
-          <ScanLine className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-faint" />
-          <Input ref={findRef} value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('canteen.counter.findPlaceholder')} className="ps-9" autoComplete="off" />
+        <form onSubmit={(e) => { e.preventDefault(); if (q.trim()) find.mutate() }} className="flex gap-2">
+          <div className="relative flex-1 min-w-0">
+            <ScanLine className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-faint" />
+            <Input ref={findRef} value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('canteen.counter.findPlaceholder')} className="ps-9" autoComplete="off" />
+          </div>
+          <Button type="button" variant="secondary" icon={ScanLine} aria-label={t('canteen.counter.scanCamera')} title={t('canteen.counter.scanCamera')} onClick={() => setCamera(true)} />
         </form>
+        <ScanDialog open={camera} onClose={() => setCamera(false)} onCode={(c) => find.mutate(c)} title={t('canteen.counter.scanCamera')} />
         <p className="text-[11px] text-ink-faint">{t('canteen.counter.findHint')}</p>
         {matches && (
           <div className="rounded-xl border border-border bg-surface divide-y divide-border">
