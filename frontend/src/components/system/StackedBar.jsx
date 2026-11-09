@@ -1,18 +1,5 @@
 import clsx from 'clsx'
 
-/**
- * A single 100%-wide bar split into parts — good/rework/scrap, run/idle/breakdown,
- * delivered/ready/in-production. Says "what is this total made of" in one row,
- * where a donut would need its own card.
- *
- *   <StackedBar
- *     segments={[{ label: 'Good', value: 95, color: '#1F9D66' }, { label: 'Scrap', value: 5, color: '#D64545' }]}
- *     total={100} unit=" units"
- *   />
- *
- * `total` lets the bar show a shortfall: pass the planned figure and the segments
- * stop short of the end instead of being re-based to themselves.
- */
 // a label inside a fill: white, but dark ink on the light fills (yellow / amber) where white can't be read
 const inkOn = (hex) => {
   const m = /^#([0-9a-f]{6})$/i.exec(String(hex ?? ''))
@@ -21,8 +8,18 @@ const inkOn = (hex) => {
   return 0.2126 * r + 0.7152 * g + 0.0722 * b > 0.35 ? '#12141C' : '#FFFFFF'
 }
 
+/**
+ * A single 100%-wide bar split into parts with modern rounded caps,
+ * subtle gaps, and interactive legend with percentages.
+ */
 export default function StackedBar({
-  segments = [], total, unit = '', height = 26, legend = true, format, className,
+  segments = [],
+  total,
+  unit = '',
+  height = 24,
+  legend = true,
+  format,
+  className,
 }) {
   const parts = segments.filter((s) => Number(s.value) > 0)
   const sum = parts.reduce((n, s) => n + Number(s.value || 0), 0)
@@ -32,32 +29,48 @@ export default function StackedBar({
 
   return (
     <div className={clsx('min-w-0', className)}>
-      {/* segments sit 2px apart on the surface — the gap separates them, never a border */}
-      <div className="flex gap-[2px] rounded-md overflow-hidden" style={{ height }} role="img"
-        aria-label={parts.map((s) => `${s.label}: ${fmt(s.value)}`).join(', ')}>
+      <div
+        className="flex gap-1 rounded-xl overflow-hidden p-0.5 bg-slate-100/90 shadow-inner"
+        style={{ height }}
+        role="img"
+        aria-label={parts.map((s) => `${s.label}: ${fmt(s.value)}`).join(', ')}
+      >
         {parts.map((s) => {
           const share = (Number(s.value) / base) * 100
           const text = fmt(s.value)
-          // a label only when it fits with room to spare (≈ 7px a character); else the legend carries it
           const fits = share > 0 && (share / 100) * 320 > String(text).length * 7 + 12
           return (
-            <div key={s.label} title={`${s.label}: ${text}`} style={{ width: `${share}%`, backgroundColor: s.color, color: inkOn(s.color) }}
-              className="flex items-center justify-center text-[11px] font-semibold whitespace-nowrap min-w-[2px]">
+            <div
+              key={s.label}
+              title={`${s.label}: ${text}`}
+              style={{ width: `${share}%`, backgroundColor: s.color, color: inkOn(s.color) }}
+              className="flex items-center justify-center text-[11px] font-bold whitespace-nowrap min-w-[3px] rounded-lg shadow-sm transition-all hover:brightness-110"
+            >
               {fits ? text : ''}
             </div>
           )
         })}
-        {shortfall > 0 && <div style={{ width: `${(shortfall / base) * 100}%` }} className="bg-black/5" />}
+        {shortfall > 0 && (
+          <div
+            style={{ width: `${(shortfall / base) * 100}%` }}
+            className="bg-slate-200/50 rounded-lg"
+            title={`Remaining: ${fmt(shortfall)}`}
+          />
+        )}
       </div>
       {legend && (
-        <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-[11px] text-ink-muted">
-          {parts.map((s) => (
-            <span key={s.label} className="inline-flex items-center gap-1.5">
-              <i className="w-2.5 h-2.5 rounded-sm inline-block" style={{ backgroundColor: s.color }} />
-              {s.label}
-              <span className="font-mono-num tabular-nums text-ink">{fmt(s.value)}</span>
-            </span>
-          ))}
+        <div className="flex flex-wrap gap-x-4 gap-y-1.5 mt-2.5 text-xs text-ink-muted">
+          {parts.map((s) => {
+            const pct = Math.round((Number(s.value) / base) * 100)
+            return (
+              <span key={s.label} className="inline-flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full inline-block shadow-sm" style={{ backgroundColor: s.color }} />
+                <span className="text-ink font-medium">{s.label}</span>
+                <span className="font-mono-num tabular-nums text-ink font-semibold">{fmt(s.value)}</span>
+                <span className="text-[10px] text-ink-faint font-medium bg-slate-100 px-1 py-0.2 rounded">{pct}%</span>
+              </span>
+            )
+          })}
         </div>
       )}
     </div>

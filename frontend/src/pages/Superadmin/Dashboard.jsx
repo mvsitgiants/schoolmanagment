@@ -49,7 +49,7 @@ export default function Dashboard() {
         actions={canPlatform('billing') && <Button variant="secondary" icon={PlayCircle} loading={billing.isPending} onClick={() => billing.mutate()}>{t('superadmin.dashboard.runBilling')}</Button>} />
 
       <StatCardRow items={[
-        { icon: TrendingUp, label: t('superadmin.dashboard.mrr'), value: formatINRCompact(d.mrr), sub: t('superadmin.dashboard.mrrSub', { arr: formatINRCompact(d.arr), monthly: formatINR(Math.round(d.mrr / 100) * 100) }), tone: 'brand' },
+        { icon: TrendingUp, label: t('superadmin.dashboard.mrr'), value: formatINRCompact(d.mrr), sub: t('superadmin.dashboard.mrrSub', { arr: formatINRCompact(d.arr), monthly: formatINR(Math.round(d.mrr / 100) * 100) }), tone: 'brand', trend: d.signupsByWeek.map((w) => w.signups) },
         { icon: Building2, label: t('superadmin.dashboard.payingInstitutions'), value: d.payingTenants, sub: t('superadmin.dashboard.institutionsInTotal', { count: d.tenants }), tone: 'success', onClick: () => navigate('/superadmin/tenants?status=ACTIVE') },
         { icon: Clock, label: t('superadmin.dashboard.onTrial'), value: d.byStatus.TRIAL ?? 0, sub: t('superadmin.dashboard.endingWithin7', { count: d.trialsEnding.length }), tone: 'info', onClick: () => navigate('/superadmin/tenants?status=TRIAL') },
         { icon: Receipt, label: t('superadmin.dashboard.outstanding'), value: formatINRCompact(d.outstanding), sub: t('superadmin.dashboard.unpaidInvoices', { count: d.outstandingCount }), tone: d.outstanding ? 'warning' : 'neutral', onClick: () => navigate('/superadmin/invoices?status=DUE') },

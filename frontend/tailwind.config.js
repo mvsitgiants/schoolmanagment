@@ -55,14 +55,21 @@ export default {
         mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace']
       },
       borderRadius: {
-        sm: '6px',
-        md: '10px',
-        lg: '14px'
+        sm: '8px',
+        md: '12px',
+        lg: '16px',
+        xl: '20px',
+        '2xl': '24px'
       },
       boxShadow: {
-        // house style: cards are flat — a thin border, no shadow (only floating menus / dialogs use `pop`)
-        card: 'none',
-        pop: '0 4px 12px rgba(16, 24, 40, 0.10)'
+        card: '0 1px 3px 0 rgba(16, 24, 40, 0.05), 0 1px 2px -1px rgba(16, 24, 40, 0.04)',
+        'card-hover': '0 10px 25px -4px rgba(16, 24, 40, 0.08), 0 4px 10px -2px rgba(16, 24, 40, 0.04)',
+        pop: '0 16px 36px -4px rgba(16, 24, 40, 0.12), 0 6px 16px -2px rgba(16, 24, 40, 0.06)',
+        'glow-brand': '0 0 24px -2px rgba(14, 124, 134, 0.25)',
+        'glow-success': '0 0 24px -2px rgba(31, 157, 102, 0.25)',
+        'glow-info': '0 0 24px -2px rgba(51, 88, 214, 0.25)',
+        'glow-amber': '0 0 24px -2px rgba(226, 166, 58, 0.25)',
+        'glow-danger': '0 0 24px -2px rgba(214, 69, 69, 0.25)',
       }
     }
   },

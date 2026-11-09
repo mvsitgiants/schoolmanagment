@@ -1,7 +1,10 @@
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { RANGE_PRESETS, formatINR } from '@schoolgiant/shared'
-import { DataTable, FormField, Input, Select } from '../system'
+import clsx from 'clsx'
+import { BarChart3, Table2, TrendingUp, Layers } from 'lucide-react'
+import { RANGE_PRESETS, formatINR, formatINRCompact } from '@schoolgiant/shared'
+import { DataTable, FormField, Input, Select, MiniBarChart, TrendArea, BreakdownDonut } from '../system'
 import { fetchAcademicLookup } from '../../api/academics'
 import { fetchExams } from '../../api/exams'
 import { getCurrentUser } from '../../api/auth'
@@ -89,10 +92,12 @@ export function ParamsForm({ report, value, onChange, errors = {} }) {
   )
 }
 
-/** A run's rows with its columns formatted by kind, totals underneath, CSV export. */
+/** A run's rows with interactive Chart visualization toggle, formatted columns, totals, CSV export. */
 export function ResultTable({ result, exportName }) {
   const { t } = useTranslation('reports')
   const { date } = useFormat()
+  const [viewMode, setViewMode] = useState('table') // 'table' | 'chart'
+
   const fmt = (c, v) => {
     if (v === null || v === undefined || v === '') return <span className="text-ink-faint">—</span>
     if (c.type === 'money') return formatINR(Number(v))
@@ -100,22 +105,109 @@ export function ResultTable({ result, exportName }) {
     if (c.type === 'date') return date(v)
     return v
   }
+
   const id = result.report.id
   const columns = result.columns.map((c) => ({
-    key: c.key, header: t(`reports.columns.${id}.${c.key}`, c.label), align: ['number', 'money', 'pct'].includes(c.type) ? 'right' : undefined,
-    nowrap: c.type === 'date', sortable: true, render: (v) => fmt(c, v),
+    key: c.key,
+    header: t(`reports.columns.${id}.${c.key}`, c.label),
+    align: ['number', 'money', 'pct'].includes(c.type) ? 'right' : undefined,
+    nowrap: c.type === 'date',
+    sortable: true,
+    render: (v) => fmt(c, v),
   }))
+
+  // Identify numeric & label columns for visual charts
+  const numCol = result.columns.find((c) => c.type === 'money' || c.type === 'number' || c.type === 'pct')
+  const labelCol = result.columns.find((c) => c.key !== numCol?.key && (c.type === 'string' || c.type === 'date' || !c.type)) || result.columns[0]
+  const canChart = !!numCol && result.rows.length > 0
+
+  // Chart data preparation
+  const chartData = canChart
+    ? result.rows.slice(0, 16).map((r) => ({
+        label: String(r[labelCol.key] ?? ''),
+        value: Number(r[numCol.key]) || 0,
+      }))
+    : []
+
+  const isMoney = numCol?.type === 'money'
+  const isPct = numCol?.type === 'pct'
+  const valFormatter = (v) => (isMoney ? formatINRCompact(Number(v)) : isPct ? `${v}%` : String(v))
+
   return (
-    <DataTable
-      rows={result.rows.map((r, i) => ({ ...r, __i: i }))}
-      rowKey="__i"
-      columns={columns}
-      dense
-      exportable exportName={exportName ?? id}
-      maxHeight="65vh"
-      totals={result.totals ? Object.fromEntries(Object.entries(result.totals).map(([k, v]) => [k, fmt(result.columns.find((c) => c.key === k), v)])) : undefined}
-      totalsLabel={t('reports.total')}
-      emptyTitle={t('reports.noRows')}
-    />
+    <div className="space-y-4">
+      {/* Top Controls Bar with Summary Metrics & View Switch */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        {result.totals && (
+          <div className="flex flex-wrap gap-2">
+            {Object.entries(result.totals).map(([k, v]) => {
+              const col = result.columns.find((c) => c.key === k)
+              return (
+                <div key={k} className="px-3 py-1.5 rounded-xl bg-surface border border-border/80 shadow-sm flex items-center gap-2">
+                  <span className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider">
+                    {t(`reports.columns.${id}.${k}`, col?.label ?? k)}:
+                  </span>
+                  <span className="text-sm font-bold text-ink font-mono-num tabular-nums">
+                    {fmt(col, v)}
+                  </span>
+                </div>
+              )
+            })}
+          </div>
+        )}
+
+        {canChart && (
+          <div className="ms-auto inline-flex rounded-xl bg-slate-100 p-1 border border-slate-200/70 shadow-inner">
+            <button
+              type="button"
+              onClick={() => setViewMode('table')}
+              className={clsx(
+                'px-3 py-1 text-xs font-semibold inline-flex items-center gap-1.5 rounded-lg transition-all',
+                viewMode === 'table' ? 'bg-surface text-ink shadow-sm' : 'text-ink-muted hover:text-ink'
+              )}
+            >
+              <Table2 size={13} />
+              <span>{t('reports.tableView')}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('chart')}
+              className={clsx(
+                'px-3 py-1 text-xs font-semibold inline-flex items-center gap-1.5 rounded-lg transition-all',
+                viewMode === 'chart' ? 'bg-surface text-ink shadow-sm' : 'text-ink-muted hover:text-ink'
+              )}
+            >
+              <BarChart3 size={13} />
+              <span>{t('reports.chartView')}</span>
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Visual Chart View */}
+      {viewMode === 'chart' && canChart ? (
+        <div className="p-4 rounded-2xl bg-surface border border-border/80 shadow-card">
+          <MiniBarChart
+            title={t(`reports.columns.${id}.${numCol.key}`, numCol.label)}
+            subtitle={`${t('reports.visualInsights')} · ${chartData.length} records`}
+            data={chartData}
+            valueFormat={valFormatter}
+            height={260}
+          />
+        </div>
+      ) : (
+        <DataTable
+          rows={result.rows.map((r, i) => ({ ...r, __i: i }))}
+          rowKey="__i"
+          columns={columns}
+          dense
+          exportable
+          exportName={exportName ?? id}
+          maxHeight="65vh"
+          totals={result.totals ? Object.fromEntries(Object.entries(result.totals).map(([k, v]) => [k, fmt(result.columns.find((c) => c.key === k), v)])) : undefined}
+          totalsLabel={t('reports.total')}
+          emptyTitle={t('reports.noRows')}
+        />
+      )}
+    </div>
   )
 }

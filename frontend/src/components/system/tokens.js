@@ -4,7 +4,7 @@
 // every screen stays consistent.
 
 /** Card / panel surface. Use on every white block. */
-export const PANEL = 'ui-panel bg-surface border border-border rounded-xl shadow-card'
+export const PANEL = 'ui-panel bg-surface border border-border/80 rounded-2xl shadow-card'
 
 /** Full-bleed page wrapper. Full width, and NO own padding — edge spacing comes
  *  from the app shell's <main> (p-4), so every screen sits as tight to the edges
@@ -13,12 +13,12 @@ export const PAGE = 'ui-page w-full flex flex-col gap-6 min-h-full bg-bg'
 
 /** Semantic tones -> class fragments, shared by StatusPill, Badge-like chips, progress bars. */
 export const TONE = {
-  neutral: { text: 'text-ink-muted', bg: 'bg-black/5', border: 'border-border', dot: 'bg-ink-faint', fill: 'bg-ink-faint' },
-  brand:   { text: 'text-brand-700', bg: 'bg-brand-50', border: 'border-brand-100', dot: 'bg-brand-500', fill: 'bg-brand-500' },
-  success: { text: 'text-success-600', bg: 'bg-success-50', border: 'border-success-500/20', dot: 'bg-success-500', fill: 'bg-success-500' },
-  warning: { text: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-400/30', dot: 'bg-amber-400', fill: 'bg-amber-400' },
-  danger:  { text: 'text-danger-600', bg: 'bg-danger-50', border: 'border-danger-500/20', dot: 'bg-danger-500', fill: 'bg-danger-500' },
-  info:    { text: 'text-info-600', bg: 'bg-info-50', border: 'border-info-500/20', dot: 'bg-info-500', fill: 'bg-info-500' },
+  neutral: { text: 'text-ink-muted', bg: 'bg-black/5', border: 'border-border', dot: 'bg-ink-faint', fill: 'bg-ink-faint', glow: 'shadow-sm' },
+  brand:   { text: 'text-brand-700', bg: 'bg-brand-50', border: 'border-brand-200', dot: 'bg-brand-500', fill: 'bg-brand-500', glow: 'shadow-glow-brand' },
+  success: { text: 'text-emerald-700', bg: 'bg-emerald-50', border: 'border-emerald-200', dot: 'bg-emerald-500', fill: 'bg-emerald-500', glow: 'shadow-glow-success' },
+  warning: { text: 'text-amber-700', bg: 'bg-amber-50', border: 'border-amber-200', dot: 'bg-amber-500', fill: 'bg-amber-500', glow: 'shadow-glow-amber' },
+  danger:  { text: 'text-rose-700', bg: 'bg-rose-50', border: 'border-rose-200', dot: 'bg-rose-500', fill: 'bg-rose-500', glow: 'shadow-glow-danger' },
+  info:    { text: 'text-blue-700', bg: 'bg-blue-50', border: 'border-blue-200', dot: 'bg-blue-500', fill: 'bg-blue-500', glow: 'shadow-glow-info' },
 }
 
 /** Map an arbitrary ERP status string to a tone. Extend as new statuses appear. */
@@ -39,27 +39,23 @@ export function statusTone(status) {
   return map[s] || 'neutral'
 }
 
-/** Recharts styling — one palette + one look for every chart in the app. */
+/** Recharts styling — vibrant, accessible palette + modern glassmorphism tooltip. */
 export const CHART = {
-  // Categorical series — identity only (which class, which campus, billed vs collected). Taken in
-  // this order, never cycled, never re-ordered by rank. Validated as a set (dataviz skill
-  // validate_palette, light mode, white surface): lightness band, chroma, colour-blind (CVD)
-  // separation ΔE ≥ 9 between neighbours, normal vision ΔE ≥ 19. Slots 3–5 are light on white,
-  // so every chart carrying them shows labels / a legend and has a table view (ChartTable).
-  // A 7th series is never a new colour: fold the tail into "Other" (foldSeries below).
-  series: ['#2A78D6', '#EB6834', '#1BAF7A', '#EDA100', '#E87BA4', '#6250D6'],
-  // Status — meaning only (good / warning / critical …), never "series 5". Always shown with a
-  // label or icon beside it; the same steps as StatusPill / the success-warning-danger tokens.
-  status: { good: '#1F9D66', warning: '#E2A63A', critical: '#D64545', info: '#3358D6', neutral: '#9AA1AE' },
-  other: '#B8BDC7', // the folded "Other" slice / bar
-  // a hairline, solid (never dashed), one step off the surface
-  grid: '#E9EBEF',
-  axisTick: { fontSize: 10, fill: '#5B616E' },
+  series: ['#0284C7', '#6366F1', '#10B981', '#F59E0B', '#EC4899', '#8B5CF6'],
+  status: { good: '#10B981', warning: '#F59E0B', critical: '#EF4444', info: '#3B82F6', neutral: '#94A3B8' },
+  other: '#94A3B8',
+  grid: '#EDF0F5',
+  axisTick: { fontSize: 11, fill: '#64748B', fontWeight: 500 },
   tooltip: {
-    borderRadius: '10px',
-    border: '1px solid #E4E7EC',
-    boxShadow: '0 4px 12px rgba(16,24,40,0.10)',
+    backgroundColor: 'rgba(255, 255, 255, 0.96)',
+    backdropFilter: 'blur(8px)',
+    WebkitBackdropFilter: 'blur(8px)',
+    borderRadius: '12px',
+    border: '1px solid rgba(228, 231, 236, 0.9)',
+    boxShadow: '0 12px 28px -4px rgba(16, 24, 40, 0.12), 0 4px 10px -2px rgba(16, 24, 40, 0.04)',
     fontSize: '12px',
+    padding: '8px 12px',
+    color: '#0F172A',
   },
 }
 
