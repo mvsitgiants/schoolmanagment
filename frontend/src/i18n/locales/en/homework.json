@@ -137,11 +137,20 @@
         "methodPlaceholder": "Warm-up, explanation, group work, recap…",
         "resources": "Resources",
         "homeworkNote": "Homework idea",
-        "save": "Save plan"
+        "save": "Save plan",
+        "topicsHint": "Topics in bold are planned for this month or earlier and not taught yet."
       },
       "summary": {
-        "total": "Lessons this week"
-      }
+        "total": "Lessons this week",
+        "totalMonth": "Lessons this month"
+      },
+      "viewWeek": "Week",
+      "viewMonth": "Month",
+      "prevMonth": "Previous month",
+      "nextMonth": "Next month",
+      "thisMonth": "This month",
+      "addOn": "Plan a lesson on {{date}}",
+      "more": "+{{count}} more"
     },
     "syllabus": {
       "title": "Syllabus tracker",
@@ -180,7 +189,72 @@
         "hint": "One topic per line. A line starting with # or ending with a colon starts a new unit. Numbers and bullets are dropped.",
         "placeholder": "# Unit 1: Number systems\n1. Real numbers\n2. Irrational numbers\nAlgebra:\n- Polynomials",
         "add": "Add {{units}} unit(s), {{topics}} topic(s)"
+      },
+      "plan": {
+        "spread": "Spread over the year",
+        "spreadHint": "Give each unit a share of the year's months, in order, by its number of topics. You can change any month afterwards.",
+        "spreadConfirm": "Replace the units' months with an even spread over the year?",
+        "editorHint": "Set the months each unit is taught in to make the year plan. A topic can have its own month; otherwise it is due by the unit's last month.",
+        "from": "From",
+        "to": "To",
+        "periods": "Periods",
+        "periodsHint": "Periods this topic needs (optional)",
+        "unitMonth": "Unit's month",
+        "topicMonth": "Month for this topic",
+        "none": "No year plan yet. Edit the syllabus and set the months each unit is taught in.",
+        "nothing": "Nothing planned",
+        "thisMonth": "This month",
+        "behindN_one": "{{count}} behind",
+        "behindN_other": "{{count}} behind",
+        "dueN_one": "{{count}} due this month",
+        "dueN_other": "{{count}} due this month",
+        "viewTopics": "Topics",
+        "viewPlan": "Year plan",
+        "state": {
+          "done": "Taught",
+          "behind": "Behind",
+          "due": "Due this month",
+          "later": "Later"
+        },
+        "unplanned": "Not planned to a month",
+        "unplannedHint_one": "{{count}} topic has no month yet",
+        "unplannedHint_other": "{{count}} topics have no month yet",
+        "notPlanned": "no year plan yet"
       }
+    },
+    "mine": {
+      "noYear": "Add an academic year first (Academic setup › Academic years & terms).",
+      "today": "Today",
+      "nothingToday": "No lessons planned.",
+      "planLesson": "Plan a lesson",
+      "stats": {
+        "today": "Lessons today",
+        "todaySub": "{{done}} taught",
+        "week": "Lessons this week",
+        "weekSub": "{{done}} taught",
+        "toCheck": "Homework to check",
+        "openSub_one": "{{count}} more due soon",
+        "openSub_other": "{{count}} more due soon",
+        "behind": "Topics behind plan",
+        "behindSub_one": "across {{count}} class and subject",
+        "behindSub_other": "across {{count}} classes and subjects"
+      },
+      "week": "My week",
+      "allPlans": "All lesson plans",
+      "toCheck": "Homework to check",
+      "toCheckHint": "Due, with students not recorded yet",
+      "dueOn": "Due {{date}}",
+      "notRecorded_one": "{{count}} to record",
+      "notRecorded_other": "{{count}} to record",
+      "allChecked": "All caught up — nothing waiting to be checked.",
+      "classes": "My classes",
+      "classesHint": "Each class and subject you teach, against the year plan",
+      "classTeacher": "Class teacher",
+      "behindLabel": "Behind:",
+      "thisMonth": "This month:",
+      "openSyllabus": "Syllabus",
+      "noClasses": "You don't teach any classes yet. Ask your administrator to allocate your subjects (Academic setup › Teacher allocation) or make you class teacher of a section.",
+      "noClassesTitle": "No classes yet"
     }
   }
 }

@@ -22,7 +22,8 @@ export const ME_HR = ['hrms', 'me']
 // a leave type's colour: the tone set on the type, else one picked from its code
 const leaveTone = (b) => (b.tone && b.tone !== 'neutral' ? b.tone : hueTone(b.code))
 
-export function MyLeaveTab() {
+/** `applyOpen`: open the apply form straight away (Overview › Apply for leave); `onApplyClose` when it closes. */
+export function MyLeaveTab({ applyOpen = false, onApplyClose } = {}) {
   const { t } = useTranslation('hrms')
   const L = useHrLabels()
   const qc = useQueryClient()
@@ -30,7 +31,9 @@ export function MyLeaveTab() {
   const { date } = useFormat()
   const span = useLeaveSpan()
   const { showSuccess, showError } = useSnackbar()
-  const [applying, setApplying] = useState(false)
+  const [applyingHere, setApplying] = useState(false)
+  const applying = applyingHere || applyOpen
+  const closeApply = () => { setApplying(false); onApplyClose?.() }
   const { data, isLoading } = useQuery({ queryKey: [...ME_HR, 'leave'], queryFn: fetchMyLeave })
   const refresh = () => qc.invalidateQueries({ queryKey: ME_HR })
   const cancel = useMutation({ mutationFn: ({ id, reason }) => cancelMyLeave(id, reason), onSuccess: () => { refresh(); showSuccess(t('hrms.leave.cancelled')) }, onError: (e) => showError(e.message) })
@@ -70,7 +73,7 @@ export function MyLeaveTab() {
           ) },
         ]} emptyTitle={t('hrms.me.noRequests')} />
       </Panel>
-      {applying && <LeaveApplyForm balances={data?.balances ?? []} submit={applyMyLeave} onClose={() => setApplying(false)} onSaved={() => { setApplying(false); refresh(); showSuccess(t('hrms.me.applied')) }} />}
+      {applying && data && <LeaveApplyForm balances={data?.balances ?? []} submit={applyMyLeave} onClose={closeApply} onSaved={() => { closeApply(); refresh(); showSuccess(t('hrms.me.applied')) }} />}
     </div>
   )
 }

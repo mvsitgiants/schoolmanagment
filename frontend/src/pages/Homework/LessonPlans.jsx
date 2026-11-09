@@ -1,22 +1,24 @@
 import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { CalendarClock, Check, CheckCircle2, ChevronLeft, ChevronRight, ClipboardList, Pencil, Plus, SkipForward, Trash2, Undo2 } from 'lucide-react'
-import { LESSON_STATUS, addDaysYmd, weekOf } from '@schoolgiant/shared'
-import { ColorChip, ControlChip, DataTable, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, PersonCell, Select, StatCardRow, StatusPill, Textarea, localIso, useConfirm, usePrompt } from '../../components/system'
+import { CalendarClock, CalendarDays, Check, CheckCircle2, ChevronLeft, ChevronRight, ClipboardList, List, Pencil, Plus, SkipForward, Trash2, Undo2 } from 'lucide-react'
+import { LESSON_STATUS, addDaysYmd, monthGrid, topicMonth, weekOf } from '@schoolgiant/shared'
+import { ColorChip, ControlChip, DataTable, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, PersonCell, SegmentedControl, Select, StatCardRow, StatusPill, Textarea, localIso, useConfirm, usePrompt } from '../../components/system'
+import { useMonthLabel, useWeekdayLabel } from '../../components/homework/HomeworkKit'
 import Button from '../../components/ui/Button'
 import { createLessonPlan, deleteLessonPlan, fetchHomeworkLookup, fetchLessonPlans, fetchSyllabus, setLessonPlanStatus, updateLessonPlan } from '../../api/homework'
 import { hasPermission } from '../../api/auth'
 import { useSnackbar } from '../../context/SnackbarContext'
 import { useFormat } from '../../context/SettingsContext'
 
-function PlanForm({ lookup, plan, defaultDate, onClose, onSaved }) {
+/** New / edit lesson plan. Also used from My workspace › My teaching (`defaults` pre-fills class and subject). */
+export function PlanForm({ lookup, plan, defaultDate, defaults, onClose, onSaved }) {
   const { t } = useTranslation('homework')
   const { showError } = useSnackbar()
   const sections = lookup?.sections ?? []
   const [form, setForm] = useState(() => ({
-    sectionId: plan?.sectionId ?? sections[0]?.id ?? '', subjectId: plan?.subjectId ?? '', date: plan?.date ?? defaultDate, period: plan?.period ? String(plan.period) : '',
-    title: plan?.title ?? '', topicIds: plan?.topicIds ?? [], objectives: plan?.objectives ?? '', method: plan?.method ?? '', resources: plan?.resources ?? '', homeworkNote: plan?.homeworkNote ?? '',
+    sectionId: plan?.sectionId ?? defaults?.sectionId ?? sections[0]?.id ?? '', subjectId: plan?.subjectId ?? defaults?.subjectId ?? '', date: plan?.date ?? defaultDate, period: plan?.period ? String(plan.period) : '',
+    title: plan?.title ?? '', topicIds: plan?.topicIds ?? defaults?.topicIds ?? [], objectives: plan?.objectives ?? '', method: plan?.method ?? '', resources: plan?.resources ?? '', homeworkNote: plan?.homeworkNote ?? '',
   }))
   const [errors, setErrors] = useState({})
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }))
@@ -24,6 +26,8 @@ function PlanForm({ lookup, plan, defaultDate, onClose, onSaved }) {
   const subjects = section?.subjects ?? []
   const { data: syllabus } = useQuery({ queryKey: ['syllabus', section?.classId, form.subjectId], queryFn: () => fetchSyllabus(section.classId, form.subjectId), enabled: !!section && !!form.subjectId })
   const doneHere = syllabus?.sections.find((s) => s.id === form.sectionId)?.ticks ?? {}
+  const monthLabel = useMonthLabel()
+  const planMonth = form.date?.slice(0, 7)
   const toggle = (id) => setForm((f) => ({ ...f, topicIds: f.topicIds.includes(id) ? f.topicIds.filter((x) => x !== id) : [...f.topicIds, id] }))
   const save = useMutation({
     mutationFn: () => (plan ? updateLessonPlan(plan.id, form) : createLessonPlan(form)),
@@ -57,12 +61,12 @@ function PlanForm({ lookup, plan, defaultDate, onClose, onSaved }) {
               <div className="space-y-2 max-h-56 overflow-y-auto rounded-lg border border-border p-3">
                 {syllabus.units.map((u) => (
                   <div key={u.id}>
-                    <p className="text-xs font-semibold text-ink-muted">{u.name}</p>
+                    <p className="text-xs font-semibold text-ink-muted">{u.name}{u.fromMonth && <span className="font-normal text-ink-faint"> · {u.fromMonth === u.toMonth ? monthLabel(u.fromMonth) : `${monthLabel(u.fromMonth)} – ${monthLabel(u.toMonth)}`}</span>}</p>
                     <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1">
                       {u.topics.map((tp) => (
                         <label key={tp.id} className="inline-flex items-center gap-1.5 text-sm">
                           <input type="checkbox" checked={form.topicIds.includes(tp.id)} onChange={() => toggle(tp.id)} className="rounded border-border text-brand-500 focus:ring-brand-500" />
-                          <span className={doneHere[tp.id] ? 'text-ink-faint' : ''}>{tp.name}</span>
+                          <span className={doneHere[tp.id] ? 'text-ink-faint' : topicMonth(u, tp) && topicMonth(u, tp) <= planMonth ? 'font-medium text-brand-700' : ''}>{tp.name}</span>
                         </label>
                       ))}
                     </div>
@@ -70,6 +74,7 @@ function PlanForm({ lookup, plan, defaultDate, onClose, onSaved }) {
                 ))}
               </div>
             ) : <p className="text-sm text-ink-faint">{t('homework.lessons.form.noSyllabus')}</p>}
+            {syllabus?.units.some((u) => u.fromMonth) && <p className="text-xs text-ink-faint mt-1">{t('homework.lessons.form.topicsHint')}</p>}
             {errors.topicIds && <p className="text-xs text-danger-600 mt-1">{errors.topicIds}</p>}
           </div>
         )}
@@ -79,6 +84,52 @@ function PlanForm({ lookup, plan, defaultDate, onClose, onSaved }) {
         <FormField label={t('homework.lessons.form.homeworkNote')}><Textarea rows={2} value={form.homeworkNote} onChange={set('homeworkNote')} /></FormField>
       </div>
     </Modal>
+  )
+}
+
+const CHIP = { PLANNED: 'bg-brand-50 text-brand-700', DONE: 'bg-success-50 text-success-700', SKIPPED: 'bg-black/[0.04] text-ink-faint line-through' }
+
+/** A month of lesson plans: each day's plans as chips; a day's number adds a plan on it. */
+function MonthCalendar({ grid, month, rows, canAdd, onAdd, onOpen, onMore }) {
+  const { t } = useTranslation('homework')
+  const weekday = useWeekdayLabel()
+  const todayIso = localIso(new Date())
+  const byDay = useMemo(() => {
+    const m = new Map()
+    for (const r of rows) { if (!m.has(r.date)) m.set(r.date, []); m.get(r.date).push(r) }
+    return m
+  }, [rows])
+  return (
+    <div className="overflow-x-auto rounded-xl border border-border bg-surface">
+      <div className="min-w-[640px]">
+        <div className="grid grid-cols-7 bg-black/[0.02] text-center text-[11px] font-semibold uppercase tracking-wide text-ink-muted">
+          {grid[0].map((d) => <div key={d} className="py-1.5">{weekday(d)}</div>)}
+        </div>
+        {grid.map((w) => (
+          <div key={w[0]} className="grid grid-cols-7 border-t border-border">
+            {w.map((d) => {
+              const items = byDay.get(d) ?? []
+              const other = d.slice(0, 7) !== month
+              return (
+                <div key={d} className={`min-h-[96px] border-s border-border first:border-s-0 p-1 ${other ? 'bg-black/[0.015]' : ''}`}>
+                  <button type="button" disabled={!canAdd} onClick={() => onAdd(d)} aria-label={t('homework.lessons.addOn', { date: d })}
+                    className={`mb-0.5 flex h-6 w-6 items-center justify-center rounded-full text-xs ${d === todayIso ? 'bg-brand-500 text-white' : other ? 'text-ink-faint' : 'text-ink'} enabled:hover:ring-1 enabled:hover:ring-brand-300`}>{Number(d.slice(8))}</button>
+                  <div className="space-y-0.5">
+                    {items.slice(0, 3).map((r) => (
+                      <button key={r.id} type="button" onClick={() => onOpen(r)} title={`${r.section} · ${r.subject} — ${r.title}`}
+                        className={`block w-full truncate rounded px-1 py-0.5 text-start text-[11px] ${CHIP[r.status] ?? CHIP.PLANNED}`}>
+                        <span className="font-semibold">{r.section}</span> {r.title}
+                      </button>
+                    ))}
+                    {items.length > 3 && <button type="button" onClick={() => onMore(d)} className="px-1 text-[10px] text-ink-faint hover:text-ink">{t('homework.lessons.more', { count: items.length - 3 })}</button>}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        ))}
+      </div>
+    </div>
   )
 }
 
@@ -93,7 +144,17 @@ export default function LessonPlans() {
   const [sectionId, setSectionId] = useState('')
   const [subjectId, setSubjectId] = useState('')
   const [editing, setEditing] = useState(null)
+  const [newOn, setNewOn] = useState(null)
+  const [view, setView] = useState('WEEK')
+  const [mine, setMine] = useState(false)
+  const monthLabel = useMonthLabel()
   const week = weekOf(anchor)
+  const month = anchor.slice(0, 7)
+  const grid = useMemo(() => { const [y, m] = month.split('-').map(Number); return monthGrid(y, m) }, [month])
+  const range = view === 'MONTH' ? { from: grid[0][0], to: grid.at(-1)[6] } : week
+  const rangeLabel = view === 'MONTH' ? monthLabel(month, { long: true }) : t('homework.lessons.week', { from: date(week.from), to: date(week.to) })
+  const shiftMonth = (n) => { const [y, m] = month.split('-').map(Number); const d = new Date(Date.UTC(y, m - 1 + n, 1)); setAnchor(d.toISOString().slice(0, 10)) }
+  const shift = (n) => (view === 'MONTH' ? shiftMonth(n) : setAnchor(addDaysYmd(week.from, 7 * n)))
   const { data: lookup } = useQuery({ queryKey: ['homework-lookup'], queryFn: fetchHomeworkLookup })
   const sections = lookup?.sections ?? []
   const subjects = useMemo(() => {
@@ -101,44 +162,61 @@ export default function LessonPlans() {
     for (const s of sections) for (const x of s.subjects) m.set(x.id, x)
     return [...m.values()].sort((a, b) => a.name.localeCompare(b.name))
   }, [sections])
-  const params = { from: week.from, to: week.to, sectionId: sectionId || undefined, subjectId: subjectId || undefined }
+  const params = { from: range.from, to: range.to, sectionId: sectionId || undefined, subjectId: subjectId || undefined, mine: mine ? '1' : undefined }
   const { data: rows = [], isLoading, error, refetch } = useQuery({ queryKey: ['lesson-plans', params], queryFn: () => fetchLessonPlans(params) })
   const refresh = () => { qc.invalidateQueries({ queryKey: ['lesson-plans'] }); qc.invalidateQueries({ queryKey: ['syllabus'] }); qc.invalidateQueries({ queryKey: ['syllabus-overview'] }) }
   const act = useMutation({ mutationFn: ({ fn }) => fn(), onSuccess: (_, v) => { refresh(); showSuccess(v.done) }, onError: (e) => showError(e.message) })
   const canEdit = hasPermission('homework.lesson-plans.edit')
   const statusLabel = (s) => t(`homework.lessons.status.${s}`, LESSON_STATUS[s]?.label ?? s)
-  const countOf = (s) => rows.filter((r) => r.status === s).length
+  // the month view fetches the whole grid (a few days either side); the counts are for the month itself
+  const inView = view === 'MONTH' ? rows.filter((r) => r.date.startsWith(month)) : rows
+  const countOf = (s) => inView.filter((r) => r.status === s).length
+  const open = (r) => { if (r.canChange && canEdit) setEditing(r); else { setAnchor(r.date); setView('WEEK') } }
+
+  const toolbar = (
+    <div className="flex flex-wrap items-center justify-between gap-2">
+      <div className="flex flex-wrap items-center gap-1">
+        <SegmentedControl value={view} onChange={setView} className="me-2" options={[
+          { value: 'WEEK', label: t('homework.lessons.viewWeek'), icon: List },
+          { value: 'MONTH', label: t('homework.lessons.viewMonth'), icon: CalendarDays },
+        ]} />
+        <Button size="sm" variant="ghost" icon={ChevronLeft} aria-label={view === 'MONTH' ? t('homework.lessons.prevMonth') : t('homework.lessons.prevWeek')} onClick={() => shift(-1)} />
+        <span className="text-sm font-medium text-ink px-1 min-w-[9rem] text-center">{rangeLabel}</span>
+        <Button size="sm" variant="ghost" icon={ChevronRight} aria-label={view === 'MONTH' ? t('homework.lessons.nextMonth') : t('homework.lessons.nextWeek')} onClick={() => shift(1)} />
+        <Button size="sm" variant="ghost" onClick={() => setAnchor(localIso(new Date()))}>{view === 'MONTH' ? t('homework.lessons.thisMonth') : t('homework.lessons.thisWeek')}</Button>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        <ControlChip label={t('homework.class')} value={sections.find((s) => s.id === sectionId)?.short ?? t('homework.all')} active={!!sectionId}
+          options={[t('homework.all'), ...sections.map((s) => s.short)]} onChange={(v) => setSectionId(sections.find((s) => s.short === v)?.id ?? '')} />
+        <ControlChip label={t('homework.subject')} value={subjects.find((s) => s.id === subjectId)?.name ?? t('homework.all')} active={!!subjectId}
+          options={[t('homework.all'), ...subjects.map((s) => s.name)]} onChange={(v) => setSubjectId(subjects.find((s) => s.name === v)?.id ?? '')} />
+        <ControlChip label={t('homework.lessons.teacher')} value={mine ? t('homework.me') : t('homework.anyone')} active={mine}
+          options={[t('homework.anyone'), t('homework.me')]} onChange={(v) => setMine(v === t('homework.me'))} />
+      </div>
+    </div>
+  )
 
   return (
     <PageContainer>
       <PageHeader icon={ClipboardList} title={t('homework.lessons.title')} subtitle={t('homework.lessons.subtitle')}
-        actions={<HeaderButton icon={Plus} variant="primary" requires="homework.lesson-plans.create" onClick={() => setEditing('new')}>{t('homework.lessons.new')}</HeaderButton>} />
+        actions={<HeaderButton icon={Plus} variant="primary" requires="homework.lesson-plans.create" onClick={() => { setNewOn(null); setEditing('new') }}>{t('homework.lessons.new')}</HeaderButton>} />
       {lookup && !sections.length && <Note tone="warning" className="mb-4">{t('homework.noSections')}</Note>}
-      {rows.length > 0 && <StatCardRow className="mb-4" items={[
-        { icon: ClipboardList, tone: 'brand', label: t('homework.lessons.summary.total'), value: rows.length, sub: t('homework.lessons.week', { from: date(week.from), to: date(week.to) }) },
-        { icon: CheckCircle2, tone: 'success', label: statusLabel('DONE'), value: countOf('DONE'), progress: (countOf('DONE') / rows.length) * 100 },
+      {inView.length > 0 && <StatCardRow className="mb-4" items={[
+        { icon: ClipboardList, tone: 'brand', label: view === 'MONTH' ? t('homework.lessons.summary.totalMonth') : t('homework.lessons.summary.total'), value: inView.length, sub: rangeLabel },
+        { icon: CheckCircle2, tone: 'success', label: statusLabel('DONE'), value: countOf('DONE'), progress: (countOf('DONE') / inView.length) * 100 },
         { icon: CalendarClock, tone: 'info', label: statusLabel('PLANNED'), value: countOf('PLANNED') },
         { icon: SkipForward, tone: countOf('SKIPPED') ? 'warning' : 'neutral', label: statusLabel('SKIPPED'), value: countOf('SKIPPED') },
       ]} />}
-      <DataTable
+      {view === 'MONTH' && <div className="mb-3">{toolbar}</div>}
+      {view === 'MONTH' ? (error ? <Note tone="warning">{error.message}</Note> : (
+        <MonthCalendar grid={grid} month={month} rows={rows} canAdd={hasPermission('homework.lesson-plans.create')}
+          onAdd={(d) => { setNewOn(d); setEditing('new') }} onOpen={open} onMore={(d) => { setAnchor(d); setView('WEEK') }} />
+      )) : <DataTable
         rows={rows}
         loading={isLoading}
         error={error}
         onRetry={refetch}
-        toolbar={<div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="flex items-center gap-1">
-            <Button size="sm" variant="ghost" icon={ChevronLeft} aria-label={t('homework.lessons.prevWeek')} onClick={() => setAnchor(addDaysYmd(week.from, -7))} />
-            <span className="text-sm font-medium text-ink px-1">{t('homework.lessons.week', { from: date(week.from), to: date(week.to) })}</span>
-            <Button size="sm" variant="ghost" icon={ChevronRight} aria-label={t('homework.lessons.nextWeek')} onClick={() => setAnchor(addDaysYmd(week.from, 7))} />
-            <Button size="sm" variant="ghost" onClick={() => setAnchor(localIso(new Date()))}>{t('homework.lessons.thisWeek')}</Button>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <ControlChip label={t('homework.class')} value={sections.find((s) => s.id === sectionId)?.short ?? t('homework.all')} active={!!sectionId}
-              options={[t('homework.all'), ...sections.map((s) => s.short)]} onChange={(v) => setSectionId(sections.find((s) => s.short === v)?.id ?? '')} />
-            <ControlChip label={t('homework.subject')} value={subjects.find((s) => s.id === subjectId)?.name ?? t('homework.all')} active={!!subjectId}
-              options={[t('homework.all'), ...subjects.map((s) => s.name)]} onChange={(v) => setSubjectId(subjects.find((s) => s.name === v)?.id ?? '')} />
-          </div>
-        </div>}
+        toolbar={toolbar}
         columns={[
           { key: 'date', header: t('homework.lessons.date'), nowrap: true, render: (v, r) => <span>{date(v)}{r.period ? <span className="text-ink-faint"> · {t('homework.lessons.periodN', { n: r.period })}</span> : ''}</span> },
           { key: 'section', header: t('homework.class'), render: (v, r) => <div className="flex flex-wrap items-center gap-1"><ColorChip label={v} seed={r.classId ?? v} /><ColorChip label={r.subject} seed={r.subjectId} dot /></div> },
@@ -160,9 +238,9 @@ export default function LessonPlans() {
         ]}
         onRowClick={canEdit ? (r) => r.canChange && setEditing(r) : undefined}
         emptyIcon={ClipboardList} emptyTitle={t('homework.lessons.empty')} emptyHint={t('homework.lessons.emptyHint')}
-      />
-      {editing && <PlanForm lookup={lookup} plan={editing === 'new' ? null : editing} defaultDate={anchor < week.from || anchor > week.to ? week.from : anchor}
-        onClose={() => setEditing(null)} onSaved={() => { refresh(); setEditing(null); showSuccess(t('homework.lessons.saved')) }} />}
+      />}
+      {editing && <PlanForm lookup={lookup} plan={editing === 'new' ? null : editing} defaultDate={newOn ?? (anchor < range.from || anchor > range.to ? range.from : anchor)}
+        onClose={() => { setEditing(null); setNewOn(null) }} onSaved={() => { refresh(); setEditing(null); showSuccess(t('homework.lessons.saved')) }} />}
     </PageContainer>
   )
 }

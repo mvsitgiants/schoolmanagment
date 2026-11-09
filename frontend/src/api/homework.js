@@ -11,6 +11,8 @@ const del = async (url) => (await api.delete(url)).data.data
 const BASE = '/v1/homework'
 
 export const fetchHomeworkLookup = () => get(`${BASE}/lookup`)
+/** My workspace › My teaching: this week's lessons, homework to check, my classes against the year plan. */
+export const fetchMyTeaching = () => get(`${BASE}/me`)
 
 export const fetchSyllabusOverview = () => get(`${BASE}/syllabus/overview`)
 export const fetchSyllabus = (classId, subjectId) => get(`${BASE}/syllabus`, { classId, subjectId })

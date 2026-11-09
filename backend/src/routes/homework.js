@@ -3,7 +3,7 @@ import { SUBMISSION_STATUSES } from '@schoolgiant/shared'
 import { authenticate, requireModule, requirePermission, subscriptionGate, tenantOnly } from '../platform/middleware.js'
 import { objectId, optionalText, pageParams, z } from '../platform/validate.js'
 import {
-  createHomework, deleteHomework, deletePlan, getHomework, getSyllabus, homeworkLookup, listHomework, listPlans, markTopics, savePlan,
+  createHomework, deleteHomework, deletePlan, getHomework, getSyllabus, homeworkLookup, listHomework, listPlans, markTopics, myTeaching, savePlan,
   saveSubmissions, saveSyllabus, setPlanStatus, syllabusOverview, updateHomework,
 } from '../services/homework.js'
 
@@ -12,11 +12,18 @@ const router = Router()
 router.use(authenticate, tenantOnly, subscriptionGate, requireModule('homework'))
 
 const ymd = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Use YYYY-MM-DD')
+// a month of the year plan; blank or null clears it
+const month = z.string().regex(/^\d{4}-\d{2}$/, 'Use YYYY-MM').nullish().or(z.literal('').transform(() => null))
 const id = (req) => objectId.parse(req.params.id)
 const ANY = ['homework.homework.view', 'homework.lesson-plans.view', 'homework.syllabus.view']
 
 router.get('/lookup', requirePermission(...ANY), async (req, res) => {
   res.json({ data: await homeworkLookup(req.auth) })
+})
+
+// My workspace › My teaching: this week's lessons, homework to check, my classes against the year plan
+router.get('/me', requirePermission(...ANY), async (req, res) => {
+  res.json({ data: await myTeaching(req.auth) })
 })
 
 // ───────────────────────────────────────────────────────── syllabus
@@ -34,7 +41,8 @@ router.put('/syllabus', requirePermission('homework.syllabus.edit'), async (req,
     units: z.array(z.object({
       id: z.string().optional(),
       name: z.string().trim().max(120),
-      topics: z.array(z.object({ id: z.string().optional(), name: z.string().trim().max(200), periods: z.coerce.number().int().min(0).max(200).optional() })).max(100).default([]),
+      fromMonth: month, toMonth: month,
+      topics: z.array(z.object({ id: z.string().optional(), name: z.string().trim().max(200), periods: z.coerce.number().int().min(0).max(200).optional(), month })).max(100).default([]),
     })).max(60),
   }).parse(req.body)
   res.json({ data: await saveSyllabus(input, req.auth, req) })
@@ -54,7 +62,10 @@ const planSchema = z.object({
   objectives: optionalText(2000), method: optionalText(4000), resources: optionalText(2000), homeworkNote: optionalText(1000),
 })
 router.get('/lesson-plans', requirePermission('homework.lesson-plans.view'), async (req, res) => {
-  const q = z.object({ from: ymd.optional(), to: ymd.optional(), sectionId: objectId.optional(), subjectId: objectId.optional() }).parse(req.query)
+  const q = z.object({
+    from: ymd.optional(), to: ymd.optional(), sectionId: objectId.optional(), subjectId: objectId.optional(),
+    mine: z.enum(['1', 'true']).optional().transform((v) => !!v),
+  }).parse(req.query)
   res.json({ data: await listPlans(q, req.auth) })
 })
 router.post('/lesson-plans', requirePermission('homework.lesson-plans.create'), async (req, res) => {

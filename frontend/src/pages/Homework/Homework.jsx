@@ -20,8 +20,8 @@ const MARK_STYLE = {
 }
 const todayIso = () => localIso(new Date())
 
-/** Set homework (one or more sections of a subject), or edit one. */
-function HomeworkForm({ lookup, homework, onClose, onSaved }) {
+/** Set homework (one or more sections of a subject), or edit one. Also used from My workspace (`defaults` pre-fills subject and class). */
+export function HomeworkForm({ lookup, homework, defaults, onClose, onSaved }) {
   const { t } = useTranslation('homework')
   const { showError } = useSnackbar()
   const sections = lookup?.sections ?? []
@@ -31,7 +31,7 @@ function HomeworkForm({ lookup, homework, onClose, onSaved }) {
     return [...m.values()].sort((a, b) => a.name.localeCompare(b.name))
   }, [sections])
   const [form, setForm] = useState(() => ({
-    subjectId: homework?.subjectId ?? subjects[0]?.id ?? '', sectionIds: homework ? [homework.sectionId] : [],
+    subjectId: homework?.subjectId ?? defaults?.subjectId ?? subjects[0]?.id ?? '', sectionIds: homework ? [homework.sectionId] : defaults?.sectionIds ?? [],
     title: homework?.title ?? '', details: homework?.details ?? '', setDate: homework?.setDate ?? todayIso(), dueDate: homework?.dueDate ?? addDaysYmd(todayIso(), 1),
     needsSubmission: homework?.needsSubmission ?? true, notify: true,
   }))
@@ -93,8 +93,8 @@ function HomeworkForm({ lookup, homework, onClose, onSaved }) {
   )
 }
 
-/** One homework: what was set, its files, and who handed it in. */
-function HomeworkDrawer({ id, lookup, onClose }) {
+/** One homework: what was set, its files, and who handed it in. Also opened from My workspace. */
+export function HomeworkDrawer({ id, lookup, onClose }) {
   const { t } = useTranslation('homework')
   const qc = useQueryClient()
   const confirm = useConfirm()

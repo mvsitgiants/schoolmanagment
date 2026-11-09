@@ -1,6 +1,6 @@
 // Homework & lessons (module `homework`). Tenant-scoped.
 //
-//   Syllabus      a class's syllabus for a subject in a year: units, each with topics
+//   Syllabus      a class's syllabus for a subject in a year: units, each with topics, and the month each is planned for
 //   SyllabusDone  a topic taught in a section (ticked directly or from a lesson plan)
 //   LessonPlan    a teacher's plan for a lesson: section, subject, date, topics, how it went
 //   Homework      homework set for one section and subject, with each student's submission
@@ -11,8 +11,10 @@ const { Schema, model } = mongoose
 const ObjectId = Schema.Types.ObjectId
 const ymd = { type: String, match: /^\d{4}-\d{2}-\d{2}$/ }
 
-const topicSchema = new Schema({ name: { type: String, required: true, trim: true }, periods: Number })
-const unitSchema = new Schema({ name: { type: String, required: true, trim: true }, topics: { type: [topicSchema], default: [] } })
+const ym = { type: String, match: /^\d{4}-\d{2}$/ }
+// the year plan: a unit runs fromMonth–toMonth; a topic may name its own month (shared/homework.js yearPlan)
+const topicSchema = new Schema({ name: { type: String, required: true, trim: true }, periods: Number, month: ym })
+const unitSchema = new Schema({ name: { type: String, required: true, trim: true }, fromMonth: ym, toMonth: ym, topics: { type: [topicSchema], default: [] } })
 
 const syllabusSchema = new Schema({
   academicYearId: { type: ObjectId, ref: 'AcademicYear', required: true },

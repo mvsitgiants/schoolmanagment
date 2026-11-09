@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { parseSyllabusText, submissionCounts, syllabusProgress } from '@schoolgiant/shared'
+import { parseSyllabusText, spreadUnits, submissionCounts, syllabusProgress, yearPlan } from '@schoolgiant/shared'
 import { MessageLog, MessagingConfig } from '../src/models/engines.js'
 import { runAsTenant } from '../src/platform/context.js'
 import { newInstitution, signIn, startDb, stopDb } from './helpers.js'
@@ -37,6 +37,18 @@ describe('helpers', () => {
       { name: 'Prose', topics: [{ name: 'The Last Lesson' }, { name: 'Lost Spring' }] },
       { name: 'Poetry', topics: [{ name: 'My Mother at Sixty-six' }] },
     ])
+  })
+  it('spreads units over the year by their topics, and reads the plan against a month', () => {
+    const months = ['2026-04', '2026-05', '2026-06', '2026-07', '2026-08', '2026-09']
+    const units = spreadUnits([{ id: 'a', topics: [{ id: 'a1' }, { id: 'a2' }] }, { id: 'b', topics: [{ id: 'b1' }] }, { id: 'c', topics: [] }], months)
+    expect(units.map((u) => [u.fromMonth, u.toMonth])).toEqual([['2026-04', '2026-06'], ['2026-07', '2026-08'], ['2026-09', '2026-09']])
+    units[0].topics[1].month = '2026-07' // a topic's own month wins over its unit's
+    const plan = yearPlan(units, ['a1'], '2026-07')
+    expect(plan.byMonth['2026-06'].map((r) => r.topicId)).toEqual(['a1'])
+    expect(plan).toMatchObject({ planned: 3, behind: [], due: [expect.objectContaining({ topicId: 'a2' })] })
+    const later = yearPlan(units, [], '2026-08')
+    expect(later.behind.map((r) => r.topicId)).toEqual(['a1', 'a2'])
+    expect(later.due.map((r) => r.topicId)).toEqual(['b1'])
   })
   it('counts progress and submissions', () => {
     expect(syllabusProgress([{ id: 'u', topics: [{ id: 'a' }, { id: 'b' }] }], ['a']).pct).toBe(50)
@@ -107,5 +119,64 @@ describe('homework', () => {
     const list = (await admin.get(`${api}?sectionId=${section.id}`)).body
     expect(list.data[0].counts.handedIn).toBe(1)
     expect(list.meta.total).toBe(1)
+  })
+})
+
+describe('year plan', () => {
+  it('saves months on units and topics, and counts topics behind once their month is over', async () => {
+    const first = year.startDate.slice(0, 7)
+    const bad = await admin.put(`${api}/syllabus`).send({ classId: cls.id, subjectId: eng.id, units: [{ name: 'Prose', fromMonth: '1999-01', topics: [{ name: 'X' }] }] })
+    expect(bad.status).toBe(400)
+    expect(bad.body.details.fields['units.0.fromMonth']).toBeTruthy()
+    const saved = (await admin.put(`${api}/syllabus`).send({ classId: cls.id, subjectId: eng.id, units: [
+      { name: 'Prose', fromMonth: first, toMonth: first, topics: [{ name: 'Deep Water' }, { name: 'The Rattrap', month: first }] },
+      { name: 'Poetry', topics: [{ name: 'Keeping Quiet' }] }, // not planned
+    ] })).body.data
+    expect(saved.units[0]).toMatchObject({ fromMonth: first, toMonth: first })
+    expect(saved.units[0].topics[1].month).toBe(first)
+    expect(saved.months[0]).toBe(first)
+    const pastFirst = saved.month > first
+    expect(saved.sections[0]).toMatchObject({ behind: pastFirst ? 2 : 0, due: pastFirst ? 0 : 2 })
+    // ticking one off takes it out of “behind”
+    const ticked = (await admin.post(`${api}/syllabus/progress`).send({ sectionId: section.id, subjectId: eng.id, topicIds: [saved.units[0].topics[0].id] })).body.data
+    expect(ticked.sections[0].behind + ticked.sections[0].due).toBe(1)
+    const row = (await admin.get(`${api}/syllabus/overview`)).body.data.rows.find((r) => r.classId === cls.id && r.subjectId === eng.id)
+    expect(row.planned).toBe(2)
+    expect(row.sections[0].behind + row.sections[0].due).toBe(1)
+  })
+})
+
+describe('my teaching', () => {
+  let teacher
+  let tc
+  beforeAll(async () => {
+    const tpl = (await admin.post('/api/v1/core/roles/from-templates').send({ codes: ['SUBJECT_TEACHER'] })).body.data.created[0]
+    teacher = (await admin.post('/api/v1/core/users').send({ name: 'Meera Teacher', email: 'meera@hw.test', roleIds: [tpl.id], password: 'Teach@123' })).body.data.user
+    await admin.put('/api/v1/academics/allocation').send({ sectionId: section.id, subjectId: eng.id, teacherId: teacher.id }).expect(200)
+    tc = await signIn(app, 'meera@hw.test', 'Teach@123')
+  })
+
+  it('shows only the teacher’s own class × subject, with the year plan', async () => {
+    const me = (await tc.get(`${api}/me`)).body.data
+    expect(me.classes).toEqual([expect.objectContaining({ sectionId: section.id, subjectId: eng.id, planned: 2, classTeacher: false, allocated: true })])
+    expect(me.classes[0].behind + me.classes[0].due).toBe(1)
+    // the administrator teaches nothing, so has no classes of their own here
+    expect((await admin.get(`${api}/me`)).body.data.classes).toEqual([])
+  })
+
+  it('lists this week’s own lesson plans and homework still to check', async () => {
+    const before = (await tc.get(`${api}/me`)).body.data
+    const plan = (await tc.post(`${api}/lesson-plans`).send({ sectionId: section.id, subjectId: eng.id, date: before.today, title: 'The Rattrap — reading' })).body.data
+    await admin.post(`${api}/lesson-plans`).send({ sectionId: section.id, subjectId: eng.id, date: before.today, title: 'Someone else’s plan' }).expect(201)
+    const hw = (await tc.post(api).send({ sectionIds: [section.id], subjectId: eng.id, title: 'Summarise the story', setDate: before.today, dueDate: before.today })).body.data
+    const me = (await tc.get(`${api}/me`)).body.data
+    expect(me.plans.map((p) => p.id)).toEqual([plan.id])
+    expect(me.toCheck).toEqual([expect.objectContaining({ id: hw.ids[0], counts: expect.objectContaining({ PENDING: 2 }) })])
+    // once everyone is recorded it drops off the list
+    await tc.put(`${api}/${hw.ids[0]}/submissions`).send({ entries: [{ studentId: aarav.id, status: 'CHECKED' }, { studentId: diya.id, status: 'MISSING' }] }).expect(200)
+    expect((await tc.get(`${api}/me`)).body.data.toCheck).toEqual([])
+    // the lesson plans list can be narrowed to one's own
+    const mine = (await admin.get(`${api}/lesson-plans?from=${before.today}&to=${before.today}&mine=1`)).body.data
+    expect(mine.map((p) => p.title)).toEqual(['Someone else’s plan'])
   })
 })

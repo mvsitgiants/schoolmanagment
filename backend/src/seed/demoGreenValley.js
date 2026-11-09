@@ -846,6 +846,164 @@ async function fillHomework(admin) {
   return `${n} homework sets over the last two weeks (Classes 3–12)`
 }
 
+// ───────────────────────────────────────────────────────── syllabus and lesson plans
+
+// NCERT-style chapters for Classes 6–10 (the subjects with a timetable): the year plan runs June to February
+const CURRICULUM = {
+  Mathematics: {
+    6: ['Knowing Our Numbers', 'Whole Numbers', 'Playing with Numbers', 'Basic Geometrical Ideas', 'Understanding Elementary Shapes', 'Integers', 'Fractions', 'Decimals', 'Data Handling', 'Mensuration', 'Algebra', 'Ratio and Proportion'],
+    7: ['Integers', 'Fractions and Decimals', 'Data Handling', 'Simple Equations', 'Lines and Angles', 'The Triangle and its Properties', 'Comparing Quantities', 'Rational Numbers', 'Perimeter and Area', 'Algebraic Expressions', 'Exponents and Powers', 'Symmetry'],
+    8: ['Rational Numbers', 'Linear Equations in One Variable', 'Understanding Quadrilaterals', 'Data Handling', 'Squares and Square Roots', 'Cubes and Cube Roots', 'Comparing Quantities', 'Algebraic Expressions and Identities', 'Mensuration', 'Exponents and Powers', 'Direct and Inverse Proportions', 'Factorisation'],
+    9: ['Number Systems', 'Polynomials', 'Coordinate Geometry', 'Linear Equations in Two Variables', 'Introduction to Euclid’s Geometry', 'Lines and Angles', 'Triangles', 'Quadrilaterals', 'Circles', 'Heron’s Formula', 'Surface Areas and Volumes', 'Statistics'],
+    10: ['Real Numbers', 'Polynomials', 'Pair of Linear Equations in Two Variables', 'Quadratic Equations', 'Arithmetic Progressions', 'Triangles', 'Coordinate Geometry', 'Introduction to Trigonometry', 'Some Applications of Trigonometry', 'Circles', 'Areas Related to Circles', 'Surface Areas and Volumes', 'Statistics', 'Probability'],
+  },
+  Science: {
+    6: ['Food: Where Does It Come From?', 'Components of Food', 'Fibre to Fabric', 'Sorting Materials into Groups', 'Separation of Substances', 'Changes Around Us', 'Getting to Know Plants', 'Body Movements', 'The Living Organisms and Their Surroundings', 'Motion and Measurement of Distances', 'Light, Shadows and Reflections', 'Electricity and Circuits', 'Fun with Magnets', 'Air Around Us'],
+    7: ['Nutrition in Plants', 'Nutrition in Animals', 'Heat', 'Acids, Bases and Salts', 'Physical and Chemical Changes', 'Respiration in Organisms', 'Transportation in Animals and Plants', 'Reproduction in Plants', 'Motion and Time', 'Electric Current and its Effects', 'Light', 'Forests: Our Lifeline', 'Wastewater Story'],
+    8: ['Crop Production and Management', 'Microorganisms: Friend and Foe', 'Coal and Petroleum', 'Combustion and Flame', 'Conservation of Plants and Animals', 'Reproduction in Animals', 'Reaching the Age of Adolescence', 'Force and Pressure', 'Friction', 'Sound', 'Chemical Effects of Electric Current', 'Some Natural Phenomena', 'Light'],
+    9: ['Matter in Our Surroundings', 'Is Matter Around Us Pure?', 'Atoms and Molecules', 'Structure of the Atom', 'The Fundamental Unit of Life', 'Tissues', 'Motion', 'Force and Laws of Motion', 'Gravitation', 'Work and Energy', 'Sound', 'Improvement in Food Resources'],
+    10: ['Chemical Reactions and Equations', 'Acids, Bases and Salts', 'Metals and Non-metals', 'Carbon and its Compounds', 'Life Processes', 'Control and Coordination', 'How do Organisms Reproduce?', 'Heredity', 'Light – Reflection and Refraction', 'The Human Eye and the Colourful World', 'Electricity', 'Magnetic Effects of Electric Current', 'Our Environment'],
+  },
+  'Social Science': {
+    6: ['What, Where, How and When?', 'From Hunting-Gathering to Growing Food', 'In the Earliest Cities', 'Kingdoms, Kings and an Early Republic', 'The Earth in the Solar System', 'Globe: Latitudes and Longitudes', 'Motions of the Earth', 'Understanding Diversity', 'What is Government?', 'Panchayati Raj'],
+    7: ['Tracing Changes Through a Thousand Years', 'New Kings and Kingdoms', 'The Delhi Sultans', 'Environment', 'Inside Our Earth', 'Our Changing Earth', 'Air', 'Water', 'On Equality', 'Role of the Government in Health'],
+    8: ['How, When and Where', 'From Trade to Territory', 'Ruling the Countryside', 'Resources', 'Land, Soil, Water, Natural Vegetation and Wildlife', 'Agriculture', 'Industries', 'The Indian Constitution', 'Understanding Secularism', 'Parliament and the Making of Laws'],
+    9: ['The French Revolution', 'Socialism in Europe and the Russian Revolution', 'Nazism and the Rise of Hitler', 'India – Size and Location', 'Physical Features of India', 'Drainage', 'Climate', 'What is Democracy?', 'Constitutional Design', 'Electoral Politics', 'The Story of Village Palampur', 'People as Resource'],
+    10: ['The Rise of Nationalism in Europe', 'Nationalism in India', 'The Making of a Global World', 'Resources and Development', 'Water Resources', 'Agriculture', 'Power Sharing', 'Federalism', 'Political Parties', 'Development', 'Sectors of the Indian Economy', 'Money and Credit'],
+  },
+  English: ['Reading: unseen passages', 'Grammar: tenses', 'Literature: prose — chapter 1', 'Grammar: subject–verb agreement', 'Writing: formal letters', 'Literature: poem — the first poem', 'Grammar: active and passive voice', 'Literature: prose — chapter 2', 'Writing: notice and message', 'Grammar: reported speech', 'Literature: poem — the second poem', 'Writing: story and diary entry'],
+  Hindi: ['व्याकरण: संज्ञा', 'गद्य: पाठ 1', 'व्याकरण: सर्वनाम', 'काव्य: कविता 1', 'व्याकरण: विशेषण', 'लेखन: पत्र लेखन', 'गद्य: पाठ 2', 'व्याकरण: क्रिया', 'काव्य: कविता 2', 'लेखन: अनुच्छेद लेखन', 'व्याकरण: मुहावरे', 'लेखन: निबंध'],
+  'Computer Science': ['Computer fundamentals', 'Operating system basics', 'Word processing', 'Spreadsheets: formulas', 'Spreadsheets: charts', 'Presentations', 'Internet and email', 'Cyber safety', 'Introduction to programming', 'Programming: loops and decisions'],
+}
+// Nursery – Class 5: one topic list per subject (the tracker shows every class, not just the ones with a timetable)
+const PRIMARY = {
+  Mathematics: ['Numbers and counting', 'Place value', 'Addition', 'Subtraction', 'Multiplication tables', 'Shapes and patterns', 'Measurement: length and weight', 'Time and calendar', 'Money', 'Division', 'Fractions: halves and quarters', 'Data: pictographs'],
+  English: ['Phonics and sounds', 'Reading: short stories', 'Naming words', 'Action words', 'Describing words', 'Poem recitation', 'Sentence making', 'Picture composition', 'Opposites and rhyming words', 'Reading comprehension', 'Letter writing basics', 'Storytelling'],
+  Hindi: ['वर्णमाला: स्वर', 'वर्णमाला: व्यंजन', 'मात्राएँ', 'शब्द बनाना', 'कविता पाठ', 'कहानी पढ़ना', 'संज्ञा', 'वचन', 'लिंग', 'चित्र वर्णन', 'वाक्य रचना', 'अनुच्छेद लेखन'],
+  'Environmental Studies': ['My body', 'My family', 'Food we eat', 'Plants around us', 'Animals around us', 'Water', 'Houses and shelter', 'Our helpers', 'Festivals', 'Travel and transport', 'Weather and seasons', 'Keeping clean'],
+  'Computer Science': ['Parts of a computer', 'Using the mouse', 'Using the keyboard', 'Paint: drawing shapes', 'Paint: colours', 'Typing words', 'Uses of computers', 'Safe use of computers'],
+  'Art & Craft': ['Colouring within lines', 'Crayon shading', 'Paper folding', 'Clay modelling', 'Collage', 'Vegetable printing', 'Greeting cards', 'Festival decorations'],
+  Music: ['Rhythm and clapping', 'Rhymes with actions', 'National anthem', 'School prayer', 'Simple notes: sa re ga ma', 'Group songs', 'Percussion instruments', 'Annual day practice'],
+  'Physical Education': ['Warm-up and stretching', 'Running and relay', 'Ball games', 'Balance and hopping', 'Yoga basics', 'Team games', 'Sports day practice', 'Fitness check'],
+}
+const MONTHS = ['2026-06', '2026-07', '2026-08', '2026-09', '2026-10', '2026-11', '2026-12', '2027-01', '2027-02']
+
+/** The year plan for a class and subject: the chapters spread June–February, three to a unit. */
+function yearPlanFor(subject, code) {
+  const senior = ['6', '7', '8', '9', '10'].includes(code)
+  const list = senior ? ((Array.isArray(CURRICULUM[subject]) ? CURRICULUM[subject] : CURRICULUM[subject]?.[code]) ?? null) : (PRIMARY[subject] ?? null)
+  if (!list) return null
+  const monthOf = (i) => MONTHS[Math.min(MONTHS.length - 1, Math.floor((i / list.length) * MONTHS.length))]
+  const units = []
+  for (let i = 0; i < list.length; i += 3) {
+    const topics = list.slice(i, i + 3).map((name, k) => ({ name, periods: 4 + ((i + k) % 3), month: monthOf(i + k) }))
+    units.push({ name: `Unit ${units.length + 1}`, fromMonth: topics[0].month, toMonth: topics.at(-1).month, topics })
+  }
+  return units
+}
+
+const LESSON_LOOK = {
+  Mathematics: { method: 'Recap the last class (5 min), work two examples on the board, pairs solve the textbook exercise, quick exit question.', resources: 'Textbook, board, graph paper / geometry box', homework: 'Exercise questions 1–6' },
+  Science: { method: 'Start from an everyday question, show the demonstration, students note observations, discuss and summarise on the board.', resources: 'Textbook, demonstration kit, chart', homework: 'Answer the back exercise and draw the labelled diagram' },
+  'Social Science': { method: 'Map / picture to start, read the key section together, group discussion on two questions, timeline or flow chart on the board.', resources: 'Textbook, atlas / wall map, pictures', homework: 'Write three key points and one question' },
+  English: { method: 'Pre-reading questions, reading aloud in turns, vocabulary from the text, short written task.', resources: 'Textbook, dictionary, worksheet', homework: 'Write 100 words on the theme' },
+  Hindi: { method: 'पाठ का पठन, कठिन शब्दों के अर्थ, प्रश्नोत्तर पर चर्चा, अभ्यास कार्य।', resources: 'पाठ्यपुस्तक, श्यामपट्ट', homework: 'पाठ के प्रश्न 1–4' },
+  'Computer Science': { method: 'Show it on the projector, students try it at their desks in pairs, check each pair’s work.', resources: 'Computer lab, projector', homework: 'Practice the steps at home if possible' },
+}
+const REFLECTIONS = [
+  'Most of the class followed; a few needed the example again.', 'Good participation — finished the exercise in class.', 'Took longer than planned; will finish the exercise next period.',
+  'Students enjoyed the activity; doubts cleared at the end.', 'Covered the topic; the weaker group needs a short revision.', 'Went well — exit question answered correctly by most.',
+]
+
+async function fillPrimarySyllabus(admin) {
+  const classes = (await admin.get('/academics/classes')).classes.filter((c) => !['6', '7', '8', '9', '10', '11', '12'].includes(c.code))
+  const month = today.slice(0, 7)
+  let made = 0
+  for (const c of classes) {
+    for (const subj of c.subjects) {
+      const units = yearPlanFor(subj.name, c.code)
+      if (!units) continue
+      const current = await admin.get('/homework/syllabus', { classId: c.id, subjectId: subj.id }).catch(() => null)
+      if (current?.units?.length) continue
+      const saved = await admin.put('/homework/syllabus', { classId: c.id, subjectId: subj.id, units })
+      made++
+      const done = (saved.units ?? []).flatMap((u) => u.topics.filter((t) => (t.month ?? u.fromMonth) < month).map((t) => t.id))
+      // sections move at slightly different speeds, so the tracker shows a spread
+      for (const [k, sec] of c.sections.entries()) {
+        const ids = done.slice(0, Math.max(0, done.length - k))
+        if (ids.length) await admin.post('/homework/syllabus/progress', { sectionId: sec.id, subjectId: subj.id, topicIds: ids, done: true, date: addDaysYmd(today, -12) }, { ok: [200], quiet: [400, 403] })
+      }
+    }
+  }
+  return made ? `${made} year plans for Nursery – Class 5` : 'already there'
+}
+
+async function fillLessonPlans(admin) {
+  const existing = await admin.get('/homework/lesson-plans', { from: addDaysYmd(today, -20), to: addDaysYmd(today, 20) }).catch(() => [])
+  if ((existing.data ?? existing).length) return 'already there'
+  const classes = (await admin.get('/academics/classes')).classes.filter((c) => ['6', '7', '8', '9', '10'].includes(c.code))
+  // 1 · the year plan for each class and subject; chapters planned before this month are ticked as taught
+  const topicsOf = new Map() // `${classId}|${subjectId}` → [{ id, name, month }]
+  let syllabi = 0
+  const month = today.slice(0, 7)
+  for (const c of classes) {
+    for (const subj of c.subjects) {
+      const units = yearPlanFor(subj.name, c.code)
+      if (!units) continue
+      const saved = await admin.put('/homework/syllabus', { classId: c.id, subjectId: subj.id, units })
+      const topics = (saved.units ?? []).flatMap((u) => u.topics.map((t) => ({ id: t.id, name: t.name, month: t.month ?? u.fromMonth, periods: t.periods ?? 4 })))
+      topicsOf.set(`${c.id}|${subj.id}`, topics)
+      syllabi++
+      const done = topics.filter((t) => t.month < month).map((t) => t.id)
+      if (done.length) for (const sec of c.sections) await admin.post('/homework/syllabus/progress', { sectionId: sec.id, subjectId: subj.id, topicIds: done, done: true, date: addDaysYmd(today, -15) }, { ok: [200], quiet: [400, 403] })
+    }
+  }
+  // 2 · each teacher plans their own periods: last week taught (with how it went), this week and next planned
+  const classOfSection = new Map(classes.flatMap((c) => c.sections.map((sec) => [sec.id, c.id])))
+  const days = []
+  for (let d = addDaysYmd(today, -7); d <= addDaysYmd(today, 8); d = addDaysYmd(d, 1)) if (isSchoolDay(d)) days.push(d)
+  const code = (d) => ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'][new Date(`${d}T12:00:00Z`).getUTCDay()]
+  const pointer = new Map() // section|subject → { i, part }
+  let plans = 0, taught = 0, skipped = 0
+  for (const [name, email] of TEACHER_LOGINS) {
+    const teacher = await signIn(email, 'Demo@123').catch(() => null)
+    if (!teacher) continue
+    const week = await teacher.get('/timetable/mine').catch(() => null)
+    if (!week?.cells) continue
+    for (const d of days) {
+      for (const [period, cell] of Object.entries(week.cells[code(d)] ?? {}).sort((a, b) => Number(a[0]) - Number(b[0]))) {
+        const topics = topicsOf.get(`${classOfSection.get(cell.sectionId)}|${cell.subjectId}`)
+        if (!topics?.length) continue
+        const key = `${cell.sectionId}|${cell.subjectId}`
+        if (!pointer.has(key)) pointer.set(key, { i: Math.max(0, topics.findIndex((t) => t.month >= month)), part: 1 })
+        const at = pointer.get(key)
+        const topic = topics[Math.min(at.i, topics.length - 1)]
+        const parts = Math.min(3, Math.max(1, Math.round(topic.periods / 2)))
+        const look = LESSON_LOOK[cell.subject] ?? LESSON_LOOK.English
+        const plan = await teacher.post('/homework/lesson-plans', {
+          sectionId: cell.sectionId, subjectId: cell.subjectId, date: d, period: Number(period),
+          title: parts > 1 ? `${topic.name} (${at.part}/${parts})` : topic.name, topicIds: [topic.id],
+          objectives: `Students can explain the main ideas of “${topic.name}” and solve / answer the related textbook questions.`,
+          method: look.method, resources: look.resources, homeworkNote: at.part === parts ? look.homework : undefined,
+        }, { ok: [200, 201], quiet: [400, 403] })
+        if (!plan) continue
+        plans++
+        if (d < today) {
+          const skip = (plans % 13) === 0
+          await teacher.post(`/homework/lesson-plans/${plan.id}/status`, skip
+            ? { status: 'SKIPPED', reflection: 'Period taken for the school assembly rehearsal — moved to the next class.' }
+            : { status: 'DONE', reflection: REFLECTIONS[plans % REFLECTIONS.length] }, { ok: [200], quiet: [400, 403] })
+          if (skip) { skipped++; continue }
+          taught++
+        }
+        if (at.part >= parts) { at.i++; at.part = 1 } else at.part++
+      }
+    }
+    void name
+  }
+  return `${syllabi} year plans (Classes 6–10), ${plans} lesson plans by ${TEACHER_LOGINS.length} teachers — ${taught} taught, ${skipped} skipped, the rest planned`
+}
+
 // ───────────────────────────────────────────────────────── admissions
 
 async function fillAdmissions(admin) {
@@ -947,6 +1105,8 @@ async function main() {
   await step('Exams and results', () => fillExams(admin))
   await step('Question papers', () => fillQuestionPapers(admin))
   await step('Homework', () => fillHomework(admin))
+  await step('Syllabus and lesson plans', () => fillLessonPlans(admin))
+  await step('Syllabus for the junior classes', () => fillPrimarySyllabus(admin))
   await step('Admissions', () => fillAdmissions(admin))
   await step('Notices', () => fillNotices(admin))
   await mongoose.disconnect()
