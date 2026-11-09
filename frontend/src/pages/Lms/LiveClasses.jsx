@@ -26,8 +26,8 @@ function LiveForm({ onClose, onSaved }) {
       <div className="space-y-4">
         <FormField label={t('lms.live.name')} required error={errors.title}><Input value={f.title} onChange={set('title')} placeholder={t('lms.live.namePlaceholder')} /></FormField>
         <ClassSubjectPicker value={f} onChange={setF} errors={errors} />
-        <div className="grid sm:grid-cols-3 gap-4">
-          <FormField label={t('lms.live.date')} required error={errors.date}><Input type="date" value={f.date} onChange={set('date')} /></FormField>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+          <FormField className="col-span-2 sm:col-span-1" label={t('lms.live.date')} required error={errors.date}><Input type="date" value={f.date} onChange={set('date')} /></FormField>
           <FormField label={t('lms.live.start')} required><Input type="time" value={f.start} onChange={set('start')} /></FormField>
           <FormField label={t('lms.live.duration')}><Input type="number" min="10" max="240" value={f.durationMin} onChange={set('durationMin')} /></FormField>
         </div>
@@ -75,7 +75,7 @@ function LiveDrawer({ live, onClose, onChanged }) {
           <p className="text-sm font-medium text-ink mb-2 inline-flex items-center gap-1.5"><Users className="w-4 h-4" />{t('lms.live.joinedOf', { joined: att?.joined ?? 0, total: att?.total ?? 0 })}</p>
           <DataTable rows={att?.rows ?? []} rowKey="studentId" dense columns={[
             { key: 'name', header: t('lms.progress.student'), mobilePrimary: true, render: (v, r) => <PersonCell name={v} sub={r.section || undefined} size={28} /> },
-            { key: 'joinedAt', header: t('lms.live.joinedAt'), render: (v) => <DateCell value={v} time /> },
+            { key: 'joinedAt', header: t('lms.live.joinedAt'), mobileTrail: true, render: (v) => <DateCell value={v} time /> },
           ]} />
         </div>
       </div>
@@ -103,19 +103,22 @@ export default function LiveClasses() {
         actions={<HeaderButton icon={Plus} variant="primary" requires="lms.live-classes.create" onClick={() => setCreating(true)}>{t('lms.live.new')}</HeaderButton>} />
       <SegmentedControl className="mb-3" value={when} onChange={setWhen} options={[{ value: 'UPCOMING', label: t('lms.live.upcoming') }, { value: 'PAST', label: t('lms.live.past') }]} />
       <DataTable rows={shown} loading={isLoading} columns={[
-        { key: 'date', header: t('lms.live.when'), nowrap: true, render: (v, r) => <span>{date(v)}<span className="block text-xs text-ink-faint">{r.start} · {t('lms.live.minutes', { count: r.durationMin })}</span></span> },
-        { key: 'title', header: t('lms.live.name'), mobilePrimary: true, render: (v, r) => (
+        { key: 'date', header: t('lms.live.when'), nowrap: true, mobileHidden: true, render: (v, r) => <span>{date(v)}<span className="block text-xs text-ink-faint">{r.start} · {t('lms.live.minutes', { count: r.durationMin })}</span></span> },
+        { key: 'title', header: t('lms.live.name'), mobileTitle: true, render: (v, r) => (
           <div className="min-w-0">
+            {/* phones: when, and who joined, ride above / under the topic (those columns are hidden there) */}
+            <p className="md:hidden text-xs font-normal text-ink-muted mb-0.5">{date(r.date)} · {r.start} · {t('lms.live.minutes', { count: r.durationMin })}</p>
             <p className="font-medium text-ink truncate">{v}</p>
             <div className="mt-1 flex flex-wrap items-center gap-1">
               <ColorChip label={r.className} seed={r.classId} />
               <ColorChip label={r.subject} seed={r.subjectId ?? r.subject} dot sub={[r.sections.join(', '), r.hostName].filter(Boolean).join(' · ') || undefined} />
             </div>
+            {['LIVE', 'ENDED'].includes(r.status) && <p className="md:hidden mt-1 text-xs font-normal text-ink-muted">{t('lms.live.joinedN', { count: r.joined })}</p>}
           </div>
         ) },
         { key: 'provider', header: t('lms.live.provider'), mobileHidden: true, render: (v) => <ColorChip label={t(`lms.providers.${v}`)} seed={`live-${v}`} icon={Video} /> },
-        { key: 'joined', header: t('lms.live.joined'), align: 'right', render: (v) => <span className={v ? 'font-semibold tabular-nums text-success-600' : 'tabular-nums text-ink-faint'}>{v}</span> },
-        { key: 'status', header: t('lms.status'), render: (v) => <StatusPill tone={LIVE_STATUS[v]?.tone}>{t(`lms.liveStatus.${v}`)}</StatusPill> },
+        { key: 'joined', header: t('lms.live.joined'), align: 'right', mobileHidden: true, render: (v) => <span className={v ? 'font-semibold tabular-nums text-success-600' : 'tabular-nums text-ink-faint'}>{v}</span> },
+        { key: 'status', header: t('lms.status'), mobileTrail: true, render: (v) => <StatusPill tone={LIVE_STATUS[v]?.tone}>{t(`lms.liveStatus.${v}`)}</StatusPill> },
       ]} onRowClick={(r) => setOpen(r)} emptyIcon={Video} emptyTitle={when === 'UPCOMING' ? t('lms.live.noneUpcoming') : t('lms.live.nonePast')} />
       {open && <LiveDrawer live={rows.find((r) => r.id === open.id) ?? open} onClose={() => setOpen(null)} onChanged={refresh} />}
       {creating && <LiveForm onClose={() => setCreating(false)} onSaved={(l) => { setCreating(false); refresh(); showSuccess(l.told ? t('lms.live.scheduledTold', { count: l.told }) : t('lms.live.scheduled')) }} />}

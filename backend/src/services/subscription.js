@@ -1,8 +1,9 @@
-import { GST_STATE_CODES, LIMIT_KEYS, SUBSCRIPTION_GST_PCT, closeOverDependencies, formatINR, gstStateOf, stateCodeOf } from '@schoolgiant/shared'
+import { GST_STATE_CODES, LIMIT_KEYS, aiMonthOf, SUBSCRIPTION_GST_PCT, closeOverDependencies, formatINR, gstStateOf, stateCodeOf } from '@schoolgiant/shared'
 import { DiscountCode, Plan, SubscriptionEvent, SubscriptionInvoice, Tenant, nextSeq } from '../models/platform.js'
 import { Student } from '../models/students.js'
 import { Branch, User } from '../models/tenant.js'
 import { Attachment } from '../models/engines.js'
+import { AiUsage } from '../models/ai.js'
 import { runAsTenant, getContext } from '../platform/context.js'
 import { withTransaction } from '../platform/db.js'
 import { AppError, badRequest, conflict, limitReached, notFound } from '../platform/errors.js'
@@ -55,12 +56,22 @@ async function storageGb() {
   return Math.round((files?.bytes ?? 0) / 1e6) / 1e3
 }
 
+/** AI tokens (input + output, in thousands) used this calendar month. */
+async function aiTokensKThisMonth() {
+  const [r] = await AiUsage.aggregate([
+    { $match: { month: aiMonthOf(new Date().toISOString().slice(0, 10)) } },
+    { $group: { _id: null, n: { $sum: { $add: ['$inputTokens', '$outputTokens', '$cacheReadTokens', '$cacheWriteTokens'] } } } },
+  ])
+  return Math.round((r?.n ?? 0) / 100) / 10
+}
+
 export async function usageFor(tenantId) {
   return runAsTenant(tenantId, async () => ({
     users: await User.countDocuments({ active: true }),
     branches: await Branch.countDocuments({ active: true }),
     students: await Student.countDocuments({ status: 'ACTIVE' }),
     storageGb: await storageGb(),
+    aiTokensK: await aiTokensKThisMonth(),
   }))
 }
 

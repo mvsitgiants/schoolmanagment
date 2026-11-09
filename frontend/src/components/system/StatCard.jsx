@@ -134,25 +134,25 @@ export function StatCard({ icon: Icon, label, value, sub, tone = 'neutral', tren
       aria-label={onClick ? `${label}: ${value}` : undefined}
       className={clsx(
         PANEL,
-        'relative flex-1 min-w-0 sm:min-w-[190px] overflow-hidden text-start group card-hover',
+        'relative flex-1 min-w-0 sm:min-w-[190px] overflow-hidden text-start group card-hover max-sm:rounded-xl',
         onClick ? 'cursor-pointer hover:border-brand-300' : '',
         className
       )}
     >
-      <div className="ui-stat p-4 sm:p-5 flex gap-3 sm:gap-4 relative z-10">
+      <div className="ui-stat p-3 sm:p-5 flex gap-2.5 sm:gap-4 relative z-10">
         {Icon && (
           <span
             className={clsx(
-              'w-11 h-11 sm:w-12 sm:h-12 rounded-xl border flex items-center justify-center shrink-0 shadow-sm transition-transform duration-200 group-hover:scale-105',
+              'w-8 h-8 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl border flex items-center justify-center shrink-0 shadow-sm transition-transform duration-200 group-hover:scale-105',
               t.bg, t.text, t.border
             )}
           >
-            <Icon className="w-5 h-5 sm:w-[22px] sm:h-[22px]" />
+            <Icon className="w-4 h-4 sm:w-[22px] sm:h-[22px]" />
           </span>
         )}
         <div className="flex flex-col justify-center min-w-0 flex-1">
-          <div className="text-[11px] sm:text-xs font-semibold text-ink-muted mb-1 truncate uppercase tracking-wider">{label}</div>
-          <div className="font-display text-2xl sm:text-[26px] font-bold text-ink tabular-nums leading-none tracking-tight mb-1">
+          <div className="text-[10px] sm:text-xs font-semibold text-ink-muted mb-1 uppercase tracking-wide sm:tracking-wider leading-tight line-clamp-2">{label}</div>
+          <div className="font-display text-xl sm:text-[26px] font-bold text-ink tabular-nums leading-none tracking-tight mb-1 truncate">
             {value}
           </div>
           {sub != null && <div className="text-[11px] sm:text-xs text-ink-faint truncate font-medium">{sub}</div>}
@@ -176,10 +176,13 @@ export function StatCard({ icon: Icon, label, value, sub, tone = 'neutral', tren
 /** A responsive row of StatCards. 2-up on phones, flex row from `sm`.
  *  Pass `items: [{ icon, label, value, sub, tone, trend, delta, segments, onClick }]`.
  *  A tile without a `tone` takes the next decorative accent, so a row of plain counts is still colourful. */
-const ROW_COLS = { 3: 'lg:grid-cols-3', 5: 'lg:grid-cols-3 xl:grid-cols-5', 6: 'lg:grid-cols-3 2xl:grid-cols-6' }
+const ROW_COLS = { 2: 'lg:grid-cols-2', 3: 'lg:grid-cols-3', 5: 'lg:grid-cols-3 xl:grid-cols-5', 6: 'lg:grid-cols-3 2xl:grid-cols-6' }
 export function StatCardRow({ items = [], className }) {
   return (
-    <div className={clsx('grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4 w-full', ROW_COLS[items.length] ?? 'lg:grid-cols-4', className)}>
+    // Phones first: two compact tiles a row (a stack of full-width cards pushed the page below the
+    // fold); an odd last tile takes the whole row.
+    <div className={clsx('grid gap-2.5 sm:gap-4 w-full', items.length > 1 ? 'grid-cols-2' : 'grid-cols-1',
+      'max-sm:[&>*:last-child:nth-child(odd)]:col-span-2', ROW_COLS[items.length] ?? 'lg:grid-cols-4', className)}>
       {items.map((it, i) => <StatCard key={it.label} {...it} tone={it.tone ?? ACCENTS[i % ACCENTS.length]} />)}
     </div>
   )

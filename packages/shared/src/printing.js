@@ -12,6 +12,7 @@ export const PRINT_DOCS = [
   { value: 'FEE_RECEIPT', label: 'Fee receipt', module: 'fees', paper: 'A5', ready: true, server: true },
   { value: 'FEE_INVOICE', label: 'Fee invoice / challan', module: 'fees', paper: 'A4', ready: false, server: false },
   { value: 'REPORT_CARD', label: 'Report card', module: 'exams', paper: 'A4', ready: true, server: true },
+  { value: 'YEAR_REPORT_CARD', label: 'Annual report card', module: 'exams', paper: 'A4', ready: true, server: true },
   { value: 'HALL_TICKET', label: 'Hall ticket', module: 'exams', paper: 'A5', ready: true, server: true },
   { value: 'TRANSFER_CERTIFICATE', label: 'Transfer certificate', module: 'students', paper: 'A4', ready: true, server: true },
   { value: 'CERTIFICATE', label: 'Certificates (bonafide, character, study, fee, merit)', module: 'certificates', paper: 'A4', ready: true, server: true },
@@ -28,9 +29,12 @@ export const PRINT_DOCS = [
   { value: 'GRADE_CARD', label: 'Grade card (semester)', module: 'coe', paper: 'A4', ready: true, server: true },
   { value: 'TRANSCRIPT', label: 'Consolidated transcript', module: 'coe', paper: 'A4', ready: true, server: true },
   { value: 'ATTAINMENT_REPORT', label: 'CO–PO attainment report', module: 'programs', paper: 'A4', ready: true, server: true },
+  { value: 'DONATION_RECEIPT', label: 'Donation receipt (80G)', module: 'alumni', paper: 'A5', ready: true, server: true },
+  { value: 'ACCREDITATION_SSR', label: 'Accreditation report summary (NAAC SSR / NIRF / AISHE)', module: 'accreditation', paper: 'A4', ready: true, server: true },
   { value: 'HR_OFFER_LETTER', label: 'Offer letter', module: 'hrms', paper: 'A4', ready: false, server: false },
   { value: 'STAFF_ID_CARD', label: 'Staff ID card', module: 'hrms', paper: 'CARD_PORTRAIT', ready: false, server: false, many: true },
-  { value: 'PURCHASE_ORDER', label: 'Purchase order', module: 'inventory', paper: 'A4', ready: false, server: false },
+  { value: 'PURCHASE_ORDER', label: 'Purchase order', module: 'inventory', paper: 'A4', ready: true, server: true },
+  { value: 'STORE_SALE_RECEIPT', label: 'Store receipt (uniform & book sale)', module: 'inventory', paper: 'A5', ready: true, server: true },
 ]
 export const PRINT_DOC_BY = Object.fromEntries(PRINT_DOCS.map((d) => [d.value, d]))
 

@@ -8,14 +8,14 @@ import {
 import { VEHICLE_DOCS, VEHICLE_STATUS, VEHICLE_TYPES } from '@schoolgiant/shared'
 import {
   CodeBadge, ColorChip, DataTable, DateCell, Drawer, EmptyState, FormField, HeaderButton, Input, Modal, Note, PANEL, PageContainer, PageHeader, Panel, PersonCell, PhoneLink, PillRow,
-  SegmentedControl, Select, Skeleton, StatCardRow, StatusPill, TONE, Tag, Textarea, pillClass, useConfirm,
+  SegmentedControl, Select, SideNavLayout, Skeleton, StatCardRow, StatusPill, TONE, Tag, Textarea, pillClass, useConfirm,
 } from '../../components/system'
 import Button from '../../components/ui/Button'
-import { deleteVehicle, fetchGpsHook, fetchStaffLogins, fetchVehicleBoard, fetchVehicles, saveVehicle } from '../../api/transport'
+import { deleteVehicle, fetchGpsHook, fetchRoutes, fetchStaffLogins, fetchVehicleBoard, fetchVehicles, saveVehicle } from '../../api/transport'
 import { hasPermission } from '../../api/auth'
 import { useSnackbar } from '../../context/SnackbarContext'
 import { useFormat } from '../../context/SettingsContext'
-import { DocStatePill, TripStatusPill, VehicleStatusPill, useTransportLabels } from '../../components/transport/TransportKit'
+import { DocStatePill, RouteNav, TripStatusPill, VehicleStatusPill, useTransportLabels } from '../../components/transport/TransportKit'
 import SeatMap, { SeatLegend, SeatsBar, seatGroups } from '../../components/transport/SeatMap'
 
 // each vehicle type's icon in the fleet table
@@ -292,27 +292,26 @@ function VehicleDrawer({ v, colourBy, onClose, onEdit }) {
 }
 
 const SEAT_FILTERS = ['', 'OVER', 'FREE']
+const NO_ROUTE = '__none' // the sub-navigation's "no route" item
 
-function VehicleBoard({ onEdit }) {
+/** `onRoute(v)`: does the vehicle belong in the route picked in the page's sub-navigation? */
+function VehicleBoard({ onEdit, onRoute }) {
   const { t } = useTranslation('transport')
-  const [routeId, setRouteId] = useState('')
   const [seats, setSeats] = useState('')
   const [colourBy, setColourBy] = useState('STOP')
   const [openId, setOpenId] = useState(null)
   const { data, isLoading } = useQuery({ queryKey: ['transport', 'vehicles', 'board'], queryFn: fetchVehicleBoard, refetchInterval: 60_000 })
   const all = data?.vehicles ?? []
-  const routes = all.flatMap((v) => v.routes).sort((a, b) => a.name.localeCompare(b.name))
-  const shown = all.filter((v) => (!routeId || v.routes.some((r) => r.id === routeId)) && (seats !== 'OVER' || v.over > 0) && (seats !== 'FREE' || v.free > 0))
+  const shown = all.filter((v) => onRoute(v) && (seats !== 'OVER' || v.over > 0) && (seats !== 'FREE' || v.free > 0))
   const open = all.find((v) => v.id === openId)
   const canEdit = hasPermission('transport.vehicles.edit')
   return (
     <>
       <div className="flex flex-wrap items-center gap-2">
-        {routes.length > 1 && <div className="w-60"><Select value={routeId} onChange={(e) => setRouteId(e.target.value)} aria-label={t('transport.board.route')}><option value="">{t('transport.board.allRoutes')}</option>{routes.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}</Select></div>}
-        <PillRow>
+        <PillRow className="w-full sm:w-auto">
           {SEAT_FILTERS.map((f) => <button key={f || 'ALL'} type="button" aria-pressed={seats === f} onClick={() => setSeats(f)} className={pillClass(seats === f)}>{t(`transport.board.filter.${f || 'ALL'}`)}</button>)}
         </PillRow>
-        <span className="ms-auto flex items-center gap-2 text-xs text-ink-muted">
+        <span className="sm:ms-auto flex items-center gap-2 text-xs text-ink-muted">
           {t('transport.board.colourBy')}
           <SegmentedControl value={colourBy} onChange={setColourBy} options={[{ value: 'STOP', label: t('transport.board.byStop') }, { value: 'CLASS', label: t('transport.board.byClass') }]} />
         </span>
@@ -322,7 +321,7 @@ function VehicleBoard({ onEdit }) {
       ) : !all.length ? <EmptyState icon={Bus} title={t('transport.vehicles.empty')} hint={t('transport.board.emptyHint')} />
         : !shown.length ? <EmptyState icon={Bus} title={t('transport.board.noMatch')} />
           : (
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            <div className="grid gap-3 sm:grid-cols-2 2xl:grid-cols-3">
               {shown.map((v) => <VehicleCard key={v.id} v={v} colourBy={colourBy} selected={openId === v.id} onOpen={() => setOpenId(v.id)} />)}
             </div>
           )}
@@ -341,25 +340,34 @@ export default function Vehicles() {
   const { showSuccess, showError } = useSnackbar()
   const [editing, setEditing] = useState(null)
   const [view, setView] = useState('BOARD')
-  const { data: rows = [], isLoading } = useQuery({ queryKey: ['transport', 'vehicles'], queryFn: fetchVehicles })
+  const [routeId, setRouteId] = useState('')
+  const { data: all = [], isLoading } = useQuery({ queryKey: ['transport', 'vehicles'], queryFn: fetchVehicles })
+  const { data: routes = [] } = useQuery({ queryKey: ['transport', 'routes'], queryFn: () => fetchRoutes() })
+  // the sub-navigation: one route, the vehicles with no route, or all
+  const onRoute = (v) => (!routeId ? true : routeId === NO_ROUTE ? !v.routes?.length : (v.routes ?? []).some((r) => r.id === routeId))
+  const rows = all.filter(onRoute)
+  const spare = all.filter((v) => !v.routes?.length).length
   const refresh = () => qc.invalidateQueries({ queryKey: ['transport'] })
   const remove = useMutation({ mutationFn: deleteVehicle, onSuccess: () => { refresh(); showSuccess(t('transport.vehicles.deleted')) }, onError: (e) => showError(e.message) })
   const canEdit = hasPermission('transport.vehicles.edit')
-  const expiring = rows.filter((v) => v.docsState === 'EXPIRED' || v.docsState === 'DUE')
+  const expiring = all.filter((v) => v.docsState === 'EXPIRED' || v.docsState === 'DUE')
   return (
     <PageContainer>
       <PageHeader icon={Bus} title={t('transport.vehicles.title')} subtitle={t('transport.vehicles.subtitle')}
         actions={<HeaderButton icon={Plus} variant="primary" requires="transport.vehicles.create" onClick={() => setEditing('new')}>{t('transport.vehicles.new')}</HeaderButton>} />
-      <div className="space-y-4">
+      <SideNavLayout nav={(routes.length > 1 || spare > 0) && (
+        <RouteNav routes={routes} value={routeId} onChange={setRouteId} allLabel={t('transport.board.allVehicles')} allCount={all.length}
+          extra={spare ? [{ id: NO_ROUTE, label: t('transport.nav.spare'), icon: Bus, count: spare }] : []} />
+      )}>
         <StatCardRow items={[
           { icon: Bus, tone: 'brand', label: t('transport.vehicles.onRoad'), value: rows.filter((v) => v.status === 'ACTIVE').length },
           { icon: Armchair, tone: 'violet', label: t('transport.vehicles.seats'), value: rows.filter((v) => v.status === 'ACTIVE').reduce((n, v) => n + (v.capacity ?? 0), 0) },
-          { icon: FileWarning, label: t('transport.vehicles.papersDue'), value: expiring.length, tone: expiring.length ? 'warning' : 'neutral' },
+          { icon: FileWarning, label: t('transport.vehicles.papersDue'), value: rows.filter((v) => v.docsState === 'EXPIRED' || v.docsState === 'DUE').length, tone: expiring.length ? 'warning' : 'neutral' },
           { icon: Radio, tone: 'sky', label: t('transport.vehicles.withGps'), value: rows.filter((v) => v.gpsDeviceId).length },
         ]} />
         {expiring.length > 0 && <Note tone="warning">{t('transport.vehicles.dueNote', { list: expiring.map((v) => v.regNo).join(', ') })}</Note>}
         <SegmentedControl value={view} onChange={setView} options={[{ value: 'BOARD', label: t('transport.board.view.BOARD'), icon: LayoutGrid }, { value: 'LIST', label: t('transport.board.view.LIST'), icon: List }]} />
-        {view === 'BOARD' ? <VehicleBoard onEdit={(id) => { const v = rows.find((x) => x.id === id); if (v) setEditing(v) }} /> : <DataTable rows={rows} loading={isLoading} columns={[
+        {view === 'BOARD' ? <VehicleBoard onRoute={onRoute} onEdit={(id) => { const v = all.find((x) => x.id === id); if (v) setEditing(v) }} /> : <DataTable rows={rows} loading={isLoading} columns={[
           { key: 'regNo', header: t('transport.vehicles.regNo'), mobilePrimary: true, render: (v, r) => (
             <span className="flex flex-col items-start gap-1">
               <CodeBadge>{v}</CodeBadge>
@@ -380,7 +388,7 @@ export default function Vehicles() {
           ) },
         ]} onRowClick={canEdit ? (r) => setEditing(r) : undefined} emptyTitle={t('transport.vehicles.empty')} />}
         {(canEdit || hasPermission('transport.vehicles.create')) && <GpsPanel />}
-      </div>
+      </SideNavLayout>
       {editing && <VehicleForm vehicle={editing === 'new' ? null : editing} onClose={() => setEditing(null)} onSaved={() => { setEditing(null); refresh(); showSuccess(t('transport.vehicles.saved')) }} />}
     </PageContainer>
   )

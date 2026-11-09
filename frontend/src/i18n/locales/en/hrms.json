@@ -515,7 +515,8 @@
       "hire": "Mark as joined",
       "hired": "Joined — staff record made.",
       "files": "CV and papers",
-      "history": "History"
+      "history": "History",
+      "vacanciesNav": "Vacancies"
     },
     "performance": {
       "title": "Appraisal",
@@ -599,7 +600,9 @@
       "view": "See",
       "dueBy": "Due {{date}}",
       "reviewedBy": "Reviewed by {{name}}",
-      "resultTitle": "Review of {{name}}"
+      "resultTitle": "Review of {{name}}",
+      "roundsNav": "Review rounds",
+      "allReviews": "All · {{n}}"
     },
     "me": {
       "title": "My workspace",

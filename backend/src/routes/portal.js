@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import { forgetFamilySession, pushPublicKey, removePushSubscription, savePushSubscription } from '../services/push.js'
 import rateLimit from 'express-rate-limit'
 import { config } from '../config.js'
 import { Tenant } from '../models/platform.js'
@@ -11,7 +12,7 @@ import { getSettings, saveSettings } from '../platform/settings.js'
 import { objectId, optionalText, z } from '../platform/validate.js'
 import { maskMobile } from '@schoolgiant/shared'
 import {
-  appLink, applyLeave, attendanceFor, cancelLeave, certificatesFor, documentFor, featuresFor, feesFor, getContent, homeFor, homeworkFile, homeworkFor,
+  appLink, applyLeave, attendanceFor, cancelLeave, certificatesFor, documentFor, featuresFor, feesFor, getContent, homeFor, homeworkFile, homeworkFor, timetableFor,
   familyChat, familyChatSend, familyChatTeachers, familyChats, familyNoticeFile, familyNotices, familyReadNotice,
   meView, profileFor, publicInfo, resultsFor, saveContent,
 } from '../services/portal.js'
@@ -23,6 +24,13 @@ import { createAppOrder, verifyAppPayment } from '../services/feePayments.js'
 import { courseView, itemFile, joinLive, learningFor, markItem } from '../services/lmsFamily.js'
 import { busFor } from '../services/transport.js'
 import { ebookFile, libraryFor } from '../services/libraryFamily.js'
+import { familyCancelPreorder, familyCanteen, familyControls, familyPreorder, familyTopupStart, familyTopupVerify } from '../services/canteenFamily.js'
+import { familyRespond, familySurvey, familySurveys } from '../services/surveysFill.js'
+import { familyComplaints, familyRaiseComplaint } from '../services/frontOfficeComplaints.js'
+import { FO_COMPLAINT_CATEGORIES } from '@schoolgiant/shared'
+import { familyPlacements, familyRegister as familyPlacementRegister, familyWithdraw as familyPlacementWithdraw } from '../services/placementsFamily.js'
+import { familyHealth } from '../services/health.js'
+import { familyCancelOutpass, familyHostel, familyRequestOutpass } from '../services/hostel.js'
 import { familyAlbum, familyAlbums, familyCalendar, familyEventReply, familyMeetingBook, familyMeetingCancel, familyMeetings, familyPhoto } from '../services/eventsFamily.js'
 import { attemptView, logEvent, resultView, saveAnswer, startTest, submitAttempt, testsFor } from '../services/onlineTests.js'
 
@@ -141,7 +149,18 @@ familyRouter.post('/verify', verifyLimiter, async (req, res) => {
 familyRouter.use(requireFamily)
 
 familyRouter.get('/me', async (req, res) => { res.json({ data: await meView(req.family) }) })
+familyRouter.get('/push/key', async (req, res) => { res.json({ data: { publicKey: await pushPublicKey() } }) })
+familyRouter.post('/push', async (req, res) => {
+  const { subscription } = z.object({ subscription: z.object({ endpoint: z.string().url().max(1000), keys: z.object({ p256dh: z.string().max(200), auth: z.string().max(100) }) }) }).parse(req.body)
+  const f = req.family
+  res.json({ data: await savePushSubscription(subscription, { kind: 'FAMILY', sessionId: f.session._id, studentIds: f.students.map((x) => x._id) }, req.get('user-agent')) })
+})
+familyRouter.post('/push/off', async (req, res) => {
+  const { endpoint } = z.object({ endpoint: z.string().max(1000) }).parse(req.body)
+  res.json({ data: await removePushSubscription(endpoint) })
+})
 familyRouter.post('/logout', async (req, res) => {
+  await forgetFamilySession(req.family.session._id)
   await endFamilySession(req.family.session._id)
   clearFamilyCookie(res, req.family.slug)
   res.json({ data: { signedOut: true } })
@@ -160,6 +179,7 @@ familyRouter.post('/students/:studentId/leave', async (req, res) => {
 familyRouter.post('/students/:studentId/leave/:leaveId/cancel', async (req, res) => {
   res.json({ data: await cancelLeave(req.family, sid(req), req.params.leaveId, req) })
 })
+familyRouter.get('/students/:studentId/timetable', async (req, res) => { res.json({ data: await timetableFor(req.family, sid(req)) }) })
 familyRouter.get('/students/:studentId/homework', async (req, res) => {
   const { when } = z.object({ when: z.enum(['OPEN', 'PAST']).optional() }).parse(req.query)
   res.json({ data: await homeworkFor(req.family, sid(req), { when }) })
@@ -216,6 +236,44 @@ familyRouter.get('/students/:studentId/albums/:albumId/photos/:fileId', async (r
   await new Promise((resolve, reject) => { stream.on('error', reject); stream.on('end', resolve); stream.pipe(res) })
 })
 
+// hostel: room and bed, today's menu, outpasses (ask for one, withdraw one still waiting)
+familyRouter.get('/students/:studentId/hostel', async (req, res) => { res.json({ data: await familyHostel(req.family, sid(req)) }) })
+familyRouter.post('/students/:studentId/hostel/outpasses', async (req, res) => {
+  const body = z.object({
+    kind: z.enum(['DAY', 'NIGHT', 'HOME', 'MEDICAL']).default('HOME'),
+    leaveDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), leaveTime: z.string().regex(/^\d{2}:\d{2}$/),
+    returnDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), returnTime: z.string().regex(/^\d{2}:\d{2}$/),
+    reason: z.string().trim().min(3).max(300), destination: optionalText(200),
+  }).parse(req.body)
+  res.status(201).json({ data: await familyRequestOutpass(req.family, sid(req), body, req) })
+})
+familyRouter.post('/students/:studentId/hostel/outpasses/:outpassId/cancel', async (req, res) => { res.json({ data: await familyCancelOutpass(req.family, sid(req), req.params.outpassId, req) }) })
+// health card (read-only)
+familyRouter.get('/students/:studentId/health', async (req, res) => { res.json({ data: await familyHealth(req.family, sid(req)) }) })
+// placements: open drives, registering, progress through the rounds, offers
+familyRouter.get('/students/:studentId/placements', async (req, res) => { res.json({ data: await familyPlacements(req.family, sid(req)) }) })
+familyRouter.post('/students/:studentId/placements/:driveId/register', async (req, res) => {
+  const body = z.object({ tenthPct: z.coerce.number().min(0).max(100).optional(), twelfthPct: z.coerce.number().min(0).max(100).optional() }).parse(req.body ?? {})
+  res.json({ data: await familyPlacementRegister(req.family, sid(req), req.params.driveId, body, req) })
+})
+familyRouter.post('/students/:studentId/placements/:driveId/withdraw', async (req, res) => { res.json({ data: await familyPlacementWithdraw(req.family, sid(req), req.params.driveId, req) }) })
+// complaints: raise one about the child's school life, follow it to resolution
+familyRouter.get('/students/:studentId/complaints', async (req, res) => { res.json({ data: await familyComplaints(req.family, sid(req)) }) })
+familyRouter.post('/students/:studentId/complaints', async (req, res) => {
+  const body = z.object({
+    category: z.enum(FO_COMPLAINT_CATEGORIES.map((c) => c.value)),
+    subject: z.string().trim().min(3, 'Say what it is about').max(150),
+    description: z.string().trim().max(3000).optional(),
+  }).parse(req.body)
+  res.status(201).json({ data: await familyRaiseComplaint(req.family, sid(req), body, req) })
+})
+// surveys: the school's questionnaires for this child's family (or the student), answered once
+familyRouter.get('/students/:studentId/surveys', async (req, res) => { res.json({ data: await familySurveys(req.family, sid(req)) }) })
+familyRouter.get('/students/:studentId/surveys/:surveyId', async (req, res) => { res.json({ data: await familySurvey(req.family, sid(req), req.params.surveyId) }) })
+familyRouter.post('/students/:studentId/surveys/:surveyId', async (req, res) => {
+  const { values } = z.object({ values: z.record(z.string(), z.any()).default({}) }).parse(req.body)
+  res.status(201).json({ data: await familyRespond(req.family, sid(req), req.params.surveyId, values) })
+})
 // library: books out, fines, the e-library
 familyRouter.get('/students/:studentId/library', async (req, res) => { res.json({ data: await libraryFor(req.family, sid(req)) }) })
 familyRouter.get('/students/:studentId/library/ebooks/:titleId/files/:fileId', async (req, res) => {
@@ -245,6 +303,27 @@ familyRouter.get('/students/:studentId/attempts/:attemptId/result', async (req, 
 familyRouter.get('/students/:studentId/fees', async (req, res) => { res.json({ data: await feesFor(req.family, sid(req)) }) })
 // pay online: an order for what is due now, then Checkout's signed response
 const payLimiter = limit(15 * 60_000, 30, 'Too many payment tries. Try again in a few minutes.')
+
+// canteen: the wallet, online top-up, the parent's controls, pre-orders
+familyRouter.get('/students/:studentId/canteen', async (req, res) => { res.json({ data: await familyCanteen(req.family, sid(req)) }) })
+familyRouter.put('/students/:studentId/canteen/controls', async (req, res) => {
+  const body = z.object({ dailyLimit: z.number().int().min(0).max(10_000_00).nullable().optional(), blockedTags: z.array(z.string().max(20)).max(10).optional(), blockedItemIds: z.array(objectId).max(200).optional() }).parse(req.body)
+  res.json({ data: await familyControls(req.family, sid(req), body, req) })
+})
+familyRouter.post('/students/:studentId/canteen/preorders', async (req, res) => {
+  const body = z.object({ date: ymd, lines: z.array(z.object({ itemId: objectId, qty: z.number().int().min(1).max(20) })).min(1).max(20) }).parse(req.body)
+  res.status(201).json({ data: await familyPreorder(req.family, sid(req), body, req) })
+})
+familyRouter.post('/students/:studentId/canteen/preorders/:orderId/cancel', async (req, res) => { res.json({ data: await familyCancelPreorder(req.family, sid(req), req.params.orderId, req) }) })
+familyRouter.post('/students/:studentId/canteen/topup', payLimiter, async (req, res) => {
+  const { amount } = z.object({ amount: z.number().int().min(100).max(10_000_00) }).parse(req.body)
+  res.json({ data: await familyTopupStart(req.family, sid(req), { amount }) })
+})
+familyRouter.post('/students/:studentId/canteen/topup/verify', payLimiter, async (req, res) => {
+  const body = z.object({ orderId: z.string().max(60), paymentId: z.string().max(60), signature: z.string().max(200) }).parse(req.body)
+  res.json({ data: await familyTopupVerify(req.family, sid(req), body) })
+})
+
 familyRouter.post('/students/:studentId/pay', payLimiter, async (req, res) => { res.json({ data: await createAppOrder(req.family, sid(req)) }) })
 familyRouter.post('/students/:studentId/pay/verify', payLimiter, async (req, res) => {
   const body = z.object({ orderId: z.string().max(60), paymentId: z.string().max(60), signature: z.string().max(200) }).parse(req.body)
@@ -276,7 +355,7 @@ familyRouter.post('/students/:studentId/chat', async (req, res) => {
 
 /** One of the family's own printed documents (receipt, report card, hall ticket, certificate), as HTML. */
 familyRouter.get('/doc/:docType/:id', async (req, res) => {
-  const docType = z.enum(['FEE_RECEIPT', 'REPORT_CARD', 'HALL_TICKET', 'CERTIFICATE']).parse(req.params.docType)
+  const docType = z.enum(['FEE_RECEIPT', 'REPORT_CARD', 'HALL_TICKET', 'YEAR_REPORT_CARD', 'CERTIFICATE']).parse(req.params.docType)
   const html = await documentFor(req.family, docType, req.params.id)
   res.setHeader('Content-Type', 'text/html; charset=utf-8')
   res.send(html)

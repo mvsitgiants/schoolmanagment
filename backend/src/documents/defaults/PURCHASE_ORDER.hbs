@@ -1,0 +1,69 @@
+{{!-- Purchase order (A4), sent to the vendor. A draft or one waiting for approval prints with a DRAFT stamp; a
+      cancelled one with CANCELLED. Data from services/inventoryPurchase.js (poPrintData). --}}
+<style>
+  h1 { font-size: 13pt; text-align: center; letter-spacing: .08em; text-transform: uppercase; margin: 4mm 0 3mm }
+  .parties { display: flex; justify-content: space-between; gap: 8mm; font-size: 9.5pt; margin-bottom: 4mm }
+  .parties .box { flex: 1; border: 1px solid #DDE0E6; border-radius: 2mm; padding: 2.5mm 3mm }
+  .parties .lbl { font-size: 7.5pt; text-transform: uppercase; letter-spacing: .06em; color: #5B616E; margin-bottom: 1mm }
+  .meta { display: flex; flex-wrap: wrap; gap: 2mm 8mm; font-size: 9pt; margin-bottom: 3mm }
+  .meta b { font-weight: 600 }
+  table.r { width: 100%; border-collapse: collapse; font-size: 9pt }
+  table.r th { text-align: left; font-weight: 600; color: #5B616E; border-bottom: 1px solid #C8CCD4; padding: 1.5mm 1mm }
+  table.r td { padding: 1.4mm 1mm; border-bottom: 1px solid #EEF0F3; vertical-align: top }
+  table.r .n { text-align: right; white-space: nowrap }
+  .sum { margin-left: auto; width: 70mm; margin-top: 3mm; font-size: 9.5pt }
+  .sum div { display: flex; justify-content: space-between; padding: .8mm 0 }
+  .sum .tot { font-weight: 700; font-size: 11pt; border-top: 1px solid #C8CCD4; margin-top: 1mm; padding-top: 1.5mm }
+  .words { font-size: 9pt; color: #3A3F4B; margin-top: 2mm }
+  .terms { margin-top: 5mm; font-size: 8.5pt; color: #3A3F4B; white-space: pre-line }
+  .foot { margin-top: 14mm; display: flex; justify-content: space-between; font-size: 9pt }
+  .stamp { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 54pt; font-weight: 800; color: rgba(214,69,69,.14); transform: rotate(-22deg); pointer-events: none }
+</style>
+{{#if po.cancelled}}<div class="stamp">{{t "inventory.print.po.stampCancelled" "CANCELLED"}}</div>{{else}}{{#if po.draft}}<div class="stamp">{{t "inventory.print.po.stampDraft" "DRAFT"}}</div>{{/if}}{{/if}}
+{{#> letterhead}}{{/letterhead}}
+<h1>{{t "inventory.print.po.title" "Purchase order"}}</h1>
+<div class="meta">
+  <div>{{t "inventory.print.po.no" "PO No."}} <b class="mono">{{po.no}}</b></div>
+  <div>{{t "inventory.print.po.date" "Date"}} <b>{{date po.date}}</b></div>
+  {{#if po.expectedOn}}<div>{{t "inventory.print.po.expectedOn" "Deliver by"}} <b>{{date po.expectedOn}}</b></div>{{/if}}
+</div>
+<div class="parties">
+  <div class="box">
+    <div class="lbl">{{t "inventory.print.po.to" "To"}}</div>
+    <div><b>{{vendor.name}}</b></div>
+    {{#if vendor.contactPerson}}<div>{{vendor.contactPerson}}</div>{{/if}}
+    {{#if vendor.address}}<div class="muted">{{vendor.address}}</div>{{/if}}
+    {{#if vendor.phone}}<div class="muted">{{vendor.phone}}{{#if vendor.email}} · {{vendor.email}}{{/if}}</div>{{/if}}
+    {{#if vendor.gstin}}<div class="muted">{{t "inventory.print.po.gstin" "GSTIN"}} {{vendor.gstin}}</div>{{/if}}
+  </div>
+  <div class="box">
+    <div class="lbl">{{t "inventory.print.po.deliverTo" "Deliver to"}}</div>
+    <div><b>{{institution.name}}</b></div>
+    {{#if po.deliverTo}}<div class="muted">{{po.deliverTo}}</div>{{/if}}
+  </div>
+</div>
+<table class="r">
+  <thead><tr>
+    <th>#</th><th>{{t "inventory.print.po.item" "Item"}}</th><th class="n">{{t "inventory.print.po.qty" "Qty"}}</th>
+    <th class="n">{{t "inventory.print.po.rate" "Rate"}}</th><th class="n">{{t "inventory.print.po.amount" "Amount"}}</th>
+  </tr></thead>
+  <tbody>
+    {{#each lines}}
+      <tr><td>{{n}}</td><td>{{name}}{{#if size}} <span class="muted">({{t "inventory.print.po.size" "size {{size}}" size=size}})</span>{{/if}}</td>
+        <td class="n">{{num qty}} {{unit}}</td><td class="n">{{money rate}}</td><td class="n">{{money amount}}</td></tr>
+    {{/each}}
+  </tbody>
+</table>
+<div class="sum">
+  <div><span>{{t "inventory.print.po.subtotal" "Subtotal"}}</span><span>{{money po.subtotal}}</span></div>
+  {{#if po.tax}}<div><span>{{t "inventory.print.po.tax" "Tax"}}</span><span>{{money po.tax}}</span></div>{{/if}}
+  <div class="tot"><span>{{t "inventory.print.po.total" "Total"}}</span><span>{{money po.total}}</span></div>
+</div>
+<div class="words">{{words po.total}}</div>
+{{#if po.terms}}<div class="terms"><b>{{t "inventory.print.po.terms" "Terms"}}</b><br>{{po.terms}}</div>{{/if}}
+{{#if po.cancelled}}<div class="words">{{t "inventory.print.po.cancelledNote" "Cancelled: {{reason}}" reason=po.cancelReason}}</div>{{/if}}
+<div class="foot">
+  <span class="muted">{{#if po.raisedBy}}{{t "inventory.print.po.raisedBy" "Raised by {{name}}" name=po.raisedBy}}{{/if}}</span>
+  <span>{{#if po.approvedBy}}{{t "inventory.print.po.approvedBy" "Approved by {{name}}" name=po.approvedBy}}{{else}}{{t "inventory.print.po.signature" "Authorised signatory"}}{{/if}}</span>
+</div>
+{{> footer}}

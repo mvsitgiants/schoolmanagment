@@ -1,10 +1,12 @@
 import { useState, useEffect, useRef } from 'react'
 import { Bell, ChevronDown, LogOut, MonitorSmartphone, Menu, Rows3, KeyRound, UserRound, Building2, CheckSquare, ScanQrCode, ArrowLeftRight } from 'lucide-react'
+import GlobalScan, { openScan } from '../scan/GlobalScan'
 import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import clsx from 'clsx'
+import PushToggle from '../app/PushToggle'
 import { logout, logoutAll } from '../../api/auth'
-import { fetchNotifications, markNotificationsRead } from '../../api/core'
+import { fetchNotifications, markNotificationsRead, pushApi } from '../../api/core'
 import useAuthUser from '../../hooks/useAuthUser'
 import GlobalSearch from './GlobalSearch'
 import ChangePasswordModal from './ChangePasswordModal'
@@ -104,6 +106,15 @@ export default function Topbar({ onMenu }) {
         )}
 
 
+        {!me?.superadmin && (
+          <>
+            <button type="button" onClick={openScan} aria-label={t('ui.topbar.scan')} title={t('ui.topbar.scan')} className="hidden lg:flex w-9 h-9 rounded-md items-center justify-center text-ink-muted hover:bg-bg hover:text-ink">
+              <ScanQrCode className="w-[18px] h-[18px]" />
+            </button>
+            <GlobalScan />
+          </>
+        )}
+
         <div className="relative" ref={bellRef}>
           <button aria-label={t('notifications.title', 'Notifications')} onClick={() => { if (!bell) loadBell(); setBell((o) => !o) }} className="w-9 h-9 rounded-md flex items-center justify-center text-ink-muted hover:bg-bg hover:text-ink relative">
             <Bell className="w-[18px] h-[18px]" />
@@ -144,6 +155,7 @@ export default function Topbar({ onMenu }) {
                   ))}
                 </ul>
               )}
+              <PushToggle api={pushApi} className="border-t border-border px-3 py-2.5" />
             </div>
           )}
         </div>

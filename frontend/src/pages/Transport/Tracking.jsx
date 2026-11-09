@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { CheckCircle2, Circle, LocateFixed, LocateOff, MapPin, Navigation, Play, Square, UserCheck, UserMinus, UserX, Users } from 'lucide-react'
+import { CheckCircle2, Circle, LocateFixed, LocateOff, MapPin, Navigation, Play, Route as RouteIcon, Square, UserCheck, UserMinus, UserX, Users } from 'lucide-react'
 import { osmEmbed, osmLink } from '@schoolgiant/shared'
-import { Drawer, Note, PageContainer, PageHeader, Panel, PersonCell, PhoneLink, SegmentedControl, StatCardRow, StatusPill, useConfirm } from '../../components/system'
+import { Drawer, Note, PageContainer, PageHeader, Panel, PersonCell, PhoneLink, SegmentedControl, SideNav, SideNavLayout, StatCardRow, StatusPill, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { endTrip, fetchBoard, fetchMyRoutes, fetchTrip, markRide, sendPosition, startTrip } from '../../api/transport'
 import { hasPermission } from '../../api/auth'
@@ -172,16 +172,24 @@ function Board() {
   const L = useTransportLabels()
   const { time } = useFormat()
   const [open, setOpen] = useState(null)
+  const [routeId, setRouteId] = useState('')
   const { data, isLoading } = useQuery({ queryKey: ['transport', 'board'], queryFn: () => fetchBoard(), refetchInterval: 20_000 })
-  const routes = data?.routes ?? []
+  const allRoutes = data?.routes ?? []
+  const routes = routeId ? allRoutes.filter((r) => r.id === routeId) : allRoutes
   const trips = routes.flatMap((r) => r.trips)
   const fresh = (p) => p?.at && Date.now() - new Date(p.at).getTime() < 10 * 60_000
   const running = routes.filter((r) => r.trips.some((x) => x.status === 'RUNNING'))
   const map = osmEmbed(running.map((r) => r.lastPosition).filter(fresh))
   if (isLoading) return <div className="h-40 rounded-xl bg-black/[0.04] animate-pulse" />
-  if (!routes.length) return <Note>{t('transport.track.noRoutes')}</Note>
+  if (!allRoutes.length) return <Note>{t('transport.track.noRoutes')}</Note>
+  const live = (r) => r.trips.filter((x) => x.status === 'RUNNING').length
   return (
-    <div className="space-y-4">
+    <SideNavLayout nav={allRoutes.length > 1 && (
+      <SideNav title={t('transport.nav.routes')} value={routeId} onChange={setRouteId} items={[
+        { id: '', label: t('transport.board.allRoutes'), icon: RouteIcon, count: allRoutes.reduce((n, r) => n + live(r), 0) || undefined, countTone: 'warning' },
+        ...allRoutes.map((r) => ({ id: r.id, label: r.name, icon: RouteIcon, hint: r.vehicle?.regNo ?? t('transport.track.noVehicle'), count: live(r) ? t('transport.nav.runningN', { count: live(r) }) : undefined, countTone: 'warning' })),
+      ]} />
+    )}>
       <StatCardRow items={[
         { icon: Play, label: t('transport.track.running'), value: trips.filter((x) => x.status === 'RUNNING').length, tone: 'success' },
         { icon: CheckCircle2, tone: 'info', label: t('transport.track.done'), value: trips.filter((x) => x.status === 'DONE').length },
@@ -189,7 +197,7 @@ function Board() {
         { icon: LocateOff, label: t('transport.track.noSignal'), value: running.filter((r) => !fresh(r.lastPosition)).length, tone: running.some((r) => !fresh(r.lastPosition)) ? 'warning' : 'neutral' },
       ]} />
       {map && <MapFrame src={map} />}
-      <div className="grid md:grid-cols-2 gap-3">
+      <div className="grid xl:grid-cols-2 gap-3">
         {routes.map((r) => (
           <Panel key={r.id} title={r.name} actions={<span className="text-xs text-ink-muted">{r.vehicle?.regNo ?? t('transport.track.noVehicle')}</span>}>
             <div className="space-y-2">
@@ -213,8 +221,8 @@ function Board() {
           </Panel>
         ))}
       </div>
-      {open && <Drawer open onClose={() => setOpen(null)} size="xl" title={routes.find((r) => r.trips.some((x) => x.id === open))?.name}><TripView tripId={open} /></Drawer>}
-    </div>
+      {open && <Drawer open onClose={() => setOpen(null)} size="xl" title={allRoutes.find((r) => r.trips.some((x) => x.id === open))?.name}><TripView tripId={open} /></Drawer>}
+    </SideNavLayout>
   )
 }
 

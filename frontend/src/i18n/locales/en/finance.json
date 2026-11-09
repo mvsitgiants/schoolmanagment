@@ -88,7 +88,16 @@
       "systemNote": "Auto-posting uses this account. You can rename or renumber it, but it stays.",
       "deleteConfirm": "Delete {{name}}?",
       "deleted": "Account deleted.",
-      "empty": "No accounts yet."
+      "empty": "No accounts yet.",
+      "typesNav": "Account types",
+      "wholeChart": "Whole chart",
+      "typePlural": {
+        "ASSET": "Assets",
+        "LIABILITY": "Liabilities",
+        "EQUITY": "Funds & reserves",
+        "INCOME": "Income",
+        "EXPENSE": "Expenditure"
+      }
     },
     "feeHeads": {
       "hint": "Which income ledger each fee head’s money goes to when a fee is received. A refundable head (caution deposit) belongs under a liability.",
@@ -280,7 +289,15 @@
         "closingDr": "Closing Dr",
         "closingCr": "Closing Cr"
       },
-      "ofIncome": "{{pct}}% of income"
+      "ofIncome": "{{pct}}% of income",
+      "navTitle": "Reports",
+      "hints": {
+        "income-expenditure": "Surplus or deficit for the period",
+        "balance-sheet": "What is owned and owed on a date",
+        "trial-balance": "Every ledger’s debits and credits",
+        "day-book": "Every voucher, day by day",
+        "ledger": "One account’s entries and balance"
+      }
     }
   }
 }

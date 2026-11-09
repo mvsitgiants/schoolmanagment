@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { DOC_STATES, TRIP_STATUS, VEHICLE_STATUS } from '@schoolgiant/shared'
-import { StatusPill } from '../system'
+import { Route } from 'lucide-react'
+import { SideNav, StatusPill } from '../system'
 
 /** Labels for the transport lists (shared values → this namespace's text). */
 export function useTransportLabels() {
@@ -45,3 +46,28 @@ export const currentPosition = () => new Promise((resolve, reject) => {
   if (!navigator.geolocation) { reject(new Error('NO_GEO')); return }
   navigator.geolocation.getCurrentPosition((p) => resolve({ lat: Number(p.coords.latitude.toFixed(6)), lng: Number(p.coords.longitude.toFixed(6)) }), reject, { enableHighAccuracy: true, timeout: 15000 })
 })
+
+/**
+ * The routes as a page's sub-navigation (SideNav): a list down the left on desktop, chips on a
+ * phone. Each route shows its riders against the vehicle's seats with a fill bar, and turns red
+ * when over capacity. `extra` items go after the routes (e.g. vehicles with no route).
+ */
+export function RouteNav({ routes = [], value, onChange, allLabel, allCount, extra = [] }) {
+  const { t } = useTranslation('transport')
+  return (
+    <SideNav title={t('transport.nav.routes')} value={value} onChange={onChange} items={[
+      { id: '', label: allLabel, icon: Route, count: allCount },
+      ...routes.map((r) => {
+        const seats = r.vehicle?.capacity
+        return {
+          id: r.id, label: r.name, icon: Route,
+          hint: r.vehicle ? t('transport.nav.vehicleLine', { reg: r.vehicle.regNo, seats }) : t('transport.nav.noVehicle'),
+          count: seats ? `${r.students}/${seats}` : r.students,
+          countTone: seats && r.students > seats ? 'danger' : undefined,
+          progress: seats ? { value: r.students, max: seats } : undefined,
+        }
+      }),
+      ...extra,
+    ]} />
+  )
+}

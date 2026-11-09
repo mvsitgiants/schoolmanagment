@@ -1,0 +1,100 @@
+{
+  "scan": {
+    "title": "Scan",
+    "hint": "Point the camera at the code, or use a scanner gun — it types the code into the box below.",
+    "anyHint": "Scan a student or staff ID card, a library book, a fee receipt or a certificate.",
+    "typePlaceholder": "Or type the code / scan with a scanner gun",
+    "typeLabel": "Code",
+    "go": "Look up",
+    "useGun": "Scanner gun / type",
+    "useCamera": "Use the camera",
+    "done": "Done",
+    "again": "Scan another",
+    "looking": "Looking it up…",
+    "openGate": "Open the gate scanner",
+    "unknownHint": "Nothing you can see matches this code. It may belong to another school, or to a class or module you don't work with.",
+    "camera": {
+      "starting": "Starting the camera…",
+      "denied": "The camera is blocked for this site. Allow it in the browser's settings, or use a scanner gun / type the code.",
+      "none": "No camera found on this device — use a scanner gun or type the code.",
+      "error": "The camera couldn't start. Use a scanner gun or type the code."
+    },
+    "kind": {
+      "STUDENT": "Student",
+      "STAFF": "Staff member",
+      "BOOK": "Library book",
+      "RECEIPT": "Fee receipt",
+      "CERTIFICATE": "Certificate",
+      "UNKNOWN": "Not found"
+    },
+    "status": {
+      "CANCELLED": "Cancelled",
+      "ISSUED": "Issued",
+      "AVAILABLE": "On the shelf",
+      "LOST": "Lost",
+      "DAMAGED": "Damaged",
+      "WITHDRAWN": "Withdrawn",
+      "LEFT": "Left the school",
+      "PASSED_OUT": "Passed out",
+      "TRANSFERRED": "Transferred",
+      "INACTIVE": "Inactive",
+      "EXITED": "Left",
+      "NOTICE": "On notice"
+    },
+    "action": {
+      "profile": "Open student profile",
+      "collectFee": "Collect fee",
+      "library": "Library — issue / return",
+      "issueReturn": "Issue / return this book",
+      "register": "Open the certificate register",
+      "verify": "Check the certificate",
+      "staffProfile": "Open staff profile",
+      "open": "Open the link"
+    },
+    "gate": {
+      "title": "Gate scanner",
+      "subtitle": "Scan ID cards as students or staff come in and go out. Each scan goes to the gate log; the family hears when a child reaches school.",
+      "pick": "Scanner",
+      "none": "No gate scanner set up yet. Add one in Integrations › Devices as a “Phone / tablet scanner” — then open this screen on that phone.",
+      "in": "Coming in",
+      "out": "Going out",
+      "start": "Start scanning",
+      "students": "Students",
+      "staff": "Staff",
+      "marksPresent": "A child's first scan before the “mark by” time marks them present.",
+      "scanned_one": "{{count}} scan today on this screen",
+      "scanned_other": "{{count}} scans today on this screen",
+      "outcome": {
+        "GATE": "In the gate log",
+        "MARKED_PRESENT": "Marked present",
+        "ATTENDANCE": "Staff attendance",
+        "DUPLICATE": "Already scanned",
+        "UNKNOWN": "Unknown card",
+        "TEST": "Test"
+      },
+      "recent": "Last scans",
+      "emptyRecent": "Nothing scanned yet.",
+      "offline": "Couldn't reach the server — this scan wasn't saved. Scan again."
+    },
+    "punch": {
+      "title": "My attendance code",
+      "hint": "Show this at the staff gate scanner to mark yourself in or out. It changes every 30 seconds, so a photo of it won't work later.",
+      "refreshesIn": "New code in {{s}} s",
+      "button": "My attendance code"
+    },
+    "receipt": {
+      "validTitle": "Genuine receipt",
+      "cancelledTitle": "This receipt was cancelled",
+      "valid": "{{school}} issued this receipt and it is valid.",
+      "cancelled": "{{school}} issued this receipt but later cancelled it — it no longer counts as paid.",
+      "notFoundTitle": "Receipt not found",
+      "notFound": "No receipt matches this code. It may have been altered — ask the school's fee office.",
+      "no": "Receipt no.",
+      "date": "Date",
+      "amount": "Amount",
+      "refunded": "Refunded",
+      "student": "Student",
+      "compare": "Check these match the printed receipt."
+    }
+  }
+}

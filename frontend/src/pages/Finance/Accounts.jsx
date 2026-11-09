@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { Landmark, Pencil, Plus, Trash2, TrendingDown, TrendingUp, Wallet } from 'lucide-react'
+import { ArrowDownLeft, ArrowUpRight, Landmark, Layers, Pencil, Plus, Receipt, Scale, Trash2, TrendingDown, TrendingUp, Wallet } from 'lucide-react'
 import { formatINR, formatINRCompact } from '@schoolgiant/shared'
-import { CodeBadge, ColorChip, DataTable, FormField, HeaderButton, Input, Modal, Money, Note, PageContainer, PageHeader, Select, StatCardRow, Tabs, Textarea, useConfirm } from '../../components/system'
+import { CodeBadge, ColorChip, DataTable, FormField, HeaderButton, Input, Modal, Money, Note, PageContainer, PageHeader, Select, SideNav, SideNavLayout, StatCardRow, Tabs, Textarea, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { createAccount, deleteAccount, fetchAccounts, fetchFeeHeadMapping, fetchFinanceSummary, saveFeeHeadMapping, updateAccount } from '../../api/finance'
 import { hasPermission } from '../../api/auth'
@@ -51,6 +51,7 @@ function AccountForm({ account, accounts, onClose, onSaved }) {
 }
 
 const TYPE_TONE = { ASSET: 'info', LIABILITY: 'orange', EQUITY: 'violet', INCOME: 'success', EXPENSE: 'pink' }
+const TYPE_ICON = { ASSET: Wallet, LIABILITY: ArrowUpRight, EQUITY: Scale, INCOME: ArrowDownLeft, EXPENSE: Receipt }
 
 function ChartTab() {
   const { t } = useTranslation('finance')
@@ -58,14 +59,24 @@ function ChartTab() {
   const confirm = useConfirm()
   const { showSuccess, showError } = useSnackbar()
   const [editing, setEditing] = useState(null)
+  const [type, setType] = useState('') // one account type (assets, income…) or the whole chart
   const { data: rows = [], isLoading } = useQuery({ queryKey: ['fin-accounts'], queryFn: fetchAccounts })
+  const types = Object.keys(TYPE_TONE).filter((k) => rows.some((r) => r.type === k))
+  const shown = type ? rows.filter((r) => r.type === type) : rows
+  const ledgers = (k) => rows.filter((r) => !r.isGroup && (!k || r.type === k)).length
+  const typeTotal = (k) => rows.filter((r) => r.type === k && r.depth === 0).reduce((n, r) => n + (r.balance ?? 0), 0)
   const refresh = () => { qc.invalidateQueries({ queryKey: ['fin-accounts'] }); qc.invalidateQueries({ queryKey: ['finance-meta'] }) }
   const remove = useMutation({ mutationFn: deleteAccount, onSuccess: () => { refresh(); showSuccess(t('finance.accounts.deleted')) }, onError: (e) => showError(e.message) })
   return (
-    <>
-      <div className="flex justify-end mb-3"><HeaderButton icon={Plus} variant="primary" requires="finance.accounts.create" onClick={() => setEditing('new')}>{t('finance.accounts.new')}</HeaderButton></div>
-      <DataTable rows={rows} loading={isLoading} dense columns={[
-        { key: 'name', header: t('finance.accounts.account'), mobilePrimary: true, render: (v, r) => <span style={{ paddingLeft: `${r.depth * 16}px` }} className={r.isGroup ? 'inline-flex items-center gap-2 font-semibold text-ink' : r.active ? 'inline-flex items-center gap-2 text-ink' : 'inline-flex items-center gap-2 text-ink-faint line-through'}><CodeBadge>{r.code}</CodeBadge>{v}</span> },
+    <SideNavLayout nav={types.length > 1 && (
+      <SideNav title={t('finance.accounts.typesNav')} value={type} onChange={setType} items={[
+        { id: '', label: t('finance.accounts.wholeChart'), icon: Layers, count: ledgers() },
+        ...types.map((k) => ({ id: k, label: t(`finance.accounts.typePlural.${k}`), icon: TYPE_ICON[k], hint: formatINR(Math.abs(typeTotal(k))), count: ledgers(k) })),
+      ]} />
+    )}>
+      <div className="flex justify-end"><HeaderButton icon={Plus} variant="primary" requires="finance.accounts.create" onClick={() => setEditing('new')}>{t('finance.accounts.new')}</HeaderButton></div>
+      <DataTable rows={shown} loading={isLoading} dense columns={[
+        { key: 'name', header: t('finance.accounts.account'), mobilePrimary: true, render: (v, r) => <span style={{ '--d': r.depth }} className={`ps-[calc(var(--d)*10px)] sm:ps-[calc(var(--d)*16px)] ${r.isGroup ? 'inline-flex items-center gap-2 font-semibold text-ink' : r.active ? 'inline-flex items-center gap-2 text-ink' : 'inline-flex items-center gap-2 text-ink-faint line-through'}`}><CodeBadge>{r.code}</CodeBadge>{v}</span> },
         { key: 'type', header: t('finance.accounts.type'), mobileHidden: true, render: (v) => <ColorChip label={t(`finance.accountTypes.${v}`)} tone={TYPE_TONE[v]} dot /> },
         { key: 'balance', header: t('finance.accounts.balance'), align: 'right', render: (v, r) => (r.debit || r.credit ? <Money value={v} paise className={r.isGroup ? 'font-semibold' : ''} /> : '—') },
         { key: 'id', header: '', align: 'right', width: 90, render: (_, r) => (
@@ -77,7 +88,7 @@ function ChartTab() {
         ) },
       ]} onRowClick={hasPermission('finance.accounts.edit') ? (r) => setEditing(r) : undefined} emptyIcon={Landmark} emptyTitle={t('finance.accounts.empty')} />
       {editing && <AccountForm account={editing === 'new' ? null : editing} accounts={rows} onClose={() => setEditing(null)} onSaved={() => { setEditing(null); refresh(); showSuccess(t('finance.saved')) }} />}
-    </>
+    </SideNavLayout>
   )
 }
 

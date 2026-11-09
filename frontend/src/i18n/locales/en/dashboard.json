@@ -101,5 +101,166 @@
       "waiting_one": "{{count}} waiting for you",
       "waiting_other": "{{count}} waiting for you"
     }
+  },
+  "home": {
+    "subtitle": "Here’s what’s happening across {{institution}}.",
+    "refresh": "Refresh",
+    "noData": "No data yet",
+    "open": "Open",
+    "vsPrev": "{{value}} vs previous period",
+    "vsPrevPts": "{{value}} pts vs previous period",
+    "kpi": {
+      "students": "Students",
+      "studentsSub": "{{joined}} joined · {{boys}} boys · {{girls}} girls",
+      "attendance": "Attendance",
+      "noAttendance": "no registers marked",
+      "fees": "Fees collected",
+      "receipts_one": "{{count}} receipt",
+      "receipts_other": "{{count}} receipts",
+      "enquiries": "Enquiries",
+      "applications_one": "{{count}} application",
+      "applications_other": "{{count}} applications",
+      "expenses": "Expenses",
+      "expensesWaiting_one": "{{count}} waiting for approval",
+      "expensesWaiting_other": "{{count}} waiting for approval",
+      "staff": "Staff",
+      "staffSub": "{{pct}}% staff attendance",
+      "staffSubNone": "no staff attendance yet",
+      "lessons": "My lessons this week",
+      "lessonsSub": "{{taught}} taught · {{today}} today",
+      "toCheck": "Homework to check",
+      "behind_one": "{{count}} topic behind plan",
+      "behind_other": "{{count}} topics behind plan"
+    },
+    "money": {
+      "title": "Money in & out",
+      "note": "Monthly",
+      "fees": "Fees collected",
+      "expenses": "Expenses",
+      "payroll": "Payroll (net)"
+    },
+    "admissions": {
+      "title": "Admissions pipeline",
+      "note": "Enquiries by stage",
+      "enquiries": "Enquiries in period",
+      "applications": "Applications",
+      "conversion": "Conversion"
+    },
+    "stage": {
+      "NEW": "New",
+      "CONTACTED": "Contacted",
+      "VISIT": "Visit planned",
+      "VISITED": "Visited",
+      "APPLIED": "Applied",
+      "ADMITTED": "Admitted",
+      "LOST": "Lost"
+    },
+    "ask": {
+      "title": "Ask SchoolGiant",
+      "hint": "Jump straight to the screen that answers it — or ask the assistant anything.",
+      "placeholder": "Ask the AI assistant…",
+      "q": {
+        "absentToday": "Who is absent today?",
+        "feesOverdue": "Which families have fees overdue?",
+        "booksOverdue": "Which library books are overdue?",
+        "staffOnLeave": "Which staff are on leave?",
+        "followUps": "Which enquiries need a follow-up?"
+      }
+    },
+    "today": {
+      "today": "Today",
+      "attendance": "Student attendance",
+      "classesMarked": "classes marked",
+      "present": "Present",
+      "absent": "Absent",
+      "onLeave": "On leave",
+      "notMarked": "Not marked",
+      "fees": "Fee position",
+      "collected": "Collected",
+      "due": "Due",
+      "overdue": "Overdue",
+      "studentsOwing_one": "{{count}} student owes fees",
+      "studentsOwing_other": "{{count}} students owe fees",
+      "staff": "Staff attendance",
+      "totalStaff": "staff",
+      "library": "Library",
+      "copies": "copies",
+      "onShelf": "On the shelf",
+      "issued": "Issued",
+      "overdueBooks": "Overdue",
+      "lent_one": "{{count}} book lent in this period",
+      "lent_other": "{{count}} books lent in this period",
+      "transport": "Transport",
+      "riders": "riders",
+      "onRoad": "On the road",
+      "maintenance": "In maintenance",
+      "offRoad": "Off the road",
+      "vehicles_one": "{{count}} vehicle",
+      "vehicles_other": "{{count}} vehicles"
+    },
+    "quick": {
+      "title": "Quick actions",
+      "markAttendance": "Mark attendance",
+      "collectFee": "Collect fee",
+      "admitStudent": "Admit student",
+      "newEnquiry": "New enquiry",
+      "setHomework": "Set homework",
+      "postNotice": "Post notice",
+      "addExpense": "Add expense",
+      "issueBook": "Issue book",
+      "issueCertificate": "Issue certificate",
+      "examSchedule": "Exam schedule"
+    },
+    "pulse": {
+      "title": "Across the institution",
+      "note": "This period",
+      "homework": "Homework set",
+      "exams": "Exams coming up",
+      "examsMore_one": "{{count}} result published",
+      "examsMore_other": "{{count}} results published",
+      "certificates": "Certificates issued",
+      "notices": "Notices published",
+      "messages": "Messages sent",
+      "messagesMore_one": "{{count}} failed",
+      "messagesMore_other": "{{count}} failed",
+      "events": "Events (next 30 days)",
+      "liveClasses": "Live classes",
+      "tests": "Online tests taken"
+    },
+    "agenda": {
+      "title": "Coming up",
+      "note": "Next 2 weeks",
+      "empty": "Nothing in the next two weeks.",
+      "kind": {
+        "EVENT": "Event",
+        "EXAM": "Exam",
+        "HOLIDAY": "Holiday"
+      }
+    },
+    "activity": {
+      "title": "Recent activity",
+      "system": "System",
+      "empty": "No activity recorded yet."
+    },
+    "approvals": {
+      "title": "Approvals",
+      "empty": "Nothing waiting on you.",
+      "kind": {
+        "leave_one": "Student leave request",
+        "leave_other": "Student leave requests",
+        "concessions_one": "Fee concession",
+        "concessions_other": "Fee concessions",
+        "dayEnd_one": "Cash difference at day-end",
+        "dayEnd_other": "Cash differences at day-end",
+        "tc_one": "Transfer certificate request",
+        "tc_other": "Transfer certificate requests",
+        "staffLeave_one": "Staff leave request",
+        "staffLeave_other": "Staff leave requests",
+        "expenses_one": "Expense to approve",
+        "expenses_other": "Expenses to approve",
+        "requests_one": "Approval request",
+        "requests_other": "Approval requests"
+      }
+    }
   }
 }

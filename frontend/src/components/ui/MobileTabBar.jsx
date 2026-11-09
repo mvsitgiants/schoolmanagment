@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { Home, LayoutGrid, Bell, User, LogOut, MonitorSmartphone, ScanQrCode, X } from 'lucide-react'
 import { getCurrentUser, logout, logoutAll } from '../../api/auth'
 import api from '../../api/client'
+import { openScan } from '../scan/GlobalScan'
 
 /**
  * Native-app-style bottom navigation — visible below Tailwind's `lg` only.
@@ -49,6 +50,15 @@ export default function MobileTabBar({ onMenu }) {
           <LayoutGrid className="w-5 h-5" />
           {t('menu')}
         </button>
+
+        {!me.superadmin && (
+          <button type="button" onClick={openScan} className={itemCls(false)}>
+            <span className="-mt-5 w-12 h-12 rounded-full bg-brand-600 text-white shadow-pop flex items-center justify-center ring-4 ring-surface">
+              <ScanQrCode className="w-6 h-6" />
+            </span>
+            {t('ui.mobileTabs.scan')}
+          </button>
+        )}
 
 
         <button type="button" onClick={() => window.dispatchEvent(new Event('hx:open-notifications'))} className={itemCls(false)}>

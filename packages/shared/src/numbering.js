@@ -34,6 +34,8 @@ export const DOC_TYPES = [
   { code: 'OUTPASS', label: 'Hostel outpass', module: 'hostel', pattern: 'OP{YY}{MM}{SEQ:4}', reset: 'MONTH', perBranch: true },
   { code: 'PO', label: 'Purchase order', module: 'inventory', pattern: 'PO{YY}{SEQ:5}', reset: 'YEAR', perBranch: true },
   { code: 'STORE_SALE', label: 'Uniform / book sale', module: 'inventory', pattern: 'SS{YY}{MM}{SEQ:5}', reset: 'MONTH', perBranch: true },
+  { code: 'CANTEEN_ORDER', label: 'Canteen order', module: 'canteen', pattern: 'CN{YY}{SEQ:6}', reset: 'YEAR', perBranch: false },
+  { code: 'DONATION', label: 'Donation receipt', module: 'alumni', pattern: 'DN{FY}{SEQ:5}', reset: 'FY', perBranch: false, hint: 'One series for the institution — 80G receipts are counted by financial year.' },
   { code: 'FIN_JOURNAL', label: 'Journal voucher', module: 'finance', pattern: 'JV{FY}{SEQ:5}', reset: 'FY', perBranch: false },
   { code: 'FIN_PAYMENT', label: 'Payment voucher', module: 'finance', pattern: 'PV{FY}{SEQ:5}', reset: 'FY', perBranch: false },
   { code: 'FIN_RECEIPT', label: 'Receipt voucher', module: 'finance', pattern: 'RV{FY}{SEQ:6}', reset: 'FY', perBranch: false },

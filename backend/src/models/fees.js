@@ -7,8 +7,13 @@
 //   FeeRefund     money back against a receipt
 //   Concession    a student's concession for a year (needs approval), applied to their invoices
 //   FeeDayEnd     one collector's day closed: what the receipts say vs. the cash counted
+import crypto from 'node:crypto'
 import mongoose from 'mongoose'
+import { makeVerifyCode } from '@schoolgiant/shared'
 import { tenantPlugin } from '../platform/db.js'
+
+/** A receipt's check code (the QR on the printed receipt opens /verify/receipt/<code>); never the guessable receipt number. */
+export const newReceiptCode = () => makeVerifyCode(() => crypto.randomInt(0, 2 ** 31) / 2 ** 31)
 
 const { Schema, model } = mongoose
 const ObjectId = Schema.Types.ObjectId
@@ -87,8 +92,10 @@ const paymentSchema = new Schema({
   cancelledAt: Date, cancelledBy: String, cancelReason: String,
   dayEndId: ObjectId,
   note: String,
+  verifyCode: { type: String, default: newReceiptCode },
 }, { timestamps: true })
 paymentSchema.plugin(tenantPlugin)
+paymentSchema.index({ verifyCode: 1 }, { unique: true, partialFilterExpression: { verifyCode: { $type: 'string' } } })
 paymentSchema.index({ tenantId: 1, receiptNo: 1 }, { unique: true })
 paymentSchema.index({ tenantId: 1, studentId: 1, at: -1 })
 paymentSchema.index({ tenantId: 1, date: 1, collectedById: 1 })

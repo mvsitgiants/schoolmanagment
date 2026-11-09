@@ -202,7 +202,10 @@
         "offered": "Seat offered",
         "admitted": "Admitted",
         "ofSeats": "of {{count}} seats"
-      }
+      },
+      "classesNav": "Classes",
+      "allClasses": "All classes",
+      "seatsFilled": "{{admitted}} of {{seats}} seats filled"
     },
     "tests": {
       "title": "Entrance tests",
@@ -242,7 +245,9 @@
         "upcoming_one": "{{count}} coming up",
         "upcoming_other": "{{count}} coming up",
         "ofApplicants": "of {{count}} applicants"
-      }
+      },
+      "testsNav": "Tests",
+      "absentShort": "AB"
     },
     "merit": {
       "title": "Merit lists",

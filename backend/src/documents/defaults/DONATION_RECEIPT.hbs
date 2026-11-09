@@ -1,0 +1,45 @@
+{{!-- Donation receipt (A5). An 80G receipt adds the institution's PAN and registration and the donor's PAN. --}}
+<style>
+  h1 { font-size: 12pt; text-align: center; letter-spacing: .08em; text-transform: uppercase; margin: 4mm 0 2mm }
+  .meta { display: flex; justify-content: space-between; gap: 6mm; font-size: 9pt; margin-bottom: 4mm }
+  .meta b { font-weight: 600 }
+  .body { font-size: 10pt; line-height: 1.6 }
+  .amt { margin: 4mm 0; display: flex; justify-content: space-between; align-items: baseline; border-top: 1px solid #C8CCD4; border-bottom: 1px solid #C8CCD4; padding: 2mm 0; font-size: 11pt; font-weight: 700 }
+  .words { font-size: 9pt; color: #3A3F4B }
+  .tax { margin-top: 4mm; font-size: 8.5pt; color: #3A3F4B; border: 1px dashed #C8CCD4; border-radius: 2mm; padding: 2mm 3mm }
+  .foot { margin-top: 10mm; display: flex; justify-content: space-between; font-size: 9pt }
+  .void { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 46pt; font-weight: 800; color: rgba(214,69,69,.16); transform: rotate(-20deg); pointer-events: none }
+</style>
+{{#if receipt.cancelled}}<div class="void">{{t "alumni.print.receipt.stampCancelled" "CANCELLED"}}</div>{{/if}}
+{{#> letterhead}}{{/letterhead}}
+<h1>{{#if receipt.is80G}}{{t "alumni.print.receipt.title80G" "Donation receipt (80G)"}}{{else}}{{t "alumni.print.receipt.title" "Donation receipt"}}{{/if}}</h1>
+<div class="meta">
+  <div>
+    <div>{{t "alumni.print.receipt.no" "Receipt No."}} <b class="mono">{{receipt.no}}</b></div>
+    <div>{{t "alumni.print.receipt.date" "Date"}} <b>{{date receipt.date}}</b></div>
+  </div>
+  <div style="text-align:right">
+    <div><b>{{donor.name}}</b></div>
+    {{#if donor.batch}}<div class="muted">{{t "alumni.print.receipt.batch" "Alumnus, batch of {{batch}}" batch=donor.batch}}</div>{{/if}}
+    {{#if donor.address}}<div class="muted">{{donor.address}}</div>{{/if}}
+    {{#if donor.pan}}<div class="muted">{{t "alumni.print.receipt.donorPan" "PAN"}} <span class="mono">{{donor.pan}}</span></div>{{/if}}
+  </div>
+</div>
+<div class="body">
+  {{t "alumni.print.receipt.thanks" "Received with thanks from {{name}} towards the {{fund}}." name=donor.name fund=receipt.fund}}
+  {{#if receipt.purpose}}<div class="muted">{{receipt.purpose}}</div>{{/if}}
+</div>
+<div class="amt"><span>{{t "alumni.print.receipt.amount" "Amount"}}</span><span>{{money receipt.amount}}</span></div>
+<div class="words">{{words receipt.amount}}</div>
+<div class="words">{{t "alumni.print.receipt.paidBy" "Paid by {{mode}}" mode=receipt.mode}}{{#if receipt.reference}} · {{t "alumni.print.receipt.ref" "Ref. {{ref}}" ref=receipt.reference}}{{/if}}</div>
+{{#if receipt.is80G}}
+<div class="tax">
+  {{t "alumni.print.receipt.taxNote" "This donation is eligible for deduction under section 80G of the Income-tax Act, 1961."}}
+  {{#if tax.pan}}<div>{{t "alumni.print.receipt.ourPan" "Our PAN"}} <span class="mono">{{tax.pan}}</span>{{#if tax.registrationNo}} · {{t "alumni.print.receipt.ourReg" "Registration {{no}}" no=tax.registrationNo}}{{/if}}</div>{{/if}}
+</div>
+{{/if}}
+<div class="foot">
+  <span class="muted">{{#if receipt.receivedBy}}{{t "alumni.print.receipt.receivedBy" "Received by {{name}}" name=receipt.receivedBy}}{{/if}}</span>
+  <span>{{t "alumni.print.receipt.signature" "Authorised signatory"}}</span>
+</div>
+{{> footer}}

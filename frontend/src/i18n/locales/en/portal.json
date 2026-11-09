@@ -4,6 +4,7 @@
     "features": {
       "ATTENDANCE": "Attendance and leave",
       "HOMEWORK": "Homework",
+      "TIMETABLE": "Class timetable",
       "LEARNING": "Study material and live classes",
       "TESTS": "Online tests",
       "BUS": "School bus and live tracking",
@@ -13,7 +14,13 @@
       "RESULTS": "Results and report cards",
       "CERTIFICATES": "Certificates",
       "NOTICES": "Notices and circulars",
-      "CHAT": "Messages with teachers"
+      "CHAT": "Messages with teachers",
+      "HOSTEL": "Hostel room, outpasses and mess menu",
+      "HEALTH": "Health card: allergies, vaccinations, sick-room visits",
+      "PLACEMENTS": "Placement drives and offers",
+      "COMPLAINTS": "Complaints and concerns",
+      "SURVEYS": "Surveys and feedback",
+      "CANTEEN": "Canteen wallet and pre-orders"
     },
     "settings": {
       "title": "App settings",

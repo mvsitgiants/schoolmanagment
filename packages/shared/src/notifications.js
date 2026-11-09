@@ -55,7 +55,8 @@ const VAR_HELP = {
   'guardian.name': 'Parent or guardian the message goes to',
   'institution.name': 'Institution name',
   'institution.phone': 'Institution phone',
-  'attendance.date': 'Date of the absence, e.g. Tue, 7 Oct',
+  'attendance.date': 'Date of the absence (or arrival), e.g. Tue, 7 Oct',
+  'attendance.time': 'Time the card was scanned at the gate, e.g. 07:52',
   'receipt.no': 'Receipt number',
   'receipt.amount': 'Amount paid, e.g. ₹12,500',
   'receipt.date': 'Date paid',
@@ -108,6 +109,27 @@ const VAR_HELP = {
   'ptm.link': 'Link to book in the app',
   'otp.code': 'The one-time code',
   'otp.minutes': 'Minutes the code stays valid',
+  'drive.company': 'The company',
+  'drive.title': 'The drive, e.g. Campus hiring 2027',
+  'drive.ctc': 'The package, e.g. 6 – 8 LPA',
+  'drive.date': 'The day of the drive',
+  'drive.lastDate': 'Last day to register',
+  'drive.role': 'The role offered',
+  'gatepass.no': 'Gate pass number',
+  'gatepass.time': 'When the student left, e.g. Mon, 9 Nov, 11:40',
+  'gatepass.collector': 'Who collected the student',
+  'gatepass.relation': 'Their relation to the student',
+  'gatepass.reason': 'Why the student left early',
+  'complaint.no': 'Complaint number',
+  'complaint.subject': 'What the complaint is about',
+  'complaint.name': 'The person who complained',
+  'complaint.dueDate': 'The day it should be resolved by',
+  'complaint.resolution': 'How it was resolved',
+  'survey.title': 'The survey',
+  'survey.closes': 'Last day to answer, e.g. Fri, 20 Nov (empty when the survey has no closing day)',
+  'survey.link': 'Link to answer in the app',
+  'canteen.balance': 'What is left in the canteen wallet',
+  'canteen.threshold': 'The school’s low-balance mark',
 }
 export const templateVarHelp = (v) => VAR_HELP[v] ?? v
 
@@ -134,6 +156,16 @@ export const NOTIFY_EVENTS = [
       SMS: { enabled: true, body: 'Dear Parent, {{student.name}} ({{student.class}}) is absent today, {{attendance.date}}. - {{institution.name}}' },
       WHATSAPP: { enabled: true, body: 'Dear {{guardian.name}},\n{{student.firstName}} ({{student.class}}) was marked absent today, {{attendance.date}}.\n\nIf this is unexpected, please call {{institution.phone}}.\n{{institution.name}}' },
       EMAIL: { enabled: false, subject: '{{student.firstName}} is absent today', body: 'Dear {{guardian.name}},\n\n{{student.name}} ({{student.class}}) was marked absent today, {{attendance.date}}.\nIf this is unexpected, please call {{institution.phone}}.\n\n{{institution.name}}' },
+    },
+  },
+  {
+    event: 'attendance.arrived', module: 'attendance', label: 'Reached school',
+    when: 'When a child’s card is first scanned at the school gate in the morning (a gate scanner, card reader or biometric device).',
+    vars: [...STUDENT, 'attendance.date', 'attendance.time', ...INSTITUTION],
+    defaults: {
+      SMS: { enabled: false, body: '{{student.firstName}} ({{student.class}}) reached school at {{attendance.time}}, {{attendance.date}}. - {{institution.name}}' },
+      WHATSAPP: { enabled: true, body: 'Dear {{guardian.name}},\n{{student.firstName}} ({{student.class}}) reached school at {{attendance.time}} today.\n\n{{institution.name}}' },
+      EMAIL: { enabled: false, subject: '{{student.firstName}} reached school', body: 'Dear {{guardian.name}},\n\n{{student.name}} ({{student.class}}) reached school at {{attendance.time}} on {{attendance.date}}.\n\n{{institution.name}}' },
     },
   },
   {
@@ -356,6 +388,126 @@ export const NOTIFY_EVENTS = [
       EMAIL: { enabled: true, subject: '{{notice.title}} — {{institution.name}}', body: 'Dear {{guardian.name}},\n\nA new notice has been published: {{notice.title}}\nRead it here: {{notice.link}}\n\n{{institution.name}}' },
     },
   },
+  {
+    event: 'hostel.outpass_decided', module: 'hostel', label: 'Outpass approved / rejected',
+    when: 'When the warden approves or rejects an outpass (also when the warden makes one already approved).',
+    vars: [...STUDENT, 'outpass.no', 'outpass.status', 'outpass.leave', 'outpass.return', 'outpass.reason', 'outpass.note', ...INSTITUTION],
+    defaults: {
+      SMS: { enabled: true, body: 'Outpass {{outpass.no}} for {{student.firstName}} ({{outpass.leave}} to {{outpass.return}}) is {{outpass.status}}. {{outpass.note}} - {{institution.name}}' },
+      WHATSAPP: { enabled: true, body: 'Dear {{guardian.name}},\nThe outpass for {{student.firstName}} ({{student.class}}) — {{outpass.leave}} to {{outpass.return}}, “{{outpass.reason}}” — is {{outpass.status}}.\n{{outpass.note}}\n\n{{institution.name}}' },
+      EMAIL: { enabled: false, subject: 'Outpass {{outpass.no}}: {{outpass.status}}', body: 'Dear {{guardian.name}},\n\nThe outpass for {{student.name}} ({{outpass.leave}} to {{outpass.return}}, {{outpass.reason}}) is {{outpass.status}}.\n{{outpass.note}}\n\n{{institution.name}}' },
+    },
+  },
+  {
+    event: 'hostel.outpass_out', module: 'hostel', label: 'Left the hostel on an outpass',
+    when: 'When the student is marked out at the hostel gate.',
+    vars: [...STUDENT, 'outpass.no', 'outpass.time', 'outpass.return', 'outpass.reason', ...INSTITUTION],
+    defaults: {
+      SMS: { enabled: true, body: '{{student.firstName}} left the hostel at {{outpass.time}} (outpass {{outpass.no}}), due back {{outpass.return}}. - {{institution.name}}' },
+      WHATSAPP: { enabled: true, body: 'Dear {{guardian.name}},\n{{student.firstName}} left the hostel at {{outpass.time}} on outpass {{outpass.no}}. Due back by {{outpass.return}}.\n\n{{institution.name}}' },
+      EMAIL: { enabled: false, subject: '{{student.firstName}} left the hostel', body: 'Dear {{guardian.name}},\n\n{{student.name}} left the hostel at {{outpass.time}} (outpass {{outpass.no}}), due back by {{outpass.return}}.\n\n{{institution.name}}' },
+    },
+  },
+  {
+    event: 'hostel.outpass_in', module: 'hostel', label: 'Back in the hostel',
+    when: 'When the student is marked back in at the hostel gate (on time or late).',
+    vars: [...STUDENT, 'outpass.no', 'outpass.time', 'outpass.late', ...INSTITUTION],
+    defaults: {
+      SMS: { enabled: true, body: '{{student.firstName}} is back in the hostel at {{outpass.time}} ({{outpass.late}}). - {{institution.name}}' },
+      WHATSAPP: { enabled: true, body: 'Dear {{guardian.name}},\n{{student.firstName}} is back in the hostel at {{outpass.time}} ({{outpass.late}}).\n\n{{institution.name}}' },
+      EMAIL: { enabled: false, subject: '{{student.firstName}} is back in the hostel', body: 'Dear {{guardian.name}},\n\n{{student.name}} came back to the hostel at {{outpass.time}} ({{outpass.late}}).\n\n{{institution.name}}' },
+    },
+  },
+  {
+    event: 'health.sent_home', module: 'health', label: 'Sent home from the sick room',
+    when: 'When the school nurse sends a student home from the sick room.',
+    vars: [...STUDENT, 'health.complaint', 'health.time', 'health.note', 'health.pickedUpBy', ...INSTITUTION],
+    defaults: {
+      SMS: { enabled: true, body: 'Dear Parent, {{student.firstName}} ({{student.class}}) was seen in the sick room for {{health.complaint}} and is being sent home ({{health.time}}). - {{institution.name}}' },
+      WHATSAPP: { enabled: true, body: 'Dear {{guardian.name}},\n{{student.firstName}} ({{student.class}}) was seen in the school sick room for {{health.complaint}} and is being sent home at {{health.time}}.\n{{health.note}}\n\nPlease call {{institution.phone}} if you need to.\n{{institution.name}}' },
+      EMAIL: { enabled: false, subject: '{{student.firstName}} sent home from school', body: 'Dear {{guardian.name}},\n\n{{student.name}} ({{student.class}}) was seen in the school sick room for {{health.complaint}} and is being sent home at {{health.time}}.\n{{health.note}}\n\n{{institution.name}}' },
+    },
+  },
+  {
+    event: 'health.incident', module: 'health', label: 'Incident report',
+    when: 'When staff report an incident or injury and choose to message the guardian.',
+    vars: [...STUDENT, 'incident.kind', 'incident.date', 'incident.time', 'incident.place', 'incident.severity', 'incident.firstAid', ...INSTITUTION],
+    defaults: {
+      SMS: { enabled: true, body: 'Dear Parent, {{student.firstName}} had a {{incident.severity}} {{incident.kind}} at school ({{incident.place}}, {{incident.time}}). First aid was given. Please call {{institution.phone}}. - {{institution.name}}' },
+      WHATSAPP: { enabled: true, body: 'Dear {{guardian.name}},\n{{student.firstName}} ({{student.class}}) had a {{incident.severity}} {{incident.kind}} at school today — {{incident.place}}, {{incident.time}}.\nFirst aid: {{incident.firstAid}}\n\nPlease call {{institution.phone}} for details.\n{{institution.name}}' },
+      EMAIL: { enabled: false, subject: 'Incident at school — {{student.firstName}}', body: 'Dear {{guardian.name}},\n\n{{student.name}} ({{student.class}}) had a {{incident.severity}} {{incident.kind}} at school on {{incident.date}} ({{incident.place}}, {{incident.time}}).\nFirst aid: {{incident.firstAid}}\n\n{{institution.name}}' },
+    },
+  },
+  {
+    event: 'placements.drive_open', module: 'placements', label: 'Placement drive open',
+    when: 'When a placement drive opens for registration — to each eligible student (Settings › Placements can turn it off).',
+    vars: [...STUDENT, 'drive.company', 'drive.title', 'drive.ctc', 'drive.date', 'drive.lastDate', ...INSTITUTION],
+    defaults: {
+      SMS: { enabled: false, body: '{{student.firstName}}: {{drive.company}} placement drive ({{drive.ctc}}) is open. Register by {{drive.lastDate}}. - {{institution.name}}' },
+      WHATSAPP: { enabled: true, body: 'Dear {{student.firstName}},\n{{drive.company}} — {{drive.title}} is open for registration. Package: {{drive.ctc}}.\nRegister in the app by {{drive.lastDate}}.\n\n{{institution.name}}' },
+      EMAIL: { enabled: true, subject: 'Placement drive open — {{drive.company}}', body: 'Dear {{student.firstName}},\n\n{{drive.company}} — {{drive.title}} is open for registration (package {{drive.ctc}}, drive on {{drive.date}}). Register in the app by {{drive.lastDate}}.\n\n{{institution.name}}' },
+    },
+  },
+  {
+    event: 'placements.selected', module: 'placements', label: 'Selected in a placement drive',
+    when: 'When a student is selected in a drive and an offer is made.',
+    vars: [...STUDENT, 'drive.company', 'drive.title', 'drive.ctc', 'drive.role', ...INSTITUTION],
+    defaults: {
+      SMS: { enabled: false, body: 'Congratulations {{student.firstName}}! Selected by {{drive.company}} ({{drive.ctc}}). - {{institution.name}}' },
+      WHATSAPP: { enabled: true, body: 'Congratulations {{student.firstName}}!\nYou have been selected by {{drive.company}} as {{drive.role}} ({{drive.ctc}}). The placement office will share the offer letter.\n\n{{institution.name}}' },
+      EMAIL: { enabled: false, subject: 'Selected — {{drive.company}}', body: 'Dear {{student.firstName}},\n\nCongratulations! You have been selected by {{drive.company}} as {{drive.role}} ({{drive.ctc}}).\n\n{{institution.name}}' },
+    },
+  },
+  {
+    event: 'frontoffice.gate_pass', module: 'frontoffice', label: 'Child left school early',
+    when: 'When a student on a gate pass is handed over at the gate (Front office › Gate passes).',
+    vars: [...STUDENT, 'gatepass.no', 'gatepass.time', 'gatepass.collector', 'gatepass.relation', 'gatepass.reason', ...INSTITUTION],
+    defaults: {
+      SMS: { enabled: true, body: '{{student.firstName}} left school at {{gatepass.time}} with {{gatepass.collector}} ({{gatepass.relation}}). Gate pass {{gatepass.no}}. - {{institution.name}}' },
+      WHATSAPP: { enabled: true, body: 'Dear {{guardian.name}},\n{{student.firstName}} left school at {{gatepass.time}} with {{gatepass.collector}} ({{gatepass.relation}}).\nReason: {{gatepass.reason}}\nGate pass: {{gatepass.no}}\n\n{{institution.name}}' },
+      EMAIL: { enabled: false, subject: '{{student.firstName}} left school early — {{gatepass.no}}', body: 'Dear {{guardian.name}},\n\n{{student.name}} left school at {{gatepass.time}} with {{gatepass.collector}} ({{gatepass.relation}}).\nReason: {{gatepass.reason}}\nGate pass: {{gatepass.no}}\n\n{{institution.name}}' },
+    },
+  },
+  {
+    event: 'frontoffice.complaint_received', module: 'frontoffice', label: 'Complaint received',
+    when: 'When a complaint is raised at the front office or in the family app.',
+    vars: [...STUDENT, 'complaint.no', 'complaint.subject', 'complaint.name', 'complaint.dueDate', ...INSTITUTION],
+    defaults: {
+      SMS: { enabled: false, body: 'Your complaint {{complaint.no}} ({{complaint.subject}}) has been received. We aim to resolve it by {{complaint.dueDate}}. - {{institution.name}}' },
+      WHATSAPP: { enabled: true, body: 'Dear {{complaint.name}},\nWe have received your complaint {{complaint.no}}: {{complaint.subject}}.\nWe aim to resolve it by {{complaint.dueDate}} and will let you know.\n\n{{institution.name}}' },
+      EMAIL: { enabled: true, subject: 'Complaint {{complaint.no}} received — {{institution.name}}', body: 'Dear {{complaint.name}},\n\nWe have received your complaint {{complaint.no}}: {{complaint.subject}}.\nWe aim to resolve it by {{complaint.dueDate}} and will let you know.\n\n{{institution.name}}' },
+    },
+  },
+  {
+    event: 'frontoffice.complaint_resolved', module: 'frontoffice', label: 'Complaint resolved',
+    when: 'When a complaint is marked resolved (Front office › Complaints).',
+    vars: [...STUDENT, 'complaint.no', 'complaint.subject', 'complaint.name', 'complaint.resolution', ...INSTITUTION],
+    defaults: {
+      SMS: { enabled: true, body: 'Your complaint {{complaint.no}} ({{complaint.subject}}) has been resolved. - {{institution.name}}' },
+      WHATSAPP: { enabled: true, body: 'Dear {{complaint.name}},\nYour complaint {{complaint.no}} ({{complaint.subject}}) has been resolved:\n{{complaint.resolution}}\n\nThank you for telling us.\n{{institution.name}}' },
+      EMAIL: { enabled: true, subject: 'Complaint {{complaint.no}} resolved — {{institution.name}}', body: 'Dear {{complaint.name}},\n\nYour complaint {{complaint.no}} ({{complaint.subject}}) has been resolved:\n{{complaint.resolution}}\n\nThank you for telling us.\n{{institution.name}}' },
+    },
+  },
+  {
+    event: 'surveys.request', module: 'surveys', label: 'Survey to answer',
+    when: 'When a survey for parents or students is published with “ask now”, and when a reminder is sent to those who haven’t answered.',
+    vars: [...STUDENT, 'survey.title', 'survey.closes', 'survey.link', ...INSTITUTION],
+    defaults: {
+      SMS: { enabled: false, body: '{{institution.name}} would like your feedback: {{survey.title}}. Answer in the app: {{survey.link}}' },
+      WHATSAPP: { enabled: true, body: 'Dear {{guardian.name}},\n{{institution.name}} would like your feedback: {{survey.title}}.\n\nIt takes a few minutes — answer in the app: {{survey.link}}\n\n{{institution.name}}' },
+      EMAIL: { enabled: true, subject: 'Your feedback: {{survey.title}}', body: 'Dear {{guardian.name}},\n\n{{institution.name}} would like your feedback: {{survey.title}}.\nAnswer in the app: {{survey.link}}\n\n{{institution.name}}' },
+    },
+  },
+  {
+    event: 'canteen.low_balance', module: 'canteen', label: 'Canteen wallet running low',
+    when: 'Once, when a student’s canteen wallet falls below the low-balance mark (Settings › Canteen); again after the next top-up.',
+    vars: [...STUDENT, 'canteen.balance', 'canteen.threshold', ...INSTITUTION],
+    defaults: {
+      SMS: { enabled: false, body: '{{student.firstName}}’s canteen wallet is low: {{canteen.balance}} left. Please top up. - {{institution.name}}' },
+      WHATSAPP: { enabled: true, body: 'Dear {{guardian.name}},\n{{student.firstName}}’s canteen wallet has {{canteen.balance}} left (below {{canteen.threshold}}). You can top it up in the school app or at the canteen counter.\n\n{{institution.name}}' },
+      EMAIL: { enabled: false, subject: 'Canteen wallet low — {{student.firstName}}', body: 'Dear {{guardian.name}},\n\n{{student.name}}’s canteen wallet has {{canteen.balance}} left (below {{canteen.threshold}}). Top it up in the school app or at the canteen counter.\n\n{{institution.name}}' },
+    },
+  },
 ]
 
 export const NOTIFY_EVENT_BY = Object.fromEntries(NOTIFY_EVENTS.map((e) => [e.event, e]))
@@ -384,6 +536,10 @@ export const TEMPLATE_SAMPLE = {
   library: { title: 'The Jungle Book', dueDate: 'Fri, 10 Oct', days: 4, fine: '₹4' },
   event: { title: 'Annual Day', date: 'Sat, 20 Dec', time: '17:00', venue: 'School auditorium', question: 'May your child join the trip to the science centre?', replyBy: 'Wed, 17 Dec', link: 'https://app.example.in/app/green-valley/calendar' },
   ptm: { title: 'Term 1 parent–teacher meeting', date: 'Sat, 18 Oct', bookBy: 'Thu, 16 Oct', time: '10:20', teacher: 'Ms Kavita Rao', room: 'Room 8-A', link: 'https://app.example.in/app/green-valley/meetings' },
+  outpass: { no: 'OP26110042', status: 'approved', leave: 'Sat, 14 Nov 16:00', return: 'Sun, 15 Nov 18:00', reason: 'Cousin’s wedding', note: '', time: '16:05', late: 'on time' },
+  health: { complaint: 'fever', time: '11:40', note: 'Temperature 38.4 °C, paracetamol given.', pickedUpBy: 'Mother' },
+  incident: { kind: 'fall', date: '2026-11-09', time: '11:20', place: 'Playground', severity: 'minor', firstAid: 'Knee cleaned and dressed' },
+  canteen: { balance: '₹45', threshold: '₹100', amount: '₹500' },
 }
 
 const PLACEHOLDER = /\{\{\s*([a-zA-Z][\w.]*)\s*\}\}/g

@@ -38,6 +38,7 @@ export const familyHome = (slug, id) => fget(slug, `${st(id)}/home`)
 export const familyAttendance = (slug, id, month) => fget(slug, `${st(id)}/attendance`, { month: month || undefined })
 export const familyApplyLeave = (slug, id, body) => fpost(slug, `${st(id)}/leave`, body)
 export const familyCancelLeave = (slug, id, leaveId) => fpost(slug, `${st(id)}/leave/${leaveId}/cancel`)
+export const familyTimetable = (slug, id) => fget(slug, `${st(id)}/timetable`)
 export const familyHomework = (slug, id, when) => fget(slug, `${st(id)}/homework`, { when: when || undefined })
 export const familyFees = (slug, id) => fget(slug, `${st(id)}/fees`)
 export const familyResults = (slug, id) => fget(slug, `${st(id)}/results`)
@@ -46,6 +47,11 @@ export const familyProfile = (slug, id) => fget(slug, `${st(id)}/profile`)
 
 /** Links opened in a new tab (the session cookie goes with them). */
 export const familyFileUrl = (slug, id, homeworkId, fileId) => `${API_BASE_URL}${base(slug)}${st(id)}/homework/${homeworkId}/files/${fileId}`
+export const familyPushApi = (slug) => ({
+  key: () => fget(slug, '/push/key'),
+  save: (subscription) => fpost(slug, '/push', { subscription }),
+  off: (endpoint) => fpost(slug, '/push/off', { endpoint }),
+})
 export const familyDocUrl = (slug, docType, recordId) => `${API_BASE_URL}${base(slug)}/doc/${docType}/${recordId}`
 export const familyManifestUrl = (slug) => `${API_BASE_URL}${base(slug)}/manifest.webmanifest`
 
@@ -94,3 +100,25 @@ export const familyCancelMeeting = async (slug, id, bookingId) => (await family.
 export const familyAlbums = (slug, id) => fget(slug, `${st(id)}/albums`)
 export const familyAlbum = (slug, id, albumId) => fget(slug, `${st(id)}/albums/${albumId}`)
 export const familyPhotoUrl = (slug, id, albumId, fileId) => `${API_BASE_URL}${base(slug)}${st(id)}/albums/${albumId}/photos/${fileId}`
+
+// hostel
+export const familyHostel = (slug, id) => fget(slug, `${st(id)}/hostel`)
+export const familyRequestOutpass = (slug, id, body) => fpost(slug, `${st(id)}/hostel/outpasses`, body)
+export const familyCancelOutpass = (slug, id, outpassId) => fpost(slug, `${st(id)}/hostel/outpasses/${outpassId}/cancel`)
+
+// health card
+export const familyHealth = (slug, id) => fget(slug, `${st(id)}/health`)
+
+// placements
+export const familyPlacements = (slug, id) => fget(slug, `${st(id)}/placements`)
+export const familyPlacementRegister = (slug, id, driveId, body) => fpost(slug, `${st(id)}/placements/${driveId}/register`, body)
+export const familyPlacementWithdraw = (slug, id, driveId) => fpost(slug, `${st(id)}/placements/${driveId}/withdraw`)
+
+// complaints (Front office)
+export const familyComplaints = (slug, id) => fget(slug, `${st(id)}/complaints`)
+export const familyRaiseComplaint = (slug, id, body) => fpost(slug, `${st(id)}/complaints`, body)
+
+// surveys
+export const familySurveys = (slug, id) => fget(slug, `${st(id)}/surveys`)
+export const familySurvey = (slug, id, surveyId) => fget(slug, `${st(id)}/surveys/${surveyId}`)
+export const familyAnswerSurvey = (slug, id, surveyId, values) => fpost(slug, `${st(id)}/surveys/${surveyId}`, { values })

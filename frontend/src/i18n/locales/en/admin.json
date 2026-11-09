@@ -95,7 +95,9 @@
         "invited": "Added {{name}}. An invite is on its way to {{email}}.",
         "inviteSent": "A new invite is on its way to {{email}}."
       },
-      "resendInvite": "Send a new invite"
+      "resendInvite": "Send a new invite",
+      "byRole": "Roles",
+      "allRoles": "Everyone"
     },
     "numberSeries": {
       "title": "Number series",
@@ -578,7 +580,8 @@
         "students": "Students",
         "users": "Staff logins",
         "branches": "Campuses",
-        "storageGb": "Storage"
+        "storageGb": "Storage",
+        "aiTokensK": "AI allowance a month"
       },
       "title": "Subscription & billing",
       "subtitle": "Your plan, what you use, and your invoices.",
@@ -1516,7 +1519,13 @@
       "emptyHint": "Add the departments your institution runs — Mathematics, Science, Languages, Accounts…",
       "saved": "Department saved.",
       "staffIn_one": "{{count}} person",
-      "staffIn_other": "{{count}} people"
+      "staffIn_other": "{{count}} people",
+      "back": "Back to departments",
+      "headedBy": "Head: {{name}}",
+      "people_one": "{{count}} person in this department",
+      "people_other": "{{count}} people in this department",
+      "noPeople": "Nobody is in this department yet",
+      "noPeopleHint": "Pick the department on a user (Users › Edit) to add them here."
     },
     "institutionProfile": {
       "verified": "Verified",

@@ -17,6 +17,7 @@ import { logger } from '../platform/logger.js'
 import { emitToUser } from '../platform/realtime.js'
 import { escapeRegex, listResponse } from '../platform/validate.js'
 import { channelConfig, deliver, isEmail, normalizeMobile } from './messaging.js'
+import { pushToFamilies, pushToUsers } from './push.js'
 
 // Notifications (docs/00 §7 E12):
 //   · in-app — the bell, for staff (approvals waiting, decisions)
@@ -41,6 +42,8 @@ export async function notifyUsers(userIds, n) {
         entityType: r.entityType, entityId: r.entityId, createdAt: r.createdAt,
       })
     }
+    // and on their phones / desktops, where they switched notifications on
+    pushToUsers(ids, { title: n.title, body: n.message ?? '', url: n.link ?? '/', tag: n.event ?? undefined })
   } catch (err) {
     logger.warn({ err }, 'in-app notification failed')
   }
@@ -220,7 +223,7 @@ function familyText(event, channel, field, text, lang) {
 
 async function institutionVars() {
   const t = await Tenant.findById(getContext()?.tenantId).lean()
-  return { name: t?.name ?? '', phone: t?.profile?.phone ?? '' }
+  return { name: t?.name ?? '', phone: t?.profile?.phone ?? '', slug: t?.slug ?? '' }
 }
 
 /**
@@ -235,7 +238,8 @@ export async function queueFamilyMessages(event, { studentId, to: direct, data =
   // `only`: just these of the rule's channels; `pick`: the channels staff ticked in "Send to family" —
   // sent even if the rule leaves them off for automatic sends
   const channels = MESSAGE_CHANNELS.map((c) => c.value).filter((ch) => (pick ? pick.includes(ch) : rule.channels[ch]?.enabled && (!only || only.includes(ch))))
-  if (!channels.length) return []
+  // the family app's notifications go with every automatic send about a student, whichever channels the rule uses
+  if (!channels.length && (!studentId || pick || only)) return []
   const student = studentId ? await Student.findById(studentId).lean() : null
   if (studentId && !student) return []
   const cfg = await messagingConfig()
@@ -249,6 +253,17 @@ export async function queueFamilyMessages(event, { studentId, to: direct, data =
     }),
     institution: await institutionVars(),
   }
+  if (student && !pick) {
+    const r = rule.channels.SMS?.body ? rule.channels.SMS : rule.channels.WHATSAPP?.body ? rule.channels.WHATSAPP : rule.channels.EMAIL
+    if (r?.body) {
+      pushToFamilies(student._id, {
+        title: vars.institution.name || NOTIFY_EVENT_BY[event]?.label || '',
+        body: renderTemplate(familyText(event, r === rule.channels.SMS ? 'SMS' : r === rule.channels.WHATSAPP ? 'WHATSAPP' : 'EMAIL', 'body', r.body, lang), vars).slice(0, 300),
+        url: vars.institution.slug ? `/app/${vars.institution.slug}` : '/', tag: event, family: true,
+      })
+    }
+  }
+  if (!channels.length) return []
   const rows = []
   for (const channel of channels) {
     const r = rule.channels[channel]

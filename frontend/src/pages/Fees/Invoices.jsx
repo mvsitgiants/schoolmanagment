@@ -1,10 +1,11 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { AlarmClock, CircleCheckBig, FileText, Hourglass, Printer, Receipt, XCircle } from 'lucide-react'
 import { INVOICE_STATUS, PAYMENT_MODES, formatINR, formatINRCompact } from '@schoolgiant/shared'
-import { ColorChip, ControlChip, DataTable, DateCell, Money, PaidBar, PersonCell, StackCell, StatCardRow, Input, PageContainer, PageHeader, StatusPill, Tabs, Toolbar, usePrompt } from '../../components/system'
+import { ColorChip, ControlChip, DataTable, DateCell, Money, PaidBar, PersonCell, SideNavLayout, StackCell, StatCardRow, Input, PageContainer, PageHeader, StatusPill, Tabs, Toolbar, usePrompt } from '../../components/system'
+import { ClassNav, SectionPills, useClassSections } from '../../components/students/ClassNav'
 import Button from '../../components/ui/Button'
 import useDebouncedValue from '../../hooks/useDebouncedValue'
 import { fetchAcademicLookup } from '../../api/academics'
@@ -33,7 +34,9 @@ function InvoiceList() {
   const [page, setPage] = useState(1)
   const q = useDebouncedValue(search.trim(), 250)
   const { data: lookup } = useQuery({ queryKey: ['academic-lookup'], queryFn: fetchAcademicLookup })
-  const sections = useMemo(() => lookup?.sections ?? [], [lookup])
+  const classes = useClassSections(lookup)
+  // invoices are filtered by section on the server: a class opens on its first section, the others are pills
+  const cls = classes.find((c) => c.sections.some((x) => x.id === sectionId))
   const params = { search: q || undefined, status: status || undefined, sectionId: sectionId || undefined, overdue: overdue || undefined, page, pageSize: 50 }
   const { data, isLoading, error, refetch } = useQuery({ queryKey: ['fee-invoices', params], queryFn: () => fetchInvoices(params), placeholderData: keepPreviousData })
   const STATUSES = ['', 'UNPAID', 'PARTIAL', 'PAID', 'CANCELLED']
@@ -43,7 +46,11 @@ function InvoiceList() {
   const pct = (part, whole) => (whole > 0 ? Math.round((part / whole) * 100) : 0)
 
   return (
-    <div className="flex flex-col gap-4">
+    <SideNavLayout nav={classes.length > 1 && (
+      <ClassNav title={t('fees.invoices.classes')} classes={classes} value={cls?.id ?? ''} onChange={(id) => { setSectionId(classes.find((c) => c.id === id)?.sections[0]?.id ?? ''); setPage(1) }}
+        all={{ label: t('fees.invoices.allClasses') }} item={(c) => ({ hint: t('fees.invoices.sectionCount', { count: c.sections.length }) })} />
+    )}>
+    <SectionPills sections={cls?.sections} value={sectionId} onChange={reset(setSectionId)} label={(sec) => t('fees.invoices.sectionN', { name: sec.name })} />
     {sum && sum.invoices > 0 && (
       <StatCardRow items={[
         { icon: FileText, tone: 'brand', label: t('fees.invoices.summary.billed'), value: formatINRCompact(sum.billed), sub: t('fees.invoices.summary.invoices', { count: sum.invoices }) },
@@ -68,24 +75,23 @@ function InvoiceList() {
       exportable exportName="fee-invoices"
       rowTone={(r) => (r.overdue ? 'danger' : undefined)}
       toolbar={<Toolbar search={search} onSearch={reset(setSearch)} searchPlaceholder={t('fees.invoices.search')} right={<>
-        <ControlChip label={t('fees.invoices.section')} value={sections.find((s) => s.id === sectionId)?.label ?? t('fees.all')} active={!!sectionId}
-          options={[t('fees.all'), ...sections.map((s) => s.label)]} onChange={(v) => { setSectionId(sections.find((s) => s.label === v)?.id ?? ''); setPage(1) }} />
         <ControlChip label={t('fees.invoices.status')} value={statusLabel(status)} active={!!status} options={STATUSES.map(statusLabel)} onChange={(v) => { setStatus(STATUSES.find((s) => statusLabel(s) === v) ?? ''); setPage(1) }} />
         <ControlChip label={t('fees.invoices.overdueOnly')} value={overdue ? t('fees.yes') : t('fees.no')} active={overdue} options={[t('fees.no'), t('fees.yes')]} onChange={(v) => { setOverdue(v === t('fees.yes')); setPage(1) }} />
       </>} />}
       columns={[
         { key: 'invoiceNo', header: t('fees.invoices.no'), nowrap: true, render: (v, r) => <StackCell title={v} mono sub={r.installment} /> },
-        { key: 'student', header: t('fees.invoices.student'), mobilePrimary: true, render: (_, r) => studentCell(r) },
-        { key: 'dueDate', header: t('fees.invoices.due'), nowrap: true, render: (v, r) => <DateCell value={v} tone={r.overdue ? 'danger' : undefined} relative={r.balance > 0} /> },
+        // phone: the student, when it falls due, and what is left (paid bar) on the collapsed line
+        { key: 'student', header: t('fees.invoices.student'), mobileTitle: true, render: (_, r) => studentCell(r) },
+        { key: 'dueDate', header: t('fees.invoices.due'), nowrap: true, mobilePrimary: true, render: (v, r) => <DateCell value={v} tone={r.overdue ? 'danger' : undefined} relative={r.balance > 0} /> },
         { key: 'net', header: t('fees.invoices.amount'), align: 'right', render: (v) => <Money value={v} paise /> },
-        { key: 'balance', header: t('fees.invoices.balance'), align: 'right', render: (v, r) => (r.status === 'CANCELLED' ? <span className="text-ink-faint">—</span> : <PaidBar total={r.net} balance={v} paise overdue={r.overdue} paidLabel={t('fees.invoices.summary.paid')} />) },
+        { key: 'balance', header: t('fees.invoices.balance'), align: 'right', mobileTrail: true, render: (v, r) => (r.status === 'CANCELLED' ? <span className="text-ink-faint">—</span> : <PaidBar total={r.net} balance={v} paise overdue={r.overdue} paidLabel={t('fees.invoices.summary.paid')} />) },
         { key: 'status', header: t('fees.invoices.status'), render: (v) => <StatusPill tone={INVOICE_STATUS[v]?.tone}>{statusLabel(v)}</StatusPill> },
       ]}
       onRowClick={hasPermission('fees.collect.view') ? (r) => navigate(`/fees/collect?student=${r.studentId}`) : undefined}
       pagination={pagination(data?.meta, setPage)}
       emptyIcon={FileText} emptyTitle={q || status || sectionId || overdue ? t('fees.invoices.noMatch') : t('fees.invoices.empty')} emptyHint={t('fees.invoices.emptyHint')}
     />
-    </div>
+    </SideNavLayout>
   )
 }
 
@@ -130,8 +136,8 @@ function ReceiptList() {
       </>} />}
       columns={[
         { key: 'receiptNo', header: t('fees.receipts.no'), nowrap: true, render: (v) => <span className="font-mono-num">{v}</span> },
-        { key: 'student', header: t('fees.receipts.student'), mobilePrimary: true, render: (_, r) => studentCell(r) },
-        { key: 'date', header: t('fees.receipts.date'), nowrap: true, render: (v, r) => <span title={dateTime(r.at)}>{date(v)}</span> },
+        { key: 'student', header: t('fees.receipts.student'), mobileTitle: true, render: (_, r) => studentCell(r) },
+        { key: 'date', header: t('fees.receipts.date'), nowrap: true, mobilePrimary: true, render: (v, r) => <span title={dateTime(r.at)}>{date(v)}</span> },
         { key: 'mode', header: t('fees.receipts.mode'), render: (v, r) => <ColorChip label={modeLabel(v)} seed={v} dot sub={r.reference || undefined} /> },
         { key: 'collectedBy', header: t('fees.receipts.by'), mobileHidden: true, render: (v) => <span className="text-sm text-ink-muted">{v ?? '—'}</span> },
         { key: 'amount', header: t('fees.receipts.amount'), align: 'right', render: (v, r) => <span>{formatINR(v)}{r.refunded ? <span className="block text-xs text-ink-faint">{t('fees.receipts.refundedSub', { amount: formatINR(r.refunded) })}</span> : null}</span> },

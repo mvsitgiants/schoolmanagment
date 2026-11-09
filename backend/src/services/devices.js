@@ -1,5 +1,5 @@
 import {
-  DEVICE_IDLE_HOURS, DEVICE_KEY_PREFIX, DEVICE_PUSH_MAX, DEVICE_TYPE_LABEL, DEVICE_USED_FOR, PUNCH_OUTCOMES, countMarks,
+  DEVICE_IDLE_HOURS, DEVICE_KEY_PREFIX, DEVICE_PUSH_MAX, DEVICE_TYPE_LABEL, DEVICE_USED_FOR, PUNCH_OUTCOMES, countMarks, sectionLabel,
 } from '@schoolgiant/shared'
 import { AttendanceSheet } from '../models/attendance.js'
 import { Employee, StaffAttendance } from '../models/hrms.js'
@@ -7,6 +7,9 @@ import { Device, DevicePunch, IntegrationConfig } from '../models/integrations.j
 import { Tenant } from '../models/platform.js'
 import { Branch } from '../models/tenant.js'
 import { Student, studentName } from '../models/students.js'
+import { ClassLevel, Section } from '../models/academics.js'
+import { emit } from '../platform/events.js'
+import { humanDate } from './notify.js'
 import { Vehicle } from '../models/transport.js'
 import { enabledModuleIds } from '../platform/access.js'
 import { audit } from '../platform/audit.js'
@@ -372,6 +375,16 @@ async function premark(student, p, auth) {
   return { marked: true, note }
 }
 
+/** The family hears "reached school" once a day: on the child's first IN at a gate, today (Notification rules › Reached school). */
+async function tellArrived(student, p, saved) {
+  if (p.direction === 'OUT' || p.date !== (await institutionNow()).date) return
+  const earlier = await DevicePunch.exists({ _id: { $ne: saved._id }, personId: student._id, date: p.date, direction: { $ne: 'OUT' }, test: { $ne: true } })
+  if (earlier) return
+  const sec = student.sectionId ? await Section.findById(student.sectionId).lean() : null
+  const cls = sec ? await ClassLevel.findById(sec.classId).select('name code').lean() : null
+  await emit('attendance.arrived', { studentId: String(student._id), entity: { type: 'device_punch', id: saved._id }, data: { student: { class: sec ? sectionLabel(cls, sec, { short: true }) : '' }, attendance: { time: p.time, date: humanDate(p.date) } } })
+}
+
 /** Student punches → the gate log; optionally today's register. */
 async function studentPunches(d, auth, punches, { test }) {
   const codes = [...new Set(punches.map((p) => p.code))]
@@ -400,6 +413,7 @@ async function studentPunches(d, auth, punches, { test }) {
     if (!saved) { out.duplicates++; out.results.push({ code: p.code, outcome: 'DUPLICATE' }); continue }
     out.accepted++
     const mark = d.autoMarkAttendance && auth.enabledModules.includes('attendance') ? await premark(s, p, auth) : null
+    await tellArrived(s, p, saved)
     if (mark) await DevicePunch.updateOne({ _id: saved._id }, { $set: { ...(mark.marked && { outcome: 'MARKED_PRESENT' }), note: mark.note } })
     out.results.push({ code: p.code, outcome: mark?.marked ? 'MARKED_PRESENT' : 'GATE', name: studentName(s), date: p.date, time: p.time, direction: p.direction, note: mark?.note })
   }
@@ -431,6 +445,33 @@ async function gpsPositions(d, items, { test }) {
   }
   if (!test && out.accepted) out.results.push({ outcome: 'POSITION', name: vehicle.regNo })
   return out
+}
+
+/** The phones and tablets set up as gate scanners (Integrations › Devices, kind PHONE) — for the Gate scanner screen. */
+export async function phoneScanners() {
+  const rows = await Device.find({ kind: 'PHONE', active: true }).sort({ name: 1 }).lean()
+  return rows.map((d) => ({ id: String(d._id), name: d.name, usedFor: d.usedFor, autoMarkAttendance: !!d.autoMarkAttendance, branchId: d.branchId ? String(d.branchId) : null }))
+}
+
+/**
+ * One code read by a phone scanner: the device's own path (the same as a card reader's push), run as the device but
+ * signed with who was holding the phone. The route checks the person may take attendance for what the scanner records.
+ */
+export async function phonePunch(id, { code, direction }, auth) {
+  if (!isOid(id)) throw notFound('Scanner')
+  const d = await Device.findById(id).lean()
+  if (!d || d.kind !== 'PHONE') throw notFound('Scanner')
+  if (!d.active) throw conflict('This scanner is switched off (Integrations › Devices).')
+  const need = needs(d)
+  if (need && !auth.enabledModules?.includes(need)) throw conflict(`The ${need} module is not switched on.`)
+  const as = { tenantId: auth.tenantId, userId: undefined, fullAccess: true, permissions: ['*'], dataScopes: { default: 'ALL' }, enabledModules: auth.enabledModules, user: { name: `${d.name} · ${auth.user?.name ?? ''}`.trim(), branchId: d.branchId } }
+  const out = await receive(d, as, { punches: [{ code, direction, at: new Date().toISOString() }] })
+  await Device.updateOne({ _id: d._id }, {
+    $set: { lastSeenAt: new Date(), ...(!out.accepted && out.errors[0] && { lastError: { at: new Date(), message: String(out.errors[0].message).slice(0, 300) } }) },
+    $inc: { 'counts.received': out.received ?? 0, 'counts.accepted': out.accepted ?? 0, 'counts.rejected': out.rejected ?? 0 },
+  })
+  const r = out.results[0] ?? {}
+  return { ok: out.accepted > 0, duplicate: out.duplicates > 0, outcome: r.outcome ?? (out.errors.length ? 'UNKNOWN' : null), name: r.name ?? null, time: r.time ?? null, direction: r.direction ?? direction ?? null, note: r.note ?? null, error: out.accepted ? null : out.errors[0]?.message ?? null, usedFor: d.usedFor }
 }
 
 /** One push from a device (already found by its key): punches or positions. */

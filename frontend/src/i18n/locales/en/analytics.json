@@ -88,7 +88,12 @@
       },
       "noRisk": "No student is at risk",
       "noRiskHint": "Everyone passed, scored above the threshold and is above the attendance minimum.",
-      "trendTable": "Class averages, exam by exam"
+      "trendTable": "Class averages, exam by exam",
+      "classesNav": "Classes",
+      "classHint": "Pass {{pass}}",
+      "schoolAvg": "Whole school {{pct}}",
+      "classNote": "Cards, grade spread, toppers and students at risk are for {{cls}}. Subjects and attendance bands are for the whole school.",
+      "toppersInClass": "{{cls}} in the school’s top 10"
     },
     "fees": {
       "title": "Fee collection",

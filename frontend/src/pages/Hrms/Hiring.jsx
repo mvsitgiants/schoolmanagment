@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { Briefcase, Bus, ChevronLeft, Pencil, Plus, Presentation, ShieldCheck, Star, UserCheck, UsersRound, Wrench } from 'lucide-react'
 import { CANDIDATE_SOURCES, CANDIDATE_STAGES, EMPLOYEE_CATEGORIES, EMPLOYMENT_TYPES, OPEN_CANDIDATE_STAGES, REQUISITION_STATUSES, toPaise, toRupees } from '@schoolgiant/shared'
-import { Attachments, ColorChip, ContactCell, DataTable, DateCell, Drawer, FormField, HeaderButton, Input, LevelBar, Modal, Money, Note, PageContainer, PageHeader, Panel, PersonCell, SegmentedControl, Select, StatusPill, Textarea, Timeline } from '../../components/system'
+import { Attachments, ColorChip, ContactCell, DataTable, DateCell, Drawer, FormField, HeaderButton, Input, LevelBar, Modal, Money, Note, PageContainer, PageHeader, Panel, PersonCell, SegmentedControl, Select, SideNav, SideNavLayout, StatusPill, Textarea, Timeline } from '../../components/system'
 import Button from '../../components/ui/Button'
 import {
   createCandidate, createRequisition, evaluateCandidate, fetchCandidate, fetchCandidates, fetchRequisitions, hireCandidate, moveCandidate, offerCandidate,
@@ -229,13 +229,14 @@ function VacancyDetail({ vacancy, onBack, onEdit }) {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-2">
-        <Button size="sm" variant="ghost" icon={ChevronLeft} onClick={onBack} aria-label={t('hrms.profile.back')} />
-        <div className="min-w-0">
-          <p className="font-semibold text-ink">{vacancy.title} <span className="text-xs font-mono-num text-ink-faint">{vacancy.requisitionNo}</span></p>
-          <p className="text-xs text-ink-muted">{[L.category(vacancy.category), L.employment(vacancy.employmentType), t('hrms.hiring.filledOf', { filled: vacancy.filled ?? 0, count: vacancy.count }), vacancy.targetDate && t('hrms.hiring.by', { date: date(vacancy.targetDate) })].filter(Boolean).join(' · ')}</p>
+        <div className="flex min-w-0 flex-1 items-start gap-2">
+          <Button size="sm" variant="ghost" icon={ChevronLeft} onClick={onBack} aria-label={t('hrms.profile.back')} title={t('hrms.profile.back')} className="shrink-0" />
+          <div className="min-w-0">
+            <p className="flex flex-wrap items-center gap-x-2 gap-y-1 font-semibold text-ink">{vacancy.title} <span className="text-xs font-mono-num font-normal text-ink-faint">{vacancy.requisitionNo}</span><StatusPill tone={REQUISITION_STATUSES[vacancy.status]?.tone}>{L.reqStatus(vacancy.status)}</StatusPill></p>
+            <p className="text-xs text-ink-muted">{[L.category(vacancy.category), L.employment(vacancy.employmentType), t('hrms.hiring.filledOf', { filled: vacancy.filled ?? 0, count: vacancy.count }), vacancy.targetDate && t('hrms.hiring.by', { date: date(vacancy.targetDate) })].filter(Boolean).join(' · ')}</p>
+          </div>
         </div>
-        <StatusPill tone={REQUISITION_STATUSES[vacancy.status]?.tone}>{L.reqStatus(vacancy.status)}</StatusPill>
-        <div className="ml-auto flex flex-wrap gap-2">
+        <div className="flex w-full flex-wrap gap-2 sm:ml-auto sm:w-auto">
           {canEdit && <Button size="sm" variant="ghost" icon={Pencil} onClick={onEdit}>{t('hrms.edit')}</Button>}
           {canEdit && vacancy.status === 'OPEN' && <Button size="sm" variant="ghost" onClick={() => status.mutate('ON_HOLD')}>{t('hrms.hiring.hold')}</Button>}
           {canEdit && vacancy.status !== 'OPEN' && <Button size="sm" variant="ghost" onClick={() => status.mutate('OPEN')}>{t('hrms.hiring.reopen')}</Button>}
@@ -251,7 +252,7 @@ function VacancyDetail({ vacancy, onBack, onEdit }) {
             {r.mobile && <ContactCell phone={r.mobile} className="hidden sm:block" />}
           </span>
         ) },
-        { key: 'stage', header: t('hrms.hiring.stage'), render: (v, r) => <span><ColorChip label={L.stage(v)} tone={stageTone(v)} dot />{r.next?.date && <span className="block text-[11px] text-ink-faint mt-0.5">{date(r.next.date)} {r.next.time ?? ''}</span>}</span> },
+        { key: 'stage', header: t('hrms.hiring.stage'), mobilePrimary: true, render: (v, r) => <span><ColorChip label={L.stage(v)} tone={stageTone(v)} dot />{r.next?.date && <span className="block text-[11px] text-ink-faint mt-0.5">{date(r.next.date)} {r.next.time ?? ''}</span>}</span> },
         { key: 'rating', header: t('hrms.hiring.rating'), align: 'right', render: (v) => <Stars value={v} /> },
         { key: 'source', header: t('hrms.hiring.source'), mobileHidden: true, render: (v) => (v ? <ColorChip label={t(`hrms.hiring.sources.${v}`, v)} seed={v} /> : '—') },
       ]} onRowClick={(r) => setOpenId(r.id)} emptyTitle={t('hrms.hiring.noCandidates')} />
@@ -278,7 +279,18 @@ export default function Hiring() {
     <PageContainer>
       <PageHeader icon={Briefcase} title={t('hrms.hiring.title')} subtitle={t('hrms.hiring.subtitle')}
         actions={<HeaderButton icon={Plus} variant="primary" requires="hrms.hiring.create" onClick={() => setEditing('new')}>{t('hrms.hiring.newVacancy')}</HeaderButton>} />
-      {open ? <VacancyDetail vacancy={open} onBack={() => setOpenId(null)} onEdit={() => setEditing(open)} /> : (
+      {open ? (
+        <SideNavLayout nav={rows.length > 1 && (
+          <SideNav title={t('hrms.hiring.vacanciesNav')} value={open.id} onChange={setOpenId} items={rows.map((r) => ({
+            id: r.id, label: r.title, icon: CATEGORY_LOOK[r.category]?.icon ?? Briefcase,
+            hint: [r.requisitionNo, r.department].filter(Boolean).join(' · ') || L.category(r.category),
+            count: `${r.filled ?? 0}/${r.count}`, countTone: r.status === 'ON_HOLD' ? 'warning' : undefined,
+            progress: { value: r.filled ?? 0, max: r.count || 1, kind: 'done' },
+          }))} />
+        )}>
+          <VacancyDetail key={open.id} vacancy={open} onBack={() => setOpenId(null)} onEdit={() => setEditing(open)} />
+        </SideNavLayout>
+      ) : (
         <>
           <SegmentedControl className="mb-3" value={status} onChange={setStatus} options={[{ value: 'ACTIVE', label: t('hrms.hiring.active') }, { value: 'FILLED', label: L.reqStatus('FILLED') }, { value: 'CLOSED', label: L.reqStatus('CLOSED') }, { value: 'ALL', label: t('hrms.all') }]} />
           <DataTable rows={rows} loading={isLoading} columns={[
@@ -303,7 +315,7 @@ export default function Hiring() {
               return stages.length ? <div className="flex flex-wrap gap-1">{stages.map((s) => <ColorChip key={s} label={L.stage(s)} sub={String(v[s])} tone={stageTone(s)} dot />)}</div> : '—'
             } },
             { key: 'targetDate', header: t('hrms.hiring.targetDate'), mobileHidden: true, nowrap: true, render: (v) => <DateCell value={v} /> },
-            { key: 'status', header: t('hrms.employees.status'), render: (v) => <StatusPill tone={REQUISITION_STATUSES[v]?.tone}>{L.reqStatus(v)}</StatusPill> },
+            { key: 'status', header: t('hrms.employees.status'), mobilePrimary: true, render: (v) => <StatusPill tone={REQUISITION_STATUSES[v]?.tone}>{L.reqStatus(v)}</StatusPill> },
           ]} onRowClick={(r) => setOpenId(r.id)} emptyIcon={Briefcase} emptyTitle={t('hrms.hiring.noVacancies')} />
           <p className="text-xs text-ink-faint mt-3">{t('hrms.hiring.joinHint')} <button type="button" className="underline" onClick={() => navigate('/hrms/employees')}>{t('hrms.employees.title')}</button></p>
         </>

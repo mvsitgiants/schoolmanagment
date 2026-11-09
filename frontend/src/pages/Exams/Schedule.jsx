@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { CalendarClock, CalendarRange, ChevronLeft, ClipboardList, Pencil, Plus, Send, Trash2, Undo2, Wand2, X } from 'lucide-react'
 import { EXAM_STATUS, addMinutes, clashes } from '@schoolgiant/shared'
-import { ColorChip, ControlChip, DataTable, DateCell, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, Panel, ProgressBar, Select, StatusPill, Textarea, useConfirm } from '../../components/system'
+import { ColorChip, ControlChip, DataTable, DateCell, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, Panel, PillRow, ProgressBar, Select, SideNav, SideNavLayout, StatusPill, Textarea, pillClass, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { fetchAcademicLookup, fetchGrading } from '../../api/academics'
 import { createExam, deleteExam, fetchExam, fetchExamTypes, fetchExams, savePapers, scheduleExam, suggestPapers, unscheduleExam, updateExam } from '../../api/exams'
@@ -155,6 +155,7 @@ function ExamDetail({ examId, onBack }) {
   const { date } = useFormat()
   const { showSuccess, showError } = useSnackbar()
   const [editingClass, setEditingClass] = useState(null)
+  const [classId, setClassId] = useState('') // one class's papers, or every class
   const { data: exam, isLoading, error } = useQuery({ queryKey: ['exam', examId], queryFn: () => fetchExam(examId) })
   const refresh = () => { qc.invalidateQueries({ queryKey: ['exam', examId] }); qc.invalidateQueries({ queryKey: ['exams'] }) }
   const act = useMutation({ mutationFn: ({ fn }) => fn(), onSuccess: (_, v) => { refresh(); showSuccess(v.done) }, onError: (e) => showError(e.message) })
@@ -167,7 +168,7 @@ function ExamDetail({ examId, onBack }) {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2 min-w-0">
-          <Button size="sm" variant="ghost" icon={ChevronLeft} onClick={onBack} aria-label={t('exams.schedule.back')} />
+          <Button size="sm" variant="ghost" icon={ChevronLeft} onClick={onBack} aria-label={t('exams.schedule.back')} title={t('exams.schedule.back')} />
           <div className="min-w-0">
             <p className="font-semibold text-ink truncate">{exam.name}</p>
             <p className="text-xs text-ink-muted">{exam.startDate ? `${date(exam.startDate)}${exam.endDate !== exam.startDate ? ` – ${date(exam.endDate)}` : ''}` : t('exams.schedule.noDates')}{exam.term ? ` · ${exam.term}` : ''}</p>
@@ -184,7 +185,17 @@ function ExamDetail({ examId, onBack }) {
       </div>
       {exam.status === 'DRAFT' && missing > 0 && <Note tone="warning">{t('exams.schedule.missingHint')}</Note>}
       {exam.status === 'SCHEDULED' && <Note>{t('exams.schedule.scheduledHint')}</Note>}
-      {exam.classes.map((c) => (
+      {exam.classes.length > 1 && (
+        <PillRow>
+          <button type="button" aria-pressed={!classId} onClick={() => setClassId('')} className={pillClass(!classId)}>{t('exams.schedule.allClasses', { count: exam.classes.length })}</button>
+          {exam.classes.map((c) => (
+            <button key={c.id} type="button" aria-pressed={classId === c.id} onClick={() => setClassId(c.id)} className={pillClass(classId === c.id)}>
+              {c.name} <span className={`tabular-nums ${c.papers.length ? 'opacity-70' : 'text-danger-600'}`}>· {c.papers.length}</span>
+            </button>
+          ))}
+        </PillRow>
+      )}
+      {exam.classes.filter((c) => !classId || c.id === classId).map((c) => (
         <Panel key={c.id} title={c.name} subtitle={t('exams.schedule.paperCount', { count: c.papers.length })} flush
           actions={canEdit && <Button size="sm" variant="secondary" icon={Pencil} onClick={() => setEditingClass(c)}>{t('exams.schedule.editPapers')}</Button>}>
           <DataTable
@@ -228,7 +239,18 @@ export default function Schedule() {
     <PageContainer>
       <PageHeader icon={CalendarRange} title={t('exams.schedule.title')} subtitle={t('exams.schedule.subtitle')}
         actions={!openId && <HeaderButton icon={Plus} variant="primary" requires="exams.schedule.create" onClick={() => setEditing('new')}>{t('exams.schedule.new')}</HeaderButton>} />
-      {openId ? <ExamDetail examId={openId} onBack={() => open(null)} /> : (
+      {openId ? (
+        <SideNavLayout nav={(data?.exams?.length ?? 0) > 1 && (
+          <SideNav title={t('exams.schedule.examsNav')} value={openId} onChange={open} items={(data?.exams ?? []).map((e) => ({
+            id: e.id, label: e.name, icon: CalendarRange,
+            hint: e.startDate ? `${date(e.startDate)}${e.endDate && e.endDate !== e.startDate ? ` – ${date(e.endDate)}` : ''}` : statusLabel(t, e.status),
+            count: e.status === 'PUBLISHED' ? undefined : statusLabel(t, e.status), countTone: e.status === 'DRAFT' ? 'warning' : undefined,
+            progress: e.sheetsExpected && e.status !== 'DRAFT' ? { value: e.sheetsLocked, max: e.sheetsExpected, kind: 'done' } : undefined,
+          }))} />
+        )}>
+          <ExamDetail key={openId} examId={openId} onBack={() => open(null)} />
+        </SideNavLayout>
+      ) : (
         <DataTable
           rows={data?.exams ?? []}
           loading={isLoading}
@@ -245,10 +267,10 @@ export default function Schedule() {
               </div>
             ) },
             { key: 'classes', header: t('exams.schedule.classes'), mobileHidden: true, render: (v) => <div className="flex flex-wrap gap-1">{v.map((c) => <ColorChip key={c.id} label={c.code || c.name} seed={c.id} />)}</div> },
-            { key: 'startDate', header: t('exams.schedule.dates'), nowrap: true, render: (v, r) => (v ? <span className="text-sm">{date(v)}{r.endDate && r.endDate !== v ? ` – ${date(r.endDate)}` : ''}</span> : '—') },
-            { key: 'papers', header: t('exams.schedule.papers'), align: 'right' },
+            { key: 'startDate', header: t('exams.schedule.dates'), mobilePrimary: true, render: (v, r) => (v ? <span className="text-sm sm:whitespace-nowrap">{date(v)}{r.endDate && r.endDate !== v ? ` – ${date(r.endDate)}` : ''}</span> : '—') },
+            { key: 'papers', header: t('exams.schedule.papers'), align: 'right', mobileLabel: t('exams.schedule.papers') },
             { key: 'sheetsLocked', header: t('exams.schedule.marksLocked'), mobileHidden: true, render: (v, r) => (r.status === 'DRAFT' || !r.sheetsExpected ? '—' : <div className="min-w-[110px]"><ProgressBar value={Math.round((v / r.sheetsExpected) * 100)} /><p className="text-xs text-ink-faint mt-0.5">{t('exams.schedule.sheetsOf', { locked: v, total: r.sheetsExpected })}</p></div>) },
-            { key: 'status', header: t('exams.schedule.status'), render: (v) => <StatusPill tone={EXAM_STATUS[v]?.tone}>{statusLabel(t, v)}</StatusPill> },
+            { key: 'status', header: t('exams.schedule.status'), mobileTrail: true, render: (v) => <StatusPill tone={EXAM_STATUS[v]?.tone}>{statusLabel(t, v)}</StatusPill> },
             { key: 'id', header: '', align: 'right', width: 100, render: (id, r) => (
               <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>
                 {hasPermission('exams.schedule.edit') && r.status !== 'PUBLISHED' && <Button size="sm" variant="ghost" icon={Pencil} aria-label={t('exams.schedule.edit')} title={t('exams.schedule.edit')} onClick={() => setEditing(r)} />}

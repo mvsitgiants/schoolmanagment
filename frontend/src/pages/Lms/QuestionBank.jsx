@@ -19,7 +19,7 @@ function useSubjects() {
   return { classes, subjects }
 }
 
-function QuestionForm({ question, defaults, onClose, onSaved }) {
+function QuestionForm({ question, defaults, onClose, onSaved, onDelete }) {
   const { t } = useTranslation('lms')
   const { showError } = useSnackbar()
   const { classes, subjects } = useSubjects()
@@ -42,11 +42,12 @@ function QuestionForm({ question, defaults, onClose, onSaved }) {
   const save = useMutation({ mutationFn: () => (question ? updateQuestion(question.id, body()) : createQuestion(body())), onSuccess: onSaved, onError: (e) => showError(e.message) })
   return (
     <Modal open onClose={onClose} size="xl" title={question ? t('lms.qb.editTitle') : t('lms.qb.newTitle')} footer={<>
+      {question && onDelete && hasPermission('lms.question-bank.delete') && <Button variant="ghost" icon={Trash2} className="me-auto text-danger-600" onClick={onDelete}>{t('lms.delete')}</Button>}
       <Button variant="secondary" onClick={onClose}>{t('actions.cancel')}</Button>
       <Button loading={save.isPending} disabled={!f.subjectId || Object.keys(problems).length > 0} onClick={() => save.mutate()}>{t('lms.save')}</Button>
     </>}>
       <div className="space-y-4">
-        <div className="grid sm:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <FormField label={t('lms.subject')} required><Select value={f.subjectId} onChange={set('subjectId')}><option value="">{t('lms.pickSubject')}</option>{subjects.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</Select></FormField>
           <FormField label={t('lms.class')}><Select value={f.classId} onChange={set('classId')}><option value="">{t('lms.anyClass')}</option>{classes.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</Select></FormField>
           <FormField label={t('lms.qb.chapter')}><Input value={f.chapter} onChange={set('chapter')} /></FormField>
@@ -72,7 +73,7 @@ function QuestionForm({ question, defaults, onClose, onSaved }) {
           </div>
         )}
         {['FILL', 'SHORT', 'LONG'].includes(f.type) && <FormField label={f.type === 'FILL' ? t('lms.qb.accepted') : t('lms.qb.model')} hint={f.type === 'FILL' ? t('lms.qb.acceptedHint') : undefined}><Textarea rows={f.type === 'LONG' ? 4 : 2} value={f.answers} onChange={set('answers')} /></FormField>}
-        <div className="grid sm:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <FormField label={t('lms.qb.marks')}><Input type="number" min="0.25" step="0.25" value={f.marks} onChange={set('marks')} /></FormField>
           <FormField label={t('lms.qb.negative')} hint={type?.auto ? undefined : t('lms.qb.negativeNa')}><Input type="number" min="0" step="0.25" value={f.negative} disabled={!type?.auto} onChange={set('negative')} /></FormField>
           <FormField label={t('lms.qb.difficulty')}><Select value={f.difficulty} onChange={set('difficulty')}>{Object.keys(DIFFICULTY).map((k) => <option key={k} value={k}>{t(`lms.difficulty.${k}`)}</option>)}</Select></FormField>
@@ -101,9 +102,10 @@ export default function QuestionBank() {
   const { data, isLoading } = useQuery({ queryKey: ['lms-questions', params], queryFn: () => fetchQuestions(params), placeholderData: keepPreviousData })
   const meta = data?.meta
   const refresh = () => qc.invalidateQueries({ queryKey: ['lms-questions'] })
-  const remove = useMutation({ mutationFn: deleteQuestion, onSuccess: (r) => { refresh(); showSuccess(r.deactivated ? t('lms.qb.switchedOff') : t('lms.qb.deleted')) }, onError: (e) => showError(e.message) })
+  const remove = useMutation({ mutationFn: deleteQuestion, onSuccess: (r) => { refresh(); setEditing(null); showSuccess(r.deactivated ? t('lms.qb.switchedOff') : t('lms.qb.deleted')) }, onError: (e) => showError(e.message) })
+  const askDelete = (r) => confirm({ title: t('lms.qb.deleteConfirm'), message: r.used ? t('lms.qb.usedHint') : undefined, confirmLabel: t('lms.delete'), tone: 'danger' })
   const pick = (k, list, labelOf) => (
-    <ControlChip label={t(`lms.qb.filter.${k}`)} value={filter[k] ? labelOf(filter[k]) : t('lms.all')} active={!!filter[k]} options={[t('lms.all'), ...list.map(labelOf)]}
+    <ControlChip className="shrink-0 max-sm:h-10" label={t(`lms.qb.filter.${k}`)} value={filter[k] ? labelOf(filter[k]) : t('lms.all')} active={!!filter[k]} options={[t('lms.all'), ...list.map(labelOf)]}
       onChange={(v) => { setFilter((x) => ({ ...x, [k]: list.find((it) => labelOf(it) === v) ?? '', ...(k === 'subjectId' && { chapter: '' }) })); setPage(1) }} />
   )
   const subjectName = (id) => subjects.find((s) => s.id === id)?.name ?? id
@@ -121,25 +123,29 @@ export default function QuestionBank() {
         </>} />
       <DataTable rows={data?.data ?? []} loading={isLoading}
         toolbar={<Toolbar search={search} onSearch={(v) => { setSearch(v); setPage(1) }} searchPlaceholder={t('lms.qb.search')}
-          right={<>
+          right={<div className="flex gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible sm:pb-0 [scrollbar-width:thin]">
             {pick('subjectId', subjects.map((s) => s.id), subjectName)}
             {pick('classId', classes.map((c) => c.id), className)}
             {filter.subjectId && (data?.chapters ?? []).length > 0 && pick('chapter', data.chapters, (c) => c)}
             {pick('type', Object.keys(QUESTION_TYPES), (k) => t(`lms.qtypes.${k}`))}
             {pick('difficulty', Object.keys(DIFFICULTY), (k) => t(`lms.difficulty.${k}`))}
-          </>} />}
+          </div>} />}
         columns={[
-          { key: 'text', header: t('lms.qb.question'), mobilePrimary: true, render: (v, r) => <div className="min-w-0"><p className="text-sm text-ink line-clamp-2 max-w-xl">{v}</p><div className="mt-1 flex flex-wrap items-center gap-1"><ColorChip label={subjectName(r.subjectId)} seed={r.subjectId} dot />{r.classId && <ColorChip label={className(r.classId)} seed={r.classId} />}{r.chapter && <span className="text-xs text-ink-faint truncate">{r.chapter}</span>}</div></div> },
+          { key: 'text', header: t('lms.qb.question'), render: (v, r) => <div className="min-w-0"><p className="text-sm text-ink line-clamp-2 max-w-xl whitespace-normal">{v}</p><div className="mt-1 flex flex-wrap items-center gap-1"><ColorChip label={subjectName(r.subjectId)} seed={r.subjectId} dot />{r.classId && <ColorChip label={className(r.classId)} seed={r.classId} />}{r.chapter && <span className="text-xs font-normal text-ink-faint truncate">{r.chapter}</span>}</div>
+            {/* phones: type and marks ride under the question (those columns are hidden there) */}
+            <p className="md:hidden mt-1 text-xs font-normal text-ink-muted">{t(`lms.qtypes.${r.type}`)} · {t('lms.qb.marksN', { count: r.marks })}{r.negative ? ` · −${r.negative}` : ''}</p></div> },
           { key: 'type', header: t('lms.qb.type'), mobileHidden: true, render: (v) => <ColorChip label={t(`lms.qtypes.${v}`)} seed={`qtype-${v}`} dot /> },
-          { key: 'marks', header: t('lms.qb.marks'), align: 'right', render: (v, r) => `${v}${r.negative ? ` / −${r.negative}` : ''}` },
-          { key: 'difficulty', header: t('lms.qb.difficulty'), render: (v) => <StatusPill tone={DIFFICULTY[v]?.tone}>{t(`lms.difficulty.${v}`)}</StatusPill> },
-          { key: 'id', header: '', align: 'right', width: 50, render: (id, r) => hasPermission('lms.question-bank.delete') && <Button size="sm" variant="ghost" icon={Trash2} aria-label={t('lms.delete')}
-            onClick={async (e) => { e.stopPropagation(); if (await confirm({ title: t('lms.qb.deleteConfirm'), message: r.used ? t('lms.qb.usedHint') : undefined, confirmLabel: t('lms.delete'), tone: 'danger' })) remove.mutate(id) }} /> },
+          { key: 'marks', header: t('lms.qb.marks'), align: 'right', mobileHidden: true, render: (v, r) => `${v}${r.negative ? ` / −${r.negative}` : ''}` },
+          { key: 'difficulty', header: t('lms.qb.difficulty'), mobileTrail: true, render: (v) => <StatusPill tone={DIFFICULTY[v]?.tone}>{t(`lms.difficulty.${v}`)}</StatusPill> },
+          // phones delete from the question's form instead (a tap opens it)
+          { key: 'id', header: '', align: 'right', width: 50, mobileHidden: true, render: (id, r) => hasPermission('lms.question-bank.delete') && <Button size="sm" variant="ghost" icon={Trash2} aria-label={t('lms.delete')} title={t('lms.delete')}
+            onClick={async (e) => { e.stopPropagation(); if (await askDelete(r)) remove.mutate(id) }} /> },
         ]}
         onRowClick={hasPermission('lms.question-bank.edit') ? (r) => setEditing(r) : undefined}
         pagination={meta && meta.totalPages > 1 && { page: meta.page - 1, size: meta.pageSize, totalElements: meta.total, totalPages: meta.totalPages, onPageChange: (p) => setPage(p + 1) }}
         emptyIcon={FileQuestion} emptyTitle={t('lms.qb.empty')} emptyHint={t('lms.qb.emptyHint')} />
-      {editing && <QuestionForm question={editing === 'new' ? null : editing} defaults={filter} onClose={() => setEditing(null)} onSaved={() => { setEditing(null); refresh(); showSuccess(t('lms.saved')) }} />}
+      {editing && <QuestionForm question={editing === 'new' ? null : editing} defaults={filter} onClose={() => setEditing(null)}
+        onDelete={editing !== 'new' ? async () => { if (await askDelete(editing)) remove.mutate(editing.id) } : undefined} onSaved={() => { setEditing(null); refresh(); showSuccess(t('lms.saved')) }} />}
     </PageContainer>
   )
 }

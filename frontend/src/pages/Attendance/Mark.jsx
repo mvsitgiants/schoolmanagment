@@ -3,9 +3,10 @@ import { useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import clsx from 'clsx'
-import { BookOpen, CalendarCheck, CheckCheck, ChevronLeft, Clock, LayoutGrid, UserCheck, UserX } from 'lucide-react'
+import { BookOpen, CalendarCheck, Check, CheckCheck, ChevronLeft, Clock, LayoutGrid, UserCheck, UserX } from 'lucide-react'
 import { ATTENDANCE_MARKS, countMarks, takesDaily, takesPeriods } from '@schoolgiant/shared'
-import { Avatar, ColorChip, FormField, Input, Note, PageContainer, PageHeader, PersonCell, StatCardRow, StatusPill, TONE, Tabs } from '../../components/system'
+import { Avatar, ColorChip, Input, Note, PageContainer, PageHeader, PersonCell, PillRow, SideNav, SideNavLayout, StatCardRow, StatusPill, TONE, Tabs, pillClass } from '../../components/system'
+import groupByClass, { classKeyOf } from '../../components/attendance/groupByClass'
 import Button from '../../components/ui/Button'
 import { fetchAttendanceBoard, fetchSheet, saveSheet } from '../../api/attendance'
 import { useSnackbar } from '../../context/SnackbarContext'
@@ -20,6 +21,9 @@ const MARK_STYLE = {
   HD: 'bg-info-500 text-white border-info-500',
   LV: 'bg-ink-muted text-white border-ink-muted',
 }
+
+// the row behind a student who isn't simply present, so the exceptions stand out down a long list
+const ROW_TINT = { A: 'bg-danger-50/60', L: 'bg-amber-50/60', HD: 'bg-info-50/50', LV: 'bg-black/[0.03]' }
 
 /** One section's sheet: a row per student with big mark buttons (phones first), then Save. */
 function SheetView({ sectionId, date, period, onBack }) {
@@ -66,9 +70,9 @@ function SheetView({ sectionId, date, period, onBack }) {
 
   return (
     <div>
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
         <div className="flex items-center gap-2 min-w-0">
-          <Button size="sm" variant="ghost" icon={ChevronLeft} onClick={onBack} aria-label={t('attendance.mark.back')} />
+          <Button size="sm" variant="ghost" icon={ChevronLeft} onClick={onBack} aria-label={t('attendance.mark.back')} title={t('attendance.mark.back')} />
           <div className="min-w-0">
             <p className="font-semibold text-ink truncate">{sheet.section.label}{sheet.period > 0 && <span className="text-ink-muted font-normal"> · {t('attendance.mark.periodN', { n: sheet.period })}</span>}</p>
             {sheet.slot && (
@@ -81,7 +85,7 @@ function SheetView({ sectionId, date, period, onBack }) {
             <p className="text-xs text-ink-muted">{sheet.derived ? t('attendance.mark.derivedNote') : sheet.taken ? t('attendance.mark.takenBy', { name: sheet.updatedBy || sheet.takenBy, at: dateTime(sheet.updatedAt || sheet.takenAt) }) : t('attendance.mark.notTaken')}</p>
           </div>
         </div>
-        <div className="flex flex-wrap items-center gap-2 text-sm">
+        <div className="hidden sm:flex flex-wrap items-center gap-2 text-sm">
           {ATTENDANCE_MARKS.filter((m) => counts[m.value]).map((m) => <StatusPill key={m.value} tone={m.tone}>{label(m)} {counts[m.value]}</StatusPill>)}
         </div>
       </div>
@@ -90,21 +94,26 @@ function SheetView({ sectionId, date, period, onBack }) {
       {!sheet.students.length && <Note>{t('attendance.mark.noStudents')}</Note>}
       {!readOnly && sheet.students.length > 0 && (
         <div className="flex justify-end mb-2">
-          <Button size="sm" variant="ghost" icon={CheckCheck} onClick={() => setMarks(Object.fromEntries(sheet.students.map((s) => [s.id, s.onLeave ? 'LV' : 'P'])))}>{t('attendance.mark.allPresent')}</Button>
+          <Button size="sm" variant="secondary" icon={CheckCheck} onClick={() => setMarks(Object.fromEntries(sheet.students.map((s) => [s.id, s.onLeave ? 'LV' : 'P'])))}>{t('attendance.mark.allPresent')}</Button>
         </div>
       )}
-      <ul className="rounded-xl border border-border bg-surface divide-y divide-border">
+      {/* phones first: the name may wrap to two lines rather than be cut, the five marks stay 40px+ */}
+      <ul className="rounded-xl border border-border bg-surface divide-y divide-border overflow-hidden">
         {sheet.students.map((s) => (
-          <li key={s.id} className="flex flex-wrap items-center justify-between gap-2 px-3 py-2.5">
-            <div className="min-w-0 flex items-center gap-3">
-              <span className="w-8 text-end text-sm text-ink-faint font-mono-num">{s.rollNo ?? '–'}</span>
-              <PersonCell name={s.name} sub={s.onLeave ? t('attendance.mark.onLeave') : s.gateIn ? t('attendance.mark.gateIn', { time: s.gateIn }) : undefined} size={32} />
+          <li key={s.id} className={clsx('flex items-center justify-between gap-2 ps-2 pe-2 sm:ps-3 py-2 min-h-[56px] transition-colors', ROW_TINT[marks[s.id]])}>
+            <div className="min-w-0 flex flex-1 items-center gap-2 sm:gap-3">
+              <span className="w-6 sm:w-8 shrink-0 text-end text-xs sm:text-sm text-ink-faint font-mono-num">{s.rollNo ?? '–'}</span>
+              <Avatar name={s.name} size={32} soft className="hidden sm:inline-flex shrink-0" />
+              <span className="min-w-0">
+                <span className="block text-sm font-medium leading-snug text-ink break-words">{s.name}</span>
+                {(s.onLeave || s.gateIn) && <span className="block text-[11.5px] leading-snug text-ink-muted">{s.onLeave ? t('attendance.mark.onLeave') : t('attendance.mark.gateIn', { time: s.gateIn })}</span>}
+              </span>
             </div>
-            <div className="flex gap-1" role="radiogroup" aria-label={t('attendance.mark.markFor', { name: s.name })}>
+            <div className="flex shrink-0 gap-1" role="radiogroup" aria-label={t('attendance.mark.markFor', { name: s.name })}>
               {ATTENDANCE_MARKS.map((m) => (
-                <button key={m.value} type="button" role="radio" aria-checked={marks[s.id] === m.value} title={label(m)} disabled={readOnly}
+                <button key={m.value} type="button" role="radio" aria-checked={marks[s.id] === m.value} title={label(m)} aria-label={label(m)} disabled={readOnly}
                   onClick={() => setMarks((x) => ({ ...x, [s.id]: m.value }))}
-                  className={clsx('min-w-[40px] h-10 px-2 rounded-lg border text-sm font-semibold transition-colors disabled:opacity-60',
+                  className={clsx('w-10 sm:w-auto sm:min-w-[40px] h-11 sm:h-10 sm:px-2 rounded-lg border text-[13px] sm:text-sm font-semibold transition-colors disabled:opacity-60',
                     marks[s.id] === m.value ? MARK_STYLE[m.value] : 'bg-surface text-ink-muted border-border hover:bg-bg')}>
                   {t(`attendance.short.${m.value}`, m.short)}
                 </button>
@@ -114,8 +123,11 @@ function SheetView({ sectionId, date, period, onBack }) {
         ))}
       </ul>
       {!readOnly && sheet.students.length > 0 && (
-        <div className="sticky bottom-0 mt-4 flex items-center justify-end gap-3 bg-bg/90 backdrop-blur py-3">
-          {dirty && <span className="text-xs text-ink-muted">{t('attendance.mark.unsaved')}</span>}
+        <div className="sticky bottom-0 z-10 mt-4 -mx-1 flex items-center justify-end gap-3 rounded-xl bg-bg/90 px-1 py-3 backdrop-blur">
+          <span className="me-auto flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs font-semibold tabular-nums sm:hidden">
+            {ATTENDANCE_MARKS.filter((m) => counts[m.value]).map((m) => <span key={m.value} className={TONE[m.tone]?.text}>{t(`attendance.short.${m.value}`, m.short)} {counts[m.value]}</span>)}
+          </span>
+          {dirty && <span className="hidden sm:inline text-xs text-ink-muted">{t('attendance.mark.unsaved')}</span>}
           <Button icon={CalendarCheck} loading={save.isPending} disabled={sheet.taken && !dirty} onClick={() => save.mutate()}>{sheet.taken ? t('attendance.mark.saveChanges') : t('attendance.mark.save')}</Button>
         </div>
       )}
@@ -140,9 +152,15 @@ export default function Mark() {
   // which sheet to show for the open section: what was picked, else the first period not marked yet (or the day)
   const shownPeriod = period ?? (periodsOn && !dailyOn ? (openPeriods.find((p) => !p.taken)?.period ?? openPeriods[0]?.period ?? 1) : 0)
   const openAt = (sectionId, p = null) => { setOpen(sectionId); setPeriod(p) }
-  const mine = sections.filter((s) => s.mine)
-  const others = sections.filter((s) => !s.mine)
+  const [show, setShow] = useState('') // the board: '' every section, 'pending' or 'taken'
+  const listed = sections.filter((s) => !show || (show === 'taken' ? s.taken : !s.taken))
+  const mine = listed.filter((s) => s.mine)
+  const others = listed.filter((s) => !s.mine)
   const pending = sections.filter((s) => !s.taken).length
+  // an open sheet: its siblings stay in reach — the classes as the side list, a class's sections as chips
+  const classes = useMemo(() => groupByClass(sections), [sections])
+  const openClass = openSection ? classes.find((c) => c.key === classKeyOf(openSection)) : null
+  const openFirst = (c) => openAt((c.sections.find((s) => !s.taken) ?? c.sections[0]).id)
   const took = sections.filter((s) => s.taken && s.counts)
   const present = took.reduce((n, s) => n + (s.counts.P ?? 0) + (s.counts.L ?? 0) + (s.counts.HD ?? 0), 0)
   const absent = took.reduce((n, s) => n + (s.counts.A ?? 0), 0)
@@ -150,8 +168,8 @@ export default function Mark() {
 
   const tile = (s) => (
     <button key={s.id} type="button" onClick={() => openAt(s.id)}
-      className="text-start rounded-xl border border-border bg-surface p-4 shadow-card hover:border-brand-300 transition-colors">
-      <div className="flex items-center justify-between gap-2">
+      className="min-w-0 text-start rounded-xl border border-border bg-surface p-3 sm:p-4 shadow-card hover:border-brand-300 transition-colors">
+      <div className="flex flex-wrap items-center justify-between gap-1.5">
         <ColorChip label={s.short} seed={`class-${s.classOrder}`} mono />
         {s.taken ? <StatusPill tone="success">{t('attendance.board.taken')}</StatusPill> : <StatusPill tone="warning">{t('attendance.board.pending')}</StatusPill>}
       </div>
@@ -176,20 +194,35 @@ export default function Mark() {
   return (
     <PageContainer>
       <PageHeader icon={CalendarCheck} title={t('attendance.mark.title')} subtitle={day ? t('attendance.mark.subtitle', { date: fmt(day) }) : undefined} />
-      <div className="flex flex-wrap items-end gap-3 mb-5">
-        <FormField label={t('attendance.mark.date')}><Input type="date" value={day ?? ''} max={board?.today} onChange={(e) => { setDate(e.target.value); setOpen(null) }} /></FormField>
-        {board && periodsOn && <Note icon={Clock} className="flex-1">{t(`attendance.mark.modeNote.${board.mode}`, { rule: t(`attendance.mark.dayFrom.${board.dayFrom ?? 'FIRST'}`) })}</Note>}
+      <div className="flex flex-wrap items-center gap-3 mt-4 mb-4">
+        <Input type="date" className="w-44" value={day ?? ''} max={board?.today} onChange={(e) => { setDate(e.target.value); setOpen(null) }} aria-label={t('attendance.mark.date')} />
+        {board && periodsOn && !open && <Note icon={Clock} className="flex-1 min-w-[16rem]">{t(`attendance.mark.modeNote.${board.mode}`, { rule: t(`attendance.mark.dayFrom.${board.dayFrom ?? 'FIRST'}`) })}</Note>}
       </div>
       {open && day ? (
-        <>
+        <SideNavLayout nav={classes.length > 1 && (
+          <SideNav title={t('attendance.mark.classesNav')} value={openClass?.key} onChange={(key) => openFirst(classes.find((c) => c.key === key))} items={classes.map((c) => {
+            const done = c.sections.filter((x) => x.taken).length
+            return { id: c.key, label: c.name, hint: t('attendance.mark.navHint', { done, total: c.sections.length }), count: done === c.sections.length ? '✓' : `${done}/${c.sections.length}`, countTone: done < c.sections.length ? 'warning' : undefined, progress: { value: done, max: c.sections.length, kind: 'done' } }
+          })} />
+        )}>
+          {openClass && openClass.sections.length > 1 && (
+            <PillRow>
+              {openClass.sections.map((x) => (
+                <button key={x.id} type="button" aria-pressed={open === x.id} onClick={() => openAt(x.id)} className={pillClass(open === x.id)}>
+                  {x.taken ? <Check className="h-3.5 w-3.5 text-success-600" aria-label={t('attendance.board.taken')} /> : <span className="h-1.5 w-1.5 rounded-full bg-amber-400" aria-label={t('attendance.board.pending')} />}
+                  {x.short} <span className="tabular-nums opacity-70">· {x.strength}</span>
+                </button>
+              ))}
+            </PillRow>
+          )}
           {periodsOn && openSection && (
-            <Tabs className="mb-4" value={String(shownPeriod)} onChange={(v) => setPeriod(Number(v))} tabs={[
+            <Tabs value={String(shownPeriod)} onChange={(v) => setPeriod(Number(v))} tabs={[
               { value: '0', label: dailyOn ? t('attendance.mark.dayTab') : t('attendance.mark.dayTabWorked') },
               ...openPeriods.map((p) => ({ value: String(p.period), label: `${p.taken ? '✓ ' : ''}P${p.period}${p.subject ? ` · ${p.subject}` : ''}` })),
             ]} />
           )}
           <SheetView key={`${open}|${shownPeriod}`} sectionId={open} date={day} period={periodsOn ? shownPeriod : 0} onBack={() => { setOpen(null); setPeriod(null) }} />
-        </>
+        </SideNavLayout>
       ) : (
         <>
           {isLoading && <p className="text-sm text-ink-faint">{t('attendance.loading')}</p>}
@@ -203,6 +236,15 @@ export default function Mark() {
             ]} />
           )}
           {board && sections.length > 0 && <p className="text-sm text-ink-muted mb-3">{pending ? t('attendance.board.pendingCount', { count: pending }) : t('attendance.board.allTaken')}</p>}
+          {board && sections.length > 4 && pending > 0 && pending < sections.length && (
+            <PillRow className="mb-4">
+              {[['', sections.length], ['pending', pending], ['taken', sections.length - pending]].map(([k, n]) => (
+                <button key={k || 'all'} type="button" aria-pressed={show === k} onClick={() => setShow(k)} className={pillClass(show === k)}>
+                  {t(`attendance.board.show.${k || 'all'}`)} <span className="tabular-nums opacity-70">· {n}</span>
+                </button>
+              ))}
+            </PillRow>
+          )}
           {board?.myPeriods?.length > 0 && (
             <section className="mb-6">
               <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-faint mb-2">{t('attendance.board.myPeriods')}</h2>
@@ -227,13 +269,13 @@ export default function Mark() {
           {mine.length > 0 && (
             <section className="mb-6">
               <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-faint mb-2">{t('attendance.board.mine')}</h2>
-              <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-4">{mine.map(tile)}</div>
+              <div className="grid grid-cols-2 gap-2 sm:gap-3 sm:grid-cols-3 lg:grid-cols-4">{mine.map(tile)}</div>
             </section>
           )}
           {others.length > 0 && (
             <section>
               {mine.length > 0 && <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-faint mb-2">{t('attendance.board.others')}</h2>}
-              <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-4">{others.map(tile)}</div>
+              <div className="grid grid-cols-2 gap-2 sm:gap-3 sm:grid-cols-3 lg:grid-cols-4">{others.map(tile)}</div>
             </section>
           )}
         </>

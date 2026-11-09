@@ -195,7 +195,12 @@
         "overdueSub_one": "{{count}} invoice past due",
         "overdueSub_other": "{{count}} invoices past due",
         "paid": "paid"
-      }
+      },
+      "classes": "Classes",
+      "allClasses": "All classes",
+      "sectionCount_one": "{{count}} section",
+      "sectionCount_other": "{{count}} sections",
+      "sectionN": "Section {{name}}"
     },
     "receipts": {
       "tab": "Receipts",
@@ -250,7 +255,13 @@
       "emptyHint": "Every invoice in this view is paid.",
       "overdueStudents_one": "{{count}} with overdue fees",
       "overdueStudents_other": "{{count}} with overdue fees",
-      "overdueShare": "{{pct}}% of all dues"
+      "overdueShare": "{{pct}}% of all dues",
+      "classes": "Classes",
+      "allClasses": "All classes",
+      "classDue": "{{amount}} due",
+      "nothingDue": "Nothing due",
+      "allSections": "All of {{name}}",
+      "sectionN": "Section {{name}}"
     },
     "concessions": {
       "title": "Concessions",
@@ -401,7 +412,8 @@
         "refunded": "Refunded on this receipt: {{amount}}",
         "cancelledNote": "Cancelled: {{reason}}",
         "collectedBy": "Received by {{name}}",
-        "signature": "Authorised signatory"
+        "signature": "Authorised signatory",
+        "scanToCheck": "Scan to check this receipt"
       }
     },
     "online": {

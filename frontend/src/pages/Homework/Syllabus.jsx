@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { CalendarRange, CheckCircle2, ChevronLeft, CircleAlert, CircleDashed, ClipboardPaste, ListChecks, Pencil, Plus, Save, X } from 'lucide-react'
 import { parseSyllabusText, spreadUnits, topicMonth, yearPlan } from '@schoolgiant/shared'
-import { ColorChip, DataTable, FormField, Input, Modal, Note, PageContainer, PageHeader, Panel, ProgressBar, SegmentedControl, StatusPill, Tabs, Textarea, useConfirm } from '../../components/system'
+import { ColorChip, DataTable, Input, Modal, Note, PageContainer, PageHeader, Panel, PillRow, ProgressBar, SegmentedControl, SideNav, SideNavLayout, StatusPill, Textarea, pillClass, useConfirm } from '../../components/system'
 import { MonthSelect, useMonthLabel } from '../../components/homework/HomeworkKit'
 import Button from '../../components/ui/Button'
 import { fetchSyllabus, fetchSyllabusOverview, markSyllabusTopics, saveSyllabus } from '../../api/homework'
@@ -63,13 +63,13 @@ function Editor({ syllabus, onDone }) {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap justify-between gap-2">
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button size="sm" variant="secondary" icon={Plus} onClick={() => setUnits((u) => [...u, { name: '', topics: [{ name: '' }] }])}>{t('homework.syllabus.addUnit')}</Button>
           <Button size="sm" variant="secondary" icon={ClipboardPaste} onClick={() => setPasting(true)}>{t('homework.syllabus.paste.button')}</Button>
           <Button size="sm" variant="secondary" icon={CalendarRange} disabled={!units.length} title={t('homework.syllabus.plan.spreadHint')}
             onClick={async () => { if (!units.some((u) => u.fromMonth) || await confirm({ title: t('homework.syllabus.plan.spreadConfirm') })) setUnits((u) => spreadUnits(u, syllabus.months)) }}>{t('homework.syllabus.plan.spread')}</Button>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 ms-auto">
           <Button variant="ghost" onClick={onDone}>{t('actions.cancel')}</Button>
           <Button icon={Save} loading={save.isPending} onClick={() => save.mutate()}>{t('homework.syllabus.save')}</Button>
         </div>
@@ -79,23 +79,25 @@ function Editor({ syllabus, onDone }) {
       {!units.length && <Note>{t('homework.syllabus.emptyEditor')}</Note>}
       {units.map((u, i) => (
         <Panel key={u.id ?? `new-${i}`}>
+          {/* phones: number · name · remove on one line, the month range under it */}
           <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 mb-3">
-            <span className="text-xs font-semibold text-ink-faint w-14 shrink-0">{t('homework.syllabus.unitN', { n: i + 1 })}</span>
-            <Input className="min-w-0 flex-1" value={u.name} onChange={(e) => setUnit(i, e.target.value)} placeholder={t('homework.syllabus.unitName')} error={!!errors[`units.${i}.name`]} />
-            <div className="flex items-center gap-1.5 w-full sm:w-auto ps-16 sm:ps-0">
-              <MonthSelect className="sm:w-32" months={syllabus.months} value={u.fromMonth} onChange={(v) => setUnitMonth(i, 'fromMonth', v)} placeholder={t('homework.syllabus.plan.from')} aria-label={t('homework.syllabus.plan.from')} error={!!errors[`units.${i}.fromMonth`]} />
+            <span className="text-xs font-semibold text-ink-faint w-12 sm:w-14 shrink-0">{t('homework.syllabus.unitN', { n: i + 1 })}</span>
+            <Input className="min-w-0 flex-1" value={u.name} onChange={(e) => setUnit(i, e.target.value)} placeholder={t('homework.syllabus.unitName')} aria-label={t('homework.syllabus.unitName')} error={!!errors[`units.${i}.name`]} />
+            <Button size="sm" variant="ghost" icon={X} className="sm:order-last" aria-label={t('homework.syllabus.removeUnit')} title={t('homework.syllabus.removeUnit')} onClick={() => setUnits((x) => x.filter((_, j) => j !== i))} />
+            <div className="flex items-center gap-1.5 w-full sm:w-auto">
+              <div className="min-w-0 flex-1 sm:flex-none sm:w-32"><MonthSelect className="w-full" months={syllabus.months} value={u.fromMonth} onChange={(v) => setUnitMonth(i, 'fromMonth', v)} placeholder={t('homework.syllabus.plan.from')} aria-label={t('homework.syllabus.plan.from')} error={!!errors[`units.${i}.fromMonth`]} /></div>
               <span className="text-ink-faint text-xs">–</span>
-              <MonthSelect className="sm:w-32" months={syllabus.months} value={u.toMonth} onChange={(v) => setUnitMonth(i, 'toMonth', v)} placeholder={t('homework.syllabus.plan.to')} aria-label={t('homework.syllabus.plan.to')} error={!!errors[`units.${i}.toMonth`]} />
+              <div className="min-w-0 flex-1 sm:flex-none sm:w-32"><MonthSelect className="w-full" months={syllabus.months} value={u.toMonth} onChange={(v) => setUnitMonth(i, 'toMonth', v)} placeholder={t('homework.syllabus.plan.to')} aria-label={t('homework.syllabus.plan.to')} error={!!errors[`units.${i}.toMonth`]} /></div>
             </div>
-            <Button size="sm" variant="ghost" icon={X} aria-label={t('homework.syllabus.removeUnit')} onClick={() => setUnits((x) => x.filter((_, j) => j !== i))} />
           </div>
-          <div className="space-y-2 ps-16">
+          <div className="space-y-2 sm:ps-16">
             {u.topics.map((tp, k) => (
-              <div key={tp.id ?? `n-${k}`} className="flex flex-wrap sm:flex-nowrap items-center gap-2">
-                <Input className="min-w-0 flex-1" value={tp.name} onChange={(e) => setTopic(i, k, e.target.value)} placeholder={t('homework.syllabus.topicName')} />
-                <Input className="w-20" type="number" min="0" max="200" value={tp.periods ?? ''} onChange={(e) => setTopic(i, k, e.target.value ? Number(e.target.value) : null, 'periods')} placeholder={t('homework.syllabus.plan.periods')} aria-label={t('homework.syllabus.plan.periods')} title={t('homework.syllabus.plan.periodsHint')} />
-                <MonthSelect className="sm:w-36" months={syllabus.months} value={tp.month} onChange={(v) => setTopic(i, k, v, 'month')} placeholder={t('homework.syllabus.plan.unitMonth')} aria-label={t('homework.syllabus.plan.topicMonth')} error={!!errors[`units.${i}.topics.${k}.month`]} />
-                <Button size="sm" variant="ghost" icon={X} aria-label={t('homework.syllabus.removeTopic')} onClick={() => dropTopic(i, k)} />
+              // phones: topic + remove on one line, periods and month under it; a row from `sm` up
+              <div key={tp.id ?? `n-${k}`} className="grid grid-cols-[5rem_minmax(0,1fr)_auto] items-center gap-2 rounded-lg border border-border p-2 sm:flex sm:rounded-none sm:border-0 sm:p-0">
+                <Input className="col-span-2 min-w-0 sm:flex-1" value={tp.name} onChange={(e) => setTopic(i, k, e.target.value)} placeholder={t('homework.syllabus.topicName')} aria-label={t('homework.syllabus.topicName')} />
+                <Input className="row-start-2 w-full sm:w-20" type="number" min="0" max="200" value={tp.periods ?? ''} onChange={(e) => setTopic(i, k, e.target.value ? Number(e.target.value) : null, 'periods')} placeholder={t('homework.syllabus.plan.periods')} aria-label={t('homework.syllabus.plan.periods')} title={t('homework.syllabus.plan.periodsHint')} />
+                <div className="row-start-2 col-start-2 min-w-0 sm:w-36 sm:shrink-0"><MonthSelect className="w-full" months={syllabus.months} value={tp.month} onChange={(v) => setTopic(i, k, v, 'month')} placeholder={t('homework.syllabus.plan.unitMonth')} aria-label={t('homework.syllabus.plan.topicMonth')} error={!!errors[`units.${i}.topics.${k}.month`]} /></div>
+                <Button size="sm" variant="ghost" icon={X} className="row-start-1 col-start-3" aria-label={t('homework.syllabus.removeTopic')} title={t('homework.syllabus.removeTopic')} onClick={() => dropTopic(i, k)} />
               </div>
             ))}
             <Button size="sm" variant="ghost" icon={Plus} onClick={() => addTopic(i)}>{t('homework.syllabus.addTopic')}</Button>
@@ -179,27 +181,35 @@ function Detail({ classId, subjectId, initialSection, onBack }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2 min-w-0">
-          <Button size="sm" variant="ghost" icon={ChevronLeft} onClick={onBack} aria-label={t('homework.syllabus.back')} />
+      <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-2">
+        <div className="flex items-start gap-2 min-w-0 flex-1">
+          <Button size="sm" variant="ghost" icon={ChevronLeft} className="shrink-0" onClick={onBack} aria-label={t('homework.syllabus.back')} title={t('homework.syllabus.back')} />
           <div className="min-w-0">
-            <p className="font-semibold text-ink truncate">{syl.className} · {syl.subject}</p>
+            <p className="font-semibold text-ink break-words">{syl.className} · {syl.subject}</p>
             <p className="text-xs text-ink-muted">{t('homework.syllabus.counts', { units: syl.units.length, topics: syl.units.reduce((n, u) => n + u.topics.length, 0) })}{syl.updatedBy ? ` · ${t('homework.syllabus.updatedBy', { name: syl.updatedBy })}` : ''}</p>
           </div>
         </div>
-        {!editing && canEdit && <Button variant="secondary" icon={Pencil} onClick={() => setEditing(true)}>{syl.units.length ? t('homework.syllabus.edit') : t('homework.syllabus.create')}</Button>}
+        {!editing && canEdit && <Button size="sm" variant="secondary" icon={Pencil} className="ms-12 sm:ms-0" onClick={() => setEditing(true)}>{syl.units.length ? t('homework.syllabus.edit') : t('homework.syllabus.create')}</Button>}
       </div>
       {editing ? <Editor syllabus={syl} onDone={() => setEditing(false)} /> : (
         <>
           {!syl.units.length && <Note>{canEdit ? t('homework.syllabus.noneYetEdit') : t('homework.syllabus.noneYet')}</Note>}
-          {syl.sections.length > 1 && <Tabs value={sectionId} onChange={setSectionId} tabs={syl.sections.map((s) => ({ value: s.id, label: `${s.short} · ${s.pct}%` }))} />}
+          {syl.sections.length > 1 && (
+            <PillRow>
+              {syl.sections.map((s) => (
+                <button key={s.id} type="button" aria-pressed={sectionId === s.id} onClick={() => setSectionId(s.id)} className={pillClass(sectionId === s.id)}>
+                  {s.short} <span className={`tabular-nums ${s.behind ? 'text-danger-600' : 'opacity-70'}`}>· {s.pct}%</span>
+                </button>
+              ))}
+            </PillRow>
+          )}
           {sec && syl.units.length > 0 && <>
-            <div className="flex flex-wrap items-center gap-3">
-              <span className="text-sm text-ink-muted">{t('homework.syllabus.sectionProgress', { section: sec.label, done: sec.done, topics: sec.topics })}</span>
-              <div className="flex-1 min-w-[8rem] max-w-xs"><ProgressBar value={sec.pct} /></div>
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+              <span className="text-sm text-ink-muted w-full sm:w-auto">{t('homework.syllabus.sectionProgress', { section: sec.label, done: sec.done, topics: sec.topics })}</span>
+              <div className="flex-1 min-w-[8rem] sm:max-w-xs"><ProgressBar value={sec.pct} /></div>
               {sec.behind > 0 && <StatusPill tone="danger">{t('homework.syllabus.plan.behindN', { count: sec.behind })}</StatusPill>}
               {sec.due > 0 && <StatusPill tone="info">{t('homework.syllabus.plan.dueN', { count: sec.due })}</StatusPill>}
-              <SegmentedControl className="ms-auto" value={view} onChange={setView} options={[
+              <SegmentedControl className="w-full sm:w-auto sm:ms-auto" value={view} onChange={setView} options={[
                 { value: 'TOPICS', label: t('homework.syllabus.plan.viewTopics'), icon: ListChecks },
                 { value: 'PLAN', label: t('homework.syllabus.plan.viewPlan'), icon: CalendarRange },
               ]} />
@@ -212,11 +222,14 @@ function Detail({ classId, subjectId, initialSection, onBack }) {
                     {u.topics.map((tp) => {
                       const d = sec.ticks[tp.id]
                       return (
-                        <label key={tp.id} className="flex items-center gap-3 py-2 text-sm cursor-pointer">
-                          <input type="checkbox" checked={!!d} disabled={!canTick || tick.isPending} onChange={(e) => tick.mutate({ topicId: tp.id, done: e.target.checked })} className="rounded border-border text-brand-500 focus:ring-brand-500" />
-                          <span className={`flex-1 ${d ? 'text-ink-muted line-through' : 'text-ink'}`}>{tp.name}</span>
-                          {!d && tp.month && <span className={`text-xs ${tp.month < syl.month ? 'text-danger-600' : 'text-ink-faint'}`}>{monthLabel(tp.month)}</span>}
-                          {d && <span className="text-xs text-ink-faint">{date(d.date)}{d.by ? ` · ${d.by}` : ''}{d.fromPlan ? ` · ${t('homework.syllabus.fromPlan')}` : ''}</span>}
+                        <label key={tp.id} className="flex items-start sm:items-center gap-3 py-2.5 sm:py-2 text-sm cursor-pointer">
+                          <input type="checkbox" checked={!!d} disabled={!canTick || tick.isPending} onChange={(e) => tick.mutate({ topicId: tp.id, done: e.target.checked })} className="mt-0.5 sm:mt-0 h-5 w-5 sm:h-4 sm:w-4 shrink-0 rounded border-border text-brand-500 focus:ring-brand-500" />
+                          {/* phones: when / who sits under the topic instead of squeezing it */}
+                          <span className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center sm:gap-3">
+                            <span className={`flex-1 ${d ? 'text-ink-muted line-through' : 'text-ink'}`}>{tp.name}</span>
+                            {!d && tp.month && <span className={`text-xs ${tp.month < syl.month ? 'text-danger-600' : 'text-ink-faint'}`}>{monthLabel(tp.month)}</span>}
+                            {d && <span className="text-xs text-ink-faint">{date(d.date)}{d.by ? ` · ${d.by}` : ''}{d.fromPlan ? ` · ${t('homework.syllabus.fromPlan')}` : ''}</span>}
+                          </span>
                         </label>
                       )
                     })}
@@ -233,33 +246,101 @@ function Detail({ classId, subjectId, initialSection, onBack }) {
   )
 }
 
+/** One row's progress over all its sections: topics taught / topics to teach. */
+const overall = (r) => {
+  const done = r.sections.reduce((n, s) => n + s.done, 0)
+  const total = r.sections.reduce((n, s) => n + s.topics, 0)
+  return { done, total, pct: total ? Math.round((done / total) * 100) : 0, behind: r.sections.reduce((n, s) => n + (s.behind || 0), 0) }
+}
+
 export default function Syllabus() {
   const { t } = useTranslation('homework')
   const [params, setParams] = useSearchParams()
   const classId = params.get('class')
   const subjectId = params.get('subject')
-  const { data, isLoading, error, refetch } = useQuery({ queryKey: ['syllabus-overview'], queryFn: fetchSyllabusOverview, enabled: !classId })
+  const { data, isLoading, error, refetch } = useQuery({ queryKey: ['syllabus-overview'], queryFn: fetchSyllabusOverview })
+  const rows = data?.rows ?? []
+  // the classes down the side: each with how far all its subjects have got
+  const classes = useMemo(() => {
+    const m = new Map()
+    for (const r of rows) {
+      if (!m.has(r.classId)) m.set(r.classId, { id: r.classId, name: r.className, subjects: 0, done: 0, total: 0, behind: 0 })
+      const c = m.get(r.classId); const o = overall(r)
+      c.subjects += 1; c.done += o.done; c.total += o.total; c.behind += o.behind
+    }
+    return [...m.values()]
+  }, [rows])
+  const pctOf = (done, total) => (total ? Math.round((done / total) * 100) : 0)
+  const shown = classId ? rows.filter((r) => r.classId === classId) : rows
+  const subjectsHere = rows.filter((r) => r.classId === classId)
+  const classNav = classes.length > 1 && (
+    <SideNav title={t('homework.syllabus.classesNav')} value={classId ?? ''} onChange={(id) => setParams(id ? { class: id } : {})} items={[
+      { id: '', label: t('homework.syllabus.allClasses'), icon: ListChecks, count: rows.length },
+      ...classes.map((c) => ({
+        id: c.id, label: c.name,
+        hint: c.behind ? t('homework.syllabus.plan.behindN', { count: c.behind }) : t('homework.syllabus.subjectsN', { count: c.subjects }),
+        count: c.total ? `${pctOf(c.done, c.total)}%` : undefined, countTone: c.behind ? 'warning' : undefined,
+        progress: c.total ? { value: c.done, max: c.total, kind: 'done' } : undefined,
+      })),
+    ]} />
+  )
+  const subjectNav = subjectsHere.length > 1 && (
+    <SideNav title={t('homework.syllabus.subjectsNav', { cls: subjectsHere[0].className })} value={subjectId} onChange={(id) => setParams({ class: classId, subject: id })} items={subjectsHere.map((r) => {
+      const o = overall(r)
+      return {
+        id: r.subjectId, label: r.subject,
+        hint: r.topics ? (o.behind ? t('homework.syllabus.plan.behindN', { count: o.behind }) : t('homework.syllabus.counts', { units: r.units, topics: r.topics })) : t('homework.syllabus.notSet'),
+        count: r.topics ? `${o.pct}%` : undefined, countTone: o.behind ? 'warning' : undefined,
+        progress: o.total ? { value: o.done, max: o.total, kind: 'done' } : undefined,
+      }
+    })} />
+  )
   return (
     <PageContainer>
       <PageHeader icon={ListChecks} title={t('homework.syllabus.title')} subtitle={t('homework.syllabus.subtitle')} />
-      {classId && subjectId ? <Detail classId={classId} subjectId={subjectId} initialSection={params.get('section')} onBack={() => setParams({})} /> : (
-        <DataTable
-          rows={data?.rows ?? []}
-          rowKey="key"
-          loading={isLoading}
-          error={error}
-          onRetry={refetch}
-          columns={[
-            { key: 'className', header: t('homework.syllabus.class'), mobilePrimary: true, render: (v, r) => <div><div className="flex flex-wrap items-center gap-1"><ColorChip label={v} seed={r.classId} /><ColorChip label={r.subject} seed={r.subjectId} dot /></div><p className="text-xs text-ink-faint mt-1">{r.topics ? t('homework.syllabus.counts', { units: r.units, topics: r.topics }) : t('homework.syllabus.notSet')}{r.topics > 0 && !r.planned ? ` · ${t('homework.syllabus.plan.notPlanned')}` : ''}</p></div> },
-            { key: 'sections', header: t('homework.syllabus.progress'), clamp: false, render: (v, r) => (r.topics ? (
-              <div className="flex flex-wrap gap-3">
-                {v.map((s) => <div key={s.id} className="w-28"><p className="text-xs text-ink-muted mb-0.5">{s.short} · {s.done}/{s.topics}</p><ProgressBar value={s.pct} showValue={false} />{s.behind > 0 && <p className="text-[11px] text-danger-600 mt-0.5">{t('homework.syllabus.plan.behindN', { count: s.behind })}</p>}</div>)}
-              </div>
-            ) : <span className="text-xs text-ink-faint">—</span>) },
-          ]}
-          onRowClick={(r) => setParams({ class: r.classId, subject: r.subjectId })}
-          emptyIcon={ListChecks} emptyTitle={t('homework.syllabus.empty')} emptyHint={t('homework.syllabus.emptyHint')}
-        />
+      {classId && subjectId ? (
+        <SideNavLayout nav={subjectNav}>
+          <Detail key={`${classId}:${subjectId}`} classId={classId} subjectId={subjectId} initialSection={params.get('section')} onBack={() => setParams({ class: classId })} />
+        </SideNavLayout>
+      ) : (
+        <SideNavLayout nav={classNav}>
+          <DataTable
+            rows={shown}
+            rowKey="key"
+            loading={isLoading}
+            error={error}
+            onRetry={refetch}
+            columns={[
+              { key: 'className', header: t('homework.syllabus.class'), render: (v, r) => {
+                const o = overall(r)
+                return (
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-1"><ColorChip label={v} seed={r.classId} /><ColorChip label={r.subject} seed={r.subjectId} dot /></div>
+                    <p className="text-xs font-normal text-ink-faint mt-1">{r.topics ? t('homework.syllabus.counts', { units: r.units, topics: r.topics }) : t('homework.syllabus.notSet')}{r.topics > 0 && !r.planned ? ` · ${t('homework.syllabus.plan.notPlanned')}` : ''}</p>
+                    {/* phones: every section's progress in one line under the subject (the column is hidden there) */}
+                    {r.topics > 0 && (
+                      <div className="md:hidden mt-1.5 flex items-center gap-2">
+                        <div className="w-24 shrink-0"><ProgressBar value={o.pct} showValue={false} /></div>
+                        <p className="min-w-0 truncate text-xs font-normal text-ink-muted">
+                          {r.sections.map((s) => `${s.short} ${s.done}/${s.topics}`).join(' · ')}
+                          {o.behind > 0 && <span className="text-danger-600"> · {t('homework.syllabus.plan.behindN', { count: o.behind })}</span>}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )
+              } },
+              { key: 'sections', header: t('homework.syllabus.progress'), clamp: false, mobileHidden: true, render: (v, r) => (r.topics ? (
+                <div className="flex flex-wrap gap-3">
+                  {v.map((s) => <div key={s.id} className="w-28"><p className="text-xs text-ink-muted mb-0.5">{s.short} · {s.done}/{s.topics}</p><ProgressBar value={s.pct} showValue={false} />{s.behind > 0 && <p className="text-[11px] text-danger-600 mt-0.5">{t('homework.syllabus.plan.behindN', { count: s.behind })}</p>}</div>)}
+                </div>
+              ) : <span className="text-xs text-ink-faint">—</span>) },
+              { key: 'pct', header: t('homework.syllabus.overall'), align: 'right', mobileTrail: true, render: (_, r) => (r.topics ? <span className="text-sm font-semibold tabular-nums text-ink">{overall(r).pct}%</span> : <span className="text-ink-faint">—</span>) },
+            ]}
+            onRowClick={(r) => setParams({ class: r.classId, subject: r.subjectId })}
+            emptyIcon={ListChecks} emptyTitle={t('homework.syllabus.empty')} emptyHint={t('homework.syllabus.emptyHint')}
+          />
+        </SideNavLayout>
       )}
     </PageContainer>
   )

@@ -28,10 +28,11 @@ export default function PageHeader({ icon: Icon, title, subtitle, actions }) {
         )}
         <div className="min-w-0">
           <h1 className="font-display text-xl sm:text-2xl font-semibold text-ink tracking-tight truncate">{title}</h1>
-          {subtitle && <p className="text-[13px] sm:text-sm text-ink-muted mt-0.5 sm:mt-1 max-w-2xl">{subtitle}</p>}
+          {subtitle && <p className="text-[13px] sm:text-sm text-ink-muted mt-0.5 sm:mt-1 max-w-2xl max-sm:line-clamp-2">{subtitle}</p>}
         </div>
       </div>
-      {actions && <div className="flex items-center gap-3 shrink-0">{actions}</div>}
+      {/* phones: the buttons wrap inside the screen instead of running off it */}
+      {actions && <div className="flex flex-wrap items-center gap-2 sm:gap-3 max-w-full sm:shrink-0">{actions}</div>}
     </div>
   )
 }

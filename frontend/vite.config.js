@@ -39,6 +39,7 @@ const pwa = VitePWA({
     // the API, live updates, public links and printed documents are never answered from the app shell
     navigateFallbackDenylist: [/^\/api\//, /^\/socket\.io/, /^\/app\/[^/]+\/manifest/],
     cleanupOutdatedCaches: true,
+    importScripts: ['/push-sw.js'], // phone / desktop notifications (public/push-sw.js)
     runtimeCaching: [
       {
         urlPattern: ({ url }) => url.origin === 'https://fonts.googleapis.com' || url.origin === 'https://fonts.gstatic.com',

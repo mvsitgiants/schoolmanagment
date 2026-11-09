@@ -7,6 +7,7 @@ import {
   inboxFor, listMessages, listRules, markRead, maskConfig, messagingConfig, retryMessage, saveChannelConfig, saveRule, sendTestMessage,
 } from '../../services/notify.js'
 import { subscriptionSummary } from '../../services/subscription.js'
+import { pushPublicKey, removePushSubscription, savePushSubscription } from '../../services/push.js'
 
 const router = Router()
 const CHANNELS = MESSAGE_CHANNELS.map((c) => c.value)
@@ -30,6 +31,21 @@ router.post('/notifications/read', async (req, res) => {
   const { ids } = z.object({ ids: z.array(z.string()).max(200).optional() }).parse(req.body ?? {})
   await markRead(req.auth.userId, ids)
   res.json({ data: { ok: true } })
+})
+
+// ───────────────────────────────────────────────────────── phone / desktop notifications (web push)
+
+const pushSub = z.object({ endpoint: z.string().url().max(1000), keys: z.object({ p256dh: z.string().max(200), auth: z.string().max(100) }) })
+router.get('/notifications/push/key', async (req, res) => {
+  res.json({ data: { publicKey: await pushPublicKey() } })
+})
+router.post('/notifications/push', async (req, res) => {
+  const { subscription } = z.object({ subscription: pushSub }).parse(req.body)
+  res.json({ data: await savePushSubscription(subscription, { kind: 'STAFF', userId: req.auth.userId }, req.get('user-agent')) })
+})
+router.post('/notifications/push/off', async (req, res) => {
+  const { endpoint } = z.object({ endpoint: z.string().max(1000) }).parse(req.body)
+  res.json({ data: await removePushSubscription(endpoint) })
 })
 
 // ───────────────────────────────────────────────────────── delivery setup

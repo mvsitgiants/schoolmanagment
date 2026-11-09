@@ -88,7 +88,8 @@
       "tabOutline": "Material",
       "tabProgress": "Student progress",
       "unitsShown_one": "{{count}} unit · items shown",
-      "unitsShown_other": "{{count}} units · items shown"
+      "unitsShown_other": "{{count}} units · items shown",
+      "nav": "Courses"
     },
     "outline": {
       "unit": "Unit",
@@ -106,7 +107,9 @@
       "addUnit": "Add unit",
       "newUnit": "Unit {{n}}",
       "save": "Save material",
-      "unsaved": "Not saved yet"
+      "unsaved": "Not saved yet",
+      "hide": "Hide",
+      "show": "Show"
     },
     "progress": {
       "student": "Student",
@@ -154,7 +157,9 @@
       "recording": "Recording link",
       "recordingHint": "Students see it under Recordings in the app.",
       "joinedOf": "{{joined}} of {{total}} joined",
-      "joinedAt": "Joined at"
+      "joinedAt": "Joined at",
+      "joinedN_one": "{{count}} joined",
+      "joinedN_other": "{{count}} joined"
     },
     "qb": {
       "title": "Question bank",
@@ -197,7 +202,9 @@
       "deleteConfirm": "Delete this question?",
       "usedHint": "Tests used it, so it is switched off instead (the tests keep their copy).",
       "deleted": "Question deleted.",
-      "switchedOff": "Used in tests — switched off instead."
+      "switchedOff": "Used in tests — switched off instead.",
+      "marksN_one": "{{count}} mark",
+      "marksN_other": "{{count}} marks"
     }
   }
 }

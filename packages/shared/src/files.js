@@ -40,6 +40,8 @@ export const RECORD_TYPES = {
   library_title: 'Library e-book',
   school_event: 'Event (circular, form)',
   gallery_album: 'Photo album',
+  accreditation_evidence: 'Accreditation evidence',
+  placement_offer: 'Placement offer',
   expense: 'Expense',
   lms_item: 'Study material',
 }

@@ -1,0 +1,589 @@
+{
+  "accreditation": {
+    "edit": "Edit",
+    "delete": "Delete",
+    "year": "Assessment year",
+    "allYears": "Every year",
+    "frameworks": {
+      "NAAC": "NAAC",
+      "NIRF": "NIRF",
+      "AISHE": "AISHE"
+    },
+    "frameworkNames": {
+      "NAAC": "NAAC self-study report",
+      "NIRF": "NIRF data capture",
+      "AISHE": "AISHE data capture"
+    },
+    "status": {
+      "NOT_STARTED": "Not started",
+      "DRAFT": "Draft",
+      "COMPLETE": "Complete"
+    },
+    "dvv": {
+      "PENDING": "To verify",
+      "VERIFIED": "Verified",
+      "CLARIFY": "Needs clarification"
+    },
+    "kinds": {
+      "QN": "Quantitative",
+      "QL": "Qualitative"
+    },
+    "sources": {
+      "programs": "Programs",
+      "students": "Students",
+      "coe": "Exam results",
+      "hrms": "Staff",
+      "research": "Research",
+      "placements": "Placements",
+      "library": "Library",
+      "manual": "Entered"
+    },
+    "units": {
+      "count": "{{value}}",
+      "pct": "{{value}} %",
+      "ratio": "{{value}} : 1",
+      "lakh": "₹ {{value}} lakh",
+      "years": "{{value}} years",
+      "perTeacher": "{{value}} per teacher",
+      "days": "{{value}} days",
+      "perDay": "{{value}} a day"
+    },
+    "unitHints": {
+      "count": "A number",
+      "pct": "A percentage, e.g. 72.5",
+      "ratio": "Students per one, e.g. 18",
+      "lakh": "₹ lakh, e.g. 12.5",
+      "years": "Years",
+      "perTeacher": "Per teacher, e.g. 0.6",
+      "days": "Days",
+      "perDay": "A day"
+    },
+    "detail": {
+      "programs": "Programmes",
+      "programsCbcs": "With electives (CBCS)",
+      "courses": "Courses",
+      "projectCourses": "Project courses",
+      "admitted": "Admitted this year",
+      "intake": "Sanctioned intake",
+      "reservedAdmitted": "From reserved categories",
+      "students": "Students",
+      "phdScholars": "Ph.D. scholars",
+      "fullTimeTeachers": "Full-time teachers",
+      "teachers": "All teachers",
+      "mentees": "Students with a mentor",
+      "mentors": "Mentors",
+      "teachersPhd": "With a Ph.D.",
+      "passed": "Passed",
+      "appeared": "Appeared (final year)",
+      "revaluations": "Revaluation requests",
+      "papers": "Papers",
+      "womenStudents": "Women students",
+      "projects": "Projects sanctioned",
+      "receivedLakh": "Received (₹ lakh)",
+      "guides": "Research guides",
+      "departmentsFunded": "Departments with projects",
+      "departments": "Academic departments",
+      "registered": "Registered this year",
+      "booksChapters": "Books, chapters, conference papers",
+      "indexed": "Scopus / WoS indexed",
+      "copies": "Copies bought",
+      "loans": "Loans",
+      "days": "Days the desk issued",
+      "placed": "Students placed",
+      "outgoing": "Outgoing students"
+    },
+    "narrative": {
+      "bold": "Bold",
+      "heading": "Heading",
+      "bullet": "Bullet list",
+      "preview": "Preview",
+      "write": "Write",
+      "text": "text",
+      "placeholder": "Describe what the institution does, with numbers and examples. Use “## ” for a heading and “- ” for a bullet.",
+      "words_one": "{{count}} / {{max}} word",
+      "words_other": "{{count}} / {{max}} words"
+    },
+    "reports": {
+      "pageTitle": "Accreditation reports",
+      "pageSubtitle": "NAAC, NIRF and AISHE returns metric by metric — values computed from SchoolGiant where it can, narratives for the qualitative metrics.",
+      "export": "Export CSV",
+      "print": "Print summary",
+      "criteria": "Criteria",
+      "weight": "Weightage {{weight}}",
+      "completion": "Complete",
+      "valuesReady": "Values ready",
+      "computedN_one": "{{count}} computed from records",
+      "computedN_other": "{{count}} computed from records",
+      "narratives": "Narratives written",
+      "evidence": "Evidence items",
+      "criterionDone": "{{done}} of {{total}} complete · {{draft}} in draft",
+      "all": "All",
+      "pending": "Not complete",
+      "auto": "Computed",
+      "entered": "Entered",
+      "toEnter": "To enter",
+      "noNarrative": "Not written yet.",
+      "noneHere": "No metrics match",
+      "noRecordsHint": "Nothing could be computed for this year yet. Values come from Programs, Exam controller results, Staff & HR, Research, Library and Placements; enter the rest by hand with a note.",
+      "rangeNote": "The year runs {{from}} – {{to}} (the academic year of that name in Academic setup, else June to May). Publications count by the calendar year it starts in.",
+      "status": "Status",
+      "computed": "Computed from records",
+      "noData": "No data for this year",
+      "notComputed": "Not computed — enter it",
+      "manualValue": "Value to report",
+      "manualHint": "Enter the value from your records.",
+      "manualHintAuto": "Leave empty to report the computed value; enter one to override it.",
+      "clearManual": "Use the computed value",
+      "reported": "Reported",
+      "note": "Note",
+      "noteHint": "Where the value comes from, what it counts — the peer team reads this.",
+      "evidenceN_one": "{{count}} evidence item · {{files}} files",
+      "evidenceN_other": "{{count}} evidence items · {{files}} files",
+      "checklistN": "DVV documents {{done}}/{{total}}",
+      "openEvidence": "Open the evidence",
+      "save": "Save metric",
+      "saved": "Metric saved",
+      "updated": "Last changed by {{by}}, {{at}}"
+    },
+    "evidence": {
+      "pageTitle": "Evidence repository",
+      "pageSubtitle": "The documents behind each metric — sanction letters, minutes, geo-tagged photos — with the DVV checklist of what data validation asks for.",
+      "new": "Add evidence",
+      "newTitle": "New evidence",
+      "editTitle": "Edit evidence",
+      "save": "Save evidence",
+      "saved": "Evidence saved",
+      "deleted": "Evidence deleted",
+      "deleteConfirm": "Delete “{{title}}”?",
+      "deleteHint": "Its files stay in the record’s history.",
+      "criteria": "Criteria",
+      "search": "Search evidence",
+      "docsDone": "DVV documents {{done}}/{{total}}",
+      "itemsTotal": "Evidence items",
+      "filesN_one": "{{count}} file",
+      "filesN_other": "{{count}} files",
+      "covered": "Metrics with evidence",
+      "checklistDone": "DVV documents in place",
+      "verified": "Verified",
+      "clarifyN_one": "{{count}} needs clarification",
+      "clarifyN_other": "{{count}} need clarification",
+      "emptyHint": "Add each document once and link it to the metrics it backs. Tick the DVV documents it answers; a checklist line is done when its evidence has a file or a link.",
+      "noChecklist": "No DVV checklist for this metric",
+      "itemsN_one": "{{count}} item",
+      "itemsN_other": "{{count}} items",
+      "checklist": "DVV checklist",
+      "items": "Evidence",
+      "noneForMetric": "No evidence for this metric yet",
+      "addFor": "Add evidence for {{code}}",
+      "title": "Title",
+      "titlePlaceholder": "e.g. DST sanction letter 2025",
+      "metrics": "Metrics it backs",
+      "addMetric": "Link a metric…",
+      "unlink": "Unlink",
+      "answers": "DVV documents it answers",
+      "year": "Year",
+      "yearHint": "Leave empty when it holds for every year (a policy, a committee order).",
+      "anyYear": "Every year",
+      "link": "Link",
+      "linkHint": "A page on the institution’s website, when the evidence lives there.",
+      "description": "Description",
+      "filesAfter": "Save first, then add the files (PDF, images, Word) to the evidence.",
+      "files": "Files",
+      "addedOn": "Added {{at}}",
+      "forYear": "For {{year}}",
+      "verify": "Mark verified",
+      "clarify": "Needs clarification",
+      "clarifyTitle": "What needs clarifying?",
+      "clarifyNote": "Note for the department",
+      "dvvSaved": "DVV status saved",
+      "dvvBy": "{{by}}, {{at}}"
+    },
+    "print": {
+      "year": "Assessment year",
+      "complete": "Complete",
+      "weight": "Weightage",
+      "metric": "Metric",
+      "title": "Title",
+      "value": "Value",
+      "status": "Status",
+      "words": "words",
+      "noNarrative": "Not written yet."
+    },
+    "fw": {
+      "NAAC": {
+        "c": {
+          "C1": "Curricular aspects",
+          "C2": "Teaching–learning and evaluation",
+          "C3": "Research, innovations and extension",
+          "C4": "Infrastructure and learning resources",
+          "C5": "Student support and progression",
+          "C6": "Governance, leadership and management",
+          "C7": "Institutional values and best practices"
+        },
+        "m": {
+          "1_1_1": "Effective curriculum planning and delivery",
+          "1_1_3": "Teachers participating in curriculum development and assessment",
+          "1_2_1": "Programmes with CBCS / elective course system",
+          "1_2_2": "Add-on / certificate programmes offered",
+          "1_2_3": "Students enrolled in add-on / certificate programmes",
+          "1_3_1": "Cross-cutting issues: gender, environment, human values, professional ethics",
+          "1_3_2": "Courses with experiential learning (project, field work, internship)",
+          "1_3_3": "Students undertaking project work / field work / internships",
+          "1_4_1": "Feedback on the syllabus from stakeholders",
+          "1_4_2": "Feedback process (collected, analysed, action taken, on website)",
+          "2_1_1": "Enrolment percentage (admitted against sanctioned intake)",
+          "2_1_2": "Seats filled against reserved categories",
+          "2_2_1": "Assessing learning levels; programmes for advanced and slow learners",
+          "2_2_2": "Student – full-time teacher ratio",
+          "2_3_1": "Student-centric methods: experiential, participative, problem-solving",
+          "2_3_2": "Teachers using ICT-enabled tools",
+          "2_3_3": "Ratio of students to mentor",
+          "2_4_1": "Full-time teachers against sanctioned posts",
+          "2_4_2": "Full-time teachers with Ph.D.",
+          "2_4_3": "Average teaching experience of full-time teachers",
+          "2_5_1": "Days from the last semester-end exam to the declaration of results",
+          "2_5_2": "Student complaints / grievances about evaluation",
+          "2_6_1": "Programme and course outcomes stated and communicated",
+          "2_6_2": "Attainment of programme and course outcomes",
+          "2_6_3": "Pass percentage of final-year students",
+          "2_7_1": "Online student satisfaction survey (SSS)",
+          "3_1_1": "Grants received for research projects (₹ lakh)",
+          "3_1_2": "Teachers recognised as research guides",
+          "3_1_3": "Departments with funded research projects",
+          "3_2_1": "Ecosystem for innovations, incubation and knowledge transfer",
+          "3_2_2": "Workshops / seminars on research methodology, IPR and entrepreneurship",
+          "3_3_1": "Ph.D.s registered per eligible teacher",
+          "3_3_2": "Research papers per teacher in UGC-CARE journals",
+          "3_3_3": "Books, chapters and conference papers per teacher",
+          "3_4_1": "Extension activities in the neighbourhood community",
+          "3_4_2": "Awards and recognition for extension activities",
+          "3_4_3": "Extension and outreach programmes conducted",
+          "3_4_4": "Students participating in extension activities",
+          "3_5_1": "Collaborative activities (research, internship, exchange)",
+          "3_5_2": "Functional MoUs with institutions and industries",
+          "4_1_1": "Adequate facilities for teaching–learning",
+          "4_1_2": "Facilities for cultural activities, sports and games",
+          "4_1_3": "Classrooms and seminar halls with ICT facilities",
+          "4_1_4": "Expenditure on infrastructure augmentation, excluding salary (₹ lakh)",
+          "4_2_1": "Library automated with an integrated library management system",
+          "4_2_2": "E-resources subscribed / e-books in the library",
+          "4_2_3": "Expenditure on books and journals (₹ lakh)",
+          "4_2_4": "Library usage per day (loans)",
+          "4_3_1": "IT facilities and Wi-Fi, updated regularly",
+          "4_3_2": "Student – computer ratio",
+          "4_3_3": "Bandwidth of the internet connection (Mbps)",
+          "4_4_1": "Expenditure on maintenance of infrastructure (₹ lakh)",
+          "5_1_1": "Students benefited by government scholarships and freeships",
+          "5_1_2": "Students benefited by institution / non-government scholarships",
+          "5_1_3": "Capacity building and skills enhancement initiatives",
+          "5_1_4": "Students benefited by guidance for competitive exams and career counselling",
+          "5_1_5": "Grievance redressal (sexual harassment, ragging) mechanism",
+          "5_2_1": "Placement of outgoing students",
+          "5_2_2": "Outgoing students progressing to higher education",
+          "5_2_3": "Students qualifying state / national exams (NET, SLET, GATE, CAT …)",
+          "5_3_1": "Awards / medals in sports and cultural activities",
+          "5_3_2": "Active student council and student representation",
+          "5_3_3": "Sports and cultural events organised",
+          "5_4_1": "Registered alumni association and its contribution",
+          "6_1_1": "Governance reflecting the vision and mission",
+          "6_2_1": "Perspective / strategic plan deployed; functioning of institutional bodies",
+          "6_2_2": "E-governance in administration, finance, admissions and examinations",
+          "6_3_1": "Welfare measures for teaching and non-teaching staff",
+          "6_3_2": "Teachers given financial support for conferences / workshops",
+          "6_3_3": "Professional development / administrative training programmes organised",
+          "6_3_4": "Teachers undergoing faculty development programmes (FDP)",
+          "6_4_1": "Internal and external financial audits",
+          "6_4_2": "Funds received from non-government bodies and philanthropists (₹ lakh)",
+          "6_5_1": "IQAC’s contribution to institutionalising quality assurance",
+          "6_5_3": "Quality assurance initiatives (AQAR, audits, NIRF, ISO)",
+          "7_1_1": "Measures for the promotion of gender equity",
+          "7_1_2": "Facilities for alternate sources of energy and energy conservation",
+          "7_1_3": "Facilities for the management of degradable and non-degradable waste",
+          "7_1_4": "Water conservation facilities",
+          "7_1_6": "Quality audits on environment and energy",
+          "7_1_7": "Disabled-friendly, barrier-free environment",
+          "7_1_8": "Inclusive environment: tolerance and harmony",
+          "7_1_9": "Sensitisation to constitutional obligations",
+          "7_2_1": "Two best practices of the institution",
+          "7_3_1": "Institutional distinctiveness"
+        },
+        "dvv": {
+          "1_1_3": {
+            "0": "Letters of nomination to BoS / academic council",
+            "1": "Minutes of the meetings"
+          },
+          "1_2_1": {
+            "0": "Minutes of the academic council approving CBCS",
+            "1": "Course structure of each programme"
+          },
+          "1_2_2": {
+            "0": "Brochure or notice of each programme",
+            "1": "List of students enrolled"
+          },
+          "1_2_3": {
+            "0": "List of students with programme",
+            "1": "Certificates issued (sample)"
+          },
+          "1_3_2": {
+            "0": "Syllabus marking the experiential courses"
+          },
+          "1_3_3": {
+            "0": "List of students with project / internship",
+            "1": "Completion certificates (sample)"
+          },
+          "1_4_1": {
+            "0": "Feedback forms",
+            "1": "Action taken report"
+          },
+          "1_4_2": {
+            "0": "Feedback analysis report",
+            "1": "Website link of the feedback"
+          },
+          "2_1_1": {
+            "0": "Sanctioned intake letter from the university / regulator",
+            "1": "List of students admitted, programme-wise"
+          },
+          "2_1_2": {
+            "0": "Reservation policy letter",
+            "1": "Category-wise admission list"
+          },
+          "2_2_2": {
+            "0": "List of full-time teachers with appointment letters",
+            "1": "Students on roll, programme-wise"
+          },
+          "2_3_3": {
+            "0": "Mentor allotment list",
+            "1": "Mentoring records (sample)"
+          },
+          "2_4_1": {
+            "0": "Sanctioned posts letter",
+            "1": "List of full-time teachers"
+          },
+          "2_4_2": {
+            "0": "Ph.D. degree certificates of the teachers"
+          },
+          "2_4_3": {
+            "0": "List of teachers with date of joining and experience"
+          },
+          "2_5_1": {
+            "0": "Exam timetable",
+            "1": "Result notification with date"
+          },
+          "2_5_2": {
+            "0": "Revaluation applications and outcomes"
+          },
+          "2_6_3": {
+            "0": "Result sheets of the final-year students",
+            "1": "Annual report of the controller of examinations"
+          },
+          "2_7_1": {
+            "0": "Database of all currently enrolled students"
+          },
+          "3_1_1": {
+            "0": "Sanction letters from the funding agencies",
+            "1": "Utilisation certificates",
+            "2": "Audited statements of the grants"
+          },
+          "3_1_2": {
+            "0": "Recognition letters of the guides from the university"
+          },
+          "3_1_3": {
+            "0": "List of departments with project sanction letters"
+          },
+          "3_2_2": {
+            "0": "Brochures and reports of each event",
+            "1": "Geo-tagged photos"
+          },
+          "3_3_1": {
+            "0": "Ph.D. registration letters",
+            "1": "List of scholars with guides"
+          },
+          "3_3_2": {
+            "0": "First page of each paper with the journal’s name",
+            "1": "UGC-CARE list entry of the journals"
+          },
+          "3_3_3": {
+            "0": "Cover page, contents and ISBN page of each book",
+            "1": "First page of each conference paper"
+          },
+          "3_4_2": {
+            "0": "Award letters"
+          },
+          "3_4_3": {
+            "0": "Reports of each programme",
+            "1": "Geo-tagged photos"
+          },
+          "3_4_4": {
+            "0": "Attendance of students in each activity"
+          },
+          "3_5_1": {
+            "0": "Collaboration documents",
+            "1": "Activity reports"
+          },
+          "3_5_2": {
+            "0": "Copies of the MoUs",
+            "1": "Activities under each MoU"
+          },
+          "4_1_3": {
+            "0": "List of ICT rooms with geo-tagged photos"
+          },
+          "4_1_4": {
+            "0": "Audited income and expenditure statement"
+          },
+          "4_2_2": {
+            "0": "Subscription receipts of the e-resources"
+          },
+          "4_2_3": {
+            "0": "Audited statement of library purchases",
+            "1": "Accession register (extract)"
+          },
+          "4_2_4": {
+            "0": "Library footfall / issue register (extract)"
+          },
+          "4_3_2": {
+            "0": "Stock register of computers",
+            "1": "Purchase bills"
+          },
+          "4_3_3": {
+            "0": "Bill of the internet provider"
+          },
+          "4_4_1": {
+            "0": "Audited income and expenditure statement"
+          },
+          "5_1_1": {
+            "0": "Sanction letters of the scholarships",
+            "1": "List of beneficiaries"
+          },
+          "5_1_2": {
+            "0": "List of beneficiaries with amounts"
+          },
+          "5_1_3": {
+            "0": "Reports of each initiative"
+          },
+          "5_1_4": {
+            "0": "Attendance and reports of the sessions"
+          },
+          "5_1_5": {
+            "0": "Committee constitution orders",
+            "1": "Minutes of meetings"
+          },
+          "5_2_1": {
+            "0": "Offer letters of the placed students",
+            "1": "List of students placed with employer and package"
+          },
+          "5_2_2": {
+            "0": "Admission proof of each student"
+          },
+          "5_2_3": {
+            "0": "Score cards / qualifying certificates"
+          },
+          "5_3_1": {
+            "0": "Award certificates"
+          },
+          "5_3_3": {
+            "0": "Reports of the events"
+          },
+          "6_2_2": {
+            "0": "ERP document and screenshots",
+            "1": "Annual e-governance report"
+          },
+          "6_3_2": {
+            "0": "Policy document",
+            "1": "Receipts of the support given"
+          },
+          "6_3_3": {
+            "0": "Reports and attendance of each programme"
+          },
+          "6_3_4": {
+            "0": "FDP certificates"
+          },
+          "6_4_2": {
+            "0": "Audited statements of the grants"
+          },
+          "6_5_3": {
+            "0": "AQARs submitted",
+            "1": "Minutes of IQAC meetings"
+          },
+          "7_1_2": {
+            "0": "Geo-tagged photos",
+            "1": "Purchase bills"
+          },
+          "7_1_4": {
+            "0": "Geo-tagged photos"
+          },
+          "7_1_6": {
+            "0": "Audit reports",
+            "1": "Certificates"
+          },
+          "7_1_7": {
+            "0": "Geo-tagged photos",
+            "1": "Bills of the facilities"
+          }
+        }
+      },
+      "NIRF": {
+        "c": {
+          "TLR": "Teaching, learning and resources",
+          "RP": "Research and professional practice",
+          "GO": "Graduation outcomes",
+          "OI": "Outreach and inclusivity",
+          "PR": "Perception"
+        },
+        "m": {
+          "SS": "Student strength including doctoral students",
+          "FSR": "Faculty–student ratio (students per faculty)",
+          "FQE": "Faculty with Ph.D. and experience",
+          "FRU": "Financial resources and their utilisation (₹ lakh)",
+          "PU": "Publications (last three years)",
+          "QP": "Quality of publications (citations)",
+          "IPR": "Patents published and granted",
+          "FPPP": "Sponsored research and consultancy (₹ lakh)",
+          "GPH": "Placement and higher studies",
+          "GUE": "Students graduating in the stipulated time",
+          "MS": "Median salary of placed graduates (₹ lakh a year)",
+          "GPHD": "Ph.D. students graduated",
+          "RD": "Students from other states and countries",
+          "WD": "Women students and faculty",
+          "ESCS": "Economically and socially challenged students",
+          "PCS": "Facilities for physically challenged students",
+          "PR": "Peer and employer perception"
+        },
+        "dvv": {
+          "FRU": {
+            "0": "Audited capital and operational expenditure"
+          },
+          "FPPP": {
+            "0": "Sanction letters",
+            "1": "Audited statements"
+          },
+          "GPH": {
+            "0": "Offer letters",
+            "1": "Higher-studies admission proofs"
+          }
+        }
+      },
+      "AISHE": {
+        "c": {
+          "A1": "Basic details and programmes",
+          "A2": "Students",
+          "A3": "Staff",
+          "A4": "Infrastructure and finance"
+        },
+        "m": {
+          "1_1": "Institution details (AISHE code, address, affiliation, type, management)",
+          "1_2": "Programmes offered",
+          "2_1": "Students enrolled",
+          "2_2": "Women students enrolled",
+          "2_3": "Ph.D. scholars",
+          "2_4": "Students passed out (final year)",
+          "3_1": "Teaching staff",
+          "3_2": "Non-teaching staff",
+          "4_1": "Infrastructure (classrooms, labs, hostels, library)",
+          "4_2": "Scholarships awarded",
+          "4_3": "Income and expenditure (₹ lakh)"
+        },
+        "dvv": {}
+      }
+    }
+  }
+}

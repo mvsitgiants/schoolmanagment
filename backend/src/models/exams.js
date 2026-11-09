@@ -103,3 +103,29 @@ candidateSchema.plugin(tenantPlugin)
 candidateSchema.index({ tenantId: 1, examId: 1, studentId: 1 }, { unique: true })
 candidateSchema.index({ tenantId: 1, examId: 1, sectionId: 1 })
 export const ExamCandidate = model('ExamCandidate', candidateSchema, 'exam_candidates')
+
+// ───────────────────────────────────────────────────────── year-end result (services/yearResults.js)
+
+/**
+ * A class's year-end result once published: the weighting used and every student's subjects, final %, grade, rank and
+ * result, frozen so later changes to marks or weightage don't move a published result. Until then it is worked out live.
+ */
+const yearResultSchema = new Schema({
+  academicYearId: { type: ObjectId, ref: 'AcademicYear', required: true },
+  classId: { type: ObjectId, ref: 'ClassLevel', required: true },
+  status: { type: String, default: 'PUBLISHED' }, // YEAR_STATUS (a row exists only once published)
+  plan: { type: Schema.Types.Mixed }, // weightPlan() at publishing
+  rules: { combine: String, passPct: Number, compartmentMax: Number },
+  students: {
+    type: [{
+      _id: false, studentId: ObjectId, sectionId: ObjectId,
+      subjects: [{ _id: false, subjectId: String, subject: String, parts: [{ _id: false, code: String, pct: Number }], pct: Number, grade: String, pass: Boolean }],
+      pct: Number, grade: String, rank: Number, result: String, failed: [String],
+    }],
+    default: [],
+  },
+  publishedAt: Date, publishedBy: String,
+}, { timestamps: true })
+yearResultSchema.plugin(tenantPlugin)
+yearResultSchema.index({ tenantId: 1, academicYearId: 1, classId: 1 }, { unique: true })
+export const YearResult = model('YearResult', yearResultSchema, 'exam_year_results')

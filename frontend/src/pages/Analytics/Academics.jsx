@@ -6,7 +6,7 @@ import {
 } from 'lucide-react'
 import {
   CHART, ColorChip, ColumnBars, DataTable, EmptyState, MiniBarChart, Note, PageContainer, PageHeader, PctCell, PersonCell, RankBars,
-  StatCardRow, TONE, Tag, TrendArea, ViewControls, ControlChip,
+  SideNav, SideNavLayout, StatCardRow, TONE, Tag, TrendArea, ViewControls, ControlChip,
 } from '../../components/system'
 import PctBar, { pctTone } from '../../components/analytics/PctBar'
 import GradeSpread from '../../components/analytics/GradeSpread'
@@ -39,9 +39,24 @@ export default function Academics() {
   const trendRows = useMemo(() => (data?.trend?.classes ?? []).map((c) => ({ id: c.classId, name: c.name, ...Object.fromEntries((data?.trend?.exams ?? []).map((e) => [e.id, c.byExam?.[e.id]?.average ?? null])) })), [data])
   const minAtt = data?.minAttendancePct || 75
   const reasonLabel = (r) => t(`analytics.academics.reasons.${r}`, { pct: data?.riskPct, min: minAtt })
+  // a class picked in the side list narrows the cards, grade spread, toppers and students at risk to it
+  const inClass = (rows = []) => (picked ? rows.filter((r) => r.classId === picked.classId) : rows)
+  const toppers = inClass(data?.toppers)
+  const atRisk = inClass(data?.atRisk)
+  const avgTone = (v) => (v == null ? undefined : v < 40 ? 'danger' : v < 60 ? 'warning' : undefined)
+  const classNav = (data?.classes?.length ?? 0) > 1 && (
+    <SideNav title={t('analytics.academics.classesNav')} value={picked ? picked.classId : ''} onChange={setClassId} items={[
+      { id: '', label: t('analytics.academics.allClasses'), icon: GraduationCap, hint: t('analytics.academics.classHint', { pass: pctText(s?.passPct) }), count: pctText(s?.average), countTone: avgTone(s?.average) },
+      ...data.classes.map((c) => ({
+        id: c.classId, label: c.name, hint: t('analytics.academics.classHint', { pass: pctText(c.passPct) }),
+        count: pctText(c.average), countTone: avgTone(c.average),
+        progress: c.assessed ? { value: c.passed, max: c.assessed, kind: 'done' } : undefined,
+      })),
+    ]} />
+  )
 
   const controls = (
-    <ViewControls className="mb-4">
+    <ViewControls>
       <ControlChip icon={CalendarRange} label={t('analytics.common.year')} value={data?.year?.name} active={!!yearId}
         options={(data?.years ?? []).map((y) => y.name)}
         onChange={(name) => { setYearId(data?.years?.find((y) => y.name === name)?.id ?? ''); setExamId(''); setClassId('') }} />
@@ -51,7 +66,6 @@ export default function Academics() {
       )}
       <ControlChip icon={ShieldAlert} label={t('analytics.academics.riskBelow')} value={pctText(data?.riskPct)} active={!!riskPct}
         options={[...new Set([...RISK_OPTIONS, data?.riskPct].filter((p) => p != null))].sort((a, b) => a - b).map(pctText)} onChange={(v) => setRiskPct(String(parseFloat(v)))} />
-      {picked && <ControlChip icon={GraduationCap} label={t('analytics.academics.class')} value={picked.name} active onClick={() => setClassId('')} caret={false} />}
     </ViewControls>
   )
 
@@ -59,8 +73,9 @@ export default function Academics() {
     <PageContainer>
       <PageHeader icon={GraduationCap} title={t('analytics.academics.title')}
         subtitle={data?.exam ? t('analytics.academics.subtitleExam', { exam: data.exam.name, year: data.year?.name }) : t('analytics.academics.subtitle')} />
+      <SideNavLayout nav={data?.exam && s && classNav}>
       {controls}
-      {error && <Note tone="warning" className="mb-4">{error.response?.data?.message || error.message}</Note>}
+      {error && <Note tone="warning">{error.response?.data?.message || error.message}</Note>}
 
       {data && !data.exam && !isLoading && (
         <EmptyState icon={ClipboardList} title={t('analytics.academics.noExams')} hint={t('analytics.academics.noExamsHint', { year: data.year?.name })} />
@@ -70,6 +85,17 @@ export default function Academics() {
 
       {data?.exam && s && (
         <div className="flex flex-col gap-4">
+          {picked ? (
+            <StatCardRow items={[
+              { icon: Users, tone: 'brand', label: t('analytics.academics.assessed'), value: picked.assessed, sub: picked.incomplete ? t('analytics.academics.incomplete', { count: picked.incomplete }) : t('analytics.academics.ofCandidates', { count: picked.students }) },
+              { icon: Percent, tone: pctTone(picked.average, 60, 40), label: t('analytics.academics.average'), value: pctText(picked.average), progress: picked.average ?? undefined, sub: t('analytics.academics.schoolAvg', { pct: pctText(s.average) }) },
+              { icon: CircleCheckBig, tone: 'success', label: t('analytics.academics.passRate'), value: pctText(picked.passPct),
+                segments: [{ label: t('analytics.academics.passed'), value: picked.passed, tone: 'success' }, { label: t('analytics.academics.failed'), value: picked.failed, tone: 'danger' }] },
+              { icon: TriangleAlert, tone: atRisk.length ? 'danger' : 'success', label: t('analytics.academics.atRisk'), value: atRisk.length, sub: t('analytics.academics.atRiskSub', { pct: data.riskPct, min: minAtt }) },
+            ]} />
+          ) : (
+          // beside the classes list the column is narrower than the viewport says: three a row until there is room for five
+          <div className="xl:[&>div]:grid-cols-3 2xl:[&>div]:grid-cols-5">
           <StatCardRow items={[
             { icon: Users, tone: 'brand', label: t('analytics.academics.assessed'), value: s.assessed, sub: s.incomplete ? t('analytics.academics.incomplete', { count: s.incomplete }) : t('analytics.academics.ofCandidates', { count: s.candidates }) },
             { icon: Percent, tone: pctTone(s.average, 60, 40), label: t('analytics.academics.average'), value: pctText(s.average), progress: s.average ?? undefined, sub: t('analytics.academics.highest', { pct: s.highest ?? '—' }) },
@@ -78,6 +104,9 @@ export default function Academics() {
             { icon: TriangleAlert, tone: s.atRisk ? 'danger' : 'success', label: t('analytics.academics.atRisk'), value: s.atRisk, sub: t('analytics.academics.atRiskSub', { pct: data.riskPct, min: minAtt }) },
             { icon: CalendarCheck, tone: 'sky', label: t('analytics.academics.attendance'), value: pctText(s.attendancePct), progress: s.attendancePct ?? undefined, sub: t('analytics.academics.attendanceUpto', { date: date(data.attendanceUpto) }) },
           ]} />
+          </div>
+          )}
+          {picked && <Note>{t('analytics.academics.classNote', { cls: picked.name })}</Note>}
 
           <ColumnBars title={t('analytics.academics.classAverage')} subtitle={t('analytics.academics.classAverageSub')}
             items={data.classes.map((c) => ({ id: c.classId, label: c.name, short: c.code ?? c.name, value: Math.round(c.average ?? 0) }))}
@@ -87,7 +116,7 @@ export default function Academics() {
             <TrendArea title={t('analytics.academics.trend')} subtitle={picked ? t('analytics.academics.trendClassSub', { cls: picked.name }) : t('analytics.academics.trendSub')}
               data={trendData} line valueFormat={(v) => `${v}%`}
               series={[{ key: 'value', name: t('analytics.academics.allClasses') }, ...(picked ? [{ key: 'value2', name: picked.name }] : [])]} />
-            <GradeSpread classes={data.classes} grades={data.grades} />
+            <GradeSpread classes={picked ? [picked] : data.classes} grades={data.grades} />
           </div>
 
           <DataTable title={t('analytics.academics.classTable')} exportable exportName={`class-results-${data.exam.name}`} rowKey="classId"
@@ -131,7 +160,7 @@ export default function Academics() {
           </div>
 
           <div className="grid gap-4 xl:grid-cols-2">
-            <DataTable title={t('analytics.academics.toppers')} exportable exportName={`toppers-${data.exam.name}`} rowKey="studentId" rows={data.toppers}
+            <DataTable title={picked ? t('analytics.academics.toppersInClass', { cls: picked.name }) : t('analytics.academics.toppers')} exportable exportName={`toppers-${data.exam.name}`} rowKey="studentId" rows={toppers}
               columns={[
                 { key: 'position', header: '#', width: 48, render: (v) => <span className={`inline-flex h-6 w-6 items-center justify-center rounded-md text-[11px] font-bold tabular-nums ${TONE.warning.bg} ${TONE.warning.text}`}>{v}</span> },
                 { key: 'name', header: t('analytics.academics.student'), mobilePrimary: true, render: (v, r) => <PersonCell name={v} sub={r.admissionNo} /> },
@@ -142,7 +171,7 @@ export default function Academics() {
               ]}
               emptyIcon={Trophy} emptyTitle={t('analytics.common.noData')} />
 
-            <DataTable title={t('analytics.academics.atRiskTitle', { count: data.atRisk.length })} exportable exportName={`at-risk-${data.exam.name}`} rowKey="studentId" rows={data.atRisk} maxHeight="460px"
+            <DataTable title={t('analytics.academics.atRiskTitle', { count: atRisk.length })} exportable exportName={`at-risk-${data.exam.name}`} rowKey="studentId" rows={atRisk} maxHeight="460px"
               columns={[
                 { key: 'name', header: t('analytics.academics.student'), mobilePrimary: true, sortable: true, render: (v, r) => <PersonCell name={v} sub={r.admissionNo} /> },
                 { key: 'classShort', header: t('analytics.academics.class'), sortable: true, render: (v, r) => <ColorChip label={v} seed={r.classId} /> },
@@ -167,6 +196,7 @@ export default function Academics() {
           )}
         </div>
       )}
+      </SideNavLayout>
     </PageContainer>
   )
 }

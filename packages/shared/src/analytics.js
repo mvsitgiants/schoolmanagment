@@ -69,3 +69,28 @@ export function monthsInRange(from, to) {
   }
   return out
 }
+
+/** The period of the same length just before from–to (for "vs previous period"). */
+export function priorRange(from, to) {
+  const days = daysBetweenYmd(from, to) + 1
+  const end = new Date(Date.parse(`${from}T00:00:00Z`) - 86400000).toISOString().slice(0, 10)
+  const start = new Date(Date.parse(`${end}T00:00:00Z`) - (days - 1) * 86400000).toISOString().slice(0, 10)
+  return { from: start, to: end }
+}
+
+/** from–to cut into at most `max` back-to-back pieces of whole days (for sparklines). */
+export function splitRange(from, to, max = 12) {
+  const days = daysBetweenYmd(from, to) + 1
+  if (days < 1) return []
+  const n = Math.min(max, days)
+  const out = []
+  const at = (i) => new Date(Date.parse(`${from}T00:00:00Z`) + Math.round((i * days) / n) * 86400000).toISOString().slice(0, 10)
+  for (let i = 0; i < n; i++) {
+    const end = new Date(Date.parse(`${at(i + 1)}T00:00:00Z`) - 86400000).toISOString().slice(0, 10)
+    out.push({ from: at(i), to: end })
+  }
+  return out
+}
+
+/** % change from `prev` to `value` (null when there is nothing to compare with). */
+export const deltaPct = (value, prev) => (prev ? Math.round(((value - prev) / Math.abs(prev)) * 1000) / 10 : null)

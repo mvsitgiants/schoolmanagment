@@ -23,7 +23,9 @@
       "section": "Class",
       "none": "None yet",
       "noneScheduled": "No exam has been scheduled this year yet. Exams › Exam schedule sets one up.",
-      "pickFirst": "Pick an exam and a class"
+      "pickFirst": "Pick an exam and a class",
+      "examsNav": "Exams",
+      "publishedShort": "Published"
     },
     "setup": {
       "title": "Exam setup",
@@ -98,7 +100,9 @@
       },
       "scheduled": "Exam scheduled.",
       "unschedule": "Back to set-up",
-      "unscheduled": "The exam is back in set-up."
+      "unscheduled": "The exam is back in set-up.",
+      "examsNav": "Exams",
+      "allClasses": "All classes · {{count}}"
     },
     "papers": {
       "title": "{{cls}} · {{exam}}",
@@ -173,7 +177,13 @@
         "sheets": "Mark sheets"
       },
       "hallAbsent": "Hall",
-      "hallAbsentHint": "Marked absent in the exam hall by the invigilator"
+      "hallAbsentHint": "Marked absent in the exam hall by the invigilator",
+      "sheetsOf": "Papers of {{section}}",
+      "allClasses": "All classes · {{count}}",
+      "clearStatus": "Show every status",
+      "absentShort": "AB",
+      "exemptShort": "N/A",
+      "enteredOf": "{{entered}}/{{total}} entered"
     },
     "results": {
       "title": "Results",
@@ -206,7 +216,8 @@
       "grade": "Grade",
       "rank": "Rank",
       "result": "Result",
-      "empty": "No students in this class"
+      "empty": "No students in this class",
+      "pctLabel": "Score"
     },
     "reportCards": {
       "title": "Report cards",
@@ -310,6 +321,15 @@
         "title": "Invigilation duties",
         "sign": "Signature",
         "totals": "Duties per teacher"
+      },
+      "yearCard": {
+        "stampProvisional": "PROVISIONAL",
+        "title": "Annual report card",
+        "session": "Academic year",
+        "final": "Final %",
+        "how": "Each column is the % in that kind of exam; the final % weighs them by the share shown under each heading.",
+        "overall": "Overall",
+        "below": "Below the pass mark"
       }
     },
     "seating": {
@@ -458,6 +478,55 @@
       "hallSave": "Save attendance",
       "absent": "Absent",
       "hallOnlyInvigilators": "Only this room’s invigilators can mark its attendance."
+    },
+    "yearResults": {
+      "title": "Year-end results",
+      "subtitle": "Every published exam of {{year}} combined by its weightage — the final result per subject and overall.",
+      "classes": "Classes",
+      "examsSoFar_one": "{{count}} exam so far",
+      "examsSoFar_other": "{{count}} exams so far",
+      "noExams": "No published exams yet",
+      "noClasses": "No classes in your scope this year.",
+      "allSections": "All sections",
+      "overall": "Overall",
+      "status": {
+        "OPEN": "So far",
+        "PUBLISHED": "Published"
+      },
+      "result": {
+        "PASS": "Pass",
+        "COMPARTMENT": "Compartment",
+        "FAIL": "Needs to improve",
+        "INCOMPLETE": "Marks missing"
+      },
+      "weightsTitle": "How the year is weighted",
+      "weightsNot100": "The weightages add up to {{total}}%, not 100% — fix them in Exam setup.",
+      "noWeights": "No exam type carries a weightage yet. Set the weightage of each exam type in Exams › Exam setup.",
+      "counts": "counts {{pct}}%",
+      "notYet": "not published yet",
+      "coming": "Still to come: {{list}}",
+      "soFarNote": "Result so far. {{missing}} — not published yet, so the shares above are scaled over the exams there are. It can be published once every weighted exam is.",
+      "readyNote": "Every weighted exam is published. Check the result and publish it — the report cards and the parent app show it from then on.",
+      "publishedNote": "Published by {{name}} on {{at}}. Marks or weightage changed later won’t change it unless you unpublish.",
+      "cantPublish": "Every exam type with a weightage needs a published exam first.",
+      "publish": "Publish year result",
+      "unpublish": "Unpublish",
+      "publishConfirm": {
+        "title": "Publish the year result of {{name}}?",
+        "message": "The result is frozen as it is now. Families see it in the app, and the annual report cards print without the PROVISIONAL stamp."
+      },
+      "unpublishConfirm": {
+        "title": "Unpublish the year result of {{name}}?",
+        "message": "It goes back to being worked out live from the marks, and families stop seeing it."
+      },
+      "publishedToast": "Year result published",
+      "unpublishedToast": "Year result unpublished",
+      "printOne": "Print annual report card",
+      "printAll_one": "Print {{count}} report card",
+      "printAll_other": "Print {{count}} report cards",
+      "preparing": "Preparing the report cards…",
+      "empty": "No students with marks here yet",
+      "below": "Below the pass mark: {{subjects}}"
     }
   }
 }

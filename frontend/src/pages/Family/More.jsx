@@ -2,7 +2,8 @@ import { useTranslation } from 'react-i18next'
 import { FileBadge, LogOut, Smartphone, UserRound } from 'lucide-react'
 import Button from '../../components/ui/Button'
 import { FCard, FEmpty, FError, FRow, FSkeleton, useFamily, useFamilyQuery } from '../../components/family/FamilyKit'
-import { familyCertificates, familyDocUrl, familyProfile } from '../../api/family'
+import { familyCertificates, familyDocUrl, familyProfile, familyPushApi } from '../../api/family'
+import PushToggle from '../../components/app/PushToggle'
 import { useFormat } from '../../context/SettingsContext'
 import { ContactCard } from './Login'
 import { BAR_SLOTS, familySections } from '../../components/family/sections'
@@ -26,7 +27,7 @@ function Profile() {
       </dl>
       {p.guardians.length > 0 && (
         <div className="mt-4 pt-3 border-t border-border space-y-1.5">
-          {p.guardians.map((g) => <p key={`${g.name}-${g.relation}`} className="flex items-center gap-2 text-sm text-ink"><UserRound className="w-4 h-4 text-ink-faint" aria-hidden />{g.name}{g.relation ? <span className="text-ink-muted"> · {t(`family.relation.${g.relation}`, g.relation)}</span> : null}{g.mobile ? <span className="ms-auto text-ink-faint font-mono-num">{g.mobile}</span> : null}</p>)}
+          {p.guardians.map((g) => <p key={`${g.name}-${g.relation}`} className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm text-ink"><UserRound className="w-4 h-4 shrink-0 text-ink-faint" aria-hidden />{g.name}{g.relation ? <span className="text-ink-muted"> · {t(`family.relation.${g.relation}`, g.relation)}</span> : null}{g.mobile ? <span className="ms-auto text-ink-faint font-mono-num">{g.mobile}</span> : null}</p>)}
         </div>
       )}
       <p className="mt-3 text-xs text-ink-faint">{t('family.profile.wrong')}</p>
@@ -67,6 +68,7 @@ export default function FamilyMore() {
       {has('CERTIFICATES') && <Certificates />}
       <ContactCard />
       {info.help && <FCard title={t('family.more.help')}><p className="text-sm text-ink whitespace-pre-line">{info.help}</p></FCard>}
+      <FCard><PushToggle api={familyPushApi(slug)} ns="family" prefix="family.push" /></FCard>
       <FCard>
         <div className="flex items-start gap-3">
           <Smartphone className="w-5 h-5 text-ink-faint shrink-0 mt-0.5" aria-hidden />

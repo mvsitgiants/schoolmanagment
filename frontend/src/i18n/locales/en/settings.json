@@ -296,6 +296,68 @@
           "help": "0: no overdue reminders."
         }
       },
+      "canteen": {
+        "lowBalanceRs": {
+          "label": "Tell the family when the wallet falls below (₹)"
+        },
+        "minTopUpRs": {
+          "label": "Smallest top-up (₹)"
+        },
+        "maxTopUpRs": {
+          "label": "Largest single top-up (₹)"
+        },
+        "maxBalanceRs": {
+          "label": "Most a wallet can hold (₹)"
+        },
+        "preorderDays": {
+          "label": "Families can pre-order this many days ahead"
+        },
+        "preorderCutoff": {
+          "label": "Same-day pre-orders close at (HH:MM)"
+        }
+      },
+      "frontoffice": {
+        "complaintSlaDays": {
+          "label": "Resolve a complaint within (days)",
+          "help": "Sets the due day of every new complaint (an urgent one is due the next day). Past it, the complaint shows as overdue."
+        },
+        "gatePassApproval": {
+          "label": "Gate passes need approval",
+          "help": "The class teacher, or someone allowed to approve, approves before a student is handed over at the gate. Off: a pass is ready as soon as it is written."
+        }
+      },
+      "placements": {
+        "offerPolicy": {
+          "label": "Offers a student may hold",
+          "help": "Checked when students register for a drive and when an offer is accepted. Accepting a dream offer releases the earlier one.",
+          "options": {
+            "ONE": "One offer — a placed student applies no more",
+            "DREAM": "Dream offer — once placed, only drives paying the dream CTC or more",
+            "OPEN": "No limit"
+          }
+        },
+        "dreamCtcLakhs": {
+          "label": "Dream offer: CTC from (₹ lakh a year)"
+        },
+        "familyRegistration": {
+          "label": "Students and parents register for drives in the app",
+          "help": "Off: only the placement office registers students."
+        },
+        "notifyEligible": {
+          "label": "Tell eligible students when a drive opens"
+        }
+      },
+      "hostel": {
+        "lateGraceMinutes": {
+          "label": "Minutes after the return time before an outpass counts as late"
+        },
+        "familyOutpass": {
+          "label": "Parents can ask for an outpass in the family app"
+        },
+        "alertOutpass": {
+          "label": "Tell the guardian when an outpass is approved or rejected, and when the student leaves and comes back"
+        }
+      },
       "events": {
         "remindDayBefore": {
           "label": "Remind families the day before an event",
@@ -386,6 +448,22 @@
         },
         "showRank": {
           "label": "Show class rank on report cards"
+        },
+        "yearCombine": {
+          "label": "Several exams of one type in the year result",
+          "help": "For example three unit tests: their average, or only the best, counts towards the unit-test share.",
+          "options": {
+            "AVERAGE": "Average them",
+            "BEST": "Take the best one"
+          }
+        },
+        "yearPassPct": {
+          "label": "Pass mark for the year result (%)",
+          "help": "A subject whose final % is below this needs to improve."
+        },
+        "compartmentMax": {
+          "label": "Compartment: up to this many subjects below the pass mark",
+          "help": "0: no compartment — any subject below the pass mark is \"needs to improve\"."
         },
         "lockAfterDays": {
           "label": "Lock marks entry this many days after the exam",

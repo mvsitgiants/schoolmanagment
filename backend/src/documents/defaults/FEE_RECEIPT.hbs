@@ -10,7 +10,8 @@
   table.r tr.ins td { font-weight: 600; background: #F6F7F9 }
   .tot { margin-top: 3mm; display: flex; justify-content: space-between; font-size: 10.5pt; font-weight: 700 }
   .words { font-size: 9pt; color: #3A3F4B; margin-top: 1mm }
-  .foot { margin-top: 8mm; display: flex; justify-content: space-between; font-size: 9pt }
+  .foot { margin-top: 8mm; display: flex; justify-content: space-between; align-items: flex-end; gap: 4mm; font-size: 9pt }
+  .qr { display: flex; flex-direction: column; align-items: center; gap: .8mm; font-size: 7pt; color: #5B616E; text-align: center }
   .void { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 46pt; font-weight: 800; color: rgba(214,69,69,.16); transform: rotate(-20deg); pointer-events: none }
 </style>
 {{#if receipt.cancelled}}<div class="void">{{t "fees.print.receipt.stampCancelled" "CANCELLED"}}</div>{{/if}}
@@ -45,6 +46,7 @@
 {{#if receipt.cancelled}}<div class="words">{{t "fees.print.receipt.cancelledNote" "Cancelled: {{reason}}" reason=receipt.cancelReason}}</div>{{/if}}
 <div class="foot">
   <span class="muted">{{t "fees.print.receipt.collectedBy" "Received by {{name}}" name=receipt.collectedBy}}</span>
+  {{#if receipt.verifyUrl}}<span class="qr">{{qr receipt.verifyUrl 16}}<span>{{t "fees.print.receipt.scanToCheck" "Scan to check this receipt"}}</span></span>{{/if}}
   <span>{{t "fees.print.receipt.signature" "Authorised signatory"}}</span>
 </div>
 {{> footer}}

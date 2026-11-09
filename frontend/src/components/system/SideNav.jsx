@@ -3,7 +3,8 @@ import clsx from 'clsx'
 /**
  * A page's own sub-navigation: a list down the left of the page on desktop (classes, campuses,
  * sections) and a horizontally scrolling chip row on phones and portrait tablets.
- * Each item can carry a count and a small occupancy bar.
+ * Each item can carry a count and a small bar: occupancy by default (amber when nearly full, red
+ * when full), or `progress.kind: 'done'` for completion (green when finished, e.g. marks locked).
  *
  *   <SideNavLayout nav={<SideNav title={t('…classes')} value={cls} onChange={setCls} items={[
  *     { id: '', label: t('…allWards'), count: 42 },
@@ -21,8 +22,10 @@ export function SideNav({ title, items = [], value, onChange, className }) {
           const active = value === it.id
           const Icon = it.icon
           const pct = it.progress?.max ? Math.min(100, (it.progress.value / it.progress.max) * 100) : null
+          const done = it.progress?.kind === 'done'
           const full = pct !== null && pct >= 100
           const high = pct !== null && pct >= (it.progress.warnPct ?? 85)
+          const bar = done ? (full ? 'bg-success-500' : 'bg-brand-500') : full ? 'bg-danger-500' : high ? 'bg-amber-400' : 'bg-brand-500'
           return (
             <li key={it.id ?? '_all'} className="shrink-0 lg:shrink">
               <button type="button" onClick={() => onChange?.(it.id)} aria-current={active ? 'page' : undefined}
@@ -31,11 +34,11 @@ export function SideNav({ title, items = [], value, onChange, className }) {
                   active ? 'border-brand-200 bg-brand-50 text-brand-700' : 'border-border bg-surface text-ink lg:border-transparent lg:bg-transparent hover:bg-black/[0.03]')}>
                 {Icon && <Icon className={clsx('w-4 h-4 shrink-0', active ? 'text-brand-600' : 'text-ink-faint')} aria-hidden />}
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm font-medium whitespace-nowrap">{it.label}</span>
+                  <span className="block text-sm font-medium max-lg:truncate max-lg:whitespace-nowrap lg:line-clamp-2 lg:leading-snug">{it.label}</span>
                   {it.hint && <span className="hidden lg:block truncate text-[11px] text-ink-faint">{it.hint}</span>}
                   {pct !== null && (
                     <span className="mt-1 hidden lg:block h-1 w-full overflow-hidden rounded-full bg-black/[0.06]">
-                      <span className={clsx('block h-full rounded-full', full ? 'bg-danger-500' : high ? 'bg-amber-400' : 'bg-brand-500')} style={{ width: `${pct}%` }} />
+                      <span className={clsx('block h-full rounded-full', bar)} style={{ width: `${pct}%` }} />
                     </span>
                   )}
                 </span>

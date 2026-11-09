@@ -15,6 +15,7 @@
 //
 // with its default Handlebars template in ./defaults/<DOC>.hbs (see engine.js for helpers).
 
+import { config } from '../config.js'
 import { CATEGORY_LABEL_OF, LEAVING_REASON_LABEL_OF, dateInWords } from './words.js'
 import { TransferCertificate } from '../models/students.js'
 import { studentIdCards, tcPrintData } from '../services/students.js'
@@ -32,9 +33,13 @@ import { latestPayslipId, payslipModel, payslipPrint } from '../services/payroll
 import { labelsModel, labelsPrint, latestCopyId } from '../services/library.js'
 import { latestSectionId, seatLabelsModel, seatLabelsPrint } from '../services/academics.js'
 import { EXAM_SEATING_DOCS } from './examSeatingDocs.js'
+import { YEAR_RESULT_DOCS } from './yearResultDocs.js'
+import { INVENTORY_DOCS } from './inventoryDocs.js'
+import { ALUMNI_DOCS } from './alumniDocs.js'
 import { QUESTION_PAPER_DOCS } from './questionPaperDocs.js'
 import { COE_DOCS } from './coeDocs.js'
 import { PROGRAM_DOCS } from './programDocs.js'
+import { ACCREDITATION_DOCS } from './accreditationDocs.js'
 
 const latestId = async (Model, filter, sort) => (await Model.findOne(filter).sort(sort).select('_id').lean())?._id
 const V = {
@@ -64,6 +69,7 @@ function receiptModel({ payment: p, student: s, place, invoices, balance }) {
   return {
     receipt: {
       no: p.receiptNo, date: p.date, at: p.at, mode: PAYMENT_MODE_LABEL[p.mode] ?? p.mode, reference: p.reference, amount: p.amount,
+      verifyUrl: p.verifyCode ? `${config.appUrl}/verify/receipt/${p.verifyCode}` : null,
       collectedBy: p.collectedBy, cancelled: p.status === 'CANCELLED', cancelReason: p.cancelReason, refunded: p.refunded, note: p.note,
     },
     student: { name: [s.firstName, s.middleName, s.lastName].filter(Boolean).join(' '), admissionNo: s.admissionNo, class: place?.label ?? '', rollNo: s.rollNo },
@@ -134,10 +140,14 @@ function certificateModel({ certificate: c, verifyUrl }) {
 }
 
 export const DOCS = {
+  ...ALUMNI_DOCS, // donation receipts (documents/alumniDocs.js)
+  ...INVENTORY_DOCS, // purchase order, store sale receipt (documents/inventoryDocs.js)
+  ...YEAR_RESULT_DOCS, // the year-end report card (documents/yearResultDocs.js)
   ...EXAM_SEATING_DOCS, // seating charts, door lists, invigilation duties (documents/examSeatingDocs.js)
   ...QUESTION_PAPER_DOCS, // question papers and answer keys (documents/questionPaperDocs.js)
   ...COE_DOCS, // documents/coeDocs.js
   ...PROGRAM_DOCS, // documents/programDocs.js
+  ...ACCREDITATION_DOCS, // documents/accreditationDocs.js
   FEE_RECEIPT: {
     perms: ['fees.invoices.print', 'fees.collect.view'],
     load: (id, auth) => receiptPrintData(id, auth),

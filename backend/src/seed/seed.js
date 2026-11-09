@@ -4,8 +4,9 @@
 import mongoose from 'mongoose'
 import { DEFAULT_PLANS, ROLE_TEMPLATES } from '@schoolgiant/shared'
 import { config } from '../config.js'
-import { Plan, PlatformUser, RoleTemplate, Tenant } from '../models/platform.js'
+import { Plan, PlatformSetting, PlatformUser, RoleTemplate, Tenant } from '../models/platform.js'
 import { Branch, Department, Role } from '../models/tenant.js'
+import { MessagingConfig } from '../models/engines.js'
 import { enabledModuleIds } from '../platform/access.js'
 import { hashPassword } from '../platform/auth/tokens.js'
 import { runAsTenant, runWithContext } from '../platform/context.js'
@@ -32,6 +33,13 @@ export async function seedPlatform() {
   }
   if (!await PlatformUser.exists({ email: config.superadmin.email })) {
     await PlatformUser.create({ name: 'Platform Owner', email: config.superadmin.email, passwordHash: await hashPassword(config.superadmin.password) })
+  }
+  if (!config.isProd) {
+    await PlatformSetting.updateOne(
+      { _id: 'platform' },
+      { $setOnInsert: { company: { name: 'SchoolGiant' }, sms: { provider: 'TEST' } } },
+      { upsert: true },
+    )
   }
 }
 
@@ -89,6 +97,7 @@ async function seedGreenValley() {
   })
 
   await runAsTenant(tenant._id, async () => {
+    await MessagingConfig.updateOne({}, { $setOnInsert: { sms: { provider: 'TEST' }, whatsapp: { provider: 'TEST' } } }, { upsert: true })
     const auth = await adminAuth(tenant._id, admin)
     await Branch.create({ name: 'Green Valley – Whitefield', code: 'WFD', city: 'Bengaluru', state: 'Karnataka', addressLine: 'ITPL Main Road, Whitefield', phone: '+91 80 4123 9900' })
     const depts = {}

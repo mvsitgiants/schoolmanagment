@@ -25,7 +25,7 @@ export default function FamilyLibrary() {
               <div key={l.id} className="flex items-center gap-3 py-2">
                 <BookOpen className="w-5 h-5 shrink-0 text-ink-faint" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-ink truncate">{l.title}</p>
+                  <p className="text-sm font-medium text-ink break-words">{l.title}</p>
                   <p className="text-xs text-ink-muted">{t('family.library.dueOn', { date: date(l.dueOn) })}</p>
                 </div>
                 {l.state === 'OVERDUE'
@@ -43,7 +43,7 @@ export default function FamilyLibrary() {
             {d.fines.map((f) => (
               <div key={f.id} className="flex items-center justify-between gap-2 py-2 text-sm">
                 <span className="min-w-0"><span className="block text-ink">{t(`family.library.reasons.${f.reason}`)}</span>{f.title && <span className="block text-xs text-ink-muted truncate">{f.title}</span>}</span>
-                <span className="font-medium text-ink">{formatINR(f.amount)}</span>
+                <span className="shrink-0 font-medium text-ink">{formatINR(f.amount)}</span>
               </div>
             ))}
           </div>
@@ -60,7 +60,7 @@ export default function FamilyLibrary() {
                 {e.description && <p className="mt-1 text-xs text-ink-muted line-clamp-2">{e.description}</p>}
                 <div className="mt-1 flex flex-wrap gap-x-4">
                   {e.url && <a href={e.url} target="_blank" rel="noreferrer" className="inline-flex min-h-[44px] items-center gap-1 text-sm text-brand-700"><ExternalLink className="w-4 h-4" />{t('family.library.open')}</a>}
-                  {e.files.map((f) => <a key={f.id} href={familyEbookFileUrl(slug, studentId, e.id, f.id)} target="_blank" rel="noreferrer" className="inline-flex min-h-[44px] items-center gap-1 text-sm text-brand-700"><Paperclip className="w-4 h-4" />{f.name} <span className="text-xs text-ink-faint">({size(f.size)})</span></a>)}
+                  {e.files.map((f) => <a key={f.id} href={familyEbookFileUrl(slug, studentId, e.id, f.id)} target="_blank" rel="noreferrer" className="inline-flex min-h-[44px] max-w-full items-center gap-1 text-sm text-brand-700"><Paperclip className="w-4 h-4 shrink-0" /><span className="min-w-0 truncate">{f.name}</span> <span className="shrink-0 text-xs text-ink-faint">({size(f.size)})</span></a>)}
                 </div>
               </div>
             ))}
@@ -72,7 +72,7 @@ export default function FamilyLibrary() {
           <div className="divide-y divide-border">
             {d.past.map((l) => (
               <div key={l.id} className="flex items-center justify-between gap-2 py-2 text-sm">
-                <span className="min-w-0 truncate text-ink">{l.title}</span>
+                <span className="min-w-0 break-words text-ink">{l.title}</span>
                 <span className="shrink-0 text-xs text-ink-muted">{l.status === 'LOST' ? t('family.library.lost') : date(l.returnedOn)}</span>
               </div>
             ))}

@@ -2,9 +2,9 @@ import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { BadgeCheck, FileText, GraduationCap, Hourglass, Monitor, Plus, Store } from 'lucide-react'
+import { BadgeCheck, FileText, GraduationCap, Hourglass, Monitor, Plus, School, Store } from 'lucide-react'
 import { APPLICATION_STATUS } from '@schoolgiant/shared'
-import { Attachments, CodeBadge, ColorChip, ContactCell, ControlChip, DataTable, DateCell, Drawer, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, PersonCell, Select, StatCardRow, StatusPill, Toolbar, usePrompt } from '../../components/system'
+import { Attachments, CodeBadge, ColorChip, ContactCell, ControlChip, DataTable, DateCell, Drawer, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, PersonCell, Select, SideNav, SideNavLayout, StatCardRow, StatusPill, Toolbar, usePrompt } from '../../components/system'
 import Button from '../../components/ui/Button'
 import ApplicationForm, { applicationBody, emptyApplication } from '../../components/admissions/ApplicationForm'
 import FormRenderer from '../../components/forms/FormRenderer'
@@ -15,6 +15,7 @@ import { admitApplicant, createApplication, fetchApplication, fetchApplications,
 import { hasPermission } from '../../api/auth'
 import { useSnackbar } from '../../context/SnackbarContext'
 import { useFormat } from '../../context/SettingsContext'
+import { useIsMobile } from '../../hooks/useMediaQuery'
 
 function NewApplication({ cycles, cycle, enquiryId, onClose, onSaved }) {
   const { t } = useTranslation('admissions')
@@ -147,18 +148,20 @@ export default function Applications() {
   const qc = useQueryClient()
   const { showSuccess } = useSnackbar()
   const [params, setParams] = useSearchParams()
-  const { cycles, cycle, chip } = useCycle()
+  const { cycles, cycle, chip, isLoading: cyclesLoading } = useCycle()
   const [search, setSearch] = useState('')
-  const [classId, setClassId] = useState('')
+  const [pickedClassId, setClassId] = useState('')
   const [status, setStatus] = useState('')
   const [page, setPage] = useState(1)
   const [adding, setAdding] = useState(() => (params.get('enquiry') ? { enquiryId: params.get('enquiry') } : null))
   const [openId, setOpenId] = useState(null)
   useEffect(() => { if (params.get('enquiry')) setParams({}, { replace: true }) }, [params, setParams])
   const q = useDebouncedValue(search.trim(), 250)
+  const classes = cycle?.classes ?? []
+  // a class picked in another cycle doesn't carry over when the cycle is switched
+  const classId = classes.some((c) => c.classId === pickedClassId) ? pickedClassId : ''
   const query = { cycleId: cycle?.id, search: q || undefined, classId: classId || undefined, status: status || undefined, page, pageSize: 50 }
   const { data, isLoading, error, refetch } = useQuery({ queryKey: ['applications', query], queryFn: () => fetchApplications(query), placeholderData: keepPreviousData, enabled: !!cycle })
-  const classes = cycle?.classes ?? []
   const STATUSES = ['', ...Object.keys(APPLICATION_STATUS)]
   const statusLabel = (s) => (s ? t(`admissions.status.${s}`, APPLICATION_STATUS[s]?.label) : t('admissions.all'))
   const meta = data?.meta
@@ -166,14 +169,26 @@ export default function Applications() {
   const counted = classId ? classes.filter((c) => c.classId === classId) : classes
   const sum = (k) => counted.reduce((n, c) => n + (c[k] ?? 0), 0)
   const seats = sum('seats')
+  const isMobile = useIsMobile()
 
   return (
     <PageContainer>
       <PageHeader icon={FileText} title={t('admissions.applications.title')} subtitle={t('admissions.applications.subtitle')}
         actions={<HeaderButton icon={Plus} variant="primary" requires="admissions.applications.create" onClick={() => setAdding({})}>{t('admissions.applications.new')}</HeaderButton>} />
-      {!cycles.length && <Note tone="warning" className="mb-4">{t('admissions.noCycles')}</Note>}
+      {!cycles.length && !cyclesLoading && <Note tone="warning" className="mb-4">{t('admissions.noCycles')}</Note>}
+      <SideNavLayout nav={classes.length > 1 && (
+        // the cycle's classes: applications each, and the seats filled so far (red when the class is full)
+        <SideNav title={t('admissions.applications.classesNav')} value={classId} onChange={(id) => { setClassId(id); setPage(1) }} items={[
+          { id: '', label: t('admissions.applications.allClasses'), icon: School, count: classes.reduce((n, c) => n + (c.applications ?? 0), 0) },
+          ...classes.map((c) => ({
+            id: c.classId, label: c.className, count: c.applications ?? 0,
+            hint: c.seats ? t('admissions.applications.seatsFilled', { admitted: c.admitted ?? 0, seats: c.seats }) : undefined,
+            progress: c.seats ? { value: c.admitted ?? 0, max: c.seats } : undefined,
+          })),
+        ]} />
+      )}>
       {sum('applications') > 0 && (
-        <StatCardRow className="mb-4" items={[
+        <StatCardRow items={[
           { icon: FileText, tone: 'brand', label: t('admissions.applications.summary.total'), value: sum('applications'), sub: seats ? t('admissions.applications.summary.seats', { count: seats }) : undefined },
           { icon: Hourglass, tone: 'info', label: t('admissions.applications.summary.live'), value: sum('live') },
           { icon: BadgeCheck, tone: 'warning', label: t('admissions.applications.summary.offered'), value: sum('offered'), progress: seats ? (sum('offered') / seats) * 100 : undefined, onClick: () => { setStatus(status === 'OFFERED' ? '' : 'OFFERED'); setPage(1) } },
@@ -188,28 +203,34 @@ export default function Applications() {
         exportable exportName="applications"
         toolbar={<Toolbar search={search} onSearch={(v) => { setSearch(v); setPage(1) }} searchPlaceholder={t('admissions.applications.search')} right={<>
           {chip}
-          <ControlChip label={t('admissions.form.class')} value={classes.find((c) => c.classId === classId)?.className ?? t('admissions.all')} active={!!classId} options={[t('admissions.all'), ...classes.map((c) => c.className)]} onChange={(v) => { setClassId(classes.find((c) => c.className === v)?.classId ?? ''); setPage(1) }} />
           <ControlChip label={t('admissions.statusLabel')} value={statusLabel(status)} active={!!status} options={STATUSES.map(statusLabel)} onChange={(v) => { setStatus(STATUSES.find((s) => statusLabel(s) === v) ?? ''); setPage(1) }} />
         </>} />}
         columns={[
-          { key: 'applicationNo', header: t('admissions.applications.no'), nowrap: true, render: (v) => <CodeBadge>{v}</CodeBadge> },
-          { key: 'childName', header: t('admissions.enquiries.child'), mobilePrimary: true, render: (v, r) => <PersonCell name={v} size={34} /> },
-          { key: 'className', header: t('admissions.form.class'), render: (v, r) => <ColorChip label={v} seed={r.classId} /> },
+          { key: 'applicationNo', header: t('admissions.applications.no'), nowrap: true, mobileHidden: true, render: (v) => <CodeBadge>{v}</CodeBadge> },
+          // on a phone the child carries the application no. and the class (when every class is listed)
+          { key: 'childName', header: t('admissions.enquiries.child'), mobileTitle: true, render: (v, r) => <PersonCell name={v} size={34} sub={isMobile ? [!classId && r.className, r.applicationNo].filter(Boolean).join(' · ') : undefined} /> },
+          // one class picked in the side list → its chip on every row says nothing
+          ...(classId ? [] : [{ key: 'className', header: t('admissions.form.class'), mobileHidden: true, render: (v, r) => <ColorChip label={v} seed={r.classId} /> }]),
           { key: 'parent', header: t('admissions.form.parentName'), render: (v) => <ContactCell name={v?.name} phone={v?.mobile} /> },
           { key: 'score', header: t('admissions.applications.score'), align: 'right', mobileHidden: true, render: (v, r) => (r.testAbsent ? <CodeBadge tone="danger">{t('admissions.applications.ab')}</CodeBadge> : v != null ? <span className="font-semibold tabular-nums text-ink">{v}</span> : <span className="text-ink-faint">—</span>) },
           { key: 'rank', header: t('admissions.applications.rank'), align: 'right', mobileHidden: true, render: (v) => (v != null ? <CodeBadge tone={v <= 3 ? 'brand' : 'neutral'}>{v}</CodeBadge> : <span className="text-ink-faint">—</span>) },
-          { key: 'status', header: t('admissions.statusLabel'), render: (v) => <StatusPill tone={APPLICATION_STATUS[v]?.tone}>{statusLabel(v)}</StatusPill> },
-          { key: 'submittedAt', header: t('admissions.applications.submitted'), nowrap: true, mobileHidden: true, render: (v, r) => (
-            <span className="inline-flex flex-col items-start gap-1">
-              <DateCell value={v} time relative={false} className="text-sm" />
-              <ColorChip label={t(`admissions.channels.${r.channel}`)} icon={r.channel === 'ONLINE' ? Monitor : Store} tone={r.channel === 'ONLINE' ? 'sky' : 'neutral'} />
-            </span>
-          ) },
+          { key: 'status', header: t('admissions.statusLabel'), mobileTrail: true, render: (v) => <StatusPill tone={APPLICATION_STATUS[v]?.tone}>{statusLabel(v)}</StatusPill> },
+          // the date, and online / at the desk as a small icon line (the time is in the drawer) — keeps the table beside the class list
+          { key: 'submittedAt', header: t('admissions.applications.submitted'), mobileHidden: true, render: (v, r) => {
+            const Channel = r.channel === 'ONLINE' ? Monitor : Store
+            return (
+              <span className="flex flex-col items-start gap-0.5">
+                <DateCell value={v} relative={false} className="text-sm whitespace-nowrap" />
+                <span className="inline-flex items-center gap-1 whitespace-nowrap text-[11px] text-ink-faint"><Channel className="h-3 w-3 shrink-0" aria-hidden />{t(`admissions.channels.${r.channel}`)}</span>
+              </span>
+            )
+          } },
         ]}
         onRowClick={(r) => setOpenId(r.id)}
         pagination={meta && meta.totalPages > 1 && { page: meta.page - 1, size: meta.pageSize, totalElements: meta.total, totalPages: meta.totalPages, onPageChange: (p) => setPage(p + 1) }}
         emptyIcon={FileText} emptyTitle={t('admissions.applications.empty')}
       />
+      </SideNavLayout>
       {adding && <NewApplication cycles={cycles} cycle={cycle} enquiryId={adding.enquiryId} onClose={() => setAdding(null)} onSaved={(a) => { qc.invalidateQueries({ queryKey: ['applications'] }); setAdding(null); setOpenId(a.id); showSuccess(t('admissions.applications.saved', { no: a.applicationNo })) }} />}
       {openId && <ApplicationDrawer id={openId} cycles={cycles} onClose={() => setOpenId(null)} />}
     </PageContainer>

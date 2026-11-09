@@ -26,7 +26,7 @@ export default function ControlChip({
   const norm = isSelect ? options.map((o) => (typeof o === 'string' ? { value: o, label: o } : o)) : []
 
   const base = clsx(
-    'relative inline-flex items-center gap-1.5 h-8 px-3 rounded-full text-[13px] font-medium',
+    'relative inline-flex items-center gap-1.5 h-8 [@media(pointer:coarse)]:h-10 px-3 rounded-full text-[13px] font-medium',
     'transition-colors select-none whitespace-nowrap',
     active
       ? 'bg-brand-50 text-brand-700 hover:bg-brand-100/70'

@@ -1,6 +1,9 @@
 import { incomeKeyForHead } from '@schoolgiant/shared'
-import { Expense, FinanceConfig, Journal } from '../models/finance.js'
+import { Account, Expense, FinanceConfig, Journal } from '../models/finance.js'
 import { LibraryFine } from '../models/library.js'
+import { StoreSale } from '../models/inventory.js'
+import { CanteenOrder, WalletTxn } from '../models/canteen.js'
+import { AlumniDonation } from '../models/alumni.js'
 import { FeeHead, FeeInvoice, FeePayment, FeeRefund } from '../models/fees.js'
 import { Payslip, PayrollRun } from '../models/payroll.js'
 import { Student, studentName } from '../models/students.js'
@@ -242,6 +245,136 @@ export async function postLibraryFineCancels(f, chart) {
   return last
 }
 
+// ───────────────────────────────────────────────────────── store sales (inventory)
+
+/** "Uniform & book sales": its system key when the chart has one, else the starter account 4230, else other fees. */
+const storeIncome = (chart) => chart.byKey.get('INC_STORE_SALES')
+  ?? [...chart.byId.values()].find((a) => a.code === '4230' && !a.isGroup)
+  ?? chart.byKey.get('INC_OTHER_FEES')
+
+/** A uniform / book sale at the store counter: Dr the money (cash, or bank for UPI / card), Cr store sales. */
+export async function postStoreSale(s, chart) {
+  if (!s.total) return null
+  const money = await moneyFor(chart, s.mode)
+  const party = s.studentId && { type: 'STUDENT', id: s.studentId, name: `${s.student?.name ?? ''}${s.student?.admissionNo ? ` (${s.student.admissionNo})` : ''}` }
+  return postEntry({
+    key: `STORE_SALE:${s._id}:SOLD`, type: 'RECEIPT', date: s.date, branchId: s.branchId, reference: s.reference,
+    narration: `Store sale ${s.saleNo} — ${s.student?.name ?? ''}`,
+    lines: [{ account: money._id, amount: s.total, party }, { account: storeIncome(chart)._id, amount: -s.total }],
+    source: { type: 'STORE_SALE', id: s._id, no: s.saleNo, event: 'SOLD', module: 'inventory' },
+  }, chart)
+}
+
+/** A cancelled store sale: its voucher mirrored on the day it was cancelled. */
+export async function postStoreSaleCancel(s, chart) {
+  if (s.status !== 'CANCELLED') return null
+  const sold = await Journal.findOne({ postingKey: `STORE_SALE:${s._id}:SOLD` }).lean()
+  if (!sold) return null
+  const day = s.cancelled?.on ?? s.date
+  return postEntry({
+    key: `STORE_SALE:${s._id}:CANCELLED`, type: 'RECEIPT', date: day < s.date ? s.date : day, branchId: s.branchId,
+    narration: `Store sale ${s.saleNo} cancelled${s.cancelled?.reason ? ` — ${s.cancelled.reason}` : ''}`,
+    lines: sold.lines.map((l) => ({ account: l.accountId, amount: l.credit - l.debit, party: l.party, note: l.note })),
+    source: { type: 'STORE_SALE', id: s._id, no: s.saleNo, event: 'CANCELLED', module: 'inventory' },
+  }, chart)
+}
+
+// ───────────────────────────────────────────────────────── alumni donations
+
+/** A donation received: Dr the money, Cr donations & grants. */
+export async function postDonation(d, chart) {
+  if (d.status !== 'RECEIVED' || !d.amount) return null
+  const money = await moneyFor(chart, d.mode)
+  return postEntry({
+    key: `DONATION:${d._id}:RECEIVED`, type: 'RECEIPT', date: d.date, branchId: d.branchId, reference: d.reference,
+    narration: `Donation ${d.receiptNo} — ${d.donor?.name ?? ''}${d.fund ? ` (${d.fund})` : ''}`,
+    lines: [{ account: money._id, amount: d.amount, party: { type: 'OTHER', id: d.donor?.alumnusId, name: d.donor?.name } }, { account: 'INC_DONATIONS', amount: -d.amount }],
+    source: { type: 'DONATION', id: d._id, no: d.receiptNo, event: 'RECEIVED', module: 'alumni' },
+  }, chart)
+}
+// ───────────────────────────────────────────────────────── canteen wallet
+
+const CANTEEN_LEDGERS = {
+  CANTEEN_WALLETS: { code: '2125', name: 'Canteen wallet balances', type: 'LIABILITY', parent: '2100' },
+  INC_CANTEEN: { code: '4250', name: 'Canteen sales', type: 'INCOME', parent: '4200' },
+}
+/** The canteen ledger by key; an institution whose chart predates it gets it now (and the chart in hand learns it). */
+async function canteenLedger(chart, key) {
+  let acc = chart.byKey.get(key)
+  if (acc) return acc
+  const def = CANTEEN_LEDGERS[key]
+  acc = await Account.findOne({ systemKey: key }).lean()
+  if (!acc) {
+    const parent = await Account.findOne({ code: def.parent }).select('_id').lean()
+    const code = (await Account.exists({ code: def.code })) ? `${def.code}-C` : def.code
+    try {
+      acc = (await Account.create([{ code, name: def.name, type: def.type, parentId: parent?._id, systemKey: key, createdBy: 'Auto-posting' }]))[0].toObject()
+    } catch (err) {
+      if (err?.code !== 11000) throw err
+      acc = await Account.findOne({ systemKey: key }).lean()
+    }
+  }
+  chart.byKey.set(key, acc)
+  chart.byId.set(String(acc._id), acc)
+  return acc
+}
+const walletParty = (t) => ({ type: 'STUDENT', id: t.studentId })
+const canteenStudentParty = async (id) => studentParty(id ? await Student.findById(id).select('firstName lastName admissionNo').lean() : null)
+
+/** A wallet top-up: Dr the money (cash at the counter, UPI → bank, online → gateway/bank), Cr canteen wallet balances. */
+export async function postCanteenTopUp(t, chart) {
+  if (t.type !== 'TOP_UP' || !(t.amount > 0)) return null
+  const money = await moneyFor(chart, t.mode === 'CASH' ? 'CASH' : t.mode === 'ONLINE' ? 'ONLINE' : 'BANK')
+  const wallets = await canteenLedger(chart, 'CANTEEN_WALLETS')
+  const party = (await canteenStudentParty(t.studentId)) ?? walletParty(t)
+  return postEntry({
+    key: `CANTEEN_TXN:${t._id}:TOP_UP`, type: 'RECEIPT', date: t.date, branchId: t.branchId, reference: t.reference,
+    narration: `Canteen wallet top-up — ${party.name ?? ''}${t.mode ? ` (${t.mode})` : ''}`,
+    lines: [{ account: money._id, amount: t.amount, party }, { account: wallets._id, amount: -t.amount, party }],
+    source: { type: 'CANTEEN', id: t._id, event: 'TOP_UP', module: 'canteen' },
+  }, chart)
+}
+
+/** Wallet money given back to the family: Dr canteen wallet balances, Cr cash / bank. */
+export async function postCanteenRefund(t, chart) {
+  if (t.type !== 'REFUND' || !(t.amount < 0)) return null
+  const money = await moneyFor(chart, t.mode === 'CASH' ? 'CASH' : 'BANK')
+  const wallets = await canteenLedger(chart, 'CANTEEN_WALLETS')
+  const party = (await canteenStudentParty(t.studentId)) ?? walletParty(t)
+  return postEntry({
+    key: `CANTEEN_TXN:${t._id}:REFUND`, type: 'PAYMENT', date: t.date, branchId: t.branchId, reference: t.reference,
+    narration: `Canteen wallet refund — ${party.name ?? ''}${t.note ? `: ${t.note}` : ''}`,
+    lines: [{ account: wallets._id, amount: -t.amount, party }, { account: money._id, amount: t.amount, party }],
+    source: { type: 'CANTEEN', id: t._id, event: 'REFUND', module: 'canteen' },
+  }, chart)
+}
+
+/** A sale: Dr canteen wallet balances (wallet) or cash (cash), Cr canteen sales. */
+export async function postCanteenSale(o, chart) {
+  if (!o.total) return null
+  const income = await canteenLedger(chart, 'INC_CANTEEN')
+  const from = o.payMode === 'WALLET' ? await canteenLedger(chart, 'CANTEEN_WALLETS') : await moneyFor(chart, 'CASH')
+  const party = o.studentId ? await canteenStudentParty(o.studentId) : undefined
+  return postEntry({
+    key: `CANTEEN_ORDER:${o._id}:SOLD`, type: o.payMode === 'WALLET' ? 'JOURNAL' : 'RECEIPT', date: o.date, branchId: o.branchId,
+    narration: `Canteen ${o.source === 'PREORDER' ? 'pre-order' : 'sale'} ${o.orderNo}${o.studentName ? ` — ${o.studentName}` : ''}`,
+    lines: [{ account: from._id, amount: o.total, party }, { account: income._id, amount: -o.total }],
+    source: { type: 'CANTEEN', id: o._id, no: o.orderNo, event: 'SOLD', module: 'canteen' },
+  }, chart)
+}
+
+/** A cancelled pre-order: its sale voucher mirrored. */
+export async function postCanteenSaleCancel(o, chart) {
+  if (o.status !== 'CANCELLED') return null
+  const sold = await Journal.findOne({ postingKey: `CANTEEN_ORDER:${o._id}:SOLD` }).lean()
+  if (!sold) return null
+  return postEntry({
+    key: `CANTEEN_ORDER:${o._id}:CANCELLED`, type: sold.type, date: o.cancelledAt ? ymdIn(o.cancelledAt, await timeZoneOf()) : o.date, branchId: o.branchId,
+    narration: `Canteen pre-order ${o.orderNo} cancelled`,
+    lines: sold.lines.map((l) => ({ account: l.accountId, amount: l.credit - l.debit, party: l.party, note: l.note })),
+    source: { type: 'CANTEEN', id: o._id, no: o.orderNo, event: 'CANCELLED', module: 'canteen' },
+  }, chart)
+}
 // ───────────────────────────────────────────────────────── listeners and rebuild
 
 const byId = (Model, fn) => async (id, chart) => {
@@ -254,6 +387,13 @@ const HANDLERS = {
   'fees.receipt': ['fees', (p) => p.entity?.id, byId(FeePayment, postFeeReceipt)],
   'fees.receipt_cancelled': ['fees', (p) => p.entity?.id, byId(FeePayment, postReceiptCancel)],
   'fees.refund': ['fees', (p) => p.entity?.id, byId(FeeRefund, postFeeRefund)],
+  'alumni.donation': ['alumni', (p) => p.entity?.id, byId(AlumniDonation, postDonation)],
+  'canteen.topup': ['canteen', (p) => p.entity?.id, byId(WalletTxn, postCanteenTopUp)],
+  'canteen.refund': ['canteen', (p) => p.entity?.id, byId(WalletTxn, postCanteenRefund)],
+  'canteen.sale': ['canteen', (p) => p.entity?.id, byId(CanteenOrder, postCanteenSale)],
+  'canteen.sale_cancelled': ['canteen', (p) => p.entity?.id, byId(CanteenOrder, postCanteenSaleCancel)],
+  'inventory.sale': ['inventory', (p) => p.entity?.id, byId(StoreSale, postStoreSale)],
+  'inventory.sale_cancelled': ['inventory', (p) => p.entity?.id, byId(StoreSale, postStoreSaleCancel)],
   'payroll.paid': ['payroll', (p) => p.entity?.id, byId(PayrollRun, postPayrollRun)],
   'library.fine_paid': ['library', (p) => p.entity?.id, byId(LibraryFine, postLibraryFine)],
   'library.fine_cancelled': ['library', (p) => p.entity?.id, byId(LibraryFine, postLibraryFineCancels)],
@@ -308,6 +448,20 @@ export async function rebuildPostings({ from, to }, req) {
   if (enabled.has('library')) {
     await run('LIBRARY_FINE', await LibraryFine.find({ status: 'PAID', 'paid.date': range }).lean(), (f) => postLibraryFine(f, chart))
     await run('LIBRARY_FINE', await LibraryFine.find({ 'cancelled.date': range }).lean(), (f) => postLibraryFineCancels(f, chart))
+  }
+  if (enabled.has('alumni')) await run('DONATION', await AlumniDonation.find({ status: 'RECEIVED', date: range }).lean(), (d) => postDonation(d, chart))
+  if (enabled.has('canteen')) {
+    const txns = await WalletTxn.find({ date: range, type: { $in: ['TOP_UP', 'REFUND'] } }).lean()
+    await run('CANTEEN', txns.filter((t) => t.type === 'TOP_UP'), (t) => postCanteenTopUp(t, chart))
+    await run('CANTEEN', txns.filter((t) => t.type === 'REFUND'), (t) => postCanteenRefund(t, chart))
+    const orders = await CanteenOrder.find({ date: range }).lean()
+    await run('CANTEEN', orders, (o) => postCanteenSale(o, chart))
+    await run('CANTEEN', orders.filter((o) => o.status === 'CANCELLED'), (o) => postCanteenSaleCancel(o, chart))
+  }
+  if (enabled.has('inventory')) {
+    const sales = await StoreSale.find({ date: range }).lean()
+    await run('STORE_SALE', sales, (s) => postStoreSale(s, chart))
+    await run('STORE_SALE', await StoreSale.find({ status: 'CANCELLED', 'cancelled.on': range }).lean(), (s) => postStoreSaleCancel(s, chart))
   }
   await run('EXPENSE', await Expense.find({ status: 'PAID', 'paid.date': range }).lean(), (x) => postExpense(x, chart))
   await audit({ action: 'UPDATE', module: 'finance', entityType: 'ledger', entityName: `${from} – ${to}`, summary: `Rebuilt postings for ${from} to ${to}: ${counts.posted} posted, ${counts.existing} already there${counts.failed ? `, ${counts.failed} failed` : ''}` }, req)

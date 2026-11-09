@@ -7,7 +7,7 @@ const ObjectId = Schema.Types.ObjectId
 export const TENANT_STATUSES = ['TRIAL', 'ACTIVE', 'PAST_DUE', 'SUSPENDED', 'CANCELLED']
 
 const limitsShape = {
-  students: Number, users: Number, branches: Number, storageGb: Number,
+  students: Number, users: Number, branches: Number, storageGb: Number, aiTokensK: Number,
 }
 
 const tenantSchema = new Schema({
@@ -240,6 +240,8 @@ const platformSettingSchema = new Schema({
   notice: { message: String, tone: { type: String, enum: ['info', 'warning'], default: 'info' }, active: Boolean, until: Date },
   /** The platform's own Razorpay account, for subscription invoices (not any institution's). Secrets encrypted. */
   razorpay: { keyId: String, keySecret: String, webhookSecret: String },
+  /** Web push (VAPID) key pair, made on first use unless VAPID_PUBLIC_KEY / VAPID_PRIVATE_KEY are set. Private key encrypted. */
+  push: { publicKey: String, privateKey: String },
   updatedBy: String,
 }, { timestamps: true, versionKey: false, minimize: false })
 export const PlatformSetting = model('PlatformSetting', platformSettingSchema, 'platform_settings')

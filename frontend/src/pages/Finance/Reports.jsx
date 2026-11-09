@@ -1,15 +1,23 @@
 import { useState } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { Download, FileSpreadsheet, LineChart, PiggyBank, RefreshCw, TrendingDown, TrendingUp } from 'lucide-react'
+import { BookOpen, BookText, Download, FileSpreadsheet, LineChart, ListChecks, PiggyBank, RefreshCw, Scale, TrendingDown, TrendingUp } from 'lucide-react'
 import { formatINR, formatINRCompact, fyRange } from '@schoolgiant/shared'
-import { CodeBadge, ColorChip, DataTable, DateCell, FormField, Input, Money, Note, PageContainer, PageHeader, Panel, Select, StatCardRow, Tabs, useConfirm } from '../../components/system'
+import { CodeBadge, ColorChip, DataTable, DateCell, FormField, Input, Money, Note, PageContainer, PageHeader, Panel, Select, SideNav, SideNavLayout, StatCardRow, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { downloadReport, fetchReport, rebuildPostings } from '../../api/finance'
 import { hasPermission } from '../../api/auth'
 import { useSnackbar } from '../../context/SnackbarContext'
 import { useFormat } from '../../context/SettingsContext'
 import { AccountSelect, useFinanceMeta } from '../../components/finance/FinanceKit'
+
+const REPORTS = [
+  { id: 'income-expenditure', icon: PiggyBank },
+  { id: 'balance-sheet', icon: Scale },
+  { id: 'trial-balance', icon: ListChecks },
+  { id: 'day-book', icon: BookOpen },
+  { id: 'ledger', icon: BookText },
+]
 
 function Sections({ title, section }) {
   return (
@@ -18,7 +26,7 @@ function Sections({ title, section }) {
         {section.groups.map((g) => (
           <div key={g.name} className="px-4 py-2">
             <p className="text-xs font-semibold text-ink-muted uppercase tracking-wide mb-1">{g.name}</p>
-            {g.rows.map((r) => <div key={r.id} className="flex justify-between gap-3 text-sm py-0.5"><span className="inline-flex items-center gap-2"><CodeBadge>{r.code}</CodeBadge>{r.name}</span><Money value={r.amount} paise /></div>)}
+            {g.rows.map((r) => <div key={r.id} className="flex justify-between gap-3 text-sm py-0.5"><span className="inline-flex min-w-0 items-center gap-2"><CodeBadge>{r.code}</CodeBadge><span className="min-w-0">{r.name}</span></span><Money value={r.amount} paise className="shrink-0" /></div>)}
             <div className="flex justify-between gap-3 text-sm font-semibold pt-1"><span /><Money value={g.total} paise /></div>
           </div>
         ))}
@@ -51,8 +59,11 @@ export default function Reports() {
   return (
     <PageContainer>
       <PageHeader icon={LineChart} title={t('finance.reports.title')} subtitle={t('finance.reports.subtitle')} />
-      <div className="flex flex-wrap items-end gap-3 mb-4">
-        <div className="w-40">
+      <SideNavLayout nav={(
+        <SideNav title={t('finance.reports.navTitle')} value={tab} onChange={setTab} items={REPORTS.map((r) => ({ id: r.id, label: t(`finance.reports.tabs.${r.id}`), icon: r.icon, hint: t(`finance.reports.hints.${r.id}`) }))} />
+      )}>
+      <div className="grid grid-cols-2 items-end gap-3 sm:flex sm:flex-wrap">
+        <div className="col-span-2 sm:w-44">
           <FormField label={t('finance.reports.fy')}>
             <Select value={custom ? '' : theFy ?? ''} onChange={(e) => { setCustom(null); setFy(e.target.value) }}>
               {custom && <option value="">{t('finance.reports.custom')}</option>}
@@ -60,15 +71,16 @@ export default function Reports() {
             </Select>
           </FormField>
         </div>
-        {range && <div className="w-40"><FormField label={t('finance.reports.from')}><Input type="date" value={range.from} onChange={(e) => setCustom({ ...range, from: e.target.value })} /></FormField></div>}
-        {range && tab !== 'balance-sheet' && <div className="w-40"><FormField label={t('finance.reports.to')}><Input type="date" value={range.to} onChange={(e) => setCustom({ ...range, to: e.target.value })} /></FormField></div>}
-        {hasPermission('finance.reports.export') && ready && <Button variant="secondary" icon={Download} onClick={() => dl(exportKind)}>{t('finance.reports.csv')}</Button>}
-        {hasPermission('finance.reports.export') && range && <Button variant="ghost" icon={FileSpreadsheet} onClick={() => dl('tally')}>{t('finance.reports.tally')}</Button>}
-        {hasPermission('finance.journals.post') && range && <Button variant="ghost" icon={RefreshCw} loading={rebuild.isPending}
-          onClick={async () => { if (await confirm({ title: t('finance.reports.rebuildTitle'), message: t('finance.reports.rebuildHint'), confirmLabel: t('finance.reports.rebuild') })) rebuild.mutate() }}>{t('finance.reports.rebuild')}</Button>}
+        {range && <div className={tab === 'balance-sheet' ? 'col-span-2 sm:w-40' : 'min-w-0 sm:w-40'}><FormField label={t('finance.reports.from')}><Input type="date" value={range.from} onChange={(e) => setCustom({ ...range, from: e.target.value })} /></FormField></div>}
+        {range && tab !== 'balance-sheet' && <div className="min-w-0 sm:w-40"><FormField label={t('finance.reports.to')}><Input type="date" value={range.to} onChange={(e) => setCustom({ ...range, to: e.target.value })} /></FormField></div>}
+        <div className="col-span-2 flex flex-wrap gap-2 sm:col-span-1">
+          {hasPermission('finance.reports.export') && ready && <Button variant="secondary" icon={Download} onClick={() => dl(exportKind)}>{t('finance.reports.csv')}</Button>}
+          {hasPermission('finance.reports.export') && range && <Button variant="ghost" icon={FileSpreadsheet} onClick={() => dl('tally')}>{t('finance.reports.tally')}</Button>}
+          {hasPermission('finance.journals.post') && range && <Button variant="ghost" icon={RefreshCw} loading={rebuild.isPending}
+            onClick={async () => { if (await confirm({ title: t('finance.reports.rebuildTitle'), message: t('finance.reports.rebuildHint'), confirmLabel: t('finance.reports.rebuild') })) rebuild.mutate() }}>{t('finance.reports.rebuild')}</Button>}
+        </div>
       </div>
-      <Tabs className="mb-4" value={tab} onChange={setTab} tabs={['income-expenditure', 'balance-sheet', 'trial-balance', 'day-book', 'ledger'].map((k) => ({ value: k, label: t(`finance.reports.tabs.${k}`) }))} />
-      {tab === 'ledger' && <div className="w-96 mb-4"><AccountSelect accounts={meta?.accounts} value={accountId} onChange={setAccountId} aria-label={t('finance.reports.account')} /></div>}
+      {tab === 'ledger' && <div className="w-full sm:w-96"><AccountSelect accounts={meta?.accounts} value={accountId} onChange={setAccountId} aria-label={t('finance.reports.account')} /></div>}
       {!ready ? <Note>{t('finance.reports.pickAccount')}</Note> : isLoading ? <p className="text-sm text-ink-faint">{t('finance.loading')}</p> : error ? <Note tone="warning">{error.message}</Note> : data && (
         <>
           {tab === 'income-expenditure' && (
@@ -107,7 +119,7 @@ export default function Reports() {
               { key: 'date', header: t('finance.voucher.date'), nowrap: true, render: (v) => <DateCell value={v} relative={false} /> },
               { key: 'voucherNo', header: t('finance.journals.voucher'), mobilePrimary: true, render: (v, r) => <div className="flex flex-col items-start gap-1"><CodeBadge>{v}</CodeBadge><ColorChip label={t(`finance.voucherTypes.${r.type}`)} seed={r.type} dot /></div> },
               { key: 'narration', header: t('finance.voucher.narration'), render: (v, r) => <span className="text-sm">{v}<span className="block text-xs text-ink-faint">{r.lines.map((l) => `${l.accountName} ${l.debit ? 'Dr' : 'Cr'}`).join(' · ')}</span></span> },
-              { key: 'total', header: t('finance.voucher.amount'), align: 'right', render: (v) => <Money value={v} paise /> },
+              { key: 'total', header: t('finance.voucher.amount'), align: 'right', mobileTrail: true, render: (v) => <Money value={v} paise /> },
             ]} emptyTitle={t('finance.reports.none')} />
           )}
           {tab === 'ledger' && (
@@ -118,11 +130,12 @@ export default function Reports() {
                 { key: 'narration', header: t('finance.voucher.narration'), mobilePrimary: true, render: (v, r) => <span className="text-sm">{v}{r.against && <span className="block text-xs text-ink-faint">{r.against}{r.party ? ` · ${r.party}` : ''}</span>}</span> },
                 { key: 'debit', header: t('finance.voucher.debit'), align: 'right', render: (v) => (v ? <Money value={v} paise /> : '') },
                 { key: 'credit', header: t('finance.voucher.credit'), align: 'right', render: (v) => (v ? <Money value={v} paise /> : '') },
-                { key: 'balance', header: t('finance.accounts.balance'), align: 'right', render: (v) => <Money value={v} paise /> },
+                { key: 'balance', header: t('finance.accounts.balance'), align: 'right', mobileTrail: true, render: (v) => <Money value={v} paise /> },
               ]} />
           )}
         </>
       )}
+      </SideNavLayout>
     </PageContainer>
   )
 }

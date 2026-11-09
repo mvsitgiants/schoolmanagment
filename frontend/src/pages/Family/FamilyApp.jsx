@@ -13,10 +13,17 @@ import FamilyLogin from './Login'
 import FamilyHome from './Home'
 import FamilyAttendance from './Attendance'
 import FamilyHomework from './Homework'
+import FamilyTimetable from './Timetable'
 import FamilyLearning from './Learning'
 import FamilyTests from './Tests'
 import FamilyBus from './Bus'
 import FamilyLibrary from './Library'
+import FamilyCanteen from './Canteen'
+import FamilySurveys from './Surveys'
+import FamilyComplaints from './Complaints'
+import FamilyPlacements from './Placements'
+import FamilyHealth from './Health'
+import FamilyHostel from './Hostel'
 import FamilyCalendar from './Calendar'
 import FamilyMeetings from './Meetings'
 import FamilyPhotos from './Photos'
@@ -112,15 +119,27 @@ export default function FamilyApp() {
         <Header school={school} />
         {me.isLoading ? <FSkeleton className="h-64" /> : !signedIn ? <FamilyLogin /> : (
           <>
-            <ChildSwitcher students={value.students} value={value.studentId} onChange={value.setStudentId} />
+            {/* a parent with several children: the switcher stays at the top of the screen while scrolling */}
+            {value.students.length > 1 && (
+              <div className="sticky top-0 z-20 -mx-4 border-b border-border/60 bg-bg/90 px-4 py-2 backdrop-blur supports-[backdrop-filter]:bg-bg/75">
+                <ChildSwitcher students={value.students} value={value.studentId} onChange={value.setStudentId} />
+              </div>
+            )}
             <Routes>
               <Route index element={<FamilyHome />} />
               <Route path="attendance" element={<FamilyAttendance />} />
               <Route path="homework" element={<FamilyHomework />} />
+              <Route path="timetable" element={<FamilyTimetable />} />
               <Route path="learning" element={<FamilyLearning />} />
               <Route path="tests" element={<FamilyTests />} />
               <Route path="bus" element={<FamilyBus />} />
               <Route path="library" element={<FamilyLibrary />} />
+              <Route path="canteen" element={<FamilyCanteen />} />
+              <Route path="surveys" element={<FamilySurveys />} />
+              <Route path="complaints" element={<FamilyComplaints />} />
+              <Route path="placements" element={<FamilyPlacements />} />
+              <Route path="health" element={<FamilyHealth />} />
+              <Route path="hostel" element={<FamilyHostel />} />
               <Route path="calendar" element={<FamilyCalendar />} />
               <Route path="meetings" element={<FamilyMeetings />} />
               <Route path="photos" element={<FamilyPhotos />} />

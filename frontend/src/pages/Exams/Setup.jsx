@@ -25,11 +25,11 @@ function TypeForm({ type, onClose, onSaved }) {
       <Button variant="secondary" onClick={onClose}>{t('actions.cancel')}</Button>
       <Button loading={save.isPending} disabled={form.name.trim().length < 2 || !form.code.trim()} onClick={() => save.mutate()}>{t('exams.setup.save')}</Button>
     </>}>
-      <div className="grid grid-cols-2 gap-4">
-        <div className="col-span-2"><FormField label={t('exams.setup.name')} required error={errors.name}><Input value={form.name} onChange={set('name')} placeholder={t('exams.setup.namePlaceholder')} /></FormField></div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="sm:col-span-2"><FormField label={t('exams.setup.name')} required error={errors.name}><Input value={form.name} onChange={set('name')} placeholder={t('exams.setup.namePlaceholder')} /></FormField></div>
         <FormField label={t('exams.setup.code')} required error={errors.code}><Input value={form.code} onChange={set('code')} /></FormField>
         <FormField label={t('exams.setup.defaultMax')} hint={t('exams.setup.defaultMaxHint')} error={errors.defaultMaxMarks}><Input type="number" min="1" value={form.defaultMaxMarks} onChange={set('defaultMaxMarks')} /></FormField>
-        <div className="col-span-2"><FormField label={t('exams.setup.weightage')} hint={t('exams.setup.weightageHint')} error={errors.weightage}><Input type="number" min="0" max="100" value={form.weightage} onChange={set('weightage')} /></FormField></div>
+        <div className="sm:col-span-2"><FormField label={t('exams.setup.weightage')} hint={t('exams.setup.weightageHint')} error={errors.weightage}><Input type="number" min="0" max="100" value={form.weightage} onChange={set('weightage')} /></FormField></div>
       </div>
     </Modal>
   )
@@ -60,13 +60,13 @@ export default function Setup() {
           { key: 'name', header: t('exams.setup.name'), mobilePrimary: true, render: (v, r) => (r.active ? <ColorChip label={v} seed={r.id} dot /> : <span className="text-ink-faint line-through">{v}</span>) },
           { key: 'code', header: t('exams.setup.code'), render: (v) => <CodeBadge>{v}</CodeBadge> },
           { key: 'defaultMaxMarks', header: t('exams.setup.defaultMax'), align: 'right' },
-          { key: 'weightage', header: t('exams.setup.weightage'), align: 'right', render: (v, r) => (
+          { key: 'weightage', header: t('exams.setup.weightage'), align: 'right', mobileTrail: true, render: (v, r) => (
             <div className="inline-flex items-center justify-end gap-2">
               <LevelBar bare value={r.active ? v ?? 0 : 0} max={100} width="w-16" />
               <span className="font-semibold tabular-nums">{v ?? 0}%</span>
             </div>
           ) },
-          { key: 'active', header: t('exams.setup.status'), render: (v) => <StatusPill tone={v ? 'success' : 'neutral'}>{v ? t('exams.setup.inUse') : t('exams.setup.notInUse')}</StatusPill> },
+          { key: 'active', header: t('exams.setup.status'), mobilePrimary: true, render: (v) => <StatusPill tone={v ? 'success' : 'neutral'}>{v ? t('exams.setup.inUse') : t('exams.setup.notInUse')}</StatusPill> },
           { key: 'id', header: '', align: 'right', width: 150, render: (_, r) => canEdit && (
             <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>
               <Button size="sm" variant="ghost" icon={Pencil} aria-label={t('exams.setup.edit')} title={t('exams.setup.edit')} onClick={() => setEditing(r)} />

@@ -1,5 +1,5 @@
 import {
-  DEFAULT_BELL, LAB_KINDS, TIMETABLE_STATUS, WEEK_DAYS, checkBell, findClashes, generateTimetable, sectionLabel, teachingPeriods, weekdayCode,
+  DEFAULT_BELL, LAB_KINDS, addDaysYmd, TIMETABLE_STATUS, WEEK_DAYS, checkBell, findClashes, generateTimetable, sectionLabel, teachingPeriods, weekdayCode,
 } from '@schoolgiant/shared'
 import { AcademicYear, ClassLevel, Section, Subject, TeacherAllocation } from '../models/academics.js'
 import { User } from '../models/tenant.js'
@@ -377,6 +377,30 @@ export async function myWeek(auth) {
   const covering = await Substitution.find({ substituteId: auth.userId, date: { $gte: t } }).sort({ date: 1, period: 1 }).limit(30).lean()
   const names = await labelMaps(covering.map((c) => String(c.sectionId)), covering.map((c) => String(c.absentTeacherId)))
   return { ...g, covering: covering.map((c) => ({ id: String(c._id), date: c.date, period: c.period, section: names.section.get(String(c.sectionId)), forTeacher: names.teacher.get(String(c.absentTeacherId)) })) }
+}
+
+/**
+ * A section's published week for the family app: subject, teacher and room per period, the bell times, and the
+ * substitute teachers booked for the coming week. Nothing a family shouldn't see (ids of staff, locks, drafts).
+ */
+export async function sectionWeek(sectionId) {
+  const now = await institutionNow()
+  const year = await yearOrCurrent()
+  const pub = sectionId ? await Timetable.findOne({ academicYearId: year._id, status: 'PUBLISHED' }).lean() : null
+  if (!pub || (pub.effectiveFrom && pub.effectiveFrom > addDaysYmd(now.date, 7))) {
+    return { published: false, today: now.date, time: now.time, days: await workingDays(), slots: [], cells: {}, substitutions: [] }
+  }
+  const g = await grid(String(pub._id), { view: 'section', of: String(sectionId) })
+  const cells = {}
+  for (const [day, row] of Object.entries(g.cells)) {
+    cells[day] = Object.fromEntries(Object.entries(row).map(([p, c]) => [p, { subject: c.subject, subjectCode: c.subjectCode, teacher: c.teacher, room: c.room }]))
+  }
+  const subs = await Substitution.find({ sectionId, date: { $gte: now.date, $lte: addDaysYmd(now.date, 6) } }).sort({ date: 1, period: 1 }).lean()
+  const names = await labelMaps([], subs.map((x) => String(x.substituteId)))
+  return {
+    published: true, today: now.date, time: now.time, effectiveFrom: pub.effectiveFrom ?? null, days: g.days, slots: g.slots, cells,
+    substitutions: subs.map((x) => ({ date: x.date, day: weekdayCode(x.date), period: x.period, teacher: names.teacher.get(String(x.substituteId)) ?? '' })),
+  }
 }
 
 // ───────────────────────────────────────────────────────── substitutions

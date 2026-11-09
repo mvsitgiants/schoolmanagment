@@ -3,12 +3,14 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { ArrowUpRight, DoorOpen, GraduationCap, RotateCcw } from 'lucide-react'
 import { PROMOTION_OUTCOMES } from '@schoolgiant/shared'
-import { CodeBadge, ControlChip, DataTable, Note, PageContainer, PageHeader, PersonCell, Select, StatCardRow, useConfirm } from '../../components/system'
+import { DataTable, Note, PANEL, PageContainer, PageHeader, PersonCell, Select, SideNavLayout, StatCardRow, useConfirm } from '../../components/system'
+import { ClassNav, SectionPills, useClassSections } from '../../components/students/ClassNav'
 import Button from '../../components/ui/Button'
 import { fetchAcademicLookup } from '../../api/academics'
 import { fetchPromotion, runPromotion } from '../../api/students'
 import { hasPermission } from '../../api/auth'
 import { useSnackbar } from '../../context/SnackbarContext'
+import { useIsMobile } from '../../hooks/useMediaQuery'
 
 // each outcome's icon and colour on the summary tiles
 const OUTCOME_LOOK = {
@@ -28,8 +30,9 @@ export default function Promotion() {
   const confirm = useConfirm()
   const { showSuccess, showError } = useSnackbar()
   const { data: lookup } = useQuery({ queryKey: ['academic-lookup'], queryFn: fetchAcademicLookup })
-  const sections = lookup?.sections ?? []
+  const classes = useClassSections(lookup)
   const [fromId, setFromId] = useState('')
+  const fromClass = classes.find((c) => c.sections.some((s) => s.id === fromId))
   const { data: p, isLoading } = useQuery({ queryKey: ['promotion', fromId], queryFn: () => fetchPromotion(fromId), enabled: !!fromId })
   const [decisions, setDecisions] = useState({})
   const [nextTo, setNextTo] = useState('')
@@ -59,21 +62,32 @@ export default function Promotion() {
     onError: (e) => showError(e.message),
   })
   const canRun = hasPermission('students.promotion.promote')
+  const isMobile = useIsMobile()
+  const outcomeSelect = (id, name) => (
+    <Select value={decisions[id] ?? ''} disabled={!canRun} onChange={(e) => setDecisions((d) => ({ ...d, [id]: e.target.value }))} aria-label={name ? `${name} ${t('students.promotion.outcome')}` : t('students.promotion.outcome')}>
+      {PROMOTION_OUTCOMES.filter((o) => o.value !== 'PROMOTE' || p.nextClass).map((o) => <option key={o.value} value={o.value}>{outcomeLabel(o.value)}</option>)}
+    </Select>
+  )
 
   return (
     <PageContainer>
       <PageHeader icon={ArrowUpRight} title={t('students.promotion.title')} subtitle={t('students.promotion.subtitle')} />
-      <div className="flex flex-wrap items-center gap-3 mb-4">
-        <ControlChip label={t('students.promotion.from')} value={sections.find((s) => s.id === fromId)?.label ?? t('students.promotion.pick')} active={!!fromId}
-          options={sections.map((s) => s.label)} onChange={(v) => setFromId(sections.find((s) => s.label === v)?.id ?? '')} />
-        {p && <span className="text-sm text-ink-muted">{t('students.promotion.into', { year: p.toYear?.name ?? '—' })}</span>}
-      </div>
-
+      <SideNavLayout nav={classes.length > 0 && (
+        // tapping a class opens its first section; its other sections are pills above the list
+        <ClassNav title={t('students.directory.classes')} classes={classes} value={fromClass?.id ?? null} onChange={(id) => setFromId(classes.find((c) => c.id === id)?.sections[0]?.id ?? '')}
+          item={(c) => ({ hint: t('students.directory.sectionCount', { count: c.sections.length }) })} />
+      )}>
+      {fromClass && (
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+          <SectionPills sections={fromClass.sections} value={fromId} onChange={setFromId} label={(sec) => t('students.directory.sectionN', { name: sec.name })} />
+          {p && <span className="text-sm text-ink-muted">{t('students.promotion.into', { year: p.toYear?.name ?? '—' })}</span>}
+        </div>
+      )}
       {!fromId && <Note>{t('students.promotion.intro')}</Note>}
       {p && !p.toYear && <Note tone="warning">{t('students.promotion.noNextYear', { year: p.from.yearName })}</Note>}
       {p && p.toYear && (
         <>
-          <div className="grid sm:grid-cols-2 gap-4 mb-4">
+          <div className="grid sm:grid-cols-2 gap-4">
             <div>
               <p className="text-xs font-semibold text-ink-muted mb-1">{t('students.promotion.promoteInto')}</p>
               {p.nextClass?.sections.length
@@ -88,27 +102,34 @@ export default function Promotion() {
             </div>
           </div>
           {p.students.length > 0 && (
-            <StatCardRow className="mb-4" items={PROMOTION_OUTCOMES.filter((o) => o.value !== 'PROMOTE' || p.nextClass).map((o) => ({
+            <StatCardRow items={PROMOTION_OUTCOMES.filter((o) => o.value !== 'PROMOTE' || p.nextClass).map((o) => ({
               label: t(`students.promotion.tiles.${o.value}`), value: counts[o.value] ?? 0, ...OUTCOME_LOOK[o.value],
               progress: ((counts[o.value] ?? 0) / p.students.length) * 100,
             }))} />
           )}
-          <DataTable
-            rows={p.students}
-            loading={isLoading}
-            columns={[
-              { key: 'rollNo', header: t('students.promotion.roll'), width: 70, render: (v) => <CodeBadge>{v}</CodeBadge> },
-              { key: 'name', header: t('students.directory.student'), mobilePrimary: true, render: (v, r) => <PersonCell name={v} sub={r.admissionNo} size={34} /> },
-              { key: 'id', header: t('students.promotion.outcome'), width: 260, render: (id) => (
-                <Select value={decisions[id] ?? ''} disabled={!canRun} onChange={(e) => setDecisions((d) => ({ ...d, [id]: e.target.value }))} aria-label={t('students.promotion.outcome')}>
-                  {PROMOTION_OUTCOMES.filter((o) => o.value !== 'PROMOTE' || p.nextClass).map((o) => <option key={o.value} value={o.value}>{outcomeLabel(o.value)}</option>)}
-                </Select>
-              ) },
-            ]}
-            emptyIcon={ArrowUpRight} emptyTitle={t('students.promotion.empty', { section: p.from.label })}
-          />
+          {isMobile && p.students.length > 0 ? (
+            // a phone gets one card per student with the outcome picker under the name (a select can't sit inside a table's tap-to-expand row)
+            <ul className={`${PANEL} divide-y divide-border overflow-hidden`}>
+              {p.students.map((st) => (
+                <li key={st.id} className="space-y-2 px-3 py-2.5">
+                  <PersonCell name={st.name} sub={[st.rollNo && t('students.directory.roll', { no: st.rollNo }), st.admissionNo].filter(Boolean).join(' · ')} size={32} />
+                  {outcomeSelect(st.id, st.name)}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <DataTable
+              rows={p.students}
+              loading={isLoading}
+              columns={[
+                { key: 'name', header: t('students.directory.student'), render: (v, r) => <PersonCell name={v} sub={[r.rollNo && t('students.directory.roll', { no: r.rollNo }), r.admissionNo].filter(Boolean).join(' · ')} size={34} /> },
+                { key: 'id', header: t('students.promotion.outcome'), width: 260, render: (id, r) => outcomeSelect(id, r.name) },
+              ]}
+              emptyIcon={ArrowUpRight} emptyTitle={t('students.promotion.empty', { section: p.from.label })}
+            />
+          )}
           {canRun && p.students.length > 0 && (
-            <div className="flex flex-wrap items-center justify-end gap-3 mt-4">
+            <div className="flex flex-wrap items-center justify-end gap-3">
               <span className="text-sm text-ink-muted">{PROMOTION_OUTCOMES.filter((o) => counts[o.value]).map((o) => `${outcomeLabel(o.value)}: ${counts[o.value]}`).join(' · ')}</span>
               <Button icon={ArrowUpRight} loading={run.isPending} disabled={!!missingTarget}
                 onClick={async () => { if (await confirm({ title: t('students.promotion.confirm.title', { section: p.from.label }), message: t('students.promotion.confirm.message', { year: p.toYear.name }), confirmLabel: t('students.promotion.run') })) run.mutate() }}>
@@ -118,6 +139,7 @@ export default function Promotion() {
           )}
         </>
       )}
+      </SideNavLayout>
     </PageContainer>
   )
 }

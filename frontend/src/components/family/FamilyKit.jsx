@@ -55,7 +55,7 @@ export function FRow({ to, href, onClick, icon: Icon, tone, title, subtitle, met
       {(to || href || onClick) && <ChevronRight className="w-5 h-5 text-ink-faint shrink-0 rtl:rotate-180" aria-hidden />}
     </>
   )
-  const cls = 'w-full min-h-[64px] flex items-center gap-3 px-1 py-3 text-start rounded-lg'
+  const cls = 'w-full min-h-[64px] flex items-center gap-3 px-1 py-3 text-start' // square: rows sit in divide-y lists, and rounding bent the dividers
   const tap = 'hover:bg-black/[0.02] active:bg-black/[0.04]'
   if (to) return <Link to={to} className={clsx(cls, tap)}>{body}</Link>
   if (href) return <a href={href} target="_blank" rel="noreferrer" className={clsx(cls, tap)}>{body}</a>

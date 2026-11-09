@@ -25,6 +25,18 @@
           "body": "Dear {{guardian.name}},\n\n{{student.name}} ({{student.class}}) was marked absent today, {{attendance.date}}.\nIf this is unexpected, please call {{institution.phone}}.\n\n{{institution.name}}"
         }
       },
+      "attendance_arrived": {
+        "SMS": {
+          "body": "{{student.firstName}} ({{student.class}}) reached school at {{attendance.time}}, {{attendance.date}}. - {{institution.name}}"
+        },
+        "WHATSAPP": {
+          "body": "Dear {{guardian.name}},\n{{student.firstName}} ({{student.class}}) reached school at {{attendance.time}} today.\n\n{{institution.name}}"
+        },
+        "EMAIL": {
+          "subject": "{{student.firstName}} reached school",
+          "body": "Dear {{guardian.name}},\n\n{{student.name}} ({{student.class}}) reached school at {{attendance.time}} on {{attendance.date}}.\n\n{{institution.name}}"
+        }
+      },
       "fees_receipt": {
         "SMS": {
           "body": "Received {{receipt.amount}} for {{student.name}} ({{student.admissionNo}}), receipt {{receipt.no}}. Balance {{fees.due}}. - {{institution.name}}"
@@ -287,6 +299,150 @@
         "EMAIL": {
           "subject": "{{notice.title}} — {{institution.name}}",
           "body": "Dear {{guardian.name}},\n\nA new notice has been published: {{notice.title}}\nRead it here: {{notice.link}}\n\n{{institution.name}}"
+        }
+      },
+      "hostel_outpass_decided": {
+        "SMS": {
+          "body": "Outpass {{outpass.no}} for {{student.firstName}} ({{outpass.leave}} to {{outpass.return}}) is {{outpass.status}}. {{outpass.note}} - {{institution.name}}"
+        },
+        "WHATSAPP": {
+          "body": "Dear {{guardian.name}},\nThe outpass for {{student.firstName}} ({{student.class}}) — {{outpass.leave}} to {{outpass.return}}, “{{outpass.reason}}” — is {{outpass.status}}.\n{{outpass.note}}\n\n{{institution.name}}"
+        },
+        "EMAIL": {
+          "subject": "Outpass {{outpass.no}}: {{outpass.status}}",
+          "body": "Dear {{guardian.name}},\n\nThe outpass for {{student.name}} ({{outpass.leave}} to {{outpass.return}}, {{outpass.reason}}) is {{outpass.status}}.\n{{outpass.note}}\n\n{{institution.name}}"
+        }
+      },
+      "hostel_outpass_out": {
+        "SMS": {
+          "body": "{{student.firstName}} left the hostel at {{outpass.time}} (outpass {{outpass.no}}), due back {{outpass.return}}. - {{institution.name}}"
+        },
+        "WHATSAPP": {
+          "body": "Dear {{guardian.name}},\n{{student.firstName}} left the hostel at {{outpass.time}} on outpass {{outpass.no}}. Due back by {{outpass.return}}.\n\n{{institution.name}}"
+        },
+        "EMAIL": {
+          "subject": "{{student.firstName}} left the hostel",
+          "body": "Dear {{guardian.name}},\n\n{{student.name}} left the hostel at {{outpass.time}} (outpass {{outpass.no}}), due back by {{outpass.return}}.\n\n{{institution.name}}"
+        }
+      },
+      "hostel_outpass_in": {
+        "SMS": {
+          "body": "{{student.firstName}} is back in the hostel at {{outpass.time}} ({{outpass.late}}). - {{institution.name}}"
+        },
+        "WHATSAPP": {
+          "body": "Dear {{guardian.name}},\n{{student.firstName}} is back in the hostel at {{outpass.time}} ({{outpass.late}}).\n\n{{institution.name}}"
+        },
+        "EMAIL": {
+          "subject": "{{student.firstName}} is back in the hostel",
+          "body": "Dear {{guardian.name}},\n\n{{student.name}} came back to the hostel at {{outpass.time}} ({{outpass.late}}).\n\n{{institution.name}}"
+        }
+      },
+      "health_sent_home": {
+        "SMS": {
+          "body": "Dear Parent, {{student.firstName}} ({{student.class}}) was seen in the sick room for {{health.complaint}} and is being sent home ({{health.time}}). - {{institution.name}}"
+        },
+        "WHATSAPP": {
+          "body": "Dear {{guardian.name}},\n{{student.firstName}} ({{student.class}}) was seen in the school sick room for {{health.complaint}} and is being sent home at {{health.time}}.\n{{health.note}}\n\nPlease call {{institution.phone}} if you need to.\n{{institution.name}}"
+        },
+        "EMAIL": {
+          "subject": "{{student.firstName}} sent home from school",
+          "body": "Dear {{guardian.name}},\n\n{{student.name}} ({{student.class}}) was seen in the school sick room for {{health.complaint}} and is being sent home at {{health.time}}.\n{{health.note}}\n\n{{institution.name}}"
+        }
+      },
+      "health_incident": {
+        "SMS": {
+          "body": "Dear Parent, {{student.firstName}} had a {{incident.severity}} {{incident.kind}} at school ({{incident.place}}, {{incident.time}}). First aid was given. Please call {{institution.phone}}. - {{institution.name}}"
+        },
+        "WHATSAPP": {
+          "body": "Dear {{guardian.name}},\n{{student.firstName}} ({{student.class}}) had a {{incident.severity}} {{incident.kind}} at school today — {{incident.place}}, {{incident.time}}.\nFirst aid: {{incident.firstAid}}\n\nPlease call {{institution.phone}} for details.\n{{institution.name}}"
+        },
+        "EMAIL": {
+          "subject": "Incident at school — {{student.firstName}}",
+          "body": "Dear {{guardian.name}},\n\n{{student.name}} ({{student.class}}) had a {{incident.severity}} {{incident.kind}} at school on {{incident.date}} ({{incident.place}}, {{incident.time}}).\nFirst aid: {{incident.firstAid}}\n\n{{institution.name}}"
+        }
+      },
+      "placements_drive_open": {
+        "SMS": {
+          "body": "{{student.firstName}}: {{drive.company}} placement drive ({{drive.ctc}}) is open. Register by {{drive.lastDate}}. - {{institution.name}}"
+        },
+        "WHATSAPP": {
+          "body": "Dear {{student.firstName}},\n{{drive.company}} — {{drive.title}} is open for registration. Package: {{drive.ctc}}.\nRegister in the app by {{drive.lastDate}}.\n\n{{institution.name}}"
+        },
+        "EMAIL": {
+          "subject": "Placement drive open — {{drive.company}}",
+          "body": "Dear {{student.firstName}},\n\n{{drive.company}} — {{drive.title}} is open for registration (package {{drive.ctc}}, drive on {{drive.date}}). Register in the app by {{drive.lastDate}}.\n\n{{institution.name}}"
+        }
+      },
+      "placements_selected": {
+        "SMS": {
+          "body": "Congratulations {{student.firstName}}! Selected by {{drive.company}} ({{drive.ctc}}). - {{institution.name}}"
+        },
+        "WHATSAPP": {
+          "body": "Congratulations {{student.firstName}}!\nYou have been selected by {{drive.company}} as {{drive.role}} ({{drive.ctc}}). The placement office will share the offer letter.\n\n{{institution.name}}"
+        },
+        "EMAIL": {
+          "subject": "Selected — {{drive.company}}",
+          "body": "Dear {{student.firstName}},\n\nCongratulations! You have been selected by {{drive.company}} as {{drive.role}} ({{drive.ctc}}).\n\n{{institution.name}}"
+        }
+      },
+      "frontoffice_gate_pass": {
+        "SMS": {
+          "body": "{{student.firstName}} left school at {{gatepass.time}} with {{gatepass.collector}} ({{gatepass.relation}}). Gate pass {{gatepass.no}}. - {{institution.name}}"
+        },
+        "WHATSAPP": {
+          "body": "Dear {{guardian.name}},\n{{student.firstName}} left school at {{gatepass.time}} with {{gatepass.collector}} ({{gatepass.relation}}).\nReason: {{gatepass.reason}}\nGate pass: {{gatepass.no}}\n\n{{institution.name}}"
+        },
+        "EMAIL": {
+          "subject": "{{student.firstName}} left school early — {{gatepass.no}}",
+          "body": "Dear {{guardian.name}},\n\n{{student.name}} left school at {{gatepass.time}} with {{gatepass.collector}} ({{gatepass.relation}}).\nReason: {{gatepass.reason}}\nGate pass: {{gatepass.no}}\n\n{{institution.name}}"
+        }
+      },
+      "frontoffice_complaint_received": {
+        "SMS": {
+          "body": "Your complaint {{complaint.no}} ({{complaint.subject}}) has been received. We aim to resolve it by {{complaint.dueDate}}. - {{institution.name}}"
+        },
+        "WHATSAPP": {
+          "body": "Dear {{complaint.name}},\nWe have received your complaint {{complaint.no}}: {{complaint.subject}}.\nWe aim to resolve it by {{complaint.dueDate}} and will let you know.\n\n{{institution.name}}"
+        },
+        "EMAIL": {
+          "subject": "Complaint {{complaint.no}} received — {{institution.name}}",
+          "body": "Dear {{complaint.name}},\n\nWe have received your complaint {{complaint.no}}: {{complaint.subject}}.\nWe aim to resolve it by {{complaint.dueDate}} and will let you know.\n\n{{institution.name}}"
+        }
+      },
+      "frontoffice_complaint_resolved": {
+        "SMS": {
+          "body": "Your complaint {{complaint.no}} ({{complaint.subject}}) has been resolved. - {{institution.name}}"
+        },
+        "WHATSAPP": {
+          "body": "Dear {{complaint.name}},\nYour complaint {{complaint.no}} ({{complaint.subject}}) has been resolved:\n{{complaint.resolution}}\n\nThank you for telling us.\n{{institution.name}}"
+        },
+        "EMAIL": {
+          "subject": "Complaint {{complaint.no}} resolved — {{institution.name}}",
+          "body": "Dear {{complaint.name}},\n\nYour complaint {{complaint.no}} ({{complaint.subject}}) has been resolved:\n{{complaint.resolution}}\n\nThank you for telling us.\n{{institution.name}}"
+        }
+      },
+      "surveys_request": {
+        "SMS": {
+          "body": "{{institution.name}} would like your feedback: {{survey.title}}. Answer in the app: {{survey.link}}"
+        },
+        "WHATSAPP": {
+          "body": "Dear {{guardian.name}},\n{{institution.name}} would like your feedback: {{survey.title}}.\n\nIt takes a few minutes — answer in the app: {{survey.link}}\n\n{{institution.name}}"
+        },
+        "EMAIL": {
+          "subject": "Your feedback: {{survey.title}}",
+          "body": "Dear {{guardian.name}},\n\n{{institution.name}} would like your feedback: {{survey.title}}.\nAnswer in the app: {{survey.link}}\n\n{{institution.name}}"
+        }
+      },
+      "canteen_low_balance": {
+        "SMS": {
+          "body": "{{student.firstName}}’s canteen wallet is low: {{canteen.balance}} left. Please top up. - {{institution.name}}"
+        },
+        "WHATSAPP": {
+          "body": "Dear {{guardian.name}},\n{{student.firstName}}’s canteen wallet has {{canteen.balance}} left (below {{canteen.threshold}}). You can top it up in the school app or at the canteen counter.\n\n{{institution.name}}"
+        },
+        "EMAIL": {
+          "subject": "Canteen wallet low — {{student.firstName}}",
+          "body": "Dear {{guardian.name}},\n\n{{student.name}}’s canteen wallet has {{canteen.balance}} left (below {{canteen.threshold}}). Top it up in the school app or at the canteen counter.\n\n{{institution.name}}"
         }
       }
     }

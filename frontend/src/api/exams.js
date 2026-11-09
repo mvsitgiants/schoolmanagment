@@ -31,6 +31,11 @@ export const saveMarkSheet = (paperId, sectionId, entries) => put(`${BASE}/marks
 export const lockMarkSheet = (paperId, sectionId) => post(`${BASE}/marks/${paperId}/${sectionId}/lock`)
 export const unlockMarkSheet = (paperId, sectionId, reason) => post(`${BASE}/marks/${paperId}/${sectionId}/unlock`, { reason })
 
+// year-end results (all published exams of the year, by exam-type weightage)
+export const fetchYearOverview = () => get(`${BASE}/year-results`)
+export const fetchYearSheet = (classId, sectionId) => get(`${BASE}/year-results/classes/${classId}`, { sectionId })
+export const publishYear = (classId) => post(`${BASE}/year-results/classes/${classId}/publish`)
+export const unpublishYear = (classId) => post(`${BASE}/year-results/classes/${classId}/unpublish`)
 export const fetchResults = (id, sectionId) => get(`${BASE}/${id}/results`, { sectionId })
 export const publishResults = (id) => post(`${BASE}/${id}/publish`)
 export const unpublishResults = (id) => post(`${BASE}/${id}/unpublish`)

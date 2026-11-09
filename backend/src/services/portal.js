@@ -26,6 +26,8 @@ import { currentYear } from './academics.js'
 import { renderDocument } from './documents.js'
 import { notifyUsers } from './notify.js'
 import { onlinePaymentsOn } from './feePayments.js'
+import { sectionWeek } from './timetable.js'
+import { familyYearResult } from './yearResults.js'
 import { familyConversations, familySend, familyThread, markNoticeRead, noticeFile, noticesFor, teachersFor } from './communication.js'
 
 // The family side of the parent & student app (routes/portal.js `familyRouter`), and the school's
@@ -115,6 +117,14 @@ export async function homeFor(f, id) {
     if (next) out.nextExam = { id: String(next._id), name: next.name, startDate: next.startDate, endDate: next.endDate }
   }
   return out
+}
+
+// ───────────────────────────────────────────────────────── timetable
+
+export async function timetableFor(f, id) {
+  need(f, 'TIMETABLE')
+  const s = studentFor(f, id)
+  return sectionWeek(s.sectionId)
 }
 
 async function subjectNames(ids) {
@@ -255,7 +265,9 @@ export async function resultsFor(f, id) {
       upcoming.push({ candidateId: String(c._id), exam: e.name, statusLabel: EXAM_STATUS[e.status]?.label, startDate: e.startDate, endDate: e.endDate, papers: papers.map((p) => ({ subject: subjects.get(String(p.subjectId)) ?? '', date: p.date, startTime: p.startTime ?? null, endTime: p.endTime ?? null })) })
     }
   }
-  return { results, upcoming }
+  // the year-end result, once the school has published it for the child's class
+  const year = showResults ? await familyYearResult(s._id) : null
+  return { results, upcoming, year }
 }
 
 export async function certificatesFor(f, id) {
@@ -297,6 +309,9 @@ export async function documentFor(f, docType, recordId) {
     const c = await ExamCandidate.findById(recordId).select('studentId examId').lean()
     const e = c && await Exam.findById(c.examId).select('status').lean()
     ok = !!c && mine.includes(String(c.studentId)) && (docType === 'REPORT_CARD' ? e?.status === 'PUBLISHED' : ['SCHEDULED', 'PUBLISHED'].includes(e?.status))
+  } else if (docType === 'YEAR_REPORT_CARD') {
+    need(f, 'RESULTS')
+    ok = mine.includes(String(recordId)) && !!(await familyYearResult(recordId))
   } else if (docType === 'CERTIFICATE') {
     need(f, 'CERTIFICATES')
     const c = await Certificate.findById(recordId).select('studentId status').lean()

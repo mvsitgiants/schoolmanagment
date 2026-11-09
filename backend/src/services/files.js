@@ -18,6 +18,8 @@ import { clean, isOid, oid } from '../platform/db.js'
 import { badRequest, conflict, forbidden, notFound } from '../platform/errors.js'
 import { putFile, readStream } from '../platform/storage.js'
 import { assertWithinLimit } from './subscription.js'
+import { accrEvidenceRecord } from './accreditation.js'
+import { offerRecord } from './placementsOffers.js'
 
 // Attachments and discussion on records (docs/00 §7 E15). Each record type says
 // which module it belongs to, who may see it and who may add to it, and which
@@ -84,6 +86,18 @@ const RECORDS = {
   gallery_album: {
     module: 'events', view: ['events.gallery.view'], add: ['events.gallery.create'],
     load: (id) => albumRecord(id),
+  },
+  // An accreditation evidence item's documents: sanction letters, minutes, geo-tagged photos, certificates.
+  accreditation_evidence: {
+    module: 'accreditation', view: ['accreditation.evidence.view'], add: ['accreditation.evidence.create', 'accreditation.evidence.edit'],
+    remove: ['accreditation.evidence.edit', 'accreditation.evidence.delete'],
+    load: (id) => accrEvidenceRecord(id),
+  },
+  // A student's placement offer: the offer letter, joining papers.
+  placement_offer: {
+    module: 'placements', view: ['placements.offers.view'], add: ['placements.offers.create'],
+    load: (id) => offerRecord(id),
+    locked: (rec) => (rec.locked ? 'This offer was revoked.' : null),
   },
 }
 

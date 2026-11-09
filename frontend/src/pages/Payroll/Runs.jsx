@@ -3,7 +3,7 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tansta
 import { useTranslation } from 'react-i18next'
 import { BadgeCheck, Banknote, Building2, Calculator, CalendarClock, ChevronLeft, HandCoins, MinusCircle, Plus, RotateCcw, ShieldAlert, Users, Wallet } from 'lucide-react'
 import { ELECTRONIC_PAY_MODES, PAYROLL_PAY_MODES, PAYROLL_RUN_STATUSES, formatINR, formatINRCompact } from '@schoolgiant/shared'
-import { ColorChip, DataTable, FormField, HeaderButton, Input, LevelBar, Modal, Money, Note, PageContainer, PageHeader, PersonCell, SegmentedControl, Select, StackCell, StatCardRow, localIso, useConfirm, usePrompt } from '../../components/system'
+import { ColorChip, DataTable, FormField, HeaderButton, Input, LevelBar, Modal, Money, Note, PageContainer, PageHeader, PersonCell, PillRow, SegmentedControl, Select, SideNav, SideNavLayout, StackCell, StatCardRow, localIso, pillClass, useConfirm, usePrompt } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { approveRun, calculateRun, createRun, fetchRun, fetchRuns, payRun, reopenRun } from '../../api/payroll'
 import { hasPermission } from '../../api/auth'
@@ -73,6 +73,7 @@ function RunDetail({ id, onBack }) {
   const { showSuccess, showError } = useSnackbar()
   const [slip, setSlip] = useState(null)
   const [paying, setPaying] = useState(false)
+  const [dept, setDept] = useState('') // '' every payslip · FLAGGED the ones with something to check · a department's name
   const { data: run, isLoading } = useQuery({ queryKey: ['payroll-run', id], queryFn: () => fetchRun(id) })
   const { data: meta } = usePayrollMeta()
   const sod = meta?.statutory?.separateDuties !== false
@@ -81,16 +82,19 @@ function RunDetail({ id, onBack }) {
   if (isLoading || !run) return <p className="text-sm text-ink-faint">{t('payroll.loading')}</p>
   const tot = run.totals ?? {}
   const flagged = run.payslips.filter((p) => p.warnings.length).length
+  const depts = [...new Set(run.payslips.map((p) => p.departmentName).filter(Boolean))].sort()
+  const slips = dept === 'FLAGGED' ? run.payslips.filter((p) => p.warnings.length) : dept ? run.payslips.filter((p) => p.departmentName === dept) : run.payslips
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-2">
-        <Button size="sm" variant="ghost" icon={ChevronLeft} onClick={onBack} aria-label={t('payroll.back')} />
+        <div className="flex min-w-0 flex-1 items-start gap-2">
+        <Button size="sm" variant="ghost" icon={ChevronLeft} onClick={onBack} aria-label={t('payroll.back')} title={t('payroll.back')} className="shrink-0" />
         <div className="min-w-0">
-          <p className="font-semibold text-ink">{monthLabel(run.month)} <span className="text-xs font-mono-num text-ink-faint">{run.runNo}</span></p>
+          <p className="flex flex-wrap items-center gap-x-2 gap-y-1 font-semibold text-ink">{monthLabel(run.month)} <span className="text-xs font-mono-num font-normal text-ink-faint">{run.runNo}</span><RunStatusPill status={run.status} /></p>
           <p className="text-xs text-ink-muted">{run.branchName ?? t('payroll.runs.whole')}{run.calculated?.at ? ` · ${t('payroll.runs.calculatedBy', { by: run.calculated.by })}` : ''}{run.approved?.at ? ` · ${t('payroll.runs.approvedBy', { by: run.approved.by })}` : ''}{run.paid?.date ? ` · ${t('payroll.runs.paidLine', { date: date(run.paid.date), mode: t(`payroll.payModes.${run.paid.mode}`), ref: run.paid.reference ?? '' })}` : ''}</p>
         </div>
-        <RunStatusPill status={run.status} />
-        <div className="ml-auto flex flex-wrap gap-2">
+        </div>
+        <div className="flex w-full flex-wrap gap-2 sm:ml-auto sm:w-auto">
           {['DRAFT', 'CALCULATED'].includes(run.status) && hasPermission('payroll.runs.calculate') && <Button icon={Calculator} variant={run.status === 'DRAFT' ? 'primary' : 'secondary'} loading={act.isPending}
             onClick={() => act.mutate({ fn: () => calculateRun(run.id), done: t('payroll.runs.calculated') })}>{run.status === 'DRAFT' ? t('payroll.runs.calculate') : t('payroll.runs.recalculate')}</Button>}
           {run.status === 'CALCULATED' && hasPermission('payroll.runs.calculate') && <Button variant="ghost" icon={RotateCcw}
@@ -103,6 +107,8 @@ function RunDetail({ id, onBack }) {
       {run.status === 'CALCULATED' && run.preparedByMe && sod && <Note>{t('payroll.runs.sodHint')}</Note>}
       {run.status === 'DRAFT' && <Note>{t('payroll.runs.draftNote')}</Note>}
       {run.version > 0 && (
+        // beside the months list the column is narrower than the viewport says: three a row until there is room for five
+        <div className="xl:[&>div]:grid-cols-3 2xl:[&>div]:grid-cols-5">
         <StatCardRow items={[
           { icon: Users, tone: 'brand', label: t('payroll.runs.staff'), value: tot.employees ?? 0, sub: flagged ? t('payroll.payslips.flaggedCount', { count: flagged }) : undefined },
           { icon: Banknote, tone: 'info', label: t('payroll.runs.gross'), value: formatINRCompact(tot.gross ?? 0), sub: formatINR(tot.gross ?? 0) },
@@ -111,6 +117,7 @@ function RunDetail({ id, onBack }) {
             progress: tot.gross > 0 ? ((tot.net ?? 0) / tot.gross) * 100 : undefined },
           { icon: Building2, tone: 'violet', label: t('payroll.runs.cost'), value: formatINRCompact(tot.employerCost ?? 0), sub: formatINR(tot.employerCost ?? 0) },
         ]} />
+        </div>
       )}
       {(run.exceptions ?? []).length > 0 && (
         <Note tone="warning">
@@ -119,13 +126,24 @@ function RunDetail({ id, onBack }) {
         </Note>
       )}
       {flagged > 0 && <Note tone="warning">{t('payroll.runs.flagged', { count: flagged })}</Note>}
-      <DataTable rows={run.payslips} columns={[
+      {run.payslips.length > 0 && (depts.length > 1 || flagged > 0) && (
+        <PillRow>
+          <button type="button" aria-pressed={!dept} onClick={() => setDept('')} className={pillClass(!dept)}>{t('payroll.runs.allSlips', { n: run.payslips.length })}</button>
+          {flagged > 0 && <button type="button" aria-pressed={dept === 'FLAGGED'} onClick={() => setDept('FLAGGED')} className={pillClass(dept === 'FLAGGED')}><ShieldAlert className="h-3.5 w-3.5 text-amber-500" aria-hidden />{t('payroll.runs.toCheck')} <span className="tabular-nums opacity-70">· {flagged}</span></button>}
+          {depts.length > 1 && depts.map((d) => (
+            <button key={d} type="button" aria-pressed={dept === d} onClick={() => setDept(d)} className={pillClass(dept === d)}>
+              {d} <span className="tabular-nums opacity-70">· {run.payslips.filter((p) => p.departmentName === d).length}</span>
+            </button>
+          ))}
+        </PillRow>
+      )}
+      <DataTable rows={slips} columns={[
         { key: 'name', header: t('payroll.staff.person'), mobilePrimary: true, render: (v, r) => <span className="inline-flex items-center gap-1.5"><PersonCell name={v} sub={[r.code, r.designation].filter(Boolean).join(' · ')} size={32} />{r.fnf && <ColorChip label={t('payroll.runs.fnf')} tone="warning" />}</span> },
         { key: 'departmentName', header: t('payroll.staff.department'), mobileHidden: true, render: (v) => <ColorChip label={v} dot /> },
         { key: 'payDays', header: t('payroll.att.payDays'), align: 'right', render: (v, r) => <span className="inline-flex flex-col items-end"><LevelBar value={v} max={r.baseDays} warnAt={r.lop > 0 ? v : undefined} width="w-20" />{r.lop > 0 && <span className={`text-[11px] mt-0.5 ${r.lopEdited ? 'text-brand-600' : 'text-danger-600'}`}>{t('payroll.runs.lopShort', { n: r.lop })}</span>}</span> },
         { key: 'gross', header: t('payroll.runs.gross'), align: 'right', render: (v) => <Money value={v} paise /> },
         { key: 'deductions', header: t('payroll.runs.deductions'), align: 'right', mobileHidden: true, render: (v) => <Money value={v} paise /> },
-        { key: 'net', header: t('payroll.runs.net'), align: 'right', render: (v) => <Money value={v} paise tone="success" className="font-semibold" /> },
+        { key: 'net', header: t('payroll.runs.net'), align: 'right', mobileTrail: true, render: (v) => <Money value={v} paise tone="success" className="font-semibold" /> },
         { key: 'warnings', header: '', width: 30, render: (w) => w.length > 0 && <ShieldAlert className="h-4 w-4 text-amber-500" aria-label={w.join(' ')} /> },
       ]} onRowClick={(r) => setSlip(r.id)} emptyIcon={Wallet} emptyTitle={run.version ? t('payroll.runs.noPayslips') : t('payroll.runs.notCalculated')} />
       {slip && <PayslipDrawer id={slip} onClose={() => setSlip(null)} onChanged={refresh} />}
@@ -154,7 +172,18 @@ export default function Runs() {
       <PageHeader icon={Wallet} title={t('payroll.runs.title')} subtitle={t('payroll.runs.subtitle')}
         actions={<HeaderButton icon={Plus} variant="primary" requires="payroll.runs.create" onClick={() => setCreating(true)}>{t('payroll.runs.new')}</HeaderButton>} />
       {meta && !meta.statutory?.verified && <Note tone="warning" className="mb-4">{t('payroll.runs.verifyWarning')}</Note>}
-      {open ? <RunDetail id={open} onBack={() => setOpen(null)} /> : (
+      {open ? (
+        <SideNavLayout nav={(data?.data?.length ?? 0) > 1 && (
+          <SideNav title={t('payroll.runs.monthsNav')} value={open} onChange={setOpen} items={data.data.map((r) => ({
+            id: r.id, label: monthLabel(r.month), icon: Wallet,
+            hint: [r.branchName, r.version ? formatINRCompact(r.totals?.net ?? 0) : r.runNo].filter(Boolean).join(' · '),
+            count: r.status === 'PAID' ? undefined : t(`payroll.runStatus.${r.status}`),
+            countTone: ['DRAFT', 'CALCULATED'].includes(r.status) ? 'warning' : undefined,
+          }))} />
+        )}>
+          <RunDetail key={open} id={open} onBack={() => setOpen(null)} />
+        </SideNavLayout>
+      ) : (
         <div className="space-y-4">
           <StatCardRow items={[
             { icon: CalendarClock, label: t('payroll.runs.lastPaid'), value: s.lastPaid ? monthLabel(s.lastPaid.month) : '—', tone: 'success' },
@@ -165,9 +194,9 @@ export default function Runs() {
           <DataTable rows={data?.data ?? []} loading={isLoading} columns={[
             { key: 'month', header: t('payroll.month'), mobilePrimary: true, render: (v, r) => <StackCell title={monthLabel(v)} sub={r.runNo} subMono /> },
             { key: 'branchName', header: t('payroll.runs.for'), mobileHidden: true, render: (v) => <ColorChip label={v ?? t('payroll.runs.whole')} seed={v ?? 'whole'} icon={Building2} /> },
-            { key: 'status', header: t('payroll.status'), render: (v) => <RunStatusPill status={v} /> },
+            { key: 'status', header: t('payroll.status'), mobilePrimary: true, render: (v) => <RunStatusPill status={v} /> },
             { key: 'staff', header: t('payroll.runs.staff'), align: 'right', render: (_, r) => (r.totals?.employees != null ? <span className="inline-flex items-center gap-1 tabular-nums"><Users className="h-3.5 w-3.5 text-ink-faint" aria-hidden />{r.totals.employees}</span> : '—') },
-            { key: 'net', header: t('payroll.runs.net'), align: 'right', render: (_, r) => (r.version ? <Money value={r.totals?.net} paise className="font-semibold" /> : '—') },
+            { key: 'net', header: t('payroll.runs.net'), align: 'right', mobileTrail: true, render: (_, r) => (r.version ? <Money value={r.totals?.net} paise className="font-semibold" /> : '—') },
             { key: 'cost', header: t('payroll.runs.cost'), align: 'right', mobileHidden: true, render: (_, r) => (r.version ? <Money value={r.totals?.employerCost} paise /> : '—') },
           ]} onRowClick={(r) => setOpen(r.id)}
             pagination={pm && pm.totalPages > 1 && { page: pm.page - 1, size: pm.pageSize, totalElements: pm.total, totalPages: pm.totalPages, onPageChange: (p) => setPage(p + 1) }}

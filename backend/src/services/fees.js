@@ -2,11 +2,13 @@ import {
   CONCESSION_STATUS, INVOICE_STATUS, PAYMENT_MODE_LABEL, allocateOldestFirst, concessionOn, formatINR, lateFeeFor, sectionLabel,
 } from '@schoolgiant/shared'
 import { AcademicYear, ClassLevel, Section } from '../models/academics.js'
-import { Concession, FeeDayEnd, FeeHead, FeeInvoice, FeePayment, FeeRefund, FeeStructure } from '../models/fees.js'
+import { Concession, FeeDayEnd, FeeHead, FeeInvoice, FeePayment, FeeRefund, FeeStructure, newReceiptCode } from '../models/fees.js'
 import { Student, studentName } from '../models/students.js'
+import { Tenant } from '../models/platform.js'
 import { Branch } from '../models/tenant.js'
 import { can, scopeOf } from '../platform/access.js'
 import { audit } from '../platform/audit.js'
+import { runAsSystem } from '../platform/context.js'
 import { clean, isOid, oid, withTransaction } from '../platform/db.js'
 import { badRequest, conflict, forbidden, notFound } from '../platform/errors.js'
 import { emit } from '../platform/events.js'
@@ -635,8 +637,30 @@ export async function approveVariance(id, auth, req) {
 export async function receiptPrintData(id, auth) {
   const p = await FeePayment.findById(id).lean()
   if (!p) throw notFound('Receipt')
+  if (!p.verifyCode) { // receipts from before receipts had a check code get one the first time they print
+    p.verifyCode = newReceiptCode()
+    await FeePayment.updateOne({ _id: p._id }, { $set: { verifyCode: p.verifyCode } })
+  }
   const s = await studentInScope(p.studentId, auth)
   const invoices = await FeeInvoice.find({ _id: { $in: p.allocations.map((a) => a.invoiceId) } }).lean()
   const open = await FeeInvoice.find({ studentId: s._id, status: { $in: ['UNPAID', 'PARTIAL'] } }).select('balance').lean()
   return { payment: p, student: s, place: await placeOf(s.sectionId), invoices, balance: open.reduce((n, i) => n + i.balance, 0) }
+}
+
+/** Is this receipt genuine? The QR on a printed receipt opens /verify/receipt/<code> (receipt no, date, amount, whose, still valid). */
+export async function verifyReceipt(code) {
+  const want = String(code ?? '').trim().toUpperCase()
+  if (!/^[A-Z0-9]{12}$/.test(want)) return { found: false }
+  return runAsSystem(async () => {
+    const p = await FeePayment.findOne({ verifyCode: want }).setOptions({ allTenants: true }).lean()
+    if (!p) return { found: false }
+    const [t, s] = await Promise.all([
+      Tenant.findById(p.tenantId).select('name profile.city').lean(),
+      Student.findById(p.studentId).setOptions({ allTenants: true }).select('firstName middleName lastName admissionNo').lean(),
+    ])
+    return {
+      found: true, valid: p.status === 'VALID', receiptNo: p.receiptNo, date: p.date, amount: p.amount, refunded: p.refunded ?? 0, mode: p.mode,
+      student: s ? { name: studentName(s), admissionNo: s.admissionNo } : null, institution: { name: t?.name ?? null, city: t?.profile?.city ?? null },
+    }
+  })
 }

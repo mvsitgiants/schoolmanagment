@@ -161,7 +161,7 @@
       "counts": "{{units}} units · {{topics}} topics",
       "empty": "Nothing to track yet",
       "emptyHint": "Classes need subjects (Academic setup › Classes & sections), and teachers their allocation.",
-      "back": "Back to all subjects",
+      "back": "Back to the class",
       "updatedBy": "last changed by {{name}}",
       "edit": "Edit syllabus",
       "create": "Write the syllabus",
@@ -220,7 +220,13 @@
         "unplannedHint_one": "{{count}} topic has no month yet",
         "unplannedHint_other": "{{count}} topics have no month yet",
         "notPlanned": "no year plan yet"
-      }
+      },
+      "classesNav": "Classes",
+      "allClasses": "All classes",
+      "subjectsN_one": "{{count}} subject",
+      "subjectsN_other": "{{count}} subjects",
+      "subjectsNav": "{{cls}} subjects",
+      "overall": "Taught"
     },
     "mine": {
       "noYear": "Add an academic year first (Academic setup › Academic years & terms).",

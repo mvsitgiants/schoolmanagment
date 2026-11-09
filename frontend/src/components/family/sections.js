@@ -1,14 +1,21 @@
-import { BookOpenCheck, Bus, CalendarCheck, CalendarClock, CalendarDays, ClipboardCheck, Images, GraduationCap, IndianRupee, Library, Megaphone, MessagesSquare, Trophy } from 'lucide-react'
+import { BedDouble, BookOpenCheck, Briefcase, Bus, CalendarCheck, CalendarClock, CalendarDays, CalendarRange, ClipboardCheck, GraduationCap, HeartPulse, Images, IndianRupee, Library, Megaphone, MessageSquareHeart, MessageSquareWarning, MessagesSquare, Trophy, Utensils } from 'lucide-react'
 
 /** The app's sections in order of use; the bar shows the first three the school has on (with Home and More), the rest are under More. */
 export function familySections(slug, has, t) {
   return [
     has('ATTENDANCE') && { key: 'attendance', to: `/app/${slug}/attendance`, label: t('family.nav.attendance'), icon: CalendarCheck },
     has('HOMEWORK') && { key: 'homework', to: `/app/${slug}/homework`, label: t('family.nav.homework'), icon: BookOpenCheck },
+    has('TIMETABLE') && { key: 'timetable', to: `/app/${slug}/timetable`, label: t('family.nav.timetable'), icon: CalendarRange },
     has('TESTS') && { key: 'tests', to: `/app/${slug}/tests`, label: t('family.nav.tests'), icon: ClipboardCheck },
     has('LEARNING') && { key: 'learning', to: `/app/${slug}/learning`, label: t('family.nav.learning'), icon: GraduationCap },
     has('BUS') && { key: 'bus', to: `/app/${slug}/bus`, label: t('family.nav.bus'), icon: Bus },
     has('LIBRARY') && { key: 'library', to: `/app/${slug}/library`, label: t('family.nav.library'), icon: Library },
+    has('HOSTEL') && { key: 'hostel', to: `/app/${slug}/hostel`, label: t('family.nav.hostel'), icon: BedDouble },
+    has('HEALTH') && { key: 'health', to: `/app/${slug}/health`, label: t('family.nav.health'), icon: HeartPulse },
+    has('PLACEMENTS') && { key: 'placements', to: `/app/${slug}/placements`, label: t('family.nav.placements'), icon: Briefcase },
+    has('COMPLAINTS') && { key: 'complaints', to: `/app/${slug}/complaints`, label: t('family.nav.complaints'), icon: MessageSquareWarning },
+    has('SURVEYS') && { key: 'surveys', to: `/app/${slug}/surveys`, label: t('family.nav.surveys'), icon: MessageSquareHeart },
+    has('CANTEEN') && { key: 'canteen', to: `/app/${slug}/canteen`, label: t('family.nav.canteen'), icon: Utensils },
     has('EVENTS') && { key: 'calendar', to: `/app/${slug}/calendar`, label: t('family.nav.calendar'), icon: CalendarDays },
     has('EVENTS') && { key: 'meetings', to: `/app/${slug}/meetings`, label: t('family.nav.meetings'), icon: CalendarClock },
     has('EVENTS') && { key: 'photos', to: `/app/${slug}/photos`, label: t('family.nav.photos'), icon: Images },

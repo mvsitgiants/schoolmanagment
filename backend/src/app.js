@@ -22,15 +22,30 @@ import aiRoutes from './routes/ai.js'
 import analyticsRoutes from './routes/analytics.js'
 import examSeatingRoutes from './routes/examSeating.js'
 import questionPaperRoutes from './routes/questionPapers.js'
+import yearResultRoutes from './routes/yearResults.js'
+import frontOfficeRoutes from './routes/frontOffice.js'
+import accreditationRoutes from './routes/accreditation.js'
+import placementsRoutes from './routes/placements.js'
+import researchRoutes from './routes/research.js'
+import alumniRoutes from './routes/alumni.js'
+import hostelRoutes from './routes/hostel.js'
+import inventoryRoutes from './routes/inventory.js'
+import healthRoutes from './routes/health.js'
+import canteenRoutes from './routes/canteen.js'
+import surveysRoutes from './routes/surveys.js'
+import websiteRoutes from './routes/website.js'
 import homeworkRoutes from './routes/homework.js'
 import certificateRoutes from './routes/certificates.js'
 import dashboardRoutes from './routes/dashboard.js'
+import scanRoutes from './routes/scan.js'
 import reportRoutes from './routes/reports.js'
 import { familyRouter, portalRouter } from './routes/portal.js'
 import communicationRoutes from './routes/communication.js'
 import feePaymentRoutes from './routes/feePayments.js'
 import admissionRoutes from './routes/admissions.js'
 import admissionPublicRoutes from './routes/admissionsPublic.js'
+import websitePublicRoutes from './routes/websitePublic.js'
+import surveyPublicRoutes from './routes/surveysPublic.js'
 import timetableRoutes from './routes/timetable.js'
 import hrmsRoutes from './routes/hrms.js'
 import payrollRoutes from './routes/payroll.js'
@@ -132,6 +147,8 @@ export function createApp() {
   app.get('/api/health/ready', ready)
   app.get('/api/health', ready)
   app.use('/api/v1/public/admissions/:slug', admissionPublicRoutes)
+  app.use('/api/v1/public/surveys/:slug', surveyPublicRoutes)
+  app.use('/api/v1/public/site/:slug', websitePublicRoutes)
   app.use('/api/v1/public', publicRoutes)
   app.use('/api/v1/auth', authRoutes)
   app.use('/api/v1/core', coreRoutes)
@@ -146,6 +163,7 @@ export function createApp() {
   app.use('/api/v1/fees', feeRoutes)
   app.use('/api/v1/exams/seating', examSeatingRoutes)
   app.use('/api/v1/exams/question-papers', questionPaperRoutes)
+  app.use('/api/v1/exams/year-results', yearResultRoutes)
   app.use('/api/v1/exams', examRoutes)
   app.use('/api/v1/coe', coeRoutes)
   app.use('/api/v1/registration', registrationRoutes)
@@ -153,9 +171,21 @@ export function createApp() {
   app.use('/api/v1/integrations', integrationRoutes)
   app.use('/api/v1/ai', aiRoutes)
   app.use('/api/v1/analytics', analyticsRoutes)
+  app.use('/api/v1/frontoffice', frontOfficeRoutes)
+  app.use('/api/v1/accreditation', accreditationRoutes)
+  app.use('/api/v1/placements', placementsRoutes)
+  app.use('/api/v1/research', researchRoutes)
+  app.use('/api/v1/alumni', alumniRoutes)
+  app.use('/api/v1/hostel', hostelRoutes)
+  app.use('/api/v1/inventory', inventoryRoutes)
+  app.use('/api/v1/health', healthRoutes)
+  app.use('/api/v1/canteen', canteenRoutes)
+  app.use('/api/v1/surveys', surveysRoutes)
+  app.use('/api/v1/website', websiteRoutes)
   app.use('/api/v1/homework', homeworkRoutes)
   app.use('/api/v1/certificates', certificateRoutes)
   app.use('/api/v1/dashboard', dashboardRoutes)
+  app.use('/api/v1/scan', scanRoutes)
   app.use('/api/v1/reports', reportRoutes)
   app.use('/api/v1/portal', portalRouter)
   app.use('/api/v1/communication', communicationRoutes)

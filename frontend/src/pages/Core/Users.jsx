@@ -5,7 +5,7 @@ import clsx from 'clsx'
 import { KeyRound, LogOut, Mail, Pencil, Shield, ShieldCheck, UserCheck, UserPlus, UserX, Users as UsersIcon } from 'lucide-react'
 import { ImportExportButtons,
   Avatar, ColorChip, ControlChip, DataTable, DateCell, FormField, HeaderButton, Input, Modal, PageContainer, PageHeader, RecordDrawer,
-  Select, StatCardRow, StatusPill, Toolbar, VerifiedBadge, ViewControls, localIso, useConfirm,
+  Select, SideNav, SideNavLayout, StatCardRow, StatusPill, Toolbar, VerifiedBadge, ViewControls, localIso, useConfirm,
 } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { Switch, TempPasswordModal } from '../../components/app/Controls'
@@ -163,12 +163,12 @@ export default function Users() {
         <div className="min-w-0"><p className="font-medium text-ink truncate">{v}{r.emailVerified && <VerifiedBadge size="xs" className="ms-1" title={t('admin.users.drawer.emailConfirmed')} />}{r.id === me?.user?.id && <span className="ms-1.5 text-[10px] text-ink-faint">{t('admin.users.you')}</span>}</p><p className="text-xs text-ink-faint truncate">{r.email}</p></div>
       </div>
     ) },
-    { key: 'roles', header: t('admin.users.cols.roles'), render: (v) => (
+    { key: 'roles', header: t('admin.users.cols.roles'), mobilePrimary: true, render: (v) => (
       <div className="flex flex-wrap gap-1">{v.map((r) => (r.fullAccess ? <ColorChip key={r.id} label={r.name} tone="warning" icon={ShieldCheck} /> : <ColorChip key={r.id} label={r.name} seed={r.id} dot />))}</div>
     ) },
     { key: 'designation', header: t('admin.users.cols.designation'), mobileHidden: true, render: (v, r) => <div><p className="text-sm text-ink">{v || '—'}</p>{r.departments.length > 0 && <div className="mt-1 flex flex-wrap gap-1">{r.departments.map((d) => <ColorChip key={d.id ?? d.name} label={d.name} seed={d.name} />)}</div>}</div> },
     { key: 'lastLoginAt', header: t('admin.users.cols.lastSignIn'), nowrap: true, mobileHidden: true, render: (v) => (v ? <DateCell value={v} time /> : <span className="text-xs text-ink-faint">{t('admin.users.never')}</span>) },
-    { key: 'active', header: t('admin.users.cols.status'), render: (v, r) => <StatusPill tone={v ? (r.mustChangePassword || r.invited ? 'warning' : 'success') : 'neutral'}>{v ? (r.mustChangePassword || r.invited ? t('admin.users.status.invited') : t('admin.users.status.active')) : t('admin.users.status.inactive')}</StatusPill> },
+    { key: 'active', header: t('admin.users.cols.status'), mobileTrail: true, render: (v, r) => <StatusPill tone={v ? (r.mustChangePassword || r.invited ? 'warning' : 'success') : 'neutral'}>{v ? (r.mustChangePassword || r.invited ? t('admin.users.status.invited') : t('admin.users.status.active')) : t('admin.users.status.inactive')}</StatusPill> },
   ]
 
   const toggleActive = async (u) => {
@@ -211,6 +211,12 @@ export default function Users() {
         { icon: Shield, label: t('admin.users.cols.roles'), value: roles.length, sub: t('admin.users.stats.severalPerUser'), tone: 'info' },
       ]} />
 
+      <SideNavLayout nav={roles.length > 1 && (
+        <SideNav title={t('admin.users.byRole')} value={roleId} onChange={setRoleId} items={[
+          { id: '', label: t('admin.users.allRoles'), icon: UsersIcon },
+          ...roles.map((r) => ({ id: r.id, label: r.name, icon: r.fullAccess ? ShieldCheck : Shield, count: r.userCount, countTone: r.fullAccess ? 'warning' : undefined })),
+        ]} />
+      )}>
       <DataTable
         rows={rows}
         loading={usersQ.isLoading}
@@ -221,7 +227,7 @@ export default function Users() {
             right={(
               <ViewControls>
                 <ControlChip label={t('admin.users.filters.status')} value={statusLabels[status]} active={status !== 'active'} options={Object.values(statusLabels)} onChange={(v) => setStatus(Object.keys(statusLabels).find((k) => statusLabels[k] === v) ?? 'active')} />
-                <ControlChip label={t('admin.users.filters.role')} value={roles.find((r) => r.id === roleId)?.name ?? allLabel} active={!!roleId} options={[allLabel, ...roles.map((r) => r.name)]} onChange={(v) => setRoleId(roles.find((r) => r.name === v)?.id ?? '')} />
+                {roles.length <= 1 && <ControlChip label={t('admin.users.filters.role')} value={roles.find((r) => r.id === roleId)?.name ?? allLabel} active={!!roleId} options={[allLabel, ...roles.map((r) => r.name)]} onChange={(v) => setRoleId(roles.find((r) => r.name === v)?.id ?? '')} />}
                 <ControlChip label={t('admin.users.filters.department')} value={departments.find((d) => d.id === deptId)?.name ?? allLabel} active={!!deptId} options={[allLabel, ...departments.map((d) => d.name)]} onChange={(v) => setDeptId(departments.find((d) => d.name === v)?.id ?? '')} />
               </ViewControls>
             )} />
@@ -231,6 +237,7 @@ export default function Users() {
         emptyTitle={q ? t('admin.users.empty.noMatch') : t('admin.users.empty.none')}
         emptyHint={q ? t('admin.users.empty.tryDifferent') : undefined}
       />
+      </SideNavLayout>
 
       {open && (
         <RecordDrawer

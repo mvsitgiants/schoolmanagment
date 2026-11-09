@@ -93,6 +93,7 @@ const ExamQuestionPapers = lazy(() => import('./pages/Exams/QuestionPapers'))
 const ExamMarks = lazy(() => import('./pages/Exams/Marks'))
 const ExamResults = lazy(() => import('./pages/Exams/Results'))
 const ExamReportCards = lazy(() => import('./pages/Exams/ReportCards'))
+const ExamYearResults = lazy(() => import('./pages/Exams/YearResults'))
 const ExamSetup = lazy(() => import('./pages/Exams/Setup'))
 // Homework & lessons
 const HomeworkPage = lazy(() => import('./pages/Homework/Homework'))
@@ -103,6 +104,8 @@ const CertificateIssue = lazy(() => import('./pages/Certificates/Issue'))
 const CertificateRegister = lazy(() => import('./pages/Certificates/Register'))
 const VerifyCertificate = lazy(() => import('./pages/Public/VerifyCertificate'))
 const VerifyStudent = lazy(() => import('./pages/Public/VerifyStudent'))
+const VerifyReceipt = lazy(() => import('./pages/Public/VerifyReceipt'))
+const ScanGate = lazy(() => import('./pages/Scan/Gate'))
 const PublicApply = lazy(() => import('./pages/Public/Apply'))
 // Admissions
 const AdmEnquiries = lazy(() => import('./pages/Admissions/Enquiries'))
@@ -168,6 +171,38 @@ const CommChat = lazy(() => import('./pages/Communication/Chat'))
 const CommLog = lazy(() => import('./pages/Communication/Log'))
 
 // A module page that isn't built yet shows its catalog entry; unknown paths show NotFound.
+const FrontOfficeVisitors = lazy(() => import('./pages/FrontOffice/Visitors'))
+const FrontOfficeGatePasses = lazy(() => import('./pages/FrontOffice/GatePasses'))
+const FrontOfficeComplaints = lazy(() => import('./pages/FrontOffice/Complaints'))
+const AccreditationReports = lazy(() => import('./pages/Accreditation/Reports'))
+const AccreditationEvidence = lazy(() => import('./pages/Accreditation/Evidence'))
+const PlacementsCompanies = lazy(() => import('./pages/Placements/Companies'))
+const PlacementsDrives = lazy(() => import('./pages/Placements/Drives'))
+const PlacementsOffers = lazy(() => import('./pages/Placements/Offers'))
+const ResearchPublications = lazy(() => import('./pages/Research/Publications'))
+const ResearchProjects = lazy(() => import('./pages/Research/Projects'))
+const AlumniDirectory = lazy(() => import('./pages/Alumni/Directory'))
+const AlumniDonations = lazy(() => import('./pages/Alumni/Donations'))
+const HostelRooms = lazy(() => import('./pages/Hostel/Rooms'))
+const HostelAllotment = lazy(() => import('./pages/Hostel/Allotment'))
+const HostelOutpasses = lazy(() => import('./pages/Hostel/Outpasses'))
+const HostelMess = lazy(() => import('./pages/Hostel/Mess'))
+const InventoryItems = lazy(() => import('./pages/Inventory/Items'))
+const InventoryStock = lazy(() => import('./pages/Inventory/Stock'))
+const InventoryPurchaseOrders = lazy(() => import('./pages/Inventory/PurchaseOrders'))
+const InventorySales = lazy(() => import('./pages/Inventory/Sales'))
+const InventoryAssets = lazy(() => import('./pages/Inventory/Assets'))
+const HealthRecords = lazy(() => import('./pages/Health/Records'))
+const HealthVisits = lazy(() => import('./pages/Health/Visits'))
+const HealthIncidents = lazy(() => import('./pages/Health/Incidents'))
+const CanteenMenu = lazy(() => import('./pages/Canteen/Menu'))
+const CanteenOrders = lazy(() => import('./pages/Canteen/Orders'))
+const CanteenWallets = lazy(() => import('./pages/Canteen/Wallets'))
+const SurveysForms = lazy(() => import('./pages/Surveys/Forms'))
+const SurveysResponses = lazy(() => import('./pages/Surveys/Responses'))
+const WebsitePages = lazy(() => import('./pages/Website/Pages'))
+const PublicSurvey = lazy(() => import('./pages/Public/Survey'))
+const PublicSite = lazy(() => import('./pages/Public/Site'))
 const ModulePage = lazy(() => import('./pages/ModulePage'))
 const NotFound = lazy(() => import('./pages/NotFound'))
 
@@ -203,6 +238,10 @@ export default function App() {
         <Route path="/accept-invite" element={<AcceptInvitePage />} />
         <Route path="/verify-email" element={<VerifyEmailPage />} />
         <Route path="/verify/student/:code" element={<VerifyStudent />} />
+        <Route path="/verify/receipt/:code" element={<VerifyReceipt />} />
+        <Route path="/site/:slug" element={<PublicSite />} />
+        <Route path="/site/:slug/:page" element={<PublicSite />} />
+        <Route path="/s/:slug/:token" element={<PublicSurvey />} />
         <Route path="/apply/:slug" element={<PublicApply />} />
         <Route path="/apply/:slug/status" element={<PublicApply track />} />
         <Route path="/verify/:code" element={<VerifyCertificate />} />
@@ -307,6 +346,7 @@ export default function App() {
           <Route path="transport/vehicles" element={<TrVehicles />} />
           <Route path="transport/assignments" element={<TrAssignments />} />
           <Route path="transport/tracking" element={<TrTracking />} />
+          <Route path="scan/gate" element={<ScanGate />} />
           <Route path="library" element={<Navigate to="/library/circulation" replace />} />
           <Route path="library/catalogue" element={<LibCatalogue />} />
           <Route path="library/circulation" element={<LibCirculation />} />
@@ -361,6 +401,7 @@ export default function App() {
           <Route path="exams/marks" element={<ExamMarks />} />
           <Route path="exams/results" element={<ExamResults />} />
           <Route path="exams/report-cards" element={<ExamReportCards />} />
+          <Route path="exams/year-results" element={<ExamYearResults />} />
           <Route path="exams/setup" element={<ExamSetup />} />
           <Route path="homework" element={<Navigate to="/homework/homework" replace />} />
           <Route path="homework/homework" element={<HomeworkPage />} />
@@ -382,6 +423,47 @@ export default function App() {
           <Route path="communication/messages" element={<CommMessages />} />
           <Route path="communication/chat" element={<CommChat />} />
           <Route path="communication/log" element={<CommLog />} />
+          <Route path="frontoffice" element={<Navigate to="/frontoffice/visitors" replace />} />
+          <Route path="frontoffice/visitors" element={<FrontOfficeVisitors />} />
+          <Route path="frontoffice/gate-pass" element={<FrontOfficeGatePasses />} />
+          <Route path="frontoffice/complaints" element={<FrontOfficeComplaints />} />
+          <Route path="accreditation" element={<Navigate to="/accreditation/reports" replace />} />
+          <Route path="accreditation/reports" element={<AccreditationReports />} />
+          <Route path="accreditation/evidence" element={<AccreditationEvidence />} />
+          <Route path="placements" element={<Navigate to="/placements/companies" replace />} />
+          <Route path="placements/companies" element={<PlacementsCompanies />} />
+          <Route path="placements/drives" element={<PlacementsDrives />} />
+          <Route path="placements/offers" element={<PlacementsOffers />} />
+          <Route path="research" element={<Navigate to="/research/publications" replace />} />
+          <Route path="research/publications" element={<ResearchPublications />} />
+          <Route path="research/projects" element={<ResearchProjects />} />
+          <Route path="alumni" element={<Navigate to="/alumni/directory" replace />} />
+          <Route path="alumni/directory" element={<AlumniDirectory />} />
+          <Route path="alumni/donations" element={<AlumniDonations />} />
+          <Route path="hostel" element={<Navigate to="/hostel/rooms" replace />} />
+          <Route path="hostel/rooms" element={<HostelRooms />} />
+          <Route path="hostel/allotment" element={<HostelAllotment />} />
+          <Route path="hostel/outpass" element={<HostelOutpasses />} />
+          <Route path="hostel/mess" element={<HostelMess />} />
+          <Route path="inventory" element={<Navigate to="/inventory/items" replace />} />
+          <Route path="inventory/items" element={<InventoryItems />} />
+          <Route path="inventory/stock" element={<InventoryStock />} />
+          <Route path="inventory/purchase-orders" element={<InventoryPurchaseOrders />} />
+          <Route path="inventory/sales" element={<InventorySales />} />
+          <Route path="inventory/assets" element={<InventoryAssets />} />
+          <Route path="health" element={<Navigate to="/health/records" replace />} />
+          <Route path="health/records" element={<HealthRecords />} />
+          <Route path="health/visits" element={<HealthVisits />} />
+          <Route path="health/incidents" element={<HealthIncidents />} />
+          <Route path="canteen" element={<Navigate to="/canteen/menu" replace />} />
+          <Route path="canteen/menu" element={<CanteenMenu />} />
+          <Route path="canteen/orders" element={<CanteenOrders />} />
+          <Route path="canteen/wallet" element={<CanteenWallets />} />
+          <Route path="surveys" element={<Navigate to="/surveys/forms" replace />} />
+          <Route path="surveys/forms" element={<SurveysForms />} />
+          <Route path="surveys/responses" element={<SurveysResponses />} />
+          <Route path="website" element={<Navigate to="/website/pages" replace />} />
+          <Route path="website/pages" element={<WebsitePages />} />
           <Route path=":moduleId/:pageId/*" element={<ModulePage />} />
           <Route path="*" element={<NotFound />} />
         </Route>

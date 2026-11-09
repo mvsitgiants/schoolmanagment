@@ -158,6 +158,11 @@
       "feedback": "Note for the student",
       "saveMarks": "Save marks",
       "markedDone": "Marks saved."
-    }
+    },
+    "nav": "Tests",
+    "attemptsN_one": "{{count}} attempt",
+    "attemptsN_other": "{{count}} attempts",
+    "qmLong_one": "{{count}} question · {{m}} marks",
+    "qmLong_other": "{{count}} questions · {{m}} marks"
   }
 }

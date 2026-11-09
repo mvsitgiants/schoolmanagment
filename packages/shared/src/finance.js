@@ -73,7 +73,9 @@ export const STARTER_ACCOUNTS = [
   { code: '4200', name: 'Other income', type: 'INCOME', group: true, parent: '4000' },
   { code: '4210', name: 'Donations & grants', type: 'INCOME', parent: '4200', key: 'INC_DONATIONS' },
   { code: '4220', name: 'Interest income', type: 'INCOME', parent: '4200' },
-  { code: '4230', name: 'Uniform & book sales', type: 'INCOME', parent: '4200' },
+  { code: '4230', name: 'Uniform & book sales', type: 'INCOME', parent: '4200', key: 'INC_STORE_SALES' },
+  { code: '2125', name: 'Canteen wallet balances', type: 'LIABILITY', parent: '2100', key: 'CANTEEN_WALLETS', hint: 'Money families have put in canteen wallets and not yet spent.' },
+  { code: '4250', name: 'Canteen sales', type: 'INCOME', parent: '4200', key: 'INC_CANTEEN' },
   { code: '4240', name: 'Staff recoveries', type: 'INCOME', parent: '4200', key: 'STAFF_RECOVERIES' },
   { code: '4290', name: 'Round off', type: 'INCOME', parent: '4200', key: 'ROUND_OFF' },
 
@@ -140,6 +142,9 @@ export const POSTING_SOURCES = {
   EXPENSE: { label: 'Expense', module: 'finance' },
   LIBRARY_FINE: { label: 'Library fine', module: 'library' },
   MANUAL: { label: 'Manual', module: 'finance' },
+  STORE_SALE: { label: 'Store sale', module: 'inventory' },
+  DONATION: { label: 'Alumni donation', module: 'alumni' },
+  CANTEEN: { label: 'Canteen', module: 'canteen' },
 }
 
 /** Payment modes that move cash; ONLINE lands in the gateway account (or the bank); everything else the bank. */

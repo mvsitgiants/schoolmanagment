@@ -15,15 +15,15 @@ import { currentYear, sectionsInScope } from './academics.js'
 // collection, exams, homework, certificates — and what is waiting for a decision. Each block shows
 // only when its module is on and the caller may see that module, within their data scope there.
 
-const on = (auth, moduleId, ...keys) => moduleEnabled(auth, moduleId) && keys.some((k) => can(auth, k))
+export const on = (auth, moduleId, ...keys) => moduleEnabled(auth, moduleId) && keys.some((k) => can(auth, k))
 
-async function branchFilterFor(auth, moduleId) {
+export async function branchFilterFor(auth, moduleId) {
   if (scopeOf(auth, moduleId) === 'ALL' || !auth.user?.branchId) return {}
   const main = (await Branch.findOne({ isDefault: true }).select('_id').lean())?._id
   return String(auth.user.branchId) === String(main) ? { branchId: { $in: [auth.user.branchId, null] } } : { branchId: auth.user.branchId }
 }
 
-async function scopedSections(auth, moduleId, year) {
+export async function scopedSections(auth, moduleId, year) {
   const allowed = await sectionsInScope(auth, moduleId)
   return Section.find({ academicYearId: year._id, active: { $ne: false }, ...(allowed && { _id: { $in: allowed } }) }).lean()
 }
@@ -118,7 +118,7 @@ async function certificatesBlock(auth, t) {
 }
 
 /** Decisions waiting on the caller: leave, concessions, cash differences, TCs. */
-async function pendingFor(auth) {
+export async function pendingFor(auth) {
   const out = []
   const add = async (key, link, fn) => { const n = await fn(); if (n) out.push({ key, count: n, link }) }
   if (on(auth, 'attendance', 'attendance.leave.approve')) await add('leave', '/attendance/leave', () => StudentLeave.countDocuments({ status: 'PENDING' }))

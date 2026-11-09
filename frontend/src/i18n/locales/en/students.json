@@ -77,10 +77,14 @@
         "boys": "Boys",
         "girls": "Girls",
         "unset": "Not set",
-        "strength": "Class strength",
-        "strengthHint": "Pick a class to list only its students",
-        "showing": "Showing {{name}} — pick it again to clear"
-      }
+        "ofSchool": "{{name}} · of {{count}} in school"
+      },
+      "classes": "Classes",
+      "allClasses": "All classes",
+      "sectionCount_one": "{{count}} section",
+      "sectionCount_other": "{{count}} sections",
+      "allSections": "All of {{name}}",
+      "sectionN": "Section {{name}}"
     },
     "form": {
       "placement": "Class and admission",
@@ -190,7 +194,7 @@
       "from": "Section",
       "pick": "Pick a section",
       "into": "into {{year}}",
-      "intro": "Pick a section of the current year. Set up next year and its sections in Academic setup first.",
+      "intro": "Pick a class, then one of its sections, of the current year. Set up next year and its sections in Academic setup first.",
       "noNextYear": "There is no academic year after {{year}} yet. Add it in Academic setup › Academic years & terms.",
       "promoteInto": "Promoted students go to",
       "detainInto": "Students staying in the class go to",

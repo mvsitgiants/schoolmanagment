@@ -22,7 +22,14 @@
       "library": "Library",
       "calendar": "Calendar",
       "meetings": "Meetings",
-      "photos": "Photos"
+      "photos": "Photos",
+      "timetable": "Timetable",
+      "hostel": "Hostel",
+      "health": "Health",
+      "placements": "Placements",
+      "complaints": "Complaints",
+      "surveys": "Surveys",
+      "canteen": "Canteen"
     },
     "marks": {
       "P": "Present",
@@ -175,7 +182,13 @@
       "rank": "Rank {{rank}}",
       "openCard": "Open the report card",
       "none": "No results yet",
-      "noneHint": "Results show here once the school publishes them."
+      "noneHint": "Results show here once the school publishes them.",
+      "yearTitle": "Year result {{year}}",
+      "yearCard": "Annual report card",
+      "grade": "Grade {{grade}}",
+      "yearBelow": "Below the pass mark: {{subjects}}",
+      "yearAttendance": "Attendance this year: {{pct}}%",
+      "yearHow": "How it is worked out: {{parts}}"
     },
     "certificates": {
       "title": "Certificates",
@@ -216,7 +229,12 @@
         "Transport": "Transport",
         "Circular": "Circular",
         "Urgent": "Urgent"
-      }
+      },
+      "all": "All",
+      "unread": "Unread",
+      "noneHere": "No notices here",
+      "pinned": "Pinned",
+      "hasFiles": "Has attachments"
     },
     "chat": {
       "conversations": "Conversations",
@@ -232,7 +250,9 @@
       "closed": "The school has closed this conversation. Please call the school office.",
       "placeholder": "Write your message…",
       "send": "Send",
-      "etiquette": "Teachers reply during school hours. For anything urgent, please call the school."
+      "etiquette": "Teachers reply during school hours. For anything urgent, please call the school.",
+      "pickTitle": "Pick a conversation",
+      "pickHint": "Choose a teacher on the left to read and write messages."
     },
     "learning": {
       "courses": "Courses",
@@ -248,7 +268,8 @@
       "liveNow": "Live now",
       "join": "Join",
       "joinHint": "Join opens a few minutes before the class starts.",
-      "recordings": "Recordings"
+      "recordings": "Recordings",
+      "nothingMore": "Nothing more to open — tick it when it’s done."
     },
     "tests": {
       "none": "No online tests yet.",
@@ -288,7 +309,17 @@
       },
       "yours": "(yours)",
       "youWrote": "You wrote:",
-      "answer": "Answer:"
+      "answer": "Answer:",
+      "all": "All",
+      "states": {
+        "OPEN": "Open now",
+        "LATER": "Coming up",
+        "CLOSED": "Closed"
+      },
+      "questions_one": "{{count}} question",
+      "questions_other": "{{count}} questions",
+      "minutes_one": "{{count}} minute",
+      "minutes_other": "{{count}} minutes"
     },
     "bus": {
       "none": "Not on the school bus",
@@ -391,7 +422,62 @@
       "save": "Save",
       "close": "Close",
       "count_one": "{{count}} photo",
-      "count_other": "{{count}} photos"
+      "count_other": "{{count}} photos",
+      "albums": "Albums",
+      "position": "{{n}} of {{total}}",
+      "prev": "Previous photo",
+      "next": "Next photo"
+    },
+    "timetable": {
+      "none": "No timetable yet",
+      "noneHint": "The school hasn’t published the class timetable. It will show here once they do.",
+      "days": "Days of the week",
+      "today": "Today",
+      "todayTitle": "Today’s classes",
+      "tomorrowTitle": "Tomorrow’s classes",
+      "periods_one": "{{count}} period",
+      "periods_other": "{{count}} periods",
+      "subsNote_one": "A substitute teacher is taking {{count}} period.",
+      "subsNote_other": "Substitute teachers are taking {{count}} periods.",
+      "substitute": "Substitute: {{name}}",
+      "now": "Now",
+      "free": "Free period",
+      "day": {
+        "MON": "Mon",
+        "TUE": "Tue",
+        "WED": "Wed",
+        "THU": "Thu",
+        "FRI": "Fri",
+        "SAT": "Sat",
+        "SUN": "Sun"
+      },
+      "dayLong": {
+        "MON": "Monday",
+        "TUE": "Tuesday",
+        "WED": "Wednesday",
+        "THU": "Thursday",
+        "FRI": "Friday",
+        "SAT": "Saturday",
+        "SUN": "Sunday"
+      },
+      "slot": {
+        "ASSEMBLY": "Assembly",
+        "BREAK": "Break",
+        "LUNCH": "Lunch"
+      }
+    },
+    "yearResult": {
+      "PASS": "Pass",
+      "COMPARTMENT": "Compartment",
+      "FAIL": "Needs to improve",
+      "INCOMPLETE": "Marks missing"
+    },
+    "push": {
+      "title": "Notifications on this phone",
+      "on": "On — attendance, fees, homework and school messages pop up on this phone.",
+      "off": "Off — turn on to get school messages as phone notifications.",
+      "blocked": "Blocked in this browser’s settings. Allow notifications for this app there.",
+      "unsupported": ""
     }
   }
 }

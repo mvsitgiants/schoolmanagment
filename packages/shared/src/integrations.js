@@ -153,7 +153,9 @@ export const DEVICE_USED_FOR = [
   { value: 'STUDENTS', label: 'Students (gate / bus)' },
 ]
 /** Kinds a device can be registered as here (bus GPS trackers can also be set on the vehicle in Transport). */
-export const DEVICE_KINDS = ['BIOMETRIC', 'RFID', 'FACE', 'GPS']
+// PHONE: a phone or tablet running the app's Gate scanner (camera or a scanner gun) — it punches as a signed-in
+// member of staff instead of with a device key.
+export const DEVICE_KINDS = ['BIOMETRIC', 'RFID', 'FACE', 'GPS', 'PHONE']
 /** A device's state, worked out from when it last called in. */
 export const DEVICE_STATUSES = {
   OK: { label: 'Online', tone: 'success' },

@@ -3,19 +3,69 @@
     "edit": "Edit",
     "delete": "Delete",
     "map": "Map",
-    "vehicleTypes": { "BUS": "Bus", "MINI_BUS": "Mini bus", "VAN": "Van", "CAR": "Car", "AUTO": "Auto-rickshaw" },
-    "vehicleStatus": { "ACTIVE": "On the road", "MAINTENANCE": "In maintenance", "OFF_ROAD": "Off the road" },
-    "docs": { "RC": "Registration (RC)", "INSURANCE": "Insurance", "FITNESS": "Fitness certificate", "PERMIT": "Permit", "PUC": "Pollution (PUC)", "SPEED_GOVERNOR": "Speed governor certificate" },
-    "docStates": { "MISSING": "Not added", "NONE": "No expiry", "VALID": "Valid", "DUE": "Renew soon", "EXPIRED": "Expired" },
-    "modes": { "BOTH": "Pickup and drop", "PICKUP": "Pickup only", "DROP": "Drop only" },
-    "tripKinds": { "PICKUP": "Morning pickup", "DROP": "Afternoon drop" },
-    "tripStatus": { "NOT_STARTED": "Not started", "RUNNING": "Running", "DONE": "Finished" },
-    "rideEvents": { "BOARDED": "Got on", "DROPPED": "Got off", "ABSENT": "Not at the stop" },
+    "vehicleTypes": {
+      "BUS": "Bus",
+      "MINI_BUS": "Mini bus",
+      "VAN": "Van",
+      "CAR": "Car",
+      "AUTO": "Auto-rickshaw"
+    },
+    "vehicleStatus": {
+      "ACTIVE": "On the road",
+      "MAINTENANCE": "In maintenance",
+      "OFF_ROAD": "Off the road"
+    },
+    "docs": {
+      "RC": "Registration (RC)",
+      "INSURANCE": "Insurance",
+      "FITNESS": "Fitness certificate",
+      "PERMIT": "Permit",
+      "PUC": "Pollution (PUC)",
+      "SPEED_GOVERNOR": "Speed governor certificate"
+    },
+    "docStates": {
+      "MISSING": "Not added",
+      "NONE": "No expiry",
+      "VALID": "Valid",
+      "DUE": "Renew soon",
+      "EXPIRED": "Expired"
+    },
+    "modes": {
+      "BOTH": "Pickup and drop",
+      "PICKUP": "Pickup only",
+      "DROP": "Drop only"
+    },
+    "tripKinds": {
+      "PICKUP": "Morning pickup",
+      "DROP": "Afternoon drop"
+    },
+    "tripStatus": {
+      "NOT_STARTED": "Not started",
+      "RUNNING": "Running",
+      "DONE": "Finished"
+    },
+    "rideEvents": {
+      "BOARDED": "Got on",
+      "DROPPED": "Got off",
+      "ABSENT": "Not at the stop"
+    },
     "board": {
-      "view": { "BOARD": "Board", "LIST": "List" },
-      "live": { "ON_TRIP": "On trip now", "TRIP_DONE": "Trip done", "NOT_STARTED": "Not started", "NO_ROUTE": "No route" },
+      "view": {
+        "BOARD": "Board",
+        "LIST": "List"
+      },
+      "live": {
+        "ON_TRIP": "On trip now",
+        "TRIP_DONE": "Trip done",
+        "NOT_STARTED": "Not started",
+        "NO_ROUTE": "No route"
+      },
       "runningTrip": "{{kind}} · {{reached}} of {{total}} stops",
-      "filter": { "ALL": "All vehicles", "OVER": "Over capacity only", "FREE": "Free seats only" },
+      "filter": {
+        "ALL": "Any seats",
+        "OVER": "Over capacity only",
+        "FREE": "Free seats only"
+      },
       "route": "Route",
       "allRoutes": "All routes",
       "colourBy": "Colour seats by",
@@ -53,7 +103,8 @@
       "ridersN_one": "{{count}} rider",
       "ridersN_other": "{{count}} riders",
       "noRiders": "No students ride this vehicle’s routes yet.",
-      "pickHint": "Pick a stop or class above to light up its seats."
+      "pickHint": "Pick a stop or class above to light up its seats.",
+      "allVehicles": "All vehicles"
     },
     "vehicles": {
       "title": "Vehicles & drivers",
@@ -185,7 +236,13 @@
       "end": "Take off transport",
       "endConfirm": "Take {{name}} off transport from today?",
       "ended": "Taken off transport",
-      "empty": "No students on transport"
+      "empty": "No students on transport",
+      "ridingRoute": "Riding this route",
+      "freeSeats": "Free seats",
+      "onVehicle": "{{reg}} · {{seats}} seats",
+      "stopsN": "Stops",
+      "allStops": "All stops · {{count}}",
+      "routeStop": "Route · stop"
     },
     "track": {
       "title": "Live tracking",
@@ -230,6 +287,14 @@
       "stillOn_one": "{{count}} student is still marked on the bus.",
       "stillOn_other": "{{count}} students are still marked on the bus.",
       "ended": "Trip ended"
+    },
+    "nav": {
+      "routes": "Routes",
+      "vehicleLine": "{{reg}} · {{seats}} seats",
+      "noVehicle": "No vehicle yet",
+      "spare": "No route (spare)",
+      "runningN_one": "{{count}} running",
+      "runningN_other": "{{count}} running"
     }
   }
 }

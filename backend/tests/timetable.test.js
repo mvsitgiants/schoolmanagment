@@ -1,5 +1,8 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { DEFAULT_BELL, checkBell, findClashes, generateTimetable, teachingPeriods, weekdayCode } from '@schoolgiant/shared'
+import request from 'supertest'
+import { DEFAULT_BELL, addDaysYmd, checkBell, findClashes, generateTimetable, nowIn, teachingPeriods, weekdayCode } from '@schoolgiant/shared'
+import { MessagingConfig } from '../src/models/engines.js'
+import { runAsTenant } from '../src/platform/context.js'
 import { newInstitution, signIn, startDb, stopDb } from './helpers.js'
 
 let app
@@ -189,5 +192,34 @@ describe('substitutions', () => {
 
   it('refuses a date before the timetable starts', async () => {
     expect((await admin.post(`${api}/substitutions/needs`).send({ date: '2026-05-04', absentIds: [teachersList[0].id] })).status).toBe(409)
+  })
+})
+
+describe('the family app', () => {
+  it('shows the child’s class week — subjects, teachers, rooms and bell times — and this week’s substitutes', async () => {
+    await admin.patch('/api/v1/core/settings/modules/portal').send({ enabled: true }).expect(200)
+    await runAsTenant(h.tenant._id, () => MessagingConfig.updateOne({}, { $set: { sms: { provider: 'TEST' } } }, { upsert: true }))
+    await admin.post('/api/v1/students').send({ firstName: 'Ira', sectionId: section.id, guardians: [{ name: 'Parent of Ira', relation: 'MOTHER', mobile: '9845000081', isPrimary: true }] }).expect(201)
+    const fam = (path) => `/api/v1/family/${h.tenant.slug}${path}`
+    const agent = request.agent(app)
+    const sent = (await agent.post(fam('/otp')).send({ mobile: '9845000081' })).body.data
+    const me = (await agent.post(fam('/verify')).send({ challengeId: sent.challengeId, code: sent.testCode })).body.data
+    expect(me.features).toContain('TIMETABLE')
+    // a cover booked for the coming Monday shows against that period
+    const today = nowIn('Asia/Kolkata').date
+    let monday = today
+    while (weekdayCode(monday) !== 'MON') monday = addDaysYmd(monday, 1)
+    const need = (await admin.post(`${api}/substitutions/needs`).send({ date: monday, absentIds: [teachersList[0].id] })).body.data.find((n) => n.sectionId === section.id)
+    await admin.post(`${api}/substitutions`).send({ date: monday, sectionId: section.id, period: need.period, substituteId: need.suggestions[0].teacherId }).expect(201)
+
+    const w = (await agent.get(fam(`/students/${me.students[0].id}/timetable`))).body.data
+    expect(w).toMatchObject({ published: true, today, days: expect.arrayContaining(['MON']) })
+    expect(w.slots.filter((x) => x.kind === 'PERIOD')).toHaveLength(8)
+    const monday1 = Object.values(w.cells.MON)
+    expect(monday1.length).toBeGreaterThan(0)
+    expect(monday1[0]).toEqual({ subject: expect.any(String), subjectCode: expect.any(String), teacher: expect.stringMatching(/Teacher$/), room: expect.any(String) })
+    expect(w.substitutions).toEqual([{ date: monday, day: 'MON', period: need.period, teacher: need.suggestions[0].name ?? expect.any(String) }])
+    // the school can't see past its own families: another child's id is refused
+    expect((await agent.get(fam(`/students/${section.id}/timetable`))).status).toBe(404)
   })
 })

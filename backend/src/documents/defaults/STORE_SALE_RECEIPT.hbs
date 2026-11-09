@@ -1,0 +1,46 @@
+{{!-- Store receipt (A5, or the 80 mm receipt roll): uniforms and books sold to a student at the counter.
+      Data from services/inventorySales.js (salePrintData). --}}
+<style>
+  h1 { font-size: 12pt; text-align: center; letter-spacing: .08em; text-transform: uppercase; margin: 4mm 0 2mm }
+  .meta { display: flex; justify-content: space-between; gap: 6mm; font-size: 9pt; margin-bottom: 3mm }
+  .meta b { font-weight: 600 }
+  table.r { width: 100%; border-collapse: collapse; font-size: 9pt }
+  table.r th { text-align: left; font-weight: 600; color: #5B616E; border-bottom: 1px solid #C8CCD4; padding: 1.5mm 1mm }
+  table.r td { padding: 1.2mm 1mm; border-bottom: 1px solid #EEF0F3; vertical-align: top }
+  table.r .n { text-align: right; white-space: nowrap }
+  .tot { margin-top: 3mm; display: flex; justify-content: space-between; font-size: 10.5pt; font-weight: 700 }
+  .words { font-size: 9pt; color: #3A3F4B; margin-top: 1mm }
+  .foot { margin-top: 8mm; display: flex; justify-content: space-between; font-size: 9pt }
+  .void { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 46pt; font-weight: 800; color: rgba(214,69,69,.16); transform: rotate(-20deg); pointer-events: none }
+</style>
+{{#if sale.cancelled}}<div class="void">{{t "inventory.print.sale.stampCancelled" "CANCELLED"}}</div>{{/if}}
+{{#> letterhead}}{{/letterhead}}
+<h1>{{t "inventory.print.sale.title" "Store receipt"}}</h1>
+<div class="meta">
+  <div>
+    <div>{{t "inventory.print.sale.no" "Receipt No."}} <b class="mono">{{sale.no}}</b></div>
+    <div>{{t "inventory.print.sale.date" "Date"}} <b>{{date sale.date}}</b></div>
+  </div>
+  <div style="text-align:right">
+    <div><b>{{student.name}}</b></div>
+    <div>{{student.class}}</div>
+    <div class="muted">{{t "inventory.print.sale.admissionNo" "Adm. No."}} <span class="mono">{{student.admissionNo}}</span></div>
+  </div>
+</div>
+<table class="r">
+  <thead><tr><th>{{t "inventory.print.sale.item" "Item"}}</th><th class="n">{{t "inventory.print.sale.qty" "Qty"}}</th><th class="n">{{t "inventory.print.sale.rate" "Rate"}}</th><th class="n">{{t "inventory.print.sale.amount" "Amount"}}</th></tr></thead>
+  <tbody>
+    {{#each lines}}
+      <tr><td>{{name}}{{#if size}} <span class="muted">({{t "inventory.print.sale.size" "size {{size}}" size=size}})</span>{{/if}}</td><td class="n">{{num qty}}</td><td class="n">{{money rate}}</td><td class="n">{{money amount}}</td></tr>
+    {{/each}}
+  </tbody>
+</table>
+<div class="tot"><span>{{t "inventory.print.sale.total" "Amount received"}}</span><span>{{money sale.total}}</span></div>
+<div class="words">{{words sale.total}}</div>
+<div class="words">{{t "inventory.print.sale.paidBy" "Paid by {{mode}}" mode=sale.mode}}{{#if sale.reference}} · {{t "inventory.print.sale.ref" "Ref. {{ref}}" ref=sale.reference}}{{/if}}</div>
+{{#if sale.cancelled}}<div class="words">{{t "inventory.print.sale.cancelledNote" "Cancelled: {{reason}}" reason=sale.cancelReason}}</div>{{/if}}
+<div class="foot">
+  <span class="muted">{{t "inventory.print.sale.by" "Received by {{name}}" name=sale.by}}</span>
+  <span>{{t "inventory.print.sale.signature" "Authorised signatory"}}</span>
+</div>
+{{> footer}}

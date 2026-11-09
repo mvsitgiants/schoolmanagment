@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { CheckCircle2, Download, Gauge, ListChecks, PencilLine, Send, Trophy, Users, XCircle } from 'lucide-react'
+import { CheckCircle2, ClipboardCheck, Download, Gauge, ListChecks, PencilLine, Send, Trophy, Users, XCircle } from 'lucide-react'
 import { ATTEMPT_STATUS, QUESTION_TYPES } from '@schoolgiant/shared'
-import { DataTable, Drawer, FormField, Input, LevelBar, Note, PageContainer, PageHeader, Panel, PersonCell, ProgressBar, Select, StackCell, StatCardRow, StatusPill, Textarea } from '../../components/system'
+import { DataTable, Drawer, FormField, Input, LevelBar, Note, PageContainer, PageHeader, Panel, PersonCell, ProgressBar, Select, SideNav, SideNavLayout, StackCell, StatCardRow, StatusPill, Textarea } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { downloadResults, evaluateAttempt, fetchAttempt, fetchTestAttempts, fetchTests, releaseResults } from '../../api/onlineTests'
 import { hasPermission } from '../../api/auth'
@@ -85,9 +85,21 @@ export default function Attempts() {
     <PageContainer>
       <PageHeader icon={ListChecks} title={t('tests.attempts.title')} subtitle={t('tests.attempts.subtitle')} />
       {!given.length ? <Note>{t('tests.attempts.none')}</Note> : (
-        <div className="space-y-4">
+        <SideNavLayout nav={given.length > 1 && (
+          <SideNav title={t('tests.nav')} value={id} onChange={setTestId} items={given.map((x) => ({
+            id: x.id, label: x.title, icon: ClipboardCheck,
+            hint: [x.className, x.subject].filter(Boolean).join(' · '),
+            count: x.toEvaluate || x.attempts, countTone: x.toEvaluate ? 'warning' : undefined,
+          }))} />
+        )}>
+          {/* one test: the picker stays for a single test's name; otherwise the side list picks */}
           <div className="flex flex-wrap items-center gap-2">
-            <div className="w-80"><Select value={id} onChange={(e) => setTestId(e.target.value)} aria-label={t('tests.attempts.test')}>{given.map((x) => <option key={x.id} value={x.id}>{`${x.title} · ${x.className}`}</option>)}</Select></div>
+            {given.length > 1 ? (
+              <div className="min-w-0 flex-1">
+                <p className="font-semibold text-ink break-words">{test?.title}</p>
+                <p className="text-xs text-ink-muted">{[test?.className, test?.subject, test && t('tests.attemptsN', { count: test.attempts })].filter(Boolean).join(' · ')}</p>
+              </div>
+            ) : <div className="w-full sm:w-80"><Select value={id} onChange={(e) => setTestId(e.target.value)} aria-label={t('tests.attempts.test')}>{given.map((x) => <option key={x.id} value={x.id}>{`${x.title} · ${x.className}`}</option>)}</Select></div>}
             {hasPermission('online-tests.attempts.export') && <Button size="sm" variant="secondary" icon={Download} onClick={() => downloadResults(id).catch((e) => showError(e.message))}>{t('tests.attempts.export')}</Button>}
             {test?.results === 'MANUAL' && !test.resultsReleasedAt && <Button size="sm" icon={Send} loading={release.isPending} onClick={() => release.mutate()}>{t('tests.attempts.release')}</Button>}
           </div>
@@ -100,12 +112,15 @@ export default function Attempts() {
           ]} />}
           <DataTable rows={data?.rows ?? []} loading={isLoading} rowKey="studentId" columns={[
             { key: 'name', header: t('tests.attempts.student'), mobilePrimary: true, render: (v, r) => <PersonCell name={v} sub={[r.section, r.rollNo && t('tests.attempts.roll', { n: r.rollNo })].filter(Boolean).join(' · ') || undefined} /> },
-            { key: 'status', header: t('tests.statusCol'), render: (v) => (v ? <StatusPill tone={ATTEMPT_STATUS[v]?.tone}>{t(`tests.attemptStatus.${v}`)}</StatusPill> : <span className="text-xs text-ink-faint">{t('tests.attempts.notTaken')}</span>) },
-            { key: 'score', header: t('tests.attempts.marksCol'), align: 'right', render: (v, r) => (v ? (
-              <span className="inline-flex flex-col items-end gap-0.5">
+            { key: 'status', header: t('tests.statusCol'), mobileTrail: true, render: (v) => (v ? <StatusPill tone={ATTEMPT_STATUS[v]?.tone}>{t(`tests.attemptStatus.${v}`)}</StatusPill> : <span className="text-xs text-ink-faint">{t('tests.attempts.notTaken')}</span>) },
+            { key: 'score', header: t('tests.attempts.marksCol'), align: 'right', mobilePrimary: true, render: (v, r) => (v ? (
+              <>
+              <span className={`md:hidden tabular-nums ${r.passed === false ? 'text-danger-600' : ''}`}>{v.total}/{data.test.totalMarks} · {v.pct}%</span>
+              <span className="hidden md:inline-flex flex-col items-end gap-0.5">
                 <LevelBar value={v.total} max={data.test.totalMarks} dangerAt={r.passed === false ? Infinity : undefined} width="w-24" />
                 <span className={r.passed === false ? 'text-[11px] font-medium text-danger-600' : 'text-[11px] text-ink-faint'}>{v.pct}%</span>
               </span>
+              </>
             ) : '—') },
             { key: 'submittedAt', header: t('tests.attempts.submitted'), mobileHidden: true, render: (v, r) => (v ? <StackCell title={dateTime(v)} sub={r.submitReason ? t(`tests.reasons.${r.submitReason}`) : undefined} /> : '—') },
             { key: 'tabSwitches', header: t('tests.attempts.left'), align: 'right', mobileHidden: true, render: (v) => (v ? <span className="inline-flex min-w-[1.5rem] justify-center rounded-md bg-amber-50 px-1.5 py-0.5 text-[12px] font-semibold tabular-nums text-amber-700">{v}</span> : <span className="text-ink-faint">0</span>) },
@@ -115,14 +130,14 @@ export default function Attempts() {
               <div className="divide-y divide-border">
                 {data.questions.map((q) => (
                   <div key={q.index} className="grid sm:grid-cols-[1fr_200px] gap-2 px-4 py-2 items-center">
-                    <p className="text-sm text-ink truncate">{q.index + 1}. {q.text}</p>
+                    <p className="text-sm text-ink line-clamp-2 sm:truncate">{q.index + 1}. {q.text}</p>
                     {q.pct === null ? <span className="text-xs text-ink-faint">{t('tests.attempts.teacherMarked', { count: q.answered })}</span> : <div className="flex items-center gap-2"><div className="flex-1"><ProgressBar value={q.pct} showValue={false} /></div><span className="text-xs text-ink-muted w-10 text-right">{q.pct}%</span></div>}
                   </div>
                 ))}
               </div>
             </Panel>
           )}
-        </div>
+        </SideNavLayout>
       )}
       {open && <AttemptDrawer id={open} onClose={() => setOpen(null)} onChanged={refresh} />}
     </PageContainer>

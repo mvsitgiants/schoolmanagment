@@ -179,6 +179,7 @@ export const MODULES = [
       pg('marks', 'Marks entry', 'V C E lock unlock!'),
       pg('results', 'Results', 'V X publish!'),
       pg('report-cards', 'Report cards', 'V P publish!'),
+      pg('year-results', 'Year-end results', 'V X P publish!'),
       pg('setup', 'Exam setup', 'V C E D', { setup: true }),
     ] },
   { id: 'timetable', name: 'Timetable', category: 'academics', icon: 'CalendarDays', deps: ['academics'], phase: 2, scopes: CLASS_SCOPES,

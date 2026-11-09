@@ -502,7 +502,8 @@ async function fillLms(admin) {
 
 // ───────────────────────────────────────────────────────── teachers, allocations, timetable
 
-const hash = (...xs) => xs.reduce((h, x) => ((h * 31 + (typeof x === 'string' ? [...x].reduce((a, c) => a * 7 + c.charCodeAt(0), 0) : x)) >>> 0) % 1000003, 7)
+// FNV-1a over every part, 32-bit all the way (a float running sum lost the last characters of long ids)
+const hash = (...xs) => xs.reduce((h, x) => { for (const c of String(x)) h = Math.imul(h ^ c.charCodeAt(0), 16777619) >>> 0; return Math.imul(h ^ 124, 16777619) >>> 0 }, 2166136261) % 1000003
 const TEACHER_LOGINS = [
   ['Meenakshi Raghavan', 'meenakshi@greenvalley.test'], ['Arvind Kulkarni', 'arvind@greenvalley.test'], ['Sangeeta Rao', 'sangeeta@greenvalley.test'],
   ['Mohammed Irfan', 'irfan@greenvalley.test'], ['Lata Hegde', 'lata@greenvalley.test'], ['Priyanka Das', 'priyanka@greenvalley.test'],

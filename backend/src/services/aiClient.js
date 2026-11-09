@@ -1,6 +1,8 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { aiMonthOf } from '@schoolgiant/shared'
 import { AiUsage } from '../models/ai.js'
+import { Plan, Tenant } from '../models/platform.js'
+import { getContext } from '../platform/context.js'
 import { isOid } from '../platform/db.js'
 import { AppError } from '../platform/errors.js'
 import { logger } from '../platform/logger.js'
@@ -15,7 +17,8 @@ import { getConfig, secretOf } from './integrationsCommon.js'
 //
 // Models: Claude Sonnet 5.5 for the assistant and question papers, Claude Haiku 5.5 for bulk remarks. Sonnet
 // requests carry the server-side refusal fallback ("default" routing). Every call is logged in AiUsage; an
-// optional monthly cap per institution (AI_MONTHLY_TOKEN_CAP, input + output tokens) stops calls once reached.
+// monthly cap per institution — the plan's `aiTokensK` limit (thousand tokens; a per-institution override wins), else
+// AI_MONTHLY_TOKEN_CAP — stops calls once reached.
 //
 // Tests (and anything else that must not call out) install a driver with setAiDriver({ create(params) }) —
 // it answers in place of the API and counts as "configured".
@@ -56,6 +59,18 @@ export const aiUnavailable = () => new AppError(409, 'AI is not set up for this 
 
 const month = async () => aiMonthOf((await institutionNow()).date)
 
+/** The institution's monthly token cap: its plan's aiTokensK (or override) × 1000, else the environment cap; 0 = none. */
+async function monthlyCap() {
+  const tenantId = getContext()?.tenantId
+  if (tenantId && isOid(tenantId)) {
+    const t = await Tenant.findById(tenantId).select('planCode limitsOverride').lean()
+    const override = t?.limitsOverride?.aiTokensK
+    const k = override ?? (t ? (await Plan.findOne({ code: t.planCode }).select('limits').lean())?.limits?.aiTokensK : null)
+    if (k) return Math.floor(Number(k) * 1000)
+  }
+  return env.monthlyCap()
+}
+
 /** This month's use: calls and tokens, in all and by feature, and the cap (0 = none). */
 export async function usageThisMonth() {
   const m = await month()
@@ -65,7 +80,7 @@ export async function usageThisMonth() {
   ])
   const byFeature = Object.fromEntries(rows.map((r) => [r._id, { calls: r.calls, inputTokens: r.inputTokens, outputTokens: r.outputTokens }]))
   const total = rows.reduce((t, r) => ({ calls: t.calls + r.calls, inputTokens: t.inputTokens + r.inputTokens, outputTokens: t.outputTokens + r.outputTokens }), { calls: 0, inputTokens: 0, outputTokens: 0 })
-  const cap = env.monthlyCap()
+  const cap = await monthlyCap()
   return { month: m, ...total, byFeature, cap, capReached: !!cap && total.inputTokens + total.outputTokens >= cap }
 }
 
@@ -84,9 +99,8 @@ export async function ensureConfigured() {
 export async function requireAi() {
   const key = await resolveKey()
   if (!key) throw aiUnavailable()
-  const cap = env.monthlyCap()
-  if (cap) {
-    const used = await usageThisMonth()
+  const used = await usageThisMonth()
+  if (used.cap) {
     if (used.capReached) throw new AppError(429, 'This month’s AI allowance is used up. It starts again next month.', { code: 'AI_CAP_REACHED' })
   }
   return key

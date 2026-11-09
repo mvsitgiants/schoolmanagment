@@ -224,7 +224,10 @@
       "fnf": "Full & final",
       "lopShort": "{{n}} LOP",
       "noPayslips": "No payslips.",
-      "notCalculated": "Calculate the run to see the payslips."
+      "notCalculated": "Calculate the run to see the payslips.",
+      "monthsNav": "Months",
+      "allSlips": "All · {{n}}",
+      "toCheck": "To check"
     },
     "slip": {
       "earnings": "Earnings",

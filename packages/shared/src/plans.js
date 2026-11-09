@@ -16,6 +16,7 @@ export const LIMIT_KEYS = [
   { key: 'users', label: 'Staff logins', unit: '' },
   { key: 'branches', label: 'Campuses', unit: '' },
   { key: 'storageGb', label: 'Storage', unit: 'GB' },
+  { key: 'aiTokensK', label: 'AI allowance a month', unit: 'thousand tokens' }, // 0 / empty: no plan cap
 ]
 
 export const DEFAULT_PLANS = [
@@ -30,21 +31,21 @@ export const DEFAULT_PLANS = [
     code: 'GROWTH', name: 'Growth', tagline: 'Schools up to 1,500 students',
     priceMonthly: 3750000, priceYearly: 37500000, trialDays: 30, sortOrder: 2, isPublic: true, highlight: true,
     modules: closeOverDependencies(GROWTH),
-    limits: { students: 1500, users: 150, branches: 2, storageGb: 100 },
+    limits: { students: 1500, users: 150, branches: 2, storageGb: 100, aiTokensK: 2000 },
     features: ['Everything in Starter', 'Admissions CRM and timetable', 'LMS and online tests', 'Accounts, HR and payroll', 'Transport, library and AI assistant'],
   },
   {
     code: 'HIGHER_ED', name: 'Higher Ed', tagline: 'Colleges and universities up to 5,000 students',
     priceMonthly: 18750000, priceYearly: 187500000, trialDays: 30, sortOrder: 3, isPublic: true, highlight: false,
     modules: closeOverDependencies(HIGHER_ED),
-    limits: { students: 5000, users: 500, branches: 3, storageGb: 500 },
+    limits: { students: 5000, users: 500, branches: 3, storageGb: 500, aiTokensK: 5000 },
     features: ['Everything in Growth', 'Programs, CBCS and CO–PO mapping', 'Semester registration and exam controller', 'NAAC / NBA reports', 'Training and placements'],
   },
   {
     code: 'ENTERPRISE', name: 'Enterprise', tagline: 'School groups and trusts with many campuses',
     priceMonthly: 41700000, priceYearly: 417000000, trialDays: 30, sortOrder: 4, isPublic: true, highlight: false,
     modules: closeOverDependencies(ENTERPRISE),
-    limits: { students: 20000, users: 2000, branches: 50, storageGb: 2000 },
+    limits: { students: 20000, users: 2000, branches: 50, storageGb: 2000, aiTokensK: 20000 },
     features: ['Every module', 'Hostel, store, health and canteen', 'Multi-campus dashboards', 'API access and SSO', 'Dedicated success manager'],
   },
 ]

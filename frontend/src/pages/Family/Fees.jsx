@@ -73,6 +73,11 @@ export default function FamilyFees() {
         <p className="text-sm text-ink-muted">{t('family.fees.dueNow')}</p>
         <p className={`font-display text-3xl font-semibold ${d.totals.overdue ? 'text-danger-700' : 'text-ink'}`}>{money(d.totals.due)}</p>
         {d.totals.overdue > 0 && <p className="text-sm text-danger-700">{t('family.fees.overdue', { amount: money(d.totals.overdue) })}</p>}
+        {d.totals.billed > 0 && (
+          <span className="mt-3 block h-2 overflow-hidden rounded-full bg-black/[0.06]" aria-hidden>
+            <span className="block h-full rounded-full bg-success-500" style={{ width: `${Math.min(100, (d.totals.paid / d.totals.billed) * 100)}%` }} />
+          </span>
+        )}
         <p className="mt-2 text-sm text-ink-muted">{t('family.fees.summary', { billed: money(d.totals.billed), paid: money(d.totals.paid), year: d.year ?? '' })}</p>
         {d.totals.due > 0 && (d.onlinePayment
           ? <PayButton amount={money(d.totals.due)} onPaid={refresh} />
@@ -88,8 +93,8 @@ export default function FamilyFees() {
                   <p className="text-[15px] font-medium text-ink">{i.installment}</p>
                   <p className={`text-sm ${i.overdue ? 'text-danger-700' : 'text-ink-muted'}`}>{t('family.fees.dueOn', { date: date(i.dueDate) })}{i.concession ? ` · ${t('family.fees.concession', { amount: money(i.concession) })}` : ''}</p>
                 </div>
-                <div className="text-end">
-                  <p className="text-[15px] font-semibold text-ink font-mono-num">{money(i.balance > 0 ? i.balance : i.net)}</p>
+                <div className="shrink-0 text-end">
+                  <p className="text-[15px] font-semibold text-ink font-mono-num whitespace-nowrap">{money(i.balance > 0 ? i.balance : i.net)}</p>
                   <StatusPill tone={INVOICE_STATUS[i.status]?.tone}>{t(`family.invoice.${i.status}`, i.statusLabel)}</StatusPill>
                 </div>
               </div>

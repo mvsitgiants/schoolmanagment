@@ -37,7 +37,12 @@
         "absent": "Absent"
       },
       "myPeriods": "My periods today",
-      "periodsTaken": "{{done}} of {{total}} periods marked"
+      "periodsTaken": "{{done}} of {{total}} periods marked",
+      "show": {
+        "all": "All sections",
+        "pending": "Not taken",
+        "taken": "Taken"
+      }
     },
     "mark": {
       "title": "Mark attendance",
@@ -79,7 +84,9 @@
         "SHARE": "the share of periods attended"
       },
       "gateIn": "Came in at the gate · {{time}}",
-      "savedOffline": "Saved on this device — it will be sent when you’re back online."
+      "savedOffline": "Saved on this device — it will be sent when you’re back online.",
+      "classesNav": "Classes",
+      "navHint": "{{done}} of {{total}} sections marked"
     },
     "register": {
       "title": "Attendance register",
@@ -92,7 +99,6 @@
       "absent": "Absent",
       "tableTitle": "{{section}} · {{taken}} days marked",
       "empty": "No students.",
-      "legend": "P present · A absent · L late · H half day · Lv on leave. A greyed name has moved out of the section.",
       "summary": {
         "students": "Students",
         "days": "Days marked",
@@ -100,7 +106,14 @@
         "below": "Under {{min}}%"
       },
       "subject": "Subject",
-      "wholeDay": "The day"
+      "wholeDay": "The day",
+      "classesNav": "Classes",
+      "sectionsN_one": "{{count}} section",
+      "sectionsN_other": "{{count}} sections",
+      "export": "Export",
+      "presentShort": "Pres.",
+      "absentShort": "Abs.",
+      "movedNote": "A greyed name has moved out of the section."
     },
     "leave": {
       "title": "Student leave",
@@ -145,7 +158,7 @@
       "to": "To",
       "allSections": "All sections",
       "sections": "Sections",
-      "taken": "Sections with attendance",
+      "taken": "Sections marked",
       "belowMin": "Students under the minimum",
       "section": "Section",
       "daysTaken": "Days marked",
@@ -169,7 +182,16 @@
       "belowIn_other": "Under the minimum in {{count}} subjects",
       "noSubject": "No subject",
       "allPeriods": "All periods",
-      "noPeriods": "No periods marked in these dates."
+      "noPeriods": "No periods marked in these dates.",
+      "classesNav": "Classes",
+      "allClasses": "All classes",
+      "sectionsN_one": "{{count}} section",
+      "sectionsN_other": "{{count}} sections",
+      "belowN_one": "{{count}} under the minimum",
+      "belowN_other": "{{count}} under the minimum",
+      "classAverage": "Class attendance",
+      "classTitle": "{{name}} · sections",
+      "rollN": "Roll {{n}}"
     }
   }
 }

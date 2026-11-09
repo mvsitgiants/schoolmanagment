@@ -199,7 +199,8 @@
       "scanCode": "Scan a code",
       "scanCodeHint": "Scan a code with the camera",
       "platformOwner": "Platform owner",
-      "compactHint": "Tighter spacing, so more rows fit on screen"
+      "compactHint": "Tighter spacing, so more rows fit on screen",
+      "scan": "Scan a code"
     },
     "mobileTabs": {
       "scan": "Scan",
@@ -422,6 +423,13 @@
       "iosBody1": "Tap",
       "iosBody2": "then “Add to Home Screen”.",
       "share": "Share"
+    },
+    "push": {
+      "title": "Notifications on this device",
+      "on": "On — approvals and alerts pop up here even when SchoolGiant is closed.",
+      "off": "Off — turn on to get approvals and alerts as phone / desktop notifications.",
+      "blocked": "Blocked in this browser’s site settings. Allow notifications there to turn them on.",
+      "unsupported": ""
     }
   }
 }

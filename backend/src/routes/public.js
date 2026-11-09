@@ -20,6 +20,7 @@ import { BLOCKED_STATUSES, effectiveStatus } from '../services/subscription.js'
 import { buildMe, openTenantSession } from './auth.js'
 import { verifyCertificate } from '../services/certificates.js'
 import { verifyStudentCard } from '../services/students.js'
+import { verifyReceipt } from '../services/fees.js'
 
 const router = Router()
 
@@ -38,6 +39,11 @@ router.get('/verify/certificate/:code', verifyLimiter, async (req, res) => {
 router.get('/verify/student/:code', verifyLimiter, async (req, res) => {
   res.setHeader('Cache-Control', 'no-store')
   res.json({ data: await verifyStudentCard(req.params.code) })
+})
+/** A fee receipt's QR: is this receipt genuine and still valid? (receipt no, date, amount, whose) */
+router.get('/verify/receipt/:code', verifyLimiter, async (req, res) => {
+  res.setHeader('Cache-Control', 'no-store')
+  res.json({ data: await verifyReceipt(req.params.code) })
 })
 
 router.get('/plans', async (req, res) => {

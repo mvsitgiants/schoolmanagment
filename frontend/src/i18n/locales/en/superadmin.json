@@ -23,7 +23,8 @@
       "students": "Students",
       "users": "Staff logins",
       "branches": "Campuses",
-      "storageGb": "Storage"
+      "storageGb": "Storage",
+      "aiTokensK": "AI allowance a month"
     },
     "cycle": {
       "MONTHLY": "Monthly",
