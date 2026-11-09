@@ -36,7 +36,7 @@ function WindowDrawer({ id, onClose, onEdit }) {
   const [roster, setRoster] = useState(null)
   const { data: w } = useQuery({ queryKey: ['reg-window', id], queryFn: () => fetchWindow(id), enabled: !!id })
   return (
-    <Drawer open={!!id} onClose={onClose} size="lg" subtitle={t('registration.windows.drawerSubtitle')} title={w ? `${w.programCode} · ${t('registration.semesterN', { n: w.semester })}` : ''}
+    <Drawer open={!!id} onClose={onClose} size="xl" subtitle={t('registration.windows.drawerSubtitle')} title={w ? `${w.programCode} · ${t('registration.semesterN', { n: w.semester })}` : ''}
       footer={w && hasPermission('registration.windows.edit') && <Button icon={Pencil} onClick={() => onEdit(w)}>{t('actions.edit')}</Button>}>
       {w && (
         <div className="space-y-5">
@@ -60,8 +60,8 @@ function WindowDrawer({ id, onClose, onEdit }) {
               { key: 'code', header: t('registration.course'), render: (v, o) => <div><CodeBadge>{v}</CodeBadge> <span className="text-sm text-ink-muted">{o.title}</span></div> },
               { key: 'credits', header: t('registration.credits'), align: 'right' },
               { key: 'group', header: t('registration.windows.group'), render: (v, o) => (o.mandatory ? <StatusPill tone="brand" dot={false}>{t('registration.windows.compulsory')}</StatusPill> : v ? <ColorChip label={v} seed={v} /> : '—') },
-              { key: 'taken', header: t('registration.windows.registered'), align: 'right', render: (v, o) => (o.seats ? <LevelBar value={v} max={o.seats} highIsBad warnAt={o.seats * 0.85} dangerAt={o.seats} label={`${v}/${o.seats}`} width="w-24" /> : <span className="font-semibold">{v}</span>) },
-              { key: 'approved', header: t('registration.windows.approved'), align: 'right' },
+              { key: 'taken', header: t('registration.windows.registered'), align: 'right', render: (v, o) => (o.seats ? <LevelBar value={v} max={o.seats} highIsBad warnAt={o.seats * 0.85} dangerAt={o.seats} width="w-24" /> : <span className="font-semibold">{v}</span>) },
+              { key: 'approved', header: t('registration.windows.approved'), align: 'right', render: (v) => <span className="text-ink-muted">{v}</span> },
             ]} />
           <p className="text-xs text-ink-faint">{t('registration.windows.rosterHint')}</p>
         </div>
@@ -118,7 +118,7 @@ export default function Windows() {
           { key: 'closesOn', header: t('registration.windows.closesOn'), sortable: true, render: (v, w) => <DateCell value={v} tone={w.status === 'OPEN' ? 'warning' : undefined} /> },
           { key: 'status', header: t('registration.status'), sortable: true, render: (v) => <StatusPill tone={REG_WINDOW_STATUS[v]?.tone}>{t(`registration.windowStatus.${v}`)}</StatusPill> },
           { key: 'maxCredits', header: t('registration.windows.credits'), align: 'right', render: (v, w) => `${w.minCredits ?? '—'}–${v ?? '—'}` },
-          { key: 'approved', header: t('registration.windows.progress'), render: (v, w) => <LevelBar value={v + w.submitted} max={w.students || 1} label={`${v + w.submitted}/${w.students}`} width="w-24" /> },
+          { key: 'approved', header: t('registration.windows.progress'), render: (v, w) => <LevelBar value={v + w.submitted} max={w.students || 1} width="w-24" /> },
           { key: 'actions', header: '', align: 'right', render: (_, w) => hasPermission('registration.windows.edit') && (
             <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>
               <Button size="sm" variant="ghost" icon={w.status === 'CLOSED' ? DoorOpen : Lock} title={w.status === 'CLOSED' ? t('registration.windows.reopen') : t('registration.windows.close')}

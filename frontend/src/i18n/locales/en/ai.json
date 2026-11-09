@@ -8,7 +8,7 @@
       "title": "AI is not set up yet",
       "body": "These AI tools need a connection to the AI service, and your institution doesn’t have one yet. Everything else in SchoolGiant works as usual.",
       "howTitle": "How to switch it on",
-      "how": "Ask SchoolGiant support to turn on AI for your institution. Once it is connected, this page comes alive on its own — nothing to install.",
+      "how": "Ask SchoolGiant support to switch it on, or — if you look after settings — enter your institution’s own Claude API key below. The page comes alive on its own; nothing to install.",
       "privacyTitle": "Your data stays yours",
       "privacy": "Only what a task needs is sent — first names, classes and marks. Never phone numbers, addresses or ID numbers. Every request is logged in your usage.",
       "assistant": {

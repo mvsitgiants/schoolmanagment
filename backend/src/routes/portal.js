@@ -111,9 +111,16 @@ familyRouter.get('/manifest.webmanifest', async (req, res) => {
   res.setHeader('Content-Type', 'application/manifest+json')
   res.setHeader('Cache-Control', 'public, max-age=3600')
   res.send(JSON.stringify({
-    name: tenant.name, short_name: tenant.name.slice(0, 24), start_url: `${config.appUrl}/app/${slug}`, scope: `${config.appUrl}/app/${slug}`, display: 'standalone',
+    id: `/app/${slug}`, name: tenant.name, short_name: tenant.name.slice(0, 24), description: `${tenant.name} — attendance, homework, fees and results for parents.`,
+    start_url: `${config.appUrl}/app/${slug}`, scope: `${config.appUrl}/app/${slug}`, display: 'standalone', orientation: 'portrait',
     background_color: '#F5F6F8', theme_color: color,
-    icons: tenant.profile?.logoUrl ? [{ src: tenant.profile.logoUrl, sizes: '512x512', type: 'image/png', purpose: 'any' }] : [{ src: `${config.appUrl}/app-icon.svg`, sizes: 'any', type: 'image/svg+xml', purpose: 'any maskable' }],
+    icons: [
+      ...(tenant.profile?.logoUrl ? [{ src: tenant.profile.logoUrl, sizes: '512x512', type: 'image/png', purpose: 'any' }] : [
+        { src: `${config.appUrl}/icons/icon-192.png`, sizes: '192x192', type: 'image/png', purpose: 'any' },
+        { src: `${config.appUrl}/icons/icon-512.png`, sizes: '512x512', type: 'image/png', purpose: 'any' },
+      ]),
+      { src: `${config.appUrl}/icons/maskable-512.png`, sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+    ],
   }))
 })
 

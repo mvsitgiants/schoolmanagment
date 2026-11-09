@@ -78,7 +78,8 @@
         "FIRST": "the first period marked",
         "SHARE": "the share of periods attended"
       },
-      "gateIn": "Came in at the gate · {{time}}"
+      "gateIn": "Came in at the gate · {{time}}",
+      "savedOffline": "Saved on this device — it will be sent when you’re back online."
     },
     "register": {
       "title": "Attendance register",

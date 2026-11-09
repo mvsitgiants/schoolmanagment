@@ -43,8 +43,12 @@ function useInstallable(slug, school) {
     const apple = document.createElement('meta')
     apple.name = 'apple-mobile-web-app-capable'
     apple.content = 'yes'
+    // the staff app's manifest (injected by the PWA build) steps aside while the family app is open — browsers use
+    // the first manifest link they find
+    const staff = [...document.querySelectorAll('link[rel="manifest"]')]
+    staff.forEach((l) => l.remove())
     document.head.append(link, theme, apple)
-    return () => { link.remove(); theme.remove(); apple.remove() }
+    return () => { link.remove(); theme.remove(); apple.remove(); staff.forEach((l) => document.head.append(l)) }
   }, [slug, school])
 }
 

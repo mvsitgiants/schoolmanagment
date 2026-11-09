@@ -90,7 +90,7 @@ function CourseEditor({ course, pos, components, canEdit, onSaved }) {
           {cos.length === 0 ? <p className="text-sm text-ink-faint">{t('programs.outcomes.noCos')}</p> : (
             <div className="space-y-2">
               {cos.map((c, i) => (
-                <div key={i} className="grid grid-cols-[64px_1fr_140px_36px] gap-2 items-start">
+                <div key={i} className="grid grid-cols-[64px_1fr_170px_36px] gap-2 items-start">
                   <span className="pt-2"><ColorChip label={c.code} seed={c.code} /></span>
                   {canEdit ? <Textarea rows={1} value={c.statement} onChange={setCo(i, 'statement')} placeholder={t('programs.outcomes.statementPlaceholder')} aria-label={t('programs.outcomes.statement')} />
                     : <p className="pt-2 text-sm text-ink">{c.statement}</p>}

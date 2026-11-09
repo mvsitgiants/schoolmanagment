@@ -125,6 +125,7 @@ export const SERVER_DOWN_MESSAGE = "Can't reach the server right now. Please try
 // session the server actually rejects (401 after a failed refresh) signs the user out.
 let downNoticeAt = 0
 function noticeDown() {
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) return // the offline bar already says so (PwaPrompts)
   if (Date.now() - downNoticeAt < 15_000) return // one notice per outage, not one per request
   downNoticeAt = Date.now()
   notify(SERVER_DOWN_MESSAGE, { variant: 'error' })

@@ -23,7 +23,7 @@ export default function HeatGrid({ rows = [], columns = [], value, onCell, forma
   const cols = `minmax(120px, 1.4fr) repeat(${columns.length}, minmax(44px, 1fr))${footer ? ' minmax(56px, 0.8fr)' : ''}`
   return (
     <div className={clsx('overflow-x-auto', className)}>
-      <div className="grid gap-1 min-w-max" style={{ gridTemplateColumns: cols }} role="grid">
+      <div className="grid gap-1" style={{ gridTemplateColumns: cols, minWidth: 130 + columns.length * 48 + (footer ? 60 : 0) }} role="grid">
         <div className="px-2 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-ink-faint">{rowHeader}</div>
         {columns.map((c) => (
           <div key={c.key} title={c.hint} className="px-1 py-1.5 text-center text-[11px] font-semibold text-ink-muted">{c.label}</div>

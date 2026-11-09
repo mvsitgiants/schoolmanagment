@@ -25,7 +25,7 @@ function SheetCell({ part, onOpen }) {
         <span className="text-xs text-ink-muted">{t(`coe.sheetStatus.${part.status}`)}</span>
         {part.moderation && <ColorChip label={t(`coe.moderationStatus.${part.moderation.status}`)} seed={part.moderation.status} icon={Scale} />}
       </span>
-      <LevelBar value={part.entered} max={part.total || 1} label={`${part.entered}/${part.total}`} width="w-24" />
+      <LevelBar value={part.entered} max={part.total} width="w-24" />
     </button>
   )
 }

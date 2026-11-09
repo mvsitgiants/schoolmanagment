@@ -236,7 +236,9 @@
       "revalued": "Revalued",
       "trend": "SGPA and CGPA over the semesters",
       "printCard": "Print grade card",
-      "printTranscript": "Print transcript"
+      "printTranscript": "Print transcript",
+      "marksCol": "Marks",
+      "split": "Int {{internal}} + Ext {{external}}"
     },
     "print": {
       "gradeCard": {

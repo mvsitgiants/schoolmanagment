@@ -21,7 +21,7 @@ function ResultDrawer({ id, onClose, canPrintCard, canPrintTranscript }) {
   const { t } = useTranslation('coe')
   const { data: r } = useQuery({ queryKey: ['coe-result', id], queryFn: () => fetchResult(id), enabled: !!id })
   return (
-    <Drawer open={!!id} onClose={onClose} size="lg" subtitle={t('coe.gradeCards.drawerSubtitle')} title={r?.name}
+    <Drawer open={!!id} onClose={onClose} size="xl" subtitle={t('coe.gradeCards.drawerSubtitle')} title={r?.name}
       footer={r && <div className="flex flex-wrap gap-2">
         {canPrintCard && <Button icon={Printer} onClick={() => printDocument('GRADE_CARD', r.id)}>{t('coe.gradeCards.printCard')}</Button>}
         {canPrintTranscript && r.enrolmentId && <Button variant="secondary" icon={FileText} onClick={() => printDocument('TRANSCRIPT', r.enrolmentId)}>{t('coe.gradeCards.printTranscript')}</Button>}
@@ -37,13 +37,21 @@ function ResultDrawer({ id, onClose, canPrintCard, canPrintTranscript }) {
             { label: t('coe.gradeCards.arrears'), value: r.arrears },
           ]} />
           <DataTable dense rows={r.courses} rowKey="id" rowTone={(c) => (c.pass ? undefined : 'danger')} columns={[
-            { key: 'code', header: t('coe.course'), render: (v, c) => <span><CodeBadge>{v}</CodeBadge> <span className="text-xs text-ink-muted">{c.title}</span></span> },
+            { key: 'code', header: t('coe.course'), render: (v, c) => <div className="min-w-0"><CodeBadge>{v}</CodeBadge><p className="mt-0.5 text-xs text-ink-muted truncate">{c.title}</p></div> },
             { key: 'credits', header: t('coe.credits'), align: 'right' },
-            { key: 'internal', header: t('coe.gradeCards.internal'), align: 'right', render: (v, c) => `${v ?? '—'}/${c.internalMax}` },
-            { key: 'external', header: t('coe.gradeCards.external'), align: 'right', render: (v, c) => (c.absent ? t('coe.gradeCards.absent') : `${v ?? '—'}/${c.externalMax}`) },
-            { key: 'total', header: t('coe.gradeCards.total'), align: 'right', render: (v, c) => <Fraction value={v} max={c.max} /> },
-            { key: 'grade', header: t('coe.grade'), render: (v, c) => <span className="inline-flex items-center gap-1"><StatusPill tone={GRADE_TONE[v] ?? 'neutral'} dot={false}>{v}</StatusPill>{c.attempt > 1 && <ColorChip label={t('coe.gradeCards.attemptN', { n: c.attempt })} seed="attempt" />}{c.revalued && <ColorChip label={t('coe.gradeCards.revalued')} seed="reval" />}</span> },
-            { key: 'points', header: t('coe.gradeCards.points'), align: 'right' },
+            { key: 'total', header: t('coe.gradeCards.marksCol'), align: 'right', render: (v, c) => (
+              <span className="inline-flex flex-col items-end leading-tight">
+                <Fraction value={v} max={c.max} />
+                <span className="text-[11px] text-ink-faint">{t('coe.gradeCards.split', { internal: c.internal ?? '—', external: c.absent ? t('coe.gradeCards.absent') : c.external ?? '—' })}</span>
+              </span>
+            ) },
+            { key: 'grade', header: t('coe.grade'), render: (v, c) => (
+              <span className="inline-flex flex-wrap items-center gap-1">
+                <StatusPill tone={GRADE_TONE[v] ?? 'neutral'} dot={false}>{v} · {c.points}</StatusPill>
+                {c.attempt > 1 && <ColorChip label={t('coe.gradeCards.attemptN', { n: c.attempt })} seed="attempt" />}
+                {c.revalued && <ColorChip label={t('coe.gradeCards.revalued')} seed="reval" />}
+              </span>
+            ) },
             { key: 'reason', header: t('coe.gradeCards.result'), render: (v, c) => (c.pass ? <span className="text-success-600 text-sm">{t('coe.gradeCards.passed')}</span> : <span className="text-danger-600 text-sm">{t(`coe.failReasons.${v}`)}</span>) },
           ]} />
           {r.trend.length > 1 && (

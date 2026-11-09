@@ -10,6 +10,8 @@ import Button from '../../components/ui/Button'
 import { fetchAttendanceBoard, fetchSheet, saveSheet } from '../../api/attendance'
 import { useSnackbar } from '../../context/SnackbarContext'
 import { useFormat } from '../../context/SettingsContext'
+import { enqueue, isOffline } from '../../utils/offlineQueue'
+import { getCurrentUser } from '../../api/auth'
 
 const MARK_STYLE = {
   P: 'bg-success-500 text-white border-success-500',
@@ -32,8 +34,25 @@ function SheetView({ sectionId, date, period, onBack }) {
   const counts = useMemo(() => countMarks(Object.values(marks).map((status) => ({ status }))), [marks])
   const dirty = sheet && sheet.students.some((s) => marks[s.id] !== s.status)
   const save = useMutation({
-    mutationFn: () => saveSheet({ sectionId, date, period, entries: sheet.students.map((s) => ({ studentId: s.id, status: marks[s.id] })) }),
+    mutationFn: async () => {
+      const body = { sectionId, date, period, entries: sheet.students.map((s) => ({ studentId: s.id, status: marks[s.id] })) }
+      const offline = () => {
+        enqueue({ kind: 'attendance', key: `${sectionId}|${date}|${period}`, label: `${sheet.section.label}${period ? ` · P${period}` : ''} · ${date}`, body })
+        return { offline: true }
+      }
+      if (navigator.onLine === false) return offline() // known offline: don't wait for the request to time out and retry
+      try { return await saveSheet(body) } catch (err) {
+        if (!isOffline(err)) throw err
+        // no connection: keep it on this device and send it when the connection is back (PwaPrompts)
+        return offline()
+      }
+    },
     onSuccess: (data) => {
+      if (data?.offline) {
+        qc.setQueryData(key, { ...sheet, taken: true, takenBy: getCurrentUser()?.user?.name, takenAt: new Date().toISOString(), students: sheet.students.map((s) => ({ ...s, status: marks[s.id] })) })
+        showSuccess(t('attendance.mark.savedOffline'))
+        return
+      }
       qc.setQueryData(key, data)
       qc.invalidateQueries({ queryKey: ['attendance-board'] })
       showSuccess(t('attendance.mark.saved', { present: counts.P + counts.L + counts.HD, absent: counts.A }))

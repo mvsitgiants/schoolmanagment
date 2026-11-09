@@ -60,11 +60,11 @@ export default function Attainment() {
             ]} />
             {a.summary.cos === 0 && <Note tone="warning">{t('programs.attainment.noCos')}</Note>}
             {pos.length > 0 && (
-              <div className="grid xl:grid-cols-2 gap-4">
+              <div className="grid gap-4">
                 <MiniBarChart title={t('programs.attainment.poChart')} subtitle={t('programs.attainment.poChartHint')}
                   data={pos.map((p) => ({ label: p.code, value: a.po[p.code] ?? 0 }))} valueFormat={(v) => fmt(v)} />
                 <Panel title={t('programs.attainment.coursePo')} subtitle={t('programs.attainment.coursePoHint')} icon={Grid3x3}>
-                  <HeatGrid rows={a.courses.map((c) => ({ key: c.id, label: c.code, sub: c.title }))} columns={pos.map((p) => ({ key: p.code, label: p.code, hint: p.title }))}
+                  <HeatGrid rows={a.courses.filter((c) => c.cos.length).map((c) => ({ key: c.id, label: c.code, sub: c.title }))} columns={pos.map((p) => ({ key: p.code, label: p.code, hint: p.title }))}
                     rowHeader={t('programs.attainment.course')} value={(r, c) => a.courses.find((x) => x.id === r.key).poAttainment[c.key]} format={fmt} />
                   <div className="mt-2 flex items-center justify-between gap-2">
                     <HeatLegend items={[t('programs.attainment.l0'), t('programs.attainment.l1'), t('programs.attainment.l2'), t('programs.attainment.l3')]} />
@@ -74,7 +74,7 @@ export default function Attainment() {
             )}
             {maxCos > 0 && (
               <Panel title={t('programs.attainment.coMap')} subtitle={t('programs.attainment.coMapHint')} icon={Target}>
-                <HeatGrid rows={a.courses.map((c) => ({ key: c.id, label: c.code, sub: c.title }))}
+                <HeatGrid rows={a.courses.filter((c) => c.cos.length).map((c) => ({ key: c.id, label: c.code, sub: c.title }))}
                   columns={Array.from({ length: maxCos }, (_, i) => ({ key: `CO${i + 1}`, label: `CO${i + 1}` }))}
                   rowHeader={t('programs.attainment.course')} value={(r, col) => a.courses.find((x) => x.id === r.key).cos.find((co) => co.code === col.key)?.attainment ?? null}
                   format={fmt} footer={{ label: t('programs.attainment.average'), value: (r) => a.courses.find((x) => x.id === r.key).average, format: fmt }} />
@@ -87,7 +87,6 @@ export default function Attainment() {
               columns={[
                 { key: 'course', header: t('programs.attainment.course'), sortable: true, nowrap: true, render: (v) => <CodeBadge>{v}</CodeBadge> },
                 { key: 'code', header: t('programs.attainment.co'), sortable: true, render: (v, r) => <span title={r.statement}><ColorChip label={v} seed={v} /></span> },
-                { key: 'statement', header: t('programs.attainment.statement'), render: (v) => <span className="text-sm text-ink-muted">{v}</span> },
                 { key: 'bloom', header: t('programs.attainment.bloom'), render: (v) => (v ? `${v} · ${t(`programs.bloom.${v}`)}` : '—') },
                 { key: 'internalPct', header: t('programs.attainment.internalPct'), align: 'right', sortable: true, render: (v) => (v === null ? '—' : `${fmt(v)}%`) },
                 { key: 'internalLevel', header: t('programs.attainment.internalLevel'), align: 'right', render: (v) => <LevelValue value={v} /> },

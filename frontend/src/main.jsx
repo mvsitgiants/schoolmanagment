@@ -9,6 +9,7 @@ import { ConfirmProvider, DocumentViewerHost, ErrorBoundary, reloadForNewBuild }
 import './index.css'
 import { i18nReady } from './i18n'
 import { initDensity } from './utils/density'
+import PwaPrompts from './components/app/PwaPrompts.jsx'
 
 // The stored layout density has to be on <html> before the first paint.
 initDensity()
@@ -48,6 +49,7 @@ i18nReady.then(() => ReactDOM.createRoot(document.getElementById('root')).render
               <ErrorBoundary full>
                 <App />
                 <DocumentViewerHost />
+                <PwaPrompts />
               </ErrorBoundary>
             </ModuleProvider>
           </ConfirmProvider>

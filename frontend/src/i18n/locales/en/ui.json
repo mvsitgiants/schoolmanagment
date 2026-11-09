@@ -399,6 +399,29 @@
       "failedTitle": "Could not print",
       "failed": "The document could not be prepared.",
       "blocked": "Your browser blocked the print window. Allow pop-ups for this site and try again."
+    },
+    "pwa": {
+      "offline": "You’re offline — you can keep marking attendance; it is sent when you’re back online.",
+      "sending": "Back online — sending what was saved on this device…",
+      "waiting_one": "{{count}} save waiting on this device",
+      "waiting_other": "{{count}} saves waiting on this device",
+      "sent_one": "{{count}} save from offline sent.",
+      "sent_other": "{{count}} saves from offline sent.",
+      "failed_one": "{{count}} offline save couldn’t be sent.",
+      "failed_other": "{{count}} offline saves couldn’t be sent.",
+      "failedBar_one": "{{count}} save couldn’t be sent",
+      "failedBar_other": "{{count}} saves couldn’t be sent",
+      "discard": "Discard",
+      "retry": "Try again",
+      "update": "A new version of SchoolGiant is ready.",
+      "reload": "Reload",
+      "later": "Later",
+      "installTitle": "Install SchoolGiant",
+      "installBody": "Open it from your home screen like any app — it starts faster and works with a weak connection.",
+      "install": "Install",
+      "iosBody1": "Tap",
+      "iosBody2": "then “Add to Home Screen”.",
+      "share": "Share"
     }
   }
 }
