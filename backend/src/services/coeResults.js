@@ -27,43 +27,85 @@ async function peopleOf(studentIds) {
   return new Map(students.map((s) => [String(s._id), { name: studentName(s), admissionNo: s.admissionNo, gender: s.gender ?? null, dob: s.dob ?? null, registerNo: reg.get(String(s._id))?.registerNo ?? null, batch: reg.get(String(s._id))?.batch ?? null, enrolmentId: reg.get(String(s._id)) ? String(reg.get(String(s._id))._id) : null }]))
 }
 
+/** Students a search names — every word in their name or admission no., or the register no. — as ids for a Mongo filter. */
+async function studentIdsMatching(q) {
+  const words = q.split(/\s+/).filter(Boolean).slice(0, 5)
+  const byName = { $and: words.map((w) => { const re = new RegExp(escapeRegex(w), 'i'); return { $or: [{ firstName: re }, { middleName: re }, { lastName: re }, { admissionNo: re }] } }) }
+  const [students, enrolments] = await Promise.all([
+    Student.find(byName).select('_id').lean(),
+    ProgramEnrolment.find({ registerNo: new RegExp(escapeRegex(q), 'i') }).select('studentId').lean(),
+  ])
+  return [...students.map((x) => x._id), ...enrolments.map((e) => e.studentId)]
+}
+
+/**
+ * Aggregation stages that order rows by the student's register no. (else admission no.), then `_id` for stable pages, and
+ * cut one page — the register no. lives on the enrolment, the admission no. on the student, so both are looked up.
+ */
+const byRegisterNo = (page, pageSize) => [
+  { $lookup: { from: ProgramEnrolment.collection.name, localField: 'studentId', foreignField: 'studentId', as: '_e', pipeline: [{ $project: { registerNo: 1 } }] } },
+  { $lookup: { from: Student.collection.name, localField: 'studentId', foreignField: '_id', as: '_s', pipeline: [{ $project: { admissionNo: 1 } }] } },
+  { $addFields: { _key: { $ifNull: [{ $arrayElemAt: ['$_e.registerNo', 0] }, { $arrayElemAt: ['$_s.admissionNo', 0] }] } } },
+  { $sort: { _key: 1, _id: 1 } },
+  { $skip: (page - 1) * pageSize },
+  { $limit: pageSize },
+  { $project: { _e: 0, _s: 0, _key: 0 } },
+]
+
 // ───────────────────────────────────────────────────────── grade cards list
 
-/** A session's semester results (grade cards) with the picture for the page: pass %, average SGPA, grade spread. */
-export async function listSemesterResults(sessionId, auth, { programId, semester } = {}) {
+const GRADE_ORDER = ['O', 'A+', 'A', 'B+', 'B', 'C', 'P', 'F', 'Ab']
+const SGPA_BUCKETS = [[9, 10.01], [8, 9], [7, 8], [6, 7], [5, 6], [0, 5]]
+
+/**
+ * A session's semester results (grade cards), one page at a time in register-number order, with the picture for the page —
+ * pass %, average SGPA, grade spread — over every result of the session / program / semester (not just the page, and not
+ * narrowed by `result` or `search`, which pick rows). `result`: PASS · FAIL · ARREARS (any arrears).
+ */
+export async function listSemesterResults(sessionId, auth, { programId, semester, result, search, page = 1, pageSize = 50 } = {}) {
   const s = await sessionDoc(sessionId)
   const ids = await coeProgramIds(auth)
-  const filter = {
-    sessionId: s._id,
-    ...(ids && { programId: { $in: ids.map(oid) } }),
-    ...(programId && inScope(ids, programId) && { programId: oid(programId) }),
-    ...(semester && { semester }),
-  }
-  const rows = await CoeSemesterResult.find(filter).lean()
-  const [people, programs, grades] = await Promise.all([
+  const programs = programId && inScope(ids, programId) ? [oid(programId)] : ids?.map(oid)
+  const base = { sessionId: s._id, ...(programs && { programId: { $in: programs } }), ...(semester && { semester }) }
+  const f = { ...base }
+  if (result === 'ARREARS') f.arrears = { $gt: 0 }
+  else if (result) f.result = result
+  const q = String(search ?? '').trim()
+  if (q) f.studentId = { $in: await studentIdsMatching(q) }
+  const [rows, total, [sum], grades] = await Promise.all([
+    CoeSemesterResult.aggregate([{ $match: f }, ...byRegisterNo(page, pageSize)]),
+    CoeSemesterResult.countDocuments(f),
+    CoeSemesterResult.aggregate([{ $match: base }, {
+      $group: {
+        _id: null, students: { $sum: 1 },
+        passed: { $sum: { $cond: [{ $eq: ['$result', 'PASS'] }, 1, 0] } },
+        withArrears: { $sum: { $cond: [{ $gt: ['$arrears', 0] }, 1, 0] } },
+        averageSgpa: { $avg: '$sgpa' }, topSgpa: { $max: '$sgpa' },
+        ...Object.fromEntries(SGPA_BUCKETS.map(([lo, hi], i) => [`b${i}`, { $sum: { $cond: [{ $and: [{ $isNumber: '$sgpa' }, { $gte: ['$sgpa', lo] }, { $lt: ['$sgpa', hi] }] }, 1, 0] } }])),
+      },
+    }]),
+    CoeResult.aggregate([{ $match: base }, { $group: { _id: '$grade', n: { $sum: 1 } } }]),
+  ])
+  const [people, programDocs] = await Promise.all([
     peopleOf(rows.map((r) => r.studentId)),
     Program.find({ _id: { $in: rows.map((r) => r.programId) } }).select('code name').lean(),
-    CoeResult.aggregate([{ $match: { sessionId: s._id, studentId: { $in: rows.map((r) => r.studentId) } } }, { $group: { _id: '$grade', n: { $sum: 1 } } }]),
   ])
-  const code = new Map(programs.map((p) => [String(p._id), p.code]))
-  const list = rows.map((r) => ({ ...clean(r), ...people.get(String(r.studentId)), studentId: String(r.studentId), programCode: code.get(String(r.programId)) ?? null }))
-    .sort((a, b) => String(a.registerNo ?? a.admissionNo).localeCompare(String(b.registerNo ?? b.admissionNo)))
-  const sgpas = list.map((r) => r.sgpa).filter((v) => v !== null && v !== undefined)
-  const buckets = [[9, 10.01], [8, 9], [7, 8], [6, 7], [5, 6], [0, 5]].map(([lo, hi]) => ({ label: hi > 10 ? '9–10' : lo === 0 ? '< 5' : `${lo}–${hi}`, value: sgpas.filter((v) => v >= lo && v < hi).length }))
-  const order = ['O', 'A+', 'A', 'B+', 'B', 'C', 'P', 'F', 'Ab']
-  const rank = (g) => (order.includes(g) ? order.indexOf(g) : order.length)
+  const code = new Map(programDocs.map((p) => [String(p._id), p.code]))
+  const rank = (g) => (GRADE_ORDER.includes(g) ? GRADE_ORDER.indexOf(g) : GRADE_ORDER.length)
+  const students = sum?.students ?? 0
   return {
     session: { ...clean(s.toObject()), monthLabel: examMonthLabel(s.examMonth) },
-    rows: list,
+    rows: rows.map((r) => ({ ...clean(r), ...people.get(String(r.studentId)), studentId: String(r.studentId), programCode: code.get(String(r.programId)) ?? null })),
+    total, page, pageSize,
     summary: {
-      students: list.length,
-      passed: list.filter((r) => r.result === 'PASS').length,
-      passPct: list.length ? round((list.filter((r) => r.result === 'PASS').length / list.length) * 100, 1) : null,
-      averageSgpa: sgpas.length ? round(sgpas.reduce((a, b) => a + b, 0) / sgpas.length) : null,
-      topSgpa: sgpas.length ? Math.max(...sgpas) : null,
-      withArrears: list.filter((r) => r.arrears > 0).length,
+      students,
+      passed: sum?.passed ?? 0,
+      passPct: students ? round((sum.passed / students) * 100, 1) : null,
+      averageSgpa: sum?.averageSgpa === null || sum?.averageSgpa === undefined ? null : round(sum.averageSgpa),
+      topSgpa: sum?.topSgpa ?? null,
+      withArrears: sum?.withArrears ?? 0,
       grades: grades.map((g) => ({ grade: g._id, count: g.n })).sort((a, b) => rank(a.grade) - rank(b.grade)),
-      sgpaBuckets: buckets,
+      sgpaBuckets: SGPA_BUCKETS.map(([lo, hi], i) => ({ label: hi > 10 ? '9–10' : lo === 0 ? '< 5' : `${lo}–${hi}`, value: sum?.[`b${i}`] ?? 0 })),
     },
   }
 }
@@ -100,27 +142,52 @@ export async function semesterResultDetail(id, auth) {
 
 const REVAL_FLOW = { APPROVE: ['REQUESTED', 'APPROVED'], REJECT: ['REQUESTED', 'REJECTED'] }
 
-export async function listRevaluations(auth, { sessionId, status } = {}) {
+/**
+ * Revaluation requests, one page at a time (latest first). The tiles (`summary`: by status, improved, fees collected) count
+ * every request of the session in the caller's programs — not narrowed by `status` or `search`, which pick rows. A program
+ * scope reads through the course (a result's program is its course's).
+ */
+export async function listRevaluations(auth, { sessionId, status, search, page = 1, pageSize = 50 } = {}) {
   const ids = await coeProgramIds(auth)
-  const rows = await CoeRevaluation.find({ ...(sessionId && { sessionId: oid(sessionId) }), ...(status && { status }) }).sort({ createdAt: -1 }).limit(1000).lean()
-  const results = new Map((await CoeResult.find({ _id: { $in: rows.map((r) => r.resultId) } }).select('programId semester externalMax grade').lean()).map((r) => [String(r._id), r]))
-  const visible = rows.filter((r) => inScope(ids, results.get(String(r.resultId))?.programId))
-  const [people, courses, sessions] = await Promise.all([
-    peopleOf(visible.map((r) => r.studentId)),
-    ProgramCourse.find({ _id: { $in: visible.map((r) => r.courseId) } }).select('code title').lean(),
-    CoeSession.find({ _id: { $in: visible.map((r) => r.sessionId) } }).select('name').lean(),
+  const base = { ...(sessionId && { sessionId: oid(sessionId) }) }
+  if (ids) base.courseId = { $in: (await ProgramCourse.find({ programId: { $in: ids.map(oid) } }).select('_id').lean()).map((c) => c._id) }
+  const f = { ...base, ...(status && { status }) }
+  const q = String(search ?? '').trim()
+  if (q) f.studentId = { $in: await studentIdsMatching(q) }
+  const [rows, total, counts] = await Promise.all([
+    CoeRevaluation.find(f).sort({ createdAt: -1, _id: -1 }).skip((page - 1) * pageSize).limit(pageSize).lean(),
+    CoeRevaluation.countDocuments(f),
+    CoeRevaluation.aggregate([{ $match: base }, {
+      $group: {
+        _id: '$status', n: { $sum: 1 },
+        improved: { $sum: { $cond: [{ $and: [{ $eq: ['$status', 'REVALUED'] }, { $gt: ['$newMarks', '$oldMarks'] }] }, 1, 0] } },
+        fees: { $sum: { $cond: ['$feePaid', { $ifNull: ['$fee', 0] }, 0] } },
+      },
+    }]),
   ])
+  const [results, people, courses, sessions] = await Promise.all([
+    CoeResult.find({ _id: { $in: rows.map((r) => r.resultId) } }).select('externalMax grade').lean(),
+    peopleOf(rows.map((r) => r.studentId)),
+    ProgramCourse.find({ _id: { $in: rows.map((r) => r.courseId) } }).select('code title').lean(),
+    CoeSession.find({ _id: { $in: rows.map((r) => r.sessionId) } }).select('name').lean(),
+  ])
+  const res = new Map(results.map((r) => [String(r._id), r]))
   const cd = new Map(courses.map((c) => [String(c._id), c]))
   const sn = new Map(sessions.map((x) => [String(x._id), x.name]))
-  const list = visible.map((r) => ({
+  const list = rows.map((r) => ({
     ...clean(r), ...people.get(String(r.studentId)), studentId: String(r.studentId),
     courseCode: cd.get(String(r.courseId))?.code, courseTitle: cd.get(String(r.courseId))?.title, sessionName: sn.get(String(r.sessionId)),
-    externalMax: results.get(String(r.resultId))?.externalMax ?? null, currentGrade: results.get(String(r.resultId))?.grade ?? null,
+    externalMax: res.get(String(r.resultId))?.externalMax ?? null, currentGrade: res.get(String(r.resultId))?.grade ?? null,
     change: r.newMarks !== null && r.newMarks !== undefined ? round(r.newMarks - r.oldMarks) : null,
   }))
-  const summary = { total: list.length, REQUESTED: 0, APPROVED: 0, REVALUED: 0, REJECTED: 0, improved: list.filter((r) => r.status === 'REVALUED' && r.change > 0).length, fees: list.filter((r) => r.feePaid).reduce((n, r) => n + (r.fee || 0), 0) }
-  for (const r of list) summary[r.status]++
-  return { rows: list, summary }
+  const summary = { total: 0, REQUESTED: 0, APPROVED: 0, REVALUED: 0, REJECTED: 0, improved: 0, fees: 0 }
+  for (const c of counts) {
+    summary.total += c.n
+    summary[c._id] = (summary[c._id] ?? 0) + c.n
+    summary.improved += c.improved
+    summary.fees += c.fees
+  }
+  return { rows: list, total, page, pageSize, summary }
 }
 
 /** Results a revaluation can be asked for: a published session's results with end-semester marks, by student search. */

@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import { closeStockCheck, listStockChecks, scanForStock, startStockCheck, stockCheckDetail } from '../services/libraryStock.js'
 import { BORROWER_KINDS, COPY_SOURCES, COPY_STATUS, FINE_REASONS, FINE_STATUS, ITEM_TYPES, PAYMENT_MODES } from '@schoolgiant/shared'
 import { authenticate, requireModule, requirePermission, subscriptionGate, tenantOnly } from '../platform/middleware.js'
 import { objectId, optionalText, z } from '../platform/validate.js'
@@ -83,6 +84,17 @@ router.get('/borrower', requirePermission(`${DESK}.view`, `${FINES}.view`), asyn
   const q = z.object({ code: z.string().max(40).optional(), kind: kind.optional(), id: objectId.optional() }).refine((x) => x.code || (x.kind && x.id), 'Scan the card or pick the borrower').parse(req.query)
   res.json({ data: await borrowerCard(q, req.auth) })
 })
+// stock check: scan the shelves, see what is missing (Library › Catalogue › Stock check)
+router.get('/stock-checks', requirePermission(`${CAT}.view`), async (req, res) => { res.json({ data: await listStockChecks(req.auth) }) })
+router.post('/stock-checks', requirePermission(`${CAT}.edit`), async (req, res) => {
+  const body = z.object({ name: z.string().trim().min(2).max(80), shelf: z.string().trim().max(40).optional() }).parse(req.body)
+  res.status(201).json({ data: await startStockCheck(body, req.auth, req) })
+})
+router.get('/stock-checks/:id', requirePermission(`${CAT}.view`), async (req, res) => { res.json({ data: await stockCheckDetail(objectId.parse(req.params.id), req.auth) }) })
+router.post('/stock-checks/:id/scan', requirePermission(`${CAT}.edit`), async (req, res) => {
+  res.json({ data: await scanForStock(objectId.parse(req.params.id), z.object({ code: z.string().trim().min(1).max(40) }).parse(req.body).code, req.auth) })
+})
+router.post('/stock-checks/:id/close', requirePermission(`${CAT}.edit`), async (req, res) => { res.json({ data: await closeStockCheck(objectId.parse(req.params.id), req.auth, req) }) })
 router.get('/copies/by-code/:code', requirePermission(`${DESK}.view`, `${CAT}.view`), async (req, res) => { res.json({ data: await copyByCode(z.string().min(1).max(30).parse(req.params.code), req.auth) }) })
 router.post('/issue', requirePermission(`${DESK}.issue`), async (req, res) => {
   const body = z.object({ kind, id: objectId, codes: z.array(z.string().trim().min(1).max(30)).min(1).max(20), dueOn: optYmd, override: z.boolean().default(false) }).parse(req.body)

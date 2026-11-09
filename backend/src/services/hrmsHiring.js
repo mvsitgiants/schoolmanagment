@@ -2,9 +2,10 @@ import { CANDIDATE_STAGES, OPEN_CANDIDATE_STAGES, REQUISITION_STATUSES } from '@
 import { Candidate, Employee, Requisition } from '../models/hrms.js'
 import { Department } from '../models/tenant.js'
 import { audit } from '../platform/audit.js'
-import { clean, isOid } from '../platform/db.js'
+import { clean, isOid, oid } from '../platform/db.js'
 import { badRequest, conflict, notFound } from '../platform/errors.js'
 import { nextNumber } from '../platform/numbering.js'
+import { escapeRegex } from '../platform/validate.js'
 import { createEmployee } from './hrms.js'
 import { idStr, stamp } from './hrmsCommon.js'
 
@@ -60,14 +61,25 @@ const avgRating = (c) => {
   return r.length ? Math.round((r.reduce((a, b) => a + b, 0) / r.length) * 10) / 10 : null
 }
 
-export async function listCandidates({ requisitionId, stage, search }) {
+/**
+ * Candidates, one page at a time (latest activity first) — for one vacancy or across all of them; `stage` OPEN is everyone
+ * still in process. Search runs on the server over the name, and the mobile when the search has digits.
+ */
+export async function listCandidates({ requisitionId, stage, search, page = 1, pageSize = 50 }) {
   const f = {}
-  if (isOid(requisitionId)) f.requisitionId = requisitionId
+  if (isOid(requisitionId)) f.requisitionId = oid(requisitionId)
   if (stage === 'OPEN') f.stage = { $in: OPEN_CANDIDATE_STAGES }
   else if (stage) f.stage = stage
-  if (search) f.$or = [{ name: new RegExp(search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i') }, { mobile: new RegExp(search.replace(/\D/g, '') || '^$') }]
-  const rows = await Candidate.find(f).sort({ updatedAt: -1 }).limit(500).lean()
-  return rows.map(cdto)
+  const term = String(search ?? '').trim()
+  if (term) {
+    const digits = term.replace(/\D/g, '')
+    f.$or = [{ name: new RegExp(escapeRegex(term), 'i') }, ...(digits ? [{ mobile: new RegExp(digits) }] : [])]
+  }
+  const [rows, total] = await Promise.all([
+    Candidate.find(f).sort({ updatedAt: -1, _id: -1 }).skip((page - 1) * pageSize).limit(pageSize).lean(),
+    Candidate.countDocuments(f),
+  ])
+  return { rows: rows.map(cdto), total, page, pageSize }
 }
 
 export async function getCandidate(id) {

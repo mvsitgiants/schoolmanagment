@@ -6,8 +6,13 @@
 //   MarkSheet      the marks of one paper for one section; locked when final
 //   ExamCandidate  a student sitting an exam: the hall ticket and, once worked out, the result
 //                  (total, %, grade, rank) with the class teacher's remark — the report card's record
+import crypto from 'node:crypto'
 import mongoose from 'mongoose'
+import { makeVerifyCode } from '@schoolgiant/shared'
 import { tenantPlugin } from '../platform/db.js'
+
+/** A candidate's check code: the QR on the hall ticket and the report card opens /verify/exam/<code>. */
+export const newCandidateCode = () => makeVerifyCode(() => crypto.randomInt(0, 2 ** 31) / 2 ** 31)
 
 const { Schema, model } = mongoose
 const ObjectId = Schema.Types.ObjectId
@@ -98,8 +103,10 @@ const candidateSchema = new Schema({
   computedAt: Date,
   remark: String, remarkBy: String,
   notifiedAt: Date, // report card sent to the family
+  verifyCode: { type: String, default: newCandidateCode },
 }, { timestamps: true })
 candidateSchema.plugin(tenantPlugin)
+candidateSchema.index({ verifyCode: 1 }, { unique: true, partialFilterExpression: { verifyCode: { $type: 'string' } } })
 candidateSchema.index({ tenantId: 1, examId: 1, studentId: 1 }, { unique: true })
 candidateSchema.index({ tenantId: 1, examId: 1, sectionId: 1 })
 export const ExamCandidate = model('ExamCandidate', candidateSchema, 'exam_candidates')

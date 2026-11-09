@@ -25,6 +25,8 @@ const photo = z.string().max(400_000).optional().or(z.literal('').transform(() =
 const values = (list) => list.map((x) => x.value)
 const id = (req) => objectId.parse(req.params.id)
 const flag = z.enum(['1', 'true', '0', 'false']).optional().transform((v) => v === '1' || v === 'true')
+// a page of a list: 50 rows by default, never more than 100 at a time
+const paging = { page: z.coerce.number().int().min(1).default(1), pageSize: z.coerce.number().int().min(1).default(50).transform((n) => Math.min(n, 100)) }
 
 const ANY_FO = ['frontoffice.visitors.view', 'frontoffice.gate-pass.view', 'frontoffice.complaints.view']
 
@@ -46,7 +48,7 @@ router.get('/visitors/desk', requirePermission('frontoffice.visitors.view'), asy
 })
 router.get('/visitors', requirePermission('frontoffice.visitors.view'), async (req, res) => {
   const q = z.object({
-    from: ymd.optional(), to: ymd.optional(), purpose: z.enum(values(FO_VISIT_PURPOSES)).optional(), status: z.enum(['IN', 'OUT']).optional(), search: z.string().max(60).optional(),
+    from: ymd.optional(), to: ymd.optional(), purpose: z.enum(values(FO_VISIT_PURPOSES)).optional(), status: z.enum(['IN', 'OUT']).optional(), search: z.string().max(60).optional(), ...paging,
   }).parse(req.query)
   res.json({ data: await listVisitors(q, req.auth) })
 })
@@ -141,7 +143,7 @@ router.post('/gate-passes/:id/cancel', requirePermission('frontoffice.gate-pass.
 router.get('/complaints', requirePermission('frontoffice.complaints.view'), async (req, res) => {
   const q = z.object({
     status: z.enum(Object.keys(FO_COMPLAINT_STATUS)).optional(), category: z.enum(values(FO_COMPLAINT_CATEGORIES)).optional(),
-    priority: z.enum(values(FO_COMPLAINT_PRIORITIES)).optional(), mine: flag, overdue: flag, open: flag, search: z.string().max(60).optional(),
+    priority: z.enum(values(FO_COMPLAINT_PRIORITIES)).optional(), mine: flag, overdue: flag, open: flag, search: z.string().max(60).optional(), ...paging,
   }).parse(req.query)
   res.json({ data: await listComplaints(q, req.auth) })
 })

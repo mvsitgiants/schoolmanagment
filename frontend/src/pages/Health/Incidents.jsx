@@ -9,7 +9,7 @@ import {
 } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { ChipsInput, PersonPicker, SeverityTag, useHealthLabels } from '../../components/health/HealthKit'
-import { createIncident, fetchIncidents, resolveIncident, updateIncident } from '../../api/health'
+import { createIncident, fetchAllIncidents, fetchIncidents, resolveIncident, updateIncident } from '../../api/health'
 import { hasPermission } from '../../api/auth'
 import useDebouncedValue from '../../hooks/useDebouncedValue'
 import { useFormat } from '../../context/SettingsContext'
@@ -129,6 +129,8 @@ function IncidentDrawer({ incident, onClose, onChanged }) {
   )
 }
 
+const PAGE = 50
+
 /** Health › Incidents: injury and incident reports — open ones to follow up, guardian told, resolved. */
 export default function HealthIncidents() {
   const { t } = useTranslation('health')
@@ -140,9 +142,12 @@ export default function HealthIncidents() {
   const [range, setRange] = useState(() => presetRange('thisFy'))
   const [search, setSearch] = useState('')
   const q = useDebouncedValue(search.trim(), 250)
+  const [page, setPage] = useState(1)
   const [adding, setAdding] = useState(false)
   const [open, setOpen] = useState(null)
-  const params = { ...(status && { status }), ...(q && { search: q }), ...(status !== 'OPEN' && range?.from && { from: range.from, to: range.to }) }
+  const pickStatus = (v) => { setStatus(v); setPage(1) }
+  const filters = { ...(status && { status }), ...(q && { search: q }), ...(status !== 'OPEN' && range?.from && { from: range.from, to: range.to }) }
+  const params = { ...filters, page, pageSize: PAGE }
   const { data, isLoading, error, refetch } = useQuery({ queryKey: ['health', 'incidents', params], queryFn: () => fetchIncidents(params) })
   const c = data?.counts
   const today = localIso(new Date())
@@ -151,17 +156,18 @@ export default function HealthIncidents() {
       <PageHeader icon={ClipboardList} title={t('health.incidents.title')} subtitle={t('health.incidents.subtitle')}
         actions={<HeaderButton icon={Plus} variant="primary" requires="health.incidents.create" onClick={() => setAdding(true)}>{t('health.incidents.new')}</HeaderButton>} />
       <StatCardRow items={[
-        { icon: AlertTriangle, tone: c?.open ? 'warning' : 'success', label: t('health.incidents.open'), value: c?.open ?? '—', onClick: () => setStatus('OPEN') },
+        { icon: AlertTriangle, tone: c?.open ? 'warning' : 'success', label: t('health.incidents.open'), value: c?.open ?? '—', onClick: () => pickStatus('OPEN') },
         { icon: Siren, tone: c?.serious ? 'danger' : 'neutral', label: t('health.incidents.seriousOpen'), value: c?.serious ?? '—' },
         { icon: MessageSquare, tone: c?.notInformed ? 'danger' : 'success', label: t('health.incidents.notInformed'), value: c?.notInformed ?? '—' },
         { icon: CalendarClock, tone: c?.followUpDue ? 'warning' : 'neutral', label: t('health.incidents.followUpDue'), value: c?.followUpDue ?? '—', sub: c ? t('health.incidents.thisMonth', { count: c.thisMonth }) : null },
       ]} />
       <div className="flex flex-wrap items-center gap-3">
-        <SegmentedControl value={status} onChange={setStatus} options={[{ value: 'OPEN', label: t('health.incidents.open') }, { value: 'RESOLVED', label: L.incidentStatus('RESOLVED') }, { value: '', label: t('health.incidents.all') }]} />
-        {status !== 'OPEN' && <DateRangeChip value={range} onChange={setRange} />}
-        <div className="w-full sm:ms-auto sm:w-72"><SearchInput value={search} onChange={setSearch} placeholder={t('health.incidents.search')} /></div>
+        <SegmentedControl value={status} onChange={pickStatus} options={[{ value: 'OPEN', label: t('health.incidents.open') }, { value: 'RESOLVED', label: L.incidentStatus('RESOLVED') }, { value: '', label: t('health.incidents.all') }]} />
+        {status !== 'OPEN' && <DateRangeChip value={range} onChange={(v) => { setRange(v); setPage(1) }} />}
+        <div className="w-full sm:ms-auto sm:w-72"><SearchInput value={search} onChange={(v) => { setSearch(v); setPage(1) }} placeholder={t('health.incidents.search')} /></div>
       </div>
-      <DataTable rows={data?.rows ?? []} loading={isLoading} error={error} onRetry={refetch} onRowClick={setOpen} exportable exportName="incidents"
+      <DataTable rows={data?.rows ?? []} loading={isLoading} error={error} onRetry={refetch} onRowClick={setOpen} exportable exportName="incidents" exportAll={() => fetchAllIncidents(filters)}
+        pagination={data && data.total > PAGE ? { page: page - 1, size: PAGE, totalElements: data.total, totalPages: Math.ceil(data.total / PAGE), onPageChange: (p) => setPage(p + 1) } : undefined}
         emptyIcon={ShieldCheck} emptyTitle={status === 'OPEN' ? t('health.incidents.noneOpen') : t('health.incidents.empty')}
         rowTone={(i) => ((INCIDENT_SEVERITY[i.severity]?.rank ?? 0) >= 3 && i.status === 'OPEN' ? 'danger' : undefined)}
         columns={[

@@ -1,10 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { Briefcase, Bus, ChevronLeft, Pencil, Plus, Presentation, ShieldCheck, Star, UserCheck, UsersRound, Wrench } from 'lucide-react'
 import { CANDIDATE_SOURCES, CANDIDATE_STAGES, EMPLOYEE_CATEGORIES, EMPLOYMENT_TYPES, OPEN_CANDIDATE_STAGES, REQUISITION_STATUSES, toPaise, toRupees } from '@schoolgiant/shared'
-import { Attachments, ColorChip, ContactCell, DataTable, DateCell, Drawer, FormField, HeaderButton, Input, LevelBar, Modal, Money, Note, PageContainer, PageHeader, Panel, PersonCell, SegmentedControl, Select, SideNav, SideNavLayout, StatusPill, Textarea, Timeline } from '../../components/system'
+import { Attachments, ColorChip, ContactCell, DataTable, DateCell, Drawer, FormField, HeaderButton, Input, LevelBar, Modal, Money, Note, PageContainer, PageHeader, Panel, PersonCell, SearchInput, SegmentedControl, Select, SideNav, SideNavLayout, StatusPill, Textarea, Timeline } from '../../components/system'
 import Button from '../../components/ui/Button'
 import {
   createCandidate, createRequisition, evaluateCandidate, fetchCandidate, fetchCandidates, fetchRequisitions, hireCandidate, moveCandidate, offerCandidate,
@@ -14,6 +14,9 @@ import { hasPermission } from '../../api/auth'
 import { useSnackbar } from '../../context/SnackbarContext'
 import { useFormat } from '../../context/SettingsContext'
 import { useHrLabels, useHrMeta } from '../../components/hrms/HrKit'
+import useDebouncedValue from '../../hooks/useDebouncedValue'
+
+const PAGE = 50
 
 // each staff category's icon and colour (as on the Staff list)
 const CATEGORY_LOOK = {
@@ -220,9 +223,16 @@ function VacancyDetail({ vacancy, onBack, onEdit }) {
   const { date } = useFormat()
   const { showSuccess, showError } = useSnackbar()
   const [stage, setStage] = useState('OPEN')
+  const [search, setSearch] = useState('')
+  const q = useDebouncedValue(search.trim(), 300)
+  const [page, setPage] = useState(1)
   const [adding, setAdding] = useState(false)
   const [openId, setOpenId] = useState(null)
-  const { data: rows = [], isLoading } = useQuery({ queryKey: ['candidates', vacancy.id, stage], queryFn: () => fetchCandidates({ requisitionId: vacancy.id, stage: stage || undefined }) })
+  const params = { requisitionId: vacancy.id, stage: stage || undefined, search: q || undefined, page, pageSize: PAGE }
+  const { data, isLoading, error, refetch } = useQuery({ queryKey: ['candidates', params], queryFn: () => fetchCandidates(params), placeholderData: (p) => p })
+  const rows = data?.rows ?? []
+  // moving the last candidate on a later page out of this step empties it: step back to the last page there is
+  useEffect(() => { if (data && page > 1 && !data.rows.length && data.total) setPage(Math.ceil(data.total / PAGE)) }, [data, page])
   const refresh = () => { qc.invalidateQueries({ queryKey: ['candidates'] }); qc.invalidateQueries({ queryKey: ['requisitions'] }) }
   const status = useMutation({ mutationFn: (s) => setRequisitionStatus(vacancy.id, { status: s }), onSuccess: () => { refresh(); showSuccess(t('hrms.hiring.statusSaved')) }, onError: (e) => showError(e.message) })
   const canEdit = hasPermission('hrms.hiring.edit')
@@ -244,8 +254,11 @@ function VacancyDetail({ vacancy, onBack, onEdit }) {
           {hasPermission('hrms.hiring.create') && <Button size="sm" icon={Plus} onClick={() => setAdding(true)}>{t('hrms.hiring.addCandidate')}</Button>}
         </div>
       </div>
-      <SegmentedControl value={stage} onChange={setStage} options={[{ value: 'OPEN', label: t('hrms.hiring.inProcess') }, ...['HIRED', 'REJECTED', 'WITHDRAWN'].map((s) => ({ value: s, label: L.stage(s) })), { value: '', label: t('hrms.all') }]} />
-      <DataTable rows={rows} loading={isLoading} columns={[
+      <div className="flex flex-wrap items-center gap-2">
+        <SegmentedControl value={stage} onChange={(v) => { setStage(v); setPage(1) }} options={[{ value: 'OPEN', label: t('hrms.hiring.inProcess') }, ...['HIRED', 'REJECTED', 'WITHDRAWN'].map((s) => ({ value: s, label: L.stage(s) })), { value: '', label: t('hrms.all') }]} />
+        <div className="w-64"><SearchInput value={search} onChange={(v) => { setSearch(v); setPage(1) }} placeholder={t('hrms.hiring.search')} /></div>
+      </div>
+      <DataTable rows={rows} loading={isLoading} error={error} onRetry={refetch} columns={[
         { key: 'name', header: t('hrms.hiring.candidate'), mobilePrimary: true, render: (v, r) => (
           <span className="inline-flex items-center gap-3 min-w-0">
             <PersonCell name={v} sub={r.qualifications} />
@@ -255,7 +268,8 @@ function VacancyDetail({ vacancy, onBack, onEdit }) {
         { key: 'stage', header: t('hrms.hiring.stage'), mobilePrimary: true, render: (v, r) => <span><ColorChip label={L.stage(v)} tone={stageTone(v)} dot />{r.next?.date && <span className="block text-[11px] text-ink-faint mt-0.5">{date(r.next.date)} {r.next.time ?? ''}</span>}</span> },
         { key: 'rating', header: t('hrms.hiring.rating'), align: 'right', render: (v) => <Stars value={v} /> },
         { key: 'source', header: t('hrms.hiring.source'), mobileHidden: true, render: (v) => (v ? <ColorChip label={t(`hrms.hiring.sources.${v}`, v)} seed={v} /> : '—') },
-      ]} onRowClick={(r) => setOpenId(r.id)} emptyTitle={t('hrms.hiring.noCandidates')} />
+      ]} onRowClick={(r) => setOpenId(r.id)} emptyTitle={t('hrms.hiring.noCandidates')}
+        pagination={data && data.total > PAGE ? { page: page - 1, size: PAGE, totalElements: data.total, totalPages: Math.ceil(data.total / PAGE), onPageChange: (p) => setPage(p + 1) } : undefined} />
       {vacancy.description && <Panel title={t('hrms.hiring.description')}><p className="text-sm text-ink-muted whitespace-pre-line">{vacancy.description}</p></Panel>}
       {adding && <CandidateForm requisitionId={vacancy.id} onClose={() => setAdding(false)} onSaved={(c) => { setAdding(false); refresh(); setOpenId(c.id); showSuccess(t('hrms.hiring.saved')) }} />}
       {openId && <CandidateDrawer id={openId} onClose={() => setOpenId(null)} onChanged={refresh} />}

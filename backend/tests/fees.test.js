@@ -69,6 +69,10 @@ describe('concessions', () => {
     const ledger = (await admin.get(`${api}/students/${diya.id}`)).body.data
     expect(ledger.invoices[0].concession).toBe(300000) // 10% of the tuition share (₹30,000 of ₹35,000)
     expect(ledger.invoices[0].net).toBe(3200000)
+    const list = (await admin.get(`${api}/concessions`).query({ status: 'APPROVED', search: 'diy', pageSize: 10 })).body.data
+    expect(list).toMatchObject({ total: 1, page: 1, pageSize: 10 })
+    expect(list.rows[0]).toMatchObject({ id: c.id, status: 'APPROVED' })
+    expect((await admin.get(`${api}/concessions`).query({ search: 'aarav' })).body.data.total).toBe(0)
   })
 })
 
@@ -106,16 +110,31 @@ describe('collecting fees', () => {
     await admin.post(`${api}/receipts/${r.id}/refund`).send({ amount: 500000, mode: 'BANK_TRANSFER', reference: 'NEFT9', reason: 'Lab fee waived' }).expect(201)
     const ledger = (await admin.get(`${api}/students/${aarav.id}`)).body.data
     expect(ledger.totals.balance).toBe(3500000)
-    expect((await admin.get(`${api}/refunds`)).body.data[0]).toMatchObject({ amount: 500000, receiptNo: r.receiptNo })
+    const refunds = (await admin.get(`${api}/refunds`)).body.data
+    expect(refunds.rows[0]).toMatchObject({ amount: 500000, receiptNo: r.receiptNo })
+    expect(refunds).toMatchObject({ total: 1, page: 1, pageSize: 50, summary: { count: 1, amount: 500000, students: 1, byMode: { BANK_TRANSFER: 1 }, largest: { amount: 500000 } } })
+    expect((await admin.get(`${api}/refunds`).query({ search: 'diya' })).body.data.total).toBe(0)
   })
 })
 
 describe('dues and day-end', () => {
   it('lists students with fees due and sends reminders', async () => {
     const dues = (await admin.get(`${api}/dues`)).body.data
-    expect(dues.map((d) => d.name).sort()).toEqual(['Aarav', 'Diya'])
-    const sent = (await admin.post(`${api}/dues/remind`).send({ studentIds: dues.map((d) => d.studentId) })).body.data
+    expect(dues.rows.map((d) => d.name).sort()).toEqual(['Aarav', 'Diya'])
+    expect(dues).toMatchObject({ total: 2, page: 1, pageSize: 50 })
+    expect(dues.summary.students).toBe(2)
+    expect(dues.summary.due).toBe(dues.rows.reduce((n, d) => n + d.due, 0))
+    expect(dues.classes).toEqual([{ classId: cls.id, students: 2, due: dues.summary.due, overdue: dues.summary.overdue }])
+    // a page of one: the totals and the class figures stay those of the whole list
+    const one = (await admin.get(`${api}/dues`).query({ pageSize: 1, page: 2 })).body.data
+    expect(one.rows).toHaveLength(1)
+    expect(one).toMatchObject({ total: 2, summary: dues.summary, classes: dues.classes })
+    expect((await admin.get(`${api}/dues`).query({ classId: cls.id, search: 'diy' })).body.data.rows.map((d) => d.name)).toEqual(['Diya'])
+    const sent = (await admin.post(`${api}/dues/remind`).send({ studentIds: dues.rows.map((d) => d.studentId) })).body.data
     expect(sent.sent).toBe(2)
+    // "remind everyone in this list" goes by the filter, not the page on screen
+    expect((await admin.post(`${api}/dues/remind`).send({ all: { classId: cls.id } })).body.data.sent).toBe(2)
+    expect((await admin.post(`${api}/dues/remind`).send({})).status).toBe(400)
   })
 
   it('closes the day: cash counted against cash receipts, a difference waits for approval', async () => {

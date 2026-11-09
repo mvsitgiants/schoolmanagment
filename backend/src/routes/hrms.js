@@ -32,6 +32,8 @@ const paise = z.coerce.number().int().min(0).max(1e11)
 const values = (list) => list.map((x) => x.value ?? x)
 const csv = (res, name, text) => res.type('text/csv').attachment(name).send(`﻿${text}`)
 const EMP = 'hrms.employees'
+// one page of a list: 50 rows by default, at most 100 (the platform's clamp)
+const paging = { page: z.coerce.number().int().min(1).default(1), pageSize: z.coerce.number().int().min(1).max(100).default(50) }
 
 // ───────────────────────────────────────────────────────── staff
 
@@ -177,7 +179,7 @@ router.put('/leave/types/:id', requirePermission('hrms.leave.edit'), async (req,
   res.json({ data: await saveLeaveType(id(req), leaveTypeSchema.parse(req.body), req) })
 })
 router.get('/leave', requirePermission('hrms.leave.view'), async (req, res) => {
-  const q = z.object({ status: z.enum(Object.keys(LEAVE_STATUSES)).optional(), employeeId: objectId.optional(), leaveTypeId: objectId.optional(), from: ymd.optional(), to: ymd.optional() }).parse(req.query)
+  const q = z.object({ status: z.enum(Object.keys(LEAVE_STATUSES)).optional(), employeeId: objectId.optional(), leaveTypeId: objectId.optional(), from: ymd.optional(), to: ymd.optional(), search: z.string().max(80).optional(), ...paging }).parse(req.query)
   res.json({ data: await listLeaves(q, req.auth) })
 })
 router.get('/leave/balances', requirePermission('hrms.leave.view'), async (req, res) => {
@@ -245,7 +247,7 @@ router.post('/requisitions/:id/status', requirePermission('hrms.hiring.edit'), a
   res.json({ data: await setRequisitionStatus(id(req), input, req.auth, req) })
 })
 router.get('/candidates', requirePermission('hrms.hiring.view'), async (req, res) => {
-  const q = z.object({ requisitionId: objectId.optional(), stage: optionalText(20), search: optionalText(80) }).parse(req.query)
+  const q = z.object({ requisitionId: objectId.optional(), stage: optionalText(20), search: optionalText(80), ...paging }).parse(req.query)
   res.json({ data: await listCandidates(q) })
 })
 router.post('/candidates', requirePermission('hrms.hiring.create'), async (req, res) => {

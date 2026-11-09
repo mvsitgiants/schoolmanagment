@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { AlarmClock, BookCopy, BookMarked, BookOpen, BookUp, Disc3, Download, GraduationCap, Library, Newspaper, Pencil, Plus, Printer, ScanSearch, ScrollText, TabletSmartphone, Trash2 } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { AlarmClock, BookCopy, ClipboardCheck, BookMarked, BookOpen, BookUp, Disc3, Download, GraduationCap, Library, Newspaper, Pencil, Plus, Printer, ScanSearch, ScrollText, TabletSmartphone, Trash2 } from 'lucide-react'
 import { COPY_SOURCES, COPY_STATUS, ITEM_TYPES, hasCopies, toPaise, toRupees } from '@schoolgiant/shared'
 import { Attachments, CodeBadge, ColorChip, DataTable, Drawer, FormField, HeaderButton, ImportExportButtons, Input, LevelBar, Modal, Money, Note, PageContainer, PageHeader, Panel, PersonCell, SearchInput, Select, StatCardRow, Textarea, useConfirm, usePrompt } from '../../components/system'
 import Button from '../../components/ui/Button'
@@ -243,6 +244,7 @@ function TitleDrawer({ id, onClose, onEdit, onChanged }) {
 
 /** Library › Catalogue: titles and their copies (each with its accession number / barcode), e-books, import and labels. */
 export default function Catalogue() {
+  const navigate = useNavigate()
   const { t } = useTranslation('library')
   const L = useLibraryLabels()
   const qc = useQueryClient()
@@ -271,6 +273,7 @@ export default function Catalogue() {
             templateSample={['Wings of Fire', 'A. P. J. Abdul Kalam; Arun Tiwari', '9788173711466', 'Universities Press', '1999', '', 'English', 'BOOK', 'Biography', '920 KAL', '', 'ACC-1021, ACC-1022', '199', 'B2', 'PURCHASE']}
             onDone={refresh} />}
           {hasPermission('library.catalogue.export') && <HeaderButton icon={Download} onClick={() => exportCatalogue().catch((e) => showError(e.message))}>{t('library.titles.export')}</HeaderButton>}
+          <HeaderButton icon={ClipboardCheck} onClick={() => navigate('/library/stock-check')}>{t('library.stock.button')}</HeaderButton>
           <HeaderButton icon={Plus} variant="primary" requires="library.catalogue.create" onClick={() => setEditing('new')}>{t('library.titles.new')}</HeaderButton>
         </>} />
       <div className="space-y-4">

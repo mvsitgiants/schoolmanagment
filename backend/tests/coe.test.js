@@ -132,6 +132,13 @@ describe('results', () => {
     expect(by.Chitra).toMatchObject({ sgpa: 3, arrears: 1, result: 'FAIL' })
     expect(summary).toMatchObject({ students: 3, passed: 1, passPct: 33.3, withArrears: 2 })
     expect(summary.grades).toEqual([{ grade: 'O', count: 1 }, { grade: 'A+', count: 1 }, { grade: 'A', count: 1 }, { grade: 'B+', count: 1 }, { grade: 'F', count: 1 }, { grade: 'Ab', count: 1 }])
+    // the list is paged and filtered on the server; the tiles still count the whole session
+    const results = (q) => admin.get(`${api}/sessions/${session.id}/results`).query(q).then((r) => r.body.data)
+    expect(await results({ result: 'ARREARS' })).toMatchObject({ total: 2, summary: { students: 3, passed: 1 } })
+    expect((await results({ search: 'bala' })).rows.map((r) => r.name)).toEqual(['Bala'])
+    const second = await results({ page: 2, pageSize: 2 })
+    expect(second).toMatchObject({ total: 3, page: 2, pageSize: 2 })
+    expect(second.rows).toHaveLength(1)
     const detail = (await admin.get(`${api}/results/${by.Chitra.id}`)).body.data
     expect(detail.courses.find((c) => c.code === 'AC101')).toMatchObject({ grade: 'F', reason: 'EXTERNAL', internal: 19.2, external: 20 })
     expect(detail.trend).toEqual([expect.objectContaining({ semester: 1, sgpa: 3 })])
@@ -154,6 +161,10 @@ describe('results', () => {
     expect(chitra).toMatchObject({ sgpa: 5.86, arrears: 0, result: 'PASS' }) // (20 + 21) / 7
     const list = (await admin.get(`${api}/revaluations`)).body.data
     expect(list.summary).toMatchObject({ total: 1, REVALUED: 1, improved: 1, fees: 50000 })
+    expect(list).toMatchObject({ total: 1, page: 1, pageSize: 50 })
+    // a status filter picks rows; the tiles still count every request
+    const requested = (await admin.get(`${api}/revaluations`).query({ status: 'REQUESTED' })).body.data
+    expect(requested).toMatchObject({ rows: [], total: 0, summary: { total: 1, REVALUED: 1 } })
   })
 
   it('a supplementary session re-examines arrears; the pass replaces the failed attempt in the CGPA', async () => {

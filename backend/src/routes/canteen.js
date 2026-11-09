@@ -4,7 +4,7 @@ import { authenticate, requireModule, requirePermission, subscriptionGate, tenan
 import { objectId, optionalText, z } from '../platform/validate.js'
 import {
   adjustWallet, counterSale, daySummary, deleteItem, deleteSpecial, findStudents, listMenu, listOrders, listSpecials, listWallets, menuFor, moveOrder,
-  refundWallet, saveItem, saveSpecial, setControls, setSoldOut, today, topUpAtCounter, walletDetail,
+  preorderBoard, refundWallet, saveItem, saveSpecial, setControls, setSoldOut, today, topUpAtCounter, walletDetail,
 } from '../services/canteen.js'
 import { recheckTopup } from '../services/canteenFamily.js'
 
@@ -16,6 +16,8 @@ const ymd = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Use YYYY-MM-DD')
 const paise = z.coerce.number().int('Whole paise').min(0)
 const values = (list) => list.map((x) => x.value)
 const sid = (req) => objectId.parse(req.params.studentId)
+// a page of a list: 50 rows by default, never more than 100 at a time
+const paging = { page: z.coerce.number().int().min(1).default(1), pageSize: z.coerce.number().int().min(1).default(50).transform((n) => Math.min(n, 100)) }
 
 // ───────────────────────────────────────────────────────── menu
 
@@ -76,8 +78,13 @@ router.get('/find', requirePermission('canteen.orders.view', 'canteen.wallet.vie
 const linesSchema = z.array(z.object({ itemId: objectId, qty: z.coerce.number().int().min(1).max(50) })).min(1, 'Add at least one item').max(40)
 
 router.get('/orders', requirePermission('canteen.orders.view'), async (req, res) => {
-  const q = z.object({ date: ymd.optional(), source: z.enum(['COUNTER', 'PREORDER']).optional(), status: z.enum(['PLACED', 'READY', 'COLLECTED', 'SERVED', 'CANCELLED']).optional() }).parse(req.query)
+  const q = z.object({ date: ymd.optional(), source: z.enum(['COUNTER', 'PREORDER']).optional(), status: z.enum(['PLACED', 'READY', 'COLLECTED', 'SERVED', 'CANCELLED']).optional(), ...paging }).parse(req.query)
   res.json({ data: await listOrders(q) })
+})
+/** The pre-order board for a day: every pre-order, not paged. */
+router.get('/preorders', requirePermission('canteen.orders.view'), async (req, res) => {
+  const { date } = z.object({ date: ymd.optional() }).parse(req.query)
+  res.json({ data: await preorderBoard(date) })
 })
 router.post('/orders', requirePermission('canteen.orders.create'), async (req, res) => {
   const input = z.object({ studentId: objectId.optional().nullable(), lines: linesSchema, payMode: z.enum(['WALLET', 'CASH']) }).parse(req.body)

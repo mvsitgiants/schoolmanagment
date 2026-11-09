@@ -111,8 +111,13 @@ describe('sick-room visits', () => {
     expect(v.person).toEqual({ kind: 'STAFF', name: 'Mr Gardener', id: null })
     await nurse.patch(`${api}/visits/${v.id}`).send({ outcome: 'REFERRED' }).expect(400)
     await nurse.patch(`${api}/visits/${v.id}`).send({ outcome: 'REFERRED', referredTo: 'City Hospital' }).expect(200)
-    const rows = (await nurse.get(`${api}/visits`)).body.data
-    expect(rows).toHaveLength(2)
+    const list = (await nurse.get(`${api}/visits`)).body.data
+    expect(list.rows).toHaveLength(2)
+    expect(list.total).toBe(2)
+    const one = (await nurse.get(`${api}/visits`).query({ pageSize: 1, page: 2 })).body.data
+    expect(one.rows).toHaveLength(1)
+    expect(one.total).toBe(2)
+    expect((await nurse.get(`${api}/visits`).query({ search: 'gardener' })).body.data.rows).toHaveLength(1)
     await nurse.post(`${api}/visits`).send({ complaint: 'FEVER' }).expect(400) // no student
   })
 })

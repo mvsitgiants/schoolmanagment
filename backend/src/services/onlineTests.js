@@ -13,6 +13,7 @@ import { badRequest, conflict, forbidden, notFound } from '../platform/errors.js
 import { emit } from '../platform/events.js'
 import { runAsSystem, runAsTenant } from '../platform/context.js'
 import { timeZoneOf, zonedDate } from '../platform/time.js'
+import { escapeRegex } from '../platform/validate.js'
 import { currentYear, sectionsInScope } from './academics.js'
 import { familyLink } from './familyLink.js'
 import { need, studentFor } from './portal.js'
@@ -65,16 +66,30 @@ const testRow = (t, n, auth) => ({
 
 // ───────────────────────────────────────────────────────── tests
 
-export async function listTests({ status }, auth) {
-  const f = { ...(await visibleFilter(auth)) }
-  if (status) f.status = status
-  const rows = await OnlineTest.find(f).sort({ opensAt: -1, createdAt: -1 }).limit(300).lean()
+/**
+ * Tests the caller may see, latest window first, one page at a time. `given` leaves out drafts (Attempts & results);
+ * the title search runs in Mongo. Each row carries its attempt count and how many wait to be marked.
+ */
+export async function listTests({ status, given, search, page = 1, pageSize = 50 }, auth) {
+  const and = [await visibleFilter(auth)]
+  if (status) and.push({ status })
+  else if (given) and.push({ status: { $ne: 'DRAFT' } })
+  const q = String(search ?? '').trim()
+  if (q) and.push({ title: new RegExp(escapeRegex(q), 'i') })
+  const f = { $and: and }
+  const [rows, total] = await Promise.all([
+    OnlineTest.find(f).sort({ opensAt: -1, createdAt: -1, _id: -1 }).skip((page - 1) * pageSize).limit(pageSize).lean(),
+    OnlineTest.countDocuments(f),
+  ])
   const n = await names(rows)
   const counts = await TestAttempt.aggregate([{ $match: { testId: { $in: rows.map((r) => r._id) } } }, { $group: { _id: { t: '$testId', s: '$status' }, n: { $sum: 1 } } }])
-  return rows.map((t) => {
-    const mine = counts.filter((c) => String(c._id.t) === String(t._id))
-    return { ...testRow(t, n, auth), attempts: mine.reduce((s, c) => s + c.n, 0), toEvaluate: mine.find((c) => c._id.s === 'SUBMITTED')?.n ?? 0 }
-  })
+  return {
+    rows: rows.map((t) => {
+      const mine = counts.filter((c) => String(c._id.t) === String(t._id))
+      return { ...testRow(t, n, auth), attempts: mine.reduce((s, c) => s + c.n, 0), toEvaluate: mine.find((c) => c._id.s === 'SUBMITTED')?.n ?? 0 }
+    }),
+    total, page, pageSize,
+  }
 }
 
 async function testFor(id, auth) {

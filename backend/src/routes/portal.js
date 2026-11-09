@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import { cancelPickupPass, createPickupPass, familyPasses } from '../services/passes.js'
 import { forgetFamilySession, pushPublicKey, removePushSubscription, savePushSubscription } from '../services/push.js'
 import rateLimit from 'express-rate-limit'
 import { config } from '../config.js'
@@ -75,6 +76,7 @@ portalRouter.put('/content', requirePermission('portal.content.edit'), async (re
 // No staff sign-in here, and no staff permission is ever granted: the caller is a family, known only
 // by this school's app session cookie (services/portalAuth.js). The whole app answers 404 when the
 // module is off, the app is switched off (Settings › App), or the school's subscription has stopped.
+
 
 export const familyRouter = Router({ mergeParams: true })
 
@@ -360,3 +362,11 @@ familyRouter.get('/doc/:docType/:id', async (req, res) => {
   res.setHeader('Content-Type', 'text/html; charset=utf-8')
   res.send(html)
 })
+
+// passes a family shows on their phone: event and meeting passes, and the early-pickup pass (Scan at school)
+familyRouter.get('/students/:studentId/passes', async (req, res) => { res.json({ data: await familyPasses(req.family, sid(req)) }) })
+familyRouter.post('/students/:studentId/pickup-passes', async (req, res) => {
+  const body = z.object({ name: z.string().trim().min(2, 'Who is collecting?').max(80), relation: z.string().trim().max(40).optional(), mobile: z.string().trim().max(20).optional(), reason: z.string().trim().max(200).optional() }).parse(req.body)
+  res.status(201).json({ data: await createPickupPass(req.family, sid(req), body, req) })
+})
+familyRouter.post('/students/:studentId/pickup-passes/:passId/cancel', async (req, res) => { res.json({ data: await cancelPickupPass(req.family, sid(req), req.params.passId) }) })

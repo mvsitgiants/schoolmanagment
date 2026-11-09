@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import clsx from 'clsx'
-import { BookOpen, CalendarCheck, Check, CheckCheck, ChevronLeft, Clock, LayoutGrid, UserCheck, UserX } from 'lucide-react'
+import { BookOpen, CalendarCheck, Check, CheckCheck, ChevronLeft, Clock, LayoutGrid, ScanQrCode, UserCheck, UserX } from 'lucide-react'
 import { ATTENDANCE_MARKS, countMarks, takesDaily, takesPeriods } from '@schoolgiant/shared'
 import { Avatar, ColorChip, Input, Note, PageContainer, PageHeader, PersonCell, PillRow, SideNav, SideNavLayout, StatCardRow, StatusPill, TONE, Tabs, pillClass } from '../../components/system'
 import groupByClass, { classKeyOf } from '../../components/attendance/groupByClass'
@@ -13,6 +13,8 @@ import { useSnackbar } from '../../context/SnackbarContext'
 import { useFormat } from '../../context/SettingsContext'
 import { enqueue, isOffline } from '../../utils/offlineQueue'
 import { getCurrentUser } from '../../api/auth'
+import { resolveCode } from '../../api/scan'
+import { ScanDialog, scanFeedback } from '../../components/scan/Scanner'
 
 const MARK_STYLE = {
   P: 'bg-success-500 text-white border-success-500',
@@ -35,6 +37,23 @@ function SheetView({ sectionId, date, period, onBack }) {
   const { data: sheet, isLoading, error } = useQuery({ queryKey: key, queryFn: () => fetchSheet({ sectionId, date, period }) })
   const [marks, setMarks] = useState({})
   useEffect(() => { if (sheet) setMarks(Object.fromEntries(sheet.students.map((s) => [s.id, s.status]))) }, [sheet])
+  // scanning ID cards in class: each card scanned marks that child present; then "the rest absent"
+  const [scanning, setScanning] = useState(false)
+  const [scanned, setScanned] = useState([]) // newest first: { id, name, ok, note }
+  const onCard = async (code) => {
+    try {
+      const r = await resolveCode(code)
+      const s = r.kind === 'STUDENT' ? sheet.students.find((x) => x.id === r.id) : null
+      if (!s) { scanFeedback(false); setScanned((l) => [{ id: `${Date.now()}`, name: r.title, ok: false, note: t('attendance.mark.scan.notHere') }, ...l].slice(0, 20)); return }
+      setMarks((x) => ({ ...x, [s.id]: x[s.id] === 'L' || x[s.id] === 'HD' ? x[s.id] : 'P' }))
+      setScanned((l) => [{ id: s.id, name: s.name, ok: true }, ...l.filter((y) => y.id !== s.id)].slice(0, 20))
+    } catch (e) {
+      scanFeedback(false)
+      setScanned((l) => [{ id: `${Date.now()}`, name: code, ok: false, note: e.message }, ...l].slice(0, 20))
+    }
+  }
+  const scannedIds = new Set(scanned.filter((x) => x.ok).map((x) => x.id))
+  const restAbsent = () => setMarks((x) => Object.fromEntries(sheet.students.map((s) => [s.id, scannedIds.has(s.id) ? x[s.id] : s.onLeave ? 'LV' : 'A'])))
   const counts = useMemo(() => countMarks(Object.values(marks).map((status) => ({ status }))), [marks])
   const dirty = sheet && sheet.students.some((s) => marks[s.id] !== s.status)
   const save = useMutation({
@@ -92,11 +111,23 @@ function SheetView({ sectionId, date, period, onBack }) {
       {!sheet.workingDay && <Note tone="warning" className="mb-3">{t('attendance.mark.notWorkingDay')}</Note>}
       {readOnly && <Note tone="info" className="mb-3">{t(`attendance.mark.readOnly.${sheet.reason}`, t('attendance.mark.readOnly.NO_PERMISSION'))}</Note>}
       {!sheet.students.length && <Note>{t('attendance.mark.noStudents')}</Note>}
-      {!readOnly && sheet.students.length > 0 && (
-        <div className="flex justify-end mb-2">
+      {!readOnly && sheet.students.length > 0 && (<>
+        <div className="flex flex-wrap justify-end gap-2 mb-2">
+          <Button size="sm" variant="secondary" icon={ScanQrCode} onClick={() => setScanning(true)}>{t('attendance.mark.scan.button')}</Button>
+          {scannedIds.size > 0 && <Button size="sm" variant="secondary" icon={UserX} onClick={restAbsent}>{t('attendance.mark.scan.restAbsent', { count: sheet.students.length - scannedIds.size })}</Button>}
           <Button size="sm" variant="secondary" icon={CheckCheck} onClick={() => setMarks(Object.fromEntries(sheet.students.map((s) => [s.id, s.onLeave ? 'LV' : 'P'])))}>{t('attendance.mark.allPresent')}</Button>
         </div>
-      )}
+        <ScanDialog open={scanning} continuous onClose={() => setScanning(false)} onCode={onCard} title={t('attendance.mark.scan.title')} hint={t('attendance.mark.scan.hint', { done: scannedIds.size, total: sheet.students.length })}>
+          <ul className="divide-y divide-border rounded-lg border border-border max-h-40 overflow-y-auto">
+            {scanned.slice(0, 6).map((x) => (
+              <li key={`${x.id}-${x.name}`} className="flex items-center justify-between gap-2 px-3 py-2 text-sm">
+                <span className="truncate text-ink">{x.name}</span>
+                {x.ok ? <StatusPill tone="success">{t('attendance.mark.scan.present')}</StatusPill> : <span className="text-xs text-danger-600 truncate">{x.note}</span>}
+              </li>
+            ))}
+          </ul>
+        </ScanDialog>
+      </>)}
       {/* phones first: the name may wrap to two lines rather than be cut, the five marks stay 40px+ */}
       <ul className="rounded-xl border border-border bg-surface divide-y divide-border overflow-hidden">
         {sheet.students.map((s) => (

@@ -78,7 +78,7 @@ export async function getSession(id) {
       slots: slotsOf(p).map((time) => {
         const b = bookings.find((x) => sameId(x.hostId, h._id) && x.time === time)
         const s = b && students.get(String(b.studentId))
-        return { time, away: (h.away ?? []).includes(time), booking: b ? { id: String(b._id), studentId: String(b.studentId), student: s ? studentName(s) : '', admissionNo: s?.admissionNo ?? '', section: names.get(String(b.sectionId)) ?? '', guardian: b.guardian?.name ?? null, mobile: b.guardian?.mobile ?? null, status: b.status, remarks: b.remarks ?? null, byFamily: b.byFamily } : null }
+        return { time, away: (h.away ?? []).includes(time), booking: b ? { id: String(b._id), studentId: String(b.studentId), student: s ? studentName(s) : '', admissionNo: s?.admissionNo ?? '', section: names.get(String(b.sectionId)) ?? '', guardian: b.guardian?.name ?? null, mobile: b.guardian?.mobile ?? null, status: b.status, remarks: b.remarks ?? null, byFamily: b.byFamily, arrivedAt: b.arrivedAt ?? null } : null }
       }),
     })),
   })

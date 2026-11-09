@@ -13,6 +13,7 @@ import { emit } from '../platform/events.js'
 import { nextNumber } from '../platform/numbering.js'
 import { getSettings } from '../platform/settings.js'
 import { hhmmIn, institutionNow, timeZoneOf, zonedDate } from '../platform/time.js'
+import { escapeRegex } from '../platform/validate.js'
 import { usersWith } from './hrmsCommon.js'
 import { humanDate, notifyUsers } from './notify.js'
 import { need, studentFor } from './portal.js'
@@ -325,24 +326,36 @@ function outpassOut(o) {
   }
 }
 
-export async function listOutpasses({ view = 'OPEN', status, blockId, search, from, to }, auth) {
+/**
+ * Outpasses: the OPEN board (asked / approved / out — a working set, capped at 2000) or the ALL list with dates, one page
+ * at a time. Search runs on the server (the student's name or admission no., or the outpass no.); the tiles count the
+ * whole scope.
+ */
+export async function listOutpasses({ view = 'OPEN', status, blockId, search, from, to, page = 1, pageSize = 50 }, auth) {
   const blocks = await blocksInScope(auth)
-  const f = { $or: [{ blockId: { $in: blocks.map((b) => b._id) } }, { blockId: null, ...siteFilter(auth) }] }
-  if (isOid(blockId)) { delete f.$or; f.blockId = oid(blockId) }
+  const scope = isOid(blockId) ? { blockId: oid(blockId) } : { $or: [{ blockId: { $in: blocks.map((b) => b._id) } }, { blockId: null, ...siteFilter(auth) }] }
+  const f = { ...scope }
   if (status) f.status = status
   else if (view === 'OPEN') f.status = { $in: OUTPASS_OPEN }
   if (view === 'ALL' && (from || to)) f.leaveDate = { ...(from && { $gte: from }), ...(to && { $lte: to }) }
-  const rows = await Outpass.find(f).sort({ leaveAt: view === 'OPEN' ? 1 : -1 }).limit(view === 'OPEN' ? 2000 : 500).lean()
+  const q = String(search ?? '').trim()
+  if (q) {
+    const re = new RegExp(escapeRegex(q), 'i')
+    const words = q.split(/\s+/).slice(0, 5).map((w) => new RegExp(escapeRegex(w), 'i'))
+    const ids = (await Student.find({ $and: words.map((w) => ({ $or: [{ firstName: w }, { middleName: w }, { lastName: w }, { admissionNo: w }] })) }).select('_id').lean()).map((s) => s._id)
+    f.$and = [{ $or: [{ outpassNo: re }, { studentId: { $in: ids } }] }]
+  }
+  const paged = view === 'ALL'
+  const [rows, total] = paged
+    ? await Promise.all([Outpass.find(f).sort({ leaveAt: -1, _id: -1 }).skip((page - 1) * pageSize).limit(pageSize).lean(), Outpass.countDocuments(f)])
+    : await Outpass.find(f).sort({ leaveAt: 1, _id: 1 }).limit(2000).lean().then((r) => [r, r.length])
   const labels = await studentLabels(rows.map((r) => r.studentId))
   const blockOf = new Map(blocks.map((b) => [String(b._id), b]))
-  const q = String(search ?? '').trim().toLowerCase()
   const list = rows.map((o) => ({ ...outpassOut(o), student: labels.get(String(o.studentId)) ?? null, block: blockOf.get(String(o.blockId))?.name ?? null }))
-    .filter((x) => !q || (x.student?.name ?? '').toLowerCase().includes(q) || (x.student?.admissionNo ?? '').toLowerCase().includes(q) || x.outpassNo.toLowerCase().includes(q))
-  const scope = { $or: f.$or ?? [{ blockId: f.blockId }] }
   const counts = Object.fromEntries((await Outpass.aggregate([{ $match: { ...scope, status: { $in: OUTPASS_OPEN } } }, { $group: { _id: '$status', n: { $sum: 1 } } }])).map((c) => [c._id, c.n]))
   const t = await today()
   return {
-    rows: list,
+    rows: list, total, ...(paged && { page, pageSize }),
     counts: {
       REQUESTED: counts.REQUESTED ?? 0, APPROVED: counts.APPROVED ?? 0, OUT: counts.OUT ?? 0,
       overdue: await Outpass.countDocuments({ ...scope, status: 'OUT', returnBy: { $lt: new Date() } }),

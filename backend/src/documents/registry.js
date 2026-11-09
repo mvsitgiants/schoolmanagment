@@ -52,6 +52,7 @@ function tcModel({ tc, student }) {
   return {
     tc: {
       no: tc.tcNo, status: tc.status, issued: tc.status === 'ISSUED', cancelled: tc.status === 'CANCELLED', requested: tc.status === 'REQUESTED',
+      verifyUrl: tc.verifyCode && tc.status === 'ISSUED' ? `${config.appUrl}/verify/tc/${tc.verifyCode}` : null,
       issuedAt: tc.issuedAt, issuedBy: tc.issuedBy, leavingDate: tc.leavingDate, reason: LEAVING_REASON_LABEL_OF(tc.reason) ?? tc.reasonText,
       reasonText: tc.reasonText, conduct: tc.conduct, lastClass: tc.lastClassLabel, promotedTo: tc.promotedTo, feesPaidUpTo: tc.feesPaidUpTo,
       remarks: tc.remarks, cancelReason: tc.cancelReason,
@@ -87,7 +88,7 @@ const studentBlock = (s, place, rollNo) => ({
 
 function hallTicketModel({ candidate, exam, year, student, place, papers }) {
   return {
-    exam: { name: exam.name, year: year?.name, term: exam.term, instructions: exam.instructions, startDate: exam.startDate, endDate: exam.endDate },
+    exam: { name: exam.name, year: year?.name, term: exam.term, instructions: exam.instructions, startDate: exam.startDate, endDate: exam.endDate, verifyUrl: candidate.verifyCode ? `${config.appUrl}/verify/exam/${candidate.verifyCode}` : null },
     student: studentBlock(student, place, candidate.rollNo),
     papers: papers.map((p) => ({ subject: p.subject, date: p.date, startTime: p.startTime, endTime: p.endTime, maxMarks: p.maxMarks, gradeOnly: !!p.gradeOnly, room: p.seat?.room ?? null, seat: p.seat?.seat ?? null })),
     seated: papers.some((p) => p.seat),
@@ -107,7 +108,7 @@ function reportCardModel({ candidate: c, exam, year, student, place, papers, ent
   })
   const activities = papers.filter((p) => p.gradeOnly).map((p) => ({ subject: p.subject, grade: entry.get(p.id)?.grade ?? null, exempt: !!entry.get(p.id)?.exempt }))
   return {
-    exam: { name: exam.name, year: year?.name, term: exam.term, published: exam.status === 'PUBLISHED', publishedAt: exam.publishedAt },
+    exam: { name: exam.name, year: year?.name, term: exam.term, published: exam.status === 'PUBLISHED', publishedAt: exam.publishedAt, verifyUrl: c.verifyCode ? `${config.appUrl}/verify/exam/${c.verifyCode}` : null },
     student: studentBlock(student, place, c.rollNo),
     subjects, activities, hasActivities: activities.length > 0,
     result: {

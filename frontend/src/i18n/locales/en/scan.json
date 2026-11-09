@@ -25,7 +25,12 @@
       "BOOK": "Library book",
       "RECEIPT": "Fee receipt",
       "CERTIFICATE": "Certificate",
-      "UNKNOWN": "Not found"
+      "UNKNOWN": "Not found",
+      "HALL_TICKET": "Hall ticket",
+      "TC": "Transfer certificate",
+      "EVENT_PASS": "Event pass",
+      "MEETING_PASS": "Meeting pass",
+      "PICKUP_PASS": "Early-pickup pass"
     },
     "status": {
       "CANCELLED": "Cancelled",
@@ -39,7 +44,10 @@
       "TRANSFERRED": "Transferred",
       "INACTIVE": "Inactive",
       "EXITED": "Left",
-      "NOTICE": "On notice"
+      "NOTICE": "On notice",
+      "REQUESTED": "Requested, not issued",
+      "USED": "Used",
+      "ACTIVE": "Valid today"
     },
     "action": {
       "profile": "Open student profile",
@@ -49,7 +57,13 @@
       "register": "Open the certificate register",
       "verify": "Check the certificate",
       "staffProfile": "Open staff profile",
-      "open": "Open the link"
+      "open": "Open the link",
+      "hallTickets": "Open hall tickets",
+      "results": "Open results",
+      "tcRegister": "Open the TC register",
+      "checkIn": "Check in",
+      "arrived": "Mark arrived",
+      "handOver": "Hand the child over"
     },
     "gate": {
       "title": "Gate scanner",
@@ -95,6 +109,49 @@
       "refunded": "Refunded",
       "student": "Student",
       "compare": "Check these match the printed receipt."
+    },
+    "exam": {
+      "roomSeat": "Room {{room}} · Seat {{seat}}",
+      "notSeated": "No seat published",
+      "notToday": "No paper today — the next is on {{date}}.",
+      "noMore": "No more papers in this exam.",
+      "validTitle": "Genuine hall ticket / report card",
+      "notFoundTitle": "Not found",
+      "notFound": "No hall ticket or report card matches this code. It may have been altered — ask the school.",
+      "valid": "{{school}} issued this for the exam below.",
+      "student": "Student",
+      "class": "Class",
+      "exam": "Exam",
+      "result": "Result",
+      "resultLine": "{{pct}}% · Grade {{grade}}",
+      "notPublished": "Results not published yet",
+      "compare": "Check these match the printed document."
+    },
+    "tc": {
+      "validTitle": "Genuine transfer certificate",
+      "cancelledTitle": "This TC was cancelled",
+      "valid": "{{school}} issued this transfer certificate and it is valid.",
+      "cancelled": "{{school}} issued this TC but later cancelled it — it is no longer valid.",
+      "notFoundTitle": "TC not found",
+      "notFound": "No issued transfer certificate matches this code. It may have been altered — ask the school that issued it.",
+      "no": "TC no.",
+      "issued": "Issued on",
+      "leaving": "Date of leaving",
+      "student": "Student",
+      "dob": "Date of birth",
+      "compare": "Check these match the printed TC."
+    },
+    "pass": {
+      "valid": {
+        "EVENT_PASS": "Valid pass — not checked in yet",
+        "MEETING_PASS": "Booked — not arrived yet",
+        "PICKUP_PASS": "Valid for today — check the person, then hand over"
+      },
+      "notValid": "Not valid — used, cancelled or for another day",
+      "checkedIn": "Checked in at {{time}}",
+      "handedOver": "Handed over at {{time}} by {{by}}",
+      "collectedBy": "To be collected by",
+      "checkId": "Ask for photo ID and match the name before handing over."
     }
   }
 }

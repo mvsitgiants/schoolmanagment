@@ -92,7 +92,8 @@ describe('what a family sees', () => {
     const after = (await agent.post(fam(`/students/${diya.id}/leave`)).send({ from: t, to: t, reason: 'Fever' })).body.data
     expect(after.leave[0]).toMatchObject({ status: 'PENDING', byFamily: true })
     const staff = (await admin.get('/api/v1/attendance/leave?status=PENDING')).body.data
-    expect(staff.some((l) => l.reason === 'Fever')).toBe(true)
+    expect(staff.rows.some((l) => l.reason === 'Fever')).toBe(true)
+    expect(staff.counts.PENDING).toBe(staff.total)
     expect((await agent.post(fam(`/students/${diya.id}/leave`)).send({ from: t, to: t, reason: 'Again' })).status).toBe(409)
   })
 

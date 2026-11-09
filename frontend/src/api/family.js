@@ -122,3 +122,8 @@ export const familyRaiseComplaint = (slug, id, body) => fpost(slug, `${st(id)}/c
 export const familySurveys = (slug, id) => fget(slug, `${st(id)}/surveys`)
 export const familySurvey = (slug, id, surveyId) => fget(slug, `${st(id)}/surveys/${surveyId}`)
 export const familyAnswerSurvey = (slug, id, surveyId, values) => fpost(slug, `${st(id)}/surveys/${surveyId}`, { values })
+
+// passes shown at school: event and meeting passes, early-pickup pass
+export const familyPasses = (slug, studentId) => fget(slug, `/students/${studentId}/passes`)
+export const familyPickupCreate = (slug, studentId, body) => fpost(slug, `/students/${studentId}/pickup-passes`, body)
+export const familyPickupCancel = (slug, studentId, passId) => fpost(slug, `/students/${studentId}/pickup-passes/${passId}/cancel`, {})

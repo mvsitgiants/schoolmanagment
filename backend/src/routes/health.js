@@ -16,6 +16,8 @@ const hhmm = z.string().regex(/^\d{2}:\d{2}$/, 'Use HH:MM')
 const id = (req) => objectId.parse(req.params.id)
 const optYmd = ymd.optional().nullable().or(z.literal('').transform(() => undefined))
 const optNum = (min, max) => z.coerce.number().min(min).max(max).optional().nullable()
+// one page of a list: 50 rows by default, at most 100 (the platform's clamp)
+const paging = { page: z.coerce.number().int().min(1).default(1), pageSize: z.coerce.number().int().min(1).max(100).default(50) }
 const list = (max, len = 120) => z.array(z.string().trim().min(1).max(len)).max(max)
 
 const recordBody = z.object({
@@ -66,7 +68,7 @@ const incidentPatch = z.object(Object.fromEntries(Object.entries(incidentFields)
 
 // ── health records
 router.get('/records', requirePermission('health.records.view'), async (req, res) => {
-  const q = z.object({ search: z.string().max(80).optional(), sectionId: objectId.optional(), filter: z.enum(['ALLERGIES', 'CONDITIONS', 'NO_RECORD']).optional() }).parse(req.query)
+  const q = z.object({ search: z.string().max(80).optional(), sectionId: objectId.optional(), filter: z.enum(['ALLERGIES', 'CONDITIONS', 'NO_RECORD']).optional(), ...paging }).parse(req.query)
   res.json({ data: await listRecords(q, req.auth) })
 })
 router.get('/records/:id', requirePermission('health.records.view'), async (req, res) => { res.json({ data: await getRecord(id(req), req.auth) }) })
@@ -78,7 +80,7 @@ router.get('/staff', requirePermission('health.visits.create', 'health.incidents
 // ── sick-room visits
 router.get('/visits/board', requirePermission('health.visits.view'), async (req, res) => { res.json({ data: await visitBoard(req.auth) }) })
 router.get('/visits', requirePermission('health.visits.view'), async (req, res) => {
-  const q = z.object({ date: ymd.optional(), from: ymd.optional(), to: ymd.optional(), search: z.string().max(80).optional(), personType: z.enum(PERSON_TYPES).optional() }).parse(req.query)
+  const q = z.object({ date: ymd.optional(), from: ymd.optional(), to: ymd.optional(), search: z.string().max(80).optional(), personType: z.enum(PERSON_TYPES).optional(), ...paging }).parse(req.query)
   res.json({ data: await listVisits(q, req.auth) })
 })
 router.post('/visits', requirePermission('health.visits.create'), async (req, res) => { res.status(201).json({ data: await createVisit(visitBody.parse(req.body), req.auth, req) }) })
@@ -86,7 +88,7 @@ router.patch('/visits/:id', requirePermission('health.visits.create'), async (re
 
 // ── incidents
 router.get('/incidents', requirePermission('health.incidents.view'), async (req, res) => {
-  const q = z.object({ status: z.enum(Object.keys(INCIDENT_STATUS)).optional(), severity: z.enum(Object.keys(INCIDENT_SEVERITY)).optional(), from: ymd.optional(), to: ymd.optional(), search: z.string().max(80).optional() }).parse(req.query)
+  const q = z.object({ status: z.enum(Object.keys(INCIDENT_STATUS)).optional(), severity: z.enum(Object.keys(INCIDENT_SEVERITY)).optional(), from: ymd.optional(), to: ymd.optional(), search: z.string().max(80).optional(), ...paging }).parse(req.query)
   res.json({ data: await listIncidents(q, req.auth) })
 })
 router.post('/incidents', requirePermission('health.incidents.create'), async (req, res) => { res.status(201).json({ data: await createIncident(incidentBody.parse(req.body), req.auth, req) }) })

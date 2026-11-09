@@ -1,10 +1,10 @@
 import { Router } from 'express'
-import { CONCESSION_KINDS, PAYMENT_MODES } from '@schoolgiant/shared'
+import { CONCESSION_KINDS, CONCESSION_STATUS, PAYMENT_MODES } from '@schoolgiant/shared'
 import { authenticate, requireModule, requirePermission, subscriptionGate, tenantOnly } from '../platform/middleware.js'
 import { objectId, optionalText, pageParams, z } from '../platform/validate.js'
 import {
   approveVariance, cancelReceipt, closeDay, collect, daySummary, decideConcession, deleteStructure, generateInvoices, listConcessions,
-  listDayEnds, listDues, listHeads, listInvoices, listReceipts, listRefunds, listStructures, refundReceipt, requestConcession, saveHead,
+  dueStudentIds, listDayEnds, listDues, listHeads, listInvoices, listReceipts, listRefunds, listStructures, refundReceipt, requestConcession, saveHead,
   saveStructure, sendReminders, studentLedger, withdrawConcession,
 } from '../services/fees.js'
 
@@ -15,6 +15,9 @@ router.use(authenticate, tenantOnly, subscriptionGate, requireModule('fees'))
 const ymd = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Use YYYY-MM-DD')
 const paise = z.coerce.number().int().min(0).max(1e11)
 const modes = z.enum(PAYMENT_MODES.map((m) => m.value))
+// the refunds, dues and concessions lists: page 1.., 50 rows by default, 100 at most
+const paging = { page: z.coerce.number().int().min(1).default(1), pageSize: z.coerce.number().int().min(1).max(100).default(50) }
+const search = z.string().trim().max(80).optional()
 
 // ───────────────────────────────────────────────────────── heads and structures
 
@@ -91,24 +94,30 @@ router.post('/receipts/:id/refund', requirePermission('fees.refunds.refund'), as
   res.status(201).json({ data: await refundReceipt(objectId.parse(req.params.id), input, req.auth, req) })
 })
 router.get('/refunds', requirePermission('fees.refunds.view'), async (req, res) => {
-  res.json({ data: await listRefunds(req.auth) })
+  const q = z.object({ search, ...paging }).parse(req.query)
+  res.json({ data: await listRefunds(q, req.auth) })
 })
 
 // ───────────────────────────────────────────────────────── dues
 
+const duesQuery = z.object({ sectionId: objectId.optional(), classId: objectId.optional(), overdueOnly: z.coerce.boolean().optional(), search })
 router.get('/dues', requirePermission('fees.dues.view'), async (req, res) => {
-  const q = z.object({ sectionId: objectId.optional(), overdueOnly: z.coerce.boolean().optional() }).parse(req.query)
+  const q = duesQuery.extend(paging).parse(req.query)
   res.json({ data: await listDues(q, req.auth) })
 })
+// picked families (`studentIds`), or `all`: the dues list's filter — everyone in it on the server, not just the page shown
 router.post('/dues/remind', requirePermission('fees.dues.send'), async (req, res) => {
-  const { studentIds } = z.object({ studentIds: z.array(objectId).min(1).max(2000) }).parse(req.body)
-  res.json({ data: await sendReminders(studentIds, req.auth, req) })
+  const body = z.object({ studentIds: z.array(objectId).min(1).max(2000).optional(), all: duesQuery.optional() })
+    .refine((b) => b.studentIds || b.all, { message: 'Pick the families to remind', path: ['studentIds'] }).parse(req.body)
+  const ids = body.studentIds ?? await dueStudentIds(body.all, req.auth)
+  res.json({ data: await sendReminders(ids, req.auth, req) })
 })
 
 // ───────────────────────────────────────────────────────── concessions
 
 router.get('/concessions', requirePermission('fees.concessions.view'), async (req, res) => {
-  res.json({ data: await listConcessions({ status: req.query.status ? String(req.query.status) : undefined }, req.auth) })
+  const q = z.object({ status: z.enum(Object.keys(CONCESSION_STATUS)).optional(), search, ...paging }).parse(req.query)
+  res.json({ data: await listConcessions(q, req.auth) })
 })
 router.post('/concessions', requirePermission('fees.concessions.create'), async (req, res) => {
   const input = z.object({

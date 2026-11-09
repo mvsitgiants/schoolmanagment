@@ -15,6 +15,8 @@ import useDebouncedValue from '../../hooks/useDebouncedValue'
 import { useFormat } from '../../context/SettingsContext'
 import { useSnackbar } from '../../context/SnackbarContext'
 
+const PAGE = 50
+
 /** Edit a student's record. The sensitive part shows only for those allowed to see it. */
 function RecordForm({ data, onClose, onSaved }) {
   const { t } = useTranslation('health')
@@ -185,9 +187,11 @@ export default function HealthRecords() {
   const { t } = useTranslation('health')
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState('')
+  const [page, setPage] = useState(1)
   const [open, setOpen] = useState(null)
   const q = useDebouncedValue(search.trim(), 250)
-  const params = { ...(q && { search: q }), ...(filter && { filter }) }
+  const pick = (f) => { setFilter(f); setPage(1) }
+  const params = { ...(q && { search: q }), ...(filter && { filter }), page, pageSize: PAGE }
   const { data, isLoading, error, refetch } = useQuery({ queryKey: ['health', 'records', params], queryFn: () => fetchHealthRecords(params) })
   const c = data?.counts
   const sensitive = data?.sensitive
@@ -199,17 +203,18 @@ export default function HealthRecords() {
       <StatCardRow items={[
         { icon: Users, tone: 'brand', label: t('health.records.students'), value: c?.students ?? '—' },
         { icon: ClipboardList, tone: 'success', label: t('health.records.withRecord'), value: c?.withRecord ?? '—', progress: c?.students ? Math.round((c.withRecord / c.students) * 100) : undefined },
-        { icon: AlertTriangle, tone: 'danger', label: t('health.records.withAllergies'), value: c?.withAllergies ?? '—', onClick: () => setFilter('ALLERGIES') },
-        ...(sensitive ? [{ icon: Lock, tone: 'warning', label: t('health.records.withConditions'), value: c?.withConditions ?? '—', onClick: () => setFilter('CONDITIONS') }] : []),
+        { icon: AlertTriangle, tone: 'danger', label: t('health.records.withAllergies'), value: c?.withAllergies ?? '—', onClick: () => pick('ALLERGIES') },
+        ...(sensitive ? [{ icon: Lock, tone: 'warning', label: t('health.records.withConditions'), value: c?.withConditions ?? '—', onClick: () => pick('CONDITIONS') }] : []),
       ]} />
       <SideNavLayout>
         <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
           <div className="flex min-w-0 flex-col gap-3">
             <div className="flex flex-wrap items-center gap-3">
-              <PillRow>{filters.map(([k, label]) => <button key={k || 'all'} type="button" aria-pressed={filter === k} onClick={() => setFilter(k)} className={pillClass(filter === k)}>{label}</button>)}</PillRow>
-              <div className="w-full sm:ms-auto sm:w-64"><SearchInput value={search} onChange={setSearch} placeholder={t('health.records.search')} /></div>
+              <PillRow>{filters.map(([k, label]) => <button key={k || 'all'} type="button" aria-pressed={filter === k} onClick={() => pick(k)} className={pillClass(filter === k)}>{label}</button>)}</PillRow>
+              <div className="w-full sm:ms-auto sm:w-64"><SearchInput value={search} onChange={(v) => { setSearch(v); setPage(1) }} placeholder={t('health.records.search')} /></div>
             </div>
             <DataTable rows={data?.rows ?? []} loading={isLoading} error={error} onRetry={refetch} onRowClick={(r) => setOpen(r.id)} emptyIcon={HeartPulse} emptyTitle={t('health.records.empty')}
+              pagination={data && data.total > PAGE ? { page: page - 1, size: PAGE, totalElements: data.total, totalPages: Math.ceil(data.total / PAGE), onPageChange: (p) => setPage(p + 1) } : undefined}
               columns={[
                 { key: 'name', header: t('health.records.student'), mobilePrimary: true, render: (v, r) => <PersonCell name={v} sub={[r.className, r.admissionNo].filter(Boolean).join(' · ')} /> },
                 { key: 'bloodGroup', header: t('health.records.blood'), render: (v) => <BloodBadge group={v} /> },

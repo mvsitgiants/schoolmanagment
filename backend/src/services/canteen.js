@@ -428,14 +428,30 @@ export async function counterSale({ studentId, lines, payMode }, req) {
   return placeOrder({ studentId, lines, payMode, date, source: 'COUNTER' }, req)
 }
 
-export async function listOrders({ date, source, status }) {
-  const d = date ?? (await today()).date
-  const f = { date: d, ...(source && { source }), ...(status && { status }) }
-  const rows = await CanteenOrder.find(f).sort({ createdAt: -1 }).limit(500).lean()
+/** Orders with the student's class / section (place). */
+async function withPlaces(rows) {
   const students = await Student.find({ _id: { $in: rows.map((r) => r.studentId).filter(Boolean) } }).select('sectionId').lean()
   const places = await placesOf(students)
   const secOf = new Map(students.map((s) => [String(s._id), places.get(String(s.sectionId)) ?? null]))
-  return { date: d, rows: rows.map((o) => ({ ...orderView(o), place: secOf.get(String(o.studentId)) ?? null })) }
+  return rows.map((o) => ({ ...orderView(o), place: secOf.get(String(o.studentId)) ?? null }))
+}
+
+/** One page of a day's orders, newest first. The day's totals are daySummary (over the whole day). */
+export async function listOrders({ date, source, status, page = 1, pageSize = 50 }) {
+  const d = date ?? (await today()).date
+  const f = { date: d, ...(source && { source }), ...(status && { status }) }
+  const [rows, total] = await Promise.all([
+    CanteenOrder.find(f).sort({ createdAt: -1, _id: -1 }).skip((page - 1) * pageSize).limit(pageSize).lean(),
+    CanteenOrder.countDocuments(f),
+  ])
+  return { date: d, rows: await withPlaces(rows), total, page, pageSize }
+}
+
+/** Every pre-order for a day, for the counter's board (unpaged: at most a few per student). */
+export async function preorderBoard(date) {
+  const d = date ?? (await today()).date
+  const rows = await CanteenOrder.find({ date: d, source: 'PREORDER' }).sort({ createdAt: -1, _id: -1 }).lean()
+  return { date: d, rows: await withPlaces(rows) }
 }
 
 /** Pre-order at the counter: PLACED → READY → COLLECTED. */

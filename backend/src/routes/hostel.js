@@ -107,6 +107,8 @@ router.get('/outpasses', requirePermission('hostel.outpass.view'), async (req, r
   const q = z.object({
     view: z.enum(['OPEN', 'ALL']).default('OPEN'), status: z.enum(Object.keys(OUTPASS_STATUS)).optional(), blockId: objectId.optional(),
     search: z.string().max(80).optional(), from: ymd.optional(), to: ymd.optional(),
+    // the ALL list comes a page at a time (50 rows by default, at most 100); the OPEN board ignores these
+    page: z.coerce.number().int().min(1).default(1), pageSize: z.coerce.number().int().min(1).max(100).default(50),
   }).parse(req.query)
   res.json({ data: await listOutpasses(q, req.auth) })
 })

@@ -98,6 +98,7 @@ function DeviceModal({ device, options, onClose, onSaved }) {
         )}
         <FormField label={t('integrations.devices.notes')}><Textarea rows={2} value={f.notes} maxLength={500} onChange={(e) => set('notes', e.target.value)} /></FormField>
         {!gps && <Note>{f.usedFor === 'STUDENTS' ? t('integrations.devices.studentsNote') : t('integrations.devices.staffNote')}</Note>}
+        {f.kind === 'PHONE' && <Note tone="info">{t('integrations.devices.phoneNote')}</Note>}
       </form>
     </Modal>
   )
@@ -388,7 +389,7 @@ export default function Devices() {
 
       {editing && <DeviceModal device={editing === 'new' ? null : editing} options={options} onClose={() => setEditing(null)} onSaved={(r) => {
         setEditing(null); refresh()
-        if (r.key) { setReveal({ title: t('integrations.devices.keyFor', { name: r.device.name }), key: r.key, kind: r.device.kind }); setOpenId(r.device.id) } else showSuccess(t('integrations.devices.saved'))
+        if (r.key && r.device.kind !== 'PHONE') { setReveal({ title: t('integrations.devices.keyFor', { name: r.device.name }), key: r.key, kind: r.device.kind }); setOpenId(r.device.id) } else showSuccess(t('integrations.devices.saved'))
       }} />}
       <RevealOnceModal open={!!reveal} onClose={() => setReveal(null)} title={reveal?.title} secret={reveal?.key}>
         {reveal && <CopyField label={t('integrations.devices.pushTo')} value={pushUrl(meta?.baseUrl, reveal.key)} />}

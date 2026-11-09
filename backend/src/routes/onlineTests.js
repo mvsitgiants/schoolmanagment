@@ -27,8 +27,12 @@ const testBody = z.object({
 })
 
 router.get('/tests', requirePermission('online-tests.tests.view'), async (req, res) => {
-  const { status } = z.object({ status: z.enum(Object.keys(TEST_STATUS)).optional() }).parse(req.query)
-  res.json({ data: await listTests({ status }, req.auth) })
+  const q = z.object({
+    status: z.enum(Object.keys(TEST_STATUS)).optional(), given: z.enum(['1', 'true']).optional().transform((v) => !!v), search: z.string().max(80).optional(),
+    // one page: 50 rows by default, at most 100 (the platform's clamp)
+    page: z.coerce.number().int().min(1).default(1), pageSize: z.coerce.number().int().min(1).max(100).default(50),
+  }).parse(req.query)
+  res.json({ data: await listTests(q, req.auth) })
 })
 router.post('/tests', requirePermission('online-tests.tests.create'), async (req, res) => { res.status(201).json({ data: await createTest(testBody.parse(req.body), req.auth, req) }) })
 router.get('/tests/:id', requirePermission('online-tests.tests.view'), async (req, res) => { res.json({ data: await getTest(id(req), req.auth) }) })

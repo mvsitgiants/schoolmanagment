@@ -1,15 +1,17 @@
 import { useMemo, useState } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { CalendarClock, CalendarDays, Check, CheckCircle2, ChevronLeft, ChevronRight, ClipboardList, List, Pencil, Plus, SkipForward, Trash2, Undo2 } from 'lucide-react'
 import { LESSON_STATUS, addDaysYmd, monthGrid, topicMonth, weekOf } from '@schoolgiant/shared'
 import { ColorChip, ControlChip, DataTable, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, PersonCell, SegmentedControl, Select, StatCardRow, StatusPill, Textarea, localIso, useConfirm, usePrompt } from '../../components/system'
 import { useMonthLabel, useWeekdayLabel } from '../../components/homework/HomeworkKit'
 import Button from '../../components/ui/Button'
-import { createLessonPlan, deleteLessonPlan, fetchHomeworkLookup, fetchLessonPlans, fetchSyllabus, setLessonPlanStatus, updateLessonPlan } from '../../api/homework'
+import { createLessonPlan, deleteLessonPlan, fetchHomeworkLookup, fetchLessonCalendar, fetchLessonPlans, fetchSyllabus, setLessonPlanStatus, updateLessonPlan } from '../../api/homework'
 import { hasPermission } from '../../api/auth'
 import { useSnackbar } from '../../context/SnackbarContext'
 import { useFormat } from '../../context/SettingsContext'
+
+const PAGE = 50
 
 /** New / edit lesson plan. Also used from My workspace › My teaching (`defaults` pre-fills class and subject). */
 export function PlanForm({ lookup, plan, defaultDate, defaults, onClose, onSaved }) {
@@ -89,16 +91,12 @@ export function PlanForm({ lookup, plan, defaultDate, defaults, onClose, onSaved
 
 const CHIP = { PLANNED: 'bg-brand-50 text-brand-700', DONE: 'bg-success-50 text-success-700', SKIPPED: 'bg-black/[0.04] text-ink-faint line-through' }
 
-/** A month of lesson plans: each day's plans as chips; a day's number adds a plan on it. */
-function MonthCalendar({ grid, month, rows, canAdd, onAdd, onOpen, onMore }) {
+/** A month of lesson plans: each day's first plans as chips (the server sends three a day and the day's total); a day's number adds a plan on it. */
+function MonthCalendar({ grid, month, days, canAdd, onAdd, onOpen, onMore }) {
   const { t } = useTranslation('homework')
   const weekday = useWeekdayLabel()
   const todayIso = localIso(new Date())
-  const byDay = useMemo(() => {
-    const m = new Map()
-    for (const r of rows) { if (!m.has(r.date)) m.set(r.date, []); m.get(r.date).push(r) }
-    return m
-  }, [rows])
+  const byDay = useMemo(() => new Map(days.map((d) => [d.date, d])), [days])
   return (
     <div className="overflow-x-auto rounded-xl border border-border bg-surface">
       <div className="min-w-[640px]">
@@ -108,7 +106,8 @@ function MonthCalendar({ grid, month, rows, canAdd, onAdd, onOpen, onMore }) {
         {grid.map((w) => (
           <div key={w[0]} className="grid grid-cols-7 border-t border-border">
             {w.map((d) => {
-              const items = byDay.get(d) ?? []
+              const items = byDay.get(d)?.plans ?? []
+              const more = (byDay.get(d)?.total ?? 0) - Math.min(items.length, 3)
               const other = d.slice(0, 7) !== month
               return (
                 <div key={d} className={`min-h-[96px] border-s border-border first:border-s-0 p-1 ${other ? 'bg-black/[0.015]' : ''}`}>
@@ -121,7 +120,7 @@ function MonthCalendar({ grid, month, rows, canAdd, onAdd, onOpen, onMore }) {
                         <span className="font-semibold">{r.section}</span> {r.title}
                       </button>
                     ))}
-                    {items.length > 3 && <button type="button" onClick={() => onMore(d)} className="px-1 text-[10px] text-ink-faint hover:text-ink">{t('homework.lessons.more', { count: items.length - 3 })}</button>}
+                    {more > 0 && <button type="button" onClick={() => onMore(d)} className="px-1 text-[10px] text-ink-faint hover:text-ink">{t('homework.lessons.more', { count: more })}</button>}
                   </div>
                 </div>
               )
@@ -163,14 +162,25 @@ export default function LessonPlans() {
     return [...m.values()].sort((a, b) => a.name.localeCompare(b.name))
   }, [sections])
   const params = { from: range.from, to: range.to, sectionId: sectionId || undefined, subjectId: subjectId || undefined, mine: mine ? '1' : undefined }
-  const { data: rows = [], isLoading, error, refetch } = useQuery({ queryKey: ['lesson-plans', params], queryFn: () => fetchLessonPlans(params) })
+  // the week list comes a page at a time (date, then period); any change of week, view or filter starts again at page 1
+  const filterKey = JSON.stringify([view, params])
+  const [paged, setPaged] = useState({ key: '', page: 1 })
+  const page = paged.key === filterKey ? paged.page : 1
+  const listParams = { ...params, page, pageSize: PAGE }
+  const list = useQuery({ queryKey: ['lesson-plans', 'list', listParams], queryFn: () => fetchLessonPlans(listParams), enabled: view === 'WEEK', placeholderData: keepPreviousData })
+  // the month view: each day's tally and first three plans
+  const cal = useQuery({ queryKey: ['lesson-plans', 'calendar', params], queryFn: () => fetchLessonCalendar(params), enabled: view === 'MONTH' })
+  const { isLoading, error, refetch } = view === 'MONTH' ? cal : list
+  const rows = list.data?.rows ?? []
+  const total = list.data?.total ?? 0
   const refresh = () => { qc.invalidateQueries({ queryKey: ['lesson-plans'] }); qc.invalidateQueries({ queryKey: ['syllabus'] }); qc.invalidateQueries({ queryKey: ['syllabus-overview'] }) }
   const act = useMutation({ mutationFn: ({ fn }) => fn(), onSuccess: (_, v) => { refresh(); showSuccess(v.done) }, onError: (e) => showError(e.message) })
   const canEdit = hasPermission('homework.lesson-plans.edit')
   const statusLabel = (s) => t(`homework.lessons.status.${s}`, LESSON_STATUS[s]?.label ?? s)
-  // the month view fetches the whole grid (a few days either side); the counts are for the month itself
-  const inView = view === 'MONTH' ? rows.filter((r) => r.date.startsWith(month)) : rows
-  const countOf = (s) => inView.filter((r) => r.status === s).length
+  // the tiles cover the whole week (server counts), or the month itself — the grid has a few days either side
+  const monthDays = (cal.data ?? []).filter((d) => d.date.startsWith(month))
+  const inView = view === 'MONTH' ? monthDays.reduce((n, d) => n + d.total, 0) : total
+  const countOf = (s) => (view === 'MONTH' ? monthDays.reduce((n, d) => n + (d.counts?.[s] ?? 0), 0) : list.data?.counts?.[s] ?? 0)
   const open = (r) => { if (r.canChange && canEdit) setEditing(r); else { setAnchor(r.date); setView('WEEK') } }
 
   const toolbar = (
@@ -201,15 +211,15 @@ export default function LessonPlans() {
       <PageHeader icon={ClipboardList} title={t('homework.lessons.title')} subtitle={t('homework.lessons.subtitle')}
         actions={<HeaderButton icon={Plus} variant="primary" requires="homework.lesson-plans.create" onClick={() => { setNewOn(null); setEditing('new') }}>{t('homework.lessons.new')}</HeaderButton>} />
       {lookup && !sections.length && <Note tone="warning" className="mb-4">{t('homework.noSections')}</Note>}
-      {inView.length > 0 && <StatCardRow className="mb-4" items={[
-        { icon: ClipboardList, tone: 'brand', label: view === 'MONTH' ? t('homework.lessons.summary.totalMonth') : t('homework.lessons.summary.total'), value: inView.length, sub: rangeLabel },
-        { icon: CheckCircle2, tone: 'success', label: statusLabel('DONE'), value: countOf('DONE'), progress: (countOf('DONE') / inView.length) * 100 },
+      {inView > 0 && <StatCardRow className="mb-4" items={[
+        { icon: ClipboardList, tone: 'brand', label: view === 'MONTH' ? t('homework.lessons.summary.totalMonth') : t('homework.lessons.summary.total'), value: inView, sub: rangeLabel },
+        { icon: CheckCircle2, tone: 'success', label: statusLabel('DONE'), value: countOf('DONE'), progress: (countOf('DONE') / inView) * 100 },
         { icon: CalendarClock, tone: 'info', label: statusLabel('PLANNED'), value: countOf('PLANNED') },
         { icon: SkipForward, tone: countOf('SKIPPED') ? 'warning' : 'neutral', label: statusLabel('SKIPPED'), value: countOf('SKIPPED') },
       ]} />}
       {view === 'MONTH' && <div className="mb-3">{toolbar}</div>}
       {view === 'MONTH' ? (error ? <Note tone="warning">{error.message}</Note> : (
-        <MonthCalendar grid={grid} month={month} rows={rows} canAdd={hasPermission('homework.lesson-plans.create')}
+        <MonthCalendar grid={grid} month={month} days={cal.data ?? []} canAdd={hasPermission('homework.lesson-plans.create')}
           onAdd={(d) => { setNewOn(d); setEditing('new') }} onOpen={open} onMore={(d) => { setAnchor(d); setView('WEEK') }} />
       )) : <DataTable
         rows={rows}
@@ -238,6 +248,7 @@ export default function LessonPlans() {
         ]}
         onRowClick={canEdit ? (r) => r.canChange && setEditing(r) : undefined}
         emptyIcon={ClipboardList} emptyTitle={t('homework.lessons.empty')} emptyHint={t('homework.lessons.emptyHint')}
+        pagination={total > PAGE ? { page: page - 1, size: PAGE, totalElements: total, totalPages: Math.ceil(total / PAGE), onPageChange: (p) => setPaged({ key: filterKey, page: p + 1 }) } : undefined}
       />}
       {editing && <PlanForm lookup={lookup} plan={editing === 'new' ? null : editing} defaultDate={newOn ?? (anchor < range.from || anchor > range.to ? range.from : anchor)}
         onClose={() => { setEditing(null); setNewOn(null) }} onSaved={() => { refresh(); setEditing(null); showSuccess(t('homework.lessons.saved')) }} />}

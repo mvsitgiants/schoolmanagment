@@ -46,6 +46,7 @@ const replySchema = new Schema({
   by: String, // the guardian's name, or the staff member who noted it
   byStaff: { type: Boolean, default: false },
   at: Date,
+  checkedInAt: Date, checkedInBy: String, // the family's event pass scanned at the gate (Scan)
 }, { timestamps: true })
 replySchema.plugin(tenantPlugin)
 replySchema.index({ tenantId: 1, eventId: 1, studentId: 1 }, { unique: true })
@@ -89,6 +90,7 @@ const bookingSchema = new Schema({
   bookedBy: String, byFamily: { type: Boolean, default: false },
   remarks: String, // what was discussed (the teacher's note)
   cancelledAt: Date, cancelledBy: String,
+  arrivedAt: Date, arrivedBy: String, // the family's meeting pass scanned on arrival — the teacher sees who is waiting
 }, { timestamps: true })
 bookingSchema.plugin(tenantPlugin)
 bookingSchema.index({ tenantId: 1, sessionId: 1, hostId: 1, time: 1 }, { unique: true, partialFilterExpression: { status: { $in: ['BOOKED', 'ATTENDED', 'NO_SHOW'] } } })

@@ -5,15 +5,18 @@ import { Award, BadgeCheck, Calculator, FileStack, FileText, GraduationCap, Mega
 import { COE_SESSION_STATUS, PRINT_DOC_BY } from '@schoolgiant/shared'
 import {
   CodeBadge, ColorChip, ColumnBars, ControlChip, DataTable, Drawer, EmptyState, FactGrid, Fraction, HeaderButton, MiniBarChart, Note, PageContainer,
-  PageHeader, PersonCell, StatCardRow, StatusPill, TrendArea, useConfirm,
+  PageHeader, PersonCell, SearchInput, StatCardRow, StatusPill, TrendArea, useConfirm,
 } from '../../components/system'
 import Button from '../../components/ui/Button'
 import useSessionPick from '../../components/coe/useSessionPick'
-import { computeResults, fetchResult, fetchSessionResults, publishResults } from '../../api/coe'
+import { computeResults, fetchAllSessionResults, fetchResult, fetchSessionResults, publishResults } from '../../api/coe'
 import { printDocument } from '../../components/print/printDocument'
 import { hasPermission } from '../../api/auth'
 import { useSnackbar } from '../../context/SnackbarContext'
 import { useFormat } from '../../context/SettingsContext'
+import useDebouncedValue from '../../hooks/useDebouncedValue'
+
+const PAGE = 50
 
 const GRADE_TONE = { O: 'success', 'A+': 'success', A: 'teal', 'B+': 'sky', B: 'info', C: 'violet', P: 'warning', F: 'danger', Ab: 'danger' }
 
@@ -73,15 +76,25 @@ export default function GradeCards() {
   const { sessions, sessionId, setSessionId, session, isLoading: loadingSessions } = useSessionPick()
   const [program, setProgram] = useState('')
   const [grade, setGrade] = useState('')
+  const [search, setSearch] = useState('')
+  const q = useDebouncedValue(search.trim(), 300)
+  const [page, setPage] = useState(1)
   const [open, setOpen] = useState(null)
-  const key = ['coe-results', sessionId, program]
-  const { data, isLoading, error, refetch } = useQuery({ queryKey: key, queryFn: () => fetchSessionResults(sessionId, { programId: program || undefined }), enabled: !!sessionId })
+  // the list's filters go to the server (a page at a time); the tiles there count the whole session / program
+  const filters = { programId: program || undefined, result: grade || undefined, search: q || undefined }
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ['coe-results', sessionId, filters, page], queryFn: () => fetchSessionResults(sessionId, { ...filters, page, pageSize: PAGE }),
+    enabled: !!sessionId, placeholderData: (p) => p,
+  })
   const refresh = () => { qc.invalidateQueries({ queryKey: ['coe-results'] }); qc.invalidateQueries({ queryKey: ['coe-sessions'] }); qc.invalidateQueries({ queryKey: ['coe-board'] }) }
   const compute = useMutation({ mutationFn: () => computeResults(sessionId), onSuccess: (r) => { refresh(); showSuccess(t('coe.marks.computed', { results: r.results, missing: r.missing })) }, onError: (e) => showError(e.message) })
   const publish = useMutation({ mutationFn: () => publishResults(sessionId), onSuccess: (r) => { refresh(); showSuccess(t('coe.gradeCards.publishedN', { count: r.students })) }, onError: (e) => showError(e.message) })
   const published = data?.session.status === 'PUBLISHED'
   const s = data?.summary
-  const rows = (data?.rows ?? []).filter((r) => !grade || (grade === 'ARREARS' ? r.arrears > 0 : r.result === grade))
+  const rows = data?.rows ?? []
+  const total = data?.total ?? 0
+  // sorting a column sorts what is loaded: offered while the whole list fits on one page
+  const sortable = total <= PAGE
   const canPrint = hasPermission('coe.grade-cards.print') || hasPermission('coe.grade-cards.view')
   const canPrintCard = canPrint && !!PRINT_DOC_BY.GRADE_CARD
   const canPrintTranscript = canPrint && !!PRINT_DOC_BY.TRANSCRIPT
@@ -102,11 +115,11 @@ export default function GradeCards() {
       {header}
       <div className="flex flex-wrap items-center gap-2">
         <ControlChip icon={FileStack} label={t('coe.session')} active value={session?.name}
-          options={sessions.map((x) => ({ value: x.id, label: `${x.name} — ${t(`coe.sessionStatus.${x.status}`)}` }))} onChange={(v) => { setSessionId(v); setProgram('') }} />
+          options={sessions.map((x) => ({ value: x.id, label: `${x.name} — ${t(`coe.sessionStatus.${x.status}`)}` }))} onChange={(v) => { setSessionId(v); setProgram(''); setPage(1) }} />
         {programs.length > 1 && <ControlChip icon={GraduationCap} label={t('coe.program')} active={!!program} value={program ? programs.find((x) => x.programId === program)?.programCode : t('coe.all')}
-          options={[{ value: '', label: t('coe.all') }, ...programs.map((x) => ({ value: x.programId, label: x.programCode }))]} onChange={setProgram} />}
+          options={[{ value: '', label: t('coe.all') }, ...programs.map((x) => ({ value: x.programId, label: x.programCode }))]} onChange={(v) => { setProgram(v); setPage(1) }} />}
         <ControlChip icon={BadgeCheck} label={t('coe.gradeCards.show')} active={!!grade} value={grade ? t(`coe.gradeCards.filter.${grade}`) : t('coe.all')}
-          options={[{ value: '', label: t('coe.all') }, ...['PASS', 'FAIL', 'ARREARS'].map((k) => ({ value: k, label: t(`coe.gradeCards.filter.${k}`) }))]} onChange={setGrade} />
+          options={[{ value: '', label: t('coe.all') }, ...['PASS', 'FAIL', 'ARREARS'].map((k) => ({ value: k, label: t(`coe.gradeCards.filter.${k}`) }))]} onChange={(v) => { setGrade(v); setPage(1) }} />
         {session && <StatusPill tone={COE_SESSION_STATUS[session.status]?.tone}>{t(`coe.sessionStatus.${session.status}`)}</StatusPill>}
         {session && !published && hasPermission('coe.marks.lock') && <Button size="sm" variant="secondary" icon={Calculator} loading={compute.isPending} onClick={() => compute.mutate()} className="ms-auto">{t('coe.marks.compute')}</Button>}
       </div>
@@ -118,7 +131,7 @@ export default function GradeCards() {
           { icon: Users, tone: 'brand', label: t('coe.gradeCards.statStudents'), value: s.students, sub: t('coe.gradeCards.statStudentsSub') },
           { icon: BadgeCheck, tone: 'success', label: t('coe.gradeCards.statPass'), value: s.passPct === null ? '—' : `${s.passPct}%`, sub: t('coe.gradeCards.statPassSub', { n: s.passed }), progress: s.passPct ?? 0 },
           { icon: TrendingUp, tone: 'violet', label: t('coe.gradeCards.statSgpa'), value: s.averageSgpa ?? '—', sub: t('coe.gradeCards.statSgpaSub', { top: s.topSgpa ?? '—' }), progress: s.averageSgpa ? s.averageSgpa * 10 : 0 },
-          { icon: TriangleAlert, tone: s.withArrears ? 'danger' : 'teal', label: t('coe.gradeCards.statArrears'), value: s.withArrears, sub: t('coe.gradeCards.statArrearsSub'), onClick: () => setGrade('ARREARS') },
+          { icon: TriangleAlert, tone: s.withArrears ? 'danger' : 'teal', label: t('coe.gradeCards.statArrears'), value: s.withArrears, sub: t('coe.gradeCards.statArrearsSub'), onClick: () => { setGrade('ARREARS'); setPage(1) } },
         ]} />
       )}
       {s && s.students > 0 && (
@@ -128,18 +141,21 @@ export default function GradeCards() {
         </div>
       )}
       <DataTable
-        title={t('coe.gradeCards.list', { count: rows.length })} exportable exportName={`results-${session?.name ?? ''}`}
+        title={t('coe.gradeCards.list', { count: total })} exportable exportName={`results-${session?.name ?? ''}`}
+        exportAll={() => fetchAllSessionResults(sessionId, filters)}
+        toolbar={<div className="w-64"><SearchInput value={search} onChange={(v) => { setSearch(v); setPage(1) }} placeholder={t('coe.gradeCards.search')} /></div>}
         rows={rows} loading={isLoading} error={error} onRetry={refetch} rowKey="id" onSelect={(r) => setOpen(r.id)}
+        pagination={total > PAGE ? { page: page - 1, size: PAGE, totalElements: total, totalPages: Math.ceil(total / PAGE), onPageChange: (p) => setPage(p + 1) } : undefined}
         rowTone={(r) => (r.result === 'FAIL' ? 'warning' : undefined)}
         emptyIcon={Award} emptyTitle={t('coe.gradeCards.empty')} emptyHint={t('coe.gradeCards.emptyHint')}
         columns={[
-          { key: 'name', header: t('coe.student'), sortable: true, mobileTitle: true, render: (v, r) => <PersonCell name={v} sub={r.registerNo || r.admissionNo} /> },
-          { key: 'programCode', header: t('coe.program'), sortable: true, render: (v, r) => <ColorChip label={v} seed={v} sub={`${t('coe.semShort', { n: r.semester })}`} /> },
-          { key: 'sgpa', header: t('coe.sgpa'), align: 'right', sortable: true, render: (v) => <span className="font-semibold text-ink">{v ?? '—'}</span> },
-          { key: 'cgpa', header: t('coe.cgpa'), align: 'right', sortable: true, render: (v) => v ?? '—' },
+          { key: 'name', header: t('coe.student'), sortable, mobileTitle: true, render: (v, r) => <PersonCell name={v} sub={r.registerNo || r.admissionNo} /> },
+          { key: 'programCode', header: t('coe.program'), sortable, render: (v, r) => <ColorChip label={v} seed={v} sub={`${t('coe.semShort', { n: r.semester })}`} /> },
+          { key: 'sgpa', header: t('coe.sgpa'), align: 'right', sortable, render: (v) => <span className="font-semibold text-ink">{v ?? '—'}</span> },
+          { key: 'cgpa', header: t('coe.cgpa'), align: 'right', sortable, render: (v) => v ?? '—' },
           { key: 'creditsEarned', header: t('coe.gradeCards.credits'), align: 'right', render: (v, r) => <Fraction value={v} max={r.creditsRegistered} /> },
-          { key: 'arrears', header: t('coe.gradeCards.arrears'), align: 'right', sortable: true, render: (v) => (v ? <span className="font-semibold text-danger-600">{v}</span> : <span className="text-ink-faint">0</span>) },
-          { key: 'result', header: t('coe.gradeCards.result'), sortable: true, render: (v) => <StatusPill tone={v === 'PASS' ? 'success' : 'danger'}>{t(`coe.gradeCards.filter.${v}`)}</StatusPill> },
+          { key: 'arrears', header: t('coe.gradeCards.arrears'), align: 'right', sortable, render: (v) => (v ? <span className="font-semibold text-danger-600">{v}</span> : <span className="text-ink-faint">0</span>) },
+          { key: 'result', header: t('coe.gradeCards.result'), sortable, render: (v) => <StatusPill tone={v === 'PASS' ? 'success' : 'danger'}>{t(`coe.gradeCards.filter.${v}`)}</StatusPill> },
           { key: 'actions', header: '', align: 'right', render: (_, r) => (
             <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>
               {canPrintCard && <Button size="sm" variant="ghost" icon={Printer} aria-label={t('coe.gradeCards.printCard')} title={t('coe.gradeCards.printCard')} onClick={() => printDocument('GRADE_CARD', r.id)} />}

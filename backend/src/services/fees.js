@@ -276,6 +276,8 @@ export async function studentLedger(studentId, auth) {
   const rows = invoices.map((i) => invoiceDto(i, t, cfg))
   return {
     student: { id: String(s._id), name: studentName(s), admissionNo: s.admissionNo, status: s.status, classLabel: place?.label ?? null, classShort: place?.short ?? null },
+    // the counter's UPI QR (Settings › Fees › UPI ID): the payee and what the parent's app shows as the note
+    upi: cfg.upiId ? { id: cfg.upiId, payee: (await Tenant.findById(auth.tenantId).select('name').lean())?.name ?? '' } : null,
     invoices: rows,
     payments: payments.map((p) => ({ ...clean(p), studentId: String(p.studentId), modeLabel: PAYMENT_MODE_LABEL[p.mode] ?? p.mode })),
     refunds: clean(refunds),
@@ -453,33 +455,108 @@ export async function listReceipts(q, paging, auth) {
   return listResponse(rows.map((r) => ({ ...clean(r), studentId: String(r.studentId), modeLabel: PAYMENT_MODE_LABEL[r.mode] ?? r.mode, student: names.get(String(r.studentId)) ?? null })), total, paging)
 }
 
-export async function listRefunds(auth) {
+/** Refunds, newest first, a page at a time; `summary` (amount, count, students, by mode, the largest) is over the whole filter. */
+export async function listRefunds({ search, page = 1, pageSize = 50 } = {}, auth) {
   const filter = { ...(await branchFilter(auth)) }
-  const rows = await FeeRefund.find(filter).sort({ createdAt: -1 }).limit(500).lean()
-  const names = await studentLabels(rows.map((r) => r.studentId))
+  const q = String(search ?? '').trim()
+  if (q) {
+    const re = new RegExp(escapeRegex(q), 'i')
+    filter.$or = [{ refundNo: re }, { reference: re }, { studentId: { $in: await studentIdsMatching(q) } }]
+  }
+  const [rows, total, [sum], byMode, top] = await Promise.all([
+    FeeRefund.find(filter).sort({ createdAt: -1, _id: -1 }).skip((page - 1) * pageSize).limit(pageSize).lean(),
+    FeeRefund.countDocuments(filter),
+    FeeRefund.aggregate([{ $match: filter }, { $group: { _id: null, count: { $sum: 1 }, amount: { $sum: '$amount' }, students: { $addToSet: '$studentId' } } }, { $project: { count: 1, amount: 1, students: { $size: '$students' } } }]),
+    FeeRefund.aggregate([{ $match: filter }, { $group: { _id: '$mode', n: { $sum: 1 } } }]),
+    FeeRefund.findOne(filter).sort({ amount: -1, _id: -1 }).select('amount studentId').lean(),
+  ])
+  const names = await studentLabels([...rows.map((r) => r.studentId), ...(top ? [top.studentId] : [])])
   const receipts = new Map((await FeePayment.find({ _id: { $in: rows.map((r) => r.paymentId) } }).select('receiptNo').lean()).map((p) => [String(p._id), p.receiptNo]))
-  return rows.map((r) => ({ ...clean(r), studentId: String(r.studentId), student: names.get(String(r.studentId)) ?? null, receiptNo: receipts.get(String(r.paymentId)) ?? null, modeLabel: PAYMENT_MODE_LABEL[r.mode] ?? r.mode }))
+  return {
+    rows: rows.map((r) => ({ ...clean(r), studentId: String(r.studentId), student: names.get(String(r.studentId)) ?? null, receiptNo: receipts.get(String(r.paymentId)) ?? null, modeLabel: PAYMENT_MODE_LABEL[r.mode] ?? r.mode })),
+    total, page, pageSize,
+    summary: {
+      count: sum?.count ?? 0, amount: sum?.amount ?? 0, students: sum?.students ?? 0,
+      byMode: Object.fromEntries(byMode.map((m) => [m._id, m.n])),
+      largest: top ? { amount: top.amount, student: names.get(String(top.studentId)) ?? null } : null,
+    },
+  }
 }
 
 // ───────────────────────────────────────────────────────── dues and reminders
 
-/** Students with fees outstanding: total due, how much is overdue, the oldest due date. */
-export async function listDues({ sectionId, overdueOnly }, auth) {
-  const t = await today()
-  const match = { status: { $in: ['UNPAID', 'PARTIAL'] }, ...(await branchFilter(auth)), ...(sectionId && { sectionId: oid(sectionId) }) }
+/**
+ * Open invoices in the caller's campus grouped per student (due, overdue, oldest due date, installments), with the
+ * student's current class and section joined in as `s` — the list filters and the class figures go by those.
+ */
+async function duesByStudent({ overdueOnly }, auth, t) {
+  const match = { status: { $in: ['UNPAID', 'PARTIAL'] }, ...(await branchFilter(auth)) }
   if (overdueOnly) match.dueDate = { $lt: t }
-  const rows = await FeeInvoice.aggregate([
+  return [
     { $match: match },
     { $group: { _id: '$studentId', due: { $sum: '$balance' }, overdue: { $sum: { $cond: [{ $lt: ['$dueDate', t] }, '$balance', 0] } }, oldest: { $min: '$dueDate' }, invoices: { $sum: 1 } } },
-    { $sort: { overdue: -1, due: -1 } },
-    { $limit: 2000 },
-  ])
+    { $lookup: { from: Student.collection.name, localField: '_id', foreignField: '_id', as: 's', pipeline: [{ $project: { classId: 1, sectionId: 1, firstName: 1, lastName: 1, admissionNo: 1 } }] } },
+    { $set: { s: { $arrayElemAt: ['$s', 0] } } },
+  ]
+}
+
+/** The class / section / search part of a dues filter, matched after duesByStudent(). */
+function duesFilter({ classId, sectionId, search }) {
+  const m = { ...(classId && { 's.classId': oid(classId) }), ...(sectionId && { 's.sectionId': oid(sectionId) }) }
+  const q = String(search ?? '').trim()
+  if (q) {
+    const re = new RegExp(escapeRegex(q), 'i')
+    m.$or = [{ 's.firstName': re }, { 's.lastName': re }, { 's.admissionNo': re }]
+  }
+  return m
+}
+
+const DUES_SORT = { $sort: { overdue: -1, due: -1, _id: 1 } }
+
+async function duesRows(rows) {
   const names = await studentLabels(rows.map((r) => r._id))
   const guardians = new Map((await Student.find({ _id: { $in: rows.map((r) => r._id) } }).select('guardians').lean()).map((s) => [String(s._id), s.guardians?.find((g) => g.isPrimary) ?? s.guardians?.[0]]))
   return rows.map((r) => ({
     studentId: String(r._id), ...names.get(String(r._id)), due: r.due, overdue: r.overdue, oldestDue: r.oldest, invoices: r.invoices,
     guardianName: guardians.get(String(r._id))?.name ?? null, guardianMobile: guardians.get(String(r._id))?.mobile ?? null,
   }))
+}
+
+/**
+ * Students with fees outstanding, a page at a time (most overdue first). `summary` is over the whole filter;
+ * `classes` ({ classId, students, due, overdue }) is over every due in scope whatever class / section / search is
+ * picked (the class list's figures).
+ */
+export async function listDues({ sectionId, classId, overdueOnly, search, page = 1, pageSize = 50 } = {}, auth) {
+  const t = await today()
+  const base = await duesByStudent({ overdueOnly }, auth, t)
+  const [[out], classes] = await Promise.all([
+    FeeInvoice.aggregate([...base, { $match: duesFilter({ classId, sectionId, search }) }, { $facet: {
+      rows: [DUES_SORT, { $skip: (page - 1) * pageSize }, { $limit: pageSize }],
+      summary: [{ $group: { _id: null, students: { $sum: 1 }, overdueStudents: { $sum: { $cond: [{ $gt: ['$overdue', 0] }, 1, 0] } }, due: { $sum: '$due' }, overdue: { $sum: '$overdue' } } }],
+    } }]),
+    FeeInvoice.aggregate([...base, { $group: { _id: '$s.classId', students: { $sum: 1 }, due: { $sum: '$due' }, overdue: { $sum: '$overdue' } } }]),
+  ])
+  const sum = out.summary[0] ?? { students: 0, overdueStudents: 0, due: 0, overdue: 0 }
+  return {
+    rows: await duesRows(out.rows), total: sum.students, page, pageSize,
+    summary: { students: sum.students, overdueStudents: sum.overdueStudents, due: sum.due, overdue: sum.overdue },
+    classes: classes.map((c) => ({ classId: idStr(c._id), students: c.students, due: c.due, overdue: c.overdue })),
+  }
+}
+
+/** Every student with dues for the filter, unpaged (the assistant's fee-dues tool). */
+export async function allDues({ sectionId, classId, overdueOnly, search } = {}, auth) {
+  const t = await today()
+  const rows = await FeeInvoice.aggregate([...await duesByStudent({ overdueOnly }, auth, t), { $match: duesFilter({ classId, sectionId, search }) }, DUES_SORT])
+  return duesRows(rows)
+}
+
+/** The students "remind everyone in this list" means: every student with dues for the filter, not just a page. */
+export async function dueStudentIds({ sectionId, classId, overdueOnly, search } = {}, auth) {
+  const t = await today()
+  const rows = await FeeInvoice.aggregate([...await duesByStudent({ overdueOnly }, auth, t), { $match: duesFilter({ classId, sectionId, search }) }, { $project: { _id: 1 } }])
+  return rows.map((r) => String(r._id))
 }
 
 /** "Fee due reminder" to each family (by the channels set in Notification rules). */
@@ -504,18 +581,29 @@ export async function sendReminders(studentIds, auth, req) {
 
 // ───────────────────────────────────────────────────────── concessions
 
-export async function listConcessions({ status }, auth) {
+/** Concession requests, newest first, a page at a time; search is the student's name or admission no. */
+export async function listConcessions({ status, search, page = 1, pageSize = 50 } = {}, auth) {
   const filter = status ? { status } : {}
   const f = await branchFilter(auth)
-  if (f) filter.studentId = { $in: (await Student.find(f).select('_id').lean()).map((s) => s._id) }
-  const rows = await Concession.find(filter).sort({ createdAt: -1 }).limit(500).lean()
+  const q = String(search ?? '').trim()
+  if (f || q) {
+    const re = q && new RegExp(escapeRegex(q), 'i')
+    filter.studentId = { $in: (await Student.find({ ...f, ...(re && { $or: [{ firstName: re }, { lastName: re }, { admissionNo: re }] }) }).select('_id').lean()).map((s) => s._id) }
+  }
+  const [rows, total] = await Promise.all([
+    Concession.find(filter).sort({ createdAt: -1, _id: -1 }).skip((page - 1) * pageSize).limit(pageSize).lean(),
+    Concession.countDocuments(filter),
+  ])
   const names = await studentLabels(rows.map((r) => r.studentId))
   const years = new Map((await AcademicYear.find({ _id: { $in: rows.map((r) => r.academicYearId) } }).select('name').lean()).map((y) => [String(y._id), y.name]))
   const heads = new Map((await FeeHead.find().select('name').lean()).map((h) => [String(h._id), h.name]))
-  return rows.map((r) => ({
-    ...clean(r), studentId: String(r.studentId), student: names.get(String(r.studentId)) ?? null, yearName: years.get(String(r.academicYearId)) ?? null,
-    heads: (r.feeHeadIds ?? []).map((h) => heads.get(String(h))).filter(Boolean), statusLabel: CONCESSION_STATUS[r.status]?.label,
-  }))
+  return {
+    rows: rows.map((r) => ({
+      ...clean(r), studentId: String(r.studentId), student: names.get(String(r.studentId)) ?? null, yearName: years.get(String(r.academicYearId)) ?? null,
+      heads: (r.feeHeadIds ?? []).map((h) => heads.get(String(h))).filter(Boolean), statusLabel: CONCESSION_STATUS[r.status]?.label,
+    })),
+    total, page, pageSize,
+  }
 }
 
 export async function requestConcession(input, auth, req) {

@@ -60,3 +60,22 @@ leaveSchema.index({ tenantId: 1, status: 1, from: -1 })
 leaveSchema.index({ tenantId: 1, studentId: 1, from: 1, to: 1 })
 
 export const StudentLeave = model('StudentLeave', leaveSchema, 'student_leaves')
+
+/**
+ * An early-pickup pass: a parent names who collects the child today (from the family app); the gate scans the pass,
+ * checks the person against it and hands the child over. Good for one day; used once.
+ */
+const pickupSchema = new Schema({
+  studentId: { type: ObjectId, ref: 'Student', required: true },
+  date: { ...ymd, required: true },
+  person: { name: { type: String, required: true, trim: true }, relation: String, mobile: String },
+  reason: { type: String, trim: true },
+  code: { type: String, required: true }, // what the QR carries (SGK1.<code>) — random, never a guessable id
+  status: { type: String, default: 'ACTIVE' }, // ACTIVE · USED · CANCELLED
+  createdBy: String, // the guardian who made it
+  usedAt: Date, usedBy: String,
+}, { timestamps: true })
+pickupSchema.plugin(tenantPlugin)
+pickupSchema.index({ code: 1 }, { unique: true })
+pickupSchema.index({ tenantId: 1, studentId: 1, date: -1 })
+export const PickupPass = model('PickupPass', pickupSchema, 'pickup_passes')

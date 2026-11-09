@@ -1,17 +1,19 @@
 import { useState } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { BadgePercent, Check, IndianRupee, Percent, Plus, Undo2, X } from 'lucide-react'
 import { CONCESSION_KINDS, CONCESSION_REASONS, CONCESSION_STATUS, formatINR, toPaise } from '@schoolgiant/shared'
-import { ColorChip, ControlChip, DataTable, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, PersonCell, Select, StatusPill, Textarea, useConfirm } from '../../components/system'
+import { ColorChip, ControlChip, DataTable, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, PersonCell, Select, StatusPill, Textarea, Toolbar, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
 import StudentPicker from '../../components/fees/StudentPicker'
+import useDebouncedValue from '../../hooks/useDebouncedValue'
 import { decideConcession, fetchConcessions, fetchFeeHeads, requestConcession, withdrawConcession } from '../../api/fees'
 import { hasPermission } from '../../api/auth'
 import { useSnackbar } from '../../context/SnackbarContext'
 import { useFormat } from '../../context/SettingsContext'
 
 const reasonKey = (r) => r.replace(/[^A-Za-z]/g, '')
+const PAGE = 50
 
 function RequestConcession({ onClose, onSaved }) {
   const { t } = useTranslation('fees')
@@ -74,7 +76,12 @@ export default function Concessions() {
   const { showSuccess, showError } = useSnackbar()
   const [status, setStatus] = useState('PENDING')
   const [adding, setAdding] = useState(false)
-  const { data: rows = [], isLoading, error, refetch } = useQuery({ queryKey: ['fee-concessions', status], queryFn: () => fetchConcessions(status) })
+  const [search, setSearch] = useState('')
+  const q = useDebouncedValue(search.trim(), 250)
+  const [page, setPage] = useState(1)
+  const params = { status: status || undefined, search: q || undefined, page, pageSize: PAGE }
+  const { data, isLoading, error, refetch } = useQuery({ queryKey: ['fee-concessions', params], queryFn: () => fetchConcessions(params), placeholderData: keepPreviousData })
+  const rows = data?.rows ?? []
   const refresh = () => { qc.invalidateQueries({ queryKey: ['fee-concessions'] }); qc.invalidateQueries({ queryKey: ['fee-ledger'] }); qc.invalidateQueries({ queryKey: ['fee-dues'] }) }
   const act = useMutation({ mutationFn: ({ fn }) => fn(), onSuccess: (_, v) => { refresh(); showSuccess(v.done) }, onError: (e) => showError(e.message) })
   const STATUSES = ['PENDING', 'APPROVED', 'REJECTED', 'WITHDRAWN', '']
@@ -92,7 +99,9 @@ export default function Concessions() {
         loading={isLoading}
         error={error}
         onRetry={refetch}
-        toolbar={<div className="flex justify-end"><ControlChip label={t('fees.concessions.statusLabel')} value={statusLabel(status)} active={status !== 'PENDING'} options={STATUSES.map(statusLabel)} onChange={(v) => setStatus(STATUSES.find((s) => statusLabel(s) === v) ?? 'PENDING')} /></div>}
+        pagination={data && data.total > PAGE ? { page: page - 1, size: PAGE, totalElements: data.total, totalPages: Math.ceil(data.total / PAGE), onPageChange: (p) => setPage(p + 1) } : undefined}
+        toolbar={<Toolbar search={search} onSearch={(v) => { setSearch(v); setPage(1) }} searchPlaceholder={t('fees.concessions.search')}
+          right={<ControlChip label={t('fees.concessions.statusLabel')} value={statusLabel(status)} active={status !== 'PENDING'} options={STATUSES.map(statusLabel)} onChange={(v) => { setStatus(STATUSES.find((s) => statusLabel(s) === v) ?? 'PENDING'); setPage(1) }} />} />}
         columns={[
           { key: 'student', header: t('fees.concessions.student'), mobilePrimary: true, render: (v, r) => <span className="flex items-center gap-2 min-w-0"><PersonCell name={v?.name ?? '—'} sub={[v?.admissionNo, r.yearName].filter(Boolean).join(' · ')} size={32} />{v?.classShort && <ColorChip label={v.classShort} seed={v.classId ?? v.classShort} />}</span> },
           { key: 'value', header: t('fees.concessions.concession'), render: (_, r) => <div><ColorChip label={valueText(r)} icon={r.kind === 'PCT' ? Percent : IndianRupee} tone={r.kind === 'PCT' ? 'violet' : 'teal'} /><p className="text-xs text-ink-faint mt-1">{r.heads.length ? r.heads.join(', ') : t('fees.concessions.allHeads')}</p></div> },

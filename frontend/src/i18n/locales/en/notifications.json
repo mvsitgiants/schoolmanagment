@@ -37,6 +37,18 @@
           "body": "Dear {{guardian.name}},\n\n{{student.name}} ({{student.class}}) reached school at {{attendance.time}} on {{attendance.date}}.\n\n{{institution.name}}"
         }
       },
+      "attendance_pickedUp": {
+        "SMS": {
+          "body": "{{student.firstName}} ({{student.class}}) was picked up by {{pickup.person}} at {{pickup.time}}. - {{institution.name}}"
+        },
+        "WHATSAPP": {
+          "body": "Dear {{guardian.name}},\n{{student.firstName}} ({{student.class}}) was handed over to {{pickup.person}} at {{pickup.time}} on your early-pickup pass.\n\nIf you didn’t send them, call {{institution.phone}} at once.\n{{institution.name}}"
+        },
+        "EMAIL": {
+          "subject": "{{student.firstName}} was picked up early",
+          "body": "Dear {{guardian.name}},\n\n{{student.name}} ({{student.class}}) was handed over to {{pickup.person}} at {{pickup.time}} on your early-pickup pass.\nIf you didn’t send them, call {{institution.phone}} at once.\n\n{{institution.name}}"
+        }
+      },
       "fees_receipt": {
         "SMS": {
           "body": "Received {{receipt.amount}} for {{student.name}} ({{student.admissionNo}}), receipt {{receipt.no}}. Balance {{fees.due}}. - {{institution.name}}"

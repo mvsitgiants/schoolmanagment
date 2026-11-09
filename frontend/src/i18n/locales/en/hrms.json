@@ -291,6 +291,7 @@
     "leave": {
       "title": "Leave",
       "subtitle": "Requests to decide, everyone’s balances, and the kinds of leave.",
+      "search": "Search name or staff code…",
       "tabs": {
         "requests": "Requests",
         "balances": "Balances",
@@ -432,6 +433,7 @@
     "hiring": {
       "title": "Recruitment",
       "subtitle": "Vacancies and the people applying — shortlist, demo class, interview, offer and joining.",
+      "search": "Search name or mobile…",
       "stages": {
         "APPLIED": "Applied",
         "SHORTLISTED": "Shortlisted",

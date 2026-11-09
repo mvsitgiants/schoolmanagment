@@ -9,7 +9,7 @@ import {
 } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { ChipPicker, Face, PhotoCapture, PurposeChip, StaffSelect, StudentFinder, useFoLabels } from '../../components/frontoffice/FoKit'
-import { checkInVisitor, checkOutVisitor, enquiryFromVisit, fetchVisitor, fetchVisitorDesk, fetchVisitors, lookupVisitor } from '../../api/frontOffice'
+import { checkInVisitor, checkOutVisitor, enquiryFromVisit, fetchAllVisitors, fetchVisitor, fetchVisitorDesk, fetchVisitors, lookupVisitor } from '../../api/frontOffice'
 import { fetchAcademicLookup } from '../../api/academics'
 import { hasPermission } from '../../api/auth'
 import useDebouncedValue from '../../hooks/useDebouncedValue'
@@ -17,6 +17,7 @@ import { useFormat } from '../../context/SettingsContext'
 import { useSnackbar } from '../../context/SnackbarContext'
 
 const EMPTY = { name: '', mobile: '', purpose: 'MEET_STAFF', purposeNote: '', from: '', people: 1, hostId: '', student: null, idType: '', idNumber: '', photo: '', badgeNo: '', vehicleNo: '', note: '' }
+const PAGE = 50
 const fieldsOf = (e) => e?.response?.data?.details?.fields ?? {}
 
 /** The check-in form: mobile first (a returning visitor fills in), purpose, whom to meet, ID and a photo. */
@@ -186,11 +187,12 @@ function InsideBoard({ rows, onOpen, onCheckOut }) {
   )
 }
 
-function LogTable({ rows, loading, onOpen, withDate = false }) {
+/** One page of the log; the CSV export fetches every row of the filter (exportAll). */
+function LogTable({ rows, loading, onOpen, withDate = false, pagination, exportAll }) {
   const { t } = useTranslation('frontoffice')
   const { time, date } = useFormat()
   return (
-    <DataTable rows={rows} loading={loading} onRowClick={(v) => onOpen(v.id)} exportable exportName="visitors" emptyIcon={Users} emptyTitle={t('frontoffice.visitors.emptyLog')}
+    <DataTable rows={rows} loading={loading} onRowClick={(v) => onOpen(v.id)} exportable exportName="visitors" exportAll={exportAll} pagination={pagination} emptyIcon={Users} emptyTitle={t('frontoffice.visitors.emptyLog')}
       columns={[
         { key: 'name', header: t('frontoffice.visitors.name'), mobilePrimary: true, render: (v, r) => <PersonCell name={v} sub={[r.mobile, r.from].filter(Boolean).join(' · ') || undefined} /> },
         { key: 'purpose', header: t('frontoffice.visitors.purpose'), render: (v) => <PurposeChip value={v} /> },
@@ -211,14 +213,21 @@ export default function FrontOfficeVisitors() {
   const { showError, showSuccess } = useSnackbar()
   const [adding, setAdding] = useState(false)
   const [open, setOpen] = useState(null)
-  const [tab, setTab] = useState('TODAY')
   const { data: desk, isLoading, error, refetch } = useQuery({ queryKey: ['frontoffice', 'visitors', 'desk'], queryFn: fetchVisitorDesk, refetchInterval: 60_000 })
+  // the log, a page at a time (today's, or a search across dates); a new tab, range, purpose or search starts at page 1
+  const [page, setPage] = useState(1)
+  const [tab, setTab] = useState('TODAY')
   const [range, setRange] = useState({ from: '', to: '' })
   const [purpose, setPurpose] = useState('')
   const [search, setSearch] = useState('')
+  const paged = (set) => (v) => { set(v); setPage(1) }
   const q = useDebouncedValue(search.trim(), 300)
-  const params = { from: range.from || desk?.weekStart, to: range.to || desk?.date, purpose, search: q }
-  const log = useQuery({ queryKey: ['frontoffice', 'visitors', 'log', params], queryFn: () => fetchVisitors(params), enabled: tab === 'SEARCH' && !!desk })
+  const params = tab === 'TODAY' ? { from: desk?.date, to: desk?.date } : { from: range.from || desk?.weekStart, to: range.to || desk?.date, purpose, search: q }
+  const log = useQuery({
+    queryKey: ['frontoffice', 'visitors', 'log', params, page], queryFn: () => fetchVisitors({ ...params, page, pageSize: PAGE }),
+    enabled: !!desk, placeholderData: (prev) => prev, refetchInterval: tab === 'TODAY' ? 60_000 : false,
+  })
+  const logPages = log.data && log.data.total > PAGE ? { page: page - 1, size: PAGE, totalElements: log.data.total, totalPages: Math.ceil(log.data.total / PAGE), onPageChange: (p) => setPage(p + 1) } : undefined
   const out = useMutation({
     mutationFn: (v) => checkOutVisitor(v.id),
     onSuccess: (v) => { qc.invalidateQueries({ queryKey: ['frontoffice', 'visitors'] }); showSuccess(t('frontoffice.visitors.checkedOut', { name: v.name })) },
@@ -245,21 +254,21 @@ export default function FrontOfficeVisitors() {
           {isLoading ? <div className="h-40 animate-pulse rounded-xl bg-black/[0.04]" /> : <InsideBoard rows={desk?.inside ?? []} onOpen={setOpen} onCheckOut={checkOut} />}
         </Panel>
         <div className="grid gap-4">
-          <ColumnBars title={t('frontoffice.visitors.byPurpose')} subtitle={t('frontoffice.visitors.today')} items={purposeBars} activeId={purpose} onPick={(it) => { setPurpose(it?.id ?? ''); setTab('SEARCH') }} />
+          <ColumnBars title={t('frontoffice.visitors.byPurpose')} subtitle={t('frontoffice.visitors.today')} items={purposeBars} activeId={purpose} onPick={(it) => { setPurpose(it?.id ?? ''); setTab('SEARCH'); setPage(1) }} />
           <ColumnBars title={t('frontoffice.visitors.byHour')} subtitle={t('frontoffice.visitors.today')} items={(s?.byHour ?? []).map((h) => ({ id: h.hour, label: `${h.hour}:00`, short: h.hour, value: h.count, tone: 'brand' }))} />
         </div>
       </div>
       <div className="rounded-2xl border border-border bg-surface p-4 shadow-card space-y-3">
-        <Tabs value={tab} onChange={setTab} tabs={[{ value: 'TODAY', label: t('frontoffice.visitors.tabToday') }, { value: 'SEARCH', label: t('frontoffice.visitors.tabSearch'), icon: Search }]} />
-        {tab === 'TODAY' ? <LogTable rows={desk?.today ?? []} loading={isLoading} onOpen={setOpen} /> : (
+        <Tabs value={tab} onChange={paged(setTab)} tabs={[{ value: 'TODAY', label: t('frontoffice.visitors.tabToday') }, { value: 'SEARCH', label: t('frontoffice.visitors.tabSearch'), icon: Search }]} />
+        {tab === 'TODAY' ? <LogTable rows={log.data?.rows ?? []} loading={isLoading || log.isLoading} onOpen={setOpen} pagination={logPages} exportAll={() => fetchAllVisitors(params)} /> : (
           <>
             <div className="flex flex-wrap items-end gap-2">
-              <FormField label={t('frontoffice.common.from')}><Input type="date" value={range.from || desk?.weekStart || ''} onChange={(e) => setRange({ ...range, from: e.target.value })} /></FormField>
-              <FormField label={t('frontoffice.common.to')}><Input type="date" value={range.to || desk?.date || ''} onChange={(e) => setRange({ ...range, to: e.target.value })} /></FormField>
-              <SegmentedControl value={purpose} onChange={setPurpose} options={[{ value: '', label: t('frontoffice.common.all') }, ...FO_VISIT_PURPOSES.map((p) => ({ value: p.value, label: L.purpose(p.value) }))]} />
-              <div className="w-64"><SearchInput value={search} onChange={setSearch} placeholder={t('frontoffice.visitors.search')} /></div>
+              <FormField label={t('frontoffice.common.from')}><Input type="date" value={range.from || desk?.weekStart || ''} onChange={(e) => { setRange({ ...range, from: e.target.value }); setPage(1) }} /></FormField>
+              <FormField label={t('frontoffice.common.to')}><Input type="date" value={range.to || desk?.date || ''} onChange={(e) => { setRange({ ...range, to: e.target.value }); setPage(1) }} /></FormField>
+              <SegmentedControl value={purpose} onChange={paged(setPurpose)} options={[{ value: '', label: t('frontoffice.common.all') }, ...FO_VISIT_PURPOSES.map((p) => ({ value: p.value, label: L.purpose(p.value) }))]} />
+              <div className="w-64"><SearchInput value={search} onChange={paged(setSearch)} placeholder={t('frontoffice.visitors.search')} /></div>
             </div>
-            <LogTable rows={log.data ?? []} loading={log.isLoading} onOpen={setOpen} withDate />
+            <LogTable rows={log.data?.rows ?? []} loading={log.isLoading} onOpen={setOpen} withDate pagination={logPages} exportAll={() => fetchAllVisitors(params)} />
           </>
         )}
       </div>

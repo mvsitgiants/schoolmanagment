@@ -268,20 +268,55 @@ async function planRows(rows, auth) {
   }))
 }
 
-export async function listPlans({ from, to, sectionId, subjectId, mine }, auth) {
+/** The lesson-plan filter for this year, the caller's classes and the picked class / subject / teacher / dates — ids cast, so it serves aggregates too. */
+async function planFilter({ from, to, sectionId, subjectId, mine }, auth) {
   const year = await requireYear()
   const allowed = await sectionsInScope(auth, 'homework')
   const filter = { academicYearId: year._id }
-  if (allowed) filter.sectionId = { $in: allowed }
+  if (allowed) filter.sectionId = { $in: allowed.map(oid) }
   if (sectionId) {
     if (allowed && !allowed.includes(String(sectionId))) throw notFound('Section')
-    filter.sectionId = sectionId
+    filter.sectionId = oid(sectionId)
   }
-  if (subjectId) filter.subjectId = subjectId
-  if (mine) filter.teacherId = auth.userId
+  if (subjectId) filter.subjectId = oid(subjectId)
+  if (mine) filter.teacherId = isOid(auth.userId) ? oid(auth.userId) : null
   if (from || to) filter.date = { ...(from && { $gte: from }), ...(to && { $lte: to }) }
-  const rows = await LessonPlan.find(filter).sort({ date: 1, period: 1, createdAt: 1 }).limit(500).lean()
-  return planRows(rows, auth)
+  return filter
+}
+
+const PLAN_SORT = { date: 1, period: 1, createdAt: 1, _id: 1 }
+const statusSums = Object.fromEntries(Object.keys(LESSON_STATUS).map((s) => [s, { $sum: { $cond: [{ $eq: ['$status', s] }, 1, 0] } }]))
+
+/** Lesson plans in date order, one page at a time; `counts` tallies each status over the whole filtered range (the tiles). */
+export async function listPlans({ page = 1, pageSize = 50, ...q }, auth) {
+  const filter = await planFilter(q, auth)
+  const [rows, total, tally] = await Promise.all([
+    LessonPlan.find(filter).sort(PLAN_SORT).skip((page - 1) * pageSize).limit(pageSize).lean(),
+    LessonPlan.countDocuments(filter),
+    LessonPlan.aggregate([{ $match: filter }, { $group: { _id: '$status', n: { $sum: 1 } } }]),
+  ])
+  return { rows: await planRows(rows, auth), total, page, pageSize, counts: Object.fromEntries(tally.map((c) => [c._id, c.n])) }
+}
+
+/**
+ * The month view: for each day in the range, how many plans there are (in all and by status) and the first `perDay` of
+ * them in period order — the calendar shows three a day and "+N more", which opens that week's paged list.
+ */
+export async function planCalendar(q, auth, perDay = 3) {
+  const filter = await planFilter(q, auth)
+  const days = await LessonPlan.aggregate([
+    { $match: filter },
+    { $sort: PLAN_SORT },
+    { $group: { _id: '$date', total: { $sum: 1 }, ...statusSums, ids: { $push: '$_id' } } },
+    { $project: { total: 1, ...Object.fromEntries(Object.keys(LESSON_STATUS).map((s) => [s, 1])), ids: { $slice: ['$ids', perDay] } } },
+    { $sort: { _id: 1 } },
+  ])
+  const shown = await LessonPlan.find({ _id: { $in: days.flatMap((d) => d.ids) } }).lean()
+  const byId = new Map((await planRows(shown, auth)).map((r) => [r.id, r]))
+  return days.map((d) => ({
+    date: d._id, total: d.total, counts: Object.fromEntries(Object.keys(LESSON_STATUS).map((s) => [s, d[s]])),
+    plans: d.ids.map((id) => byId.get(String(id))).filter(Boolean),
+  }))
 }
 
 async function planFor(id, auth) {

@@ -2,11 +2,14 @@ import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { AlertTriangle, CheckCircle2, Copy, IndianRupee, Link2, Printer, Receipt, Wallet } from 'lucide-react'
+import { AlertTriangle, CheckCircle2, Copy, IndianRupee, Link2, Printer, Receipt, ScanQrCode, Wallet } from 'lucide-react'
 import { INVOICE_STATUS, MODES_WITH_REFERENCE, PAYMENT_MODES, formatINR, toPaise, toRupees } from '@schoolgiant/shared'
 import { ColorChip, DataTable, DateCell, FormField, Input, Money, Note, PageContainer, PageHeader, PaidBar, Panel, Select, StackCell, StatCardRow, StatusPill, Textarea } from '../../components/system'
 import Button from '../../components/ui/Button'
 import StudentPicker from '../../components/fees/StudentPicker'
+import QrCode from '../../components/scan/QrCode'
+import { ScanDialog, scanFeedback } from '../../components/scan/Scanner'
+import { resolveCode } from '../../api/scan'
 import { collectFee, createPaymentLink, fetchFeeLedger, fetchOnlineStatus } from '../../api/fees'
 import { hasPermission } from '../../api/auth'
 import { printDocument } from '../../components/print/printDocument'
@@ -60,6 +63,20 @@ export default function Collect() {
 
   const pick = (id, s) => { setStudentId(id); setPicked(s ?? null); setLast(null); setErrors({}); setForm({ amount: '', mode: 'CASH', reference: '', waiveLateFee: false, note: '' }) }
   const needsRef = MODES_WITH_REFERENCE.includes(form.mode)
+  // the student's ID card at the counter opens their dues
+  const [scanning, setScanning] = useState(false)
+  const scanCard = async (code) => {
+    try {
+      const r = await resolveCode(code)
+      if (r.kind !== 'STUDENT') { scanFeedback(false); showError(t('fees.collect.notAStudent')); return }
+      pick(r.id, { id: r.id, name: r.student.name, classShort: r.student.class, admissionNo: r.student.admissionNo })
+    } catch (e) { scanFeedback(false); showError(e.message) }
+  }
+  // UPI at the counter: a QR with the exact amount; the clerk types the UPI reference from the parent's app
+  const upiAmount = toPaise(form.amount)
+  const upiLink = ledger?.upi && form.mode === 'UPI' && upiAmount > 0
+    ? `upi://pay?pa=${encodeURIComponent(ledger.upi.id)}&pn=${encodeURIComponent(ledger.upi.payee)}&am=${(upiAmount / 100).toFixed(2)}&cu=INR&tn=${encodeURIComponent(t('fees.collect.upiNote', { no: ledger.student.admissionNo }))}`
+    : null
   const save = useMutation({
     mutationFn: () => collectFee({ studentId, amount: toPaise(form.amount), mode: form.mode, reference: form.reference || undefined, waiveLateFee: canWaive && form.waiveLateFee, note: form.note || undefined }),
     onSuccess: (r) => {
@@ -85,7 +102,11 @@ export default function Collect() {
       <Panel className="mb-4">
         <div className="grid sm:grid-cols-2 gap-4">
           <StudentPicker value={studentId} onChange={pick} preset={picked ?? (ledger ? { id: ledger.student.id, name: ledger.student.name, classShort: ledger.student.classShort, admissionNo: ledger.student.admissionNo } : null)} />
+          <div className="sm:self-end">
+            <Button variant="secondary" icon={ScanQrCode} className="w-full sm:w-auto" onClick={() => setScanning(true)}>{t('fees.collect.scanCard')}</Button>
+          </div>
         </div>
+        <ScanDialog open={scanning} onClose={() => setScanning(false)} onCode={scanCard} title={t('fees.collect.scanCard')} hint={t('fees.collect.scanHint')} />
       </Panel>
 
       {!studentId && <Note>{t('fees.collect.startHint')}</Note>}
@@ -138,6 +159,14 @@ export default function Collect() {
                         {PAYMENT_MODES.map((m) => <option key={m.value} value={m.value}>{modeLabel(m.value)}</option>)}
                       </Select>
                     </FormField>
+                    {upiLink && (
+                      <div className="flex flex-col items-center gap-2 rounded-xl border border-border bg-bg p-3 text-center">
+                        <QrCode value={upiLink} size={180} label={t('fees.collect.upiQr')} className="rounded-lg bg-white p-1.5" />
+                        <p className="text-sm font-semibold text-ink">{t('fees.collect.upiScan', { amount: formatINR(upiAmount) })}</p>
+                        <p className="text-xs text-ink-muted">{t('fees.collect.upiTo', { id: ledger.upi.id })}</p>
+                      </div>
+                    )}
+                    {form.mode === 'UPI' && !ledger?.upi && <Note>{t('fees.collect.upiNotSet')}</Note>}
                     {needsRef && <FormField label={t('fees.collect.reference')} required error={errors.reference} hint={t('fees.collect.referenceHint')}>
                       <Input value={form.reference} onChange={(e) => setForm((f) => ({ ...f, reference: e.target.value }))} />
                     </FormField>}

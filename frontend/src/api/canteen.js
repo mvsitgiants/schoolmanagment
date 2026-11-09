@@ -10,6 +10,19 @@ const del = async (url) => (await api.delete(url)).data.data
 
 const BASE = '/v1/canteen'
 
+/** Every row of a paged list, for a CSV export: 100-row pages, four at a time, up to `max` rows. */
+async function allRows(fetchPage, params, max = 5000) {
+  const size = 100
+  const first = await fetchPage({ ...params, page: 1, pageSize: size })
+  const pages = Math.min(Math.ceil((first.total ?? 0) / size), Math.ceil(max / size))
+  const out = [...(first.rows ?? [])]
+  for (let p = 2; p <= pages; p += 4) {
+    const batch = await Promise.all(Array.from({ length: Math.min(4, pages - p + 1) }, (_, i) => fetchPage({ ...params, page: p + i, pageSize: size })))
+    for (const r of batch) out.push(...(r.rows ?? []))
+  }
+  return out
+}
+
 // menu and specials
 export const fetchMenu = () => get(`${BASE}/menu`)
 export const saveMenuItem = (id, body) => (id ? patch(`${BASE}/menu/${id}`, body) : post(`${BASE}/menu`, body))
@@ -23,6 +36,8 @@ export const deleteSpecial = (id) => del(`${BASE}/specials/${id}`)
 export const fetchTodayMenu = (date) => get(`${BASE}/today`, { date: date || undefined })
 export const findStudents = (q) => get(`${BASE}/find`, { q })
 export const fetchOrders = (params) => get(`${BASE}/orders`, params)
+export const fetchAllOrders = (params) => allRows(fetchOrders, params)
+export const fetchPreorders = (date) => get(`${BASE}/preorders`, { date: date || undefined })
 export const createOrder = (body) => post(`${BASE}/orders`, body)
 export const orderReady = (id) => post(`${BASE}/orders/${id}/ready`)
 export const orderCollected = (id) => post(`${BASE}/orders/${id}/collect`)

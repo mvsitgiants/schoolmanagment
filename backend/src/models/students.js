@@ -5,8 +5,13 @@
 // section of one academic year); `history` keeps every year's section and what happened at
 // its end. Aadhaar is stored encrypted, with a keyed hash to spot duplicates and the last
 // four digits for the masked view.
+import crypto from 'node:crypto'
 import mongoose from 'mongoose'
+import { makeVerifyCode } from '@schoolgiant/shared'
 import { tenantPlugin } from '../platform/db.js'
+
+/** A TC's check code: the QR on the printed TC opens /verify/tc/<code>. */
+export const newTcCode = () => makeVerifyCode(() => crypto.randomInt(0, 2 ** 31) / 2 ** 31)
 
 const { Schema, model } = mongoose
 const ObjectId = Schema.Types.ObjectId
@@ -99,6 +104,7 @@ const tcSchema = new Schema({
   studentId: { type: ObjectId, ref: 'Student', required: true },
   status: { type: String, default: 'REQUESTED' }, // TC_STATUS
   tcNo: String,
+  verifyCode: { type: String, default: newTcCode },
   leavingDate: { ...ymd, required: true },
   reason: String, // LEAVING_REASONS
   reasonText: String,
@@ -120,6 +126,7 @@ const tcSchema = new Schema({
 tcSchema.plugin(tenantPlugin)
 tcSchema.index({ tenantId: 1, status: 1, createdAt: -1 })
 tcSchema.index({ tenantId: 1, studentId: 1 })
+tcSchema.index({ verifyCode: 1 }, { unique: true, partialFilterExpression: { verifyCode: { $type: 'string' } } })
 
 export const TransferCertificate = model('TransferCertificate', tcSchema, 'transfer_certificates')
 

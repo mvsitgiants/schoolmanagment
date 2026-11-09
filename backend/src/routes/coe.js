@@ -17,6 +17,8 @@ router.use(authenticate, tenantOnly, subscriptionGate, requireModule('coe'))
 
 const id = (req) => objectId.parse(req.params.id)
 const VIEW_ANY = ['coe.marks.view', 'coe.revaluation.view', 'coe.grade-cards.view']
+// one page of a list: 50 rows by default, at most 100 (the platform's clamp)
+const paging = { page: z.coerce.number().int().min(1).default(1), pageSize: z.coerce.number().int().min(1).max(100).default(50) }
 
 router.get('/lookup', requirePermission(...VIEW_ANY), async (req, res) => {
   res.json({ data: await programLookup(req.auth, 'coe') })
@@ -93,7 +95,10 @@ router.post('/sheets/:id/moderation/decide', requirePermission('coe.marks.lock')
 // ───────────────────────────────────────────────────────── results and grade cards
 
 router.get('/sessions/:id/results', requirePermission('coe.grade-cards.view', 'coe.revaluation.view'), async (req, res) => {
-  const q = z.object({ programId: objectId.optional(), semester: z.coerce.number().int().min(1).max(16).optional() }).parse(req.query)
+  const q = z.object({
+    programId: objectId.optional(), semester: z.coerce.number().int().min(1).max(16).optional(), result: z.enum(['PASS', 'FAIL', 'ARREARS']).optional(),
+    search: z.string().max(80).optional(), ...paging,
+  }).parse(req.query)
   res.json({ data: await listSemesterResults(id(req), req.auth, q) })
 })
 router.get('/results/:id', requirePermission('coe.grade-cards.view', 'coe.revaluation.view'), async (req, res) => {
@@ -103,7 +108,7 @@ router.get('/results/:id', requirePermission('coe.grade-cards.view', 'coe.revalu
 // ───────────────────────────────────────────────────────── revaluation
 
 router.get('/revaluations', requirePermission('coe.revaluation.view'), async (req, res) => {
-  const q = z.object({ sessionId: objectId.optional(), status: z.enum(Object.keys(COE_REVAL_STATUS)).optional() }).parse(req.query)
+  const q = z.object({ sessionId: objectId.optional(), status: z.enum(Object.keys(COE_REVAL_STATUS)).optional(), search: z.string().max(80).optional(), ...paging }).parse(req.query)
   res.json({ data: await listRevaluations(req.auth, q) })
 })
 router.get('/revaluations/candidates', requirePermission('coe.revaluation.create'), async (req, res) => {

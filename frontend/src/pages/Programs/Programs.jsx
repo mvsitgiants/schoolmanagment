@@ -1,18 +1,21 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { ArrowRightLeft, BookMarked, GraduationCap, Layers, Pencil, Plus, Scale, Trash2, UserPlus, Users } from 'lucide-react'
 import { ENROLMENT_STATUS, PROGRAM_COURSE_TYPES } from '@schoolgiant/shared'
 import {
-  BulkActionBar, CodeBadge, ColorChip, ColumnBars, DataTable, EmptyState, FactGrid, HeaderButton, PageContainer, PageHeader, Panel, PersonCell,
+  BulkActionBar, CodeBadge, ColorChip, ColumnBars, DataTable, EmptyState, FactGrid, HeaderButton, PageContainer, PageHeader, Panel, PersonCell, SearchInput,
   SideNav, SideNavLayout, StatCardRow, StatusPill, Tabs, usePrompt, useConfirm,
 } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { CourseForm, EnrolModal, EnrolmentForm, ProgramForm, RegulationForm } from '../../components/programs/ProgramForms'
 import useProgramList from '../../components/programs/useProgramList'
-import { deleteCourse, deleteEnrolment, deleteProgram, deleteRegulation, fetchEnrolments, fetchProgram, fetchRegulations, updateEnrolments } from '../../api/programs'
+import { deleteCourse, deleteEnrolment, deleteProgram, deleteRegulation, fetchAllEnrolments, fetchEnrolments, fetchProgram, fetchRegulations, updateEnrolments } from '../../api/programs'
 import { hasPermission } from '../../api/auth'
 import { useSnackbar } from '../../context/SnackbarContext'
+import useDebouncedValue from '../../hooks/useDebouncedValue'
+
+const PAGE = 50
 
 function Curriculum({ program, onChanged }) {
   const { t } = useTranslation('programs')
@@ -30,7 +33,7 @@ function Curriculum({ program, onChanged }) {
     <div className="space-y-4">
       <ColumnBars title={t('programs.courses.creditsPerSemester')} subtitle={t('programs.courses.creditsPerSemesterHint')}
         items={program.semesterSummary.map((s) => ({ id: String(s.semester), label: t('programs.semesterN', { n: s.semester }), short: `${t('programs.semShort', { n: s.semester })}`, value: s.credits + s.electiveCredits }))}
-        activeId={semester} onPick={(it) => setSemester(it?.id ?? '')} />
+        activeId={semester} onPick={(it) => { setSemester(it?.id ?? ''); setPage(1) }} />
       <DataTable
         title={semester ? t('programs.semesterN', { n: semester }) : t('programs.courses.title_all')}
         exportable exportName={`${program.code}-curriculum`}
@@ -72,13 +75,25 @@ function Students({ program, onChanged }) {
   const confirm = useConfirm()
   const { showSuccess, showError } = useSnackbar()
   const [semester, setSemester] = useState('')
+  const [search, setSearch] = useState('')
+  const q = useDebouncedValue(search.trim(), 300)
+  const [page, setPage] = useState(1)
   const [selected, setSelected] = useState([])
   const [enrolling, setEnrolling] = useState(false)
   const [editing, setEditing] = useState(null)
   const key = ['program-students', program.id]
-  const { data: rows = [], isLoading, error, refetch } = useQuery({ queryKey: key, queryFn: () => fetchEnrolments(program.id) })
+  // the semester and search go to the server, which sends one page at a time
+  const filters = { semester: semester || undefined, search: q || undefined }
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: [...key, filters, page], queryFn: () => fetchEnrolments(program.id, { ...filters, page, pageSize: PAGE }), placeholderData: (p) => p,
+  })
+  const shown = data?.rows ?? []
+  const total = data?.total ?? 0
+  // sorting a column sorts what is loaded: offered while the whole list fits on one page
+  const sortable = total <= PAGE
+  // moving or removing the last students of a later page empties it: step back to the last page there is
+  useEffect(() => { if (data && page > 1 && !data.rows.length && data.total) setPage(Math.ceil(data.total / PAGE)) }, [data, page])
   const canEdit = hasPermission('programs.programs.edit')
-  const shown = rows.filter((r) => !semester || r.currentSemester === Number(semester))
   const refresh = () => { qc.invalidateQueries({ queryKey: key }); onChanged() }
   const move = async () => {
     const to = await prompt({ title: t('programs.students.moveTitle', { count: selected.length }), label: t('programs.students.moveLabel', { max: program.semesters }), required: true })
@@ -97,19 +112,23 @@ function Students({ program, onChanged }) {
         <Button size="sm" variant="secondary" icon={ArrowRightLeft} onClick={move}>{t('programs.students.move')}</Button>
       </BulkActionBar>
       <DataTable
-        title={t('programs.students.title', { count: shown.length })}
-        exportable exportName={`${program.code}-students`}
-        toolbar={canEdit && <Button size="sm" icon={UserPlus} onClick={() => setEnrolling(true)}>{t('programs.students.enrol')}</Button>}
+        title={t('programs.students.title', { count: total })}
+        exportable exportName={`${program.code}-students`} exportAll={() => fetchAllEnrolments(program.id, filters)}
+        toolbar={<div className="flex flex-wrap items-center gap-2">
+          <div className="w-64"><SearchInput value={search} onChange={(v) => { setSearch(v); setPage(1) }} placeholder={t('programs.students.listSearch')} /></div>
+          {canEdit && <Button size="sm" icon={UserPlus} onClick={() => setEnrolling(true)}>{t('programs.students.enrol')}</Button>}
+        </div>}
         rows={shown} loading={isLoading} error={error} onRetry={refetch}
+        pagination={total > PAGE ? { page: page - 1, size: PAGE, totalElements: total, totalPages: Math.ceil(total / PAGE), onPageChange: (p) => setPage(p + 1) } : undefined}
         selectable={canEdit} selectedIds={selected} onSelectionChange={setSelected}
         onSelect={canEdit ? setEditing : undefined}
         emptyIcon={Users} emptyTitle={t('programs.students.empty')} emptyHint={t('programs.students.emptyHint')}
         emptyAction={canEdit && <Button icon={UserPlus} onClick={() => setEnrolling(true)}>{t('programs.students.enrol')}</Button>}
         columns={[
-          { key: 'name', header: t('programs.students.student'), sortable: true, mobileTitle: true, render: (v, r) => <PersonCell name={v} sub={r.registerNo || r.admissionNo} /> },
-          { key: 'batch', header: t('programs.students.batch'), sortable: true, render: (v) => <ColorChip label={String(v)} seed={`batch${v}`} /> },
-          { key: 'currentSemester', header: t('programs.students.semester'), sortable: true, render: (v) => <ColorChip label={`${t('programs.semShort', { n: v })}`} seed={`sem${v}`} /> },
-          { key: 'advisorName', header: t('programs.students.advisor'), sortable: true, render: (v) => v || <span className="text-ink-faint">—</span> },
+          { key: 'name', header: t('programs.students.student'), sortable, mobileTitle: true, render: (v, r) => <PersonCell name={v} sub={r.registerNo || r.admissionNo} /> },
+          { key: 'batch', header: t('programs.students.batch'), sortable, render: (v) => <ColorChip label={String(v)} seed={`batch${v}`} /> },
+          { key: 'currentSemester', header: t('programs.students.semester'), sortable, render: (v) => <ColorChip label={`${t('programs.semShort', { n: v })}`} seed={`sem${v}`} /> },
+          { key: 'advisorName', header: t('programs.students.advisor'), sortable, render: (v) => v || <span className="text-ink-faint">—</span> },
           { key: 'regulationCode', header: t('programs.students.regulation'), render: (v) => v || '—' },
           { key: 'status', header: t('programs.students.status'), render: (v) => <StatusPill tone={ENROLMENT_STATUS[v]?.tone}>{t(`programs.enrolmentStatus.${v}`)}</StatusPill> },
           { key: 'actions', header: '', align: 'right', render: (_, r) => hasPermission('programs.programs.delete') && (

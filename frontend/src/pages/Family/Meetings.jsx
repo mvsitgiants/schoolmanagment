@@ -5,6 +5,7 @@ import { StatusPill } from '../../components/system'
 import { FCard, FEmpty, FError, FSkeleton, useFamily, useFamilyQuery } from '../../components/family/FamilyKit'
 import { familyBookMeeting, familyCancelMeeting, familyMeetings } from '../../api/family'
 import { useFormat } from '../../context/SettingsContext'
+import { MeetingPassButton } from '../../components/family/Passes'
 
 /** The family app › Meetings: parent–teacher meetings — book a time with each teacher, see or cancel the booking. */
 export default function FamilyMeetings() {
@@ -42,6 +43,7 @@ export default function FamilyMeetings() {
                         ? <a href={h.room} target="_blank" rel="noreferrer" className="inline-flex min-h-[44px] items-center gap-1 text-sm text-brand-700"><Video className="w-4 h-4" />{t('family.meetings.join')}</a>
                         : <p className="text-xs text-ink-muted">{h.room}</p>)}
                     </div>
+                    {h.booking.status === 'BOOKED' && <MeetingPassButton bookingId={h.booking.id} />}
                     {h.booking.status === 'BOOKED' && m.canBook
                       ? <button type="button" disabled={busy} onClick={() => cancel.mutate(h.booking.id)} className="inline-flex min-h-[44px] items-center gap-1 text-sm text-danger-600"><X className="w-4 h-4" />{t('family.meetings.cancel')}</button>
                       : <StatusPill tone={h.booking.status === 'ATTENDED' ? 'success' : 'info'}>{t(`family.meetings.status.${h.booking.status}`)}</StatusPill>}

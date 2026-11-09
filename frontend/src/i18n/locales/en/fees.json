@@ -165,7 +165,15 @@
       "installmentCount_one": "{{count}} installment",
       "installmentCount_other": "{{count}} installments",
       "ofBilled": "{{pct}}% of billed",
-      "paidShort": "paid"
+      "paidShort": "paid",
+      "scanCard": "Scan ID card",
+      "scanHint": "Scan the student's ID card (QR or barcode) to open their fees.",
+      "notAStudent": "That code isn't a student's ID card.",
+      "upiQr": "UPI payment QR",
+      "upiScan": "Scan with any UPI app to pay {{amount}}",
+      "upiTo": "Paid to {{id}} — then type the UPI reference below.",
+      "upiNote": "School fees {{no}}",
+      "upiNotSet": "Set the school's UPI ID in Settings › Fees to show a payment QR here."
     },
     "invoices": {
       "title": "Invoices & receipts",
@@ -253,6 +261,7 @@
       "sent_other": "Reminders sent to {{count}} families.",
       "empty": "No fees due",
       "emptyHint": "Every invoice in this view is paid.",
+      "search": "Student or admission no.",
       "overdueStudents_one": "{{count}} with overdue fees",
       "overdueStudents_other": "{{count}} with overdue fees",
       "overdueShare": "{{pct}}% of all dues",
@@ -315,7 +324,8 @@
         "pending": "The request is dropped."
       },
       "withdrawn": "Concession withdrawn.",
-      "empty": "No concessions here"
+      "empty": "No concessions here",
+      "search": "Student or admission no."
     },
     "refunds": {
       "title": "Refunds",
@@ -340,6 +350,7 @@
       "total": "Total",
       "empty": "No refunds",
       "emptyHint": "Refunds are made against a receipt.",
+      "search": "Refund no., reference or student",
       "summary": {
         "refunded": "Refunded",
         "count_one": "{{count}} refund",

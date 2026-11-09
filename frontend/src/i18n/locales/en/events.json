@@ -3,15 +3,73 @@
     "edit": "Edit",
     "delete": "Delete",
     "loading": "Loading…",
-    "kinds": { "EVENT": "Event", "CELEBRATION": "Celebration / festival", "CULTURAL": "Cultural programme", "SPORTS": "Sports", "TRIP": "Trip / excursion", "EXAM": "Exam / test", "DEADLINE": "Last date", "MEETING": "Meeting", "OTHER": "Other" },
-    "sources": { "EVENT": "Event", "HOLIDAY": "Holiday", "EXAM": "Exam", "PTM": "Parent–teacher meeting" },
-    "audiences": { "EVERYONE": "Everyone", "CLASSES": "Some classes", "SECTIONS": "Some sections", "STAFF": "Staff only" },
-    "replyKinds": { "NONE": "No reply needed", "RSVP": "Going / not going", "CONSENT": "Permission (consent slip)" },
-    "ptmStatus": { "DRAFT": "Being set up", "OPEN": "Booking open", "CLOSED": "Booking closed", "DONE": "Held" },
-    "bookingStatus": { "BOOKED": "Booked", "ATTENDED": "Met", "NO_SHOW": "Didn’t come", "CANCELLED": "Cancelled" },
-    "modes": { "IN_PERSON": "At school", "ONLINE": "Video call" },
-    "dow": { "MON": "Mon", "TUE": "Tue", "WED": "Wed", "THU": "Thu", "FRI": "Fri", "SAT": "Sat", "SUN": "Sun" },
-    "months": { "1": "January", "2": "February", "3": "March", "4": "April", "5": "May", "6": "June", "7": "July", "8": "August", "9": "September", "10": "October", "11": "November", "12": "December" },
+    "kinds": {
+      "EVENT": "Event",
+      "CELEBRATION": "Celebration / festival",
+      "CULTURAL": "Cultural programme",
+      "SPORTS": "Sports",
+      "TRIP": "Trip / excursion",
+      "EXAM": "Exam / test",
+      "DEADLINE": "Last date",
+      "MEETING": "Meeting",
+      "OTHER": "Other"
+    },
+    "sources": {
+      "EVENT": "Event",
+      "HOLIDAY": "Holiday",
+      "EXAM": "Exam",
+      "PTM": "Parent–teacher meeting"
+    },
+    "audiences": {
+      "EVERYONE": "Everyone",
+      "CLASSES": "Some classes",
+      "SECTIONS": "Some sections",
+      "STAFF": "Staff only"
+    },
+    "replyKinds": {
+      "NONE": "No reply needed",
+      "RSVP": "Going / not going",
+      "CONSENT": "Permission (consent slip)"
+    },
+    "ptmStatus": {
+      "DRAFT": "Being set up",
+      "OPEN": "Booking open",
+      "CLOSED": "Booking closed",
+      "DONE": "Held"
+    },
+    "bookingStatus": {
+      "BOOKED": "Booked",
+      "ATTENDED": "Met",
+      "NO_SHOW": "Didn’t come",
+      "CANCELLED": "Cancelled"
+    },
+    "modes": {
+      "IN_PERSON": "At school",
+      "ONLINE": "Video call"
+    },
+    "dow": {
+      "MON": "Mon",
+      "TUE": "Tue",
+      "WED": "Wed",
+      "THU": "Thu",
+      "FRI": "Fri",
+      "SAT": "Sat",
+      "SUN": "Sun"
+    },
+    "months": {
+      "1": "January",
+      "2": "February",
+      "3": "March",
+      "4": "April",
+      "5": "May",
+      "6": "June",
+      "7": "July",
+      "8": "August",
+      "9": "September",
+      "10": "October",
+      "11": "November",
+      "12": "December"
+    },
     "cal": {
       "title": "Calendar",
       "subtitle": "Events, holidays, exams and parent–teacher meetings — what families see in their app.",
@@ -184,7 +242,8 @@
         "meets": "Meets the parents of",
         "meetsAll": "None ticked: every family invited can book this teacher.",
         "noLogin": "Not linked to a login, so this teacher won’t see the meetings in “My meetings”."
-      }
+      },
+      "waiting": "Here since {{time}}"
     },
     "gallery": {
       "title": "Gallery",

@@ -286,7 +286,13 @@
       "endConfirm": "End this trip?",
       "stillOn_one": "{{count}} student is still marked on the bus.",
       "stillOn_other": "{{count}} students are still marked on the bus.",
-      "ended": "Trip ended"
+      "ended": "Trip ended",
+      "scan": {
+        "button": "Scan ID cards",
+        "title": "Scan cards on the bus",
+        "hint": "First scan: got on. Scan again: got off. The family is told each time. {{on}} of {{total}} on the bus.",
+        "notOnRoute": "Not on this route"
+      }
     },
     "nav": {
       "routes": "Routes",

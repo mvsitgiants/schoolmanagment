@@ -344,24 +344,49 @@ export async function outcomesBoard(id) {
 
 // ───────────────────────────────────────────────────────── students in a program
 
-export async function listEnrolments(programId, { semester, status } = {}) {
+/**
+ * A program's students, one page at a time — by semester, then register no. (else admission no.), then `_id` for stable
+ * pages. Search runs on the server: every word in the name or admission no., or the register no.
+ */
+export async function listEnrolments(programId, { semester, status, search, page = 1, pageSize = 50 } = {}) {
   const p = await getProgramDoc(programId)
-  const rows = await ProgramEnrolment.find({ programId: p._id, ...(semester && { currentSemester: semester }), ...(status && { status }) }).lean()
+  const f = { programId: p._id, ...(semester && { currentSemester: semester }), ...(status && { status }) }
+  const q = String(search ?? '').trim()
+  if (q) {
+    const words = q.split(/\s+/).filter(Boolean).slice(0, 5)
+    const named = await Student.find({ $and: words.map((w) => { const re = new RegExp(escapeRegex(w), 'i'); return { $or: [{ firstName: re }, { middleName: re }, { lastName: re }, { admissionNo: re }] } }) }).select('_id').lean()
+    f.$or = [{ studentId: { $in: named.map((x) => x._id) } }, { registerNo: new RegExp(escapeRegex(q), 'i') }]
+  }
+  const [rows, total] = await Promise.all([
+    ProgramEnrolment.aggregate([
+      { $match: f },
+      { $lookup: { from: Student.collection.name, localField: 'studentId', foreignField: '_id', as: '_s', pipeline: [{ $project: { admissionNo: 1 } }] } },
+      { $addFields: { _key: { $ifNull: ['$registerNo', { $arrayElemAt: ['$_s.admissionNo', 0] }] } } },
+      { $sort: { currentSemester: 1, _key: 1, _id: 1 } },
+      { $skip: (page - 1) * pageSize },
+      { $limit: pageSize },
+      { $project: { _s: 0, _key: 0 } },
+    ]),
+    ProgramEnrolment.countDocuments(f),
+  ])
   const [students, advisors, regs] = await Promise.all([
     Student.find({ _id: { $in: rows.map((r) => r.studentId) } }).select('firstName middleName lastName admissionNo gender mobile email status').lean(),
     User.find({ _id: { $in: rows.map((r) => r.advisorId).filter(Boolean) } }).select('name').lean(),
-    Regulation.find().select('code').lean(),
+    Regulation.find({ _id: { $in: rows.map((r) => r.regulationId).filter(Boolean) } }).select('code').lean(),
   ])
   const st = new Map(students.map((s) => [String(s._id), s]))
   const adv = new Map(advisors.map((u) => [String(u._id), u.name]))
   const reg = new Map(regs.map((r) => [String(r._id), r.code]))
-  return rows.map((e) => {
-    const s = st.get(String(e.studentId))
-    return {
-      ...clean(e), name: studentName(s), admissionNo: s?.admissionNo ?? null, gender: s?.gender ?? null, mobile: s?.mobile ?? null,
-      advisorName: adv.get(idStr(e.advisorId)) ?? null, regulationCode: reg.get(idStr(e.regulationId)) ?? null,
-    }
-  }).sort((a, b) => (a.currentSemester - b.currentSemester) || String(a.registerNo ?? a.admissionNo).localeCompare(String(b.registerNo ?? b.admissionNo)))
+  return {
+    rows: rows.map((e) => {
+      const s = st.get(String(e.studentId))
+      return {
+        ...clean(e), name: studentName(s), admissionNo: s?.admissionNo ?? null, gender: s?.gender ?? null, mobile: s?.mobile ?? null,
+        advisorName: adv.get(idStr(e.advisorId)) ?? null, regulationCode: reg.get(idStr(e.regulationId)) ?? null,
+      }
+    }),
+    total, page, pageSize,
+  }
 }
 
 /** Students who could join a program: active, not in any program yet, matching the search. */

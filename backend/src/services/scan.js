@@ -6,10 +6,12 @@ import { Certificate } from '../models/certificates.js'
 import { FeePayment } from '../models/fees.js'
 import { Employee } from '../models/hrms.js'
 import { LibraryCopy, LibraryTitle } from '../models/library.js'
-import { Student, studentName } from '../models/students.js'
+import { Student, TransferCertificate, studentName } from '../models/students.js'
 import { badRequest, conflict, forbidden, notFound } from '../platform/errors.js'
 import { on } from './dashboard.js'
 import { phonePunch } from './devices.js'
+import { candidateAtDoor } from './exams.js'
+import { passResult, readPass } from './passes.js'
 import { scopeFilter } from './students.js'
 
 // Scan: one place that knows what a scanned code is. The app's Scan button, the gate scanner, the class
@@ -21,6 +23,7 @@ import { scopeFilter } from './students.js'
 //   student ID card   QR  → <app>/verify/student/<cardCode>     barcode → admission number
 //   certificate       QR  → <app>/verify/<verifyCode>
 //   fee receipt       QR  → <app>/verify/receipt/<verifyCode>   (printed receipt number works too)
+//   hall ticket / report card  QR → <app>/verify/exam/<candidate verifyCode>
 //   library book      barcode → accession number
 //   staff punch code  SGP1.<employeeId>.<time>.<signature>      (My workspace, rotates; 90 seconds)
 
@@ -56,11 +59,12 @@ export function readCode(raw) {
   const text = String(raw ?? '').trim()
   if (!text) return { kind: 'EMPTY', code: '' }
   if (text.startsWith(PUNCH_PREFIX)) return { kind: 'PUNCH', code: text }
+  if (/^SG[EMK]1\./.test(text)) return { kind: 'PASS', code: text }
   let path = null
   try { path = new URL(text).pathname } catch { /* not a link */ }
   if (path) {
-    const m = path.match(/\/verify\/(student|receipt|certificate)\/([A-Za-z0-9]{6,20})\/?$/)
-    if (m) return { kind: { student: 'STUDENT_CARD', receipt: 'RECEIPT', certificate: 'CERTIFICATE' }[m[1]], code: m[2].toUpperCase() }
+    const m = path.match(/\/verify\/(student|receipt|certificate|exam|tc)\/([A-Za-z0-9]{6,20})\/?$/)
+    if (m) return { kind: { student: 'STUDENT_CARD', receipt: 'RECEIPT', certificate: 'CERTIFICATE', exam: 'EXAM', tc: 'TC' }[m[1]], code: m[2].toUpperCase() }
     const c = path.match(/\/verify\/([A-Za-z0-9]{12})\/?$/)
     if (c) return { kind: 'CERTIFICATE', code: c[1].toUpperCase() }
     return { kind: 'LINK', code: text }
@@ -126,6 +130,31 @@ async function certificateResult(match, auth, code) {
   return code ? { kind: 'CERTIFICATE', id: null, title: code, subtitle: '', actions: [{ key: 'verify', link: `/verify/${code}` }] } : null
 }
 
+/** A transfer certificate's QR: the register for staff who keep it, the public check for everyone else. */
+async function tcResult(code, auth) {
+  if (on(auth, 'students', 'students.transfer.view')) {
+    const tc = await TransferCertificate.findOne({ verifyCode: code }).lean()
+    const s = tc && await Student.findById(tc.studentId).select('firstName middleName lastName admissionNo').lean()
+    if (tc) return { kind: 'TC', id: String(tc._id), title: tc.tcNo ?? code, subtitle: [s && studentName(s), s?.admissionNo, tc.leavingDate].filter(Boolean).join(' · '), status: tc.status === 'ISSUED' ? null : tc.status, actions: [{ key: 'tcRegister', link: '/students/transfer' }] }
+  }
+  return { kind: 'TC', id: null, title: code, subtitle: '', actions: [{ key: 'verify', link: `/verify/tc/${code}` }] }
+}
+
+/** A hall ticket (or report card) at the exam door: who, which exam, and today's room and seat. */
+async function examResult(code, auth) {
+  if (!on(auth, 'exams', 'exams.hall-tickets.view', 'exams.seating.view', 'exams.marks.view', 'exams.results.view')) return null
+  const c = await candidateAtDoor(code, auth)
+  if (!c) return null
+  return {
+    kind: 'HALL_TICKET', id: c.candidateId, title: c.student, subtitle: [c.exam, c.class].filter(Boolean).join(' · '),
+    papers: c.today, nextDate: c.nextDate,
+    actions: [
+      on(auth, 'exams', 'exams.hall-tickets.view') && { key: 'hallTickets', link: '/exams/hall-tickets' },
+      c.examStatus === 'PUBLISHED' && on(auth, 'exams', 'exams.results.view') && { key: 'results', link: '/exams/results' },
+    ].filter(Boolean),
+  }
+}
+
 function staffResult(e, auth) {
   return {
     kind: 'STAFF', id: String(e._id), title: e.name, subtitle: [e.employeeCode, e.designation].filter(Boolean).join(' · '), status: e.status === 'ACTIVE' ? null : e.status,
@@ -139,9 +168,12 @@ export async function resolveCode(raw, auth) {
   if (kind === 'EMPTY') throw badRequest('Nothing to look up.')
   let hit = null
   if (kind === 'PUNCH') hit = staffResult(await employeeOfPunch(code, auth), auth)
+  else if (kind === 'PASS') { const pass = readPass(code, auth.tenantId); hit = pass && await passResult(pass, auth) }
   else if (kind === 'STUDENT_CARD') { const s = await findStudent({ cardCode: code }, auth); hit = s && await studentResult(s, auth) }
   else if (kind === 'RECEIPT') hit = await receiptResult({ verifyCode: code }, auth)
   else if (kind === 'CERTIFICATE') hit = await certificateResult({ verifyCode: code }, auth, code)
+  else if (kind === 'EXAM') hit = await examResult(code, auth)
+  else if (kind === 'TC') hit = await tcResult(code, auth)
   else if (kind === 'TEXT') {
     const s = await findStudent({ $or: [{ cardCode: code }, { admissionNo: code }] }, auth)
     hit = (s && await studentResult(s, auth))
@@ -162,7 +194,7 @@ export async function gateScan(deviceId, { code, direction }, auth) {
   if (read.kind === 'EMPTY') throw badRequest('Nothing to look up.')
   let value = read.code
   if (read.kind === 'PUNCH') value = (await employeeOfPunch(read.code, auth)).employeeCode
-  if (read.kind === 'LINK' || read.kind === 'RECEIPT' || read.kind === 'CERTIFICATE') throw badRequest('That isn’t an ID card — scan the student’s or staff member’s card.')
+  if (['LINK', 'RECEIPT', 'CERTIFICATE', 'EXAM', 'TC', 'PASS'].includes(read.kind)) throw badRequest('That isn’t an ID card — scan the student’s or staff member’s card.')
   return phonePunch(deviceId, { code: value, direction }, auth)
 }
 

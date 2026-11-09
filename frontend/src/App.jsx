@@ -105,7 +105,10 @@ const CertificateRegister = lazy(() => import('./pages/Certificates/Register'))
 const VerifyCertificate = lazy(() => import('./pages/Public/VerifyCertificate'))
 const VerifyStudent = lazy(() => import('./pages/Public/VerifyStudent'))
 const VerifyReceipt = lazy(() => import('./pages/Public/VerifyReceipt'))
+const VerifyExam = lazy(() => import('./pages/Public/VerifyExam'))
+const VerifyTc = lazy(() => import('./pages/Public/VerifyTc'))
 const ScanGate = lazy(() => import('./pages/Scan/Gate'))
+const LibStockCheck = lazy(() => import('./pages/Library/StockCheck'))
 const PublicApply = lazy(() => import('./pages/Public/Apply'))
 // Admissions
 const AdmEnquiries = lazy(() => import('./pages/Admissions/Enquiries'))
@@ -239,6 +242,8 @@ export default function App() {
         <Route path="/verify-email" element={<VerifyEmailPage />} />
         <Route path="/verify/student/:code" element={<VerifyStudent />} />
         <Route path="/verify/receipt/:code" element={<VerifyReceipt />} />
+        <Route path="/verify/exam/:code" element={<VerifyExam />} />
+        <Route path="/verify/tc/:code" element={<VerifyTc />} />
         <Route path="/site/:slug" element={<PublicSite />} />
         <Route path="/site/:slug/:page" element={<PublicSite />} />
         <Route path="/s/:slug/:token" element={<PublicSurvey />} />
@@ -350,6 +355,7 @@ export default function App() {
           <Route path="library" element={<Navigate to="/library/circulation" replace />} />
           <Route path="library/catalogue" element={<LibCatalogue />} />
           <Route path="library/circulation" element={<LibCirculation />} />
+          <Route path="library/stock-check" element={<LibStockCheck />} />
           <Route path="library/fines" element={<LibFines />} />
           <Route path="events" element={<Navigate to="/events/calendar" replace />} />
           <Route path="events/calendar" element={<EvCalendar />} />

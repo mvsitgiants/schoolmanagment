@@ -5,13 +5,14 @@ import { Banknote, ChefHat, ClipboardList, HandPlatter, IndianRupee, Receipt, Sh
 import { CANTEEN_ORDER_STATUS, formatINR } from '@schoolgiant/shared'
 import { ColorChip, ColumnBars, DataTable, Input, KanbanBoard, KanbanCard, PageContainer, PageHeader, RankBars, StatCardRow, Tabs } from '../../components/system'
 import Button from '../../components/ui/Button'
-import { fetchDaySummary, fetchOrders, orderCollected, orderReady } from '../../api/canteen'
+import { fetchAllOrders, fetchDaySummary, fetchOrders, fetchPreorders, orderCollected, orderReady } from '../../api/canteen'
 import { hasPermission } from '../../api/auth'
 import { useSnackbar } from '../../context/SnackbarContext'
 import { useFormat } from '../../context/SettingsContext'
 import CounterPos from '../../components/canteen/CounterPos'
 import { FoodMark, OrderPill, categoryTone, useCanteenLabels } from '../../components/canteen/CanteenKit'
 
+const PAGE = 50
 const linesText = (o) => o.lines.map((l) => `${l.qty} × ${l.name}`).join(', ')
 
 /** Pre-orders for a day: what to make (by item), then a board PLACED → READY → COLLECTED. */
@@ -20,7 +21,7 @@ function Preorders({ date }) {
   const L = useCanteenLabels()
   const qc = useQueryClient()
   const { showError } = useSnackbar()
-  const { data, isLoading } = useQuery({ queryKey: ['canteen', 'orders', 'PREORDER', date], queryFn: () => fetchOrders({ date, source: 'PREORDER' }), enabled: !!date })
+  const { data, isLoading } = useQuery({ queryKey: ['canteen', 'preorders', date], queryFn: () => fetchPreorders(date), enabled: !!date })
   const move = useMutation({ mutationFn: ({ id, to }) => (to === 'READY' ? orderReady(id) : orderCollected(id)), onSuccess: () => qc.invalidateQueries({ queryKey: ['canteen'] }), onError: (e) => showError(e.message) })
   const rows = data?.rows ?? []
   const open = rows.filter((o) => o.status === 'PLACED')
@@ -42,12 +43,13 @@ function Preorders({ date }) {
   )
 }
 
-/** The day: sales (wallet / cash), top-ups, cash in hand, sales by item. */
+/** The day: sales (wallet / cash), top-ups, cash in hand, sales by item (over the whole day), then the day's orders a page at a time. */
 function DaySummary({ date }) {
   const { t } = useTranslation('canteen')
   const L = useCanteenLabels()
+  const [page, setPage] = useState(1)
   const { data: d } = useQuery({ queryKey: ['canteen', 'summary', date], queryFn: () => fetchDaySummary(date), enabled: !!date })
-  const { data: orders, isLoading } = useQuery({ queryKey: ['canteen', 'orders', 'ALL', date], queryFn: () => fetchOrders({ date }), enabled: !!date })
+  const { data: orders, isLoading } = useQuery({ queryKey: ['canteen', 'orders', 'ALL', date, page], queryFn: () => fetchOrders({ date, page, pageSize: PAGE }), enabled: !!date, placeholderData: (prev) => prev })
   if (!d) return <div className="h-40 rounded-xl bg-black/[0.05] animate-pulse" />
   return (
     <div className="space-y-4">
@@ -61,7 +63,8 @@ function DaySummary({ date }) {
         <RankBars title={t('canteen.summary.byItem')} subtitle={t('canteen.summary.byItemSub')} rows={d.items.map((i) => ({ key: i.itemId, label: `${i.name} (${i.qty})`, value: i.amount }))} valueFormat={(v) => formatINR(v)} max={12} empty={t('canteen.summary.nothingSold')} />
         <ColumnBars title={t('canteen.summary.qtyByItem')} items={d.items.slice(0, 14).map((i) => ({ id: i.itemId, label: i.name, short: i.name.slice(0, 6), value: i.qty, tone: categoryTone(i.category) }))} />
       </div>
-      <DataTable rows={orders?.rows ?? []} loading={isLoading} emptyTitle={t('canteen.summary.noOrders')} exportable exportName={`canteen-orders-${date}`} columns={[
+      <DataTable rows={orders?.rows ?? []} loading={isLoading} emptyTitle={t('canteen.summary.noOrders')} exportable exportName={`canteen-orders-${date}`} exportAll={() => fetchAllOrders({ date })}
+        pagination={orders && orders.total > PAGE ? { page: page - 1, size: PAGE, totalElements: orders.total, totalPages: Math.ceil(orders.total / PAGE), onPageChange: (p) => setPage(p + 1) } : undefined} columns={[
         { key: 'orderNo', header: t('canteen.orders.no'), mobilePrimary: true, render: (v, o) => <span className="flex flex-col"><span className="font-mono-num text-sm font-semibold text-ink">{v}</span><span className="text-[11px] text-ink-faint">{t(`canteen.sources.${o.source}`)}</span></span> },
         { key: 'studentName', header: t('canteen.orders.student'), render: (v, o) => (v ? <span className="flex flex-col"><span className="text-sm text-ink">{v}</span><span className="text-[11px] text-ink-faint">{[o.admissionNo, o.place].filter(Boolean).join(' · ')}</span></span> : <span className="text-ink-faint">{t('canteen.orders.walkIn')}</span>) },
         { key: 'lines', header: t('canteen.orders.items'), mobileHidden: true, render: (v) => <span className="flex flex-wrap gap-1">{v.map((l) => <span key={l.itemId} className="inline-flex items-center gap-1 rounded-md bg-black/[0.04] px-1.5 py-0.5 text-[11px] text-ink"><FoodMark mark={l.mark} size={9} />{l.qty} × {l.name}</span>)}</span> },
@@ -92,7 +95,7 @@ export default function CanteenOrders() {
       ]} className="mb-4" />
       {tab === 'COUNTER' && <CounterPos />}
       {tab === 'PREORDERS' && day && <Preorders date={day} />}
-      {tab === 'SUMMARY' && day && <DaySummary date={day} />}
+      {tab === 'SUMMARY' && day && <DaySummary key={day} date={day} />}
       {tab !== 'COUNTER' && !day && <div className="h-40 rounded-xl bg-black/[0.05] animate-pulse" />}
     </PageContainer>
   )

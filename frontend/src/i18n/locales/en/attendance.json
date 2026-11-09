@@ -86,7 +86,16 @@
       "gateIn": "Came in at the gate · {{time}}",
       "savedOffline": "Saved on this device — it will be sent when you’re back online.",
       "classesNav": "Classes",
-      "navHint": "{{done}} of {{total}} sections marked"
+      "navHint": "{{done}} of {{total}} sections marked",
+      "scan": {
+        "button": "Scan ID cards",
+        "title": "Scan ID cards",
+        "hint": "Each card scanned marks that student present. {{done}} of {{total}} scanned — then save the register.",
+        "present": "Present",
+        "notHere": "Not in this class",
+        "restAbsent_one": "Mark the {{count}} not scanned absent",
+        "restAbsent_other": "Mark the {{count}} not scanned absent"
+      }
     },
     "register": {
       "title": "Attendance register",
@@ -122,6 +131,7 @@
       "newTitle": "Leave for a student",
       "find": "Find the student",
       "findPlaceholder": "Name or admission no.",
+      "search": "Student or admission no.",
       "pick": "Pick the student",
       "student": "Student",
       "from": "From",

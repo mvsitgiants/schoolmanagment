@@ -94,7 +94,10 @@ describe('syllabus and lesson plans', () => {
     const syl = (await admin.get(`${api}/syllabus?classId=${cls.id}&subjectId=${eng.id}`)).body.data
     expect(syl.sections[0].ticks[units[0].topics[0].id]).toMatchObject({ fromPlan: true })
     const week = (await admin.get(`${api}/lesson-plans?from=${year.startDate}&to=${year.startDate}`)).body.data
-    expect(week).toHaveLength(1)
+    expect(week).toMatchObject({ total: 1, page: 1, counts: { DONE: 1 } })
+    expect(week.rows).toHaveLength(1)
+    const month = (await admin.get(`${api}/lesson-plans/calendar?from=${year.startDate}&to=${year.startDate}`)).body.data
+    expect(month).toEqual([expect.objectContaining({ date: year.startDate, total: 1, counts: expect.objectContaining({ DONE: 1 }), plans: [expect.objectContaining({ id: plan.id })] })])
   })
 })
 
@@ -177,6 +180,7 @@ describe('my teaching', () => {
     expect((await tc.get(`${api}/me`)).body.data.toCheck).toEqual([])
     // the lesson plans list can be narrowed to one's own
     const mine = (await admin.get(`${api}/lesson-plans?from=${before.today}&to=${before.today}&mine=1`)).body.data
-    expect(mine.map((p) => p.title)).toEqual(['Someone else’s plan'])
+    expect(mine.rows.map((p) => p.title)).toEqual(['Someone else’s plan'])
+    expect(mine.total).toBe(1)
   })
 })

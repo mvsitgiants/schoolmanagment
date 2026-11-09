@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { BookOpenCheck, CalendarClock, CalendarDays, CalendarHeart, CalendarPlus, CheckCircle2, CircleAlert, Hourglass, ListChecks, NotebookPen, ReceiptIndianRupee, Wallet } from 'lucide-react'
+import { BookOpenCheck, CalendarClock, CalendarDays, CalendarHeart, CalendarPlus, CheckCircle2, CircleAlert, Hourglass, ListChecks, NotebookPen, QrCode, ReceiptIndianRupee, Wallet } from 'lucide-react'
 import { LESSON_STATUS } from '@schoolgiant/shared'
 import { ColorChip, ListRow, ListRows, Money, ProgressBar, SectionCard, SkeletonRows, StatusPill, useTimeAgo } from '../../components/system'
 import Button from '../../components/ui/Button'
@@ -9,6 +9,7 @@ import { useFormat } from '../../context/SettingsContext'
 import { useWeekdayLabel } from '../../components/homework/HomeworkKit'
 import { useMonthLabel } from '../../components/payroll/PayrollKit'
 import { MoreToggle, QuietEmpty, TOUCH, Tile, daysNum, list } from './shared'
+import PunchCodeModal from '../../components/scan/PunchCodeModal'
 
 /**
  * My workspace at a glance (as the hospital workspace's Overview): today's lessons, homework to
@@ -86,6 +87,7 @@ export default function OverviewTab({ teaching, record, leave, payslips, approva
 
   const canPlan = teaching && hasPermission('homework.lesson-plans.create')
   const canSet = teaching && hasPermission('homework.homework.create')
+  const [punch, setPunch] = useState(false)
 
   return (
     <div className="flex flex-col gap-6">
@@ -101,6 +103,7 @@ export default function OverviewTab({ teaching, record, leave, payslips, approva
           {canSet && <Button size="sm" variant="secondary" icon={BookOpenCheck} className={TOUCH} onClick={onSetHomework}>{th('homework.new')}</Button>}
           {leave?.canApply && <Button size="sm" variant="secondary" icon={CalendarPlus} className={TOUCH} onClick={() => onGoto('leave', 'apply')}>{t('me.overview.applyLeave')}</Button>}
           {latest && <Button size="sm" variant="secondary" icon={ReceiptIndianRupee} className={TOUCH} onClick={() => onGoto('payslips')}>{t('me.overview.latestPayslip')}</Button>}
+          {record && <Button size="sm" variant="secondary" icon={QrCode} className={TOUCH} onClick={() => setPunch(true)}>{t('scan:scan.punch.button')}</Button>}
         </div>
       </div>
 
@@ -111,6 +114,7 @@ export default function OverviewTab({ teaching, record, leave, payslips, approva
         {classes.length > 0 && <MyClasses classes={classes} onGoto={onGoto} />}
         {record && <Holidays holidays={list(record.holidays)} />}
       </div>
+      {punch && <PunchCodeModal onClose={() => setPunch(false)} />}
     </div>
   )
 }

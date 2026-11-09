@@ -220,7 +220,8 @@
         "BIOMETRIC": "Biometric attendance device",
         "RFID": "RFID card reader / gate",
         "FACE": "Face recognition camera",
-        "GPS": "Bus GPS tracker"
+        "GPS": "Bus GPS tracker",
+        "PHONE": "Phone / tablet scanner (camera or scanner gun)"
       },
       "usedFor": {
         "STAFF": "Staff attendance",
@@ -325,7 +326,8 @@
       "trackerId": "Tracker id",
       "lastPosition": "Last position",
       "noTrackers": "No bus has a GPS tracker",
-      "noTrackersHint": "Add the tracker’s id to the vehicle in Transport › Vehicles."
+      "noTrackersHint": "Add the tracker’s id to the vehicle in Transport › Vehicles.",
+      "phoneNote": "No key needed: sign in on the phone or tablet with a staff login and open Scan › Gate scanner (or /scan/gate). Each card it scans counts as this device's punch. Students: whoever scans needs “Mark attendance”; staff: “Staff attendance › Edit”."
     },
     "logs": {
       "title": "Integration logs",

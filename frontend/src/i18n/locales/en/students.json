@@ -225,6 +225,7 @@
     "transfer": {
       "title": "Transfer & leaving",
       "subtitle": "Transfer certificates: someone asks for one, someone who may approve issues it — then the student is marked as left.",
+      "search": "Student, admission no. or TC no.…",
       "new": "Ask for a TC",
       "newTitle": "Transfer certificate",
       "request": "Ask for approval",
@@ -309,7 +310,8 @@
         "checkedBy": "Checked by",
         "principal": "Principal",
         "issuedBy": "Issued by {{name}}",
-        "cancelledNote": "Cancelled: {{reason}}"
+        "cancelledNote": "Cancelled: {{reason}}",
+        "scanToCheck": "Scan to check this TC"
       },
       "idCard": {
         "tag": "Student ID card",

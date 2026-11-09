@@ -2,6 +2,7 @@ import {
   FO_COMPLAINT_CATEGORIES, FO_COMPLAINT_FLOW, FO_COMPLAINT_OPEN, FO_COMPLAINT_SOURCE_LABEL, FO_COMPLAINT_STATUS,
   complaintDueOn, complaintOverdue, mobile10, sectionLabel,
 } from '@schoolgiant/shared'
+import mongoose from 'mongoose'
 import { ClassLevel, Section } from '../models/academics.js'
 import { Complaint } from '../models/frontOffice.js'
 import { Student, familyContact, studentName } from '../models/students.js'
@@ -46,35 +47,52 @@ async function classOf(sectionId) {
   return sectionLabel(cls, sec, { short: true })
 }
 
-/** The list with counts for the board (by status, overdue, by category). */
-export async function listComplaints({ status, category, priority, mine, overdue, search, open } = {}, auth) {
+const oid = (v) => (v ? new mongoose.Types.ObjectId(String(v)) : null)
+/** campusFilter, typed for an aggregate $match (no schema casting there). */
+const matchScope = (scope) => (scope.branchId ? { branchId: scope.branchId.$in ? { $in: scope.branchId.$in.map(oid) } : oid(scope.branchId) } : scope)
+
+/**
+ * One page of the list, with counts for the board (by status, overdue, open by category, average days to resolve)
+ * worked out over every complaint matching the other filters — the status / open / overdue view only narrows the rows.
+ */
+export async function listComplaints({ status, category, priority, mine, overdue, search, open, page = 1, pageSize = 50 } = {}, auth) {
   const { date: today } = await foNow()
   const scope = await campusFilter(auth)
-  const filter = { ...scope }
-  if (category) filter.category = category
-  if (priority) filter.priority = priority
-  if (mine) filter.assignedToId = auth.userId
+  const base = {}
+  if (category) base.category = category
+  if (priority) base.priority = priority
+  if (mine) base.assignedToId = oid(auth.userId)
   if (search?.trim()) {
     const re = new RegExp(escapeRegex(search.trim()), 'i')
-    filter.$or = [{ complaintNo: re }, { subject: re }, { 'complainant.name': re }, { studentName: re }, { assignedTo: re }]
+    base.$or = [{ complaintNo: re }, { subject: re }, { 'complainant.name': re }, { studentName: re }, { assignedTo: re }]
   }
-  // the board counts every status (with the other filters); the list then narrows to one
-  const all = await Complaint.find(filter).sort({ createdAt: -1 }).limit(1000).lean()
+  // overdue = still open and past its due day (complaintOverdue), as a query
+  const late = { status: { $in: FO_COMPLAINT_OPEN }, dueOn: { $gt: '', $lt: today } }
+  const narrow = []
+  if (status) narrow.push({ status })
+  if (open) narrow.push({ status: { $in: FO_COMPLAINT_OPEN } })
+  if (overdue) narrow.push(late)
+  const filter = { ...scope, ...base, ...(narrow.length && { $and: narrow }) }
+  const [rows, total, [board]] = await Promise.all([
+    Complaint.find(filter).sort({ createdAt: -1, _id: -1 }).skip((page - 1) * pageSize).limit(pageSize).lean(),
+    Complaint.countDocuments(filter),
+    Complaint.aggregate([{ $match: { ...matchScope(scope), ...base } }, { $facet: {
+      byStatus: [{ $group: { _id: '$status', n: { $sum: 1 } } }],
+      byCategory: [{ $match: { status: { $in: FO_COMPLAINT_OPEN } } }, { $group: { _id: '$category', n: { $sum: 1 } } }],
+      late: [{ $match: late }, { $count: 'n' }],
+      resolve: [{ $match: { resolvedAt: { $ne: null } } }, { $group: { _id: null, ms: { $avg: { $subtract: ['$resolvedAt', '$createdAt'] } } } }],
+    } }]),
+  ])
   const counts = Object.fromEntries(Object.keys(FO_COMPLAINT_STATUS).map((s) => [s, 0]))
+  for (const x of board?.byStatus ?? []) counts[x._id] = x.n
   const byCategory = Object.fromEntries(FO_COMPLAINT_CATEGORIES.map((c) => [c.value, 0]))
-  let late = 0
-  for (const c of all) {
-    counts[c.status] = (counts[c.status] ?? 0) + 1
-    if (FO_COMPLAINT_OPEN.includes(c.status)) byCategory[c.category] = (byCategory[c.category] ?? 0) + 1
-    if (complaintOverdue(c, today)) late++
+  for (const x of board?.byCategory ?? []) byCategory[x._id] = x.n
+  const ms = board?.resolve?.[0]?.ms
+  const avgDays = ms != null ? Math.round((ms / 864e5) * 10) / 10 : null
+  return {
+    today, counts, overdue: board?.late?.[0]?.n ?? 0, byCategory, avgResolveDays: avgDays,
+    rows: rows.map((c) => dto(c, today)), total, page, pageSize,
   }
-  let rows = all
-  if (status) rows = rows.filter((c) => c.status === status)
-  if (open) rows = rows.filter((c) => FO_COMPLAINT_OPEN.includes(c.status))
-  if (overdue) rows = rows.filter((c) => complaintOverdue(c, today))
-  const resolved = all.filter((c) => c.resolvedAt)
-  const avgDays = resolved.length ? Math.round((resolved.reduce((n, c) => n + (new Date(c.resolvedAt) - new Date(c.createdAt)), 0) / resolved.length / 864e5) * 10) / 10 : null
-  return { today, counts, overdue: late, byCategory, avgResolveDays: avgDays, rows: rows.map((c) => dto(c, today)) }
 }
 
 export async function getComplaint(id, auth) {

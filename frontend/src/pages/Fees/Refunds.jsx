@@ -1,14 +1,16 @@
 import { useState } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { Plus, TrendingUp, Undo2, Users } from 'lucide-react'
 import { MODES_WITH_REFERENCE, PAYMENT_MODES, formatINR, formatINRCompact, toPaise, toRupees } from '@schoolgiant/shared'
-import { CodeBadge, ColorChip, DataTable, DateCell, FormField, HeaderButton, Input, Modal, Money, Note, PageContainer, PageHeader, PersonCell, Select, StackCell, StatCardRow, Textarea } from '../../components/system'
+import { CodeBadge, ColorChip, DataTable, DateCell, FormField, HeaderButton, Input, Modal, Money, Note, PageContainer, PageHeader, PersonCell, Select, StackCell, StatCardRow, Textarea, Toolbar } from '../../components/system'
 import Button from '../../components/ui/Button'
 import useDebouncedValue from '../../hooks/useDebouncedValue'
-import { fetchReceipts, fetchRefunds, refundReceipt } from '../../api/fees'
+import { fetchAllRefunds, fetchReceipts, fetchRefunds, refundReceipt } from '../../api/fees'
 import { useSnackbar } from '../../context/SnackbarContext'
 import { useFormat } from '../../context/SettingsContext'
+
+const PAGE = 50
 
 function NewRefund({ onClose, onSaved }) {
   const { t } = useTranslation('fees')
@@ -62,19 +64,26 @@ export default function Refunds() {
   const qc = useQueryClient()
   const { showSuccess } = useSnackbar()
   const [adding, setAdding] = useState(false)
-  const { data: rows = [], isLoading, error, refetch } = useQuery({ queryKey: ['fee-refunds'], queryFn: fetchRefunds })
+  const [search, setSearch] = useState('')
+  const q = useDebouncedValue(search.trim(), 250)
+  const [page, setPage] = useState(1)
+  const params = { search: q || undefined, page, pageSize: PAGE }
+  const { data, isLoading, error, refetch } = useQuery({ queryKey: ['fee-refunds', params], queryFn: () => fetchRefunds(params), placeholderData: keepPreviousData })
+  const rows = data?.rows ?? []
+  // the tiles and the totals strip are over every refund in the filter (the server's summary), not the page shown
+  const sum = data?.summary ?? { count: 0, amount: 0, students: 0, byMode: {}, largest: null }
   const modeLabel = (v) => t(`fees.modes.${v}`, PAYMENT_MODES.find((m) => m.value === v)?.label ?? v)
-  const total = rows.reduce((n, r) => n + r.amount, 0)
-  const byMode = PAYMENT_MODES.map((m) => ({ label: modeLabel(m.value), value: rows.filter((r) => r.mode === m.value).length })).filter((m) => m.value > 0)
-  const largest = rows.reduce((top, r) => (!top || r.amount > top.amount ? r : top), null)
+  const total = sum.amount
+  const byMode = PAYMENT_MODES.map((m) => ({ label: modeLabel(m.value), value: sum.byMode[m.value] ?? 0 })).filter((m) => m.value > 0)
+  const largest = sum.largest
   return (
     <PageContainer>
       <PageHeader icon={Undo2} title={t('fees.refunds.title')} subtitle={t('fees.refunds.subtitle')}
         actions={<HeaderButton icon={Plus} variant="primary" requires="fees.refunds.refund" onClick={() => setAdding(true)}>{t('fees.refunds.new')}</HeaderButton>} />
-      {rows.length > 0 && (
+      {sum.count > 0 && (
         <StatCardRow className="mb-4" items={[
-          { icon: Undo2, tone: 'danger', label: t('fees.refunds.summary.refunded'), value: formatINRCompact(total), sub: t('fees.refunds.summary.count', { count: rows.length }), segments: byMode },
-          { icon: Users, tone: 'violet', label: t('fees.refunds.summary.students'), value: new Set(rows.map((r) => r.studentId)).size },
+          { icon: Undo2, tone: 'danger', label: t('fees.refunds.summary.refunded'), value: formatINRCompact(total), sub: t('fees.refunds.summary.count', { count: sum.count }), segments: byMode },
+          { icon: Users, tone: 'violet', label: t('fees.refunds.summary.students'), value: sum.students },
           { icon: TrendingUp, tone: 'orange', label: t('fees.refunds.summary.largest'), value: formatINRCompact(largest.amount), sub: largest.student?.name },
         ]} />
       )}
@@ -83,7 +92,9 @@ export default function Refunds() {
         loading={isLoading}
         error={error}
         onRetry={refetch}
-        exportable exportName="fee-refunds"
+        exportable exportName="fee-refunds" exportAll={() => fetchAllRefunds({ search: q || undefined })}
+        pagination={data && data.total > PAGE ? { page: page - 1, size: PAGE, totalElements: data.total, totalPages: Math.ceil(data.total / PAGE), onPageChange: (p) => setPage(p + 1) } : undefined}
+        toolbar={<Toolbar search={search} onSearch={(v) => { setSearch(v); setPage(1) }} searchPlaceholder={t('fees.refunds.search')} />}
         columns={[
           { key: 'refundNo', header: t('fees.refunds.no'), nowrap: true, render: (v) => <span className="font-mono-num">{v}</span> },
           { key: 'student', header: t('fees.refunds.student'), mobilePrimary: true, render: (v) => <span className="flex items-center gap-2 min-w-0"><PersonCell name={v?.name ?? '—'} sub={v?.admissionNo} size={32} />{v?.classShort && <ColorChip label={v.classShort} seed={v.classId ?? v.classShort} />}</span> },

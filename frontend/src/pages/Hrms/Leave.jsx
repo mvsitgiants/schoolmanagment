@@ -1,16 +1,19 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { Ban, Check, Palmtree, Pencil, Plus, X } from 'lucide-react'
 import { EMPLOYEE_CATEGORIES, GENDERS, LEAVE_ACCRUALS, LEAVE_STATUSES } from '@schoolgiant/shared'
-import { ColorChip, DataTable, FormField, Input, LevelBar, Modal, PageContainer, PageHeader, PersonCell, SegmentedControl, Select, StatusPill, Tabs, usePrompt } from '../../components/system'
+import { ColorChip, DataTable, FormField, Input, LevelBar, Modal, PageContainer, PageHeader, PersonCell, SearchInput, SegmentedControl, Select, StatusPill, Tabs, usePrompt } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { applyLeaveFor, cancelLeave, createLeaveType, decideLeave, fetchLeaveBalances, fetchLeaveTypes, fetchLeaves, updateLeaveType } from '../../api/hrms'
 import { hasPermission } from '../../api/auth'
 import { useSnackbar } from '../../context/SnackbarContext'
 import { useFormat } from '../../context/SettingsContext'
 import { LeaveApplyForm, useHrLabels, useHrMeta, useLeaveSpan } from '../../components/hrms/HrKit'
+import useDebouncedValue from '../../hooks/useDebouncedValue'
+
+const PAGE = 50
 
 // a leave type's chip colour: the tone set on the type, else one picked from its code
 const typeTone = (tone) => (tone && tone !== 'neutral' ? tone : undefined)
@@ -78,8 +81,14 @@ function Requests() {
   const span = useLeaveSpan()
   const { showSuccess, showError } = useSnackbar()
   const [status, setStatus] = useState('PENDING')
+  const [search, setSearch] = useState('')
+  const q = useDebouncedValue(search.trim(), 300)
+  const [page, setPage] = useState(1)
   const [applying, setApplying] = useState(false)
-  const { data, isLoading, error, refetch } = useQuery({ queryKey: ['leaves', status], queryFn: () => fetchLeaves({ status: status || undefined }) })
+  const params = { status: status || undefined, search: q || undefined, page, pageSize: PAGE }
+  const { data, isLoading, error, refetch } = useQuery({ queryKey: ['leaves', params], queryFn: () => fetchLeaves(params), placeholderData: (p) => p })
+  // deciding the last request on a later page empties it: step back to the last page there is
+  useEffect(() => { if (data && page > 1 && !data.rows.length && data.total) setPage(Math.ceil(data.total / PAGE)) }, [data, page])
   const { data: meta } = useHrMeta(hasPermission('hrms.leave.apply_on_behalf'))
   const { data: types = [] } = useQuery({ queryKey: ['leave-types'], queryFn: fetchLeaveTypes })
   const refresh = () => ['leaves', 'leave-balances', 'staff-day', 'staff-month'].forEach((k) => qc.invalidateQueries({ queryKey: [k] }))
@@ -99,11 +108,14 @@ function Requests() {
   return (
     <>
       <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-        <SegmentedControl value={status} onChange={setStatus} options={[
+        <SegmentedControl value={status} onChange={(v) => { setStatus(v); setPage(1) }} options={[
           { value: 'PENDING', label: t('hrms.leave.waitingCount', { count: data?.pending ?? 0 }) },
           { value: 'APPROVED', label: L.leaveStatus('APPROVED') }, { value: 'REJECTED', label: L.leaveStatus('REJECTED') }, { value: 'CANCELLED', label: L.leaveStatus('CANCELLED') }, { value: '', label: t('hrms.all') },
         ]} />
-        {hasPermission('hrms.leave.apply_on_behalf') && <Button icon={Plus} onClick={() => setApplying(true)}>{t('hrms.leave.applyFor')}</Button>}
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="w-64"><SearchInput value={search} onChange={(v) => { setSearch(v); setPage(1) }} placeholder={t('hrms.leave.search')} /></div>
+          {hasPermission('hrms.leave.apply_on_behalf') && <Button icon={Plus} onClick={() => setApplying(true)}>{t('hrms.leave.applyFor')}</Button>}
+        </div>
       </div>
       <DataTable rows={data?.rows ?? []} loading={isLoading} error={error} onRetry={refetch} columns={[
         { key: 'employeeName', header: t('hrms.leave.person'), mobilePrimary: true, render: (v, r) => <PersonCell name={v} sub={r.employeeCode} onClick={() => navigate(`/hrms/employees/${r.employeeId}`)} /> },
@@ -121,7 +133,8 @@ function Requests() {
             {['PENDING', 'APPROVED'].includes(r.status) && canCancel && <Button size="sm" variant="ghost" icon={Ban} aria-label={t('hrms.leave.cancel')} title={t('hrms.leave.cancel')} onClick={() => cancel(r)} />}
           </div>
         ) },
-      ]} emptyIcon={Palmtree} emptyTitle={status === 'PENDING' ? t('hrms.leave.noneWaiting') : t('hrms.leave.none')} />
+      ]} emptyIcon={Palmtree} emptyTitle={status === 'PENDING' ? t('hrms.leave.noneWaiting') : t('hrms.leave.none')}
+        pagination={data && data.total > PAGE ? { page: page - 1, size: PAGE, totalElements: data.total, totalPages: Math.ceil(data.total / PAGE), onPageChange: (p) => setPage(p + 1) } : undefined} />
       {applying && <LeaveApplyForm types={types} employees={(meta?.staff ?? [])} canApproveNow={canApprove} submit={applyLeaveFor}
         onClose={() => setApplying(false)} onSaved={() => { setApplying(false); refresh(); showSuccess(t('hrms.leave.appliedFor')) }} />}
     </>

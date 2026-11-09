@@ -6,6 +6,7 @@ import { can } from '../platform/access.js'
 import { audit } from '../platform/audit.js'
 import { clean, isOid, oid } from '../platform/db.js'
 import { badRequest, conflict, forbidden, notFound } from '../platform/errors.js'
+import { escapeRegex } from '../platform/validate.js'
 import { notifyUsers } from './notify.js'
 import { employeeIdFilter, employeeScope, employeeSnap, findEmployee, hrSettings, idStr, myEmployee, offDatesFor, stamp, todayYmd, usersWith } from './hrmsCommon.js'
 
@@ -281,15 +282,27 @@ export async function cancelLeave(id, { reason }, auth, req, { self = false } = 
 }
 
 /** HR's list of requests. */
+/**
+ * Leave requests, one page at a time (pending: soonest first; otherwise latest first). Search runs on the server over the
+ * person's name and staff code. `pending` counts every request waiting in the caller's scope, whatever the filters.
+ */
 export async function listLeaves(q, auth) {
+  const { page = 1, pageSize = 50 } = q
+  const scope = await employeeIdFilter(auth)
   const f = { ...await employeeIdFilter(auth, q.employeeId) }
   if (q.status) f.status = q.status
-  if (q.leaveTypeId) f.leaveTypeId = q.leaveTypeId
+  if (q.leaveTypeId) f.leaveTypeId = oid(q.leaveTypeId)
   if (q.from) f.to = { $gte: q.from }
   if (q.to) f.from = { $lte: q.to }
-  const rows = await Leave.find(f).sort(q.status === 'PENDING' ? { from: 1 } : { from: -1 }).limit(Math.min(Number(q.limit) || 300, 1000)).lean()
-  const counts = await Leave.aggregate([{ $match: { ...await employeeIdFilter(auth), status: 'PENDING' } }, { $count: 'n' }])
-  return { rows: rows.map(dto), pending: counts[0]?.n ?? 0 }
+  const term = String(q.search ?? '').trim()
+  if (term) { const re = new RegExp(escapeRegex(term), 'i'); f.$or = [{ employeeName: re }, { employeeCode: re }] }
+  const sort = q.status === 'PENDING' ? { from: 1, _id: 1 } : { from: -1, _id: -1 }
+  const [rows, total, pending] = await Promise.all([
+    Leave.find(f).sort(sort).skip((page - 1) * pageSize).limit(pageSize).lean(),
+    Leave.countDocuments(f),
+    Leave.countDocuments({ ...scope, status: 'PENDING' }),
+  ])
+  return { rows: rows.map(dto), total, page, pageSize, pending }
 }
 
 /** Requests the signed-in person can decide: those with them, and (HR) every one waiting. */

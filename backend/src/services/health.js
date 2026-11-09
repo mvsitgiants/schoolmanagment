@@ -53,6 +53,20 @@ async function studentLabels(ids) {
   }))
 }
 
+/** Students matching every word of a search (name parts or admission no.), so "asha rao" finds Asha Rao. */
+function studentMatch(q) {
+  const words = String(q ?? '').trim().split(/\s+/).filter(Boolean).slice(0, 5)
+  if (!words.length) return null
+  return { $and: words.map((w) => { const re = new RegExp(escapeRegex(w), 'i'); return { $or: [{ firstName: re }, { middleName: re }, { lastName: re }, { admissionNo: re }] } }) }
+}
+
+/** A visit / incident search on the server: the student's name or admission no., the staff name, or `also` fields. */
+async function personSearch(q, also = []) {
+  const re = new RegExp(escapeRegex(q), 'i')
+  const ids = (await Student.find(studentMatch(q)).select('_id').lean()).map((s) => s._id)
+  return { $or: [{ studentId: { $in: ids } }, { staffName: re }, ...also.map((k) => ({ [k]: re }))] }
+}
+
 const latest = (r) => [...(r?.measurements ?? [])].sort((a, b) => b.date.localeCompare(a.date))[0] ?? null
 
 /** A record as the caller may see it: without the sensitive part unless they hold view_sensitive. */
@@ -78,18 +92,22 @@ function recordOut(r, student, sensitive) {
 
 /**
  * Students with their health at a glance (blood group, allergies, BMI, vaccinations), for the records list; `filter`
- * narrows to those with allergies, with no record yet, or (sensitive) with a condition. Plus counts for the tiles.
+ * narrows to those with allergies, with no record yet, or (sensitive) with a condition. One page of the list (search runs on
+ * the server across all of them), plus counts for the tiles over every student in scope.
  */
-export async function listRecords({ search, sectionId, filter }, auth) {
+export async function listRecords({ search, sectionId, filter, page = 1, pageSize = 50 }, auth) {
   const sensitive = seesSensitive(auth)
   const f = { status: 'ACTIVE', ...siteFilter(auth) }
   if (isOid(sectionId)) f.sectionId = oid(sectionId)
   const q = String(search ?? '').trim()
-  if (q) { const re = new RegExp(escapeRegex(q), 'i'); f.$or = [{ firstName: re }, { lastName: re }, { admissionNo: re }] }
+  if (q) Object.assign(f, studentMatch(q))
   const recFilter = filter === 'ALLERGIES' ? { 'allergies.0': { $exists: true } } : filter === 'CONDITIONS' && sensitive ? { 'conditions.0': { $exists: true } } : null
   if (recFilter) f._id = { $in: (await HealthRecord.find(recFilter).select('studentId').lean()).map((r) => r.studentId) }
   if (filter === 'NO_RECORD') f._id = { $nin: (await HealthRecord.find({}).select('studentId').lean()).map((r) => r.studentId) }
-  const students = await Student.find(f).select('firstName middleName lastName admissionNo sectionId bloodGroup gender').sort({ firstName: 1, lastName: 1 }).limit(500).lean()
+  const [students, total] = await Promise.all([
+    Student.find(f).select('firstName middleName lastName admissionNo sectionId bloodGroup gender').sort({ firstName: 1, lastName: 1, _id: 1 }).skip((page - 1) * pageSize).limit(pageSize).lean(),
+    Student.countDocuments(f),
+  ])
   const [records, sec] = await Promise.all([HealthRecord.find({ studentId: { $in: students.map((s) => s._id) } }).lean(), classLabels(students.map((s) => s.sectionId))])
   const byStudent = new Map(records.map((r) => [String(r.studentId), r]))
   const rows = students.map((s) => {
@@ -110,7 +128,7 @@ export async function listRecords({ search, sectionId, filter }, auth) {
   const blood = {}
   for (const r of all) if (r.bloodGroup) blood[r.bloodGroup] = (blood[r.bloodGroup] ?? 0) + 1
   return {
-    rows, sensitive,
+    rows, total, page, pageSize, sensitive,
     counts: {
       students: scopeIds.length, withRecord: all.length, withAllergies: all.filter((r) => r.allergies?.length).length,
       ...(sensitive && { withConditions: all.filter((r) => r.conditions?.length).length }), bloodGroups: blood,
@@ -209,13 +227,18 @@ const visitOut = (v, people) => ({
   minutes: Math.max(0, Math.round(((v.outAt ? new Date(v.outAt) : new Date()).getTime() - new Date(v.inAt).getTime()) / 60000)),
 })
 
-export async function listVisits({ date, from, to, search, personType }, auth) {
+/** Visits on a day (default today) or over a date range, one page at a time; search runs on the server. */
+export async function listVisits({ date, from, to, search, personType, page = 1, pageSize = 50 }, auth) {
   const d = date || (!from && !to ? await today() : null)
   const f = { ...siteFilter(auth), ...(d ? { date: d } : { date: { ...(from && { $gte: from }), ...(to && { $lte: to }) } }), ...(personType && { personType }) }
-  const rows = await SickVisit.find(f).sort({ inAt: -1 }).limit(1000).lean()
+  const q = String(search ?? '').trim()
+  if (q) Object.assign(f, await personSearch(q))
+  const [rows, total] = await Promise.all([
+    SickVisit.find(f).sort({ inAt: -1, _id: -1 }).skip((page - 1) * pageSize).limit(pageSize).lean(),
+    SickVisit.countDocuments(f),
+  ])
   const people = await withPeople(rows)
-  const q = String(search ?? '').trim().toLowerCase()
-  return rows.map((v) => visitOut(v, people)).filter((v) => !q || v.person.name.toLowerCase().includes(q) || (v.person.admissionNo ?? '').toLowerCase().includes(q))
+  return { rows: rows.map((v) => visitOut(v, people)), total, page, pageSize }
 }
 
 /** Today in the sick room: who is in now, everyone seen today, how visits ended, and the last 30 days' complaints. */
@@ -293,16 +316,21 @@ export async function staffLogins() {
 
 const incidentOut = (i, people) => ({ ...clean(i), studentId: idStr(i.studentId), staffUserId: idStr(i.staffUserId), visitId: idStr(i.visitId), branchId: idStr(i.branchId), ...people(i) })
 
-export async function listIncidents({ status, severity, from, to, search }, auth) {
+/** Incident reports, one page at a time (search on the server: the person or the place); the tiles count all open ones. */
+export async function listIncidents({ status, severity, from, to, search, page = 1, pageSize = 50 }, auth) {
   const f = { ...siteFilter(auth), ...(status && { status }), ...(severity && { severity }), ...((from || to) && { date: { ...(from && { $gte: from }), ...(to && { $lte: to }) } }) }
-  const rows = await HealthIncident.find(f).sort({ date: -1, createdAt: -1 }).limit(1000).lean()
+  const q = String(search ?? '').trim()
+  if (q) Object.assign(f, await personSearch(q, ['place']))
+  const [rows, total] = await Promise.all([
+    HealthIncident.find(f).sort({ date: -1, createdAt: -1, _id: -1 }).skip((page - 1) * pageSize).limit(pageSize).lean(),
+    HealthIncident.countDocuments(f),
+  ])
   const people = await withPeople(rows)
-  const q = String(search ?? '').trim().toLowerCase()
-  const list = rows.map((i) => incidentOut(i, people)).filter((i) => !q || i.person.name.toLowerCase().includes(q) || (i.place ?? '').toLowerCase().includes(q))
+  const list = rows.map((i) => incidentOut(i, people))
   const t = await today()
   const open = await HealthIncident.find({ ...siteFilter(auth), status: 'OPEN' }).select('severity guardianInformed followUpDate').lean()
   return {
-    rows: list,
+    rows: list, total, page, pageSize,
     counts: {
       open: open.length, serious: open.filter((i) => (INCIDENT_SEVERITY[i.severity]?.rank ?? 0) >= 3).length,
       notInformed: open.filter((i) => !i.guardianInformed?.at).length, followUpDue: open.filter((i) => i.followUpDate && i.followUpDate <= t).length,

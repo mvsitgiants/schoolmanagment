@@ -5,6 +5,7 @@ import { notFound } from '../platform/errors.js'
 import { objectId, z } from '../platform/validate.js'
 import { phoneScanners } from '../services/devices.js'
 import { gateScan, mayUseScanner, myPunchCode, resolveCode } from '../services/scan.js'
+import { usePass } from '../services/passes.js'
 
 // Scan: /api/v1/scan/* — what a scanned code is (every signed-in member of staff; what comes back follows their
 // own modules, permissions and data scope), the phone gate scanners, and a member of staff's rotating punch code.
@@ -30,6 +31,13 @@ router.post('/gates/:id', async (req, res) => {
   if (!d || d.kind !== 'PHONE') throw notFound('Scanner')
   mayUseScanner(d.usedFor, req.auth)
   res.json({ data: await gateScan(id, body, req.auth) })
+})
+
+/** A family's pass, scanned: check in at an event or a parent–teacher meeting, or hand a child over (early pickup). */
+router.post('/passes/:kind/:id/:what', async (req, res) => {
+  const { kind, what } = z.object({ kind: z.enum(['event', 'meeting', 'pickup']), what: z.enum(['check-in', 'hand-over']) }).parse(req.params)
+  if ((kind === 'pickup') !== (what === 'hand-over')) throw notFound('Pass')
+  res.json({ data: await usePass(kind, objectId.parse(req.params.id), req.auth, req) })
 })
 
 /** My workspace: the code a member of staff shows at a gate scanner (rotates; fresh for 90 seconds). */

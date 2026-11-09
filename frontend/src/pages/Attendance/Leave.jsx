@@ -1,9 +1,9 @@
 import { useState } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { CalendarOff, Check, CheckCircle2, Hourglass, Plus, X, XCircle } from 'lucide-react'
 import { LEAVE_STATUS, daysBetween } from '@schoolgiant/shared'
-import { ColorChip, ControlChip, DataTable, FormField, HeaderButton, Input, Modal, PageContainer, PageHeader, PersonCell, Select, StackCell, StatCardRow, StatusPill, TONE, Textarea, localIso, useConfirm } from '../../components/system'
+import { ColorChip, ControlChip, DataTable, FormField, HeaderButton, Input, Modal, PageContainer, PageHeader, PersonCell, Select, StackCell, StatCardRow, StatusPill, TONE, Textarea, Toolbar, localIso, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
 import useDebouncedValue from '../../hooks/useDebouncedValue'
 import { applyStudentLeave, cancelStudentLeave, decideStudentLeave, fetchStudentLeave } from '../../api/attendance'
@@ -11,6 +11,8 @@ import { fetchStudents } from '../../api/students'
 import { hasPermission } from '../../api/auth'
 import { useSnackbar } from '../../context/SnackbarContext'
 import { useFormat } from '../../context/SettingsContext'
+
+const PAGE = 50
 
 function ApplyLeave({ onClose, onSaved }) {
   const { t } = useTranslation('attendance')
@@ -52,10 +54,16 @@ export default function Leave() {
   const { showSuccess, showError } = useSnackbar()
   const [status, setStatus] = useState('PENDING')
   const [adding, setAdding] = useState(false)
-  const { data: rows = [], isLoading, error, refetch } = useQuery({ queryKey: ['student-leave', status], queryFn: () => fetchStudentLeave({ status: status || undefined }) })
-  // the tiles count every request, whichever status is picked (the same list as "All")
-  const { data: all = [] } = useQuery({ queryKey: ['student-leave', ''], queryFn: () => fetchStudentLeave({}) })
-  const tally = all.reduce((m, r) => ({ ...m, [r.status]: (m[r.status] ?? 0) + 1 }), {})
+  const [search, setSearch] = useState('')
+  const q = useDebouncedValue(search.trim(), 250)
+  const [page, setPage] = useState(1)
+  const params = { status: status || undefined, search: q || undefined, page, pageSize: PAGE }
+  const { data, isLoading, error, refetch } = useQuery({ queryKey: ['student-leave', params], queryFn: () => fetchStudentLeave(params), placeholderData: keepPreviousData })
+  const rows = data?.rows ?? []
+  // the tiles count every request, whichever status is picked (the server's per-status counts, not the page)
+  const tally = data?.counts ?? {}
+  const anyLeave = Object.values(tally).some((n) => n > 0)
+  const pickStatus = (s) => { setStatus(s); setPage(1) }
   const today = localIso(new Date())
   const refresh = () => { qc.invalidateQueries({ queryKey: ['student-leave'] }); qc.invalidateQueries({ queryKey: ['attendance-sheet'] }) }
   const act = useMutation({ mutationFn: ({ fn }) => fn(), onSuccess: (_, v) => { refresh(); showSuccess(v.done) }, onError: (e) => showError(e.message) })
@@ -68,10 +76,10 @@ export default function Leave() {
     <PageContainer>
       <PageHeader icon={CalendarOff} title={t('attendance.leave.title')} subtitle={t('attendance.leave.subtitle')}
         actions={<HeaderButton icon={Plus} variant="primary" onClick={() => setAdding(true)}>{t('attendance.leave.new')}</HeaderButton>} />
-      {all.length > 0 && (
+      {anyLeave && (
         <StatCardRow className="mb-4" items={STATUSES.filter(Boolean).map((k) => ({
           label: statusLabel(k), value: tally[k] ?? 0, ...STATUS_LOOK[k],
-          onClick: () => setStatus(status === k ? '' : k),
+          onClick: () => pickStatus(status === k ? '' : k),
           className: status === k ? 'ring-2 ring-brand-400' : status ? 'opacity-60 hover:opacity-100' : undefined,
         }))} />
       )}
@@ -80,7 +88,9 @@ export default function Leave() {
         loading={isLoading}
         error={error}
         onRetry={refetch}
-        toolbar={<div className="flex justify-end"><ControlChip label={t('attendance.leave.statusLabel')} value={statusLabel(status)} active={status !== 'PENDING'} options={STATUSES.map(statusLabel)} onChange={(v) => setStatus(STATUSES.find((s) => statusLabel(s) === v) ?? 'PENDING')} /></div>}
+        pagination={data && data.total > PAGE ? { page: page - 1, size: PAGE, totalElements: data.total, totalPages: Math.ceil(data.total / PAGE), onPageChange: (p) => setPage(p + 1) } : undefined}
+        toolbar={<Toolbar search={search} onSearch={(v) => { setSearch(v); setPage(1) }} searchPlaceholder={t('attendance.leave.search')}
+          right={<ControlChip label={t('attendance.leave.statusLabel')} value={statusLabel(status)} active={status !== 'PENDING'} options={STATUSES.map(statusLabel)} onChange={(v) => pickStatus(STATUSES.find((s) => statusLabel(s) === v) ?? 'PENDING')} />} />}
         columns={[
           { key: 'studentName', header: t('attendance.leave.student'), mobilePrimary: true, render: (v, r) => <PersonCell name={v} sub={r.admissionNo} size={34} /> },
           { key: 'classShort', header: t('attendance.leave.class'), mobileHidden: true, render: (v) => <ColorChip label={v} /> },

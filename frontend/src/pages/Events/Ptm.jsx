@@ -117,6 +117,7 @@ function SessionForm({ session, onClose, onSaved }) {
 
 function SlotRow({ slot, onBook, onMark, onNote, onCancel, canManage }) {
   const { t } = useTranslation('events')
+  const { time } = useFormat()
   const L = useEventLabels()
   const b = slot.booking
   return (
@@ -129,7 +130,7 @@ function SlotRow({ slot, onBook, onMark, onNote, onCancel, canManage }) {
             <p className="text-xs text-ink-faint">{b.guardian}{b.mobile && <> · <PhoneLink number={b.mobile} /></>}{b.byFamily ? ` · ${t('events.ptm.byFamily')}` : ''}</p>
             {b.remarks && <p className="mt-0.5 text-xs text-ink-muted whitespace-pre-line">{b.remarks}</p>}
           </div>
-          <StatusPill tone={BOOKING_STATUS[b.status]?.tone}>{L.booking(b.status)}</StatusPill>
+          {b.status === 'BOOKED' && b.arrivedAt ? <StatusPill tone="success">{t('events.ptm.waiting', { time: time(b.arrivedAt) })}</StatusPill> : <StatusPill tone={BOOKING_STATUS[b.status]?.tone}>{L.booking(b.status)}</StatusPill>}
           {canManage && (
             <div className="flex gap-1">
               <Button size="sm" variant={b.status === 'ATTENDED' ? 'primary' : 'ghost'} icon={Check} aria-label={L.booking('ATTENDED')} onClick={() => onMark(b, 'ATTENDED')} />

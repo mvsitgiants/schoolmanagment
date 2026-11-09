@@ -11,6 +11,8 @@
   table.tt td { padding: 1.3mm 1mm; border-bottom: 1px solid #EEF0F3 }
   table.tt .n { text-align: right; white-space: nowrap }
   .ins { margin-top: 4mm; font-size: 8.5pt; color: #3A3F4B; white-space: pre-line }
+  .chk { display: flex; justify-content: flex-end; margin-top: 4mm }
+  .chk span { display: flex; flex-direction: column; align-items: center; gap: .8mm; font-size: 7pt; color: #5B616E; text-align: center }
   .sign { margin-top: 12mm; display: flex; justify-content: space-between; gap: 8mm; font-size: 9pt }
   .sign div { flex: 1; text-align: center; border-top: 1px solid #8B90A0; padding-top: 1.5mm }
 </style>
@@ -36,6 +38,7 @@
   </tbody>
 </table>
 {{#if exam.instructions}}<div class="ins"><b>{{t "exams.print.hallTicket.instructions" "Instructions"}}</b><br>{{exam.instructions}}</div>{{/if}}
+{{#if exam.verifyUrl}}<div class="chk"><span>{{qr exam.verifyUrl 18}}{{t "exams.print.hallTicket.scanToCheck" "Scan at the exam door"}}</span></div>{{/if}}
 <div class="sign">
   <div>{{t "exams.print.hallTicket.studentSign" "Student"}}</div>
   <div>{{t "exams.print.hallTicket.teacherSign" "Class teacher"}}</div>

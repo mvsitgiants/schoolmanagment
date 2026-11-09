@@ -1,4 +1,4 @@
-import { MARK_BY, attendancePct, countMarks, dayFromPeriods, daysBetween, monthRange, sectionLabel, takesDaily, takesPeriods, weekdayCode } from '@schoolgiant/shared'
+import { LEAVE_STATUS, MARK_BY, attendancePct, countMarks, dayFromPeriods, daysBetween, monthRange, sectionLabel, takesDaily, takesPeriods, weekdayCode } from '@schoolgiant/shared'
 import { AttendanceSheet, StudentLeave } from '../models/attendance.js'
 import { AcademicYear, ClassLevel, Section, Subject } from '../models/academics.js'
 import { Student, studentName } from '../models/students.js'
@@ -9,6 +9,7 @@ import { badRequest, conflict, forbidden, notFound } from '../platform/errors.js
 import { emit } from '../platform/events.js'
 import { getSettings } from '../platform/settings.js'
 import { institutionNow } from '../platform/time.js'
+import { escapeRegex } from '../platform/validate.js'
 import { currentYear, mySectionIds, sectionsInScope } from './academics.js'
 import { humanDate } from './notify.js'
 import { periodPlan, periodsOf, teacherPeriods } from './attendancePeriods.js'
@@ -363,12 +364,27 @@ async function decorate(rows) {
   return rows.map((r) => leaveDto(r, names, places))
 }
 
-export async function listLeave({ status, sectionId }, auth) {
+/**
+ * Student leave requests in the caller's sections, a page at a time (by status, latest first). `counts` is per status
+ * over every request for the same section / search, whichever status is picked (the screen's tiles).
+ */
+export async function listLeave({ status, sectionId, search, page = 1, pageSize = 50 } = {}, auth) {
   const allowed = await sectionsInScope(auth, 'attendance')
-  const filter = { ...(status && { status }), ...(sectionId && { sectionId }) }
-  if (allowed) filter.sectionId = sectionId ? (allowed.includes(String(sectionId)) ? sectionId : null) : { $in: allowed }
-  const rows = await StudentLeave.find(filter).sort({ status: 1, from: -1 }).limit(500).lean()
-  return decorate(rows)
+  const wide = { ...(sectionId && { sectionId }) }
+  if (allowed) wide.sectionId = sectionId ? (allowed.includes(String(sectionId)) ? sectionId : null) : { $in: allowed }
+  const q = String(search ?? '').trim()
+  if (q) {
+    const re = new RegExp(escapeRegex(q), 'i')
+    wide.studentId = { $in: (await Student.find({ $or: [{ firstName: re }, { lastName: re }, { admissionNo: re }] }).select('_id').lean()).map((s) => s._id) }
+  }
+  const filter = { ...wide, ...(status && { status }) }
+  const statuses = Object.keys(LEAVE_STATUS)
+  const [rows, total, ...tally] = await Promise.all([
+    StudentLeave.find(filter).sort({ status: 1, from: -1, _id: -1 }).skip((page - 1) * pageSize).limit(pageSize).lean(),
+    StudentLeave.countDocuments(filter),
+    ...statuses.map((s) => StudentLeave.countDocuments({ ...wide, status: s })),
+  ])
+  return { rows: await decorate(rows), total, page, pageSize, counts: Object.fromEntries(statuses.map((s, i) => [s, tally[i]])) }
 }
 
 export async function applyLeave({ studentId, from, to, reason }, auth, req) {

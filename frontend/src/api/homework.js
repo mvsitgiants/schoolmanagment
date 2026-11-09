@@ -19,7 +19,10 @@ export const fetchSyllabus = (classId, subjectId) => get(`${BASE}/syllabus`, { c
 export const saveSyllabus = (body) => put(`${BASE}/syllabus`, body)
 export const markSyllabusTopics = (body) => post(`${BASE}/syllabus/progress`, body)
 
+/** One page of lesson plans in date order: `{ rows, total, page, pageSize, counts }` (counts by status over the whole range). */
 export const fetchLessonPlans = (params) => get(`${BASE}/lesson-plans`, params)
+/** The month view: `[{ date, total, counts, plans }]` — each day's tally and its first three plans. */
+export const fetchLessonCalendar = (params) => get(`${BASE}/lesson-plans/calendar`, params)
 export const createLessonPlan = (body) => post(`${BASE}/lesson-plans`, body)
 export const updateLessonPlan = (id, body) => patch(`${BASE}/lesson-plans/${id}`, body)
 export const deleteLessonPlan = (id) => del(`${BASE}/lesson-plans/${id}`)

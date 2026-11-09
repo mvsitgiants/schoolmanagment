@@ -71,8 +71,12 @@ describe('directory, Student 360 and guardians', () => {
     const full = (await admin.get(`/api/v1/students/${diya.id}`)).body.data
     expect(full.siblings.map((x) => x.name)).toEqual(['Aarav Sharma'])
     const parents = (await admin.get('/api/v1/students/guardians?search=neha')).body.data
-    expect(parents[0]).toMatchObject({ name: 'Neha Sharma', mobile: '9845022222', primaryFor: 2 })
-    expect(parents[0].children).toHaveLength(2)
+    expect(parents).toMatchObject({ total: 1, page: 1, pageSize: 50, counts: { children: 2, siblings: 1 } })
+    expect(parents.rows[0]).toMatchObject({ name: 'Neha Sharma', mobile: '9845022222', primaryFor: 2 })
+    expect(parents.rows[0].children).toHaveLength(2)
+    // the search reaches the children too, and pages are cut on the server
+    expect((await admin.get('/api/v1/students/guardians?search=diya')).body.data.rows.map((g) => g.name)).toContain('Neha Sharma')
+    expect((await admin.get('/api/v1/students/guardians?pageSize=1')).body.data.rows).toHaveLength(1)
   })
 
   it('shows the full Aadhaar only to roles that may see it, and logs that it was seen', async () => {
@@ -158,6 +162,10 @@ describe('transfer certificates', () => {
     const desk = await signIn(app, 'tc@s.test', 'Desk@1234')
     const tc = (await desk.post('/api/v1/students/tc').send({ studentId: diya.id, leavingDate: year1.endDate, reason: 'RELOCATION', conduct: 'Very good', promotedTo: 'Qualified for Class 9' })).body.data
     expect(tc).toMatchObject({ status: 'REQUESTED', lastClassLabel: 'Class 8 – B' })
+    const register = (await desk.get('/api/v1/students/tc?search=diya')).body.data
+    expect(register).toMatchObject({ total: 1, counts: { REQUESTED: 1 } })
+    expect(register.rows.map((r) => r.id)).toEqual([tc.id])
+    expect((await desk.get('/api/v1/students/tc?status=ISSUED')).body.data).toMatchObject({ rows: [], total: 0 })
     expect((await desk.post('/api/v1/students/tc').send({ studentId: diya.id, leavingDate: year1.endDate, reason: 'OTHER' })).status).toBe(409)
     expect((await desk.post(`/api/v1/students/tc/${tc.id}/issue`)).status).toBe(403) // can't approve their own
     // the draft prints with a "not yet issued" stamp

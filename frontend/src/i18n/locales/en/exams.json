@@ -268,7 +268,8 @@
         "studentSign": "Student",
         "teacherSign": "Class teacher",
         "principalSign": "Principal",
-        "seat": "Room · Seat"
+        "seat": "Room · Seat",
+        "scanToCheck": "Scan at the exam door"
       },
       "reportCard": {
         "stampProvisional": "PROVISIONAL",
@@ -298,7 +299,8 @@
         "scale": "Grading scale",
         "teacherSign": "Class teacher",
         "principalSign": "Principal",
-        "parentSign": "Parent / guardian"
+        "parentSign": "Parent / guardian",
+        "scanToCheck": "Scan to check this report card"
       },
       "seating": {
         "title": "Seating plan",

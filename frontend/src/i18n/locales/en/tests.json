@@ -59,6 +59,8 @@
     "statusCol": "Status",
     "empty": "No tests yet",
     "emptyHint": "Add questions to the question bank (LMS), then set a test from them.",
+    "search": "Search tests…",
+    "noMatch": "No test matches.",
     "marks": "{{n}} marks",
     "minutes_one": "{{count}} minute",
     "minutes_other": "{{count}} minutes",

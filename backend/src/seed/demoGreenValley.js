@@ -346,7 +346,7 @@ async function fillStaffAttendance(admin) {
   const cl = types.find((x) => x.code === 'CL')
   const sl = types.find((x) => x.code === 'SL')
   const leaves = await admin.getRaw('/hrms/leave', { pageSize: 1 })
-  if (!leaves.body?.meta?.total) {
+  if (!leaves.body?.data?.total) {
     const on = (name) => employees.find((e) => e.name.startsWith(name))
     for (const [who, type, from, to, reason] of [
       ['Sangeeta', cl, '2026-10-12', '2026-10-13', 'Family function'], ['Mohammed', sl, '2026-10-27', '2026-10-27', 'Fever'],
@@ -941,7 +941,7 @@ async function fillPrimarySyllabus(admin) {
 
 async function fillLessonPlans(admin) {
   const existing = await admin.get('/homework/lesson-plans', { from: addDaysYmd(today, -20), to: addDaysYmd(today, 20) }).catch(() => [])
-  if ((existing.data ?? existing).length) return 'already there'
+  if (existing.total ?? (existing.rows ?? existing.data ?? existing).length) return 'already there'
   const classes = (await admin.get('/academics/classes')).classes.filter((c) => ['6', '7', '8', '9', '10'].includes(c.code))
   // 1 · the year plan for each class and subject; chapters planned before this month are ticked as taught
   const topicsOf = new Map() // `${classId}|${subjectId}` → [{ id, name, month }]

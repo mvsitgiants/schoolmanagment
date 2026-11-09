@@ -3,7 +3,7 @@ import { SUBMISSION_STATUSES } from '@schoolgiant/shared'
 import { authenticate, requireModule, requirePermission, subscriptionGate, tenantOnly } from '../platform/middleware.js'
 import { objectId, optionalText, pageParams, z } from '../platform/validate.js'
 import {
-  createHomework, deleteHomework, deletePlan, getHomework, getSyllabus, homeworkLookup, listHomework, listPlans, markTopics, myTeaching, savePlan,
+  createHomework, deleteHomework, deletePlan, getHomework, getSyllabus, homeworkLookup, listHomework, listPlans, markTopics, myTeaching, planCalendar, savePlan,
   saveSubmissions, saveSyllabus, setPlanStatus, syllabusOverview, updateHomework,
 } from '../services/homework.js'
 
@@ -61,12 +61,19 @@ const planSchema = z.object({
   topicIds: z.array(objectId).max(30).default([]),
   objectives: optionalText(2000), method: optionalText(4000), resources: optionalText(2000), homeworkNote: optionalText(1000),
 })
+const planQuery = z.object({
+  from: ymd.optional(), to: ymd.optional(), sectionId: objectId.optional(), subjectId: objectId.optional(),
+  mine: z.enum(['1', 'true']).optional().transform((v) => !!v),
+})
+// one page of the list: 50 rows by default, at most 100 (the platform's clamp)
+const paging = { page: z.coerce.number().int().min(1).default(1), pageSize: z.coerce.number().int().min(1).max(100).default(50) }
 router.get('/lesson-plans', requirePermission('homework.lesson-plans.view'), async (req, res) => {
-  const q = z.object({
-    from: ymd.optional(), to: ymd.optional(), sectionId: objectId.optional(), subjectId: objectId.optional(),
-    mine: z.enum(['1', 'true']).optional().transform((v) => !!v),
-  }).parse(req.query)
-  res.json({ data: await listPlans(q, req.auth) })
+  res.json({ data: await listPlans(planQuery.extend(paging).parse(req.query), req.auth) })
+})
+// the month view: per-day counts and the first few plans of each day, over at most six weeks
+router.get('/lesson-plans/calendar', requirePermission('homework.lesson-plans.view'), async (req, res) => {
+  const q = planQuery.extend({ from: ymd, to: ymd }).refine((x) => x.from <= x.to && (Date.parse(x.to) - Date.parse(x.from)) / 86_400_000 <= 42, { message: 'Pick at most six weeks', path: ['to'] }).parse(req.query)
+  res.json({ data: await planCalendar(q, req.auth) })
 })
 router.post('/lesson-plans', requirePermission('homework.lesson-plans.create'), async (req, res) => {
   res.status(201).json({ data: await savePlan(null, planSchema.parse(req.body), req.auth, req) })

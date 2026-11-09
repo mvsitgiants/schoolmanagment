@@ -1,19 +1,22 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { ArrowRight, Check, CircleDollarSign, ClipboardCheck, FilePlus2, FileStack, ListFilter, PenLine, RotateCcw, Search, TrendingUp, X } from 'lucide-react'
 import { COE_REVAL_STATUS } from '@schoolgiant/shared'
 import {
   CodeBadge, ColorChip, ControlChip, DataTable, DateCell, Drawer, EmptyState, FactGrid, FormField, HeaderButton, Input, Modal, Money, PageContainer,
-  PageHeader, PersonCell, StatCardRow, StatusPill, Textarea, Timeline, usePrompt,
+  PageHeader, PersonCell, SearchInput, StatCardRow, StatusPill, Textarea, Timeline, usePrompt,
 } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { Switch } from '../../components/app/Controls'
 import useSessionPick from '../../components/coe/useSessionPick'
-import { actOnRevaluation, fetchRevaluationCandidates, fetchRevaluations, requestRevaluation } from '../../api/coe'
+import { actOnRevaluation, fetchAllRevaluations, fetchRevaluationCandidates, fetchRevaluations, requestRevaluation } from '../../api/coe'
 import { hasPermission } from '../../api/auth'
 import { useSnackbar } from '../../context/SnackbarContext'
 import { useFormat } from '../../context/SettingsContext'
+import useDebouncedValue from '../../hooks/useDebouncedValue'
+
+const PAGE = 50
 
 function RequestModal({ session, onClose, onSaved }) {
   const { t } = useTranslation('coe')
@@ -62,10 +65,19 @@ export default function Revaluation() {
   const { showSuccess, showError } = useSnackbar()
   const { sessions, sessionId, setSessionId, session, isLoading: loadingSessions } = useSessionPick((s) => s.status === 'PUBLISHED')
   const [status, setStatus] = useState('')
+  const [search, setSearch] = useState('')
+  const q = useDebouncedValue(search.trim(), 300)
+  const [page, setPage] = useState(1)
   const [open, setOpen] = useState(null)
   const [asking, setAsking] = useState(false)
-  const key = ['revaluations', sessionId, status]
-  const { data, isLoading, error, refetch } = useQuery({ queryKey: key, queryFn: () => fetchRevaluations({ sessionId, status: status || undefined }), enabled: !!sessionId })
+  // the list's filters go to the server (a page at a time); the tiles there count every request of the session
+  const filters = { sessionId, status: status || undefined, search: q || undefined }
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ['revaluations', filters, page], queryFn: () => fetchRevaluations({ ...filters, page, pageSize: PAGE }), enabled: !!sessionId, placeholderData: (p) => p,
+  })
+  const pick = (v) => { setStatus(v); setPage(1) }
+  // acting on the last request of a later page moves it out of the status picked: step back to the last page there is
+  useEffect(() => { if (data && page > 1 && !data.rows.length && data.total) setPage(Math.ceil(data.total / PAGE)) }, [data, page])
   const canApprove = hasPermission('coe.revaluation.approve')
   const refresh = () => { qc.invalidateQueries({ queryKey: ['revaluations'] }); qc.invalidateQueries({ queryKey: ['coe-results'] }) }
   const act = useMutation({
@@ -80,6 +92,9 @@ export default function Revaluation() {
   }
   const s = data?.summary
   const rows = data?.rows ?? []
+  const total = data?.total ?? 0
+  // sorting a column sorts what is loaded: offered while the whole list fits on one page
+  const sortable = total <= PAGE
 
   const header = (
     <PageHeader icon={RotateCcw} title={t('coe.revaluation.title')} subtitle={t('coe.revaluation.subtitle')}
@@ -99,33 +114,36 @@ export default function Revaluation() {
     <PageContainer>
       {header}
       <div className="flex flex-wrap items-center gap-2">
-        <ControlChip icon={FileStack} label={t('coe.session')} active value={session?.name} options={sessions.map((x) => ({ value: x.id, label: x.name }))} onChange={setSessionId} />
+        <ControlChip icon={FileStack} label={t('coe.session')} active value={session?.name} options={sessions.map((x) => ({ value: x.id, label: x.name }))} onChange={(v) => { setSessionId(v); setPage(1) }} />
         <ControlChip icon={ListFilter} label={t('coe.status')} active={!!status} value={status ? t(`coe.revalStatus.${status}`) : t('coe.all')}
-          options={[{ value: '', label: t('coe.all') }, ...Object.keys(COE_REVAL_STATUS).map((k) => ({ value: k, label: t(`coe.revalStatus.${k}`) }))]} onChange={setStatus} />
+          options={[{ value: '', label: t('coe.all') }, ...Object.keys(COE_REVAL_STATUS).map((k) => ({ value: k, label: t(`coe.revalStatus.${k}`) }))]} onChange={pick} />
       </div>
       {s && (
         <StatCardRow items={[
-          { icon: ClipboardCheck, tone: 'warning', label: t('coe.revalStatus.REQUESTED'), value: s.REQUESTED, sub: t('coe.revaluation.statRequestedSub'), onClick: () => setStatus('REQUESTED') },
-          { icon: PenLine, tone: 'info', label: t('coe.revaluation.statInProgress'), value: s.APPROVED, sub: t('coe.revaluation.statInProgressSub'), onClick: () => setStatus('APPROVED') },
-          { icon: TrendingUp, tone: 'success', label: t('coe.revalStatus.REVALUED'), value: s.REVALUED, sub: t('coe.revaluation.statImproved', { n: s.improved }), progress: s.REVALUED ? (s.improved / s.REVALUED) * 100 : 0, onClick: () => setStatus('REVALUED') },
+          { icon: ClipboardCheck, tone: 'warning', label: t('coe.revalStatus.REQUESTED'), value: s.REQUESTED, sub: t('coe.revaluation.statRequestedSub'), onClick: () => pick('REQUESTED') },
+          { icon: PenLine, tone: 'info', label: t('coe.revaluation.statInProgress'), value: s.APPROVED, sub: t('coe.revaluation.statInProgressSub'), onClick: () => pick('APPROVED') },
+          { icon: TrendingUp, tone: 'success', label: t('coe.revalStatus.REVALUED'), value: s.REVALUED, sub: t('coe.revaluation.statImproved', { n: s.improved }), progress: s.REVALUED ? (s.improved / s.REVALUED) * 100 : 0, onClick: () => pick('REVALUED') },
           { icon: CircleDollarSign, tone: 'teal', label: t('coe.revaluation.statFees'), value: <Money value={s.fees} paise />, sub: t('coe.revaluation.statFeesSub') },
         ]} />
       )}
       <DataTable
-        title={t('coe.revaluation.list', { count: rows.length })} exportable exportName={`revaluation-${session?.name ?? ''}`}
+        title={t('coe.revaluation.list', { count: total })} exportable exportName={`revaluation-${session?.name ?? ''}`}
+        exportAll={() => fetchAllRevaluations(filters)}
+        toolbar={<div className="w-64"><SearchInput value={search} onChange={(v) => { setSearch(v); setPage(1) }} placeholder={t('coe.revaluation.listSearch')} /></div>}
         rows={rows} loading={isLoading} error={error} onRetry={refetch} rowKey="id" onSelect={setOpen}
+        pagination={total > PAGE ? { page: page - 1, size: PAGE, totalElements: total, totalPages: Math.ceil(total / PAGE), onPageChange: (p) => setPage(p + 1) } : undefined}
         emptyIcon={RotateCcw} emptyTitle={t('coe.revaluation.empty')} emptyHint={t('coe.revaluation.emptyHint')}
         emptyAction={hasPermission('coe.revaluation.create') && session && <Button icon={FilePlus2} onClick={() => setAsking(true)}>{t('coe.revaluation.new')}</Button>}
         columns={[
-          { key: 'name', header: t('coe.student'), sortable: true, mobileTitle: true, render: (v, r) => <PersonCell name={v} sub={r.registerNo || r.admissionNo} /> },
-          { key: 'courseCode', header: t('coe.course'), sortable: true, render: (v, r) => <span><CodeBadge>{v}</CodeBadge> <span className="text-xs text-ink-muted">{r.courseTitle}</span></span> },
+          { key: 'name', header: t('coe.student'), sortable, mobileTitle: true, render: (v, r) => <PersonCell name={v} sub={r.registerNo || r.admissionNo} /> },
+          { key: 'courseCode', header: t('coe.course'), sortable, render: (v, r) => <span><CodeBadge>{v}</CodeBadge> <span className="text-xs text-ink-muted">{r.courseTitle}</span></span> },
           { key: 'oldMarks', header: t('coe.revaluation.marks'), align: 'right', render: (v, r) => (
             <span className="inline-flex items-center gap-1.5 tabular-nums">{v}{r.newMarks !== null && r.newMarks !== undefined && <><ArrowRight className="h-3 w-3 text-ink-faint" /><b className={r.change > 0 ? 'text-success-600' : 'text-ink'}>{r.newMarks}</b></>}<span className="text-ink-faint">/ {r.externalMax}</span></span>
           ) },
           { key: 'oldGrade', header: t('coe.grade'), render: (v, r) => <span className="inline-flex items-center gap-1"><ColorChip label={v} seed={`g${v}`} />{r.newGrade && <><ArrowRight className="h-3 w-3 text-ink-faint" /><ColorChip label={r.newGrade} seed={`g${r.newGrade}`} /></>}</span> },
           { key: 'fee', header: t('coe.revaluation.fee'), align: 'right', render: (v, r) => <span className="inline-flex flex-col items-end"><Money value={v} paise /><span className={r.feePaid ? 'text-[11px] text-success-600' : 'text-[11px] text-amber-600'}>{r.feePaid ? t('coe.revaluation.paid') : t('coe.revaluation.unpaid')}</span></span> },
-          { key: 'status', header: t('coe.status'), sortable: true, render: (v) => <StatusPill tone={COE_REVAL_STATUS[v]?.tone}>{t(`coe.revalStatus.${v}`)}</StatusPill> },
-          { key: 'createdAt', header: t('coe.revaluation.asked'), sortable: true, render: (v) => <DateCell value={v} /> },
+          { key: 'status', header: t('coe.status'), sortable, render: (v) => <StatusPill tone={COE_REVAL_STATUS[v]?.tone}>{t(`coe.revalStatus.${v}`)}</StatusPill> },
+          { key: 'createdAt', header: t('coe.revaluation.asked'), sortable, render: (v) => <DateCell value={v} /> },
           { key: 'actions', header: '', align: 'right', render: (_, r) => actions(r) },
         ]}
       />

@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { ArrowDown, ArrowUp, ChevronLeft, ClipboardCheck, Lock, Plus, Send, Shuffle, Trash2, X } from 'lucide-react'
 import { DIFFICULTY, QUESTION_TYPES, RESULT_RELEASE, TEST_STATUS } from '@schoolgiant/shared'
-import { ColorChip, DataTable, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, Panel, SegmentedControl, Select, SideNav, SideNavLayout, StatusPill, Textarea, localIso, useConfirm } from '../../components/system'
+import { ColorChip, DataTable, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, Panel, SearchInput, SegmentedControl, Select, SideNav, SideNavLayout, StatusPill, Textarea, localIso, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { addTestQuestions, closeTest, createTest, deleteTest, fetchTest, fetchTests, pickTestQuestions, publishTest, setTestQuestions, updateTest } from '../../api/onlineTests'
 import { fetchQuestions } from '../../api/lms'
@@ -12,6 +12,9 @@ import { hasPermission } from '../../api/auth'
 import { useSnackbar } from '../../context/SnackbarContext'
 import { useFormat } from '../../context/SettingsContext'
 import { ClassSubjectPicker } from '../Lms/Courses'
+import useDebouncedValue from '../../hooks/useDebouncedValue'
+
+const PAGE = 50
 
 const tomorrow = () => localIso(new Date(Date.now() + 864e5))
 
@@ -192,8 +195,14 @@ export default function Tests() {
   const [params, setParams] = useSearchParams()
   const openId = params.get('test')
   const [status, setStatus] = useState('')
+  const [search, setSearch] = useState('')
+  const [page, setPage] = useState(1)
   const [creating, setCreating] = useState(false)
-  const { data: rows = [], isLoading, error, refetch } = useQuery({ queryKey: ['tests', status], queryFn: () => fetchTests({ status: status || undefined }) })
+  const q = useDebouncedValue(search.trim(), 300)
+  const query = { status: status || undefined, search: q || undefined, page, pageSize: PAGE }
+  const { data, isLoading, error, refetch } = useQuery({ queryKey: ['tests', 'list', query], queryFn: () => fetchTests(query), placeholderData: keepPreviousData })
+  const rows = data?.rows ?? []
+  const total = data?.total ?? 0
   const open = (id) => setParams(id ? { test: id } : {})
   const statusLabel = (s) => t(`tests.status.${s}`)
   // the open test's siblings, to switch without going back
@@ -215,7 +224,10 @@ export default function Tests() {
         </SideNavLayout>
       ) : (
         <>
-          <SegmentedControl className="mb-3" value={status} onChange={setStatus} options={[{ value: '', label: t('tests.all') }, ...Object.keys(TEST_STATUS).map((k) => ({ value: k, label: statusLabel(k) }))]} />
+          <div className="mb-3 flex flex-wrap items-center gap-2">
+            <SegmentedControl value={status} onChange={(v) => { setStatus(v); setPage(1) }} options={[{ value: '', label: t('tests.all') }, ...Object.keys(TEST_STATUS).map((k) => ({ value: k, label: statusLabel(k) }))]} />
+            <div className="w-full sm:w-64"><SearchInput value={search} onChange={(v) => { setSearch(v); setPage(1) }} placeholder={t('tests.search')} /></div>
+          </div>
           <DataTable rows={rows} loading={isLoading} error={error} onRetry={refetch} columns={[
             { key: 'title', header: t('tests.form.title'), render: (v, r) => (
               <div className="min-w-0">
@@ -236,7 +248,8 @@ export default function Tests() {
             { key: 'questions', header: t('tests.questionsCol'), align: 'right', mobileHidden: true, render: (v, r) => t('tests.qm', { q: v, m: r.totalMarks }) },
             { key: 'attempts', header: t('tests.attemptsCol'), align: 'right', mobileHidden: true, render: (v, r) => <span><span className={v ? 'font-semibold tabular-nums text-ink' : 'tabular-nums text-ink-faint'}>{v}</span>{r.toEvaluate > 0 && <span className="block text-[11px] font-medium text-amber-700">{t('tests.toEvaluate', { count: r.toEvaluate })}</span>}</span> },
             { key: 'status', header: t('tests.statusCol'), mobileTrail: true, render: (v) => <StatusPill tone={TEST_STATUS[v]?.tone}>{statusLabel(v)}</StatusPill> },
-          ]} onRowClick={(r) => open(r.id)} emptyIcon={ClipboardCheck} emptyTitle={t('tests.empty')} emptyHint={t('tests.emptyHint')} />
+          ]} onRowClick={(r) => open(r.id)} emptyIcon={ClipboardCheck} emptyTitle={q ? t('tests.noMatch') : t('tests.empty')} emptyHint={q ? undefined : t('tests.emptyHint')}
+            pagination={total > PAGE ? { page: page - 1, size: PAGE, totalElements: total, totalPages: Math.ceil(total / PAGE), onPageChange: (p) => setPage(p + 1) } : undefined} />
         </>
       )}
       {creating && <TestForm onClose={() => setCreating(false)} onSaved={(x) => { setCreating(false); qc.invalidateQueries({ queryKey: ['tests'] }); open(x.id) }} />}

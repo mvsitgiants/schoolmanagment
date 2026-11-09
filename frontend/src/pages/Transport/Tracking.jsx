@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { CheckCircle2, Circle, LocateFixed, LocateOff, MapPin, Navigation, Play, Route as RouteIcon, Square, UserCheck, UserMinus, UserX, Users } from 'lucide-react'
+import { CheckCircle2, Circle, LocateFixed, LocateOff, MapPin, Navigation, Play, Route as RouteIcon, ScanQrCode, Square, UserCheck, UserMinus, UserX, Users } from 'lucide-react'
 import { osmEmbed, osmLink } from '@schoolgiant/shared'
 import { Drawer, Note, PageContainer, PageHeader, Panel, PersonCell, PhoneLink, SegmentedControl, SideNav, SideNavLayout, StatCardRow, StatusPill, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { endTrip, fetchBoard, fetchMyRoutes, fetchTrip, markRide, sendPosition, startTrip } from '../../api/transport'
+import { resolveCode } from '../../api/scan'
+import { ScanDialog, scanFeedback } from '../../components/scan/Scanner'
 import { hasPermission } from '../../api/auth'
 import { useSnackbar } from '../../context/SnackbarContext'
 import { useFormat } from '../../context/SettingsContext'
@@ -51,10 +53,27 @@ function TripView({ tripId, live = false, onEnded }) {
   const canTrack = hasPermission('transport.tracking.track')
   const mark = useMutation({ mutationFn: ({ studentId, event }) => markRide(tripId, studentId, event), onSuccess: (d) => qc.setQueryData(['transport', 'trip', tripId], d), onError: (e) => showError(e.message) })
   const finish = useMutation({ mutationFn: () => endTrip(tripId), onSuccess: (d) => { qc.setQueryData(['transport', 'trip', tripId], d); qc.invalidateQueries({ queryKey: ['transport'] }); showSuccess(t('transport.track.ended')); onEnded?.() }, onError: (e) => showError(e.message) })
+  const [scanning, setScanning] = useState(false)
+  const [scans, setScans] = useState([]) // newest first: { key, name, event, ok, note }
   if (!trip) return <div className="h-40 rounded-xl bg-black/[0.04] animate-pulse" />
   const students = trip.stops.flatMap((s) => s.students)
   const lastOf = (st) => st.events?.[st.events.length - 1]
   const on = students.filter((s) => lastOf(s) === 'BOARDED').length
+  // the attendant scans each card: the first scan is "got on", the next "got off" — the family hears both
+  const onCard = async (code) => {
+    const key = `${Date.now()}`
+    try {
+      const r = await resolveCode(code)
+      const st = r.kind === 'STUDENT' ? students.find((x) => x.id === r.id) : null
+      if (!st) { scanFeedback(false); setScans((l) => [{ key, name: r.title, ok: false, note: t('transport.track.scan.notOnRoute') }, ...l].slice(0, 20)); return }
+      const event = lastOf(st) === 'BOARDED' ? 'DROPPED' : 'BOARDED'
+      await mark.mutateAsync({ studentId: st.id, event })
+      setScans((l) => [{ key, name: st.name, event, ok: true }, ...l].slice(0, 20))
+    } catch (e) {
+      scanFeedback(false)
+      setScans((l) => [{ key, name: code, ok: false, note: e.message }, ...l].slice(0, 20))
+    }
+  }
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-2">
@@ -74,6 +93,19 @@ function TripView({ tripId, live = false, onEnded }) {
           {sharing && <p className="mt-2 text-xs text-ink-faint">{t('transport.track.keepOpen')}</p>}
         </Panel>
       )}
+      {running && canTrack && (
+        <Button size="lg" icon={ScanQrCode} className="w-full sm:w-auto" onClick={() => setScanning(true)}>{t('transport.track.scan.button')}</Button>
+      )}
+      <ScanDialog open={scanning} continuous onClose={() => setScanning(false)} onCode={onCard} title={t('transport.track.scan.title')} hint={t('transport.track.scan.hint', { on, total: students.length })}>
+        <ul className="divide-y divide-border rounded-lg border border-border max-h-40 overflow-y-auto">
+          {scans.slice(0, 6).map((x) => (
+            <li key={x.key} className="flex items-center justify-between gap-2 px-3 py-2 text-sm">
+              <span className="truncate text-ink">{x.name}</span>
+              {x.ok ? <StatusPill tone={LAST_EVENT_TONE[x.event]}>{L.ride ? L.ride(x.event) : t(`transport.rideEvents.${x.event}`)}</StatusPill> : <span className="text-xs text-danger-600 truncate">{x.note}</span>}
+            </li>
+          ))}
+        </ul>
+      </ScanDialog>
       {trip.map && <MapFrame src={trip.map} className="h-56" />}
       <StatCardRow items={[
         { icon: Users, tone: 'brand', label: t('transport.track.students'), value: students.length },

@@ -2,13 +2,15 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { Award, BookCopy, DoorOpen, HelpCircle, Receipt, ScanQrCode, UserRound, UsersRound } from 'lucide-react'
-import { Modal, StatusPill } from '../system'
+import { Award, BookCopy, CalendarHeart, CheckCircle2, DoorOpen, HandHelping, HelpCircle, Receipt, ScanQrCode, ShieldAlert, Ticket, UserRound, UsersRound } from 'lucide-react'
+import { Modal, PhoneLink, StatusPill } from '../system'
 import Button from '../ui/Button'
 import { fetchGates, resolveCode } from '../../api/scan'
+import api from '../../api/client'
+import { useFormat } from '../../context/SettingsContext'
 import { ScanDialog, scanFeedback } from './Scanner'
 
-const KIND_ICON = { STUDENT: UserRound, STAFF: UsersRound, BOOK: BookCopy, RECEIPT: Receipt, CERTIFICATE: Award, UNKNOWN: HelpCircle }
+const KIND_ICON = { EVENT_PASS: CalendarHeart, MEETING_PASS: UsersRound, PICKUP_PASS: HandHelping, TC: Award, HALL_TICKET: Ticket, STUDENT: UserRound, STAFF: UsersRound, BOOK: BookCopy, RECEIPT: Receipt, CERTIFICATE: Award, UNKNOWN: HelpCircle }
 export const OPEN_SCAN_EVENT = 'sg:open-scan'
 export const openScan = () => window.dispatchEvent(new Event(OPEN_SCAN_EVENT))
 
@@ -18,6 +20,7 @@ export const openScan = () => window.dispatchEvent(new Event(OPEN_SCAN_EVENT))
  */
 export default function GlobalScan() {
   const { t } = useTranslation('scan')
+  const { date, time } = useFormat()
   const navigate = useNavigate()
   const [scanning, setScanning] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -38,6 +41,11 @@ export default function GlobalScan() {
       scanFeedback(false)
       setResult({ kind: 'UNKNOWN', title: code, error: e.message })
     } finally { setBusy(false) }
+  }
+  // an action that changes something (check in, hand over) runs here and shows the pass again, updated
+  const run = async (post) => {
+    setBusy(true)
+    try { setResult((await api.post(post)).data.data) } catch (e) { scanFeedback(false); setResult((r) => ({ ...r, error: e.message })) } finally { setBusy(false) }
   }
   const go = (link) => {
     setResult(null)
@@ -66,10 +74,38 @@ export default function GlobalScan() {
                   {result.status && <StatusPill tone="warning" className="mt-1">{t(`scan.status.${result.status}`, result.status)}</StatusPill>}
                 </div>
               </div>
+              {result.kind === 'HALL_TICKET' && (result.papers?.length ? (
+                <ul className="divide-y divide-border rounded-lg border border-border">
+                  {result.papers.map((p) => (
+                    <li key={`${p.subject}-${p.startTime}`} className="flex items-center justify-between gap-3 px-3 py-2.5">
+                      <span className="min-w-0"><span className="block text-sm font-medium text-ink truncate">{p.subject}</span><span className="block text-xs text-ink-muted tabular-nums">{p.startTime}–{p.endTime}</span></span>
+                      <span className="text-end text-sm font-semibold text-ink">{p.room ? t('scan.exam.roomSeat', { room: p.room, seat: p.seat ?? '—' }) : <span className="font-normal text-ink-faint">{t('scan.exam.notSeated')}</span>}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : <p className="text-sm text-amber-700">{result.nextDate ? t('scan.exam.notToday', { date: date(result.nextDate) }) : t('scan.exam.noMore')}</p>)}
+              {['EVENT_PASS', 'MEETING_PASS', 'PICKUP_PASS'].includes(result.kind) && (
+                <div className={`flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium ${result.checkedInAt || result.usedAt ? 'bg-success-50 text-success-700' : result.valid ? 'bg-brand-50 text-brand-800' : 'bg-danger-50 text-danger-700'}`}>
+                  {result.valid || result.checkedInAt || result.usedAt ? <CheckCircle2 className="w-5 h-5 shrink-0" /> : <ShieldAlert className="w-5 h-5 shrink-0" />}
+                  <span>{result.usedAt ? t('scan.pass.handedOver', { time: time(result.usedAt), by: result.usedBy ?? '' })
+                    : result.checkedInAt ? t('scan.pass.checkedIn', { time: time(result.checkedInAt) })
+                      : result.valid ? t(`scan.pass.valid.${result.kind}`) : t('scan.pass.notValid')}</span>
+                </div>
+              )}
+              {result.kind === 'PICKUP_PASS' && result.person && (
+                <div className="rounded-lg border border-border p-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-ink-faint">{t('scan.pass.collectedBy')}</p>
+                  <p className="mt-1 text-lg font-semibold text-ink">{result.person.name}{result.person.relation ? <span className="text-sm font-normal text-ink-muted"> · {result.person.relation}</span> : null}</p>
+                  {result.person.mobile && <PhoneLink number={result.person.mobile} />}
+                  {result.reason && <p className="mt-1 text-sm text-ink-muted">{result.reason}</p>}
+                  {result.valid && <p className="mt-2 text-xs text-amber-700">{t('scan.pass.checkId')}</p>}
+                </div>
+              )}
+              {result.error && result.kind !== 'UNKNOWN' && <p className="text-sm text-danger-600">{result.error}</p>}
               {result.kind === 'UNKNOWN' && <p className="text-sm text-ink-muted">{result.error ?? t('scan.unknownHint')}</p>}
               {result.actions?.length > 0 && (
                 <div className="grid gap-2">
-                  {result.actions.map((a) => <Button key={a.key} variant={a === result.actions[0] ? 'primary' : 'secondary'} className="w-full" onClick={() => go(a.link)}>{t(`scan.action.${a.key}`)}</Button>)}
+                  {result.actions.map((a) => <Button key={a.key} variant={a === result.actions[0] ? 'primary' : 'secondary'} className="w-full" onClick={() => (a.post ? run(a.post) : go(a.link))}>{t(`scan.action.${a.key}`)}</Button>)}
                 </div>
               )}
             </div>

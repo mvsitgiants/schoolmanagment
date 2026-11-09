@@ -8,10 +8,12 @@ import {
 import Button from '../../components/ui/Button'
 import { OutcomePill, TempTag, useHealthLabels } from '../../components/health/HealthKit'
 import { CloseVisitModal, VisitModal } from '../../components/health/VisitForms'
-import { fetchVisitBoard, fetchVisits } from '../../api/health'
+import { fetchAllVisits, fetchVisitBoard, fetchVisits } from '../../api/health'
 import { hasPermission } from '../../api/auth'
 import { useFormat } from '../../context/SettingsContext'
 import { useSnackbar } from '../../context/SnackbarContext'
+
+const PAGE = 50
 
 /** One person in the sick room now: who, why, temperature, how long, and the button to end the visit. */
 function InRoomCard({ v, onClose }) {
@@ -50,11 +52,13 @@ export default function HealthVisits() {
   const [adding, setAdding] = useState(false)
   const [closing, setClosing] = useState(null)
   const [day, setDay] = useState('')
+  const [page, setPage] = useState(1)
   const { data: b, isLoading } = useQuery({ queryKey: ['health', 'board'], queryFn: fetchVisitBoard, refetchInterval: 30_000 })
-  const { data: past = [], isLoading: loadingPast } = useQuery({ queryKey: ['health', 'visits', day], queryFn: () => fetchVisits({ date: day }), enabled: !!day })
+  // today's log comes whole with the board; an earlier day is fetched a page at a time
+  const { data: past, isLoading: loadingPast } = useQuery({ queryKey: ['health', 'visits', day, page], queryFn: () => fetchVisits({ date: day, page, pageSize: PAGE }), enabled: !!day })
   const refresh = () => qc.invalidateQueries({ queryKey: ['health'] })
   const canCreate = hasPermission('health.visits.create')
-  const log = day ? past : b?.today ?? []
+  const log = day ? past?.rows ?? [] : b?.today ?? []
   const o = b?.outcomes ?? {}
 
   return (
@@ -98,9 +102,10 @@ export default function HealthVisits() {
           </div>
         </section>
       )}
-      <DataTable rows={log} loading={day ? loadingPast : isLoading} exportable exportName="sick-room-visits"
+      <DataTable rows={log} loading={day ? loadingPast : isLoading} exportable exportName="sick-room-visits" exportAll={day ? () => fetchAllVisits({ date: day }) : undefined}
+        pagination={day && past && past.total > PAGE ? { page: page - 1, size: PAGE, totalElements: past.total, totalPages: Math.ceil(past.total / PAGE), onPageChange: (p) => setPage(p + 1) } : undefined}
         title={day ? t('health.visits.logOn') : t('health.visits.logToday')}
-        toolbar={<Input type="date" value={day || b?.date || localIso(new Date())} max={localIso(new Date())} onChange={(e) => setDay(e.target.value === b?.date ? '' : e.target.value)} className="w-40" aria-label={t('health.visits.pickDay')} />}
+        toolbar={<Input type="date" value={day || b?.date || localIso(new Date())} max={localIso(new Date())} onChange={(e) => { setDay(e.target.value === b?.date ? '' : e.target.value); setPage(1) }} className="w-40" aria-label={t('health.visits.pickDay')} />}
         emptyIcon={Stethoscope} emptyTitle={t('health.visits.emptyLog')}
         rowTone={(v) => (v.outcome === 'REFERRED' ? 'danger' : undefined)}
         columns={[

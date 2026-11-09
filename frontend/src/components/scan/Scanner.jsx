@@ -30,6 +30,12 @@ function feedback(ok = true) {
 }
 export const scanFeedback = feedback
 
+/** The card code inside a student ID card's QR link (…/verify/student/<code>); anything else as read. */
+export function cardCodeOf(text) {
+  const m = String(text ?? '').trim().match(/\/verify\/student\/([A-Za-z0-9]{6,20})\/?$/)
+  return m ? m[1].toUpperCase() : String(text ?? '').trim()
+}
+
 /**
  * Point the camera at codes. `onCode(text)` fires once per code (a repeat of the same code within
  * a moment is ignored). Returns { state: 'starting' | 'on' | 'denied' | 'none' | 'error' }.

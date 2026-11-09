@@ -478,6 +478,27 @@
       "off": "Off — turn on to get school messages as phone notifications.",
       "blocked": "Blocked in this browser’s settings. Allow notifications for this app there.",
       "unsupported": ""
+    },
+    "passes": {
+      "show": "Show pass",
+      "showAtGate": "Show this at the school gate — staff scan it.",
+      "checkedIn": "Checked in at {{time}}",
+      "arrived": "Arrived — the teacher knows you're here ({{time}})",
+      "pickupTitle": "Early pickup",
+      "pickupHint": "Someone else collecting your child today? Make a pass with their name — the gate checks them against it.",
+      "pickupBy": "To be collected by {{name}}",
+      "pickedUp": "Handed over to {{name}} at {{time}}.",
+      "make": "Make a pickup pass",
+      "makeTitle": "Early-pickup pass",
+      "makeHint": "Good for today only, and only once. The school checks the person's ID against this name and tells you when your child is handed over.",
+      "name": "Who is collecting",
+      "relation": "Relation",
+      "relationPh": "e.g. Uncle, Driver",
+      "mobile": "Their mobile",
+      "reason": "Reason (optional)",
+      "create": "Make the pass",
+      "close": "Close",
+      "cancel": "Cancel the pass"
     }
   }
 }

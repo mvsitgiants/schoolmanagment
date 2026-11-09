@@ -85,8 +85,8 @@ const TOOLS = {
     async run(input, auth) {
       if (!moduleEnabled(auth, 'fees')) return moduleOff('Fees')
       if (!can(auth, 'fees.dues.view')) return notAllowed('fee dues')
-      const { listDues } = await import('./fees.js')
-      let rows = await listDues({}, auth)
+      const { allDues } = await import('./fees.js')
+      let rows = await allDues({}, auth)
       let scope = 'the whole institution'
       if (input.class) {
         const { cls, options } = await findClass(input.class, auth)

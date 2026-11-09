@@ -83,14 +83,14 @@ const visitorDto = (v, now = new Date()) => ({
   checkedInBy: v.checkedInBy ?? null, checkedOutBy: v.checkedOutBy ?? null, enquiryId: idStr(v.enquiryId), enquiryNo: v.enquiryNo ?? null,
 })
 
-/** The desk: who is in the building now (with photos), today's and this week's numbers, today's log. */
+/** The desk: who is in the building now (with photos), today's and this week's numbers. Today's log is the paged list (listVisitors). */
 export async function visitorDesk(auth) {
   const { date } = await foNow()
   const scope = await campusFilter(auth)
   const week = foWeekStart(date)
   const [inside, todayRows, weekCount] = await Promise.all([
     Visitor.find({ ...scope, outAt: null }).select('+photo').sort({ inAt: 1 }).limit(300).lean(),
-    Visitor.find({ ...scope, date }).sort({ inAt: -1 }).limit(500).lean(),
+    Visitor.find({ ...scope, date }).select('purpose inAt outAt').lean(),
     Visitor.countDocuments({ ...scope, date: { $gte: week, $lte: date } }),
   ])
   const byPurpose = Object.fromEntries(Object.keys(FO_VISIT_PURPOSE_BY).map((p) => [p, 0]))
@@ -112,12 +112,11 @@ export async function visitorDesk(auth) {
       byPurpose, byHour,
     },
     inside: inside.map((v) => visitorDto(v)),
-    today: todayRows.map((v) => visitorDto(v)),
   }
 }
 
-/** The log for a date range (default today), newest first. */
-export async function listVisitors({ from, to, purpose, status, search } = {}, auth) {
+/** One page of the log for a date range (default today), newest first. */
+export async function listVisitors({ from, to, purpose, status, search, page = 1, pageSize = 50 } = {}, auth) {
   const { date } = await foNow()
   const filter = { ...(await campusFilter(auth)), date: { $gte: from || date, $lte: to || from || date } }
   if (purpose) filter.purpose = purpose
@@ -127,8 +126,11 @@ export async function listVisitors({ from, to, purpose, status, search } = {}, a
     const re = new RegExp(escapeRegex(search.trim()), 'i')
     filter.$or = [{ name: re }, { mobile: re }, { badgeNo: re }, { hostName: re }, { from: re }]
   }
-  const rows = await Visitor.find(filter).sort({ inAt: -1 }).limit(1000).lean()
-  return rows.map((v) => visitorDto(v))
+  const [rows, total] = await Promise.all([
+    Visitor.find(filter).sort({ inAt: -1, _id: -1 }).skip((page - 1) * pageSize).limit(pageSize).lean(),
+    Visitor.countDocuments(filter),
+  ])
+  return { rows: rows.map((v) => visitorDto(v)), total, page, pageSize }
 }
 
 export async function getVisitor(id, auth) {

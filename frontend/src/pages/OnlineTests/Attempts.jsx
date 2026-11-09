@@ -71,8 +71,9 @@ export default function Attempts() {
   const qc = useQueryClient()
   const { dateTime } = useFormat()
   const { showSuccess, showError } = useSnackbar()
-  const { data: tests = [] } = useQuery({ queryKey: ['tests', 'given'], queryFn: () => fetchTests({}) })
-  const given = tests.filter((x) => x.status !== 'DRAFT')
+  // the side list: the latest 100 tests that have been published (drafts have no attempts)
+  const { data: tests } = useQuery({ queryKey: ['tests', 'given'], queryFn: () => fetchTests({ given: 1, pageSize: 100 }) })
+  const given = tests?.rows ?? []
   const [testId, setTestId] = useState('')
   const [open, setOpen] = useState(null)
   const id = testId || given[0]?.id

@@ -1,7 +1,8 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { AlarmClock, ArrowLeftRight, BookCheck, BookPlus, BookX, CalendarClock, IndianRupee, RefreshCw, ScanBarcode, UserSearch, X } from 'lucide-react'
+import { AlarmClock, ArrowLeftRight, BookCheck, BookPlus, BookX, CalendarClock, IndianRupee, RefreshCw, ScanBarcode, ScanQrCode, UserSearch, X } from 'lucide-react'
 import { formatINR, toPaise } from '@schoolgiant/shared'
 import { DataTable, DateCell, FormField, Input, Money, Note, PageContainer, PageHeader, Panel, PersonCell, SearchInput, StackCell, SegmentedControl, StatCardRow, Tabs, useConfirm, usePrompt } from '../../components/system'
 import Button from '../../components/ui/Button'
@@ -11,16 +12,23 @@ import useDebouncedValue from '../../hooks/useDebouncedValue'
 import { useSnackbar } from '../../context/SnackbarContext'
 import { useFormat } from '../../context/SettingsContext'
 import { CollectModal, LoanPill, useLibraryLabels } from '../../components/library/LibraryKit'
+import { ScanDialog, cardCodeOf } from '../../components/scan/Scanner'
 
 const PAGE = 50
 
-/** A scan box: a barcode scanner types the number and presses Enter. */
-function ScanInput({ label, placeholder, onScan, busy, inputRef }) {
-  const [v, setV] = useState('')
+/** A scan box: a barcode scanner types the number and presses Enter — or the camera button reads it (phones). */
+function ScanInput({ label, placeholder, onScan, busy, inputRef, initial = '' }) {
+  const { t } = useTranslation('library')
+  const [v, setV] = useState(initial)
+  const [camera, setCamera] = useState(false)
   return (
     <FormField label={label}>
-      <Input ref={inputRef} value={v} onChange={(e) => setV(e.target.value)} placeholder={placeholder} autoComplete="off" disabled={busy}
-        onKeyDown={(e) => { if (e.key === 'Enter' && v.trim()) { e.preventDefault(); onScan(v.trim()); setV('') } }} />
+      <div className="flex gap-2">
+        <Input ref={inputRef} value={v} onChange={(e) => setV(e.target.value)} placeholder={placeholder} autoComplete="off" disabled={busy}
+          onKeyDown={(e) => { if (e.key === 'Enter' && v.trim()) { e.preventDefault(); onScan(cardCodeOf(v)); setV('') } }} />
+        <Button variant="secondary" icon={ScanQrCode} aria-label={t('library.desk.useCamera')} title={t('library.desk.useCamera')} disabled={busy} onClick={() => setCamera(true)} />
+      </div>
+      <ScanDialog open={camera} onClose={() => setCamera(false)} onCode={(c) => onScan(cardCodeOf(c))} title={label} />
     </FormField>
   )
 }
@@ -48,7 +56,8 @@ function BorrowerSearch({ onPick }) {
   )
 }
 
-function IssuePanel() {
+/** `initialCard`: a card scanned elsewhere (the app's Scan button) opens straight on that borrower. */
+function IssuePanel({ initialCard }) {
   const { t } = useTranslation('library')
   const L = useLibraryLabels()
   const qc = useQueryClient()
@@ -81,6 +90,7 @@ function IssuePanel() {
   return (
     <Panel title={t('library.desk.issueTitle')} icon={BookPlus}>
       <div className="space-y-3">
+        <InitialScan code={initialCard} run={(c) => scanCard.mutate(c)} />
         <ScanInput label={t('library.desk.scanCard')} placeholder={t('library.desk.scanCardPlaceholder')} onScan={(c) => scanCard.mutate(c)} busy={scanCard.isPending} />
         {!who && <BorrowerSearch onPick={(b) => { setWho({ kind: b.kind, id: b.id }); setBooks([]) }} />}
         {who && card && (
@@ -129,7 +139,7 @@ function IssuePanel() {
   )
 }
 
-function ReturnPanel() {
+function ReturnPanel({ initialBook }) {
   const { t } = useTranslation('library')
   const L = useLibraryLabels()
   const qc = useQueryClient()
@@ -161,7 +171,7 @@ function ReturnPanel() {
   return (
     <Panel title={t('library.desk.returnTitle')} icon={ArrowLeftRight}>
       <div className="space-y-3">
-        <ScanInput label={t('library.desk.scanReturn')} placeholder={t('library.desk.scanBookPlaceholder')} onScan={(c) => back.mutate(c)} busy={back.isPending} />
+        <ScanInput label={t('library.desk.scanReturn')} placeholder={t('library.desk.scanBookPlaceholder')} onScan={(c) => back.mutate(c)} busy={back.isPending} initial={initialBook ?? ''} />
         <label className="inline-flex items-center gap-2 text-sm text-ink"><input type="checkbox" checked={damaged} onChange={(e) => setDamaged(e.target.checked)} className="rounded border-border text-brand-500" />{t('library.desk.damaged')}</label>
         {last.length > 0 && (
           <div className="divide-y divide-border rounded-xl border border-border">
@@ -241,8 +251,16 @@ function Loans() {
 }
 
 /** Library › Issue & return: the desk (scan the card, scan the books), returns with fines, and the loans lists. */
+/** Runs a scan once, on arrival (a link from the app's Scan button). */
+function InitialScan({ code, run }) {
+  const done = useRef(false)
+  useEffect(() => { if (code && !done.current) { done.current = true; run(code) } }, [code, run])
+  return null
+}
+
 export default function Circulation() {
   const { t } = useTranslation('library')
+  const [params] = useSearchParams()
   const [tab, setTab] = useState('DESK')
   const { data: d } = useQuery({ queryKey: ['library', 'desk'], queryFn: fetchDesk, refetchInterval: 60_000 })
   return (
@@ -256,7 +274,7 @@ export default function Circulation() {
           { icon: AlarmClock, label: t('library.desk.overdue'), value: d.overdue, tone: d.overdue ? 'danger' : 'neutral' },
         ]} />}
         <Tabs value={tab} onChange={setTab} tabs={[{ value: 'DESK', label: t('library.desk.tabDesk'), icon: UserSearch }, { value: 'LOANS', label: t('library.desk.tabLoans') }]} />
-        {tab === 'DESK' ? <div className="grid lg:grid-cols-2 gap-4 items-start"><IssuePanel /><ReturnPanel /></div> : <Loans />}
+        {tab === 'DESK' ? <div className="grid lg:grid-cols-2 gap-4 items-start"><IssuePanel initialCard={params.get('card') ?? undefined} /><ReturnPanel initialBook={params.get('book') ?? undefined} /></div> : <Loans />}
       </div>
     </PageContainer>
   )

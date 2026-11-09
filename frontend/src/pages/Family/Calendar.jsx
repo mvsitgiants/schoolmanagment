@@ -8,6 +8,7 @@ import Button from '../../components/ui/Button'
 import { FCard, FEmpty, FError, FSkeleton, useFamily, useFamilyQuery } from '../../components/family/FamilyKit'
 import { familyCalendar, familyEventReply } from '../../api/family'
 import { useFormat } from '../../context/SettingsContext'
+import { EventPassButton } from '../../components/family/Passes'
 
 const tone = (i) => (i.source === 'EVENT' ? EVENT_KIND_BY[i.kind]?.tone : CALENDAR_SOURCES[i.source]?.tone) ?? 'neutral'
 
@@ -39,6 +40,7 @@ function Reply({ item }) {
     <div className="mt-2 rounded-xl bg-black/[0.03] p-3">
       <p className="text-sm text-ink">{r.question || (r.kind === 'CONSENT' ? t('family.calendar.consentAsk') : t('family.calendar.rsvpAsk'))}</p>
       {r.answer && <p className="mt-1 text-xs font-medium text-success-600">{t('family.calendar.youReplied', { answer: words[r.answer] })}</p>}
+      {r.answer === 'YES' && <EventPassButton eventId={item.id} />}
       <input value={note} onChange={(e) => setNote(e.target.value)} maxLength={300} placeholder={t('family.calendar.notePlaceholder')} className="mt-2 min-h-[44px] w-full rounded-lg border border-border bg-surface px-3 py-2 text-[15px]" aria-label={t('family.calendar.notePlaceholder')} />
       <div className="mt-2 grid grid-cols-1 gap-2 min-[420px]:grid-cols-2">
         <Button icon={Check} variant={r.answer === 'YES' ? 'primary' : 'secondary'} loading={send.isPending && send.variables === 'YES'} onClick={() => send.mutate('YES')}>{words.YES}</Button>

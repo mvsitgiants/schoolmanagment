@@ -1,12 +1,12 @@
 import { randomInt } from 'node:crypto'
 import { HISTORY_EVENTS, LEAVING_REASONS, TC_STATUS, ageYears, isValidAadhaar, sectionLabel } from '@schoolgiant/shared'
 import { AcademicYear, ClassLevel, Section } from '../models/academics.js'
-import { Student, TransferCertificate, studentName } from '../models/students.js'
+import { Student, TransferCertificate, studentName, newTcCode } from '../models/students.js'
 import { Tenant } from '../models/platform.js'
 import { can } from '../platform/access.js'
 import { audit, diffFields } from '../platform/audit.js'
 import { blindIndex, decrypt, encrypt } from '../platform/crypto.js'
-import { clean, isOid, withTransaction } from '../platform/db.js'
+import { clean, isOid, oid, withTransaction } from '../platform/db.js'
 import { badRequest, conflict, forbidden, notFound } from '../platform/errors.js'
 import { emit } from '../platform/events.js'
 import { cell, checkRow, compact } from '../platform/importRows.js'
@@ -258,30 +258,61 @@ export async function setStudentStatus(id, status, auth, req) {
 
 // ───────────────────────────────────────────────────────── guardians directory
 
-/** Parents and guardians across students, one row per mobile number (or name when there is none). */
-export async function listGuardians({ search }, auth) {
+/**
+ * Parents and guardians across students, one row per mobile number (or name when there is none), one page at a time.
+ * Grouping, search, sort and paging all run in Mongo, so the totals and tiles cover every match, not just the page.
+ */
+export async function listGuardians({ search, page = 1, pageSize = 50 }, auth) {
   const scope = await scopeFilter(auth)
   const match = { status: 'ACTIVE', ...(scope ?? {}) }
-  const rows = await Student.find(match).select('firstName middleName lastName admissionNo sectionId guardians').lean()
-  const place = await placeMap(rows)
-  const byKey = new Map()
-  for (const s of rows) {
-    for (const g of s.guardians ?? []) {
-      const key = g.mobile ? `m:${g.mobile}` : `n:${g.name.toLowerCase()}:${s._id}`
-      const row = byKey.get(key) ?? { id: key, name: g.name, relation: g.relation ?? null, mobile: g.mobile ?? null, email: g.email ?? null, occupation: g.occupation ?? null, primaryFor: 0, children: [] }
-      row.children.push({ id: String(s._id), name: studentName(s), admissionNo: s.admissionNo, classShort: place.get(idStr(s.sectionId))?.short ?? null })
-      if (g.isPrimary) row.primaryFor++
-      if (!row.email && g.email) row.email = g.email
-      byKey.set(key, row)
-    }
-  }
-  let out = [...byKey.values()]
-  if (search?.trim()) {
-    const q = search.trim().toLowerCase()
+  if (match.sectionId?.$in) match.sectionId = { $in: match.sectionId.$in.map(oid) }
+  const q = String(search ?? '').trim()
+  let found = null
+  if (q) {
+    const re = new RegExp(escapeRegex(q), 'i')
     const d = digits(q)
-    out = out.filter((g) => g.name.toLowerCase().includes(q) || (d.length >= 4 && g.mobile?.includes(d)) || g.children.some((c) => c.name.toLowerCase().includes(q) || c.admissionNo.toLowerCase().includes(q)))
+    found = { $or: [{ name: re }, ...(d.length >= 4 ? [{ mobile: new RegExp(escapeRegex(d)) }] : []), { 'children.name': re }, { 'children.admissionNo': re }] }
   }
-  return out.sort((a, b) => a.name.localeCompare(b.name)).slice(0, 2000)
+  const [out] = await Student.aggregate([
+    { $match: match },
+    { $sort: { _id: 1 } },
+    { $unwind: '$guardians' },
+    { $project: {
+      g: '$guardians', sectionId: 1, admissionNo: 1,
+      // "first middle last" without gaps, as studentName() writes it
+      childName: { $reduce: {
+        input: { $filter: { input: ['$firstName', '$middleName', '$lastName'], cond: { $gt: [{ $ifNull: ['$$this', ''] }, ''] } } },
+        initialValue: '', in: { $cond: [{ $eq: ['$$value', ''] }, '$$this', { $concat: ['$$value', ' ', '$$this'] }] },
+      } },
+      key: { $cond: [
+        { $gt: [{ $ifNull: ['$guardians.mobile', ''] }, ''] },
+        { $concat: ['m:', '$guardians.mobile'] },
+        { $concat: ['n:', { $toLower: '$guardians.name' }, ':', { $toString: '$_id' }] },
+      ] },
+    } },
+    { $group: {
+      _id: '$key', name: { $first: '$g.name' }, relation: { $first: '$g.relation' }, mobile: { $first: '$g.mobile' }, email: { $max: '$g.email' }, occupation: { $first: '$g.occupation' },
+      primaryFor: { $sum: { $cond: ['$g.isPrimary', 1, 0] } },
+      children: { $push: { id: '$_id', name: '$childName', admissionNo: '$admissionNo', sectionId: '$sectionId' } },
+    } },
+    ...(found ? [{ $match: found }] : []),
+    { $facet: {
+      rows: [{ $sort: { name: 1, _id: 1 } }, { $skip: (page - 1) * pageSize }, { $limit: pageSize }],
+      total: [{ $count: 'n' }],
+      children: [{ $unwind: '$children' }, { $group: { _id: '$children.id' } }, { $count: 'n' }],
+      siblings: [{ $match: { 'children.1': { $exists: true } } }, { $count: 'n' }],
+    } },
+  ]).collation({ locale: 'en' })
+  const rows = out?.rows ?? []
+  const place = await placeMap(rows.flatMap((g) => g.children))
+  return {
+    rows: rows.map((g) => ({
+      id: g._id, name: g.name, relation: g.relation ?? null, mobile: g.mobile ?? null, email: g.email ?? null, occupation: g.occupation ?? null, primaryFor: g.primaryFor,
+      children: g.children.map((c) => ({ id: String(c.id), name: c.name, admissionNo: c.admissionNo, classShort: place.get(idStr(c.sectionId))?.short ?? null })),
+    })),
+    total: out?.total[0]?.n ?? 0, page, pageSize,
+    counts: { children: out?.children[0]?.n ?? 0, siblings: out?.siblings[0]?.n ?? 0 },
+  }
 }
 
 // ───────────────────────────────────────────────────────── import
@@ -415,12 +446,24 @@ function tcDto(t) {
   return { ...clean(t), studentId: String(t.studentId), statusLabel: TC_STATUS[t.status]?.label ?? t.status, reasonLabel: LEAVING_REASONS.find((r) => r.value === t.reason)?.label ?? t.reasonText ?? null }
 }
 
-export async function listTcs({ status }, auth) {
+/**
+ * The TC register, newest first, one page at a time: narrowed by status, a leaving-date range and a search (student
+ * name, admission no. or TC no.) — all in Mongo. `counts` tallies each status over the same search and range, for the tiles.
+ */
+export async function listTcs({ status, search, from, to, page = 1, pageSize = 50 }, auth) {
   const scope = await scopeFilter(auth)
-  const filter = status ? { status } : {}
-  if (scope) filter.studentId = { $in: (await Student.find(scope).select('_id').lean()).map((s) => s._id) }
-  const rows = await TransferCertificate.find(filter).sort({ createdAt: -1 }).limit(500).lean()
-  return rows.map(tcDto)
+  const base = {}
+  if (scope) base.studentId = { $in: (await Student.find(scope).select('_id').lean()).map((s) => s._id) }
+  if (from || to) base.leavingDate = { ...(from && { $gte: from }), ...(to && { $lte: to }) }
+  const q = String(search ?? '').trim()
+  if (q) { const re = new RegExp(escapeRegex(q), 'i'); base.$or = [{ 'snapshot.name': re }, { 'snapshot.admissionNo': re }, { tcNo: re }] }
+  const filter = { ...base, ...(status && { status }) }
+  const [rows, total, tally] = await Promise.all([
+    TransferCertificate.find(filter).sort({ createdAt: -1, _id: -1 }).skip((page - 1) * pageSize).limit(pageSize).lean(),
+    TransferCertificate.countDocuments(filter),
+    TransferCertificate.aggregate([{ $match: base }, { $group: { _id: '$status', n: { $sum: 1 } } }]),
+  ])
+  return { rows: rows.map(tcDto), total, page, pageSize, counts: Object.fromEntries(tally.map((c) => [c._id, c.n])) }
 }
 
 export async function requestTc(input, auth, req) {
@@ -494,6 +537,10 @@ export async function cancelTc(id, reason, auth, req) {
 export async function tcPrintData(id, auth) {
   const tc = await TransferCertificate.findById(id).lean()
   if (!tc) throw notFound('Transfer certificate')
+  if (!tc.verifyCode) { // TCs from before check codes get one the first time they print
+    tc.verifyCode = newTcCode()
+    await TransferCertificate.updateOne({ _id: tc._id }, { $set: { verifyCode: tc.verifyCode } })
+  }
   const s = await Student.findById(tc.studentId).lean()
   await assertInScope(s, auth)
   return { tc, student: s }
@@ -593,5 +640,23 @@ export async function verifyStudentCard(code) {
     const [t, sec] = await Promise.all([Tenant.findById(s.tenantId).select('name profile.city').lean(), s.sectionId ? Section.findById(s.sectionId).setOptions({ allTenants: true }).lean() : null])
     const cls = sec ? await ClassLevel.findById(sec.classId).setOptions({ allTenants: true }).select('name code').lean() : null
     return { found: true, valid: s.status === 'ACTIVE', name: studentName(s), class: s.status === 'ACTIVE' && sec ? sectionLabel(cls, sec) : null, institution: { name: t?.name ?? null, city: t?.profile?.city ?? null } }
+  })
+}
+
+/** A TC's QR (/verify/tc/<code>), no sign-in: did this school issue it, to whom, and is it still valid? */
+export async function verifyTc(code) {
+  const want = String(code ?? '').trim().toUpperCase()
+  if (!/^[A-Z0-9]{12}$/.test(want)) return { found: false }
+  return runAsSystem(async () => {
+    const tc = await TransferCertificate.findOne({ verifyCode: want, status: { $in: ['ISSUED', 'CANCELLED'] } }).setOptions({ allTenants: true }).lean()
+    if (!tc) return { found: false }
+    const [s, t] = await Promise.all([
+      Student.findById(tc.studentId).setOptions({ allTenants: true }).select('firstName middleName lastName admissionNo dob').lean(),
+      Tenant.findById(tc.tenantId).select('name profile.city').lean(),
+    ])
+    return {
+      found: true, valid: tc.status === 'ISSUED', tcNo: tc.tcNo ?? null, issuedAt: tc.issuedAt ?? null, leavingDate: tc.leavingDate,
+      student: { name: s ? studentName(s) : '', admissionNo: s?.admissionNo ?? null, dob: s?.dob ?? null }, institution: { name: t?.name ?? null, city: t?.profile?.city ?? null },
+    }
   })
 }

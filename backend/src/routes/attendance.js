@@ -49,7 +49,10 @@ router.get('/subject-report', requirePermission('attendance.reports.view'), asyn
 // ───────────────────────────────────────────────────────── student leave
 
 router.get('/leave', requirePermission('attendance.leave.view'), async (req, res) => {
-  const q = z.object({ status: z.enum(['PENDING', 'APPROVED', 'REJECTED', 'CANCELLED']).optional(), sectionId: objectId.optional() }).parse(req.query)
+  const q = z.object({
+    status: z.enum(['PENDING', 'APPROVED', 'REJECTED', 'CANCELLED']).optional(), sectionId: objectId.optional(), search: z.string().trim().max(80).optional(),
+    page: z.coerce.number().int().min(1).default(1), pageSize: z.coerce.number().int().min(1).max(100).default(50),
+  }).parse(req.query)
   res.json({ data: await listLeave(q, req.auth) })
 })
 router.post('/leave', requirePermission('attendance.leave.view'), async (req, res) => {

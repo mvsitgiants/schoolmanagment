@@ -10,12 +10,18 @@ import {
 } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { CategoryChip, ChipPicker, ComplaintPill, PriorityChip, StaffSelect, StudentFinder, useFoLabels } from '../../components/frontoffice/FoKit'
-import { addComplaintNote, assignComplaint, fetchComplaint, fetchComplaints, raiseComplaint, setComplaintStatus } from '../../api/frontOffice'
+import { addComplaintNote, assignComplaint, fetchAllComplaints, fetchComplaint, fetchComplaints, raiseComplaint, setComplaintStatus } from '../../api/frontOffice'
 import { getCurrentUser, hasPermission } from '../../api/auth'
 import useDebouncedValue from '../../hooks/useDebouncedValue'
 import { useFormat } from '../../context/SettingsContext'
 import { useSnackbar } from '../../context/SnackbarContext'
 
+const PAGE = 50
+/** A filter's state whose every change sends the list back to page 1. */
+function usePagedFilter(initial, setPage) {
+  const [value, set] = useState(initial)
+  return [value, (v) => { set(v); setPage(1) }]
+}
 const fieldsOf = (e) => e?.response?.data?.details?.fields ?? {}
 const EMPTY = { source: 'PARENT', category: 'ACADEMICS', priority: 'MEDIUM', subject: '', description: '', student: null, name: '', mobile: '', email: '', complainantUserId: '', assignedToId: '' }
 const STEP_TONE = { RAISED: 'brand', ASSIGNED: 'violet', STATUS: 'info', RESOLVED: 'success', CLOSED: 'neutral', REOPENED: 'warning', NOTE: 'neutral' }
@@ -139,10 +145,12 @@ export default function FrontOfficeComplaints() {
   const L = useFoLabels()
   const [params, setParams] = useSearchParams()
   const [adding, setAdding] = useState(false)
-  const [category, setCategory] = useState('')
-  const [view, setView] = useState('ACTIVE')
-  const [mine, setMine] = useState(false)
-  const [search, setSearch] = useState('')
+  const [page, setPage] = useState(1)
+  // a new filter or search starts again at page 1
+  const [category, setCategory] = usePagedFilter('', setPage)
+  const [view, setView] = usePagedFilter('ACTIVE', setPage)
+  const [mine, setMine] = usePagedFilter(false, setPage)
+  const [search, setSearch] = usePagedFilter('', setPage)
   const q = useDebouncedValue(search.trim(), 300)
   const open = params.get('id')
   const setOpen = (id) => setParams(id ? { id } : {}, { replace: true })
@@ -150,7 +158,7 @@ export default function FrontOfficeComplaints() {
     category, mine, search: q,
     ...(view === 'ACTIVE' ? { open: true } : view === 'OVERDUE' ? { overdue: true } : view === 'ALL' ? {} : { status: view }),
   }
-  const { data, isLoading, error, refetch } = useQuery({ queryKey: ['frontoffice', 'complaints', query], queryFn: () => fetchComplaints(query) })
+  const { data, isLoading, error, refetch } = useQuery({ queryKey: ['frontoffice', 'complaints', query, page], queryFn: () => fetchComplaints({ ...query, page, pageSize: PAGE }), placeholderData: (prev) => prev })
   const c = data?.counts ?? {}
   return (
     <PageContainer>
@@ -179,8 +187,9 @@ export default function FrontOfficeComplaints() {
             <div className="w-64"><SearchInput value={search} onChange={setSearch} placeholder={t('frontoffice.complaints.search')} /></div>
           </div>
           {error && <EmptyState error={error} onRetry={refetch} />}
-          <DataTable rows={data?.rows ?? []} loading={isLoading} onRowClick={(r) => setOpen(r.id)} exportable exportName="complaints" rowTone={(r) => (r.overdue ? 'danger' : undefined)}
+          <DataTable rows={data?.rows ?? []} loading={isLoading} onRowClick={(r) => setOpen(r.id)} exportable exportName="complaints" exportAll={() => fetchAllComplaints(query)} rowTone={(r) => (r.overdue ? 'danger' : undefined)}
             emptyIcon={MessageSquareWarning} emptyTitle={t('frontoffice.complaints.empty')}
+            pagination={data && data.total > PAGE ? { page: page - 1, size: PAGE, totalElements: data.total, totalPages: Math.ceil(data.total / PAGE), onPageChange: (p) => setPage(p + 1) } : undefined}
             columns={[
               { key: 'complaintNo', header: t('frontoffice.complaints.no'), mobileHidden: true, render: (v) => <CodeBadge>{v}</CodeBadge> },
               { key: 'subject', header: t('frontoffice.complaints.subject'), mobilePrimary: true, render: (v, r) => <StackCell title={v} sub={[r.complainant.name, r.studentName && r.classLabel ? `${r.studentName} · ${r.classLabel}` : r.studentName].filter(Boolean).join(' — ')} /> },

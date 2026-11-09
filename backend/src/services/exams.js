@@ -3,7 +3,9 @@ import {
 } from '@schoolgiant/shared'
 import { AcademicYear, ClassLevel, GradingScheme, Section, Subject, TeacherAllocation } from '../models/academics.js'
 import { AttendanceSheet } from '../models/attendance.js'
-import { Exam, ExamCandidate, ExamPaper, ExamType, MarkSheet } from '../models/exams.js'
+import { Exam, ExamCandidate, ExamPaper, ExamType, MarkSheet, newCandidateCode } from '../models/exams.js'
+import { Tenant } from '../models/platform.js'
+import { runAsSystem } from '../platform/context.js'
 import { ExamSeatPlan } from '../models/examSeating.js'
 import { hallAbsentees } from './examSeating.js'
 import { Student, studentName } from '../models/students.js'
@@ -338,12 +340,16 @@ export async function listCandidates(examId, sectionId, auth) {
     .sort((a, b) => String(a.rollNo ?? '').localeCompare(String(b.rollNo ?? ''), 'en', { numeric: true }) || a.name.localeCompare(b.name))
 }
 
-async function candidateInScope(id, auth) {
+export async function candidateInScope(id, auth) {
   if (!isOid(id)) throw notFound('Student')
   const c = await ExamCandidate.findById(id).lean()
   if (!c) throw notFound('Student')
   const allowed = await sectionsInScope(auth, 'exams')
   if (allowed && !allowed.includes(String(c.sectionId))) throw notFound('Student')
+  if (!c.verifyCode) { // candidates from before check codes get one the first time their hall ticket or report card prints
+    c.verifyCode = newCandidateCode()
+    await ExamCandidate.updateOne({ _id: c._id }, { $set: { verifyCode: c.verifyCode } })
+  }
   return c
 }
 
@@ -689,3 +695,45 @@ export async function reportCardData(candidateId, auth) {
 // ───────────────────────────────────────────────────────── print sample helpers
 
 export const latestCandidate = async (filter = {}) => (await ExamCandidate.findOne(filter).sort({ updatedAt: -1 }).select('_id').lean())?._id
+
+/**
+ * The QR on a hall ticket and a report card (/verify/exam/<code>), no sign-in: is this the school's own document —
+ * the student, the exam, the class; and once results are published, the result it states (% · grade · pass).
+ */
+export async function verifyExamCode(code) {
+  const want = String(code ?? '').trim().toUpperCase()
+  if (!/^[A-Z0-9]{12}$/.test(want)) return { found: false }
+  return runAsSystem(async () => {
+    const c = await ExamCandidate.findOne({ verifyCode: want }).setOptions({ allTenants: true }).lean()
+    if (!c) return { found: false }
+    const [exam, student, section, cls, t] = await Promise.all([
+      Exam.findById(c.examId).setOptions({ allTenants: true }).select('name status startDate endDate').lean(),
+      Student.findById(c.studentId).setOptions({ allTenants: true }).select('firstName middleName lastName admissionNo').lean(),
+      Section.findById(c.sectionId).setOptions({ allTenants: true }).lean(),
+      ClassLevel.findById(c.classId).setOptions({ allTenants: true }).select('name code').lean(),
+      Tenant.findById(c.tenantId).select('name profile.city').lean(),
+    ])
+    const published = exam?.status === 'PUBLISHED' && c.computedAt
+    return {
+      found: true, exam: { name: exam?.name ?? '', startDate: exam?.startDate ?? null, endDate: exam?.endDate ?? null }, published: !!published,
+      student: { name: student ? studentName(student) : '', admissionNo: student?.admissionNo ?? null, class: section ? sectionLabel(cls, section) : null },
+      result: published ? { pct: c.pct ?? null, grade: c.grade ?? null, result: c.result ?? null, total: c.total ?? null, max: c.max ?? null } : null,
+      institution: { name: t?.name ?? null, city: t?.profile?.city ?? null },
+    }
+  })
+}
+
+/** For the app's Scan: a hall ticket or report card scanned at the exam door — the student and today's room and seat. */
+export async function candidateAtDoor(code, auth) {
+  const c = await ExamCandidate.findOne({ verifyCode: String(code).toUpperCase() }).lean()
+  if (!c) return null
+  const allowed = await sectionsInScope(auth, 'exams')
+  if (allowed && !allowed.includes(String(c.sectionId))) return null
+  const d = await hallTicketData(c._id, auth)
+  const today = (await institutionNow()).date
+  return {
+    candidateId: String(c._id), studentId: String(c.studentId), examId: String(c.examId), exam: d.exam.name, examStatus: d.exam.status, student: studentName(d.student), class: d.place,
+    today: d.papers.filter((p) => p.date === today).map((p) => ({ subject: p.subject, startTime: p.startTime, endTime: p.endTime, room: p.seat?.room ?? null, seat: p.seat?.seat ?? null })),
+    nextDate: d.papers.map((p) => p.date).filter((x) => x && x >= today).sort()[0] ?? null,
+  }
+}

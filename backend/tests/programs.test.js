@@ -104,13 +104,22 @@ describe('regulations and programs', () => {
     const res = await admin.post(`${api}/${program.id}/students`).send({ studentIds: [String(a._id), String(b._id)], batch: 2026, currentSemester: 1 })
     expect(res.status).toBe(201)
     expect((await admin.post(`${api}/${program.id}/students`).send({ studentIds: [String(a._id)], batch: 2026 })).status).toBe(409)
-    const rows = (await admin.get(`${api}/${program.id}/students`)).body.data
+    const page = (await admin.get(`${api}/${program.id}/students`)).body.data
+    expect(page).toMatchObject({ total: 2, page: 1, pageSize: 50 })
+    const { rows } = page
     expect(rows).toHaveLength(2)
+    expect(rows.map((r) => r.admissionNo)).toEqual(['C001', 'C002']) // no register no. yet: admission-number order
     expect(rows[0]).toMatchObject({ regulationCode: 'R2026', currentSemester: 1, status: 'ACTIVE' })
     await admin.patch(`${api}/enrolments/${rows[0].id}`).send({ registerNo: 'cse26001' }).expect(200)
     expect((await admin.patch(`${api}/enrolments/${rows[1].id}`).send({ registerNo: 'CSE26001' })).status).toBe(400)
     await admin.patch(`${api}/enrolments`).send({ ids: rows.map((r) => r.id), currentSemester: 2 }).expect(200)
-    expect((await admin.get(`${api}/${program.id}/students`).query({ semester: 2 })).body.data).toHaveLength(2)
+    expect((await admin.get(`${api}/${program.id}/students`).query({ semester: 2 })).body.data.rows).toHaveLength(2)
+    // search runs on the server (name or register no.), and pages are cut there too
+    expect((await admin.get(`${api}/${program.id}/students`).query({ search: 'vikram' })).body.data.rows.map((r) => r.name)).toEqual(['Vikram Iyer'])
+    expect((await admin.get(`${api}/${program.id}/students`).query({ search: 'cse26' })).body.data.rows.map((r) => r.registerNo)).toEqual(['CSE26001'])
+    const second = (await admin.get(`${api}/${program.id}/students`).query({ page: 2, pageSize: 1 })).body.data
+    expect(second).toMatchObject({ total: 2, page: 2, pageSize: 1 })
+    expect(second.rows.map((r) => r.name)).toEqual(['Ananya Rao']) // Vikram's C002 (no register no.) sorts before CSE26001
     expect((await admin.get(`${api}/candidates`)).body.data.map((c) => c.name)).not.toContain('Ananya Rao')
   })
 

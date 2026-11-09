@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { BLOOD_GROUPS, CONDUCT_OPTIONS, GENDERS, GUARDIAN_RELATIONS, LEAVING_REASONS, PHOTO_DATA_URL, PHOTO_MAX_CHARS, PROMOTION_OUTCOMES, STUDENT_CATEGORIES } from '@schoolgiant/shared'
+import { BLOOD_GROUPS, CONDUCT_OPTIONS, GENDERS, GUARDIAN_RELATIONS, LEAVING_REASONS, PHOTO_DATA_URL, PHOTO_MAX_CHARS, PROMOTION_OUTCOMES, STUDENT_CATEGORIES, TC_STATUS } from '@schoolgiant/shared'
 import { can } from '../platform/access.js'
 import { authenticate, requireModule, requirePermission, subscriptionGate, tenantOnly } from '../platform/middleware.js'
 import { email, mobile, objectId, optionalText, pageParams, z } from '../platform/validate.js'
@@ -17,6 +17,8 @@ const ymd = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Use YYYY-MM-DD')
 const optYmd = ymd.optional().or(z.literal('').transform(() => undefined))
 const values = (list) => list.map((x) => x.value)
 const optEnum = (list) => z.enum(list).optional().or(z.literal('').transform(() => undefined))
+// one page of a list: 50 rows by default, at most 100 (the platform's clamp)
+const paging = { page: z.coerce.number().int().min(1).default(1), pageSize: z.coerce.number().int().min(1).max(100).default(50) }
 
 const guardianSchema = z.object({
   name: z.string().trim().min(2, 'Enter the name').max(100),
@@ -70,7 +72,8 @@ router.post('/import', requirePermission('students.directory.import'), async (re
 })
 
 router.get('/guardians', requirePermission('students.guardians.view'), async (req, res) => {
-  res.json({ data: await listGuardians({ search: String(req.query.search ?? '') }, req.auth) })
+  const q = z.object({ search: z.string().max(80).optional(), ...paging }).parse(req.query)
+  res.json({ data: await listGuardians(q, req.auth) })
 })
 
 // ───────────────────────────────────────────────────────── promotion
@@ -90,7 +93,8 @@ router.post('/promotion', requirePermission('students.promotion.promote'), async
 // ───────────────────────────────────────────────────────── transfer certificates
 
 router.get('/tc', requirePermission('students.transfer.view'), async (req, res) => {
-  res.json({ data: await listTcs({ status: req.query.status ? String(req.query.status) : undefined }, req.auth) })
+  const q = z.object({ status: optEnum(Object.keys(TC_STATUS)), search: z.string().max(80).optional(), from: optYmd, to: optYmd, ...paging }).parse(req.query)
+  res.json({ data: await listTcs(q, req.auth) })
 })
 router.post('/tc', requirePermission('students.transfer.create'), async (req, res) => {
   const input = z.object({

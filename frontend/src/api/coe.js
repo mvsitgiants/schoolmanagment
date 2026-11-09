@@ -8,6 +8,19 @@ const patch = async (url, body) => (await api.patch(url, body)).data.data
 
 const BASE = '/v1/coe'
 
+/** Every row of a paged list, for a CSV export: 100-row pages, four at a time, up to `max` rows. */
+async function allRows(fetchPage, params, max = 5000) {
+  const size = 100
+  const first = await fetchPage({ ...params, page: 1, pageSize: size })
+  const pages = Math.min(Math.ceil((first.total ?? 0) / size), Math.ceil(max / size))
+  const out = [...(first.rows ?? [])]
+  for (let p = 2; p <= pages; p += 4) {
+    const batch = await Promise.all(Array.from({ length: Math.min(4, pages - p + 1) }, (_, i) => fetchPage({ ...params, page: p + i, pageSize: size })))
+    for (const r of batch) out.push(...(r.rows ?? []))
+  }
+  return out
+}
+
 export const fetchCoeLookup = () => get(`${BASE}/lookup`)
 
 // sessions
@@ -29,10 +42,12 @@ export const decideModeration = (id, approve) => post(`${BASE}/sheets/${id}/mode
 
 // results
 export const fetchSessionResults = (id, params) => get(`${BASE}/sessions/${id}/results`, params)
+export const fetchAllSessionResults = (id, params) => allRows((q) => fetchSessionResults(id, q), params)
 export const fetchResult = (id) => get(`${BASE}/results/${id}`)
 
 // revaluation
 export const fetchRevaluations = (params) => get(`${BASE}/revaluations`, params)
+export const fetchAllRevaluations = (params) => allRows(fetchRevaluations, params)
 export const fetchRevaluationCandidates = (sessionId, search) => get(`${BASE}/revaluations/candidates`, { sessionId, search: search || undefined })
 export const requestRevaluation = (body) => post(`${BASE}/revaluations`, body)
 export const actOnRevaluation = (id, body) => post(`${BASE}/revaluations/${id}/act`, body)

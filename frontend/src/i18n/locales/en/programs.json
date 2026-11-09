@@ -167,6 +167,7 @@
       "status": "Status",
       "registerNo": "Register number",
       "searchPlaceholder": "Search students by name or admission number",
+      "listSearch": "Search name, admission or register no.",
       "noCandidates": "No students to add",
       "noCandidatesHint": "Students already in a program are not listed. Add new students in Students › Directory first.",
       "perSemester": "Students per semester",

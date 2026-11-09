@@ -199,7 +199,8 @@
       "returnedLate": "{{days}} days late — fine {{amount}}",
       "lateLine_one": "{{count}} day late (due {{due}})",
       "lateLine_other": "{{count}} days late (due {{due}})",
-      "onTime": "On time"
+      "onTime": "On time",
+      "useCamera": "Scan with the camera"
     },
     "loans": {
       "states": {
@@ -261,6 +262,50 @@
       "cancelPayment": "Cancel the payment",
       "cancelTitle": "Cancel the payment on receipt {{no}}?",
       "cancelled": "Payment cancelled — the fine is open again"
+    },
+    "stock": {
+      "title": "Stock check",
+      "subtitle": "Walk the shelves scanning every book. What should be on a shelf and wasn't scanned is missing — books out on loan are counted apart.",
+      "button": "Stock check",
+      "startTitle": "Start a stock check",
+      "startHint": "Give it a name; leave the shelf empty to check the whole library.",
+      "defaultName": "Stock check {{date}}",
+      "name": "Name",
+      "shelf": "Shelf",
+      "shelfHint": "Optional — one shelf only",
+      "start": "Start",
+      "shelfN": "Shelf {{shelf}}",
+      "noShelf": "No shelf",
+      "open": "In progress",
+      "done": "Finished",
+      "scan": "Scan books",
+      "scanTitle": "Scanning · {{seen}} of {{expected}} found",
+      "scanHint": "Scan the barcode on each book's label. A beep means it was counted.",
+      "close": "Finish the check",
+      "closeTitle": "Finish this stock check?",
+      "closeMsg_one": "{{count}} book wasn't scanned and will be listed as missing. Nothing is marked lost — you decide that.",
+      "closeMsg_other": "{{count}} books weren't scanned and will be listed as missing. Nothing is marked lost — you decide that.",
+      "closed": "Stock check finished.",
+      "foundN": "Found",
+      "missingN": "Missing",
+      "onLoan": "Out on loan",
+      "unknownN": "Unknown codes",
+      "byShelf": "By shelf",
+      "book": "Book",
+      "missingTitle_one": "{{count}} missing",
+      "missingTitle_other": "{{count}} missing",
+      "nothingMissing": "Nothing missing — every book was found.",
+      "found": "Counted",
+      "already": "Already counted",
+      "unknownBook": "Not in the catalogue",
+      "onLoanHere": "Out on loan — return it",
+      "wrongShelf": "Belongs on shelf {{shelf}}",
+      "nothingYet": "Nothing scanned yet.",
+      "history": "Past checks",
+      "result": "Result",
+      "summary": "{{seen}} of {{expected}} found · {{missing}} missing",
+      "newCheck": "Start a new check",
+      "none": "No stock checks yet."
     }
   }
 }

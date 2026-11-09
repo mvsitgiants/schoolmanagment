@@ -103,3 +103,22 @@ fineSchema.index({ tenantId: 1, status: 1, date: -1 })
 fineSchema.index({ tenantId: 1, 'borrower.kind': 1, 'borrower.id': 1, status: 1 })
 fineSchema.index({ tenantId: 1, 'paid.receiptNo': 1 }, { sparse: true })
 export const LibraryFine = model('LibraryFine', fineSchema, 'library_fines')
+
+/**
+ * A stock check: walk the shelves scanning every book; what should be on a shelf (on the shelf, not out on loan) and
+ * was never scanned is missing. One open at a time per campus; `shelf` limits it to one shelf.
+ */
+const stockCheckSchema = new Schema({
+  name: { type: String, required: true, trim: true },
+  shelf: { type: String, trim: true },
+  branchId: ObjectId,
+  status: { type: String, default: 'OPEN' }, // OPEN · CLOSED
+  seen: { type: [ObjectId], default: [] }, // copies scanned
+  unknown: { type: [String], default: [] }, // codes that matched no copy (stray labels, other schools' books)
+  startedBy: String, startedAt: { type: Date, default: Date.now },
+  closedBy: String, closedAt: Date,
+  summary: { expected: Number, seen: Number, missing: Number, onLoan: Number },
+}, { timestamps: true })
+stockCheckSchema.plugin(tenantPlugin)
+stockCheckSchema.index({ tenantId: 1, status: 1, startedAt: -1 })
+export const LibraryStockCheck = model('LibraryStockCheck', stockCheckSchema, 'library_stock_checks')

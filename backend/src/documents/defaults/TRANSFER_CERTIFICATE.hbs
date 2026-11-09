@@ -8,6 +8,8 @@
   table.tc td.n { width: 8mm; color: #8B90A0 }
   table.tc td.k { width: 72mm; color: #3A3F4B }
   table.tc td.v { font-weight: 600 }
+  .chk { display: flex; justify-content: flex-end; margin-top: 4mm }
+  .chk span { display: flex; flex-direction: column; align-items: center; gap: .8mm; font-size: 7pt; color: #5B616E; text-align: center }
   .sign { margin-top: 18mm; display: flex; justify-content: space-between; gap: 10mm; font-size: 9.5pt }
   .sign div { flex: 1; text-align: center; border-top: 1px solid #8B90A0; padding-top: 2mm }
   .draft, .void { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 54pt; font-weight: 800; transform: rotate(-20deg); pointer-events: none }
@@ -40,6 +42,7 @@
   {{#if tc.remarks}}<tr><td class="n"></td><td class="k">{{t "students.print.tc.remarks" "Remarks"}}</td><td class="v">{{lines tc.remarks}}</td></tr>{{/if}}
   <tr><td class="n"></td><td class="k">{{t "students.print.tc.issueDate" "Date of issue"}}</td><td class="v">{{#if tc.issuedAt}}{{date tc.issuedAt}}{{else}}—{{/if}}</td></tr>
 </table>
+{{#if tc.verifyUrl}}<div class="chk"><span>{{qr tc.verifyUrl 20}}{{t "students.print.tc.scanToCheck" "Scan to check this TC"}}</span></div>{{/if}}
 <div class="sign">
   <div>{{t "students.print.tc.classTeacher" "Class teacher"}}</div>
   <div>{{t "students.print.tc.checkedBy" "Checked by"}}</div>

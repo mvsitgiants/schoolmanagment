@@ -1,16 +1,20 @@
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { ArrowLeftRight, CheckCircle2, Hourglass, Plus, Printer, XCircle } from 'lucide-react'
 import { CONDUCT_OPTIONS, LEAVING_REASONS, TC_STATUS } from '@schoolgiant/shared'
-import { CodeBadge, ColorChip, ControlChip, DataTable, DateCell, FormField, HeaderButton, Input, Modal, PageContainer, PageHeader, PersonCell, Select, StackCell, StatCardRow, StatusPill, Textarea, useConfirm, usePrompt } from '../../components/system'
+import { CodeBadge, ColorChip, ControlChip, DataTable, DateCell, FormField, HeaderButton, Input, Modal, PageContainer, PageHeader, PersonCell, Select, StackCell, StatCardRow, StatusPill, Textarea, Toolbar, presetRange, useConfirm, usePrompt } from '../../components/system'
 import Button from '../../components/ui/Button'
 import useDebouncedValue from '../../hooks/useDebouncedValue'
 import { cancelTc, fetchStudent, fetchStudents, fetchTcs, issueTc, requestTc } from '../../api/students'
 import { hasPermission } from '../../api/auth'
 import { printDocument } from '../../components/print/printDocument'
 import { useSnackbar } from '../../context/SnackbarContext'
+
+const PAGE = 50
+// the leaving-date filter: every TC, or one financial year (1 Apr – 31 Mar, close to the school year)
+const PERIODS = ['', 'thisFy', 'lastFy']
 
 function RequestTc({ studentId: presetId, onClose, onSaved }) {
   const { t } = useTranslation('students')
@@ -66,11 +70,20 @@ export default function Transfer() {
   const { showSuccess, showError } = useSnackbar()
   const [params, setParams] = useSearchParams()
   const [status, setStatus] = useState('')
+  const [search, setSearch] = useState('')
+  const [period, setPeriod] = useState('')
+  const [page, setPage] = useState(1)
   const [asking, setAsking] = useState(null)
-  const { data: rows = [], isLoading, error, refetch } = useQuery({ queryKey: ['tcs', status], queryFn: () => fetchTcs(status) })
-  // the tiles count every TC, whichever status is picked (the same list as "All", so it is usually cached)
-  const { data: all = [] } = useQuery({ queryKey: ['tcs', ''], queryFn: () => fetchTcs('') })
-  const tally = all.reduce((m, r) => ({ ...m, [r.status]: (m[r.status] ?? 0) + 1 }), {})
+  const q = useDebouncedValue(search.trim(), 250)
+  const range = period ? presetRange(period) : null
+  const query = { status: status || undefined, search: q || undefined, from: range?.from, to: range?.to, page, pageSize: PAGE }
+  const { data, isLoading, error, refetch } = useQuery({ queryKey: ['tcs', query], queryFn: () => fetchTcs(query), placeholderData: keepPreviousData })
+  const rows = data?.rows ?? []
+  const total = data?.total ?? 0
+  // the tiles count each status over the same search and dates, whichever status is picked (counted on the server)
+  const tally = data?.counts ?? {}
+  const pickStatus = (s) => { setStatus(s); setPage(1) }
+  const periodLabel = (p) => (p ? t(`ui:ui.dateRange.${p}`) : t('students.all'))
   useEffect(() => { const sid = params.get('student'); if (sid) { setAsking(sid); setParams({}, { replace: true }) } }, [params, setParams])
   const refresh = () => { qc.invalidateQueries({ queryKey: ['tcs'] }); qc.invalidateQueries({ queryKey: ['students'] }); qc.invalidateQueries({ queryKey: ['student'] }) }
   const act = useMutation({ mutationFn: ({ fn }) => fn(), onSuccess: (_, v) => { refresh(); showSuccess(v.done) }, onError: (e) => showError(e.message) })
@@ -82,10 +95,10 @@ export default function Transfer() {
     <PageContainer>
       <PageHeader icon={ArrowLeftRight} title={t('students.transfer.title')} subtitle={t('students.transfer.subtitle')}
         actions={<HeaderButton icon={Plus} variant="primary" requires="create" onClick={() => setAsking('new')}>{t('students.transfer.new')}</HeaderButton>} />
-      {all.length > 0 && (
+      {Object.values(tally).some(Boolean) && (
         <StatCardRow className="mb-4" items={STATUSES.filter(Boolean).map((k) => ({
           label: statusLabel(k), value: tally[k] ?? 0, ...STATUS_LOOK[k],
-          onClick: () => setStatus(status === k ? '' : k),
+          onClick: () => pickStatus(status === k ? '' : k),
           className: status === k ? 'ring-2 ring-brand-400' : status ? 'opacity-60 hover:opacity-100' : undefined,
         }))} />
       )}
@@ -94,7 +107,10 @@ export default function Transfer() {
         loading={isLoading}
         error={error}
         onRetry={refetch}
-        toolbar={<div className="flex justify-end"><ControlChip label={t('students.status.title')} value={statusLabel(status)} active={!!status} options={STATUSES.map(statusLabel)} onChange={(v) => setStatus(STATUSES.find((s) => statusLabel(s) === v) ?? '')} /></div>}
+        toolbar={<Toolbar search={search} onSearch={(v) => { setSearch(v); setPage(1) }} searchPlaceholder={t('students.transfer.search')} right={<div className="flex flex-wrap gap-2">
+          <ControlChip label={t('students.transfer.leavingDate')} value={periodLabel(period)} active={!!period} options={PERIODS.map(periodLabel)} onChange={(v) => { setPeriod(PERIODS.find((p) => periodLabel(p) === v) ?? ''); setPage(1) }} />
+          <ControlChip label={t('students.status.title')} value={statusLabel(status)} active={!!status} options={STATUSES.map(statusLabel)} onChange={(v) => pickStatus(STATUSES.find((s) => statusLabel(s) === v) ?? '')} />
+        </div>} />}
         columns={[
           { key: 'tcNo', header: t('students.transfer.tcNo'), render: (v) => (v ? <CodeBadge tone="success">{v}</CodeBadge> : <span className="text-xs text-ink-faint">{t('students.transfer.draft')}</span>) },
           { key: 'studentId', header: t('students.directory.student'), mobilePrimary: true, render: (v, r) => (
@@ -119,7 +135,8 @@ export default function Transfer() {
             </div>
           ) },
         ]}
-        emptyIcon={ArrowLeftRight} emptyTitle={t('students.transfer.empty')} emptyHint={t('students.transfer.emptyHint')}
+        emptyIcon={ArrowLeftRight} emptyTitle={q || period || status ? t('students.directory.noMatch') : t('students.transfer.empty')} emptyHint={q || period || status ? undefined : t('students.transfer.emptyHint')}
+        pagination={total > PAGE ? { page: page - 1, size: PAGE, totalElements: total, totalPages: Math.ceil(total / PAGE), onPageChange: (p) => setPage(p + 1) } : undefined}
       />
       {asking && <RequestTc studentId={asking === 'new' ? null : asking} onClose={() => setAsking(null)} onSaved={() => { refresh(); showSuccess(t('students.transfer.requested')); setAsking(null) }} />}
     </PageContainer>

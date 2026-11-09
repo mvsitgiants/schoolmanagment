@@ -162,7 +162,11 @@ router.delete('/:id', requirePermission('programs.programs.delete'), async (req,
 })
 
 router.get('/:id/students', requirePermission('programs.programs.view'), async (req, res) => {
-  const q = z.object({ semester: z.coerce.number().int().min(1).max(16).optional(), status: z.enum(Object.keys(ENROLMENT_STATUS)).optional() }).parse(req.query)
+  const q = z.object({
+    semester: z.coerce.number().int().min(1).max(16).optional(), status: z.enum(Object.keys(ENROLMENT_STATUS)).optional(), search: z.string().max(80).optional(),
+    // one page: 50 rows by default, at most 100 (the platform's clamp)
+    page: z.coerce.number().int().min(1).default(1), pageSize: z.coerce.number().int().min(1).max(100).default(50),
+  }).parse(req.query)
   res.json({ data: await listEnrolments(id(req), q) })
 })
 router.post('/:id/students', requirePermission('programs.programs.edit'), async (req, res) => {

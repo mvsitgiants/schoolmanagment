@@ -11,7 +11,7 @@ import {
 import Button from '../../components/ui/Button'
 import { BlockNav, OutpassStatusPill, useHostelLabels } from '../../components/hostel/HostelKit'
 import OutpassForm from '../../components/hostel/OutpassForm'
-import { cancelOutpass, decideOutpass, fetchHostelBoard, fetchOutpasses, markOutpassIn, markOutpassOut } from '../../api/hostel'
+import { cancelOutpass, decideOutpass, fetchAllOutpasses, fetchHostelBoard, fetchOutpasses, markOutpassIn, markOutpassOut } from '../../api/hostel'
 import { hasPermission } from '../../api/auth'
 import useDebouncedValue from '../../hooks/useDebouncedValue'
 import { useFormat } from '../../context/SettingsContext'
@@ -83,6 +83,8 @@ function OutpassDrawer({ pass, onClose, onDone }) {
   )
 }
 
+const PAGE = 50
+
 /** Hostel › Outpasses: asked → approved → out → back, as a board; and the full list with dates. */
 export default function HostelOutpasses() {
   const { t } = useTranslation('hostel')
@@ -96,12 +98,16 @@ export default function HostelOutpasses() {
   const [status, setStatus] = useState('')
   const [range, setRange] = useState(() => presetRange('last30'))
   const [search, setSearch] = useState('')
+  const [page, setPage] = useState(1)
   const q = useDebouncedValue(search.trim(), 250)
   const [asking, setAsking] = useState(params.get('studentId') ? { studentId: params.get('studentId') } : null)
   const [open, setOpen] = useState(null)
   const { data: board } = useQuery({ queryKey: ['hostel', 'board'], queryFn: fetchHostelBoard })
   const blocks = board?.blocks ?? []
-  const query = { view, ...(blockId && { blockId }), ...(q && { search: q }), ...(view === 'ALL' && status && { status }), ...(view === 'ALL' && range?.from && { from: range.from, to: range.to }) }
+  // any change of filter goes back to the first page of the full list
+  const reset = (set) => (v) => { set(v); setPage(1) }
+  const filters = { view, ...(blockId && { blockId }), ...(q && { search: q }), ...(view === 'ALL' && status && { status }), ...(view === 'ALL' && range?.from && { from: range.from, to: range.to }) }
+  const query = { ...filters, ...(view === 'ALL' && { page, pageSize: PAGE }) }
   const { data, isLoading, error, refetch } = useQuery({ queryKey: ['hostel', 'outpasses', query], queryFn: () => fetchOutpasses(query), refetchInterval: 60_000 })
   const rows = data?.rows ?? []
   const c = data?.counts
@@ -119,11 +125,11 @@ export default function HostelOutpasses() {
         { icon: LogOut, tone: 'violet', label: t('hostel.board.outOnPass'), value: c?.OUT ?? '—', sub: c ? t('hostel.outpass.backToday', { count: c.backToday }) : null },
         { icon: AlarmClock, tone: c?.overdue ? 'danger' : 'success', label: t('hostel.outpass.overdueN'), value: c?.overdue ?? '—' },
       ]} />
-      <SideNavLayout nav={blocks.length > 1 && <BlockNav blocks={blocks} value={blockId} onChange={setBlockId} allLabel={t('hostel.nav.allBlocks')} />}>
+      <SideNavLayout nav={blocks.length > 1 && <BlockNav blocks={blocks} value={blockId} onChange={reset(setBlockId)} allLabel={t('hostel.nav.allBlocks')} />}>
         <div className="flex flex-wrap items-center gap-3">
-          <SegmentedControl value={view} onChange={setView} options={[{ value: 'OPEN', label: t('hostel.outpass.board') }, { value: 'ALL', label: t('hostel.outpass.all') }]} />
-          {view === 'ALL' && <DateRangeChip value={range} onChange={setRange} />}
-          <div className="w-full sm:ms-auto sm:w-72"><SearchInput value={search} onChange={setSearch} placeholder={t('hostel.outpass.search')} /></div>
+          <SegmentedControl value={view} onChange={reset(setView)} options={[{ value: 'OPEN', label: t('hostel.outpass.board') }, { value: 'ALL', label: t('hostel.outpass.all') }]} />
+          {view === 'ALL' && <DateRangeChip value={range} onChange={reset(setRange)} />}
+          <div className="w-full sm:ms-auto sm:w-72"><SearchInput value={search} onChange={reset(setSearch)} placeholder={t('hostel.outpass.search')} /></div>
         </div>
         {view === 'OPEN' ? (
           <KanbanBoard loading={isLoading} items={rows} columnOf={(o) => o.status} onCardClick={setOpen} emptyText={t('hostel.outpass.columnEmpty')}
@@ -140,12 +146,13 @@ export default function HostelOutpasses() {
           <>
             <PillRow>
               {['', ...Object.keys(OUTPASS_STATUS)].map((k) => (
-                <button key={k || 'all'} type="button" onClick={() => setStatus(k)} aria-pressed={status === k} className={pillClass(status === k)}>
+                <button key={k || 'all'} type="button" onClick={() => reset(setStatus)(k)} aria-pressed={status === k} className={pillClass(status === k)}>
                   {k ? L.outpass(k) : t('hostel.outpass.anyStatus')}
                 </button>
               ))}
             </PillRow>
-            <DataTable rows={rows} loading={isLoading} error={error} onRetry={refetch} onRowClick={setOpen} exportable exportName="outpasses"
+            <DataTable rows={rows} loading={isLoading} error={error} onRetry={refetch} onRowClick={setOpen} exportable exportName="outpasses" exportAll={() => fetchAllOutpasses(filters)}
+              pagination={data?.page && data.total > PAGE ? { page: page - 1, size: PAGE, totalElements: data.total, totalPages: Math.ceil(data.total / PAGE), onPageChange: (p) => setPage(p + 1) } : undefined}
               rowTone={(o) => (o.overdue || o.late ? 'danger' : undefined)} emptyIcon={Ticket} emptyTitle={t('hostel.outpass.empty')}
               columns={[
                 { key: 'outpassNo', header: t('hostel.outpass.no'), mobileHidden: true, render: (v) => <span className="font-mono text-xs">{v}</span> },

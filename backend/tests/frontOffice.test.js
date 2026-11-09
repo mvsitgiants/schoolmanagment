@@ -53,7 +53,7 @@ describe('visitor log', () => {
     expect(desk.stats).toMatchObject({ today: 1, inside: 1, week: 1 })
     expect(desk.stats.byPurpose.MEET_STAFF).toBe(1)
     expect(desk.inside[0].photo).toBe(PHOTO)
-    expect(desk.today[0].photo).toBeUndefined() // the log stays light
+    expect((await admin.get(`${api}/visitors`)).body.data.rows[0].photo).toBeUndefined() // the log stays light
   })
 
   it('needs a host to meet staff, refuses a badge still out, and refuses what is not a photo', async () => {
@@ -70,7 +70,9 @@ describe('visitor log', () => {
     const again = (await admin.get(`${api}/visitors/lookup?mobile=09845000900`)).body.data
     expect(again).toMatchObject({ name: 'Ravi Kumar', from: 'ABC Books', visits: 1 })
     const log = (await admin.get(`${api}/visitors?status=OUT`)).body.data
-    expect(log.map((v) => v.id)).toContain(visitor.id)
+    expect(log.rows.map((v) => v.id)).toContain(visitor.id)
+    expect(log).toMatchObject({ page: 1, pageSize: 50 })
+    expect(log.total).toBe(log.rows.length)
   })
 
   it('turns an admission-enquiry visit into an enquiry in Admissions, once', async () => {

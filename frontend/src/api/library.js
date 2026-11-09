@@ -46,3 +46,10 @@ export const createFine = (body) => post(`${BASE}/fines`, body)
 export const collectFines = (body) => post(`${BASE}/fines/collect`, body)
 export const waiveFine = (id, reason) => post(`${BASE}/fines/${id}/waive`, { reason })
 export const cancelFinePayment = (id, reason) => post(`${BASE}/fines/${id}/cancel-payment`, { reason })
+
+// stock check (Library › Catalogue › Stock check)
+export const fetchStockChecks = async () => (await api.get('/v1/library/stock-checks')).data.data
+export const fetchStockCheck = async (id) => (await api.get(`/v1/library/stock-checks/${id}`)).data.data
+export const startStockCheck = async (body) => (await api.post('/v1/library/stock-checks', body)).data.data
+export const scanStock = async (id, code) => (await api.post(`/v1/library/stock-checks/${id}/scan`, { code })).data.data
+export const closeStockCheck = async (id) => (await api.post(`/v1/library/stock-checks/${id}/close`)).data.data
