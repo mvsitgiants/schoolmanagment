@@ -146,6 +146,7 @@ export const SUBJECT_PRESET = [
   ['English', 'ENG', 'LANGUAGE'], ['Hindi', 'HIN', 'LANGUAGE'], ['Mathematics', 'MATH', 'THEORY'], ['Science', 'SCI', 'THEORY'],
   ['Social Science', 'SST', 'THEORY'], ['Environmental Studies', 'EVS', 'THEORY'], ['Computer Science', 'CS', 'PRACTICAL'],
   ['Physical Education', 'PE', 'ACTIVITY'], ['Art & Craft', 'ART', 'ACTIVITY'], ['Music', 'MUS', 'ACTIVITY'],
+  ['Physics', 'PHY', 'THEORY'], ['Chemistry', 'CHEM', 'THEORY'], ['Biology', 'BIO', 'THEORY'],
 ]
 
 /** Section names A, B, C … for the first `n` sections. */

@@ -6,12 +6,12 @@ import { SEAT_PLAN_DEFAULTS } from '@schoolgiant/shared'
 import { ColorChip, EmptyState, Note, PageContainer, PageHeader, SideNav, SideNavLayout, Skeleton, StatCardRow, StatusPill, Tabs, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
 import useExamPick from '../../components/exams/useExamPick'
-import { ClassLegend, InvigilatorsPanel, PickedBar, RoomSeatMap, SeatingRuns, SeatingSetup, UnseatedList } from '../../components/exams/SeatingKit'
+import { ClassLegend, HallAttendance, InvigilatorsPanel, PickedBar, RoomSeatMap, SeatingRuns, SeatingSetup, UnseatedList } from '../../components/exams/SeatingKit'
 import {
-  autoInvigilators, deleteSeating, fetchMyDuties, fetchSeatingSession, fetchSeatingSessions, generateAllSeating, generateSeating, moveSeats, publishSeating,
+  autoInvigilators, deleteSeating, fetchMyDuties, markHallAttendance, fetchSeatingSession, fetchSeatingSessions, generateAllSeating, generateSeating, moveSeats, publishSeating,
   setInvigilators, unlockSeats, unpublishSeating,
 } from '../../api/examSeating'
-import { hasPermission } from '../../api/auth'
+import { getCurrentUser, hasPermission } from '../../api/auth'
 import { printDocument } from '../../components/print/printDocument'
 import { useSnackbar } from '../../context/SnackbarContext'
 import { useFormat } from '../../context/SettingsContext'
@@ -103,6 +103,8 @@ function SessionPanel({ examId, session, canEdit }) {
   const setInv = useMutation({ mutationFn: ({ roomId, teacherIds, auto }) => setInvigilators(plan.id, { roomId, teacherIds, auto }), onSuccess: done(), onError: fail })
   const autoInv = useMutation({ mutationFn: () => autoInvigilators(plan.id), onSuccess: done(t('exams.seating.invigilatorsPicked')), onError: fail })
   const publish = useMutation({ mutationFn: () => (draft ? publishSeating(plan.id) : unpublishSeating(plan.id)), onSuccess: done(draft ? t('exams.seating.published') : t('exams.seating.unpublished')), onError: fail })
+  const hall = useMutation({ mutationFn: ({ roomId, absent }) => markHallAttendance(plan.id, { roomId, absent }), onSuccess: done(t('exams.seating.hallSaved')), onError: fail })
+  const me = getCurrentUser()?.user?.id
   const clear = useMutation({ mutationFn: () => deleteSeating(plan.id), onSuccess: () => { qc.invalidateQueries({ queryKey: qKey }); qc.invalidateQueries({ queryKey: ['seating-sessions', examId] }); setRoomIds(null); showSuccess(t('exams.seating.cleared')) }, onError: fail })
 
   if (isLoading || !view || !rules || !roomIds) return <Skeleton className="h-96 rounded-xl" />
@@ -161,6 +163,7 @@ function SessionPanel({ examId, session, canEdit }) {
               { value: 'rooms', label: t('exams.seating.tabRooms') },
               { value: 'notice', label: t('exams.seating.tabNotice') },
               { value: 'invigilators', label: t('exams.seating.tabInvigilators') },
+              { value: 'hall', label: t('exams.seating.tabHall', { count: plan.absentIds.length }) },
             ]} />
             <div className="flex flex-wrap gap-2 py-2">
               {hasPermission('exams.seating.print') && <>
@@ -203,6 +206,10 @@ function SessionPanel({ examId, session, canEdit }) {
               </>
             )}
             {tab === 'notice' && <SeatingRuns plan={plan} />}
+            {tab === 'hall' && (
+              <HallAttendance plan={plan} classes={view.classes} me={me} canEditAll={canEdit} busy={hall.isPending}
+                onSave={(roomId, absent) => hall.mutate({ roomId, absent })} />
+            )}
             {tab === 'invigilators' && (
               <InvigilatorsPanel plan={plan} teachers={view.teachers} canEdit={editable} busy={autoInv.isPending}
                 onAuto={() => autoInv.mutate()} onSet={(roomId, teacherIds, auto) => setInv.mutate({ roomId, teacherIds, auto })} />

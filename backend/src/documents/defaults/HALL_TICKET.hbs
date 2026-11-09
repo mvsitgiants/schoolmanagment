@@ -28,10 +28,10 @@
   <div class="photo">{{t "exams.print.hallTicket.photo" "Paste photo"}}</div>
 </div>
 <table class="tt">
-  <thead><tr><th>{{t "exams.print.hallTicket.date" "Date"}}</th><th>{{t "exams.print.hallTicket.time" "Time"}}</th><th>{{t "exams.print.hallTicket.subject" "Subject"}}</th><th class="n">{{t "exams.print.hallTicket.maxMarks" "Max. marks"}}</th></tr></thead>
+  <thead><tr><th>{{t "exams.print.hallTicket.date" "Date"}}</th><th>{{t "exams.print.hallTicket.time" "Time"}}</th><th>{{t "exams.print.hallTicket.subject" "Subject"}}</th><th class="n">{{t "exams.print.hallTicket.maxMarks" "Max. marks"}}</th>{{#if seated}}<th>{{t "exams.print.hallTicket.seat" "Room · Seat"}}</th>{{/if}}</tr></thead>
   <tbody>
     {{#each papers}}
-      <tr><td>{{date date}}</td><td>{{#if startTime}}{{startTime}}{{#if endTime}} – {{endTime}}{{/if}}{{else}}—{{/if}}</td><td>{{subject}}</td><td class="n">{{#if gradeOnly}}{{t "exams.print.hallTicket.graded" "Grade"}}{{else}}{{maxMarks}}{{/if}}</td></tr>
+      <tr><td>{{date date}}</td><td>{{#if startTime}}{{startTime}}{{#if endTime}} – {{endTime}}{{/if}}{{else}}—{{/if}}</td><td>{{subject}}</td><td class="n">{{#if gradeOnly}}{{t "exams.print.hallTicket.graded" "Grade"}}{{else}}{{maxMarks}}{{/if}}</td>{{#if ../seated}}<td class="mono">{{#if seat}}<b>{{room}}</b> · {{seat}}{{else}}—{{/if}}</td>{{/if}}</tr>
     {{/each}}
   </tbody>
 </table>

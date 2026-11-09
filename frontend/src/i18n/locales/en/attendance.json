@@ -77,7 +77,8 @@
       "dayFrom": {
         "FIRST": "the first period marked",
         "SHARE": "the share of periods attended"
-      }
+      },
+      "gateIn": "Came in at the gate · {{time}}"
     },
     "register": {
       "title": "Attendance register",
@@ -96,7 +97,9 @@
         "days": "Days marked",
         "average": "Average attendance",
         "below": "Under {{min}}%"
-      }
+      },
+      "subject": "Subject",
+      "wholeDay": "The day"
     },
     "leave": {
       "title": "Student leave",

@@ -70,6 +70,24 @@ const FeeOnline = lazy(() => import('./pages/Fees/Online'))
 // Exams
 const ExamSchedule = lazy(() => import('./pages/Exams/Schedule'))
 const ExamHallTickets = lazy(() => import('./pages/Exams/HallTickets'))
+const AnalyticsAcademics = lazy(() => import('./pages/Analytics/Academics'))
+const AnalyticsFees = lazy(() => import('./pages/Analytics/Fees'))
+const AnalyticsCampuses = lazy(() => import('./pages/Analytics/Campuses'))
+const AiAssistant = lazy(() => import('./pages/Ai/Assistant'))
+const AiQuestionPapers = lazy(() => import('./pages/Ai/QuestionPapers'))
+const AiRemarks = lazy(() => import('./pages/Ai/Remarks'))
+const IntPayments = lazy(() => import('./pages/Integrations/Payments'))
+const IntMessaging = lazy(() => import('./pages/Integrations/Messaging'))
+const IntDevices = lazy(() => import('./pages/Integrations/Devices'))
+const IntLogs = lazy(() => import('./pages/Integrations/Logs'))
+const ProgPrograms = lazy(() => import('./pages/Programs/Programs'))
+const ProgOutcomes = lazy(() => import('./pages/Programs/Outcomes'))
+const ProgAttainment = lazy(() => import('./pages/Programs/Attainment'))
+const RegWindows = lazy(() => import('./pages/Registration/Windows'))
+const RegRequests = lazy(() => import('./pages/Registration/Requests'))
+const CoeMarks = lazy(() => import('./pages/Coe/Marks'))
+const CoeRevaluation = lazy(() => import('./pages/Coe/Revaluation'))
+const CoeGradeCards = lazy(() => import('./pages/Coe/GradeCards'))
 const ExamSeating = lazy(() => import('./pages/Exams/Seating'))
 const ExamQuestionPapers = lazy(() => import('./pages/Exams/QuestionPapers'))
 const ExamMarks = lazy(() => import('./pages/Exams/Marks'))
@@ -314,6 +332,30 @@ export default function App() {
           <Route path="exams" element={<Navigate to="/exams/schedule" replace />} />
           <Route path="exams/schedule" element={<ExamSchedule />} />
           <Route path="exams/hall-tickets" element={<ExamHallTickets />} />
+          <Route path="analytics" element={<Navigate to="/analytics/academics" replace />} />
+          <Route path="analytics/academics" element={<AnalyticsAcademics />} />
+          <Route path="analytics/fees" element={<AnalyticsFees />} />
+          <Route path="analytics/campuses" element={<AnalyticsCampuses />} />
+          <Route path="ai" element={<Navigate to="/ai/assistant" replace />} />
+          <Route path="ai/assistant" element={<AiAssistant />} />
+          <Route path="ai/question-papers" element={<AiQuestionPapers />} />
+          <Route path="ai/remarks" element={<AiRemarks />} />
+          <Route path="integrations" element={<Navigate to="/integrations/payments" replace />} />
+          <Route path="integrations/payments" element={<IntPayments />} />
+          <Route path="integrations/messaging" element={<IntMessaging />} />
+          <Route path="integrations/devices" element={<IntDevices />} />
+          <Route path="integrations/logs" element={<IntLogs />} />
+          <Route path="programs" element={<Navigate to="/programs/programs" replace />} />
+          <Route path="programs/programs" element={<ProgPrograms />} />
+          <Route path="programs/outcomes" element={<ProgOutcomes />} />
+          <Route path="programs/attainment" element={<ProgAttainment />} />
+          <Route path="registration" element={<Navigate to="/registration/windows" replace />} />
+          <Route path="registration/windows" element={<RegWindows />} />
+          <Route path="registration/requests" element={<RegRequests />} />
+          <Route path="coe" element={<Navigate to="/coe/marks" replace />} />
+          <Route path="coe/marks" element={<CoeMarks />} />
+          <Route path="coe/revaluation" element={<CoeRevaluation />} />
+          <Route path="coe/grade-cards" element={<CoeGradeCards />} />
           <Route path="exams/seating" element={<ExamSeating />} />
           <Route path="exams/question-papers" element={<ExamQuestionPapers />} />
           <Route path="exams/marks" element={<ExamMarks />} />

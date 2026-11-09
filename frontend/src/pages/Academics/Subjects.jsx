@@ -20,7 +20,7 @@ function SubjectForm({ subject, onClose, onSaved }) {
   const { t } = useTranslation('academics')
   const { showError } = useSnackbar()
   const { data: depts = [] } = useQuery({ queryKey: ['departments'], queryFn: fetchDepartments })
-  const [form, setForm] = useState(() => ({ name: '', code: '', type: 'THEORY', departmentId: '', active: true, ...subject, departmentId: subject?.departmentId ?? '' }))
+  const [form, setForm] = useState(() => ({ name: '', code: '', type: 'THEORY', active: true, ...subject, departmentId: subject?.departmentId ?? '' }))
   const [errors, setErrors] = useState({})
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e?.target ? e.target.value : e }))
   const save = useMutation({

@@ -86,7 +86,7 @@ export default function Refunds() {
         exportable exportName="fee-refunds"
         columns={[
           { key: 'refundNo', header: t('fees.refunds.no'), nowrap: true, render: (v) => <span className="font-mono-num">{v}</span> },
-          { key: 'student', header: t('fees.refunds.student'), mobilePrimary: true, render: (v) => <PersonCell name={v?.name ?? '—'} sub={[v?.classShort, v?.admissionNo].filter(Boolean).join(' · ')} size={32} /> },
+          { key: 'student', header: t('fees.refunds.student'), mobilePrimary: true, render: (v) => <span className="flex items-center gap-2 min-w-0"><PersonCell name={v?.name ?? '—'} sub={v?.admissionNo} size={32} />{v?.classShort && <ColorChip label={v.classShort} seed={v.classId ?? v.classShort} />}</span> },
           { key: 'date', header: t('fees.refunds.date'), nowrap: true, render: (v) => <DateCell value={v} /> },
           { key: 'receiptNo', header: t('fees.refunds.receipt'), mobileHidden: true, render: (v) => <CodeBadge>{v}</CodeBadge> },
           { key: 'mode', header: t('fees.refunds.mode'), render: (v, r) => <ColorChip label={modeLabel(v)} seed={v} dot sub={r.reference || undefined} /> },

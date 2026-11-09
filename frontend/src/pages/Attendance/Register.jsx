@@ -4,9 +4,8 @@ import { useTranslation } from 'react-i18next'
 import clsx from 'clsx'
 import { BookOpenCheck, CalendarCheck, Percent, TriangleAlert, UsersRound } from 'lucide-react'
 import { MARK_BY, attendancePct } from '@schoolgiant/shared'
-import { ControlChip, DataTable, FormField, Input, Note, PageContainer, PageHeader, PersonCell, StatCardRow, TONE } from '../../components/system'
+import { ControlChip, DataTable, FormField, Input, Note, PageContainer, PageHeader, PersonCell, StatCardRow, TONE, PctCell } from '../../components/system'
 import { fetchAttendanceBoard, fetchRegister } from '../../api/attendance'
-import { PctCell } from './Reports'
 
 // each mark as a small coloured square in the day columns
 const MARK_TONE = { P: 'success', A: 'danger', L: 'warning', HD: 'info', LV: 'neutral' }
@@ -18,9 +17,10 @@ export default function Register() {
   const sections = board?.sections ?? []
   const [sectionId, setSectionId] = useState('')
   const [month, setMonth] = useState('')
+  const [subjectId, setSubjectId] = useState('') // period-wise attendance: one subject's periods
   useEffect(() => { if (!sectionId && sections.length) setSectionId(sections[0].id) }, [sections, sectionId])
   useEffect(() => { if (!month && board?.today) setMonth(board.today.slice(0, 7)) }, [board, month])
-  const { data: reg, isLoading } = useQuery({ queryKey: ['attendance-register', sectionId, month], queryFn: () => fetchRegister(sectionId, month), enabled: !!sectionId && !!month })
+  const { data: reg, isLoading } = useQuery({ queryKey: ['attendance-register', sectionId, month, subjectId], queryFn: () => fetchRegister(sectionId, month, subjectId), enabled: !!sectionId && !!month })
   const days = reg?.days.filter((d) => d.taken || d.working) ?? []
   const short = (v) => (v ? t(`attendance.short.${v}`, MARK_BY[v]?.short ?? v) : '')
   const students = reg?.students ?? []
@@ -50,7 +50,11 @@ export default function Register() {
     <PageContainer wide>
       <PageHeader icon={BookOpenCheck} title={t('attendance.register.title')} subtitle={t('attendance.register.subtitle')} />
       <div className="flex flex-wrap items-end gap-3 mb-4">
-        {sections.length > 0 && <ControlChip label={t('attendance.register.section')} value={sections.find((s) => s.id === sectionId)?.short ?? ''} active options={sections.map((s) => s.short)} onChange={(v) => setSectionId(sections.find((s) => s.short === v)?.id ?? '')} />}
+        {sections.length > 0 && <ControlChip label={t('attendance.register.section')} value={sections.find((s) => s.id === sectionId)?.short ?? ''} active options={sections.map((s) => s.short)} onChange={(v) => { setSectionId(sections.find((s) => s.short === v)?.id ?? ''); setSubjectId('') }} />}
+        {reg?.subjects?.length > 0 && (
+          <ControlChip label={t('attendance.register.subject')} value={reg.subjects.find((x) => x.id === subjectId)?.name ?? t('attendance.register.wholeDay')} active={!!subjectId}
+            options={[t('attendance.register.wholeDay'), ...reg.subjects.map((x) => x.name)]} onChange={(v) => setSubjectId(reg.subjects.find((x) => x.name === v)?.id ?? '')} />
+        )}
         <FormField label={t('attendance.register.month')}><Input type="month" value={month} max={board?.today?.slice(0, 7)} onChange={(e) => setMonth(e.target.value)} /></FormField>
       </div>
       {board && !sections.length && <Note>{t('attendance.board.none')}</Note>}

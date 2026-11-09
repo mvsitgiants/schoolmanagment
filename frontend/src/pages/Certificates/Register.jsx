@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { BadgeCheck, BookMarked, BookOpen, HandHeart, Link2, Printer, ReceiptIndianRupee, Trophy, XCircle } from 'lucide-react'
+import { BookMarked, Link2, Printer, XCircle } from 'lucide-react'
 import { CERTIFICATE_KINDS, CERTIFICATE_STATUS } from '@schoolgiant/shared'
-import { CodeBadge, ColorChip, ControlChip, DataTable, DateCell, Input, PageContainer, PageHeader, PersonCell, StackCell, StatusPill, Toolbar, usePrompt } from '../../components/system'
+import { CodeBadge, ControlChip, DataTable, DateCell, Input, PageContainer, PageHeader, PersonCell, StackCell, StatusPill, Toolbar, usePrompt } from '../../components/system'
 import Button from '../../components/ui/Button'
 import useDebouncedValue from '../../hooks/useDebouncedValue'
 import { cancelCertificate, fetchCertificates } from '../../api/certificates'
@@ -11,19 +11,7 @@ import { hasPermission } from '../../api/auth'
 import { printDocument } from '../../components/print/printDocument'
 import { useSnackbar } from '../../context/SnackbarContext'
 import { useFormat } from '../../context/SettingsContext'
-
-// each kind's icon and colour, here and on the issue screen
-const KIND_LOOK = {
-  BONAFIDE: { icon: BadgeCheck, tone: 'brand' },
-  CHARACTER: { icon: HandHeart, tone: 'pink' },
-  STUDY: { icon: BookOpen, tone: 'info' },
-  FEE: { icon: ReceiptIndianRupee, tone: 'teal' },
-  MERIT: { icon: Trophy, tone: 'orange' },
-}
-/** A certificate kind as a coloured chip with its icon. */
-export function KindChip({ kind, label }) {
-  return <ColorChip label={label} icon={KIND_LOOK[kind]?.icon} tone={KIND_LOOK[kind]?.tone} seed={kind} />
-}
+import { KindChip } from '../../components/certificates/CertificateKit'
 
 /** Every certificate issued: reprint, copy its verify link, cancel one issued by mistake. */
 export default function Register() {

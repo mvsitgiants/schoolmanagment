@@ -33,6 +33,8 @@ import { labelsModel, labelsPrint, latestCopyId } from '../services/library.js'
 import { latestSectionId, seatLabelsModel, seatLabelsPrint } from '../services/academics.js'
 import { EXAM_SEATING_DOCS } from './examSeatingDocs.js'
 import { QUESTION_PAPER_DOCS } from './questionPaperDocs.js'
+import { COE_DOCS } from './coeDocs.js'
+import { PROGRAM_DOCS } from './programDocs.js'
 
 const latestId = async (Model, filter, sort) => (await Model.findOne(filter).sort(sort).select('_id').lean())?._id
 const V = {
@@ -81,7 +83,8 @@ function hallTicketModel({ candidate, exam, year, student, place, papers }) {
   return {
     exam: { name: exam.name, year: year?.name, term: exam.term, instructions: exam.instructions, startDate: exam.startDate, endDate: exam.endDate },
     student: studentBlock(student, place, candidate.rollNo),
-    papers: papers.map((p) => ({ subject: p.subject, date: p.date, startTime: p.startTime, endTime: p.endTime, maxMarks: p.maxMarks, gradeOnly: !!p.gradeOnly })),
+    papers: papers.map((p) => ({ subject: p.subject, date: p.date, startTime: p.startTime, endTime: p.endTime, maxMarks: p.maxMarks, gradeOnly: !!p.gradeOnly, room: p.seat?.room ?? null, seat: p.seat?.seat ?? null })),
+    seated: papers.some((p) => p.seat),
   }
 }
 
@@ -133,6 +136,8 @@ function certificateModel({ certificate: c, verifyUrl }) {
 export const DOCS = {
   ...EXAM_SEATING_DOCS, // seating charts, door lists, invigilation duties (documents/examSeatingDocs.js)
   ...QUESTION_PAPER_DOCS, // question papers and answer keys (documents/questionPaperDocs.js)
+  ...COE_DOCS, // documents/coeDocs.js
+  ...PROGRAM_DOCS, // documents/programDocs.js
   FEE_RECEIPT: {
     perms: ['fees.invoices.print', 'fees.collect.view'],
     load: (id, auth) => receiptPrintData(id, auth),
@@ -155,7 +160,7 @@ export const DOCS = {
     model: hallTicketModel,
     title: (m) => `Hall ticket · ${m.exam.name} · ${m.student.name}`,
     sample: () => latestCandidate(),
-    variables: [V.institution, 'exam.name, exam.year, exam.term, exam.instructions, exam.startDate, exam.endDate', 'student.name, student.admissionNo, student.rollNo, student.class, student.dob, student.father, student.mother', 'papers[] {subject, date, startTime, endTime, maxMarks, gradeOnly}', V.layout],
+    variables: [V.institution, 'exam.name, exam.year, exam.term, exam.instructions, exam.startDate, exam.endDate', 'student.name, student.admissionNo, student.rollNo, student.class, student.dob, student.father, student.mother', 'papers[] {subject, date, startTime, endTime, maxMarks, gradeOnly, room, seat} · seated (any paper has a published seat)', V.layout],
   },
   REPORT_CARD: {
     perms: ['exams.report-cards.view', 'exams.report-cards.print'],

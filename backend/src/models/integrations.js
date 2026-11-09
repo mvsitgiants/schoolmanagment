@@ -175,3 +175,64 @@ gatewayOrderSchema.index({ tenantId: 1, provider: 1, providerPaymentId: 1 }, { u
 gatewayOrderSchema.index({ tenantId: 1, studentId: 1, createdAt: -1 })
 gatewayOrderSchema.index({ tenantId: 1, status: 1, createdAt: -1 })
 export const GatewayOrder = model('GatewayOrder', gatewayOrderSchema, 'gateway_orders')
+
+// ───────────────────────────────────────────────────────── devices (Integrations › Devices)
+
+/**
+ * A biometric / RFID / face / GPS device that pushes to POST /api/v1/hooks/devices/:key. The key is shown once and kept
+ * only as a sha-256 hash; `keyPrefix` (its public half) finds the row across institutions.
+ */
+const deviceSchema = new Schema({
+  name: { type: String, required: true, trim: true },
+  kind: { type: String, required: true }, // DEVICE_KINDS
+  usedFor: { type: String, default: 'STAFF' }, // DEVICE_USED_FOR (GPS: n/a)
+  serialNo: String,
+  branchId: ObjectId,
+  location: String,
+  vehicleId: ObjectId, // GPS: the bus it rides on
+  /** Students: a first IN at the gate before the "mark by" time marks the child present in today's register. */
+  autoMarkAttendance: { type: Boolean, default: false },
+  keyPrefix: { type: String, required: true },
+  keyHash: { type: String, required: true },
+  keyLast4: String,
+  keyIssuedAt: Date,
+  active: { type: Boolean, default: true },
+  lastSeenAt: Date,
+  lastIp: String,
+  lastError: { at: Date, message: String },
+  counts: { received: { type: Number, default: 0 }, accepted: { type: Number, default: 0 }, rejected: { type: Number, default: 0 } },
+  notes: String,
+  createdBy: String,
+  updatedBy: String,
+}, { timestamps: true })
+deviceSchema.plugin(tenantPlugin)
+deviceSchema.index({ keyPrefix: 1 }, { unique: true })
+deviceSchema.index({ tenantId: 1, name: 1 }, { unique: true })
+export const Device = model('Device', deviceSchema, 'integration_devices')
+
+/** One punch from a device: a staff member at the biometric, a student's card at the gate or on the bus. */
+const devicePunchSchema = new Schema({
+  deviceId: { type: ObjectId, required: true },
+  deviceName: String,
+  kind: String,
+  usedFor: String,
+  branchId: ObjectId,
+  code: { type: String, required: true }, // employee code · card code · admission no
+  at: { type: Date, required: true },
+  date: { type: String, required: true }, // YYYY-MM-DD, institution's clock
+  time: String, // HH:MM
+  direction: String, // IN · OUT · (none)
+  personType: String, // STAFF · STUDENT
+  personId: ObjectId,
+  personName: String,
+  outcome: { type: String, required: true }, // PUNCH_OUTCOMES
+  note: String,
+  test: { type: Boolean, default: false },
+}, { timestamps: true })
+devicePunchSchema.plugin(tenantPlugin)
+// a device re-sending the same punch adds nothing
+devicePunchSchema.index({ tenantId: 1, deviceId: 1, code: 1, at: 1 }, { unique: true })
+devicePunchSchema.index({ tenantId: 1, date: 1, at: -1 })
+devicePunchSchema.index({ tenantId: 1, personId: 1, date: 1 })
+devicePunchSchema.index({ createdAt: 1 }, { expireAfterSeconds: 400 * 24 * 3600 })
+export const DevicePunch = model('DevicePunch', devicePunchSchema, 'device_punches')

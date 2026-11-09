@@ -1,6 +1,6 @@
 import {
   CLASS_PRESET_BY, DEFAULT_GRADING_BANDS, SUBJECT_PRESET, academicYearFor, attendancePct, checkGradingBands, checkYearDates, defaultTerms, sectionLabel, sectionNames,
-  defaultSeating, normSeating, seatCapacity, seatPlan, weekdayCode,
+  defaultSeating, normSeating, placeStudents, seatCapacity, seatPlan, weekdayCode,
 } from '@schoolgiant/shared'
 import { AcademicYear, ClassLevel, GradingScheme, Section, Subject, TeacherAllocation } from '../models/academics.js'
 import { AttendanceSheet } from '../models/attendance.js'
@@ -295,6 +295,7 @@ export async function listClasses(yearId) {
         ...clean(s), label: sectionLabel(c, s), short: sectionLabel(c, s, { short: true }),
         classTeacherName: teacher.get(idStr(s.classTeacherId)) ?? null, branchName: branch.get(idStr(s.branchId)) ?? null,
         studentCount: students.get(String(s._id)) ?? 0,
+        seatAssignments: (s.seatAssignments ?? []).map((a) => ({ seat: a.seat, studentId: String(a.studentId) })),
       })),
     })),
   }
@@ -454,7 +455,7 @@ function presetSubjectsFor(code) {
   const n = Number(code)
   if (n >= 1 && n <= 5) return ['ENG', 'HIN', 'MATH', 'EVS', 'CS', 'PE', 'ART']
   if (n >= 6 && n <= 10) return ['ENG', 'HIN', 'MATH', 'SCI', 'SST', 'CS', 'PE', 'ART']
-  return ['ENG', 'PE']
+  return ['ENG', 'PHY', 'CHEM', 'MATH', 'BIO', 'CS', 'PE'] // 11–12: the science stream; schools change it per class
 }
 
 /**
@@ -682,3 +683,53 @@ export async function seatLabelsPrint(ids, auth) {
 }
 export const seatLabelsModel = (raw) => ({ ...raw, count: raw.labels.length, taken: raw.labels.filter((l) => !l.free).length })
 export const latestSectionId = async () => (await Section.findOne({ active: true }).sort({ createdAt: -1 }).select('_id').lean())?._id
+
+// ───────────────────────────────────────────────────────── classroom seats (who sits where)
+
+/** The section's room as laid out, and its active students in roll order. */
+async function classroomOf(sectionId) {
+  const sec = isOid(sectionId) ? await Section.findById(sectionId) : null
+  if (!sec) throw notFound('Section')
+  const students = await Student.find({ sectionId: sec._id, status: 'ACTIVE' }).collation({ locale: 'en', numericOrdering: true }).sort({ rollNo: 1, firstName: 1 }).select('_id').lean()
+  const list = students.map((x) => ({ id: String(x._id) }))
+  const cap = sec.capacity || Math.max(30, Math.ceil(list.length / 6) * 6)
+  const plan = sec.seating ? seatPlan(sec.seating) : seatPlan(defaultSeating(cap), { limit: cap })
+  return { sec, list, plan }
+}
+
+/**
+ * Seat students by hand: each move puts a student on a seat; whoever sat there takes the mover's old seat. The whole
+ * arrangement is then kept, so it stays as it is when roll numbers change (new students fill the free seats).
+ */
+export async function moveClassSeats(sectionId, moves = [], req) {
+  const { sec, list, plan } = await classroomOf(sectionId)
+  const ids = new Set(list.map((x) => x.id))
+  const labels = new Set(plan.rows.flat(2).map((x) => x.label))
+  const { at } = placeStudents(plan, list, sec.seatAssignments.map((a) => ({ seat: a.seat, studentId: String(a.studentId) })))
+  const seatOf = new Map([...at].map(([seat, st]) => [st.id, seat]))
+  for (const m of moves) {
+    if (!ids.has(String(m.studentId))) throw badRequest('That student isn’t in this section.')
+    if (!labels.has(m.seat)) throw badRequest(`There is no seat ${m.seat} in this room.`)
+    const from = seatOf.get(String(m.studentId))
+    const there = at.get(m.seat)
+    if (there && there.id === String(m.studentId)) continue
+    at.set(m.seat, { id: String(m.studentId) })
+    seatOf.set(String(m.studentId), m.seat)
+    if (there) {
+      if (from) { at.set(from, there); seatOf.set(there.id, from) } else { seatOf.delete(there.id) }
+    } else if (from) at.delete(from)
+  }
+  sec.seatAssignments = [...at].map(([seat, st]) => ({ seat, studentId: st.id }))
+  await sec.save()
+  await audit(AUDIT('section', { _id: sec._id, name: sec.name }, `Arranged the seats of section ${sec.name} by hand`), req)
+  return { seatAssignments: sec.seatAssignments.map((a) => ({ seat: a.seat, studentId: String(a.studentId) })) }
+}
+
+/** Back to roll-number order. */
+export async function resetClassSeats(sectionId, req) {
+  const { sec } = await classroomOf(sectionId)
+  sec.seatAssignments = []
+  await sec.save()
+  await audit(AUDIT('section', { _id: sec._id, name: sec.name }, `Seats of section ${sec.name} back to roll-number order`), req)
+  return { seatAssignments: [] }
+}

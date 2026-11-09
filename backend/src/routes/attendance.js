@@ -33,7 +33,7 @@ router.put('/sheet', requirePermission('attendance.mark.create', 'attendance.mar
 })
 
 router.get('/register', requirePermission('attendance.register.view'), async (req, res) => {
-  const q = z.object({ sectionId: objectId, month: z.string().regex(/^\d{4}-\d{2}$/, 'Use YYYY-MM') }).parse(req.query)
+  const q = z.object({ sectionId: objectId, subjectId: objectId.optional(), month: z.string().regex(/^\d{4}-\d{2}$/, 'Use YYYY-MM') }).parse(req.query)
   res.json({ data: await monthRegister(q, req.auth) })
 })
 

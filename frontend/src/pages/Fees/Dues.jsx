@@ -4,7 +4,7 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { AlertTriangle, BellRing, IndianRupee, Users } from 'lucide-react'
 import { formatINR, formatINRCompact } from '@schoolgiant/shared'
-import { BulkActionBar, ContactCell, ControlChip, DataTable, DateCell, Money, PageContainer, PageHeader, PersonCell, StatCardRow, useConfirm } from '../../components/system'
+import { BulkActionBar, ContactCell, ControlChip, DataTable, DateCell, Money, PageContainer, PageHeader, PersonCell, StatCardRow, useConfirm, ColorChip } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { fetchAcademicLookup } from '../../api/academics'
 import { fetchDues, sendFeeReminders } from '../../api/fees'
@@ -67,7 +67,7 @@ export default function Dues() {
             options={[t('fees.no'), t('fees.yes')]} onChange={(v) => { setOverdueOnly(v === t('fees.yes')); setSelected([]) }} />
         </div>}
         columns={[
-          { key: 'name', header: t('fees.dues.student'), mobilePrimary: true, render: (v, r) => <PersonCell name={v} sub={[r.classShort, r.admissionNo].filter(Boolean).join(' · ')} size={32} /> },
+          { key: 'name', header: t('fees.dues.student'), mobilePrimary: true, render: (v, r) => <span className="flex items-center gap-2 min-w-0"><PersonCell name={v} sub={r.admissionNo} size={32} />{r.classShort && <ColorChip label={r.classShort} seed={r.classId ?? r.classShort} />}</span> },
           { key: 'guardianName', header: t('fees.dues.guardian'), mobileHidden: true, render: (v, r) => <ContactCell name={v} phone={r.guardianMobile} /> },
           { key: 'oldestDue', header: t('fees.dues.since'), nowrap: true, render: (v, r) => <DateCell value={v} tone={r.overdue > 0 ? 'danger' : undefined} /> },
           { key: 'invoices', header: t('fees.dues.installments'), align: 'right', mobileHidden: true },

@@ -15,7 +15,12 @@ import { useSnackbar } from '../../context/SnackbarContext'
 import { useFormat } from '../../context/SettingsContext'
 
 const pagination = (meta, setPage) => meta && meta.totalPages > 1 && { page: meta.page - 1, size: meta.pageSize, totalElements: meta.total, totalPages: meta.totalPages, onPageChange: (p) => setPage(p + 1) }
-const studentCell = (r) => <PersonCell name={r.student?.name ?? '—'} sub={[r.student?.classShort, r.student?.admissionNo].filter(Boolean).join(' · ')} size={32} />
+const studentCell = (r) => (
+  <span className="flex items-center gap-2 min-w-0">
+    <PersonCell name={r.student?.name ?? '—'} sub={r.student?.admissionNo} size={32} />
+    {r.student?.classShort && <ColorChip label={r.student.classShort} seed={r.student.classId ?? r.student.classShort} />}
+  </span>
+)
 
 function InvoiceList() {
   const { t } = useTranslation('fees')

@@ -93,6 +93,8 @@ const sectionSchema = new Schema({
     type: new Schema({ kind: String, perBench: Number, columns: Number, rows: Number, numbering: String }, { _id: false }),
     default: undefined,
   },
+  // who sits where, when arranged by hand (shared seating.js placeStudents); empty: roll-number order
+  seatAssignments: { type: [new Schema({ seat: String, studentId: ObjectId }, { _id: false })], default: [] },
   active: { type: Boolean, default: true },
 }, { timestamps: true })
 sectionSchema.plugin(tenantPlugin)

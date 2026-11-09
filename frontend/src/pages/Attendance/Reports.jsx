@@ -3,23 +3,11 @@ import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import clsx from 'clsx'
 import { BarChart3, CalendarCheck, ChevronLeft, LayoutGrid, Percent, TriangleAlert } from 'lucide-react'
-import { CodeBadge, ColorChip, DataTable, FormField, Input, LevelBar, Note, PageContainer, PageHeader, PersonCell, SegmentedControl, StatCardRow, TONE } from '../../components/system'
+import { CodeBadge, ColorChip, DataTable, PctCell, FormField, Input, Note, PageContainer, PageHeader, PersonCell, SegmentedControl, StatCardRow, TONE } from '../../components/system'
 import { attendancePct, takesPeriods } from '@schoolgiant/shared'
 import Button from '../../components/ui/Button'
 import { fetchAttendanceReport, fetchSubjectReport } from '../../api/attendance'
 
-/** Attendance % as a coloured figure over a thin bar: red under the minimum (75% when none is set), amber under 90%, else green. */
-export function PctCell({ value, min }) {
-  if (value == null) return <span className="text-ink-faint">—</span>
-  const floor = min || 75
-  const tone = value < floor ? 'danger' : value < 90 ? 'warning' : 'success'
-  return (
-    <span className="ms-auto inline-flex w-20 flex-col items-end gap-1">
-      <span className={clsx('text-[13px] font-semibold tabular-nums', TONE[tone].text)}>{value}%</span>
-      <LevelBar bare value={value} max={100} dangerAt={floor - 0.001} warnAt={89.999} width="w-full" />
-    </span>
-  )
-}
 const pctCell = (v, min) => <PctCell value={v} min={min} />
 const countCell = (v, tone) => (v ? <span className={clsx('font-semibold tabular-nums', TONE[tone].text)}>{v}</span> : <span className="text-ink-faint tabular-nums">0</span>)
 

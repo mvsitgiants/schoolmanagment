@@ -28,7 +28,7 @@ function ClassForm({ cls, onClose, onSaved }) {
   const { data: schemes = [] } = useQuery({ queryKey: ['grading'], queryFn: fetchGrading })
   const { data: depts = [] } = useQuery({ queryKey: ['departments'], queryFn: fetchDepartments })
   const [form, setForm] = useState(() => ({
-    name: '', code: '', order: '', departmentId: '', gradingSchemeId: '', subjectIds: [], optionalSubjectIds: [], active: true,
+    name: '', code: '', subjectIds: [], optionalSubjectIds: [], active: true,
     ...cls, departmentId: cls?.departmentId ?? '', gradingSchemeId: cls?.gradingSchemeId ?? '', order: cls?.order ?? '',
   }))
   const [errors, setErrors] = useState({})
@@ -107,7 +107,7 @@ function SectionForm({ cls, section, yearId, onClose, onSaved }) {
   const { showError } = useSnackbar()
   const { data: branches = [] } = useQuery({ queryKey: ['branches'], queryFn: fetchBranches })
   const { data: teachers = [] } = useQuery({ queryKey: ['academic-teachers'], queryFn: fetchTeachers })
-  const [form, setForm] = useState(() => ({ name: '', branchId: '', classTeacherId: '', capacity: '', room: '', active: true, ...section, branchId: section?.branchId ?? '', classTeacherId: section?.classTeacherId ?? '', capacity: section?.capacity ?? '', room: section?.room ?? '' }))
+  const [form, setForm] = useState(() => ({ name: '', active: true, ...section, branchId: section?.branchId ?? '', classTeacherId: section?.classTeacherId ?? '', capacity: section?.capacity ?? '', room: section?.room ?? '' }))
   const [errors, setErrors] = useState({})
   // the room's seating: off → capacity typed by hand; on → capacity = the seats the layout has
   const [seatingOn, setSeatingOn] = useState(!!section?.seating)

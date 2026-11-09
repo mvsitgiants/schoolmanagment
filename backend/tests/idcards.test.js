@@ -52,7 +52,7 @@ describe('ID cards', () => {
     expect(code).toBeTruthy()
     const ok = (await request(app).get(`/api/v1/public/verify/student/${code}`)).body.data
     expect(ok).toMatchObject({ found: true, valid: true, name: 'Diya' })
-    await admin.post(`/api/v1/students/${diya.id}/status`).send({ status: 'LEFT' }).expect(200)
+    await admin.post(`/api/v1/students/${diya.id}/status`).send({ status: 'INACTIVE' }).expect(200) // leaving itself goes through a TC
     const gone = (await request(app).get(`/api/v1/public/verify/student/${code}`)).body.data
     expect(gone).toMatchObject({ found: true, valid: false, class: null })
     // the same code on a reprint for a student still here

@@ -125,6 +125,13 @@ export async function getSheet({ sectionId, date, period = 0 }, auth) {
   ])
   const leave = await onLeave(students.map((s) => s._id), day)
   const saved = new Map((sheet?.entries ?? []).map((e) => [String(e.studentId), e]))
+  // gate devices (Integrations › Devices): the first time each student came in that day, shown beside their name
+  const gate = new Map()
+  try {
+    const { DevicePunch } = await import('../models/integrations.js')
+    const punches = await DevicePunch.find({ date: day, personType: 'STUDENT', personId: { $in: students.map((s) => s._id) }, direction: { $ne: 'OUT' }, test: { $ne: true } }).select('personId time').sort({ at: 1 }).lean()
+    for (const p of punches) if (!gate.has(String(p.personId))) gate.set(String(p.personId), p.time)
+  } catch { /* no devices */ }
   let rule = editRule(day, today, cfg, auth)
   const slot = period > 0 ? (await periodsOf(section._id, day)).find((p) => p.period === period) ?? null : null
   if (rule.canEdit && period > 0) { const why = periodBlock(cfg, auth, slot, section); if (why) rule = { canEdit: false, reason: why } }
@@ -139,6 +146,7 @@ export async function getSheet({ sectionId, date, period = 0 }, auth) {
       return {
         id: String(s._id), name: studentName(s), admissionNo: s.admissionNo, rollNo: s.rollNo ?? null, gender: s.gender ?? null,
         status: e?.status ?? (leave.has(String(s._id)) ? 'LV' : 'P'), note: e?.note ?? '', onLeave: leave.has(String(s._id)), saved: !!e,
+        gateIn: gate.get(String(s._id)) ?? null,
       }
     }),
   }
@@ -274,18 +282,23 @@ export async function subjectReport({ from, to, sectionId }, auth) {
 // ───────────────────────────────────────────────────────── register (a month)
 
 /** One section, one month: students × days, with each student's totals and %. */
-export async function monthRegister({ sectionId, month }, auth) {
+export async function monthRegister({ sectionId, month, subjectId }, auth) {
   const { section, label } = await sectionFor(sectionId, auth)
   const { from, to } = monthRange(month)
   const cfg = await settings()
+  // by subject (period-wise attendance): that subject's periods, the first one of a day standing for the day
+  const periodSheets = takesPeriods(cfg.mode) ? await AttendanceSheet.find({ sectionId: section._id, date: { $gte: from, $lte: to }, period: { $gt: 0 } }).select('date period subjectId entries counts').sort({ date: 1, period: 1 }).lean() : []
+  const subjectIds = [...new Set(periodSheets.map((x) => idStr(x.subjectId)).filter(Boolean))]
+  const subjects = (await Subject.find({ _id: { $in: subjectIds } }).select('name').sort({ name: 1 }).lean()).map((x) => ({ id: String(x._id), name: x.name }))
+  const bySubject = subjectId ? periodSheets.filter((x) => idStr(x.subjectId) === String(subjectId)).filter((x, i, all) => all.findIndex((y) => y.date === x.date) === i) : null
   const [sheets, students] = await Promise.all([
-    AttendanceSheet.find({ sectionId: section._id, date: { $gte: from, $lte: to }, period: 0 }).lean(),
+    bySubject ?? AttendanceSheet.find({ sectionId: section._id, date: { $gte: from, $lte: to }, period: 0 }).lean(),
     Student.find({ $or: [{ sectionId: section._id }, { 'history.sectionId': section._id }] }).collation({ locale: 'en', numericOrdering: true }).sort({ rollNo: 1, firstName: 1 }).select('firstName middleName lastName admissionNo rollNo status sectionId').lean(),
   ])
   const days = daysBetween(from, to)
   const byDay = new Map(sheets.map((s) => [s.date, new Map(s.entries.map((e) => [String(e.studentId), e.status]))]))
   return {
-    section: { id: String(section._id), label }, month, minimumPct: cfg.minimumPct,
+    section: { id: String(section._id), label }, month, minimumPct: cfg.minimumPct, mode: cfg.mode, subjects, subjectId: subjectId ? String(subjectId) : null,
     days: days.map((d) => ({ date: d, taken: byDay.has(d), working: cfg.workingDays.includes(weekdayCode(d)), counts: sheets.find((s) => s.date === d)?.counts ?? null })),
     students: students.map((s) => {
       const marks = Object.fromEntries(days.map((d) => [d, byDay.get(d)?.get(String(s._id)) ?? null]))

@@ -16,7 +16,7 @@ import { getCurrentUser, hasPermission } from '../../api/auth'
 import { printDocument, printDocuments } from '../../components/print/printDocument'
 import { useSnackbar } from '../../context/SnackbarContext'
 import { useFormat } from '../../context/SettingsContext'
-import { KindChip } from './Register'
+import { KindChip } from '../../components/certificates/CertificateKit'
 
 const purposeKey = (p) => p.replace(/[^A-Za-z0-9]/g, '')
 

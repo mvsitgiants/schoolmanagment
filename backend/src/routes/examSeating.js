@@ -3,7 +3,7 @@ import { SEAT_FILL, SEAT_MIX, SEATING_KINDS, SEATING_LIMITS, SEAT_NUMBERING } fr
 import { authenticate, requireModule, requirePermission, subscriptionGate, tenantOnly } from '../platform/middleware.js'
 import { objectId, z } from '../platform/validate.js'
 import {
-  autoInvigilators, deletePlan, generateAll, generateSession, getSession, listSessions, moveSeats, myDuties, publishPlan, setInvigilators, unlockSeats,
+  autoInvigilators, deletePlan, generateAll, generateSession, getSession, listSessions, markHallAttendance, moveSeats, myDuties, publishPlan, setInvigilators, unlockSeats,
 } from '../services/examSeating.js'
 
 // Exam seating & invigilation: /api/v1/exams/seating/*
@@ -17,6 +17,7 @@ const hhmm = z.string().regex(/^\d{2}:\d{2}$/)
 const rules = z.object({
   mix: z.enum(Object.keys(SEAT_MIX)).optional(),
   gap: z.boolean().optional(),
+  spread: z.boolean().optional(),
   fill: z.enum(Object.keys(SEAT_FILL)).optional(),
   perInvigilator: z.coerce.number().int().min(5).max(200).optional(),
   maxInvigilators: z.coerce.number().int().min(1).max(6).optional(),
@@ -66,6 +67,10 @@ router.put('/plans/:id/invigilators', requirePermission(...EDIT), async (req, re
 })
 router.post('/plans/:id/invigilators/auto', requirePermission(...EDIT), async (req, res) => {
   res.json({ data: await autoInvigilators(req.params.id, req.auth, req) })
+})
+router.put('/plans/:id/attendance', requirePermission(VIEW), async (req, res) => {
+  const body = z.object({ roomId: objectId, absent: z.array(objectId).max(500).default([]) }).parse(req.body)
+  res.json({ data: await markHallAttendance(req.params.id, body, req.auth, req) })
 })
 router.post('/plans/:id/publish', requirePermission('exams.seating.publish'), async (req, res) => {
   res.json({ data: await publishPlan(req.params.id, true, req.auth, req) })

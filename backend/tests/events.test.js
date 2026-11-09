@@ -27,7 +27,8 @@ async function familyAgent(mobile) {
   await agent.post(fam('/verify')).send({ challengeId: sent.challengeId, code: sent.testCode }).expect(200)
   return agent
 }
-const count = (event) => asTenant(() => MessageLog.countDocuments({ event }))
+// one row per channel is logged (SMS and WhatsApp are both set up here) — `channel` narrows it to one per family
+const count = (event, channel) => asTenant(() => MessageLog.countDocuments({ event, ...(channel && { channel }) }))
 
 beforeAll(async () => {
   app = await startDb()
@@ -52,7 +53,7 @@ afterAll(stopDb)
 describe('helpers', () => {
   it('makes slots, month grids and calendar files', () => {
     expect(ptmSlots('09:00', '09:40', 10)).toEqual(['09:00', '09:10', '09:20', '09:30'])
-    expect(ptmSlots('09:00', '09:40', 10, 5)).toEqual(['09:00', '09:15'])
+    expect(ptmSlots('09:00', '09:40', 10, 5)).toEqual(['09:00', '09:15', '09:30']) // the last one ends at 09:40 exactly
     const g = monthGrid(2026, 11)
     expect(g[0]).toContain('2026-11-01')
     expect(g[0][0]).toBe('2026-10-26') // a Monday
@@ -121,10 +122,10 @@ describe('parent–teacher meetings', () => {
     expect(hosts).toEqual([expect.objectContaining({ userId: teacher.id, name: 'Kavita Rao', sectionIds: [secA.id] })])
     session = (await admin.post(`${api}/ptm`).send({ title: 'Term 1 PTM', date: addDaysYmd(t, 7), startTime: '10:00', endTime: '10:30', slotMinutes: 10, hosts }).expect(201)).body.data
     expect(session.slots).toEqual(['10:00', '10:10', '10:20'])
-    const before = await count('events.ptm_open')
+    const before = await count('events.ptm_open', 'SMS')
     const opened = (await admin.post(`${api}/ptm/${session.id}/open`).send({}).expect(200)).body.data
     expect(opened.told).toBe(1) // only Anu's section has a teacher to meet
-    expect(await count('events.ptm_open')).toBe(before + 1)
+    expect(await count('events.ptm_open', 'SMS')).toBe(before + 1)
   })
 
   it('lets the family book a free slot (one per teacher), and cancel it', async () => {

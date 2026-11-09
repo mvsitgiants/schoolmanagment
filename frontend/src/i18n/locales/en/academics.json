@@ -335,7 +335,15 @@
         "printLabels": "Print seat labels",
         "preparingLabels": "Preparing the seat labels…",
         "printClassLabels_one": "Labels for the class",
-        "printClassLabels_other": "Labels for all {{count}} sections"
+        "printClassLabels_other": "Labels for all {{count}} sections",
+        "arrange": "Arrange seats",
+        "doneArranging": "Done",
+        "rollOrder": "Back to roll-number order",
+        "arrangeHint": "Click a student, then a seat: a free seat moves them, a taken one swaps the two.",
+        "pickedHint": "{{name}} — now click a seat.",
+        "arranged": "Seats arranged by hand — new students fill the free seats.",
+        "rollOrderNote": "Students sit in roll-number order.",
+        "byHand": "Seated by hand"
       }
     },
     "seating": {

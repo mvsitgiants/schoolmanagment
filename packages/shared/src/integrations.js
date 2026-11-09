@@ -28,6 +28,11 @@ export const INTEGRATION_PROVIDERS = [
     secrets: [{ key: 'keySecret', label: 'Key secret' }, { key: 'webhookSecret', label: 'Webhook secret', hint: 'The secret you typed when adding the webhook in the Razorpay dashboard.' }],
   },
   { id: 'PAYU', kind: 'PAYMENTS', label: 'PayU', available: false, desc: 'Coming later.', fields: [], secrets: [] },
+  {
+    id: 'ANTHROPIC', kind: 'AI', label: 'Anthropic (Claude)', available: true,
+    desc: 'The institution’s own Claude API key for the AI assistant, question papers and remarks. Without one, the platform’s key is used (when set).',
+    fields: [], secrets: [{ key: 'apiKey', label: 'API key', hint: 'From console.anthropic.com › API keys.' }],
+  },
   { id: 'CASHFREE', kind: 'PAYMENTS', label: 'Cashfree', available: false, desc: 'Coming later.', fields: [], secrets: [] },
   {
     id: 'GPS', kind: 'DEVICES', label: 'Bus GPS devices', available: true,
@@ -141,3 +146,38 @@ export const WEBHOOK_DELIVERY_STATUSES = {
 }
 /** Minutes before each retry of a failed delivery. */
 export const WEBHOOK_RETRY_MINUTES = [1, 5, 30, 120, 720]
+
+/** Who a device's punches are for: staff attendance (HR) or the student gate log. */
+export const DEVICE_USED_FOR = [
+  { value: 'STAFF', label: 'Staff attendance' },
+  { value: 'STUDENTS', label: 'Students (gate / bus)' },
+]
+/** Kinds a device can be registered as here (bus GPS trackers can also be set on the vehicle in Transport). */
+export const DEVICE_KINDS = ['BIOMETRIC', 'RFID', 'FACE', 'GPS']
+/** A device's state, worked out from when it last called in. */
+export const DEVICE_STATUSES = {
+  OK: { label: 'Online', tone: 'success' },
+  IDLE: { label: 'Quiet', tone: 'warning' },
+  ERROR: { label: 'Errors', tone: 'danger' },
+  NEVER: { label: 'Never connected', tone: 'neutral' },
+  DISABLED: { label: 'Switched off', tone: 'neutral' },
+}
+/** No call for this many hours → IDLE. */
+export const DEVICE_IDLE_HOURS = 24
+export const PUNCH_DIRECTIONS = [
+  { value: 'IN', label: 'In' },
+  { value: 'OUT', label: 'Out' },
+]
+/** What one punch did. */
+export const PUNCH_OUTCOMES = {
+  ATTENDANCE: { label: 'Staff attendance', tone: 'success' },
+  GATE: { label: 'Gate log', tone: 'info' },
+  MARKED_PRESENT: { label: 'Marked present', tone: 'success' },
+  POSITION: { label: 'Bus position', tone: 'info' },
+  UNKNOWN: { label: 'Unknown code', tone: 'warning' },
+  SKIPPED: { label: 'Not saved', tone: 'warning' },
+  DUPLICATE: { label: 'Already received', tone: 'neutral' },
+  TEST: { label: 'Test', tone: 'violet' },
+}
+/** Punches (or positions) one push may carry. */
+export const DEVICE_PUSH_MAX = 500

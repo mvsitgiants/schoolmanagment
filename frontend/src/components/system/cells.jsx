@@ -309,3 +309,16 @@ export function ContactCell({ name, phone, className }) {
     </span>
   )
 }
+
+/** Attendance % as a coloured figure over a thin bar: red under the minimum (75% when none is set), amber under 90%, else green. */
+export function PctCell({ value, min }) {
+  if (value == null) return <span className="text-ink-faint">—</span>
+  const floor = min || 75
+  const tone = value < floor ? 'danger' : value < 90 ? 'warning' : 'success'
+  return (
+    <span className="ms-auto inline-flex w-20 flex-col items-end gap-1">
+      <span className={clsx('text-[13px] font-semibold tabular-nums', TONE[tone].text)}>{value}%</span>
+      <LevelBar bare value={value} max={100} dangerAt={floor - 0.001} warnAt={89.999} width="w-full" />
+    </span>
+  )
+}

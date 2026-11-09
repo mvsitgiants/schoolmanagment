@@ -13,6 +13,7 @@
     "dev:db": "node src/dev/devdb.js"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^1.6.0",
     "@aws-sdk/client-s3": "^3.1154.0",
     "@aws-sdk/lib-storage": "^3.1154.0",
     "@schoolgiant/shared": "*",

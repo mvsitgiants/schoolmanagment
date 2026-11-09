@@ -401,7 +401,9 @@ async function studentLabels(ids) {
   const sections = await Section.find({ _id: { $in: students.map((s) => s.sectionId).filter(Boolean) } }).lean()
   const classes = new Map((await ClassLevel.find({ _id: { $in: sections.map((x) => x.classId) } }).select('code name').lean()).map((c) => [String(c._id), c]))
   const short = new Map(sections.map((x) => [String(x._id), sectionLabel(classes.get(String(x.classId)), x, { short: true })]))
-  return new Map(students.map((s) => [String(s._id), { name: studentName(s), admissionNo: s.admissionNo, classShort: short.get(idStr(s.sectionId)) ?? null }]))
+  const classOf = new Map(sections.map((x) => [String(x._id), String(x.classId)]))
+  // classId: the screens colour the class chip by it (the same colour on every page)
+  return new Map(students.map((s) => [String(s._id), { name: studentName(s), admissionNo: s.admissionNo, classShort: short.get(idStr(s.sectionId)) ?? null, classId: classOf.get(idStr(s.sectionId)) ?? null }]))
 }
 
 async function studentIdsMatching(search) {

@@ -52,6 +52,7 @@ const post = async (row) => {
  * this year's yearly credit, and monthly accrual up to this month.
  */
 export async function ensureCredits(emp, asOf) {
+  await ensureLeaveTypes() // an institution made before HR existed has none yet
   const settings = await hrSettings()
   const start = Number(settings.leaveYearStartMonth ?? 4)
   const date = asOf ?? await todayYmd()

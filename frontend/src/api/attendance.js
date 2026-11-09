@@ -10,7 +10,7 @@ const BASE = '/v1/attendance'
 export const fetchAttendanceBoard = (date) => get(`${BASE}/board`, { date: date || undefined })
 export const fetchSheet = ({ sectionId, date, period = 0 }) => get(`${BASE}/sheet`, { sectionId, date, period })
 export const saveSheet = (body) => put(`${BASE}/sheet`, body)
-export const fetchRegister = (sectionId, month) => get(`${BASE}/register`, { sectionId, month })
+export const fetchRegister = (sectionId, month, subjectId) => get(`${BASE}/register`, { sectionId, month, subjectId: subjectId || undefined })
 export const fetchAttendanceReport = ({ from, to, sectionId }) => get(`${BASE}/reports`, { from, to, sectionId: sectionId || undefined })
 export const fetchSubjectReport = ({ from, to, sectionId }) => get(`${BASE}/subject-report`, { from, to, sectionId })
 

@@ -63,7 +63,7 @@ describe('seating an exam session', () => {
   let plan
   beforeAll(async () => {
     app = await startDb()
-    const h = await newInstitution('STARTER')
+    const h = await newInstitution('GROWTH') // rooms belong to the Timetable module (not on Starter)
     admin = await signIn(app, h.email, h.password)
     await admin.post('/api/v1/academics/classes/quick-setup').send({ preset: 'SENIOR', sectionsPerClass: 1, addSubjects: true }).expect(201)
     const data = (await admin.get('/api/v1/academics/classes')).body.data
@@ -112,6 +112,22 @@ describe('seating an exam session', () => {
     expect(again.seats.find((s) => s.studentId === a.studentId)).toMatchObject({ seat: b.seat, locked: true })
   })
 
+  it('takes exam-hall attendance; marks entry starts the absent ones as absent', async () => {
+    const view = (await admin.get(`/api/v1/exams/seating/exams/${exam.id}/session?date=${session.date}&startTime=${session.startTime}`)).body.data
+    const seat = view.plan.seats[0]
+    const res = await admin.put(`/api/v1/exams/seating/plans/${plan.id}/attendance`).send({ roomId: seat.roomId, absent: [seat.studentId] })
+    expect(res.status).toBe(200)
+    expect(res.body.data.plan.absentIds).toEqual([seat.studentId])
+    const ex = (await admin.get(`/api/v1/exams/${exam.id}`)).body.data
+    const sec = ex.sections.find((x) => x.id === seat.sectionId)
+    const paper = ex.classes.find((c) => c.id === sec.classId).papers[0]
+    const sheet = (await admin.get(`/api/v1/exams/marks/${paper.id}/${sec.id}`)).body.data
+    expect(sheet.students.find((x) => x.id === seat.studentId)).toMatchObject({ absent: true, hallAbsent: true })
+    // a student seated in another room can't be marked from this one
+    const other = view.plan.seats.find((x) => x.roomId !== seat.roomId)
+    if (other) expect((await admin.put(`/api/v1/exams/seating/plans/${plan.id}/attendance`).send({ roomId: seat.roomId, absent: [other.studentId] })).status).toBe(400)
+  })
+
   it('publishes, then refuses changes until taken back to draft; prints the chart and the notice', async () => {
     expect((await admin.post(`/api/v1/exams/seating/plans/${plan.id}/publish`)).body.data.plan.status).toBe('PUBLISHED')
     expect((await admin.post(`/api/v1/exams/seating/exams/${exam.id}/generate`).send({ date: session.date, startTime: session.startTime })).status).toBe(409)
@@ -120,6 +136,13 @@ describe('seating an exam session', () => {
     expect(chart.text).toMatch(/R1/)
     expect((await admin.get(`/api/v1/documents/EXAM_DOOR_LIST/${plan.id}`).query({ print: '0' })).status).toBe(200)
     expect((await admin.get(`/api/v1/documents/INVIGILATION_DUTY/${exam.id}`).query({ print: '0' })).status).toBe(200)
+    // the published seat shows on the hall ticket
+    await admin.post(`/api/v1/exams/${exam.id}/schedule`).expect(200)
+    const seat = (await admin.get(`/api/v1/exams/seating/exams/${exam.id}/session?date=${session.date}&startTime=${session.startTime}`)).body.data.plan.seats[0]
+    const cands = (await admin.get(`/api/v1/exams/${exam.id}/candidates?sectionId=${seat.sectionId}`)).body.data
+    const ticket = await admin.get(`/api/v1/documents/HALL_TICKET/${cands.find((c) => c.studentId === seat.studentId)?.id ?? cands[0].id}`).query({ print: '0' })
+    expect(ticket.status).toBe(200)
+    expect(ticket.text).toMatch(/Room · Seat/)
     expect((await admin.post(`/api/v1/exams/seating/plans/${plan.id}/unpublish`)).body.data.plan.status).toBe('DRAFT')
   })
 })

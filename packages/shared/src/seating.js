@@ -71,3 +71,32 @@ export function seatPlan(seating, { limit } = {}) {
   }
   return { ...s, rowCount: s.rows, rows, total: limit != null ? Math.min(limit, seats.length) : seats.length }
 }
+
+/**
+ * Who sits where in a classroom: students placed by hand keep their seat (when it still exists and they are still in
+ * the class); everyone else fills the free seats in seat order, in the order given (roll numbers).
+ *   plan         seatPlan(…)        students  [{ id, … }]  in fill order
+ *   assignments  [{ seat, studentId }]
+ * Returns { at: Map(seatLabel → student), placed: Set(studentId placed by hand), standing: [student] }.
+ */
+export function placeStudents(plan, students = [], assignments = []) {
+  const seats = plan.rows.flat(2).sort((a, b) => a.order - b.order)
+  const labels = new Set(seats.map((s) => s.label))
+  const byId = new Map(students.map((s) => [String(s.id), s]))
+  const at = new Map()
+  const placed = new Set()
+  for (const a of assignments) {
+    const st = byId.get(String(a.studentId))
+    if (!st || !labels.has(a.seat) || at.has(a.seat) || placed.has(String(st.id))) continue
+    at.set(a.seat, st)
+    placed.add(String(st.id))
+  }
+  const rest = students.filter((s) => !placed.has(String(s.id)))
+  let i = 0
+  for (const seat of seats) {
+    if (at.has(seat.label)) continue
+    if (i >= rest.length) break
+    at.set(seat.label, rest[i++])
+  }
+  return { at, placed, standing: rest.slice(i) }
+}

@@ -58,7 +58,7 @@ describe('classes, sections and subjects', () => {
   it('quick setup adds the preset classes, sections and subjects — and running it again adds nothing', async () => {
     const res = await admin.post(`${api}/classes/quick-setup`).send({ preset: 'PRIMARY', sectionsPerClass: 2, addSubjects: true })
     expect(res.status).toBe(201)
-    expect(res.body.data).toEqual({ classes: 8, sections: 16, subjects: 10 })
+    expect(res.body.data).toEqual({ classes: 8, sections: 16, subjects: 13 })
     const again = (await admin.post(`${api}/classes/quick-setup`).send({ preset: 'PRIMARY', sectionsPerClass: 2 })).body.data
     expect(again).toEqual({ classes: 0, sections: 0, subjects: 0 })
     const { classes } = (await admin.get(`${api}/classes`)).body.data
@@ -96,6 +96,7 @@ describe('classes, sections and subjects', () => {
     const cleared = await admin.patch(`${api}/sections/${made.body.data.id}`).send({ seating: null, capacity: 35 })
     expect(cleared.body.data.capacity).toBe(35)
     expect(cleared.body.data.seating).toBeUndefined()
+    await admin.delete(`${api}/sections/${made.body.data.id}`).expect(200) // later tests count Class 4's sections
   })
 
   it('keeps records that are in use: a section with students, a class with sections, a subject on a class', async () => {
@@ -156,6 +157,22 @@ describe('class board', () => {
     await admin.post('/api/v1/core/users').send({ name: 'Board Outsider', email: 'outsider@school.test', roleIds: [tpl.id], password: 'Outs@1234' })
     const o = await signIn(app, 'outsider@school.test', 'Outs@1234')
     expect((await o.get(`${api}/board`)).status).toBe(403)
+  })
+
+  it('seats students by hand (a swap), keeps the arrangement, and goes back to roll order', async () => {
+    const c5 = (await admin.get(`${api}/classes`)).body.data.classes.find((c) => c.code === '5')
+    const secA = c5.sections[0]
+    const kids = await runAsTenant(h.tenant._id, () => Student.find({ sectionId: secA.id, status: 'ACTIVE' }).sort({ firstName: 1 }).lean())
+    const [first, second] = kids.map((k) => String(k._id))
+    const r1 = (await admin.put(`${api}/sections/${secA.id}/seats`).send({ moves: [{ studentId: first, seat: '5' }] })).body.data
+    expect(r1.seatAssignments.find((a) => a.studentId === first).seat).toBe('5')
+    const r2 = (await admin.put(`${api}/sections/${secA.id}/seats`).send({ moves: [{ studentId: second, seat: '5' }] })).body.data // swap
+    expect(r2.seatAssignments.find((a) => a.studentId === second).seat).toBe('5')
+    expect(r2.seatAssignments.find((a) => a.studentId === first).seat).not.toBe('5')
+    expect((await admin.put(`${api}/sections/${secA.id}/seats`).send({ moves: [{ studentId: first, seat: '999' }] })).status).toBe(400)
+    const listed = (await admin.get(`${api}/classes`)).body.data.classes.find((c) => c.code === '5').sections[0]
+    expect(listed.seatAssignments.length).toBeGreaterThan(0)
+    expect((await admin.delete(`${api}/sections/${secA.id}/seats`)).body.data.seatAssignments).toEqual([])
   })
 })
 

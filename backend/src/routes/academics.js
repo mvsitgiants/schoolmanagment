@@ -6,7 +6,7 @@ import { objectId, optionalText, z } from '../platform/validate.js'
 import {
   allocationGrid, classBoard, deleteClass, deleteGrading, deleteSection, deleteSubject, deleteYear, importClasses, importSubjects, listClasses, listGrading,
   listSubjects, listYears, lookup, quickSetup, saveClass, saveGrading, saveSection, saveSubject, saveYear, setAllocation, setCurrentYear,
-  setDefaultGrading, teacherOptions,
+  moveClassSeats, resetClassSeats, setDefaultGrading, teacherOptions,
 } from '../services/academics.js'
 
 // Academic setup: /api/v1/academics/*
@@ -175,6 +175,13 @@ router.patch('/sections/:id', requirePermission('academics.classes.edit', 'acade
   const canEdit = can(req.auth, 'academics.classes.edit')
   const schema = canEdit ? sectionSchema.partial() : sectionSchema.pick({ classTeacherId: true })
   res.json({ data: await saveSection(objectId.parse(req.params.id), schema.parse(req.body), req) })
+})
+router.put('/sections/:id/seats', requirePermission('academics.classes.edit'), async (req, res) => {
+  const { moves } = z.object({ moves: z.array(z.object({ studentId: objectId, seat: z.string().trim().min(1).max(10) })).min(1).max(200) }).parse(req.body)
+  res.json({ data: await moveClassSeats(req.params.id, moves, req) })
+})
+router.delete('/sections/:id/seats', requirePermission('academics.classes.edit'), async (req, res) => {
+  res.json({ data: await resetClassSeats(req.params.id, req) })
 })
 router.delete('/sections/:id', requirePermission('academics.classes.delete'), async (req, res) => {
   res.json({ data: await deleteSection(objectId.parse(req.params.id), req) })

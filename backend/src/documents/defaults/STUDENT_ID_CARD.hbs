@@ -108,7 +108,7 @@
             {{#if (and @root.settings.show.dob dob)}}<div class="f"><b>{{t "students.print.idCard.dob" "Date of birth"}}</b><span>{{date dob}}</span></div>{{/if}}
             {{#if @root.settings.validUntil}}<div class="f"><b>{{t "students.print.idCard.validUntil" "Valid until"}}</b><span>{{date @root.settings.validUntil}}</span></div>{{/if}}
           </div>
-          {{#if qrImage}}<img class="qr" src="{{qrImage}}" alt="QR">{{/if}}
+          {{#if qrImage}}<img class="qr" src="{{qrImage}}" alt="QR"{{#if verifyUrl}} data-verify="{{verifyUrl}}" title="{{verifyUrl}}"{{/if}}>{{/if}}
         </div>
       </div>
     </div>

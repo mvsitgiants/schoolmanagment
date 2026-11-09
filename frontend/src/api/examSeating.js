@@ -20,3 +20,4 @@ export const publishSeating = (planId) => post(`${BASE}/plans/${planId}/publish`
 export const unpublishSeating = (planId) => post(`${BASE}/plans/${planId}/unpublish`, {})
 export const deleteSeating = (planId) => del(`${BASE}/plans/${planId}`)
 export const fetchMyDuties = () => get(`${BASE}/mine`)
+export const markHallAttendance = (planId, body) => put(`${BASE}/plans/${planId}/attendance`, body)

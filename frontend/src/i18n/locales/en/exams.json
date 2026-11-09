@@ -171,7 +171,9 @@
       "noStudents": "No students in this class",
       "summary": {
         "sheets": "Mark sheets"
-      }
+      },
+      "hallAbsent": "Hall",
+      "hallAbsentHint": "Marked absent in the exam hall by the invigilator"
     },
     "results": {
       "title": "Results",
@@ -254,7 +256,8 @@
         "instructions": "Instructions",
         "studentSign": "Student",
         "teacherSign": "Class teacher",
-        "principalSign": "Principal"
+        "principalSign": "Principal",
+        "seat": "Room · Seat"
       },
       "reportCard": {
         "stampProvisional": "PROVISIONAL",
@@ -443,7 +446,18 @@
       "editHint": "Click a student, then another seat: a free seat moves them, a taken one swaps the two. Moved seats keep their place when the seating is made again.",
       "ofN": "of {{count}}",
       "neededN_one": "{{count}} needed",
-      "neededN_other": "{{count}} needed"
+      "neededN_other": "{{count}} needed",
+      "spread": "Spread evenly over the rooms",
+      "spreadHint": "Each room gets its share by size — off: fill one room, then the next. A seat is left empty rather than seat two of the same class together.",
+      "tabHall_one": "Hall attendance ({{count}} absent)",
+      "tabHall_other": "Hall attendance ({{count}} absent)",
+      "hallSaved": "Hall attendance saved.",
+      "hallMarked": "Marked by {{name}}",
+      "hallNotMarked": "Not marked yet — everyone starts as present",
+      "hallCount": "{{present}} present, {{absent}} absent",
+      "hallSave": "Save attendance",
+      "absent": "Absent",
+      "hallOnlyInvigilators": "Only this room’s invigilators can mark its attendance."
     }
   }
 }

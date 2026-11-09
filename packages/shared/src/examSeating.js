@@ -25,7 +25,7 @@ export const SEAT_FILL = {
   NAME: { label: 'Alphabetical' },
 }
 
-export const SEAT_PLAN_DEFAULTS = { mix: 'SEAT', gap: false, fill: 'ROLL', perInvigilator: 30, maxInvigilators: 3 }
+export const SEAT_PLAN_DEFAULTS = { mix: 'SEAT', gap: false, spread: true, fill: 'ROLL', perInvigilator: 30, maxInvigilators: 3 }
 
 /** The sessions of an exam: its papers grouped by date and start time. */
 export function examSessions(papers = []) {
@@ -69,29 +69,65 @@ export const examRoomCapacity = (room, opts) => examRoomSeats(room, opts).seats.
  * Seat the students.
  *   rooms   [{ id, layout?, capacity? }]  in the order they are filled (see examRoomLayout)
  *   groups  [{ key, students: [{ id, … }] }]  one group per class, students already in fill order (roll / name)
- *   rules   { mix, gap }
+ *   rules   { mix, gap, spread }  spread: share the students out over the rooms by size instead of filling one room after another
  *   locked  [{ roomId, seat, studentId }]  seats fixed by hand — kept as they are
  * Returns { seats: [{ roomId, seat, order, row, col, pos, across, studentId, group }], unseated: [studentId], clashes }.
  * Each class is used up in order, so every room gets an unbroken run of each class (the notice board can say
- * "Room 12: 8-A roll 1–15, 9-B roll 1–14").
+ * "Room 12: 8-A roll 1–15, 9-B roll 1–14"). When the only student left to seat would sit beside or behind one of the
+ * same class, the seat is left empty instead — as long as there are seats to spare.
  */
 export function planExamSeats({ rooms = [], groups = [], rules = {}, locked = [] }) {
-  const { mix = 'SEAT', gap = false } = { ...SEAT_PLAN_DEFAULTS, ...rules }
+  const { mix = 'SEAT', gap = false, spread = true } = { ...SEAT_PLAN_DEFAULTS, ...rules }
   const queues = groups.map((g) => ({ key: g.key, left: g.students.filter((s) => !locked.some((l) => l.studentId === s.id)) }))
   const lockedAt = new Map(locked.map((l) => [`${l.roomId}|${l.seat}`, l]))
   const groupOf = new Map(groups.flatMap((g) => g.students.map((s) => [s.id, g.key])))
-  const out = []
-  for (const room of rooms) {
+  // every room's seats, and how many free (not locked) seats each has
+  const plans = rooms.map((room) => {
     const { seats } = examRoomSeats(room, { gap })
+    return { room, seats, free: seats.filter((x) => !lockedAt.has(`${room.id}|${x.label}`)).length }
+  })
+  const students = queues.reduce((n, q) => n + q.left.length, 0)
+  const freeSeats = plans.reduce((n, p) => n + p.free, 0)
+  // spread: each room takes its share by size (largest remainder), so no room is left nearly empty
+  if (spread && freeSeats > 0) {
+    const want = Math.min(students, freeSeats)
+    const raw = plans.map((p) => (p.free / freeSeats) * want)
+    plans.forEach((p, i) => { p.quota = Math.floor(raw[i]) })
+    let rest = want - plans.reduce((n, p) => n + p.quota, 0)
+    for (const i of raw.map((r, i) => [r - Math.floor(r), i]).sort((a, b) => b[0] - a[0]).map(([, i]) => i)) { if (!rest) break; plans[i].quota++; rest-- }
+  }
+  let spare = Math.max(0, freeSeats - students) // seats that may stay empty (shared out over the rooms when spreading)
+  // a fair share of `total` over sizes (largest remainder)
+  const share = (sizes, total) => {
+    const sum = sizes.reduce((n, x) => n + x, 0)
+    if (!sum || total <= 0) return sizes.map(() => 0)
+    const raw = sizes.map((x) => (x / sum) * Math.min(total, sum))
+    const q = raw.map(Math.floor)
+    let rest = Math.min(total, sum) - q.reduce((n, x) => n + x, 0)
+    for (const i of raw.map((r, i) => [r - Math.floor(r), i]).sort((a, b) => b[0] - a[0]).map(([, i]) => i)) { if (!rest) break; q[i]++; rest-- }
+    return q
+  }
+  const out = []
+  for (const p of plans) {
+    const room = p.room
+    let roomSpare = spread ? Math.max(0, p.free - (p.quota ?? p.free)) : null
+    let placed = 0
+    // this room's share of each class, so every room keeps the same mix to the end (and the pattern holds)
+    const planned = spread ? (p.quota ?? 0) : Math.min(p.free, queues.reduce((n, q) => n + q.left.length, 0))
+    const classShare = new Map(queues.map((q, i) => [q.key, share(queues.map((x) => x.left.length), planned)[i]]))
     const at = new Map() // `${row}|${across}` → group key, for the neighbour rule
     const columnGroup = new Map() // COLUMN mix: across → group key
-    for (const seat of seats) {
+    for (const seat of p.seats) {
       const fixed = lockedAt.get(`${room.id}|${seat.label}`)
       let pick = null
       if (fixed) pick = { key: groupOf.get(fixed.studentId) ?? null, id: fixed.studentId }
       else {
-        const live = queues.filter((q) => q.left.length)
-        if (!live.length) break
+        if (spread && placed >= (p.quota ?? Infinity)) continue
+        const anyLeft = queues.filter((q) => q.left.length)
+        if (!anyLeft.length) break
+        // classes with some of this room's share left (when every share is used, whoever is left)
+        const inShare = anyLeft.filter((q) => (classShare.get(q.key) ?? 0) > 0)
+        const live = inShare.length ? inShare : anyLeft
         const leftKey = at.get(`${seat.row}|${seat.across - 1}`) ?? at.get(`${seat.row}|${seat.across - 2}`)
         const frontKey = at.get(`${seat.row - 1}|${seat.across}`)
         let q
@@ -106,11 +142,19 @@ export function planExamSeats({ rooms = [], groups = [], rules = {}, locked = []
           q = live.find((x) => x.key === columnGroup.get(seat.across)) ?? [...live].sort((a, b) => b.left.length - a.left.length).find((x) => x.key !== leftKey) ?? live[0]
         } else {
           // the class with most students left that differs from the left and front neighbours
-          const byLeft = [...live].sort((a, b) => b.left.length - a.left.length)
+          const byLeft = [...live].sort((a, b) => (classShare.get(b.key) ?? 0) - (classShare.get(a.key) ?? 0) || b.left.length - a.left.length)
           q = byLeft.find((x) => x.key !== leftKey && x.key !== frontKey) ?? byLeft.find((x) => x.key !== leftKey) ?? byLeft[0]
+        }
+        // the only choice would sit beside (or, seat by seat, behind) its own class: leave the seat empty while seats are spare
+        const clash = mix !== 'NONE' && (q.key === leftKey || (mix === 'SEAT' && q.key === frontKey))
+        if (clash) {
+          if (spread && roomSpare > 0) { roomSpare--; continue }
+          if (!spread && spare > 0) { spare--; continue }
         }
         const s = q.left.shift()
         pick = { key: q.key, id: s.id }
+        classShare.set(q.key, (classShare.get(q.key) ?? 0) - 1)
+        placed++
       }
       at.set(`${seat.row}|${seat.across}`, pick.key)
       out.push({ roomId: room.id, seat: seat.label, order: seat.order, row: seat.row, col: seat.col, pos: seat.pos, across: seat.across, studentId: pick.id, group: pick.key })

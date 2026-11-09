@@ -79,7 +79,7 @@ function SheetView({ sectionId, date, period, onBack }) {
           <li key={s.id} className="flex flex-wrap items-center justify-between gap-2 px-3 py-2.5">
             <div className="min-w-0 flex items-center gap-3">
               <span className="w-8 text-end text-sm text-ink-faint font-mono-num">{s.rollNo ?? '–'}</span>
-              <PersonCell name={s.name} sub={s.onLeave ? t('attendance.mark.onLeave') : undefined} size={32} />
+              <PersonCell name={s.name} sub={s.onLeave ? t('attendance.mark.onLeave') : s.gateIn ? t('attendance.mark.gateIn', { time: s.gateIn }) : undefined} size={32} />
             </div>
             <div className="flex gap-1" role="radiogroup" aria-label={t('attendance.mark.markFor', { name: s.name })}>
               {ATTENDANCE_MARKS.map((m) => (

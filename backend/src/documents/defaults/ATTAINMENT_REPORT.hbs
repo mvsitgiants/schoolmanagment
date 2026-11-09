@@ -1,0 +1,32 @@
+{{!-- CO–PO attainment report (A4) of a program for an exam session: each course's CO attainment (internal and
+      end-semester levels, the direct attainment) and the program outcomes' attainment from the CO–PO mapping. --}}
+<style>
+  h1 { font-size: 13pt; text-align: center; letter-spacing: .06em; text-transform: uppercase; margin: 4mm 0 1mm }
+  .sub { text-align: center; font-size: 10pt; font-weight: 600; margin-bottom: 4mm }
+  .rules { font-size: 8.5pt; color: #5B616E; margin-bottom: 3mm }
+  h2 { font-size: 9.5pt; margin: 4mm 0 1mm; text-transform: uppercase; letter-spacing: .05em; color: #3A3F4B }
+  table.m { width: 100%; border-collapse: collapse; font-size: 8.5pt }
+  table.m th { text-align: left; font-weight: 600; color: #5B616E; border-bottom: 1px solid #C8CCD4; padding: 1.2mm; background: #F6F7F9 }
+  table.m td { padding: 1.1mm 1.2mm; border-bottom: 1px solid #EEF0F3 }
+  table.m .n { text-align: right; white-space: nowrap }
+  table.m .c { text-align: center }
+</style>
+{{#> letterhead}}{{/letterhead}}
+<h1>{{t "programs.print.attainment.title" "CO–PO attainment"}}</h1>
+<div class="sub">{{program.name}}{{#if session}} · {{session}}{{/if}}</div>
+<p class="rules">{{t "programs.print.attainment.rules" "Target"}}: {{rules.targetPct}}% · {{t "programs.print.attainment.weight" "Internal weight"}}: {{rules.internalWeight}}% · {{#each rules.levels}}L{{level}} ≥ {{min}}%{{#unless @last}}, {{/unless}}{{/each}}</p>
+
+{{#each courses}}
+  <h2>{{code}} · {{title}}</h2>
+  <table class="m">
+    <thead><tr><th>CO</th><th>{{t "programs.print.attainment.statement" "Outcome"}}</th><th class="n">{{t "programs.print.attainment.internal" "Internal %"}}</th><th class="n">{{t "programs.print.attainment.external" "External %"}}</th><th class="c">{{t "programs.print.attainment.level" "Level"}}</th></tr></thead>
+    <tbody>{{#each cos}}<tr><td>{{code}}</td><td>{{statement}}</td><td class="n">{{default (num internalPct) "—"}}</td><td class="n">{{default (num externalPct) "—"}}</td><td class="c"><b>{{default (num attainment) "—"}}</b></td></tr>{{/each}}</tbody>
+  </table>
+{{/each}}
+
+<h2>{{t "programs.print.attainment.po" "Program outcomes"}}</h2>
+<table class="m">
+  <thead><tr>{{#each po}}<th class="c">{{code}}</th>{{/each}}</tr></thead>
+  <tbody><tr>{{#each po}}<td class="c"><b>{{default (num value) "—"}}</b></td>{{/each}}</tr></tbody>
+</table>
+{{> footer}}

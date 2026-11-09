@@ -45,6 +45,8 @@ export const quickSetupClasses = (body) => post(`${BASE}/classes/quick-setup`, b
 export const createSection = (body) => post(`${BASE}/sections`, body)
 export const updateSection = (id, body) => patch(`${BASE}/sections/${id}`, body)
 export const deleteSection = (id) => del(`${BASE}/sections/${id}`)
+export const moveClassSeats = (id, moves) => api.put(`${BASE}/sections/${id}/seats`, { moves }).then((r) => r.data.data)
+export const resetClassSeats = (id) => del(`${BASE}/sections/${id}/seats`)
 
 // teacher allocation
 export const fetchAllocation = (classId, yearId) => get(`${BASE}/allocation`, { classId, yearId: yearId || undefined })

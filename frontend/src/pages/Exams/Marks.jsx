@@ -98,7 +98,10 @@ function SheetView({ paperId, sectionId, onBack }) {
             )
           } },
           { key: 'absent', header: t('exams.marks.absent'), width: 90, render: (_, s) => (
-            <input type="checkbox" checked={!!rows[s.id]?.absent} disabled={ro} onChange={(e) => setRows((x) => ({ ...x, [s.id]: { ...x[s.id], absent: e.target.checked, exempt: e.target.checked ? false : x[s.id]?.exempt } }))} aria-label={t('exams.marks.absent')} className="rounded border-border text-brand-500 focus:ring-brand-500" />
+            <span className="inline-flex items-center gap-1.5">
+              <input type="checkbox" checked={!!rows[s.id]?.absent} disabled={ro} onChange={(e) => setRows((x) => ({ ...x, [s.id]: { ...x[s.id], absent: e.target.checked, exempt: e.target.checked ? false : x[s.id]?.exempt } }))} aria-label={t('exams.marks.absent')} className="rounded border-border text-brand-500 focus:ring-brand-500" />
+              {s.hallAbsent && <span title={t('exams.marks.hallAbsentHint')} className="rounded bg-danger-50 px-1 text-[10px] font-semibold text-danger-600">{t('exams.marks.hallAbsent')}</span>}
+            </span>
           ) },
           { key: 'exempt', header: t('exams.marks.exempt'), width: 110, render: (_, s) => (
             <input type="checkbox" checked={!!rows[s.id]?.exempt} disabled={ro} onChange={(e) => setRows((x) => ({ ...x, [s.id]: { ...x[s.id], exempt: e.target.checked, absent: e.target.checked ? false : x[s.id]?.absent } }))} aria-label={t('exams.marks.exempt')} className="rounded border-border text-brand-500 focus:ring-brand-500" />

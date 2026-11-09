@@ -23,3 +23,42 @@ export const testWebhook = (id) => post(`/v1/core/webhooks/${id}/test`)
 /** { data, meta } */
 export const fetchWebhookDeliveries = (id, params) => list(id ? `/v1/core/webhooks/${id}/deliveries` : '/v1/core/webhook-deliveries', params)
 export const redeliverWebhook = (id) => post(`/v1/core/webhook-deliveries/${id}/redeliver`)
+const put = async (url, body) => (await api.put(url, body)).data.data
+
+// Integrations module (/api/v1/integrations)
+const INT = '/v1/integrations'
+export const fetchIntegrationMeta = () => get(`${INT}/meta`)
+
+// payment gateway — the school's own Razorpay (the same config as Fees › Online payments)
+export const fetchPayments = () => get(`${INT}/payments`)
+export const savePayments = (body) => put(`${INT}/payments`, body)
+export const testPayments = () => post(`${INT}/payments/test`)
+
+// SMS & WhatsApp — provider settings are /core/notifications/messaging (api/core.js)
+export const fetchMessagingIntegration = () => get(`${INT}/messaging`)
+export const createMessagingUrls = () => post(`${INT}/messaging/urls`)
+export const saveMessagingWebhook = (body) => put(`${INT}/messaging/webhook`, body)
+export const testMessagingProvider = (channel) => post(`${INT}/messaging/test/${channel}`)
+export const fetchMessagingTemplates = () => get(`${INT}/messaging/templates`)
+/** { data, meta } */
+export const fetchRecentSends = (params) => list(`${INT}/messaging/sends`, params)
+
+// devices
+export const fetchDevices = () => get(`${INT}/devices`)
+export const fetchDeviceOptions = () => get(`${INT}/devices/options`)
+export const fetchDevice = (id) => get(`${INT}/devices/${id}`)
+export const createDevice = (body) => post(`${INT}/devices`, body)
+export const updateDevice = (id, body) => patch(`${INT}/devices/${id}`, body)
+export const deleteDevice = (id) => del(`${INT}/devices/${id}`)
+export const rotateDeviceKey = (id) => post(`${INT}/devices/${id}/rotate-key`)
+export const testDevicePunch = (id, body) => post(`${INT}/devices/${id}/test`, body)
+export const createGpsUrl = () => post(`${INT}/devices/gps-url`)
+/** { data, meta } */
+export const fetchDevicePunches = (params) => list(`${INT}/devices/punches`, params)
+
+// integration logs
+/** { data, meta } */
+export const fetchIntegrationLogs = (params) => list(`${INT}/logs`, params)
+export const fetchIntegrationLog = (id) => get(`${INT}/logs/${id}`)
+export const fetchProviderHealth = () => get(`${INT}/logs/health`)
+export const retryIntegrationLog = (id) => post(`${INT}/logs/${id}/retry`)

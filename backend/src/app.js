@@ -14,6 +14,12 @@ import attendanceRoutes from './routes/attendance.js'
 import documentRoutes from './routes/documents.js'
 import feeRoutes from './routes/fees.js'
 import examRoutes from './routes/exams.js'
+import coeRoutes from './routes/coe.js'
+import registrationRoutes from './routes/registration.js'
+import programRoutes from './routes/programs.js'
+import integrationRoutes from './routes/integrations.js'
+import aiRoutes from './routes/ai.js'
+import analyticsRoutes from './routes/analytics.js'
 import examSeatingRoutes from './routes/examSeating.js'
 import questionPaperRoutes from './routes/questionPapers.js'
 import homeworkRoutes from './routes/homework.js'
@@ -39,6 +45,7 @@ import authRoutes from './routes/auth.js'
 import coreRoutes from './routes/core/index.js'
 import { commentsRouter, filesRouter } from './routes/files.js'
 import hookRoutes from './routes/hooks.js'
+import deviceHookRoutes from './routes/deviceHooks.js'
 import publicRoutes from './routes/public.js'
 import superadminRoutes from './routes/superadmin.js'
 import { registerWebhookListeners } from './services/apiKeys.js'
@@ -109,6 +116,7 @@ export function createApp() {
   )
   // inbound webhooks need the raw body (signatures) — before express.json()
   app.use('/api/v1/hooks', hookRoutes)
+  app.use('/api/v1/hooks', deviceHookRoutes)
   app.use(express.json({ limit: '1mb' }))
   app.use(cookieParser())
   app.use(requireTrustedOrigin(isAllowedOrigin)) // CSRF: cookie-signed writes only from the app
@@ -139,6 +147,12 @@ export function createApp() {
   app.use('/api/v1/exams/seating', examSeatingRoutes)
   app.use('/api/v1/exams/question-papers', questionPaperRoutes)
   app.use('/api/v1/exams', examRoutes)
+  app.use('/api/v1/coe', coeRoutes)
+  app.use('/api/v1/registration', registrationRoutes)
+  app.use('/api/v1/programs', programRoutes)
+  app.use('/api/v1/integrations', integrationRoutes)
+  app.use('/api/v1/ai', aiRoutes)
+  app.use('/api/v1/analytics', analyticsRoutes)
   app.use('/api/v1/homework', homeworkRoutes)
   app.use('/api/v1/certificates', certificateRoutes)
   app.use('/api/v1/dashboard', dashboardRoutes)

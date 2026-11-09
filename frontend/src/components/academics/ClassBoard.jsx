@@ -1,13 +1,13 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import clsx from 'clsx'
-import { SEATING_KINDS, defaultSeating, seatPlan } from '@schoolgiant/shared'
-import { Armchair, CalendarCheck, Printer, Tags, CalendarDays, CalendarOff, DoorOpen, GraduationCap, Layers, MapPin, Pencil, Presentation, UserRound, Users } from 'lucide-react'
+import { SEATING_KINDS, defaultSeating, placeStudents, seatPlan } from '@schoolgiant/shared'
+import { ArrowLeftRight, Armchair, CalendarCheck, RotateCcw, Printer, Tags, CalendarDays, CalendarOff, DoorOpen, GraduationCap, Layers, MapPin, Pencil, Presentation, UserRound, Users } from 'lucide-react'
 import { Avatar, Drawer, EmptyState, FactGrid, LevelBar, Note, SideNav, SideNavLayout, Skeleton, StatCardRow, StatusPill, Tabs, Tag, TONE, hueTone } from '../system'
 import Button from '../ui/Button'
-import { fetchClassBoard } from '../../api/academics'
+import { fetchClassBoard, moveClassSeats, resetClassSeats } from '../../api/academics'
 import { fetchStudents } from '../../api/students'
 import { fetchSheet } from '../../api/attendance'
 import { printDocuments } from '../print/printDocument'
@@ -299,9 +299,24 @@ function SeatingSheet({ section, cls, extra, board }) {
     const cap = section.capacity || Math.max(30, Math.ceil(Math.max(kids.length, section.studentCount) / 6) * 6)
     return seatPlan(defaultSeating(cap), { limit: cap })
   }, [section.seating, section.capacity, section.studentCount, kids.length])
+  // who sits where: seats arranged by hand stay; everyone else fills the free seats in roll order
+  const placement = useMemo(() => placeStudents(plan, kids, section.seatAssignments ?? []), [plan, kids, section.seatAssignments])
   const capacity = plan.total
-  const standing = kids.slice(capacity)
+  const standing = placement.standing
   const rows = plan.rows
+  const qc = useQueryClient()
+  const canArrange = hasPermission('academics.classes.edit')
+  const [arranging, setArranging] = useState(false)
+  const [picked, setPicked] = useState(null) // { id, name, seat }
+  const refresh = () => { qc.invalidateQueries({ queryKey: ['academic-classes'] }); setPicked(null) }
+  const move = useMutation({ mutationFn: (m) => moveClassSeats(section.id, [m]), onSuccess: refresh })
+  const reset = useMutation({ mutationFn: () => resetClassSeats(section.id), onSuccess: () => { refresh(); setArranging(false) } })
+  const clickSeat = (label, kid) => {
+    if (!arranging) { if (kid) navigate(`/students/profile/${kid.id}`); return }
+    if (!picked) { if (kid) setPicked({ id: kid.id, name: kid.name, seat: label }); return }
+    if (picked.seat === label) { setPicked(null); return }
+    move.mutate({ studentId: picked.id, seat: label })
+  }
   const tone = TONE[hueTone(cls.id)]
   const kindLabel = t(`academics.board.sheet.kinds.${plan.kind}`, SEATING_KINDS[plan.kind]?.label)
 
@@ -312,30 +327,45 @@ function SeatingSheet({ section, cls, extra, board }) {
   const Seat = ({ kid, no }) => {
     if (!kid) {
       return (
-        <span title={t('academics.board.sheet.freeSeat', { no })}
-          className="flex h-14 min-w-0 flex-1 flex-col items-center justify-center rounded-lg border border-dashed border-success-300 bg-success-50/40 text-success-600">
+        <button type="button" disabled={!arranging || !picked} onClick={() => clickSeat(no, null)} title={t('academics.board.sheet.freeSeat', { no })}
+          className={clsx('flex h-14 min-w-0 flex-1 flex-col items-center justify-center rounded-lg border border-dashed border-success-300 bg-success-50/40 text-success-600', arranging && picked && 'animate-pulse cursor-pointer')}>
           <Armchair className="h-3.5 w-3.5 opacity-60" aria-hidden />
           <span className="mt-0.5 text-[10px] font-medium tabular-nums">{no}</span>
-        </span>
+        </button>
       )
     }
     const st = TONE[SEAT_TONE[kid.gender] ?? 'neutral']
     const mark = marks.get(kid.id)
+    const isPicked = picked?.id === kid.id
     return (
-      <button type="button" onClick={() => navigate(`/students/profile/${kid.id}`)}
+      <button type="button" onClick={() => clickSeat(no, kid)}
         title={[t('academics.board.sheet.seat', { no }), kid.rollNo ? t('academics.board.sheet.roll', { no: kid.rollNo }) : null, kid.name, mark ? t(`academics.board.sheet.mark.${mark}`, mark) : null].filter(Boolean).join(' · ')}
-        className={clsx('relative flex h-14 min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-lg border px-1 transition-colors hover:brightness-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 2xl:flex-row 2xl:justify-start 2xl:gap-2 2xl:px-2 2xl:text-start', st.bg, st.border, mark === 'A' && 'opacity-60')}>
+        className={clsx('relative flex h-14 min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-lg border px-1 transition-colors hover:brightness-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 2xl:flex-row 2xl:justify-start 2xl:gap-2 2xl:px-2 2xl:text-start', st.bg, st.border, mark === 'A' && 'opacity-60', isPicked && 'ring-2 ring-brand-500 ring-offset-1')}>
         <span className={clsx('flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/80 text-[10.5px] font-bold', st.text)}>{initials(kid.name)}</span>
         <span className="min-w-0 max-w-full leading-tight">
           <span className={clsx('hidden truncate text-[12px] font-semibold 2xl:block', st.text)}>{kid.name.split(/\s+/)[0]}</span>
           {kid.rollNo != null && <span className="block truncate text-[9.5px] text-ink-faint tabular-nums">{t('academics.board.sheet.roll', { no: kid.rollNo })}</span>}
         </span>
         {mark && <span className={clsx('absolute end-1.5 top-1.5 h-2.5 w-2.5 rounded-full ring-2 ring-surface', DOT[mark])} />}
+        {placement.placed.has(kid.id) && <span className="absolute start-1 top-1 text-[8px] text-ink-faint" aria-label={t('academics.board.sheet.byHand')}>●</span>}
       </button>
     )
   }
 
   return (
+    <div className="space-y-3">
+    {canArrange && (
+      <div className="flex flex-wrap items-center gap-2">
+        <Button size="sm" variant={arranging ? 'primary' : 'secondary'} icon={ArrowLeftRight} onClick={() => { setArranging((x) => !x); setPicked(null) }}>
+          {arranging ? t('academics.board.sheet.doneArranging') : t('academics.board.sheet.arrange')}
+        </Button>
+        {(section.seatAssignments?.length ?? 0) > 0 && <Button size="sm" variant="ghost" icon={RotateCcw} loading={reset.isPending} onClick={() => reset.mutate()}>{t('academics.board.sheet.rollOrder')}</Button>}
+        <span className="text-xs text-ink-faint">
+          {arranging ? (picked ? t('academics.board.sheet.pickedHint', { name: picked.name }) : t('academics.board.sheet.arrangeHint'))
+            : (section.seatAssignments?.length ? t('academics.board.sheet.arranged') : t('academics.board.sheet.rollOrderNote'))}
+        </span>
+      </div>
+    )}
     <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_300px]">
       {/* the room */}
       <div className="min-w-0 rounded-2xl border border-border bg-bg/60 p-4 sm:p-5">
@@ -356,7 +386,7 @@ function SeatingSheet({ section, cls, extra, board }) {
             <div key={r} className="grid gap-3 sm:gap-5" style={{ gridTemplateColumns: `repeat(${plan.columns}, minmax(0, 1fr))` }}>
               {row.map((bench, c) => (!bench.length ? <span key={c} /> : (
                 <div key={c} className={clsx('flex min-w-0 gap-1.5', plan.kind === 'BENCH' && 'rounded-xl bg-surface p-1.5 shadow-sm ring-1 ring-border')}>
-                  {bench.map((seat) => <Seat key={seat.label} kid={kids[seat.order] ?? null} no={seat.label} />)}
+                  {bench.map((seat) => <Seat key={seat.label} kid={placement.at.get(seat.label) ?? null} no={seat.label} />)}
                   {bench.length < plan.perBench && Array.from({ length: plan.perBench - bench.length }, (_, k) => <span key={`x${k}`} className="flex-1" />)}
                 </div>
               )))}
@@ -406,6 +436,7 @@ function SeatingSheet({ section, cls, extra, board }) {
           {!kids.length && <li className="px-4 py-6 text-center text-sm text-ink-faint">{t('academics.board.noStudents')}</li>}
         </ul>
       </div>
+    </div>
     </div>
   )
 }

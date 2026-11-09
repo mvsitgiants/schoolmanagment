@@ -43,7 +43,7 @@ describe('the enquiry pipeline', () => {
     const e = (await admin.post('/api/v1/admissions/enquiries').send({ childName: 'Riya', parentName: 'Neha', mobile: '9845000201', classId: cls.id, source: 'PHONE' })).body.data
     expect(e.enquiryNo).toMatch(/^ENQ\d{2}\d{5}$/)
     expect(e.stage).toBe('NEW')
-    expect(await runAsTenant(h.tenant._id, () => MessageLog.countDocuments({ event: 'admissions.enquiry' }))).toBe(1)
+    expect(await runAsTenant(h.tenant._id, () => MessageLog.countDocuments({ event: 'admissions.enquiry', channel: 'SMS' }))).toBe(1)
     const after = (await admin.post(`/api/v1/admissions/enquiries/${e.id}/follow-ups`).send({ type: 'CALL', note: 'Will visit Saturday', stage: 'VISIT' })).body.data
     expect(after).toMatchObject({ stage: 'VISIT' })
     expect(after.followUps).toHaveLength(1)
@@ -90,7 +90,7 @@ describe('test, merit list, seats and admission', () => {
     const r = (await admin.post(`/api/v1/admissions/merit/${cycle.id}/${cls.id}/allot`)).body.data
     expect(r).toMatchObject({ offered: 2, waitlisted: 1 })
     expect(r.list.left).toBe(0)
-    expect(await runAsTenant(h.tenant._id, () => MessageLog.countDocuments({ event: 'admissions.offer' }))).toBe(2)
+    expect(await runAsTenant(h.tenant._id, () => MessageLog.countDocuments({ event: 'admissions.offer', channel: 'SMS' }))).toBe(2)
   })
 
   it('the family accepts online, and the school admits the child as a student', async () => {

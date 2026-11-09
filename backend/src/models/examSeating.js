@@ -41,6 +41,7 @@ const planSchema = new Schema({
   rules: {
     mix: { type: String, default: 'SEAT' }, // SEAT_MIX
     gap: { type: Boolean, default: false }, // one student per bench of two
+    spread: { type: Boolean, default: true }, // share students out over the rooms by size
     fill: { type: String, default: 'ROLL' }, // SEAT_FILL
     perInvigilator: { type: Number, default: 30 },
     maxInvigilators: { type: Number, default: 3 },
@@ -48,6 +49,9 @@ const planSchema = new Schema({
   rooms: { type: [planRoomSchema], default: [] },
   seats: { type: [planSeatSchema], default: [] },
   unseated: { type: [ObjectId], default: [] },
+  // exam-hall attendance, marked by the invigilators: who didn't come (marks entry starts them as absent)
+  absentIds: { type: [ObjectId], default: [] },
+  attendance: { type: [new Schema({ roomId: ObjectId, by: String, byId: ObjectId, at: Date }, { _id: false })], default: [] }, // rooms marked
   status: { type: String, default: 'DRAFT' }, // SEAT_PLAN_STATUS
   generatedAt: Date, generatedBy: String,
   publishedAt: Date, publishedBy: String,

@@ -4,6 +4,8 @@ import {
 import { AcademicYear, ClassLevel, GradingScheme, Section, Subject, TeacherAllocation } from '../models/academics.js'
 import { AttendanceSheet } from '../models/attendance.js'
 import { Exam, ExamCandidate, ExamPaper, ExamType, MarkSheet } from '../models/exams.js'
+import { ExamSeatPlan } from '../models/examSeating.js'
+import { hallAbsentees } from './examSeating.js'
 import { Student, studentName } from '../models/students.js'
 import { User } from '../models/tenant.js'
 import { can, scopeOf } from '../platform/access.js'
@@ -350,7 +352,15 @@ export async function hallTicketData(candidateId, auth) {
   const [exam, student, section] = await Promise.all([Exam.findById(c.examId).lean(), Student.findById(c.studentId).lean(), Section.findById(c.sectionId).lean()])
   const cls = await ClassLevel.findById(c.classId).lean()
   const [papers, year] = await Promise.all([papersOf(c.examId, [c.classId]), AcademicYear.findById(exam.academicYearId).select('name').lean()])
-  return { candidate: c, exam, year, student, place: sectionLabel(cls, section), papers }
+  // the room and seat of each paper, from the published seating plans of its session (date + start time)
+  const plans = await ExamSeatPlan.find({ examId: c.examId, status: 'PUBLISHED', 'seats.studentId': c.studentId }).select('date startTime rooms.roomId rooms.code rooms.name seats').lean()
+  const seatOf = new Map(plans.map((pl) => {
+    const s = pl.seats.find((x) => String(x.studentId) === String(c.studentId))
+    const room = pl.rooms.find((r) => String(r.roomId) === String(s?.roomId))
+    return [`${pl.date}|${pl.startTime}`, s && { room: room?.code || room?.name || '', seat: s.seat }]
+  }))
+  const seated = papers.map((p) => ({ ...p, seat: seatOf.get(`${p.date}|${p.startTime}`) ?? null }))
+  return { candidate: c, exam, year, student, place: sectionLabel(cls, section), papers: seated }
 }
 
 // ───────────────────────────────────────────────────────── marks entry
@@ -418,6 +428,8 @@ export async function getMarkSheet({ paperId, sectionId }, auth) {
   ])
   const saved = new Map((sheet?.entries ?? []).map((x) => [String(x.studentId), x]))
   const block = await editBlock(ctx, sheet, auth)
+  // absent in the exam hall (Seating & invigilation): starts as absent until marks are saved, and is flagged
+  const hall = await hallAbsentees(exam._id, paper.date, paper.startTime)
   return {
     exam: { id: String(exam._id), name: exam.name, status: exam.status },
     paper: { id: String(paper._id), subject: subject?.name ?? '?', date: paper.date ?? null, maxMarks: paper.maxMarks, passMarks: paper.passMarks, gradeOnly: !!paper.gradeOnly },
@@ -426,7 +438,8 @@ export async function getMarkSheet({ paperId, sectionId }, auth) {
     canEdit: !block, blockedBy: block, canLock: !block && sheet?.status !== 'LOCKED', canUnlock: sheet?.status === 'LOCKED' && exam.status === 'SCHEDULED' && can(auth, 'exams.marks.unlock'),
     students: students.map((s) => {
       const x = saved.get(String(s._id))
-      return { id: String(s._id), name: studentName(s), admissionNo: s.admissionNo, rollNo: s.rollNo ?? null, marks: x?.marks ?? null, grade: x?.grade ?? '', absent: !!x?.absent, exempt: !!x?.exempt }
+      const hallAbsent = hall.has(String(s._id))
+      return { id: String(s._id), name: studentName(s), admissionNo: s.admissionNo, rollNo: s.rollNo ?? null, marks: x?.marks ?? null, grade: x?.grade ?? '', absent: x ? !!x.absent : hallAbsent, exempt: !!x?.exempt, hallAbsent }
     }),
   }
 }

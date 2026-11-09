@@ -143,7 +143,7 @@ describe('leave', () => {
     const sl = types.find((t) => t.code === 'SL')
     const lop = types.find((t) => t.code === 'LOP')
     expect((await admin.post(`${api}/leave`).send({ employeeId: teacher.id, leaveTypeId: sl.id, from: '2026-11-02', to: '2026-11-20', reason: 'Long illness' })).status).toBe(409)
-    const l = (await admin.post(`${api}/leave`).send({ employeeId: teacher.id, leaveTypeId: lop.id, from: '2026-11-23', to: '2026-11-23', reason: 'Personal', approveNow: true })).body.data
+    const l = (await admin.post(`${api}/leave`).send({ employeeId: teacher.id, leaveTypeId: lop.id, from: '2026-11-05', to: '2026-11-05', reason: 'Personal', approveNow: true })).body.data
     expect(l.status).toBe('APPROVED')
     const pay = await runAsTenant(h.tenant._id, () => payDays('2026-11', [teacher.id]))
     expect(pay[teacher.id]).toMatchObject({ lop: 1 })
@@ -179,7 +179,7 @@ describe('staff attendance', () => {
     const r = (await admin.post(`${api}/attendance/import`).send({ rows: [
       { employeeCode: teacher.employeeCode, date: '2026-11-03', inTime: '08:05', outTime: '15:10' },
       { employeeCode: 'NOPE', date: '2026-11-03', inTime: '08:05' },
-      { employeeCode: teacher.employeeCode, date: '2026-11-23', inTime: '08:00' }, // on leave that day
+      { employeeCode: teacher.employeeCode, date: '2026-11-05', inTime: '08:00' }, // on leave that day
     ] })).body.data
     expect(r.saved).toBe(1)
     expect(r.skipped.map((s) => s.reason)).toEqual(['Unknown employee code', 'On approved leave that day'])

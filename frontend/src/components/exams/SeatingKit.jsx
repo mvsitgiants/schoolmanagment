@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import clsx from 'clsx'
-import { AlertTriangle, ArrowLeftRight, Lock, Plus, Sparkles, UserMinus, Wand2, X } from 'lucide-react'
+import { AlertTriangle, ArrowLeftRight, Lock, Plus, Save, Sparkles, UserMinus, UserX, Wand2, X } from 'lucide-react'
 import { ROOM_KINDS, SEAT_FILL, SEAT_MIX, examRoomCapacity } from '@schoolgiant/shared'
 import { Avatar, ColorChip, Note, SegmentedControl, Select, Tag, TONE, hueTone } from '../system'
 import Button from '../ui/Button'
@@ -69,6 +69,10 @@ export function SeatingSetup({ view, roomIds, setRoomIds, rules, setRules, canEd
         <label className="flex items-center justify-between gap-3 text-sm text-ink">
           <span>{t('exams.seating.gap')}<span className="block text-[11px] text-ink-faint">{t('exams.seating.gapHint')}</span></span>
           <Switch checked={!!rules.gap} onChange={(v) => setRules({ ...rules, gap: v })} label={t('exams.seating.gap')} />
+        </label>
+        <label className="flex items-center justify-between gap-3 text-sm text-ink">
+          <span>{t('exams.seating.spread')}<span className="block text-[11px] text-ink-faint">{t('exams.seating.spreadHint')}</span></span>
+          <Switch checked={rules.spread !== false} onChange={(v) => setRules({ ...rules, spread: v })} label={t('exams.seating.spread')} />
         </label>
         <div className="grid grid-cols-2 gap-2">
           <div>
@@ -271,6 +275,67 @@ export function PickedBar({ picked, onCancel }) {
       <ArrowLeftRight className="h-4 w-4" aria-hidden />
       <span className="min-w-0 flex-1 truncate">{t('exams.seating.pickedHint', { name: picked.name })}</span>
       <Button size="sm" variant="ghost" onClick={onCancel}>{t('exams.seating.cancel')}</Button>
+    </div>
+  )
+}
+
+/**
+ * Exam-hall attendance, room by room: every seated student starts present; click to mark absent, then save. The room's
+ * invigilators (and anyone who may edit the seating) can mark it. Marks entry starts the absent ones as absent.
+ */
+export function HallAttendance({ plan, classes, me, canEditAll, busy, onSave }) {
+  const { t } = useTranslation('exams')
+  const mine = plan.rooms.filter((r) => canEditAll || r.invigilatorIds.includes(me))
+  const [roomId, setRoomId] = useState(() => (mine[0] ?? plan.rooms[0])?.roomId)
+  const room = plan.rooms.find((r) => r.roomId === roomId)
+  const here = plan.seats.filter((x) => x.roomId === roomId).sort((a, b) => String(a.seat).localeCompare(String(b.seat), undefined, { numeric: true }))
+  const [absent, setAbsent] = useState(() => new Set(plan.absentIds))
+  const marked = plan.attendance.find((a) => a.roomId === roomId)
+  const editable = canEditAll || room?.invigilatorIds.includes(me)
+  const classOf = new Map(classes.map((c) => [c.id, c]))
+  const toggle = (id) => setAbsent((x) => { const n = new Set(x); n.has(id) ? n.delete(id) : n.add(id); return n })
+  const absentHere = here.filter((x) => absent.has(x.studentId)).length
+  if (!room) return null
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-center gap-1.5">
+        {plan.rooms.map((r) => {
+          const done = plan.attendance.some((a) => a.roomId === r.roomId)
+          return (
+            <button key={r.roomId} type="button" onClick={() => setRoomId(r.roomId)}
+              className={clsx('inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium', r.roomId === roomId ? 'border-brand-300 bg-brand-50 text-brand-700' : 'border-border bg-surface text-ink hover:bg-bg')}>
+              <span className="font-semibold font-mono-num">{r.code || r.name}</span>
+              <span className={clsx('h-1.5 w-1.5 rounded-full', done ? 'bg-success-500' : 'bg-amber-400')} />
+            </button>
+          )
+        })}
+      </div>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-sm text-ink-muted">
+          {marked ? t('exams.seating.hallMarked', { name: marked.by }) : t('exams.seating.hallNotMarked')}
+          {' · '}{t('exams.seating.hallCount', { present: here.length - absentHere, absent: absentHere })}
+        </p>
+        {editable && <Button size="sm" icon={Save} loading={busy} onClick={() => onSave(roomId, here.filter((x) => absent.has(x.studentId)).map((x) => x.studentId))}>{t('exams.seating.hallSave')}</Button>}
+      </div>
+      {!editable && <Note>{t('exams.seating.hallOnlyInvigilators')}</Note>}
+      <div className="grid gap-1.5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {here.map((x) => {
+          const off = absent.has(x.studentId)
+          const tone = TONE[hueTone(x.classId)]
+          return (
+            <button key={x.studentId} type="button" disabled={!editable} onClick={() => toggle(x.studentId)}
+              className={clsx('flex items-center gap-2 rounded-lg border px-2.5 py-2 text-start text-sm transition-colors',
+                off ? 'border-danger-200 bg-danger-50 text-danger-700' : 'border-border bg-surface text-ink hover:bg-bg')}>
+              <span className={clsx('w-9 shrink-0 rounded-md px-1 py-0.5 text-center text-[11px] font-bold tabular-nums', tone.bg, tone.text)}>{x.seat}</span>
+              <span className="min-w-0 flex-1 leading-tight">
+                <span className={clsx('block truncate font-medium', off && 'line-through')}>{x.name}</span>
+                <span className="block truncate text-[11px] text-ink-faint">{x.section}{x.rollNo ? ` · ${t('exams.seating.roll', { no: x.rollNo })}` : ''}{classOf.get(x.classId)?.subject ? ` · ${classOf.get(x.classId).subject}` : ''}</span>
+              </span>
+              {off && <UserX className="h-4 w-4 shrink-0" aria-label={t('exams.seating.absent')} />}
+            </button>
+          )
+        })}
+      </div>
     </div>
   )
 }

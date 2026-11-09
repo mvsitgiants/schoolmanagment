@@ -10,10 +10,10 @@ import { Student, studentName } from '../models/students.js'
 import { Tenant } from '../models/platform.js'
 import { User } from '../models/tenant.js'
 import { Room } from '../models/timetable.js'
-import { moduleEnabled } from '../platform/access.js'
+import { can, moduleEnabled } from '../platform/access.js'
 import { audit } from '../platform/audit.js'
 import { isOid } from '../platform/db.js'
-import { badRequest, conflict, notFound } from '../platform/errors.js'
+import { badRequest, conflict, forbidden, notFound } from '../platform/errors.js'
 import { getContext } from '../platform/context.js'
 import { institutionNow } from '../platform/time.js'
 import { teachers as timetableTeachers } from './timetable.js'
@@ -215,6 +215,8 @@ async function sessionView(exam, session, plan, auth) {
       awayAssigned: plan.rooms.flatMap((r) => r.invigilatorIds.map(String).filter((id) => away.includes(id)).map((id) => ({ roomId: String(r.roomId), teacherId: id }))),
       ownSubject: plan.rooms.flatMap((r) => r.invigilatorIds.map(String).filter((id) => (avoid[String(r.roomId)] ?? []).includes(id)).map((id) => ({ roomId: String(r.roomId), teacherId: id }))),
       newStudents: [...info.keys()].filter((id) => !seats.some((s) => s.studentId === id) && !plan.unseated.some((u) => String(u) === id)).length,
+      absentIds: (plan.absentIds ?? []).map(String),
+      attendance: (plan.attendance ?? []).map((a) => ({ roomId: String(a.roomId), by: a.by, at: a.at })),
     },
   }
 }
@@ -418,6 +420,34 @@ export async function deletePlan(planId, req) {
   await ExamSeatPlan.deleteOne({ _id: plan._id })
   await audit(AUDIT(plan, 'Cleared the seating plan', { action: 'DELETE' }), req)
   return { deleted: true }
+}
+
+/**
+ * Exam-hall attendance for one room: who is absent. The room's invigilators can mark it (and anyone who may edit the
+ * seating); it stays open after the plan is published. Marks entry then starts those students as absent.
+ */
+export async function markHallAttendance(planId, { roomId, absent = [] }, auth, req) {
+  const plan = isOid(planId) ? await ExamSeatPlan.findById(planId) : null
+  if (!plan) throw notFound('Seating plan')
+  const room = plan.rooms.find((r) => String(r.roomId) === String(roomId))
+  if (!room) throw badRequest('That room isn’t in this plan.')
+  const mayEdit = can(auth, 'exams.seating.edit') || can(auth, 'exams.seating.create')
+  if (!mayEdit && !room.invigilatorIds.some((id) => String(id) === String(auth.userId))) throw forbidden('Only the room’s invigilators can mark its attendance.')
+  const here = new Set(plan.seats.filter((x) => String(x.roomId) === String(roomId)).map((x) => String(x.studentId)))
+  const bad = absent.find((id) => !here.has(String(id)))
+  if (bad) throw badRequest('A student marked absent isn’t seated in this room.')
+  plan.absentIds = [...plan.absentIds.filter((id) => !here.has(String(id))), ...absent]
+  plan.attendance = [...plan.attendance.filter((a) => String(a.roomId) !== String(roomId)), { roomId, by: auth.user?.name, byId: auth.userId, at: new Date() }]
+  await plan.save()
+  await audit(AUDIT(plan, `Hall attendance for ${room.code || room.name}: ${absent.length} absent of ${here.size}`), req)
+  return viewOf(plan, auth)
+}
+
+/** Students marked absent in the exam hall for a paper's session (marks entry starts them as absent). */
+export async function hallAbsentees(examId, date, startTime) {
+  if (!date || !startTime) return new Set()
+  const plan = await ExamSeatPlan.findOne({ examId, date, startTime }).select('absentIds').lean()
+  return new Set((plan?.absentIds ?? []).map(String))
 }
 
 /** The signed-in teacher's invigilation duties from today on (published plans). */
