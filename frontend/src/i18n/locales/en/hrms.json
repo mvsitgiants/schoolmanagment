@@ -234,7 +234,37 @@
       "undoExit": "Take back exit",
       "undoExitTitle": "Take back the exit?",
       "undoExitHint": "They go back to working, as before.",
-      "exitUndone": "Exit taken back."
+      "exitUndone": "Exit taken back.",
+      "allStaff": "All staff",
+      "contact": {
+        "message": "Message",
+        "ring": "Call bell",
+        "call": "Phone",
+        "email": "Email",
+        "noLogin": "Needs a linked login"
+      },
+      "rail": {
+        "contact": "Contact",
+        "job": "Job",
+        "personal": "Personal",
+        "department": "Department",
+        "category": "Staff type",
+        "experience": "Experience before"
+      },
+      "tiles": {
+        "service": "Years of service",
+        "since": "Since {{date}}",
+        "leaveLeft": "Leave left",
+        "noLeave": "No leave credited yet",
+        "present": "Present this month",
+        "presentSub": "{{absent}} absent · {{leave}} leave · {{late}} late",
+        "noAttendance": "Nothing marked this month",
+        "team": "Team",
+        "reportsTo": "Reports to {{name}}",
+        "noManager": "Reports to no one",
+        "showAll": "Show all {{count}}",
+        "showLess": "Show fewer"
+      }
     },
     "attendance": {
       "title": "Staff attendance",

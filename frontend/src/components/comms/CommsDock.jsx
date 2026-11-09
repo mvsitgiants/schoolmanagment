@@ -19,7 +19,7 @@ import ChatTab from './dock/ChatTab'
 // The badge is unread chat; the ring pulses while one of my calls is waiting for an answer or
 // a call ringing me is unanswered (the IncomingCalls overlay still handles answering). It also
 // keeps the chat list live for the whole app (useChatKeeper). Open it from code with
-// openDock({ tab: 'chat', channelId }) (chatStore) — the header chat button does.
+// openDock({ tab: 'chat', channelId }) (chatStore) — e.g. a chat notification.
 
 const TAB_KEY = 'hx_dock_tab'
 const readTab = () => { try { return localStorage.getItem(TAB_KEY) || 'call' } catch { return 'call' } }

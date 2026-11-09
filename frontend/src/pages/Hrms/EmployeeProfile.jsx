@@ -2,9 +2,9 @@ import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { ChevronLeft, Eye, EyeOff, History, KeyRound, LogOut, Palmtree, Pencil, Undo2, UserRound, Wallet } from 'lucide-react'
-import { EMPLOYEE_STATUSES, EXIT_TYPES, SALARY_MODES, toPaise, toRupees } from '@schoolgiant/shared'
-import { Attachments, Avatar, ColorChip, DataTable, DateCell, Fact, FactGrid, FormField, Input, Modal, Money, Note, PageContainer, Panel, PersonCell, Select, StatCard, StatusPill, Tabs, Textarea, Timeline, hueTone, useConfirm } from '../../components/system'
+import { ChevronLeft, Eye, EyeOff, History, KeyRound, LogOut, Palmtree, Pencil, Undo2, Wallet } from 'lucide-react'
+import { EXIT_TYPES, SALARY_MODES, toPaise, toRupees } from '@schoolgiant/shared'
+import { Attachments, ColorChip, DataTable, DateCell, FactGrid, FormField, Input, Modal, Money, Note, PageContainer, Panel, Select, StatCard, Tabs, Textarea, Timeline, hueTone, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
 import {
   adjustEmployeeLeave, cancelEmployeeExit, createEmployeeLogin, exitEmployee, fetchEmployee, fetchEmployeeLeave, fetchEmployeeLedger, fetchEmployeeSensitive, fetchLeaveTypes,
@@ -16,6 +16,7 @@ import { useSnackbar } from '../../context/SnackbarContext'
 import { useFormat } from '../../context/SettingsContext'
 import { useHrLabels, useHrMeta } from '../../components/hrms/HrKit'
 import { EmployeeForm } from './Employees'
+import { StaffOverview, StaffRail } from '../../components/hrms/StaffRail'
 
 function SalaryForm({ emp, onClose, onSaved }) {
   const { t } = useTranslation('hrms')
@@ -259,57 +260,22 @@ export default function EmployeeProfile() {
 
   return (
     <PageContainer>
-      <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
-        <div className="flex items-start gap-2 min-w-0">
-          <Button size="sm" variant="ghost" icon={ChevronLeft} onClick={() => navigate('/hrms/employees')} aria-label={t('hrms.profile.back')} />
-          <Avatar name={emp.name} size={44} soft />
-          <div className="min-w-0">
-            <h1 className="text-lg font-semibold text-ink truncate">{emp.name}</h1>
-            <p className="text-sm text-ink-muted">{[emp.designation, L.category(emp.category), emp.department].filter(Boolean).join(' · ')} <span className="font-mono-num text-ink-faint">· {emp.employeeCode}</span></p>
-          </div>
-          <StatusPill tone={EMPLOYEE_STATUSES[emp.status]?.tone}>{L.status(emp.status)}</StatusPill>
-        </div>
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+        <Button size="sm" variant="ghost" icon={ChevronLeft} onClick={() => navigate('/hrms/employees')}>{t('hrms.profile.allStaff')}</Button>
         <div className="flex flex-wrap gap-2">
-          {canEdit && <Button variant="secondary" icon={Pencil} onClick={() => setModal('edit')}>{t('hrms.profile.edit')}</Button>}
-          {canExit && emp.status !== 'EXITED' && !emp.exit && <Button variant="ghost" icon={LogOut} onClick={() => setModal('exit')}>{t('hrms.profile.exit')}</Button>}
-          {canExit && emp.exit && <Button variant="ghost" icon={Undo2} loading={undoExit.isPending}
+          {canEdit && <Button size="sm" variant="secondary" icon={Pencil} onClick={() => setModal('edit')}>{t('hrms.profile.edit')}</Button>}
+          {canExit && emp.status !== 'EXITED' && !emp.exit && <Button size="sm" variant="ghost" icon={LogOut} onClick={() => setModal('exit')}>{t('hrms.profile.exit')}</Button>}
+          {canExit && emp.exit && <Button size="sm" variant="ghost" icon={Undo2} loading={undoExit.isPending}
             onClick={async () => { if (await confirm({ title: t('hrms.profile.undoExitTitle'), message: t('hrms.profile.undoExitHint'), confirmLabel: t('hrms.profile.undoExit') })) undoExit.mutate() }}>{t('hrms.profile.undoExit')}</Button>}
         </div>
       </div>
       {emp.exit && <Note tone="warning" className="mb-4">{t('hrms.profile.exitNote', { type: L.exit(emp.exit.type), date: date(emp.exit.lastWorkingDate), reason: emp.exit.reason ?? '' })}</Note>}
+      <div className="grid lg:grid-cols-[320px_minmax(0,1fr)] gap-5 items-start">
+      <StaffRail emp={emp} loginPanel={<LoginPanel emp={emp} onChanged={refresh} />} />
+      <div className="min-w-0">
       <Tabs className="mb-4" tabs={tabs} value={tab} onChange={setTab} />
 
-      {tab === 'overview' && (
-        <div className="grid lg:grid-cols-[2fr_1fr] gap-4">
-          <Panel title={t('hrms.profile.details')} icon={UserRound}>
-            <FactGrid cols={2} items={[
-              { label: t('hrms.employees.employmentType'), value: L.employment(emp.employmentType) },
-              { label: t('hrms.employees.joiningDate'), value: date(emp.joiningDate) },
-              { label: t('hrms.employees.confirmationDate'), value: emp.confirmationDate && date(emp.confirmationDate) },
-              { label: t('hrms.employees.manager'), value: emp.manager?.name },
-              { label: t('hrms.employees.branch'), value: emp.branch },
-              { label: t('hrms.employees.mobile'), value: emp.mobile, mono: true },
-              { label: t('hrms.employees.email'), value: emp.email },
-              { label: t('hrms.employees.gender'), value: emp.gender && t(`hrms.genders.${emp.gender}`) },
-              { label: t('hrms.employees.dob'), value: emp.dob && date(emp.dob) },
-              { label: t('hrms.employees.qualifications'), value: emp.qualifications },
-              { label: t('hrms.employees.experience'), value: emp.experienceYears != null ? t('hrms.profile.years', { count: emp.experienceYears }) : null },
-              { label: t('hrms.employees.subjects'), value: emp.subjects?.join(', ') },
-              { label: t('hrms.employees.weeklyOff'), value: emp.weeklyOffDays?.length ? emp.weeklyOffDays.map(L.day).join(', ') : t('hrms.profile.usualOff') },
-              { label: t('hrms.profile.emergency'), value: emp.emergencyContact?.name ? `${emp.emergencyContact.name}${emp.emergencyContact.relation ? ` (${emp.emergencyContact.relation})` : ''} ${emp.emergencyContact.phone ?? ''}` : null },
-            ]} />
-            {emp.notes && <p className="text-sm text-ink-muted mt-3 whitespace-pre-line">{emp.notes}</p>}
-          </Panel>
-          <div className="space-y-4">
-            <LoginPanel emp={emp} onChanged={refresh} />
-            {emp.reports.length > 0 && (
-              <Panel title={t('hrms.profile.reports', { count: emp.reports.length })}>
-                {emp.reports.map((r) => <div key={r.id} className="py-1.5 text-sm"><PersonCell name={r.name} sub={r.designation} size={26} onClick={() => navigate(`/hrms/employees/${r.id}`)} /></div>)}
-              </Panel>
-            )}
-          </div>
-        </div>
-      )}
+      {tab === 'overview' && <StaffOverview emp={emp} />}
 
       {tab === 'leave' && <LeaveTab emp={emp} />}
 
@@ -357,6 +323,8 @@ export default function EmployeeProfile() {
       )}
 
       {tab === 'files' && <Panel title={t('hrms.profile.tabs.files')}><Attachments entityType="employee" entityId={emp.id} canAdd={canEdit} /></Panel>}
+      </div>
+      </div>
 
       {modal === 'edit' && <EmployeeForm employee={emp} onClose={() => setModal(null)} onSaved={done(t('hrms.employees.saved'))} />}
       {modal === 'salary' && <SalaryForm emp={emp} onClose={() => setModal(null)} onSaved={done(t('hrms.profile.salarySaved'))} />}

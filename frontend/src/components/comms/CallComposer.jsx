@@ -86,14 +86,15 @@ function PersonSearch({ value, onChange }) {
 }
 
 /** The compose form. `open` mounts it fresh each time. */
-export function CallModal({ open, onClose, onSent }) {
+/** `person` ({ id: userId, name }) starts the form ringing that one person — e.g. from a staff profile. */
+export function CallModal({ open, onClose, onSent, person }) {
   const { t } = useTranslation(['comms', 'common'])
   const qc = useQueryClient()
   const { showError, showSuccess } = useSnackbar()
   const [f, setF] = useState(blank)
   const set = (patch) => setF((x) => ({ ...x, ...patch }))
   const { data: meta } = useQuery({ queryKey: ['paging', 'meta'], queryFn: fetchPagingMeta, enabled: open, staleTime: 30_000 })
-  useEffect(() => { if (open) setF(blank()) }, [open])
+  useEffect(() => { if (open) setF({ ...blank(), people: person ? [person] : [] }) }, [open]) // eslint-disable-line react-hooks/exhaustive-deps
   const branches = meta?.branches ?? []
   // the caller's campus by default (the server does the same when none is sent)
   useEffect(() => { if (open && !f.branchId && branches.length > 1) set({ branchId: meta?.myBranchId ?? branches.find((b) => b.isDefault)?.id ?? '' }) }, [open, meta]) // eslint-disable-line react-hooks/exhaustive-deps
