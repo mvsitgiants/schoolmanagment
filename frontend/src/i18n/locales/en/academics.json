@@ -331,7 +331,11 @@
           "CODE": "seats A1, A2 …"
         },
         "defaultLayout": "no layout set — edit the section to set one",
-        "seat": "Seat {{no}}"
+        "seat": "Seat {{no}}",
+        "printLabels": "Print seat labels",
+        "preparingLabels": "Preparing the seat labels…",
+        "printClassLabels_one": "Labels for the class",
+        "printClassLabels_other": "Labels for all {{count}} sections"
       }
     },
     "seating": {
@@ -356,6 +360,12 @@
       "tooFew_one": "Fewer seats than the {{count}} student in this section.",
       "tooFew_other": "Fewer seats than the {{count}} students in this section.",
       "preview": "Preview"
+    },
+    "print": {
+      "seat": "Seat",
+      "room": "Room",
+      "roll": "Roll",
+      "free": "Free seat"
     }
   }
 }

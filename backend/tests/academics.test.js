@@ -88,6 +88,11 @@ describe('classes, sections and subjects', () => {
     expect(desks.body.data.capacity).toBe(30)
     expect(desks.body.data.seating).toMatchObject({ kind: 'DESK', perBench: 1, numbering: 'ROW' })
     expect((await admin.patch(`${api}/sections/${made.body.data.id}`).send({ seating: { kind: 'BENCH', columns: 20, rows: 6 } })).status).toBe(400)
+    // seat labels: one per seat of the room, free seats included
+    const labels = await admin.get('/api/v1/documents/SEAT_LABEL').query({ ids: made.body.data.id, print: '0' })
+    expect(labels.status).toBe(200)
+    expect((labels.text.match(/class="label/g) ?? []).length).toBe(30)
+    expect(labels.text).toMatch(/Free seat/) // the new section has no students
     const cleared = await admin.patch(`${api}/sections/${made.body.data.id}`).send({ seating: null, capacity: 35 })
     expect(cleared.body.data.capacity).toBe(35)
     expect(cleared.body.data.seating).toBeUndefined()

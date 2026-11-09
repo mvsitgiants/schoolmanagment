@@ -1,0 +1,49 @@
+{{!-- Answer key and marking scheme (A4) of one set: per question the right option or answer (the model answer for
+      short and long answers), its marks and the value points. For examiners only. Data from
+      services/questionPapers.js (questionPaperPrint). --}}
+<style>
+  .ak-conf { text-align: right; font-size: 9pt; font-weight: 700; color: #B91C1C; letter-spacing: .08em }
+  .ak-conf b { display: block; font-size: 16pt; color: #12141C; letter-spacing: 0 }
+  .ak-draft { margin: 2mm 0; padding: 1.5mm 3mm; border: 1px dashed #C2410C; color: #C2410C; font-size: 8.5pt; text-align: center; font-weight: 600 }
+  h1.ak-title { font-size: 12pt; text-align: center; margin: 3mm 0 .5mm; text-transform: uppercase; letter-spacing: .06em }
+  .ak-sub { text-align: center; font-size: 10pt; font-weight: 600; margin-bottom: 3mm }
+  .ak-sec { margin-top: 4mm; break-inside: auto }
+  .ak-sec h2 { font-size: 10pt; margin: 0 0 1mm }
+  .ak-sec .note { font-size: 8.5pt; color: #5B616E; margin-bottom: 1mm }
+  table.ak { width: 100%; border-collapse: collapse; font-size: 9pt }
+  table.ak th { text-align: left; font-weight: 600; color: #5B616E; border-bottom: 1px solid #C8CCD4; padding: 1.2mm 1mm }
+  table.ak td { padding: 1.2mm 1mm; border-bottom: 1px solid #EEF0F3; vertical-align: top }
+  table.ak td.no { width: 10mm; font-weight: 600 }
+  table.ak td.mk { width: 12mm; text-align: right; white-space: nowrap }
+  table.ak td.sch { width: 38%; color: #3A3F4B }
+  table.ak tr.or td { border-top: 0 }
+  table.ak .orl { font-weight: 700; font-size: 8pt; letter-spacing: .06em; color: #5B616E }
+  .ak-total { text-align: right; margin-top: 3mm; font-size: 10pt; font-weight: 600 }
+  .ak-sign { margin-top: 12mm; display: flex; justify-content: space-between; gap: 8mm; font-size: 9pt }
+  .ak-sign div { flex: 1; text-align: center; border-top: 1px solid #8B90A0; padding-top: 1.5mm }
+</style>
+{{#> letterhead}}<div class="ak-conf">{{t "questionPapers.print.confidential" "CONFIDENTIAL"}}{{#if paper.showSet}}<b>{{t "questionPapers.print.set" "Set"}} {{paper.set}}</b>{{/if}}</div>{{/letterhead}}
+{{#if paper.draft}}<div class="ak-draft">{{t "questionPapers.print.draft" "DRAFT — this paper has not been approved yet"}}</div>{{/if}}
+<h1 class="ak-title">{{t "questionPapers.print.answerKey" "Answer key and marking scheme"}}</h1>
+<div class="ak-sub">{{exam.name}} · {{paper.class}} · {{paper.subject}} · {{t "questionPapers.print.maxMarks" "Maximum marks"}} {{paper.maxMarks}}</div>
+{{#each sections}}
+<div class="ak-sec">
+  <h2>{{title}}</h2>
+  <div class="note">{{attempt}} × {{num marks}} = {{num total}}{{#if attemptAny}} · {{t "questionPapers.print.attemptAny" "Attempt any {{n}} of the {{of}} questions." n=attempt of=count}}{{/if}}</div>
+  <table class="ak">
+    <thead><tr><th>{{t "questionPapers.print.q" "Q."}}</th><th>{{t "questionPapers.print.answer" "Answer"}}</th><th>{{t "questionPapers.print.scheme" "Marking scheme"}}</th><th style="text-align:right">{{t "questionPapers.print.marks" "Marks"}}</th></tr></thead>
+    <tbody>
+      {{#each rows}}
+        <tr><td class="no">{{no}}</td><td>{{#if answer}}{{lines answer}}{{else}}—{{/if}}</td><td class="sch">{{lines scheme}}</td><td class="mk">{{num marks}}</td></tr>
+        {{#if or}}<tr class="or"><td class="no"><span class="orl">{{t "questionPapers.print.or" "OR"}}</span></td><td>{{#if or.answer}}{{lines or.answer}}{{else}}—{{/if}}</td><td class="sch">{{lines or.scheme}}</td><td class="mk">{{num ../marks}}</td></tr>{{/if}}
+      {{/each}}
+    </tbody>
+  </table>
+</div>
+{{/each}}
+<div class="ak-total">{{t "questionPapers.print.total" "Total"}}: {{num total}} / {{paper.maxMarks}}</div>
+<div class="ak-sign">
+  <div>{{t "questionPapers.print.setter" "Paper setter"}}{{#if paper.setterName}}<br>{{paper.setterName}}{{/if}}</div>
+  <div>{{t "questionPapers.print.approver" "Approved by"}}{{#if paper.approvedBy}}<br>{{paper.approvedBy}}{{/if}}</div>
+</div>
+{{> footer}}

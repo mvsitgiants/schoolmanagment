@@ -4,12 +4,13 @@ import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import clsx from 'clsx'
 import { SEATING_KINDS, defaultSeating, seatPlan } from '@schoolgiant/shared'
-import { Armchair, CalendarCheck, CalendarDays, CalendarOff, DoorOpen, GraduationCap, Layers, MapPin, Pencil, Presentation, UserRound, Users } from 'lucide-react'
+import { Armchair, CalendarCheck, Printer, Tags, CalendarDays, CalendarOff, DoorOpen, GraduationCap, Layers, MapPin, Pencil, Presentation, UserRound, Users } from 'lucide-react'
 import { Avatar, Drawer, EmptyState, FactGrid, LevelBar, Note, SideNav, SideNavLayout, Skeleton, StatCardRow, StatusPill, Tabs, Tag, TONE, hueTone } from '../system'
 import Button from '../ui/Button'
 import { fetchClassBoard } from '../../api/academics'
 import { fetchStudents } from '../../api/students'
 import { fetchSheet } from '../../api/attendance'
+import { printDocuments } from '../print/printDocument'
 import { hasPermission } from '../../api/auth'
 import { useFormat } from '../../context/SettingsContext'
 
@@ -454,6 +455,7 @@ function ClassSections({ cls, extras, board, year, onEditSection }) {
           <h2 className="font-display font-semibold text-ink">{cls.name}</h2>
           <p className="text-xs text-ink-faint">{t('academics.board.classLine', { students: t('academics.board.students', { count: cls.sections.reduce((n, x) => n + x.studentCount, 0) }), sections: t('academics.board.sectionsN', { count: cls.sections.length }) })}</p>
         </div>
+        {cls.sections.length > 1 && <Button className="ms-auto" size="sm" variant="ghost" icon={Tags} onClick={() => printDocuments('SEAT_LABEL', cls.sections.map((x) => x.id), { preparing: t('academics.board.sheet.preparingLabels') })}>{t('academics.board.sheet.printClassLabels', { count: cls.sections.length })}</Button>}
       </header>
       <Tabs className="mt-2 px-2" value={section.id} onChange={setTab} tabs={cls.sections.map((x) => ({ value: x.id, label: `${x.short ?? x.name} · ${x.studentCount}` }))} />
       <div className="space-y-4 p-4">
@@ -476,6 +478,7 @@ function ClassSections({ cls, extras, board, year, onEditSection }) {
           <span className="ms-auto flex flex-wrap gap-2">
             {section.active && (hasPermission('attendance.mark.create') || hasPermission('attendance.mark.view')) && <Button size="sm" icon={CalendarCheck} onClick={() => navigate(`/attendance/mark?sectionId=${section.id}`)}>{att && !att.taken ? t('academics.board.markAttendance') : t('academics.board.openAttendance')}</Button>}
             {hasPermission('timetable.timetable.view') && <Button size="sm" variant="secondary" icon={CalendarDays} onClick={() => navigate(`/timetable/timetable?sectionId=${section.id}`)}>{t('academics.board.timetable')}</Button>}
+            <Button size="sm" variant="secondary" icon={Printer} onClick={() => printDocuments('SEAT_LABEL', [section.id], { preparing: t('academics.board.sheet.preparingLabels') })}>{t('academics.board.sheet.printLabels')}</Button>
             {hasPermission('academics.classes.edit') && onEditSection && <Button size="sm" variant="ghost" icon={Pencil} onClick={() => onEditSection(cls, section)}>{t('academics.board.editSection')}</Button>}
           </span>
         </div>

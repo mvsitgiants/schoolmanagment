@@ -170,10 +170,12 @@ export const MODULES = [
       pg('homework', 'Homework', 'V C E D'),
     ] },
   { id: 'exams', name: 'Exams & report cards', category: 'academics', icon: 'ClipboardCheck', deps: ['students'], phase: 1, scopes: CLASS_SCOPES,
-    desc: 'Exam schedule, hall tickets, marks entry, results and report cards.',
+    desc: 'Exam schedule, seating and invigilation, question papers, hall tickets, marks entry, results and report cards.',
     pages: [
       pg('schedule', 'Exam schedule', 'V C E D'),
       pg('hall-tickets', 'Hall tickets', 'V P'),
+      pg('seating', 'Seating & invigilation', 'V C E D P publish!'),
+      pg('question-papers', 'Question papers', 'V C E D P Ap!'),
       pg('marks', 'Marks entry', 'V C E lock unlock!'),
       pg('results', 'Results', 'V X publish!'),
       pg('report-cards', 'Report cards', 'V P publish!'),

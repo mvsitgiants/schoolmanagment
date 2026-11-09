@@ -1,12 +1,14 @@
 import {
   CLASS_PRESET_BY, DEFAULT_GRADING_BANDS, SUBJECT_PRESET, academicYearFor, attendancePct, checkGradingBands, checkYearDates, defaultTerms, sectionLabel, sectionNames,
-  normSeating, seatCapacity, weekdayCode,
+  defaultSeating, normSeating, seatCapacity, seatPlan, weekdayCode,
 } from '@schoolgiant/shared'
 import { AcademicYear, ClassLevel, GradingScheme, Section, Subject, TeacherAllocation } from '../models/academics.js'
 import { AttendanceSheet } from '../models/attendance.js'
 import { Holiday } from '../models/hrms.js'
-import { Student } from '../models/students.js'
+import { Student, studentName } from '../models/students.js'
+import { Tenant } from '../models/platform.js'
 import { Branch, Department, User } from '../models/tenant.js'
+import { getContext } from '../platform/context.js'
 import { scopeOf } from '../platform/access.js'
 import { audit, diffFields } from '../platform/audit.js'
 import { clean, isOid, withTransaction } from '../platform/db.js'
@@ -637,3 +639,46 @@ export async function lookup(auth) {
   }
 }
 
+
+// ───────────────────────────────────────────────────────── seat labels (SEAT_LABEL document)
+
+/**
+ * Stickers for the benches: one per seat of each section's room (its seating layout, or benches of two sized to its
+ * capacity), with the student sitting there in roll-number order — the same seats the class board draws. A free seat
+ * gets a label with just its number. `ids`: section ids. Staff on "my classes" print only their sections.
+ */
+export async function seatLabelsPrint(ids, auth) {
+  const list = (Array.isArray(ids) ? ids : [ids]).map(String).filter(isOid)
+  const allowed = auth ? await sectionsInScope(auth, 'academics') : null
+  const sections = await Section.find({ _id: { $in: allowed ? list.filter((x) => allowed.includes(x)) : list } }).lean()
+  if (!sections.length) throw notFound('Section')
+  const classes = new Map((await ClassLevel.find({ _id: { $in: sections.map((x) => x.classId) } }).select('name code order').lean()).map((c) => [String(c._id), c]))
+  const teachers = new Map((await User.find({ _id: { $in: sections.map((x) => x.classTeacherId).filter(Boolean) } }).select('name').lean()).map((u) => [String(u._id), u.name]))
+  const students = await Student.find({ sectionId: { $in: sections.map((x) => x._id) }, status: 'ACTIVE' }).collation({ locale: 'en', numericOrdering: true })
+    .sort({ rollNo: 1, firstName: 1, lastName: 1 }).select('firstName middleName lastName admissionNo rollNo gender sectionId').lean()
+  const tenant = await Tenant.findById(getContext()?.tenantId).select('name profile').lean()
+  const order = (x) => classes.get(String(x.classId))?.order ?? 0
+  const out = []
+  for (const sec of sections.sort((a, b) => order(a) - order(b) || a.name.localeCompare(b.name))) {
+    const cls = classes.get(String(sec.classId))
+    const kids = students.filter((k) => String(k.sectionId) === String(sec._id))
+    const cap = sec.capacity || Math.max(30, Math.ceil(kids.length / 6) * 6)
+    const plan = sec.seating ? seatPlan(sec.seating) : seatPlan(defaultSeating(cap), { limit: cap })
+    const seats = plan.rows.flat(2).sort((a, b) => a.order - b.order)
+    const short = sectionLabel(cls, sec, { short: true })
+    for (const seat of seats) {
+      const k = kids[seat.order]
+      out.push({
+        seat: seat.label, row: seat.row + 1, bench: seat.col + 1, section: short, sectionLabel: sectionLabel(cls, sec), room: sec.room ?? '',
+        classTeacher: teachers.get(idStr(sec.classTeacherId)) ?? '', free: !k,
+        name: k ? studentName(k) : '', rollNo: k?.rollNo ?? '', admissionNo: k?.admissionNo ?? '', gender: k?.gender ?? '',
+        code: k ? `${short}-${seat.label}` : '',
+      })
+    }
+    // more students than seats: they get a label too, marked as having no seat
+    for (const k of kids.slice(seats.length)) out.push({ seat: '—', section: short, sectionLabel: sectionLabel(cls, sec), room: sec.room ?? '', free: false, noSeat: true, name: studentName(k), rollNo: k.rollNo ?? '', admissionNo: k.admissionNo ?? '', code: '' })
+  }
+  return { institution: { name: tenant?.name, ...(tenant?.profile ?? {}) }, labels: out.slice(0, 1200) }
+}
+export const seatLabelsModel = (raw) => ({ ...raw, count: raw.labels.length, taken: raw.labels.filter((l) => !l.free).length })
+export const latestSectionId = async () => (await Section.findOne({ active: true }).sort({ createdAt: -1 }).select('_id').lean())?._id

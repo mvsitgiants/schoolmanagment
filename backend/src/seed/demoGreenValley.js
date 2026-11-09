@@ -462,7 +462,8 @@ async function fillLms(admin) {
   const lk = await admin.get('/lms/lookup')
   const c8 = lookup.classes.find((c) => c.code === '8')
   const secs = lk.sections.filter((s) => s.classId === c8.id || lookup.sections.find((x) => x.id === s.id)?.classId === c8.id)
-  const subject = (code) => secs[0]?.subjects.find((x) => x.code === code || new RegExp(code === 'SCI' ? 'Science' : 'Math', 'i').test(x.name))
+  // anchored: an unanchored /Science/ also matches "Computer Science", which comes first
+  const subject = (code) => secs[0]?.subjects.find((x) => x.code === code || new RegExp(code === 'SCI' ? '^Science$' : '^Math', 'i').test(x.name))
   const out = []
   for (const [code, title, units] of [
     ['MATH', 'Mathematics — Class 8', [
@@ -735,6 +736,83 @@ async function fillExams(admin) {
   return `Unit Test 1 (Classes 6–10, ${ut} mark sheets) and the half-yearly (Classes 1–12, ${hy} mark sheets), both published`
 }
 
+// ───────────────────────────────────────────────────────── question papers
+
+// Questions written straight into the paper (the demo bank has only a few per subject).
+const PAPER_WRITES = {
+  MCQ: [
+    { text: 'Which of these is a contact force?', options: [{ text: 'Magnetic force' }, { text: 'Electrostatic force' }, { text: 'Muscular force', correct: true }, { text: 'Gravitational force' }], chapter: 'Force and pressure', difficulty: 'EASY' },
+    { text: 'The pressure exerted by a liquid increases with', options: [{ text: 'depth', correct: true }, { text: 'the area of the container' }, { text: 'its colour' }, { text: 'the shape of the container' }], chapter: 'Force and pressure', difficulty: 'MEDIUM' },
+    { text: 'Sound cannot travel through', options: [{ text: 'water' }, { text: 'steel' }, { text: 'air' }, { text: 'a vacuum', correct: true }], chapter: 'Sound', difficulty: 'EASY' },
+  ],
+  FILL: [
+    { text: 'Rolling friction is ________ than sliding friction.', answers: ['less', 'smaller'], chapter: 'Friction', difficulty: 'EASY' },
+    { text: 'The loudness of sound is measured in ________.', answers: ['decibels', 'decibel', 'dB'], chapter: 'Sound', difficulty: 'EASY' },
+  ],
+  SHORT: [
+    { text: 'What is atmospheric pressure? Why don’t we feel it?', answers: ['The pressure of the air around us. The pressure inside our bodies balances it.'], explanation: 'Definition 1, reason 1', chapter: 'Force and pressure', difficulty: 'MEDIUM' },
+    { text: 'Why do we sprinkle fine powder on a carrom board?', answers: ['The powder reduces friction, so the striker and coins slide easily.'], explanation: 'Friction reduced 1, effect 1', chapter: 'Friction', difficulty: 'EASY' },
+    { text: 'Explain why sound cannot travel through a vacuum.', answers: ['Sound needs a medium whose particles vibrate; a vacuum has none.'], explanation: 'Needs a medium 1, no particles 1', chapter: 'Sound', difficulty: 'MEDIUM' },
+    { text: 'State two factors that affect friction.', answers: ['The nature of the surfaces and how hard they are pressed together.'], explanation: '1 mark each', chapter: 'Friction', difficulty: 'EASY' },
+  ],
+  LONG: [
+    { text: 'Describe an activity to show that liquids exert pressure on the walls of their container.', answers: ['A plastic bottle with holes at different heights, filled with water: the jets come out sideways, and further from the lower holes.'], explanation: 'Set-up 2, observation 2, conclusion 2', chapter: 'Force and pressure', difficulty: 'MEDIUM' },
+    { text: 'How is sound produced, and how does it reach our ears? Draw a labelled diagram of the human ear.', answers: ['By vibrating objects; it travels through a medium as a wave to the eardrum, which vibrates and passes the vibrations on to the inner ear.'], explanation: 'Production 1, travel 2, diagram with 3 labels 3', chapter: 'Sound', difficulty: 'HARD' },
+    { text: 'What is friction? Give two ways each in which friction can be increased and reduced, with examples.', answers: ['The force that opposes relative motion of surfaces in contact. Increased: treads on tyres, grip on shoes. Reduced: oiling, ball bearings.'], explanation: 'Definition 2, two ways to increase 2, two to reduce 2', chapter: 'Friction', difficulty: 'MEDIUM' },
+    { text: 'With an activity, show that a force can change the shape of an object.', answers: ['Pressing a ball of dough flattens it; squeezing a rubber ball changes its shape.'], explanation: 'Activity 3, observation 2, conclusion 1', chapter: 'Force and pressure', difficulty: 'EASY' },
+  ],
+}
+
+/**
+ * One approved question paper with two shuffled sets: Unit Test 1, Class 8, the subject the demo question bank holds
+ * Class 8 questions for. Bank questions are auto-picked; the rest are written into the paper.
+ */
+async function fillQuestionPapers(admin) {
+  const c8 = lookup.classes.find((c) => c.code === '8')
+  if (!c8) return 'no Class 8'
+  const bank = await admin.getRaw('/lms/questions', { classId: c8.id, pageSize: 100 })
+  const bySubject = new Map()
+  for (const q of bank.body?.data ?? []) bySubject.set(q.subjectId, (bySubject.get(q.subjectId) ?? 0) + 1)
+  if (!bySubject.size) return 'no Class 8 questions in the question bank'
+  const board = await admin.get('/exams/question-papers/board')
+  const ut = board.exams.find((e) => e.name === 'Unit Test 1') ?? board.exams[0]
+  if (!ut) return 'no exams'
+  const rows = (await admin.get('/exams/question-papers/board', { examId: ut.id })).rows.filter((r) => r.classId === c8.id)
+  const row = [...bySubject.entries()].sort((a, b) => b[1] - a[1]).map(([sid]) => rows.find((r) => r.subjectId === sid)).find(Boolean)
+  if (!row) return `no Class 8 paper in ${ut.name} for the bank’s subject`
+  if (row.paper) return 'already there'
+  let paper = await admin.post('/exams/question-papers', { examPaperId: row.examPaperId })
+  paper = await admin.put(`/exams/question-papers/${paper.id}/blueprint`, {
+    durationMin: paper.durationMin ?? 60, maxMarks: 25,
+    instructions: 'All questions are compulsory. Section C: answer any three.\nSection D has an internal choice.\nDraw neat, labelled diagrams wherever needed.',
+    sections: [
+      { title: 'Section A', instructions: 'Choose the correct option.', type: 'MCQ', count: 5, marks: 1 },
+      { title: 'Section B', instructions: 'Fill in the blanks.', type: 'FILL', count: 2, marks: 1 },
+      { title: 'Section C', instructions: 'Answer in 30–40 words.', type: 'SHORT', count: 4, marks: 2, attempt: 3 },
+      { title: 'Section D', instructions: 'Answer in 80–100 words.', type: 'LONG', count: 2, marks: 6, choice: true },
+    ],
+    difficulty: { EASY: 40, MEDIUM: 40, HARD: 20 },
+  })
+  const setA = () => paper.sets[0]
+  paper = await admin.post(`/exams/question-papers/${paper.id}/sets/${setA().id}/auto-pick`, {}, { quiet: [409] }) ?? paper
+  const queue = Object.fromEntries(Object.entries(PAPER_WRITES).map(([k, v]) => [k, [...v]]))
+  for (const s of paper.sections) {
+    const have = () => paper.sets[0].sections.find((x) => x.sectionId === s.id).items
+    while (have().length < s.count && queue[s.type]?.length) {
+      paper = await admin.post(`/exams/question-papers/${paper.id}/sets/${setA().id}/write`, { sectionId: s.id, question: queue[s.type].shift() })
+    }
+    if (!s.choice) continue
+    for (let i = 0; i < have().length; i++) {
+      if (have()[i].or || !queue[s.type]?.length) continue
+      paper = await admin.post(`/exams/question-papers/${paper.id}/sets/${setA().id}/write`, { sectionId: s.id, question: queue[s.type].shift(), index: i, part: 'or' })
+    }
+  }
+  paper = await admin.post(`/exams/question-papers/${paper.id}/sets`, { count: 2, mode: 'SHUFFLE', shuffleOptions: true })
+  await admin.post(`/exams/question-papers/${paper.id}/submit`, {})
+  await admin.post(`/exams/question-papers/${paper.id}/approve`, { note: 'Checked against the syllabus — fine to print.' })
+  return `${ut.name} · ${row.className} · ${row.subject}: approved, sets A and B`
+}
+
 // ───────────────────────────────────────────────────────── homework
 
 const HOMEWORK = {
@@ -867,6 +945,7 @@ async function main() {
   await step('Student attendance', () => fillAttendance(admin))
   await step('Fees', () => fillFees(admin))
   await step('Exams and results', () => fillExams(admin))
+  await step('Question papers', () => fillQuestionPapers(admin))
   await step('Homework', () => fillHomework(admin))
   await step('Admissions', () => fillAdmissions(admin))
   await step('Notices', () => fillNotices(admin))

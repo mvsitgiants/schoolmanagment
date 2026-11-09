@@ -1,0 +1,26 @@
+{{!-- Invigilation duty chart (A4) for an exam: every session and room with its invigilators, then each teacher's
+      number of duties. Data from services/examSeating.js (dutyChartPrint). --}}
+<style>
+  h1 { font-size: 14pt; text-align: center; margin: 3mm 0 0 }
+  .sub { text-align: center; font-size: 10pt; color: #3A3F4B; margin-bottom: 5mm }
+  h2 { font-size: 10.5pt; margin: 5mm 0 1.5mm }
+  table { width: 100%; border-collapse: collapse; font-size: 9pt }
+  th { text-align: left; font-weight: 600; color: #5B616E; border-bottom: 1px solid #C8CCD4; padding: 1.4mm 1.5mm }
+  td { border-bottom: 1px solid #EEF0F3; padding: 1.4mm 1.5mm; vertical-align: top }
+  .n { text-align: right; white-space: nowrap }
+  .draft { color: #B9821F; font-weight: 600; font-size: 8pt }
+  .totals { columns: 2; column-gap: 8mm }
+  .totals div { break-inside: avoid; display: flex; justify-content: space-between; border-bottom: 1px solid #EEF0F3; padding: 1mm 0; font-size: 9pt }
+</style>
+{{#> letterhead}}{{/letterhead}}
+<h1>{{t "exams.print.duty.title" "Invigilation duties"}}</h1>
+<div class="sub">{{exam.name}}</div>
+{{#each sessions}}
+<h2>{{date date}} · {{startTime}}{{#if endTime}}–{{endTime}}{{/if}} {{#if (eq status "DRAFT")}}<span class="draft">{{t "exams.print.seating.draft" "Draft"}}</span>{{/if}}</h2>
+<table>
+  <tr><th>{{t "exams.print.door.room" "Room"}}</th><th class="n">{{t "exams.print.seating.count" "Students"}}</th><th>{{t "exams.print.seating.invigilators" "Invigilators"}}</th><th>{{t "exams.print.duty.sign" "Signature"}}</th></tr>
+  {{#each rooms}}<tr><td>{{room}}</td><td class="n">{{students}}</td><td>{{default invigilators "—"}}</td><td></td></tr>{{/each}}
+</table>
+{{/each}}
+<h2>{{t "exams.print.duty.totals" "Duties per teacher"}}</h2>
+<div class="totals">{{#each teachers}}<div><span>{{name}}{{#if designation}} · {{designation}}{{/if}}</span><b>{{duties}}</b></div>{{/each}}</div>

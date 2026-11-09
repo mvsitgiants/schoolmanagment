@@ -1,0 +1,27 @@
+{{!-- Exam seating notice (A4) for the notice board and room doors: for one session, each room and the roll numbers
+      of each class-section sitting in it. Data from services/examSeating.js (doorListPrint). --}}
+<style>
+  h1 { font-size: 14pt; text-align: center; margin: 3mm 0 0 }
+  .sub { text-align: center; font-size: 10pt; color: #3A3F4B; margin-bottom: 5mm }
+  table { width: 100%; border-collapse: collapse; font-size: 10pt }
+  th { text-align: left; font-weight: 600; color: #5B616E; border-bottom: 1.5px solid #12141C; padding: 2mm 2mm }
+  td { border-bottom: 1px solid #DDE0E6; padding: 2mm; vertical-align: top }
+  td.room { font-weight: 700; font-size: 11pt; white-space: nowrap }
+  .run { display: inline-block; margin: 0 4mm 1mm 0; white-space: nowrap }
+  .run b { font-weight: 700 }
+  .n { text-align: right; white-space: nowrap }
+  .draft { color: #B9821F; font-weight: 600 }
+</style>
+{{#> letterhead}}{{/letterhead}}
+<h1>{{t "exams.print.door.title" "Exam seating"}}</h1>
+<div class="sub">{{exam.name}} · {{date session.date}} · {{session.startTime}}{{#if session.endTime}}–{{session.endTime}}{{/if}}{{#if (eq status "DRAFT")}} · <span class="draft">{{t "exams.print.seating.draft" "Draft"}}</span>{{/if}}</div>
+<table>
+  <tr><th>{{t "exams.print.door.room" "Room"}}</th><th>{{t "exams.print.door.who" "Class — roll numbers"}}</th><th class="n">{{t "exams.print.seating.count" "Students"}}</th></tr>
+  {{#each rooms}}
+  <tr>
+    <td class="room">{{#if code}}{{code}}{{else}}{{name}}{{/if}}</td>
+    <td>{{#each runs}}<span class="run"><b>{{section}}</b> {{#if from}}{{from}}{{#if (ne from to)}}–{{to}}{{/if}}{{/if}} ({{count}})</span>{{/each}}</td>
+    <td class="n">{{students}}</td>
+  </tr>
+  {{/each}}
+</table>

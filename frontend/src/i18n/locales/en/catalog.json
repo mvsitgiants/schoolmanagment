@@ -62,7 +62,7 @@
       "academics": "Academic years, terms, classes and sections, subjects and grading schemes.",
       "attendance": "Daily or period-wise attendance, absence alerts to parents and student leave.",
       "homework": "Lesson plans, syllabus tracking, homework and submissions.",
-      "exams": "Exam schedule, hall tickets, marks entry, results and report cards.",
+      "exams": "Exam schedule, seating and invigilation, question papers, hall tickets, marks entry, results and report cards.",
       "timetable": "Timetable generator, substitutions and room allocation.",
       "lms": "Courses, study material, live classes and assignments.",
       "online-tests": "MCQ and written tests with timer, proctoring and auto-evaluation.",
@@ -163,6 +163,8 @@
       "exams": {
         "schedule": "Exam schedule",
         "hall-tickets": "Hall tickets",
+        "seating": "Seating & invigilation",
+        "question-papers": "Question papers",
         "marks": "Marks entry",
         "results": "Results",
         "report-cards": "Report cards",

@@ -16,6 +16,8 @@ const TEACHING = [
   ['homework', '*', 'A'],
   ['exams', ['schedule', 'results'], 'V'],
   ['exams', ['marks'], 'W'],
+  ['exams', ['seating'], 'V'], // their invigilation duties
+  ['exams', ['question-papers'], 'A'], // set papers for their subjects; the exam in-charge approves
   ['timetable', ['timetable'], 'V'],
   ['lms', ['courses', 'live-classes', 'question-bank'], 'A'],
   ['online-tests', '*', 'A'],
@@ -57,6 +59,16 @@ const DEFS = [
       ['exams', ['marks'], '+lock'],
       ['exams', ['report-cards'], '+view print'],
       ['exams', ['hall-tickets'], '+view print'],
+    ] },
+  { code: 'EXAM_INCHARGE', name: 'Exam in-charge', icon: 'ClipboardCheck', homePage: '/exams/schedule',
+    description: 'Runs the school\u2019s exams: schedule, seating and invigilation, question papers (approves them), hall tickets, marks and results.',
+    dataScopes: { default: 'ALL' }, limits: {},
+    grants: [
+      ...TEACHING,
+      ['exams', '*', 'F'],
+      ['timetable', ['rooms', 'timetable'], 'V'],
+      ['academics', ['classes', 'subjects'], 'V'],
+      ['students', ['directory', 'profile'], 'V'],
     ] },
   { code: 'SUBJECT_TEACHER', name: 'Subject Teacher', icon: 'NotebookPen', homePage: '/homework/homework',
     description: 'Teaches subjects across classes: period attendance, lesson plans, homework, marks, LMS and online tests.',

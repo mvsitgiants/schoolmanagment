@@ -14,6 +14,8 @@ import attendanceRoutes from './routes/attendance.js'
 import documentRoutes from './routes/documents.js'
 import feeRoutes from './routes/fees.js'
 import examRoutes from './routes/exams.js'
+import examSeatingRoutes from './routes/examSeating.js'
+import questionPaperRoutes from './routes/questionPapers.js'
 import homeworkRoutes from './routes/homework.js'
 import certificateRoutes from './routes/certificates.js'
 import dashboardRoutes from './routes/dashboard.js'
@@ -134,6 +136,8 @@ export function createApp() {
   app.use('/api/v1/attendance', attendanceRoutes)
   app.use('/api/v1/fees/online', feePaymentRoutes)
   app.use('/api/v1/fees', feeRoutes)
+  app.use('/api/v1/exams/seating', examSeatingRoutes)
+  app.use('/api/v1/exams/question-papers', questionPaperRoutes)
   app.use('/api/v1/exams', examRoutes)
   app.use('/api/v1/homework', homeworkRoutes)
   app.use('/api/v1/certificates', certificateRoutes)

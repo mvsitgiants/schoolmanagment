@@ -1,0 +1,42 @@
+{{!-- Seat labels for the benches (A4 sheet, 3 × 8 stickers of 70 × 37 mm): the seat number big, the student sitting
+      there (roll-number order, as the class board draws the room) and their admission number as a barcode. A free
+      seat gets a label with only its number. Data from services/academics.js (seatLabelsPrint). Set the page margins
+      to 0 for label sheets. --}}
+<style>
+  .sheet { display: grid; grid-template-columns: repeat(3, 70mm); grid-auto-rows: 37mm; justify-content: center }
+  .label { box-sizing: border-box; padding: 2.5mm 3mm; overflow: hidden; display: flex; flex-direction: column; gap: 1.2mm; break-inside: avoid; border: 0.2mm dashed #D6D9E0 }
+  .top { display: flex; justify-content: space-between; gap: 2mm; font-size: 6.5pt; color: #5B616E; text-transform: uppercase; letter-spacing: .04em; white-space: nowrap }
+  .top .school { overflow: hidden; text-overflow: ellipsis }
+  .top .sec { font-weight: 700; color: #12141C }
+  .mid { display: flex; align-items: center; gap: 2.5mm; min-height: 0 }
+  .seat { flex: none; min-width: 15mm; height: 13mm; padding: 0 1.5mm; border-radius: 2mm; background: #12141C; color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1 }
+  .seat small { font-size: 5.5pt; letter-spacing: .08em; text-transform: uppercase; opacity: .75 }
+  .seat b { font-size: 15pt; font-weight: 700; font-family: ui-monospace, Menlo, monospace }
+  .who { min-width: 0 }
+  .name { font-size: 10pt; font-weight: 700; line-height: 1.15; max-height: 2.3em; overflow: hidden }
+  .meta { font-size: 7pt; color: #3A3F4B; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: .6mm }
+  .code { margin-top: auto; text-align: center }
+  .code svg { max-width: 100%; height: 7mm }
+  .free .seat { background: #fff; color: #12141C; border: 0.4mm solid #12141C }
+  .free .name { color: #8B90A0; font-weight: 500; font-size: 8.5pt }
+  .noseat .seat { background: #B22E2E }
+</style>
+<div class="sheet">
+  {{#each labels}}
+  <div class="label{{#if free}} free{{/if}}{{#if noSeat}} noseat{{/if}}">
+    <div class="top"><span class="school">{{../institution.name}}</span><span class="sec">{{section}}{{#if room}} · {{t "academics.print.room" "Room"}} {{room}}{{/if}}</span></div>
+    <div class="mid">
+      <div class="seat"><small>{{t "academics.print.seat" "Seat"}}</small><b>{{seat}}</b></div>
+      <div class="who">
+        {{#if free}}
+        <div class="name">{{t "academics.print.free" "Free seat"}}</div>
+        {{else}}
+        <div class="name">{{name}}</div>
+        <div class="meta">{{#if rollNo}}{{t "academics.print.roll" "Roll"}} {{rollNo}} · {{/if}}{{admissionNo}}</div>
+        {{/if}}
+      </div>
+    </div>
+    {{#if admissionNo}}<div class="code">{{barcode admissionNo 7}}</div>{{/if}}
+  </div>
+  {{/each}}
+</div>

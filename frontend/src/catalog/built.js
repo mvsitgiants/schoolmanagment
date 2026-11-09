@@ -19,7 +19,7 @@ export const BUILT_PAGES = new Set([
   'events.calendar', 'events.ptm', 'events.gallery',
   'attendance.mark', 'attendance.register', 'attendance.leave', 'attendance.reports',
   'fees.structures', 'fees.collect', 'fees.invoices', 'fees.dues', 'fees.concessions', 'fees.refunds', 'fees.day-end', 'fees.online',
-  'exams.schedule', 'exams.hall-tickets', 'exams.marks', 'exams.results', 'exams.report-cards', 'exams.setup',
+  'exams.schedule', 'exams.hall-tickets', 'exams.seating', 'exams.question-papers', 'exams.marks', 'exams.results', 'exams.report-cards', 'exams.setup',
   'homework.homework', 'homework.lesson-plans', 'homework.syllabus',
   'certificates.issue', 'certificates.register',
   'dashboard.command', 'reports.library', 'reports.builder',

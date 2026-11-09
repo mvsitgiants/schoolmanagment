@@ -30,6 +30,9 @@ import { CERTIFICATE_KIND_BY } from '@schoolgiant/shared'
 import { translateDoc } from './engine.js'
 import { latestPayslipId, payslipModel, payslipPrint } from '../services/payrollRuns.js'
 import { labelsModel, labelsPrint, latestCopyId } from '../services/library.js'
+import { latestSectionId, seatLabelsModel, seatLabelsPrint } from '../services/academics.js'
+import { EXAM_SEATING_DOCS } from './examSeatingDocs.js'
+import { QUESTION_PAPER_DOCS } from './questionPaperDocs.js'
 
 const latestId = async (Model, filter, sort) => (await Model.findOne(filter).sort(sort).select('_id').lean())?._id
 const V = {
@@ -128,6 +131,8 @@ function certificateModel({ certificate: c, verifyUrl }) {
 }
 
 export const DOCS = {
+  ...EXAM_SEATING_DOCS, // seating charts, door lists, invigilation duties (documents/examSeatingDocs.js)
+  ...QUESTION_PAPER_DOCS, // question papers and answer keys (documents/questionPaperDocs.js)
   FEE_RECEIPT: {
     perms: ['fees.invoices.print', 'fees.collect.view'],
     load: (id, auth) => receiptPrintData(id, auth),
@@ -204,6 +209,17 @@ export const DOCS = {
     title: (m) => `Library labels (${m.count})`,
     sample: () => latestCopyId(),
     variables: ['institution.name', 'labels[] {accessionNo, title, author, callNo, shelf} · count · {{barcode accessionNo 10}}'],
+  },
+  // ── Seat labels for the benches: every seat of each section's room with who sits there (GET /documents/SEAT_LABEL?ids=…
+  // — section ids). Data from services/academics.js seatLabelsPrint; the class board's seating sheet prints them.
+  SEAT_LABEL: {
+    perms: ['academics.classes.view'],
+    many: true,
+    load: (ids, auth) => seatLabelsPrint(ids, auth),
+    model: seatLabelsModel,
+    title: (m) => `Seat labels (${m.count})`,
+    sample: () => latestSectionId(),
+    variables: ['institution.name', 'labels[] {seat, row, bench, section, sectionLabel, room, classTeacher, name, rollNo, admissionNo, gender, free, noSeat} · count · taken · {{barcode admissionNo 7}}'],
   },
   // ── Payslip (data from services/payrollRuns.js). Staff print their own from My workspace (/payroll/me/payslips/:id/print).
   PAYSLIP: {

@@ -70,6 +70,8 @@ const FeeOnline = lazy(() => import('./pages/Fees/Online'))
 // Exams
 const ExamSchedule = lazy(() => import('./pages/Exams/Schedule'))
 const ExamHallTickets = lazy(() => import('./pages/Exams/HallTickets'))
+const ExamSeating = lazy(() => import('./pages/Exams/Seating'))
+const ExamQuestionPapers = lazy(() => import('./pages/Exams/QuestionPapers'))
 const ExamMarks = lazy(() => import('./pages/Exams/Marks'))
 const ExamResults = lazy(() => import('./pages/Exams/Results'))
 const ExamReportCards = lazy(() => import('./pages/Exams/ReportCards'))
@@ -312,6 +314,8 @@ export default function App() {
           <Route path="exams" element={<Navigate to="/exams/schedule" replace />} />
           <Route path="exams/schedule" element={<ExamSchedule />} />
           <Route path="exams/hall-tickets" element={<ExamHallTickets />} />
+          <Route path="exams/seating" element={<ExamSeating />} />
+          <Route path="exams/question-papers" element={<ExamQuestionPapers />} />
           <Route path="exams/marks" element={<ExamMarks />} />
           <Route path="exams/results" element={<ExamResults />} />
           <Route path="exams/report-cards" element={<ExamReportCards />} />
