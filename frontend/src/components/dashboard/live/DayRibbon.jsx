@@ -1,49 +1,51 @@
 import { useTranslation } from 'react-i18next'
 import clsx from 'clsx'
-import { Radio } from 'lucide-react'
-import { toMin } from './liveKit'
+import { toMin, usePlain } from './liveKit'
 
-// The school day as a ribbon (the bell schedule, each slot as wide as it is long) that doubles as the period
-// scrubber: pick a period to see the campus then; "Now" goes back to the live view. A marker shows the time looked at.
+// The school day as a slim strip (the bell schedule, each part as wide as it lasts): assembly, periods, breaks and
+// lunch, labelled. Pick a period to see the school at that time; "See now" goes back to live. The period being
+// looked at is filled teal; finished ones are greyed; a thin red line marks the time only when live.
 
 export default function DayRibbon({ frame = [], now, at, onPick }) {
   const { t } = useTranslation('dashboard')
+  const { clock } = usePlain()
   if (!frame.length) return null
   const start = toMin(frame[0].start)
   const span = Math.max(1, toMin(frame.at(-1).end) - start)
-  const marker = now.schoolDay ? (toMin(now.time) - start) / span : null
+  const marker = now.live ? (toMin(now.time) - start) / span : null
   return (
     <div className="flex min-w-0 items-center gap-2">
+      <span className="hidden shrink-0 text-xs text-ink-faint sm:inline">{t('dashboard.live.ribbon.pick')}</span>
       {now.isToday && (
         <button type="button" onClick={() => onPick('')} aria-pressed={!at}
-          className={clsx('inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg border px-3 text-xs font-semibold transition-colors',
-            !at ? 'border-brand-500 bg-brand-500 text-white' : 'border-border bg-surface text-ink-muted hover:bg-bg')}>
-          <Radio className={clsx('h-3.5 w-3.5', !at && 'animate-pulse')} aria-hidden />{t('dashboard.live.ribbon.now')}
+          className={clsx('h-8 shrink-0 rounded-md border px-2.5 text-xs font-medium',
+            !at ? 'border-brand-500 text-brand-700' : 'border-border text-ink-muted hover:text-ink')}>
+          {t('dashboard.live.ribbon.now')}
         </button>
       )}
-      <div className="relative min-w-0 flex-1 overflow-x-auto [scrollbar-width:thin]">
-        <div className="relative flex h-9 min-w-[560px] gap-px overflow-hidden rounded-lg border border-border bg-border">
+      <div className="min-w-0 flex-1 overflow-x-auto [scrollbar-width:none]">
+        <div className="relative flex h-8 min-w-[760px] overflow-hidden rounded-md border border-border">
           {frame.map((sl, i) => {
             const w = ((toMin(sl.end) - toMin(sl.start)) / span) * 100
             const isPeriod = sl.kind === 'PERIOD' && sl.no > 0
-            const picked = at && sl.start === at
-            const current = now.slot && now.slot.start === sl.start
+            const current = now.slot && now.slot.start === sl.start && now.phase === 'PERIOD'
             const past = now.schoolDay && toMin(sl.end) <= toMin(now.time)
-            const label = isPeriod ? t('dashboard.live.ribbon.period', { no: sl.no }) : sl.label || t('dashboard.live.board.break')
+            const name = isPeriod ? t('dashboard.live.ribbon.period', { no: sl.no }) : sl.label || t('dashboard.live.break')
             return (
-              <button key={`${sl.start}${i}`} type="button" disabled={!isPeriod} onClick={() => onPick(sl.start)} style={{ width: `${w}%` }}
-                title={`${label} · ${sl.start}–${sl.end}`} aria-pressed={isPeriod ? !!picked : undefined}
-                className={clsx('relative flex min-w-0 flex-col items-center justify-center px-0.5 leading-none transition-colors',
-                  isPeriod ? (picked ? 'bg-brand-500 text-white' : current ? 'bg-brand-100 text-brand-800' : 'bg-surface text-ink hover:bg-brand-50') : 'cursor-default bg-bg text-ink-faint',
-                  past && !picked && !current && 'opacity-60')}>
-                <span className={clsx('truncate font-semibold', isPeriod ? 'text-[11px]' : 'text-[9.5px]')}>{isPeriod ? `P${sl.no}` : label}</span>
-                {isPeriod && <span className={clsx('mt-0.5 hidden text-[9.5px] tabular-nums sm:block', picked ? 'text-white/80' : 'text-ink-faint')}>{sl.start}</span>}
+              <button key={`${sl.start}${i}`} type="button" disabled={!isPeriod} onClick={() => onPick(sl.start)} style={{ width: `${w}%`, minWidth: isPeriod ? undefined : 58 }}
+                title={t('dashboard.live.ribbon.title', { name, start: clock(sl.start), end: clock(sl.end) })} aria-pressed={isPeriod ? !!current : undefined}
+                className={clsx('flex min-w-0 items-center justify-center gap-1 overflow-hidden border-e border-border px-1 text-[11px] last:border-e-0',
+                  !isPeriod ? 'cursor-default bg-bg text-[10px] text-ink-faint' : current ? 'bg-brand-500 font-semibold text-white' : past ? 'bg-surface text-ink-faint hover:bg-bg' : 'bg-surface text-ink hover:bg-bg')}>
+                {isPeriod ? (
+                  <>
+                    <span className="truncate"><span className="hidden 2xl:inline">{t('dashboard.live.ribbon.period', { no: sl.no })}</span><span className="2xl:hidden">{t('dashboard.live.ribbon.short', { no: sl.no })}</span></span>
+                    <span className={clsx('hidden truncate tabular-nums lg:inline', current ? 'text-white/80' : 'text-ink-faint')}>· {clock(sl.start)}</span>
+                  </>
+                ) : <span className="truncate">{name}</span>}
               </button>
             )
           })}
-          {marker != null && marker >= 0 && marker <= 1 && (
-            <span className="pointer-events-none absolute inset-y-0 w-0.5 bg-rose-500 shadow-[0_0_0_1px_rgba(255,255,255,0.8)]" style={{ left: `${marker * 100}%` }} aria-hidden />
-          )}
+          {marker != null && marker >= 0 && marker <= 1 && <span className="pointer-events-none absolute inset-y-0 w-px bg-rose-500" style={{ left: `${marker * 100}%` }} aria-hidden />}
         </div>
       </div>
     </div>

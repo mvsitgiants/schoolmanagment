@@ -5,6 +5,7 @@
 import { SUPPORTED_LANGUAGES } from './languages.js'
 import { ID_CARD_ORIENTATIONS, STUDENT_ID_CARD_FIELDS } from './students.js'
 import { GEOFENCE_MODES, STUDENT_SELF_CHECKIN } from './geofence.js'
+import { PAGE_CODE_ESCALATION_TARGETS, PAGE_ESCALATION_TARGETS } from './comms.js'
 
 export const SETTING_TYPES = ['bool', 'text', 'number', 'select', 'multi']
 
@@ -128,6 +129,18 @@ export const SETTINGS = [
   { module: 'portal', key: 'showFees', type: 'bool', label: 'Show fees and online payment in the app', default: true },
   { module: 'portal', key: 'showMarks', type: 'bool', label: 'Show marks and report cards in the app', default: true, help: 'Only results that have been published.' },
   { module: 'portal', key: 'chat', type: 'bool', label: 'Families can message teachers in the app', default: true, help: 'The class teacher and the subject teachers of the child’s class. Needs the Communication hub.' },
+
+  // ── Staff chat & call bell (calls & emergency alerts)
+  { module: 'comms', key: 'reRingMinutes', type: 'number', label: 'Ring again when nobody has answered for (minutes)', default: 1, min: 1, max: 15 },
+  { module: 'comms', key: 'maxRings', type: 'number', label: 'Ring each person at most (times)', default: 3, min: 1, max: 10, help: 'After that the call shows as missed for them.' },
+  { module: 'comms', key: 'escalateMinutes', type: 'number', label: 'Escalate when nobody is on the way after (minutes)', default: 3, min: 1, max: 60, help: 'Counted from the call, then again from each escalation.' },
+  { module: 'comms', key: 'escalateTo', type: 'select', label: 'Normal and urgent calls escalate to', default: 'DEPARTMENT_HEAD', options: PAGE_ESCALATION_TARGETS, help: 'The next step goes one level wider (head of department → whole department).' },
+  { module: 'comms', key: 'maxEscalations', type: 'number', label: 'Escalation steps at most', default: 2, min: 0, max: 2, help: '0 turns escalation off.' },
+  { module: 'comms', key: 'codeEscalateTo', type: 'select', label: 'Unanswered emergency alerts escalate to', default: 'EVERYONE', options: PAGE_CODE_ESCALATION_TARGETS },
+  { module: 'comms', key: 'autoCloseMinutes', type: 'number', label: 'Close normal and urgent calls left open after (minutes)', default: 120, min: 15, max: 1440, help: 'Emergency alerts never close on their own — someone gives the all clear.' },
+  // ── Staff chat & call bell (staff chat)
+  { module: 'comms', key: 'chatAnnouncementsOnly', type: 'bool', label: 'Whole-staff chat is for announcements only', default: false, help: 'On: only people who can moderate chat post in the whole-staff and campus chats; everyone still reads them.' },
+  { module: 'comms', key: 'chatRetentionDays', type: 'number', label: 'Keep staff chat messages for (days)', default: 0, min: 0, max: 3650, help: '0 keeps them. Older messages and their attachments are removed by an hourly job.' },
 ]
 
 export const SETTING_BY_KEY = Object.fromEntries(SETTINGS.map((s) => [`${s.module}.${s.key}`, s]))

@@ -9,6 +9,8 @@ import MobileTabBar from '../components/ui/MobileTabBar'
 import ChangePasswordModal from '../components/ui/ChangePasswordModal'
 import IdleGuard from '../components/ui/IdleGuard'
 import NoticeBanner from '../components/ui/NoticeBanner'
+import IncomingCalls from '../components/comms/IncomingCalls'
+import CommsDock from '../components/comms/CommsDock'
 import { RealtimeProvider } from '../context/RealtimeContext'
 import Button from '../components/ui/Button'
 import { ErrorBoundary } from '../components/system'
@@ -132,6 +134,9 @@ export default function AppLayout() {
         <MobileTabBar onMenu={() => setNavOpen(true)} />
         <ChangePasswordModal open={pwdOpen} onClose={() => setPwdOpen(false)} />
         <IdleGuard idleMinutes={user?.idleMinutes} />
+        {/* staff call bell & chat: the incoming-call popup and the floating Call / Chat dock */}
+        <IncomingCalls />
+        <CommsDock />
       </div>
     </RealtimeProvider>
   )

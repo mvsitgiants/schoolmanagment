@@ -7,6 +7,7 @@ import { Branch, Department, User } from '../models/tenant.js'
 import { bumpAccessVersion, can } from '../platform/access.js'
 import { getContext, runAsSystem, runAsTenant } from '../platform/context.js'
 import { audit } from '../platform/audit.js'
+import { emit } from '../platform/events.js'
 import { decrypt, encrypt } from '../platform/crypto.js'
 import { csvCell } from '../platform/csv.js'
 import { clean, isOid } from '../platform/db.js'
@@ -195,6 +196,7 @@ export async function updateEmployee(id, input, auth, req) {
   e.jobHistory.push(...changes)
   await e.save()
   await audit({ action: 'UPDATE', module: 'hrms', entityType: 'employee', entityId: String(e._id), entityName: e.name, summary: `Updated staff record ${e.name}${changes.length ? ` (${changes.map((c) => c.type.toLowerCase()).join(', ')})` : ''}` }, req)
+  if (e.userId && changes.some((c) => ['DEPARTMENT', 'BRANCH'].includes(c.type))) await emit('chat.membership_changed', { userIds: [String(e.userId)] }) // department / campus chats
   return getEmployee(id, auth)
 }
 
@@ -229,8 +231,10 @@ export async function setSensitive(id, input, auth, req) {
 export async function linkLogin(id, userId, auth, req) {
   const e = await findEmployee(id, auth)
   if (userId) await checkLink(userId, e._id)
+  const unlinked = e.userId
   e.userId = userId || undefined
   await e.save()
+  await emit('chat.membership_changed', { userIds: [userId, unlinked].filter(Boolean).map(String) }) // department / campus chats
   await audit({ action: 'UPDATE', module: 'hrms', entityType: 'employee', entityId: String(e._id), entityName: e.name, summary: userId ? `Linked ${e.name} to a login` : `Unlinked the login of ${e.name}` }, req)
   return getEmployee(id, auth)
 }
@@ -359,6 +363,7 @@ async function closeLogin(e) {
   if (!r.modifiedCount) return
   await revokeUserSessions(e.userId, 'USER_DEACTIVATED')
   await bumpAccessVersion(getContext()?.tenantId)
+  await emit('chat.membership_changed', { userIds: [String(e.userId)] })
   await audit({ action: 'UPDATE', module: 'core', entityType: 'user', entityId: String(e.userId), entityName: e.name, summary: `Deactivated the login of ${e.name} (left the staff)` })
 }
 

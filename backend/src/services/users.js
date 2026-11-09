@@ -9,6 +9,7 @@ import { clean } from '../platform/db.js'
 import { badRequest, conflict, forbidden, notFound } from '../platform/errors.js'
 import { endSessions } from '../platform/middleware.js'
 import { getContext, runAsTenant } from '../platform/context.js'
+import { emit } from '../platform/events.js'
 import { listResponse, searchFilter } from '../platform/validate.js'
 import { assertFullAdminRemains } from './roles.js'
 import { assertWithinLimit } from './subscription.js'
@@ -129,6 +130,7 @@ export async function createUser(input, auth) {
   })
   await audit({ action: 'CREATE', module: 'core', entityType: 'user', entityId: String(user._id), entityName: user.name, summary: `Added user ${user.name} (${roles.map((r) => r.name).join(', ')})`, added: roles.map((r) => r.name) })
   await bumpAccessVersion(auth.tenantId)
+  await emit('chat.membership_changed', { userIds: [String(user._id)] }) // their whole-staff / department chats
   return { user: await getUser(user._id), tempPassword: generated, inviteToken: invite?.token }
 }
 
@@ -183,6 +185,7 @@ export async function updateUser(id, input, auth) {
     })
     await bumpAccessVersion(auth.tenantId)
   }
+  if (input.departmentIds || input.branchId !== undefined) await emit('chat.membership_changed', { userIds: [String(user._id)] })
   return getUser(user._id)
 }
 
@@ -201,6 +204,7 @@ export async function setUserActive(id, active, auth) {
   if (!active) await revokeUserSessions(user._id, 'USER_DEACTIVATED')
   await audit({ action: 'UPDATE', module: 'core', entityType: 'user', entityId: String(user._id), entityName: user.name, summary: `${active ? 'Re-activated' : 'Deactivated'} ${user.name}`, changes: [{ field: 'active', from: !active, to: active }] })
   await bumpAccessVersion(auth.tenantId)
+  await emit('chat.membership_changed', { userIds: [String(user._id)] })
   return getUser(user._id)
 }
 

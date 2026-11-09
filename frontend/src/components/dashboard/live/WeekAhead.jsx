@@ -1,75 +1,72 @@
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import clsx from 'clsx'
-import { BookOpen, Cake, CalendarDays, CalendarRange, ClipboardCheck, IndianRupee, MonitorPlay, PartyPopper, Plane, UserX, Users } from 'lucide-react'
-import { formatINRCompact } from '@schoolgiant/shared'
-import { Panel, TONE } from '../../system'
-import { useFormat } from '../../../context/SettingsContext'
+import { BookOpen, Cake, CalendarDays, ClipboardCheck, IndianRupee, MonitorPlay, Plane, Users } from 'lucide-react'
+import { Block, usePlain } from './liveKit'
 
-// The next seven days, a column a day: exams, events, PTMs, holidays, staff on leave (and how many periods will need
-// cover), fee instalments falling due, birthdays, homework due and online tests opening.
+// The next seven days as a plain agenda: a day header, then a line per thing — exams, events, PTMs, online tests,
+// fees falling due, staff on leave, homework due, birthdays. Holidays in grey italic; only "periods need cover" in
+// amber.
 
-const KIND = {
-  HOLIDAY: { icon: PartyPopper, tone: 'danger' },
-  EXAM: { icon: ClipboardCheck, tone: 'warning' },
-  PTM: { icon: Users, tone: 'info' },
-  EVENT: { icon: CalendarDays, tone: 'violet' },
-  TEST: { icon: MonitorPlay, tone: 'sky' },
-  FEES: { icon: IndianRupee, tone: 'orange' },
-  LEAVE: { icon: Plane, tone: 'pink' },
-  HOMEWORK: { icon: BookOpen, tone: 'teal' },
-  BIRTHDAY: { icon: Cake, tone: 'brand' },
-  STAFF_BIRTHDAY: { icon: Cake, tone: 'violet' },
-}
+const ICON = { EXAM: ClipboardCheck, PTM: Users, EVENT: CalendarDays, TEST: MonitorPlay, FEES: IndianRupee, LEAVE: Plane, HOMEWORK: BookOpen, BIRTHDAY: Cake, STAFF_BIRTHDAY: Cake }
 
-function Chip({ item }) {
-  const { t } = useTranslation('dashboard')
-  const k = KIND[item.kind] ?? KIND.EVENT
-  const tone = TONE[k.tone]
-  const Icon = k.icon
-  const title = item.kind === 'HOMEWORK' ? t('dashboard.live.week.homework', { count: item.count })
-    : item.kind === 'FEES' ? t('dashboard.live.week.fees', { count: item.count, amount: formatINRCompact(item.amount ?? 0) })
-      : item.kind === 'EXAM' ? t('dashboard.live.week.exam', { name: item.title, count: item.count })
-        : item.kind === 'LEAVE' ? t('dashboard.live.week.leave', { count: item.count })
-          : item.kind === 'BIRTHDAY' || item.kind === 'STAFF_BIRTHDAY' ? t(`dashboard.live.week.${item.kind === 'BIRTHDAY' ? 'birthdays' : 'staffBirthdays'}`, { count: item.count })
-            : item.title
-  const sub = item.kind === 'LEAVE' || item.kind === 'BIRTHDAY' || item.kind === 'STAFF_BIRTHDAY' || item.kind === 'FEES' ? item.title : item.sub
-  return (
-    <Link to={item.link} className={clsx('flex min-w-0 items-start gap-1.5 rounded-lg border px-2 py-1.5 text-start transition-colors hover:brightness-95', tone.bg, tone.border)}>
-      <Icon className={clsx('mt-px h-3.5 w-3.5 shrink-0', tone.text)} aria-hidden />
-      <span className="min-w-0">
-        <span className={clsx('block text-[11.5px] font-semibold leading-snug line-clamp-2', tone.text)}>{title}</span>
-        {sub && <span className="block truncate text-[10.5px] text-ink-muted">{sub}</span>}
-      </span>
-    </Link>
-  )
+function line(item, t, { clock, money }) {
+  const at = (hhmm) => (hhmm ? t('dashboard.live.week.atTime', { time: clock(hhmm) }) : '')
+  switch (item.kind) {
+    case 'HOMEWORK': return t('dashboard.live.week.homework', { count: item.count })
+    case 'FEES': return t('dashboard.live.week.fees', { count: item.count, amount: money(item.amount ?? 0) })
+    case 'EXAM': return t('dashboard.live.week.exam', { name: item.title, count: item.count })
+    case 'LEAVE': return t('dashboard.live.week.leave', { count: item.count, names: item.title })
+    case 'BIRTHDAY': return t('dashboard.live.week.birthdays', { count: item.count, names: item.title })
+    case 'STAFF_BIRTHDAY': return t('dashboard.live.week.staffBirthdays', { count: item.count, names: item.title })
+    case 'TEST': return t('dashboard.live.week.test', { name: item.title, at: at(item.sub) })
+    case 'PTM': { const [a, b] = String(item.sub ?? '').split('–'); return t('dashboard.live.week.ptm', { name: item.title, from: clock(a), to: clock(b) }) }
+    default: return t('dashboard.live.week.event', { name: item.title, at: at(item.sub) })
+  }
 }
 
 export default function WeekAhead({ agenda, today, className }) {
   const { t } = useTranslation('dashboard')
-  const { date } = useFormat()
+  const plain = usePlain()
   const tomorrow = new Date(Date.parse(`${today}T00:00:00Z`) + 864e5).toISOString().slice(0, 10)
-  const label = (d) => (d.date === today ? t('dashboard.live.week.today') : d.date === tomorrow ? t('dashboard.live.week.tomorrow') : t(`dashboard.live.days.${d.day}`))
+  const dayLabel = (d) => (d.date === today || d.date === tomorrow
+    ? `${t(d.date === today ? 'dashboard.live.week.today' : 'dashboard.live.week.tomorrow')} · ${plain.longDate(d.date)}`
+    : plain.longDate(d.date))
   return (
-    <Panel title={t('dashboard.live.week.title')} subtitle={t('dashboard.live.week.subtitle')} icon={CalendarRange} iconTone="info" className={className} flush>
-      <div className="flex snap-x gap-2 overflow-x-auto p-3 [scrollbar-width:thin] xl:grid xl:grid-cols-7 xl:overflow-visible">
-        {agenda.map((d) => (
-          <div key={d.date} className={clsx('flex min-w-[168px] snap-start flex-col gap-1.5 rounded-xl border p-2 xl:min-w-0', d.working ? 'border-border bg-surface' : 'border-dashed border-border bg-bg')}>
-            <div className="flex items-baseline justify-between gap-1 px-0.5">
-              <span className={clsx('text-[12.5px] font-semibold', d.date === today ? 'text-brand-700' : 'text-ink')}>{label(d)}</span>
-              <span className="text-[10.5px] text-ink-faint tabular-nums">{date(d.date)}</span>
-            </div>
-            {d.cover > 0 && (
-              <span className={clsx('inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-[11px] font-semibold', d.date === today ? 'bg-rose-500 text-white' : 'bg-amber-100 text-amber-800')}>
-                <UserX className="h-3.5 w-3.5" aria-hidden />{t('dashboard.live.week.cover', { count: d.cover })}
-              </span>
-            )}
-            {!d.working && !d.items.some((x) => x.kind === 'HOLIDAY') && <span className="px-0.5 text-[11px] text-ink-faint">{t('dashboard.live.week.noSchool')}</span>}
-            {d.items.map((it, j) => <Chip key={`${it.kind}${j}`} item={it} />)}
-            {d.working && !d.items.length && !d.cover && <span className="px-0.5 py-2 text-[11px] text-ink-faint">{t('dashboard.live.week.nothing')}</span>}
-          </div>
-        ))}
-      </div>
-    </Panel>
+    <Block title={agenda[0]?.date === today ? t('dashboard.live.week.title') : t('dashboard.live.week.titleFrom', { date: plain.longDate(agenda[0]?.date ?? today) })} className={className}>
+      <ul className="divide-y divide-border">
+        {agenda.map((d) => {
+          const holidays = d.items.filter((x) => x.kind === 'HOLIDAY')
+          const rest = d.items.filter((x) => x.kind !== 'HOLIDAY')
+          const quiet = !rest.length && !d.cover && !holidays.length
+          return (
+            <li key={d.date} className="px-4 py-2.5">
+              <div className="flex items-baseline justify-between gap-3">
+                <span className={clsx('text-[12.5px] font-semibold', d.date === today ? 'text-brand-700' : 'text-ink')}>{dayLabel(d)}</span>
+                {quiet && <span className="text-[11.5px] text-ink-faint">{d.working ? t('dashboard.live.week.nothing') : t('dashboard.live.week.noSchool')}</span>}
+              </div>
+              {!quiet && (
+                <ul className="mt-1 space-y-0.5">
+                  {holidays.map((h, i) => <li key={`h${i}`} className="text-[12.5px] italic text-ink-faint">{t('dashboard.live.week.holiday', { name: h.title })}</li>)}
+                  {!d.working && !holidays.length && <li className="text-[12.5px] italic text-ink-faint">{t('dashboard.live.week.noSchool')}</li>}
+                  {d.cover > 0 && <li className="text-[12.5px] font-medium text-amber-600">{t('dashboard.live.week.cover', { count: d.cover })}</li>}
+                  {rest.map((it, i) => {
+                    const Icon = ICON[it.kind] ?? CalendarDays
+                    return (
+                      <li key={`${it.kind}${i}`}>
+                        <Link to={it.link} className="flex min-w-0 items-start gap-2 text-[12.5px] leading-snug text-ink hover:text-brand-700">
+                          <Icon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-ink-faint" aria-hidden />
+                          <span className="min-w-0">{line(it, t, plain)}</span>
+                        </Link>
+                      </li>
+                    )
+                  })}
+                </ul>
+              )}
+            </li>
+          )
+        })}
+      </ul>
+    </Block>
   )
 }

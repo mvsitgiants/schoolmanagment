@@ -43,7 +43,7 @@ const ACTION_LABELS = {
   terminate: 'Terminate', view_salary: 'See salary', apply_on_behalf: 'Apply on behalf', edit_lop: 'Edit LOP',
   evaluate: 'Evaluate', start: 'Start', configure: 'Configure', run: 'Run', schedule: 'Schedule', share: 'Share',
   resolve: 'Resolve', allot: 'Allot', checkin: 'Check in', checkout: 'Check out', track: 'Live tracking',
-  verify: 'Verify', upload: 'Upload', ask: 'Ask', moderate: 'Moderate',
+  verify: 'Verify', upload: 'Upload', ask: 'Ask', moderate: 'Moderate', broadcast: 'Send emergency alerts',
 }
 
 const titleCase = (id) => id.replace(/_/g, ' ').replace(/^\w/, (c) => c.toUpperCase())
@@ -351,6 +351,13 @@ export const MODULES = [
       pg('messages', 'Send messages', 'V C send'),
       pg('chat', 'Parent–teacher chat', 'V C moderate'),
       pg('log', 'Delivery log', 'V X'),
+    ] },
+  { id: 'comms', name: 'Staff chat & call bell', category: 'engage', icon: 'MessagesSquare', mandatory: true, phase: 1,
+    desc: 'Live chat between staff (one-to-one, groups, the whole staff room) and a call bell — normal, urgent or an emergency alert.',
+    pages: [
+      pg('chat', 'Staff chat', 'V C moderate!'),
+      pg('calls', 'Call bell', 'V C X broadcast!'),
+      pg('codes', 'Emergency alerts', 'V E', { setup: true }),
     ] },
   { id: 'portal', name: 'Parent & student app', category: 'engage', icon: 'Smartphone', deps: ['students'], phase: 1,
     desc: 'The parent and student app: what it shows and how families sign in.',

@@ -65,6 +65,9 @@ import publicRoutes from './routes/public.js'
 import superadminRoutes from './routes/superadmin.js'
 import { registerWebhookListeners } from './services/apiKeys.js'
 import { registerNotificationListeners } from './services/notify.js'
+import commsRoutes from './routes/comms.js'
+import { registerPagingSockets } from './services/paging.js'
+import { registerChatListeners, registerChatSockets } from './services/chat.js'
 
 // Request log. Every request at debug; at info only what someone should look at — server errors
 // and slow requests — so the screens' polling doesn't drown the log. LOG_REQUESTS=true logs all.
@@ -96,6 +99,9 @@ export function createApp() {
   registerNotificationListeners()
   registerWebhookListeners()
   registerFinanceListeners()
+  registerPagingSockets()
+  registerChatSockets()
+  registerChatListeners()
   const app = express()
   app.set('trust proxy', 1)
   app.disable('x-powered-by')
@@ -189,6 +195,7 @@ export function createApp() {
   app.use('/api/v1/reports', reportRoutes)
   app.use('/api/v1/portal', portalRouter)
   app.use('/api/v1/communication', communicationRoutes)
+  app.use('/api/v1/comms', commsRoutes)
   app.use('/api/v1/admissions', admissionRoutes)
   app.use('/api/v1/timetable', timetableRoutes)
   app.use('/api/v1/hrms', hrmsRoutes)

@@ -43,6 +43,7 @@
       "health": "Health & infirmary",
       "canteen": "Canteen & wallet",
       "communication": "Communication hub",
+      "comms": "Staff chat & call bell",
       "portal": "Parent & student app",
       "events": "Events & calendar",
       "surveys": "Surveys & feedback",
@@ -84,6 +85,7 @@
       "health": "Health records, vaccinations, sick-room visits and incident reports.",
       "canteen": "Menu, pre-orders and a cashless RFID wallet that parents top up.",
       "communication": "Notices and circulars, SMS, WhatsApp, email and push, parent–teacher chat.",
+      "comms": "Live chat between staff (one-to-one, groups, the whole staff room) and a call bell — normal, urgent or an emergency alert.",
       "portal": "The parent and student app: what it shows and how families sign in.",
       "events": "School calendar, events, parent–teacher meeting slots and photo gallery.",
       "surveys": "Parent and student feedback, teacher evaluation and polls.",
@@ -289,6 +291,11 @@
         "chat": "Parent–teacher chat",
         "log": "Delivery log"
       },
+      "comms": {
+        "chat": "Staff chat",
+        "calls": "Call bell",
+        "codes": "Emergency alerts"
+      },
       "portal": {
         "settings": "App settings",
         "content": "App content"
@@ -333,6 +340,7 @@
       "approve_variance": "Approve cash variance",
       "ask": "Ask",
       "assign": "Assign to users",
+      "broadcast": "Send emergency alerts",
       "calculate": "Calculate",
       "cancel": "Cancel",
       "checkout": "Check out",

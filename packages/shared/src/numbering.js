@@ -41,6 +41,7 @@ export const DOC_TYPES = [
   { code: 'FIN_RECEIPT', label: 'Receipt voucher', module: 'finance', pattern: 'RV{FY}{SEQ:6}', reset: 'FY', perBranch: false },
   { code: 'FIN_CONTRA', label: 'Contra voucher', module: 'finance', pattern: 'CV{FY}{SEQ:4}', reset: 'FY', perBranch: false },
   { code: 'EXPENSE', label: 'Expense', module: 'finance', pattern: 'EXP{FY}{SEQ:5}', reset: 'FY', perBranch: false },
+  { code: 'PAGE_CALL', label: 'Staff call / emergency alert', module: 'comms', pattern: 'PG{YY}{MM}{SEQ:5}', reset: 'MONTH', perBranch: false },
 ]
 
 export const DOC_TYPE_BY_CODE = Object.fromEntries(DOC_TYPES.map((d) => [d.code, d]))

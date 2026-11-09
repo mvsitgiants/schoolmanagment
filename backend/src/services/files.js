@@ -20,6 +20,7 @@ import { putFile, readStream } from '../platform/storage.js'
 import { assertWithinLimit } from './subscription.js'
 import { accrEvidenceRecord } from './accreditation.js'
 import { offerRecord } from './placementsOffers.js'
+import { StaffChatChannel, StaffChatMember } from '../models/comms.js'
 
 // Attachments and discussion on records (docs/00 §7 E15). Each record type says
 // which module it belongs to, who may see it and who may add to it, and which
@@ -98,6 +99,19 @@ const RECORDS = {
     module: 'placements', view: ['placements.offers.view'], add: ['placements.offers.create'],
     load: (id) => offerRecord(id),
     locked: (rec) => (rec.locked ? 'This offer was revoked.' : null),
+  },
+  // Staff chat: files are filed against the chat (entityId = channel id) and attached to a
+  // message when it is sent. Only the chat's active members open them — the role permission
+  // alone is not enough. Never about a student (a student is only a chip in the message).
+  chat_message: {
+    module: 'comms', view: ['comms.chat.view'], add: ['comms.chat.create'], remove: ['comms.chat.moderate'],
+    load: async (id, auth) => {
+      if (!auth?.userId || auth.apiKey) return null
+      const member = await StaffChatMember.exists({ channelId: id, userId: auth.userId, active: true })
+      if (!member) return null
+      const c = await StaffChatChannel.findById(id).select('type name').lean()
+      return c && { studentId: null, name: c.type === 'DIRECT' ? 'a direct chat' : `the chat “${c.name}”` }
+    },
   },
 }
 

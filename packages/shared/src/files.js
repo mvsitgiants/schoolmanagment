@@ -44,6 +44,7 @@ export const RECORD_TYPES = {
   placement_offer: 'Placement offer',
   expense: 'Expense',
   lms_item: 'Study material',
+  chat_message: 'Staff chat message',
 }
 
 export const COMMENT_MAX = 2000

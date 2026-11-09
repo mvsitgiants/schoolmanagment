@@ -172,6 +172,10 @@ const CommNotices = lazy(() => import('./pages/Communication/Notices'))
 const CommMessages = lazy(() => import('./pages/Communication/Messages'))
 const CommChat = lazy(() => import('./pages/Communication/Chat'))
 const CommLog = lazy(() => import('./pages/Communication/Log'))
+// Staff chat & call bell
+const CommsChat = lazy(() => import('./pages/Comms/Chat'))
+const CommsCalls = lazy(() => import('./pages/Comms/Calls'))
+const CommsCodes = lazy(() => import('./pages/Comms/Codes'))
 
 // A module page that isn't built yet shows its catalog entry; unknown paths show NotFound.
 const FrontOfficeVisitors = lazy(() => import('./pages/FrontOffice/Visitors'))
@@ -430,6 +434,11 @@ export default function App() {
           <Route path="communication/messages" element={<CommMessages />} />
           <Route path="communication/chat" element={<CommChat />} />
           <Route path="communication/log" element={<CommLog />} />
+          <Route path="comms" element={<Navigate to="/comms/chat" replace />} />
+          <Route path="comms/chat" element={<CommsChat />} />
+          <Route path="comms/chat/:channelId" element={<CommsChat />} />
+          <Route path="comms/calls" element={<CommsCalls />} />
+          <Route path="comms/codes" element={<CommsCodes />} />
           <Route path="frontoffice" element={<Navigate to="/frontoffice/visitors" replace />} />
           <Route path="frontoffice/visitors" element={<FrontOfficeVisitors />} />
           <Route path="frontoffice/gate-pass" element={<FrontOfficeGatePasses />} />

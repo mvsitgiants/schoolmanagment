@@ -2,107 +2,111 @@ import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import clsx from 'clsx'
-import { ChevronRight, Search, UsersRound } from 'lucide-react'
-import { ColorChip, Panel, SegmentedControl, TONE } from '../../system'
 import { hasPermission } from '../../../api/auth'
-import { PRESENCE_ORDER, PRESENCE_TONE, PresenceAvatar, PresenceDot, isAway } from './liveKit'
+import { Block, Initials, LEVEL_TEXT, PRESENCE_LEVEL, PRESENCE_ORDER, PresenceDot, isAway, situationOf, usePlain } from './liveKit'
 
-// The teachers, by presence: away (absent, on leave) first with the periods nobody covers yet and a way to the
-// substitution desk, then not in yet, late, in. Each says what they are teaching now — or that they are free.
+// Teachers: one plain line of who is in (or, on a day still to come, who is expected and who is on leave), a thin bar,
+// then only the teachers who need a look — absent, on leave, late, not arrived once school has started — with the
+// lessons nobody is taking yet and a way to book a substitute. "Show all teachers" opens everyone.
 
-const GROUPS = {
-  ALL: () => true,
-  AWAY: (x) => isAway(x.state),
-  NOT_IN: (x) => x.state === 'NOT_IN_YET',
-  LATE: (x) => x.state === 'LATE',
-  IN: (x) => x.state === 'PRESENT' || x.state === 'LATE',
-  FREE: (x) => x.free,
+function StateWord({ x }) {
+  const { t } = useTranslation('dashboard')
+  const { clock } = usePlain()
+  const level = PRESENCE_LEVEL[x.state] ?? 'muted'
+  const word = x.state === 'ON_LEAVE' && x.leave?.half ? t(`dashboard.live.teachers.halfLeave.${x.leave.half}`) : t(`dashboard.live.presence.${x.state}`)
+  return (
+    <span className={clsx('inline-flex shrink-0 items-center gap-1 text-[11.5px]', level === 'ok' || level === 'muted' ? 'text-ink-muted' : `font-medium ${LEVEL_TEXT[level]}`)}>
+      {level === 'ok' && <PresenceDot state={x.state} size={5} />}
+      {word}
+      {x.inTime && (x.state === 'PRESENT' || x.state === 'LATE') && <span className="font-normal text-ink-faint">{t('dashboard.live.teachers.at', { time: clock(x.inTime) })}</span>}
+    </span>
+  )
 }
 
-function TeacherRow({ x }) {
+function Row({ x, plain }) {
   const { t } = useTranslation('dashboard')
-  const tone = TONE[PRESENCE_TONE[x.state] ?? 'neutral']
+  const { clock } = usePlain()
+  const open = x.uncovered.filter((u) => !u.done)
   return (
-    <li className={clsx('flex min-w-0 flex-col gap-1.5 px-3 py-2.5', isAway(x.state) && x.uncovered.some((u) => !u.done) && 'bg-rose-50/50')}>
+    <li className="flex min-w-0 flex-col gap-1.5 px-4 py-2.5">
       <div className="flex min-w-0 items-center gap-2.5">
-        <PresenceAvatar name={x.name} state={x.state} size={30} />
+        <Initials name={x.name} size={26} />
         <div className="min-w-0 flex-1 leading-tight">
-          <p className="truncate text-[13px] font-medium text-ink">{x.name}</p>
-          <p className="truncate text-[11px] text-ink-faint">
-            {[x.designation, x.classTeacherOf && t('dashboard.live.teachers.classTeacherOf', { section: x.classTeacherOf })].filter(Boolean).join(' · ')}
+          <p className="truncate text-[13px] text-ink">{x.name}</p>
+          <p className="truncate text-[11.5px] text-ink-faint">
+            {x.now ? t('dashboard.live.teachers.teaching', { section: x.now.section, subject: x.now.subject })
+              : x.free ? t('dashboard.live.teachers.freeNow')
+                : x.periodsToday ? t('dashboard.live.teachers.lessonsToday', { count: x.periodsToday })
+                  : x.designation}
           </p>
         </div>
-        <div className="flex shrink-0 flex-col items-end gap-0.5 text-end">
-          <span className={clsx('text-[11px] font-semibold', tone.text)}>
-            {x.state === 'ON_LEAVE' && x.leave?.half ? t(`dashboard.live.teachers.halfLeave.${x.leave.half}`) : t(`dashboard.live.presence.${x.state}`)}
-            {x.inTime && (x.state === 'PRESENT' || x.state === 'LATE') ? <span className="ms-1 font-normal text-ink-faint tabular-nums">{x.inTime}</span> : null}
-          </span>
-          {x.now ? (
-            <span className="flex items-center gap-1 text-[11px] text-ink-muted">
-              <ColorChip label={x.now.section} seed={x.now.classId} className="[&>span]:px-1.5 [&>span]:py-0 [&>span]:text-[10.5px]" />
-              <span className="max-w-[110px] truncate">{x.now.subject}</span>
-            </span>
-          ) : x.free ? (
-            <span className="rounded-full bg-emerald-50 px-1.5 text-[10.5px] font-semibold text-emerald-700">{t('dashboard.live.teachers.freeNow')}</span>
-          ) : x.periodsToday ? (
-            <span className="text-[10.5px] text-ink-faint tabular-nums">{t('dashboard.live.teachers.periodsLeft', { left: x.periodsLeft, total: x.periodsToday })}</span>
-          ) : null}
-        </div>
+        <StateWord x={x} />
       </div>
-      {isAway(x.state) && x.uncovered.length > 0 && (
-        <div className="flex flex-wrap items-center gap-1.5 ps-10">
-          {x.uncovered.map((u) => (
-            <span key={`${u.sectionId}${u.period}`} title={u.suggestion ? t('dashboard.live.teachers.suggest', { name: u.suggestion.name }) : undefined}
-              className={clsx('inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[10.5px] font-semibold tabular-nums', u.done ? 'border-border bg-bg text-ink-faint line-through' : 'border-rose-200 bg-rose-50 text-rose-700')}>
-              {t('dashboard.live.teachers.uncoveredChip', { no: u.period, section: u.section })}
-            </span>
-          ))}
-          {hasPermission('timetable.substitutions.view') && x.uncovered.some((u) => !u.done) && (
-            <Link to="/timetable/substitutions" className="ms-auto inline-flex items-center gap-0.5 text-[11px] font-semibold text-brand-600 hover:underline">
-              {t('dashboard.live.teachers.findSubstitute')}<ChevronRight className="h-3 w-3 rtl:rotate-180" aria-hidden />
-            </Link>
-          )}
+      {!plain && isAway(x.state) && x.uncovered.length > 0 && (
+        <div className="space-y-1 ps-9">
+          <p className="text-[11.5px] text-ink-muted">
+            {open.length ? t('dashboard.live.teachers.needCover', { count: open.length }) : t('dashboard.live.teachers.allPast')}
+          </p>
+          <div className="flex flex-wrap items-center gap-1">
+            {x.uncovered.map((u) => (
+              <span key={`${u.sectionId}${u.period}`} title={u.suggestion ? t('dashboard.live.teachers.suggest', { name: u.suggestion.name }) : undefined}
+                className={clsx('rounded border border-border px-1.5 py-px text-[11px]', u.done ? 'text-ink-faint line-through' : 'text-ink-muted')}>
+                {t('dashboard.live.teachers.lessonChip', { no: u.period, section: u.section, time: clock(u.start) })}
+              </span>
+            ))}
+            {open.length > 0 && hasPermission('timetable.substitutions.view') && (
+              <Link to="/timetable/substitutions" className="ms-auto text-[11.5px] font-medium text-brand-600 hover:underline">{t('dashboard.live.teachers.findSubstitute')}</Link>
+            )}
+          </div>
         </div>
       )}
     </li>
   )
 }
 
-export default function TeachersPanel({ teachers }) {
+export default function TeachersPanel({ teachers, now, firstStart, className }) {
   const { t } = useTranslation('dashboard')
-  const [group, setGroup] = useState('ALL')
-  const [q, setQ] = useState('')
+  const { clock } = usePlain()
+  const [all, setAll] = useState(false)
+  const sit = situationOf(now)
+  const planned = sit === 'FUTURE' && !now.isToday
   const list = useMemo(() => [...teachers.list].sort((a, b) => PRESENCE_ORDER.indexOf(a.state) - PRESENCE_ORDER.indexOf(b.state) || a.name.localeCompare(b.name)), [teachers.list])
-  const shown = list.filter(GROUPS[group]).filter((x) => !q || x.name.toLowerCase().includes(q.toLowerCase()))
   const c = teachers.counts
-  const bar = PRESENCE_ORDER.filter((k) => c[k]).map((k) => ({ k, n: c[k] }))
+  const inNow = c.PRESENT + c.LATE
+  const expected = Math.max(0, c.total - c.OFF)
+  const away = (c.ABSENT ?? 0) + (c.ON_LEAVE ?? 0)
+  const notIn = c.NOT_IN_YET ?? 0
+  const needsLook = (x) => isAway(x.state) || x.state === 'LATE' || (x.state === 'NOT_IN_YET' && x.overdue)
+  const exceptions = list.filter(needsLook)
+  const shown = all ? list : exceptions
+
+  const summary = planned
+    ? [t('dashboard.live.teachers.expected', { count: expected }), c.ON_LEAVE && t('dashboard.live.teachers.onLeaveCount', { count: c.ON_LEAVE })].filter(Boolean).join(' · ')
+    : [t('dashboard.live.teachers.present', { n: inNow, count: expected }), away && t('dashboard.live.teachers.awayCount', { count: away }), notIn && t('dashboard.live.teachers.notInCount', { count: notIn })].filter(Boolean).join(' · ')
+  const empty = planned ? t('dashboard.live.teachers.noLeavePlan')
+    : inNow >= expected && expected > 0 ? t('dashboard.live.teachers.everyoneIn')
+      : now.isToday && now.phase === 'BEFORE' ? t('dashboard.live.teachers.arriving', { time: clock(firstStart) })
+        : notIn && !exceptions.length ? t('dashboard.live.teachers.notMarkedYet')
+          : t('dashboard.live.teachers.noProblems')
+
   return (
-    <Panel title={t('dashboard.live.teachers.title')} subtitle={t('dashboard.live.teachers.subtitle', { in: c.PRESENT + c.LATE, total: c.total - c.OFF })} icon={UsersRound} iconTone="info"
-      actions={hasPermission('hrms.attendance.view') && <Link to="/hrms/attendance" className="flex items-center gap-0.5 text-xs font-semibold text-brand-600 hover:underline">{t('dashboard.live.open')}<ChevronRight className="h-3.5 w-3.5 rtl:rotate-180" aria-hidden /></Link>}
-      flush>
-      <div className="space-y-3 p-4">
-        {/* the staff room in one bar: in · late · not in · away */}
-        <div className="flex h-2.5 w-full gap-0.5 overflow-hidden rounded-full bg-black/[0.05]" role="img" aria-label={bar.map((b) => `${t(`dashboard.live.presence.${b.k}`)}: ${b.n}`).join(', ')}>
-          {bar.map((b) => <span key={b.k} className={clsx('h-full', TONE[PRESENCE_TONE[b.k]].fill, b.k === 'NOT_IN_YET' && 'opacity-60')} style={{ width: `${(b.n / Math.max(1, c.total)) * 100}%` }} />)}
-        </div>
-        <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-ink-muted">
-          {bar.map((b) => <span key={b.k} className="inline-flex items-center gap-1"><PresenceDot state={b.k} size={7} />{t(`dashboard.live.presence.${b.k}`)}<b className="font-semibold text-ink tabular-nums">{b.n}</b></span>)}
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <SegmentedControl value={group} onChange={setGroup} options={Object.keys(GROUPS).map((k) => ({ value: k, label: t(`dashboard.live.teachers.groups.${k}`), count: k === 'ALL' ? undefined : list.filter(GROUPS[k]).length }))} />
-          {list.length > 12 && (
-            <label className="relative ms-auto min-w-[140px] flex-1 sm:max-w-[200px]">
-              <Search className="pointer-events-none absolute start-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-ink-faint" aria-hidden />
-              <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('dashboard.live.teachers.search')} className="h-8 w-full rounded-lg border border-border bg-surface ps-7 pe-2 text-xs" />
-            </label>
-          )}
-        </div>
+    <Block title={t('dashboard.live.teachers.title')} className={className}
+      actions={hasPermission('hrms.attendance.view') && <Link to="/hrms/attendance" className="text-xs font-medium text-brand-600 hover:underline">{t('dashboard.live.teachers.link')}</Link>}>
+      <div className="space-y-2 px-4 py-3">
+        <p className="text-[13px] text-ink">{summary}</p>
+        {!planned && <span className="block h-1 w-full overflow-hidden rounded-full bg-black/[0.07]"><span className="block h-full rounded-full bg-ink/70" style={{ width: `${expected ? (inNow / expected) * 100 : 0}%` }} /></span>}
+        {!planned && teachers.freeNow > 0 && <p className="text-[11.5px] text-ink-faint">{t('dashboard.live.teachers.freeCount', { count: teachers.freeNow })}</p>}
       </div>
       {shown.length ? (
-        <ul className="max-h-[520px] divide-y divide-border overflow-y-auto border-t border-border [scrollbar-width:thin]">
-          {shown.map((x) => <TeacherRow key={x.id} x={x} />)}
+        <ul className={clsx('divide-y divide-border border-t border-border', all && 'max-h-[420px] overflow-y-auto [scrollbar-width:thin]')}>
+          {shown.map((x) => <Row key={x.id} x={x} plain={all && !needsLook(x)} />)}
         </ul>
-      ) : <p className="border-t border-border px-4 py-8 text-center text-sm text-ink-faint">{t('dashboard.live.teachers.none')}</p>}
-    </Panel>
+      ) : <p className="border-t border-border px-4 py-3 text-[13px] text-ink-muted">{empty}</p>}
+      {list.length > exceptions.length && (
+        <button type="button" onClick={() => setAll((v) => !v)} className="w-full border-t border-border px-4 py-2 text-start text-xs font-medium text-ink-muted hover:text-ink">
+          {all ? t('dashboard.live.teachers.showExceptions') : t('dashboard.live.teachers.showAll', { count: list.length })}
+        </button>
+      )}
+    </Block>
   )
 }

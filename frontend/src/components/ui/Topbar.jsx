@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { Bell, ChevronDown, LogOut, MonitorSmartphone, Menu, Rows3, KeyRound, UserRound, Building2, CheckSquare, ScanQrCode, ArrowLeftRight } from 'lucide-react'
 import GlobalScan, { openScan } from '../scan/GlobalScan'
+import ChatHeaderButton from '../comms/ChatHeaderButton'
 import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import clsx from 'clsx'
@@ -112,6 +113,7 @@ export default function Topbar({ onMenu }) {
               <ScanQrCode className="w-[18px] h-[18px]" />
             </button>
             <GlobalScan />
+            <ChatHeaderButton />
           </>
         )}
 

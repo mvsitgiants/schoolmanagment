@@ -1,58 +1,58 @@
 import { useTranslation } from 'react-i18next'
 import clsx from 'clsx'
-import { BookOpenCheck, CalendarCheck, CalendarDays, UserX } from 'lucide-react'
-import { ColorChip, Drawer, StackedBar, StatusPill, TONE } from '../../system'
+import { Drawer } from '../../system'
 import Button from '../../ui/Button'
 import { hasPermission } from '../../../api/auth'
-import { PresenceAvatar } from './liveKit'
-import { SyllabusBar } from './SyllabusPanel'
+import { Initials, PresenceDot, ThinBar, usePlain } from './liveKit'
 
-// One section's day, opened from its card: every period (done · now · next) with who teaches it and whether they
-// are in, the attendance taken today, and how far each subject's syllabus has got against the year plan.
-
-const STATE_TONE = { DONE: 'neutral', NOW: 'brand', NEXT: 'info', LATER: 'neutral' }
+// One section's day, opened from its row: every period with who teaches it and whether they are in, the attendance
+// taken today, and how far each subject's syllabus has got against the year plan. Calm like the page: grey and ink,
+// teal for now, red only for an uncovered period or a register overdue.
 
 function H({ children }) {
-  return <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-ink-muted">{children}</h3>
+  return <h3 className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-ink-faint">{children}</h3>
 }
 
 export default function SectionDrawer({ section: s, data, onClose }) {
   const { t } = useTranslation('dashboard')
+  const { clock } = usePlain()
   if (!s) return null
   const syllabus = (data.syllabus?.rows ?? []).filter((r) => r.sectionId === s.id).sort((a, b) => a.subject.localeCompare(b.subject))
   const a = s.attendance
-  const sub = [
+  const facts = [
     s.classTeacher && t('dashboard.live.drawer.classTeacher', { name: s.classTeacher.name }),
     s.room && t('dashboard.live.drawer.room', { room: s.room }),
     t('dashboard.live.drawer.students', { count: s.strength }),
   ].filter(Boolean).join(' · ')
   return (
-    <Drawer open onClose={onClose} size="xl" title={s.label} subtitle={t('dashboard.live.board.title')}>
+    <Drawer open onClose={onClose} size="xl" title={s.label} subtitle={t('dashboard.live.drawer.kicker')}>
       <div className="space-y-6">
-        <p className="-mt-2 text-sm text-ink-muted">{sub}</p>
+        <p className="-mt-2 text-sm text-ink-muted">{facts}</p>
+
         <section>
           <H>{t('dashboard.live.drawer.day')}</H>
           {s.day.length ? (
-            <ul className="divide-y divide-border rounded-xl border border-border">
+            <ul className="divide-y divide-border rounded-lg border border-border">
               {s.day.map((r) => {
-                const teacher = r.substitute ?? r.teacher
+                const who = r.substitute ?? r.teacher
                 return (
-                  <li key={r.period} className={clsx('flex flex-wrap items-center gap-x-3 gap-y-1.5 px-3 py-2.5 text-sm', r.state === 'NOW' && 'bg-brand-50/60', r.state === 'DONE' && 'opacity-60', r.uncovered && 'bg-rose-50/60')}>
-                    <span className="w-20 shrink-0 text-xs text-ink-muted tabular-nums">
-                      {t('dashboard.live.board.periodShort', { no: r.period })}
-                      <span className="block text-[10.5px] text-ink-faint">{r.start}–{r.end}</span>
+                  <li key={r.period} className={clsx('flex flex-wrap items-center gap-x-3 gap-y-1 px-3 py-2 text-sm', r.state === 'NOW' && 'bg-brand-50/60', r.uncovered && r.state !== 'DONE' && 'bg-rose-50/60')}>
+                    <span className={clsx('w-16 shrink-0 text-xs tabular-nums', r.state === 'NOW' ? 'font-semibold text-brand-700' : 'text-ink-faint')}>
+                      {t('dashboard.live.timetable.period', { no: r.period })}<span className="block text-[10.5px] font-normal">{clock(r.start)}</span>
                     </span>
-                    <span className="min-w-0 flex-1">{r.subject ? <ColorChip label={r.subject} seed={r.subject} /> : <span className="text-xs text-ink-faint">{t('dashboard.live.drawer.free')}</span>}</span>
+                    <span className={clsx('min-w-0 flex-1 truncate', r.subject ? (r.state === 'DONE' ? 'text-ink-faint' : 'text-ink') : 'text-ink-faint')}>{r.subject ?? t('dashboard.live.drawer.noLesson')}</span>
                     {r.uncovered ? (
-                      <span className="inline-flex items-center gap-1 text-xs font-semibold text-rose-700"><UserX className="h-3.5 w-3.5" aria-hidden />{t('dashboard.live.drawer.uncovered', { name: r.teacher?.name ?? '' })}</span>
-                    ) : teacher ? (
+                      <span className={clsx('text-xs', r.state === 'DONE' ? 'text-ink-faint' : 'font-medium text-rose-600')}>{t('dashboard.live.drawer.uncovered', { name: r.teacher?.name ?? '' })}</span>
+                    ) : who ? (
                       <span className="flex min-w-0 items-center gap-1.5 text-xs text-ink-muted">
-                        <PresenceAvatar name={teacher.name} state={teacher.state} size={22} />
-                        <span className="truncate">{teacher.name}</span>
-                        {r.substitute && <span className="rounded bg-amber-50 px-1 text-[10px] font-semibold text-amber-700">{t('dashboard.live.drawer.sub')}</span>}
+                        <Initials name={who.name} size={20} />
+                        <span className="truncate">{who.name}</span>
+                        <PresenceDot state={who.state} />
+                        {who.state && !['PRESENT', 'EXPECTED', 'UNKNOWN'].includes(who.state) && <span className="text-[11px] text-ink-faint">({t(`dashboard.live.presence.${who.state}`).toLowerCase()})</span>}
+                        {r.substitute && <span className="text-[11px] text-amber-600">{t('dashboard.live.drawer.sub')}</span>}
                       </span>
                     ) : null}
-                    {r.state !== 'LATER' && <StatusPill tone={STATE_TONE[r.state]} dot={r.state === 'NOW'}>{t(`dashboard.live.drawer.state.${r.state}`)}</StatusPill>}
+                    {r.state === 'NOW' && <span className="text-[11px] font-medium text-brand-700">{t('dashboard.live.drawer.now')}</span>}
                   </li>
                 )
               })}
@@ -64,18 +64,21 @@ export default function SectionDrawer({ section: s, data, onClose }) {
           <section>
             <H>{t('dashboard.live.drawer.attendance')}</H>
             {a.marked ? (
-              <div className="rounded-xl border border-border p-3">
-                <StackedBar segments={[
-                  { label: t('dashboard.live.drawer.marks.present'), value: (a.present ?? 0) - (a.late ?? 0), color: '#10B981' },
-                  { label: t('dashboard.live.drawer.marks.late'), value: a.late ?? 0, color: '#F59E0B' },
-                  { label: t('dashboard.live.drawer.marks.leave'), value: a.onLeave ?? 0, color: '#94A3B8' },
-                  { label: t('dashboard.live.drawer.marks.absent'), value: a.absent ?? 0, color: '#EF4444' },
-                ]} />
-                {a.period && <p className="mt-2 text-xs text-ink-muted">{a.period.marked ? t('dashboard.live.drawer.periodMarked', { no: a.period.period, present: a.period.present, absent: a.period.absent }) : t('dashboard.live.drawer.periodNotMarked', { no: a.period.period })}</p>}
+              <div className="space-y-2">
+                <div className="grid grid-cols-4 gap-2 text-center">
+                  {[['present', (a.present ?? 0) - (a.late ?? 0)], ['late', a.late ?? 0], ['leave', a.onLeave ?? 0], ['absent', a.absent ?? 0]].map(([k, v]) => (
+                    <div key={k} className="rounded-lg border border-border py-2">
+                      <p className="text-base font-semibold text-ink tabular-nums">{v}</p>
+                      <p className="text-[11px] text-ink-faint">{t(`dashboard.live.drawer.marks.${k}`)}</p>
+                    </div>
+                  ))}
+                </div>
+                <ThinBar value={a.total ? ((a.present ?? 0) / a.total) * 100 : 0} />
+                {a.period && <p className="text-xs text-ink-muted">{a.period.marked ? t('dashboard.live.drawer.periodMarked', { no: a.period.period, present: a.period.present, absent: a.period.absent }) : t('dashboard.live.drawer.periodNotMarked', { no: a.period.period })}</p>}
               </div>
             ) : (
-              <p className={clsx('rounded-xl border px-3 py-2.5 text-sm', a.overdue ? 'border-rose-200 bg-rose-50 text-rose-700' : 'border-amber-200 bg-amber-50 text-amber-800')}>
-                {a.overdue ? t('dashboard.live.drawer.notMarkedLate', { time: data.markBefore }) : t('dashboard.live.drawer.notMarked')}
+              <p className={clsx('text-sm', a.overdue ? 'text-rose-600' : 'text-ink-muted')}>
+                {a.overdue ? t('dashboard.live.drawer.notMarkedLate', { time: clock(data.markBefore) }) : t('dashboard.live.drawer.notMarked', { time: clock(data.markBefore) })}
               </p>
             )}
           </section>
@@ -88,10 +91,12 @@ export default function SectionDrawer({ section: s, data, onClose }) {
               {syllabus.map((r) => (
                 <li key={r.subjectId} className="space-y-1">
                   <div className="flex items-center justify-between gap-2 text-xs">
-                    <span className="truncate font-medium text-ink">{r.subject}<span className="ms-1.5 font-normal text-ink-faint">{r.teacher?.name}</span></span>
-                    <span className={clsx('shrink-0 tabular-nums', r.behind ? TONE.danger.text : 'text-ink-muted')}>{r.behind ? t('dashboard.live.syllabus.behindTopics', { count: r.behind }) : `${r.pct}%`}</span>
+                    <span className="truncate text-ink">{r.subject}{r.teacher?.name && <span className="ms-1.5 text-ink-faint">{t('dashboard.live.syllabus.taughtBy', { name: r.teacher.name })}</span>}</span>
+                    <span className={clsx('shrink-0 tabular-nums', r.behind > 1 ? 'text-amber-600' : 'text-ink-faint')}>
+                      {r.expectedPct != null ? t('dashboard.live.syllabus.doneShould', { done: r.pct, expected: r.expectedPct }) : t('dashboard.live.syllabus.done', { done: r.pct })}
+                    </span>
                   </div>
-                  <SyllabusBar row={r} />
+                  <ThinBar value={r.pct} tick={r.expectedPct} />
                 </li>
               ))}
             </ul>
@@ -99,9 +104,9 @@ export default function SectionDrawer({ section: s, data, onClose }) {
         )}
 
         <div className="flex flex-wrap gap-2">
-          {hasPermission('timetable.timetable.view') && <Button size="sm" icon={CalendarDays} to={`/timetable/timetable?sectionId=${s.id}`}>{t('dashboard.live.drawer.openTimetable')}</Button>}
-          {hasPermission('attendance.mark.view') && <Button size="sm" variant="secondary" icon={CalendarCheck} to={`/attendance/mark?sectionId=${s.id}`}>{t('dashboard.live.drawer.openAttendance')}</Button>}
-          {hasPermission('homework.syllabus.view') && <Button size="sm" variant="secondary" icon={BookOpenCheck} to={`/homework/syllabus?class=${s.classId}`}>{t('dashboard.live.drawer.openSyllabus')}</Button>}
+          {hasPermission('timetable.timetable.view') && <Button size="sm" variant="secondary" to={`/timetable/timetable?sectionId=${s.id}`}>{t('dashboard.live.drawer.openTimetable')}</Button>}
+          {hasPermission('attendance.mark.view') && <Button size="sm" variant="secondary" to={`/attendance/mark?sectionId=${s.id}`}>{t('dashboard.live.drawer.openAttendance')}</Button>}
+          {hasPermission('homework.syllabus.view') && <Button size="sm" variant="secondary" to={`/homework/syllabus?class=${s.classId}`}>{t('dashboard.live.drawer.openSyllabus')}</Button>}
         </div>
       </div>
     </Drawer>

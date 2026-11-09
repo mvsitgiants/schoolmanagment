@@ -190,6 +190,9 @@
         },
         "FIN_PAYMENT": {
           "label": "Payment voucher"
+        },
+        "PAGE_CALL": {
+          "label": "Staff call / emergency alert"
         }
       },
       "resets": {

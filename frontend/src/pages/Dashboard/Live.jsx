@@ -1,28 +1,60 @@
+import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import clsx from 'clsx'
-import { BookOpenCheck, CalendarCheck, ClipboardList, Clock, LayoutGrid, MapPin, RefreshCw, School, UserX, UsersRound } from 'lucide-react'
-import { ControlChip, Note, PageContainer, Skeleton, StatCardRow } from '../../components/system'
+import { MapPin, RefreshCw } from 'lucide-react'
+import { ControlChip, Note, PageContainer, Skeleton } from '../../components/system'
 import Button from '../../components/ui/Button'
 import DayRibbon from '../../components/dashboard/live/DayRibbon'
-import LiveClassBoard from '../../components/dashboard/live/LiveClassBoard'
 import PrioritiesPanel from '../../components/dashboard/live/PrioritiesPanel'
 import SyllabusPanel from '../../components/dashboard/live/SyllabusPanel'
 import TeachersPanel from '../../components/dashboard/live/TeachersPanel'
+import TimetableMatrix from '../../components/dashboard/live/TimetableMatrix'
 import WeekAhead from '../../components/dashboard/live/WeekAhead'
+import { situationOf, usePlain } from '../../components/dashboard/live/liveKit'
 import { fetchLiveCampus } from '../../api/dashboard'
 import { useFormat } from '../../context/SettingsContext'
 
 /**
- * Dashboard › Live campus: what is happening in the school right now, class by class — the period, the teacher and
- * whether they are in, substitutes and uncovered periods, attendance — with the teachers, the syllabus against the
- * plan, what needs attention first and the next seven days. Refreshes every minute; a period on the ribbon (or
- * another day) can be looked at instead of now.
+ * Dashboard › Live campus, written for a principal: a plain sentence or two on what is going on, six figures each with
+ * a line saying what it means, what needs doing first, which teachers are not in, today's timetable class by class,
+ * the next seven days and the syllabus against the plan. Refreshes every minute; another period (the strip) or
+ * another day can be looked at instead of now — the wording then says it is the plan, or what happened.
  */
+
+const NUM = { danger: 'text-rose-600', warning: 'text-amber-600', normal: 'text-ink' }
+
+/** One figure: plain label with a "?" that explains it, the number, and a grey line saying what it means. */
+function Figure({ it }) {
+  const [help, setHelp] = useState(false)
+  return (
+    <div className="min-w-0 bg-surface px-3 py-3 sm:px-4">
+      <p className="flex items-start gap-1 text-[11.5px] text-ink-muted">
+        <span className="min-w-0 leading-tight">{it.label}</span>
+        <button type="button" onClick={() => setHelp((v) => !v)} title={it.help} aria-label={it.help} aria-expanded={help}
+          className="mt-px inline-flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-full border border-border text-[9px] font-semibold text-ink-faint hover:border-ink-faint hover:text-ink">?</button>
+      </p>
+      <p className={clsx('mt-0.5 text-xl font-semibold tabular-nums sm:text-[22px]', NUM[it.level ?? 'normal'])}>{it.value}</p>
+      {it.sub && <p className="text-[11.5px] leading-snug text-ink-faint">{it.sub}</p>}
+      {help && <p className="mt-1.5 rounded-md bg-bg px-2 py-1.5 text-[11.5px] leading-snug text-ink-muted">{it.help}</p>}
+    </div>
+  )
+}
+
+function Figures({ items }) {
+  const cols = { 1: 'grid-cols-1', 2: 'grid-cols-2', 3: 'grid-cols-3', 4: 'grid-cols-2 sm:grid-cols-4', 5: 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-5', 6: 'grid-cols-2 sm:grid-cols-3 xl:grid-cols-6' }[items.length] ?? 'grid-cols-3'
+  return (
+    <div className={clsx('grid gap-px overflow-hidden rounded-xl border border-border bg-border', cols)}>
+      {items.map((it) => <Figure key={it.key} it={it} />)}
+    </div>
+  )
+}
+
 export default function Live() {
   const { t } = useTranslation('dashboard')
-  const { date, time } = useFormat()
+  const { time } = useFormat()
+  const { clock, longDate } = usePlain()
   const [params, setParams] = useSearchParams()
   const at = params.get('at') ?? ''
   const day = params.get('date') ?? ''
@@ -40,121 +72,153 @@ export default function Live() {
   })
 
   const n = d?.now
-  const phaseLine = !n ? '' : n.phase === 'PERIOD' ? t('dashboard.live.phase.PERIOD', { no: n.slot?.no, start: n.slot?.start, end: n.slot?.end })
-    : n.phase === 'BREAK' ? (n.slot?.label || t('dashboard.live.board.break'))
-      : n.phase === 'CLOSED' ? (n.holiday || t('dashboard.live.phase.CLOSED')) : t(`dashboard.live.phase.${n.phase}`)
-  const s = d?.summary
-  const tiles = []
+  const sit = situationOf(n)
   const open = !!n?.schoolDay
-  if (s && d.teachers && open) {
-    tiles.push({ icon: UsersRound, tone: s.teachersIn >= s.teachersExpected ? 'success' : 'warning', label: t('dashboard.live.strip.teachers'), value: `${s.teachersIn}/${s.teachersExpected}`, sub: t('dashboard.live.strip.teachersSub', { away: (d.teachers.counts.ABSENT ?? 0) + (d.teachers.counts.ON_LEAVE ?? 0), notIn: d.teachers.counts.NOT_IN_YET ?? 0 }), progress: s.teachersExpected ? (s.teachersIn / s.teachersExpected) * 100 : 0 })
+  const s = d?.summary
+  const tc = d?.teachers?.counts
+  const away = tc ? (tc.ABSENT ?? 0) + (tc.ON_LEAVE ?? 0) : 0
+  const notIn = d?.teachers ? d.teachers.list.filter((x) => x.state === 'NOT_IN_YET').length : 0
+  const lateNotIn = d?.teachers ? d.teachers.list.filter((x) => x.state === 'NOT_IN_YET' && x.overdue).length : 0
+  const overdueClasses = d ? d.sections.filter((x) => x.attendance?.overdue).length : 0
+  const firstStart = d?.frame?.find((x) => x.kind === 'PERIOD' && x.no > 0)?.start
+
+  // ── the plain summary
+  const lines = []
+  if (n) {
+    const when = n.isToday ? t('dashboard.live.say.today') : n.date === addDay(n.today, 1) ? t('dashboard.live.say.tomorrow') : n.date === addDay(n.today, -1) ? t('dashboard.live.say.yesterday') : null
+    const dateText = longDate(n.date)
+    const moment = !open ? (n.holiday ? t('dashboard.live.say.holiday', { name: n.holiday }) : t('dashboard.live.say.noSchool'))
+      : n.phase === 'PERIOD' ? (n.slot?.no === 1 ? t('dashboard.live.say.firstPeriod', { start: clock(n.slot.start), end: clock(n.slot.end) }) : t('dashboard.live.say.period', { no: n.slot?.no, start: clock(n.slot?.start), end: clock(n.slot?.end) }))
+        : n.phase === 'BREAK' ? t('dashboard.live.say.break', { name: (n.slot?.label || t('dashboard.live.break')).toLowerCase() })
+          : n.phase === 'BEFORE' ? t('dashboard.live.say.before', { time: clock(firstStart) })
+            : t('dashboard.live.say.after')
+    if (sit === 'LIVE') lines.push(t('dashboard.live.say.nowLine', { date: dateText, time: clock(n.time), moment }))
+    else lines.push(t(sit === 'FUTURE' ? 'dashboard.live.say.planLine' : 'dashboard.live.say.pastLine', { when: when ? `${when}, ${dateText}` : dateText, time: clock(n.time), moment }))
+    if (open && d.teachers) {
+      const expected = s.teachersExpected
+      if (sit === 'FUTURE' && !n.isToday) lines.push(tc.ON_LEAVE ? t('dashboard.live.say.teachersPlanLeave', { count: expected, leave: tc.ON_LEAVE }) : t('dashboard.live.say.teachersPlan', { count: expected }))
+      else if (s.teachersIn === 0) lines.push(t(n.phase === 'BEFORE' && n.isToday ? 'dashboard.live.say.teachersNoneYet' : 'dashboard.live.say.teachersNone', { count: expected }))
+      else if (s.teachersIn >= expected) lines.push(t('dashboard.live.say.teachersAll', { count: expected }))
+      else lines.push([t('dashboard.live.say.teachersSome', { in: s.teachersIn, count: expected }), away && t('dashboard.live.say.teachersAway', { count: away }), notIn && t('dashboard.live.say.teachersNotIn', { count: notIn })].filter(Boolean).join('; ') + '.')
+    }
+    if (open && s.attendance) {
+      const a = s.attendance
+      const by = clock(d.markBefore)
+      if (sit === 'FUTURE' && !n.isToday) lines.push(t('dashboard.live.say.attendancePlan', { time: by }))
+      else if (a.marked === 0) lines.push(overdueClasses ? t('dashboard.live.say.attendanceNoneLate', { time: by }) : t('dashboard.live.say.attendanceNone', { time: by }))
+      else if (a.marked >= a.sections) lines.push(t('dashboard.live.say.attendanceAll', { count: a.sections, pct: a.pct ?? 0 }))
+      else lines.push(t('dashboard.live.say.attendanceSome', { marked: a.marked, count: a.sections, time: by }))
+    }
+    if (open && s.uncovered != null) lines.push(s.uncovered ? t('dashboard.live.say.uncovered', { count: s.uncovered }) : t('dashboard.live.say.covered'))
   }
-  if (s && d.sections.length && open) {
-    tiles.push({ icon: School, tone: 'brand', label: t('dashboard.live.strip.running'), value: `${s.running}/${s.sections}`, sub: n.phase === 'PERIOD' ? t('dashboard.live.strip.runningSub', { free: s.inPeriod - s.running }) : phaseLine })
+
+  // ── the six figures
+  const figures = []
+  if (s && open && d.teachers) {
+    const exp = s.teachersExpected
+    const sub = sit === 'FUTURE' && !n.isToday ? t('dashboard.live.fig.teachersPlan')
+      : s.teachersIn >= exp ? t('dashboard.live.fig.teachersAll')
+        : s.teachersIn === 0 ? t('dashboard.live.fig.teachersNone')
+          : [away && t('dashboard.live.fig.teachersAway', { count: away }), notIn && t('dashboard.live.fig.teachersNotIn', { count: notIn })].filter(Boolean).join(' · ')
+    figures.push({ key: 'teachers', label: t('dashboard.live.fig.teachers'), help: t('dashboard.live.fig.teachersHelp'), value: sit === 'FUTURE' && !n.isToday ? t('dashboard.live.fig.expected', { count: exp }) : t('dashboard.live.fig.of', { n: s.teachersIn, total: exp }), level: away || lateNotIn ? 'warning' : 'normal', sub })
   }
-  if (s && s.uncovered != null && open) {
-    tiles.push({ icon: UserX, tone: s.uncovered ? 'danger' : 'success', label: t('dashboard.live.strip.uncovered'), value: s.uncovered, sub: s.uncovered ? t('dashboard.live.strip.uncoveredSub') : t('dashboard.live.strip.allCovered') })
+  if (s && open && d.sections.length) {
+    const sub = n.phase !== 'PERIOD' ? t('dashboard.live.fig.lessonsNoPeriod')
+      : t(sit === 'FUTURE' ? 'dashboard.live.fig.lessonsOtherPlan' : 'dashboard.live.fig.lessonsOther', { count: s.sections - s.running })
+    figures.push({ key: 'lessons', label: sit === 'LIVE' ? t('dashboard.live.fig.lessons') : t('dashboard.live.fig.lessonsAt', { time: clock(n.time) }), help: t('dashboard.live.fig.lessonsHelp'), value: t('dashboard.live.fig.of', { n: s.running, total: s.sections }), sub })
+  }
+  if (s && open && s.uncovered != null) {
+    figures.push({ key: 'uncovered', label: t('dashboard.live.fig.uncovered'), help: t('dashboard.live.fig.uncoveredHelp'), value: s.uncovered ? s.uncovered : t('dashboard.live.fig.none'), level: s.uncovered ? 'danger' : 'normal', sub: s.uncovered ? t('dashboard.live.fig.uncoveredSub') : t('dashboard.live.fig.allCovered') })
   }
   if (s?.attendance && open) {
     const a = s.attendance
-    tiles.push({ icon: CalendarCheck, tone: a.marked < a.sections ? 'warning' : 'success', label: t('dashboard.live.strip.attendance'), value: `${a.marked}/${a.sections}`, sub: a.pct != null ? t('dashboard.live.strip.attendanceSub', { pct: a.pct, present: a.present }) : t('dashboard.live.strip.nothingMarked'), progress: a.sections ? (a.marked / a.sections) * 100 : 0 })
+    const planned = sit === 'FUTURE' && !n.isToday
+    const sub = planned ? t('dashboard.live.fig.attendancePlan', { time: clock(d.markBefore) })
+      : a.marked >= a.sections && a.pct != null ? t('dashboard.live.fig.attendanceDone', { pct: a.pct }) : t('dashboard.live.fig.attendanceDue', { time: clock(d.markBefore) })
+    figures.push({ key: 'attendance', label: t('dashboard.live.fig.attendance'), help: t('dashboard.live.fig.attendanceHelp', { time: clock(d.markBefore) }), value: planned ? t('dashboard.live.fig.notYet') : t('dashboard.live.fig.ofClasses', { n: a.marked, total: a.sections }), level: overdueClasses ? 'danger' : 'normal', sub })
   }
   if (s && s.syllabusBehind != null) {
-    tiles.push({ icon: BookOpenCheck, tone: s.syllabusBehind ? 'warning' : 'success', label: t('dashboard.live.strip.syllabus'), value: s.syllabusBehind, sub: t('dashboard.live.strip.syllabusSub', { done: d.syllabus?.avgPct ?? 0, expected: d.syllabus?.avgExpected ?? '—' }) })
+    figures.push({ key: 'syllabus', label: t('dashboard.live.fig.syllabus'), help: t('dashboard.live.fig.syllabusHelp'), value: s.syllabusBehind, level: s.syllabusBehind ? 'warning' : 'normal', sub: t('dashboard.live.fig.syllabusSub', { done: d.syllabus?.avgPct ?? 0, expected: d.syllabus?.avgExpected ?? 0 }) })
   }
-  if (s) tiles.push({ icon: ClipboardList, tone: s.approvals ? 'violet' : 'success', label: t('dashboard.live.strip.approvals'), value: s.approvals, sub: s.approvals ? t('dashboard.live.strip.approvalsSub') : t('dashboard.live.strip.nothingWaiting') })
+  if (s) {
+    const parts = d.priorities.find((p) => p.key === 'approvals')?.parts ?? []
+    figures.push({ key: 'approvals', label: t('dashboard.live.fig.approvals'), help: t('dashboard.live.fig.approvalsHelp'), value: s.approvals, sub: parts.length ? parts.map((x) => t(`dashboard.live.priorities.parts.${x.key}`, { count: x.count })).join(' · ') : t('dashboard.live.fig.nothingWaiting') })
+  }
 
   return (
     <PageContainer>
-      <div className="flex flex-col gap-3 border-b border-border/80 pb-4">
+      <div className="flex flex-col gap-3">
         <div className="flex flex-wrap items-start justify-between gap-3">
-          <div className="flex min-w-0 items-center gap-3">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-brand-200/80 bg-brand-50 text-brand-600 shadow-sm"><LayoutGrid className="h-5 w-5" aria-hidden /></span>
-            <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-2">
-                <h1 className="font-display text-xl font-bold tracking-tight text-ink sm:text-2xl">{t('dashboard.live.title')}</h1>
-                {n && (n.live ? (
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-700">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 pulse-dot" />{t('dashboard.live.liveNow')}
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-0.5 text-[11px] font-semibold text-amber-700">
-                    <Clock className="h-3 w-3" aria-hidden />{n.isToday ? t('dashboard.live.lookingAt', { time: n.time }) : t('dashboard.live.lookingAtDay', { date: date(n.date), time: n.time })}
-                  </span>
-                ))}
-              </div>
-              <p className="mt-0.5 flex flex-wrap items-center gap-x-2 text-xs text-ink-muted sm:text-sm">
-                {n ? (
-                  <>
-                    <span className="font-semibold text-ink tabular-nums">{n.isToday ? n.clock : n.time}</span>
-                    <span>{t(`dashboard.live.days.${n.day}`)} {date(n.date)}</span>
-                    <span className="text-ink-faint">·</span>
-                    <span className={clsx('font-medium', n.phase === 'PERIOD' ? 'text-brand-700' : 'text-ink-muted')}>{phaseLine}</span>
-                    {d.year && <span className="rounded border border-slate-200/70 bg-slate-100 px-1.5 py-px text-[11px] font-semibold text-ink">{d.year.name}</span>}
-                  </>
-                ) : t('dashboard.live.loading')}
-              </p>
+          <div className="min-w-0 max-w-3xl">
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="font-display text-xl font-semibold tracking-tight text-ink sm:text-2xl">{t('dashboard.live.title')}</h1>
+              {n && sit === 'LIVE' && (
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-border px-2 py-0.5 text-[11px] text-ink-muted">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />{t('dashboard.live.liveNow')}
+                </span>
+              )}
             </div>
+            {n ? (
+              <div className="mt-1.5 space-y-0.5 text-[14px] leading-relaxed text-ink">
+                {lines.map((l, i) => <p key={i} className={i ? 'text-ink-muted' : undefined}>{l}</p>)}
+              </div>
+            ) : <p className="mt-1 text-sm text-ink-muted">{t('dashboard.live.loading')}</p>}
+            {n && sit !== 'LIVE' && (
+              <Button size="sm" className="mt-2" onClick={() => set({ date: '', at: '' })}>{t('dashboard.live.seeNow')}</Button>
+            )}
+            {n && n.isToday && !open && (
+              <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm">
+                {n.prevSchoolDay && <button type="button" onClick={() => set({ date: n.prevSchoolDay, at: '' })} className="font-medium text-brand-600 hover:underline">{t('dashboard.live.lastSchoolDay', { date: longDate(n.prevSchoolDay) })}</button>}
+                {n.nextSchoolDay && <button type="button" onClick={() => set({ date: n.nextSchoolDay, at: '' })} className="font-medium text-brand-600 hover:underline">{t('dashboard.live.nextSchoolDay', { date: longDate(n.nextSchoolDay) })}</button>}
+              </div>
+            )}
           </div>
           <div className="flex flex-wrap items-center gap-2">
             {d?.branches?.length > 1 && (
-              <ControlChip icon={MapPin} label={t('dashboard.live.campus')} active={!!branchId}
+              <ControlChip icon={MapPin} label={t('dashboard.live.campus')}
                 value={d.branches.find((b) => b.id === branchId)?.name ?? t('dashboard.live.allCampuses')}
                 options={[t('dashboard.live.allCampuses'), ...d.branches.map((b) => b.name)]}
                 onChange={(v) => set({ branch: d.branches.find((b) => b.name === v)?.id ?? '' })} />
             )}
-            {dataUpdatedAt > 0 && <span className="text-[11px] text-ink-faint">{t('dashboard.live.updated', { time: time(new Date(dataUpdatedAt), { seconds: true }) })}</span>}
+            {dataUpdatedAt > 0 && <span className="text-[11px] text-ink-faint">{t('dashboard.live.updated', { time: time(new Date(dataUpdatedAt)) })}</span>}
             <Button size="sm" variant="secondary" icon={RefreshCw} loading={isFetching} onClick={() => refetch()}>{t('dashboard.live.refresh')}</Button>
           </div>
         </div>
-        {d?.frame?.length > 0 && n?.schoolDay && <DayRibbon frame={d.frame} now={n} at={at} onPick={(v) => set({ at: v })} />}
+        {d?.frame?.length > 0 && open && <DayRibbon frame={d.frame} now={n} at={at} onPick={(v) => set({ at: v })} />}
       </div>
 
       {error && <Note tone="danger">{error.message}</Note>}
-      {n && n.isToday && !n.schoolDay && (
-        <Note tone="warning">
-          <p>{n.holiday ? t('dashboard.live.noSchoolHoliday', { name: n.holiday }) : t('dashboard.live.noSchool')}</p>
-          <div className="mt-2 flex flex-wrap gap-2">
-            {n.prevSchoolDay && <Button size="sm" variant="secondary" onClick={() => set({ date: n.prevSchoolDay, at: '' })}>{t('dashboard.live.lastSchoolDay', { date: date(n.prevSchoolDay) })}</Button>}
-            {n.nextSchoolDay && <Button size="sm" variant="secondary" onClick={() => set({ date: n.nextSchoolDay, at: '' })}>{t('dashboard.live.nextSchoolDay', { date: date(n.nextSchoolDay) })}</Button>}
-          </div>
-        </Note>
-      )}
-      {n && !n.isToday && (
-        <Note tone="info" actions={<Button size="sm" variant="secondary" onClick={() => set({ date: '', at: '' })}>{t('dashboard.live.backToToday')}</Button>}>
-          {t(n.date < n.today ? 'dashboard.live.viewingPast' : 'dashboard.live.viewingFuture', { date: date(n.date) })}
-        </Note>
-      )}
       {d && !d.year && <Note tone="warning">{t('dashboard.live.noYear')}</Note>}
       {d && d.year && !d.published && <Note tone="warning">{t('dashboard.live.noTimetable')}</Note>}
 
       {isLoading && (
         <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 2xl:grid-cols-6">{Array.from({ length: 6 }, (_, i) => <Skeleton key={i} className="h-28 rounded-2xl" />)}</div>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">{Array.from({ length: 8 }, (_, i) => <Skeleton key={i} className="h-44 rounded-xl" />)}</div>
+          <Skeleton className="h-20 rounded-xl" />
+          <Skeleton className="h-80 rounded-xl" />
         </div>
       )}
 
       {d && (
         <>
-          {tiles.length > 0 && <StatCardRow items={tiles} />}
+          {figures.length > 0 && <Figures items={figures} />}
 
-          {open && (d.sections.length > 0 || d.year) && (
-            <section className="space-y-3">
-              <h2 className="flex items-center gap-2 font-display text-base font-semibold text-ink"><LayoutGrid className="h-4 w-4 text-ink-muted" aria-hidden />{t('dashboard.live.board.title')}</h2>
-              <LiveClassBoard data={d} />
-            </section>
-          )}
-
-          <div className="grid grid-cols-1 gap-6 xl:grid-cols-12">
-            <PrioritiesPanel priorities={d.priorities} className={d.teachers && open ? 'xl:col-span-5' : 'xl:col-span-12'} />
-            {d.teachers && open && <div className="min-w-0 xl:col-span-7"><TeachersPanel teachers={d.teachers} /></div>}
+          <div className="grid grid-cols-1 gap-4 xl:grid-cols-3 xl:items-start">
+            <PrioritiesPanel priorities={d.priorities} markBefore={d.markBefore} className={d.teachers && open ? 'xl:col-span-2' : 'xl:col-span-3'} />
+            {d.teachers && open && <TeachersPanel teachers={d.teachers} now={n} firstStart={firstStart} />}
           </div>
 
-          {d.agenda.length > 0 && <WeekAhead agenda={d.agenda} today={n.today} />}
-          {d.syllabus && d.syllabus.rows.length > 0 && <SyllabusPanel syllabus={d.syllabus} />}
+          {open && d.sections.length > 0 && <TimetableMatrix data={d} />}
+
+          <div className="grid grid-cols-1 gap-4 xl:grid-cols-2 xl:items-start">
+            {d.agenda.length > 0 && <WeekAhead agenda={d.agenda} today={n.today} />}
+            {d.syllabus && d.syllabus.rows.length > 0 && <SyllabusPanel syllabus={d.syllabus} />}
+          </div>
         </>
       )}
     </PageContainer>
   )
+}
+
+function addDay(ymd, n) {
+  return new Date(Date.parse(`${ymd}T00:00:00Z`) + n * 864e5).toISOString().slice(0, 10)
 }

@@ -17,6 +17,8 @@ import { runBillingCycle } from './services/subscription.js'
 import { processOutbox } from './services/notify.js'
 import { processWebhookQueue } from './services/apiKeys.js'
 import { closeRealtime, initRealtime } from './platform/realtime.js'
+import { runPagingJobs } from './services/paging.js'
+import { runChatJobs } from './services/chat.js'
 
 // A crash we didn't catch must at least be in the log; an uncaught exception leaves the process
 // in an unknown state, so it exits and the supervisor (Docker / systemd / PM2) starts it again.
@@ -106,6 +108,20 @@ const eventReminders = () => sendAllEventReminders()
   .then((n) => n && logger.info({ reminders: n }, 'event reminders sent'))
   .catch((err) => logger.error({ err }, 'event reminders failed'))
 schedule('event-reminders', eventReminders, { firstMs: 165_000, everyMs: 60 * 60_000 })
+
+// Call bell: ring unanswered people again, escalate unanswered calls one step at a time, close
+// forgotten normal / urgent calls. Only calls that are due are read, so every 30 s is cheap.
+const paging = () => runPagingJobs()
+  .then((r) => (r.rerung || r.escalated || r.closed) && logger.info(r, 'paging jobs'))
+  .catch((err) => logger.error({ err }, 'paging jobs failed'))
+schedule('paging', paging, { firstMs: 12_000, everyMs: 30_000 })
+
+// Staff chat: keep department / campus / whole-staff chats in step with who works where (the
+// fallback to the change events), and remove messages past the institution's retention period. Hourly.
+const staffChat = () => runChatJobs()
+  .then((r) => (r.joined || r.left || r.removed) && logger.info(r, 'chat jobs'))
+  .catch((err) => logger.error({ err }, 'chat jobs failed'))
+schedule('staff-chat', staffChat, { firstMs: 50_000, everyMs: 60 * 60_000 })
 
 // ───────────────────────────────────────────────────────── graceful shutdown
 // A deploy or restart sends SIGTERM. Stop taking new work, let requests in flight finish (their

@@ -28,6 +28,7 @@ export const BUILT_PAGES = new Set([
   'dashboard.live', 'reports.library', 'reports.builder',
   'portal.settings', 'portal.content',
   'communication.notices', 'communication.messages', 'communication.chat', 'communication.log',
+  'comms.chat', 'comms.calls', 'comms.codes',
 ])
 
 export const isBuilt = (moduleId, pageId) => BUILT_PAGES.has(`${moduleId}.${pageId}`)

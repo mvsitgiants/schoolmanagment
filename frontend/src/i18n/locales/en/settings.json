@@ -549,6 +549,51 @@
           "label": "Families can message teachers in the app",
           "help": "The class teacher and the subject teachers of the child’s class. Needs the Communication hub."
         }
+      },
+      "comms": {
+        "reRingMinutes": {
+          "label": "Ring again when nobody has answered for (minutes)"
+        },
+        "maxRings": {
+          "label": "Ring each person at most (times)",
+          "help": "After that the call shows as missed for them."
+        },
+        "escalateMinutes": {
+          "label": "Escalate when nobody is on the way after (minutes)",
+          "help": "Counted from the call, then again from each escalation."
+        },
+        "escalateTo": {
+          "label": "Normal and urgent calls escalate to",
+          "help": "The next step goes one level wider (head of department → whole department).",
+          "options": {
+            "DEPARTMENT_HEAD": "Head of the department",
+            "DEPARTMENT": "The whole department"
+          }
+        },
+        "maxEscalations": {
+          "label": "Escalation steps at most",
+          "help": "0 turns escalation off."
+        },
+        "codeEscalateTo": {
+          "label": "Unanswered emergency alerts escalate to",
+          "options": {
+            "EVERYONE": "Everyone on the campus",
+            "DEPARTMENT": "The whole department",
+            "NONE": "Do not escalate (keep ringing)"
+          }
+        },
+        "autoCloseMinutes": {
+          "label": "Close normal and urgent calls left open after (minutes)",
+          "help": "Emergency alerts never close on their own — someone gives the all clear."
+        },
+        "chatAnnouncementsOnly": {
+          "label": "Whole-staff chat is for announcements only",
+          "help": "On: only people who can moderate chat post in the whole-staff and campus chats; everyone still reads them."
+        },
+        "chatRetentionDays": {
+          "label": "Keep staff chat messages for (days)",
+          "help": "0 keeps them. Older messages and their attachments are removed by an hourly job."
+        }
       }
     }
   }
