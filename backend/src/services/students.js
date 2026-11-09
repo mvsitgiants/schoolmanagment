@@ -102,12 +102,35 @@ export async function listStudents(q, paging, auth) {
     filter.$or = [{ firstName: re }, { lastName: re }, { admissionNo: re }, { 'guardians.name': re }, ...(d.length >= 4 ? [{ 'guardians.mobile': new RegExp(escapeRegex(d)) }, { mobile: new RegExp(escapeRegex(d)) }] : [])]
   }
   const where = scope ? { $and: [filter, scope] } : filter
-  const [rows, total] = await Promise.all([
+  // the summary ignores the class / section / gender picks, so its chart still shows every class to pick from
+  const { sectionId: _s, classId: _c, gender: _g, ...wide } = filter
+  const wideWhere = scope ? { $and: [wide, scope] } : wide
+  const [rows, total, mix] = await Promise.all([
     Student.find(where).collation(NUMERIC).sort({ placeKey: 1, rollNo: 1, firstName: 1, lastName: 1 }).skip(paging.skip).limit(paging.pageSize).lean(),
     Student.countDocuments(where),
+    Student.find(wideWhere).select('gender classId').lean(),
   ])
   const place = await placeMap(rows)
-  return listResponse(rows.map((s) => rowDto(s, place)), total, paging)
+  return { ...listResponse(rows.map((s) => rowDto(s, place)), total, paging), summary: await listSummary(mix) }
+}
+
+/** The whole filtered list at a glance (not just the page): how many boys / girls, and how many in each class. */
+async function listSummary(mix) {
+  const genders = {}
+  const perClass = new Map()
+  for (const s of mix) {
+    const g = s.gender || 'UNSET'
+    genders[g] = (genders[g] ?? 0) + 1
+    const c = idStr(s.classId)
+    if (c) perClass.set(c, (perClass.get(c) ?? 0) + 1)
+  }
+  const classes = await ClassLevel.find({ _id: { $in: [...perClass.keys()] } }).select('name code order').lean()
+  return {
+    genders,
+    classes: classes
+      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+      .map((c) => ({ id: String(c._id), name: c.name, code: c.code ?? null, count: perClass.get(String(c._id)) ?? 0 })),
+  }
 }
 
 export async function getStudent(id, auth, req, { reveal = false, quiet = false } = {}) {

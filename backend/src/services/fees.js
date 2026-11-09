@@ -416,9 +416,25 @@ export async function listInvoices(q, paging, auth) {
   if (q.sectionId) filter.sectionId = q.sectionId
   if (q.overdue) { filter.status = { $in: ['UNPAID', 'PARTIAL'] }; filter.dueDate = { $lt: t } }
   if (paging.search) filter.$or = [{ invoiceNo: new RegExp(escapeRegex(paging.search), 'i') }, { studentId: { $in: await studentIdsMatching(paging.search) } }]
-  const [rows, total] = await Promise.all([FeeInvoice.find(filter).sort({ dueDate: -1, invoiceNo: -1 }).skip(paging.skip).limit(paging.pageSize).lean(), FeeInvoice.countDocuments(filter)])
+  // the money at a glance for the same students / class / search, whatever status is picked
+  const { status: _st, dueDate: _dd, ...wide } = filter
+  const [rows, total, all] = await Promise.all([
+    FeeInvoice.find(filter).sort({ dueDate: -1, invoiceNo: -1 }).skip(paging.skip).limit(paging.pageSize).lean(),
+    FeeInvoice.countDocuments(filter),
+    FeeInvoice.find(wide).select('net balance status dueDate').lean(),
+  ])
   const names = await studentLabels(rows.map((r) => r.studentId))
-  return listResponse(rows.map((r) => ({ ...invoiceDto(r, t, cfg), student: names.get(String(r.studentId)) ?? null })), total, paging)
+  const summary = { billed: 0, outstanding: 0, overdue: 0, overdueCount: 0, invoices: 0, counts: {} }
+  for (const i of all) {
+    summary.counts[i.status] = (summary.counts[i.status] ?? 0) + 1
+    if (i.status === 'CANCELLED') continue
+    summary.invoices += 1
+    summary.billed += i.net ?? 0
+    summary.outstanding += i.balance ?? 0
+    if (i.balance > 0 && i.dueDate < t) { summary.overdue += i.balance; summary.overdueCount += 1 }
+  }
+  summary.collected = summary.billed - summary.outstanding
+  return { ...listResponse(rows.map((r) => ({ ...invoiceDto(r, t, cfg), student: names.get(String(r.studentId)) ?? null })), total, paging), summary }
 }
 
 export async function listReceipts(q, paging, auth) {
