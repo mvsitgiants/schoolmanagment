@@ -19,6 +19,22 @@ export const TONE = {
   warning: { text: 'text-amber-700', bg: 'bg-amber-50', border: 'border-amber-200', dot: 'bg-amber-500', fill: 'bg-amber-500', glow: 'shadow-glow-amber' },
   danger:  { text: 'text-rose-700', bg: 'bg-rose-50', border: 'border-rose-200', dot: 'bg-rose-500', fill: 'bg-rose-500', glow: 'shadow-glow-danger' },
   info:    { text: 'text-blue-700', bg: 'bg-blue-50', border: 'border-blue-200', dot: 'bg-blue-500', fill: 'bg-blue-500', glow: 'shadow-glow-info' },
+  // decorative accents — no meaning, just colour, for counts and categories that are neither good nor bad
+  violet:  { text: 'text-violet-700', bg: 'bg-violet-50', border: 'border-violet-200', dot: 'bg-violet-500', fill: 'bg-violet-500', glow: 'shadow-sm' },
+  pink:    { text: 'text-pink-700', bg: 'bg-pink-50', border: 'border-pink-200', dot: 'bg-pink-500', fill: 'bg-pink-500', glow: 'shadow-sm' },
+  sky:     { text: 'text-sky-700', bg: 'bg-sky-50', border: 'border-sky-200', dot: 'bg-sky-500', fill: 'bg-sky-500', glow: 'shadow-sm' },
+  orange:  { text: 'text-orange-700', bg: 'bg-orange-50', border: 'border-orange-200', dot: 'bg-orange-500', fill: 'bg-orange-500', glow: 'shadow-sm' },
+  teal:    { text: 'text-teal-700', bg: 'bg-teal-50', border: 'border-teal-200', dot: 'bg-teal-500', fill: 'bg-teal-500', glow: 'shadow-sm' },
+}
+
+/** The decorative tones in the order a row of tiles cycles through them. */
+export const ACCENTS = ['brand', 'violet', 'info', 'pink', 'orange', 'sky', 'teal']
+
+/** The same name always gets the same accent (a class, a department, a route), so it reads the same on every screen. */
+export function hueTone(name) {
+  let h = 0
+  for (const c of String(name ?? '')) h = (h * 31 + c.charCodeAt(0)) >>> 0
+  return ACCENTS[h % ACCENTS.length]
 }
 
 /** Map an arbitrary ERP status string to a tone. Extend as new statuses appear. */

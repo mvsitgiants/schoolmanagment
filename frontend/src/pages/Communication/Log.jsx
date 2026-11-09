@@ -1,21 +1,22 @@
 import { useState } from 'react'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { RotateCcw, ScrollText } from 'lucide-react'
+import { Ban, CheckCheck, Clock, Mail, MessageCircle, RotateCcw, ScrollText, Smartphone, TriangleAlert } from 'lucide-react'
 import { MESSAGE_STATUSES, NOTIFY_EVENT_BY, SEND_CHANNELS } from '@schoolgiant/shared'
-import { ControlChip, DataTable, Input, PageContainer, PageHeader, StatCardRow, StatusPill, Toolbar } from '../../components/system'
+import { ColorChip, ControlChip, DataTable, DateCell, Input, PageContainer, PageHeader, PersonCell, StatCardRow, StatusPill, Toolbar } from '../../components/system'
 import Button from '../../components/ui/Button'
 import useDebouncedValue from '../../hooks/useDebouncedValue'
 import { fetchMessageLog, retryLoggedMessage } from '../../api/communication'
 import { hasPermission } from '../../api/auth'
 import { useSnackbar } from '../../context/SnackbarContext'
-import { useFormat } from '../../context/SettingsContext'
+
+// each channel's icon, wherever a message's channel is shown
+const CHANNEL_ICON = { SMS: Smartphone, WHATSAPP: MessageCircle, EMAIL: Mail }
 
 /** Every SMS, WhatsApp and email to families: what was sent, to whom, whether it arrived — and retry. */
 export default function Log() {
   const { t } = useTranslation('communication')
   const qc = useQueryClient()
-  const { dateTime } = useFormat()
   const { showSuccess, showError } = useSnackbar()
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState('')
@@ -38,10 +39,10 @@ export default function Log() {
     <PageContainer>
       <PageHeader icon={ScrollText} title={t('communication.log.title')} subtitle={t('communication.log.subtitle')} />
       <StatCardRow className="mb-4" items={[
-        { label: t('communication.log.week.sent'), value: week.SENT ?? 0, tone: 'success' },
-        { label: t('communication.log.week.queued'), value: (week.QUEUED ?? 0) + (week.SENDING ?? 0), tone: 'info' },
-        { label: t('communication.log.week.failed'), value: week.FAILED ?? 0, tone: week.FAILED ? 'danger' : 'neutral' },
-        { label: t('communication.log.week.skipped'), value: week.SKIPPED ?? 0 },
+        { icon: CheckCheck, label: t('communication.log.week.sent'), value: week.SENT ?? 0, tone: 'success' },
+        { icon: Clock, label: t('communication.log.week.queued'), value: (week.QUEUED ?? 0) + (week.SENDING ?? 0), tone: 'info' },
+        { icon: TriangleAlert, label: t('communication.log.week.failed'), value: week.FAILED ?? 0, tone: week.FAILED ? 'danger' : 'neutral' },
+        { icon: Ban, tone: 'violet', label: t('communication.log.week.skipped'), value: week.SKIPPED ?? 0 },
       ]} />
       <DataTable
         rows={data?.data ?? []}
@@ -56,10 +57,10 @@ export default function Log() {
           <ControlChip label={t('communication.statusLabel')} value={statusLabel(status)} active={!!status} options={STATUSES.map(statusLabel)} onChange={(v) => { setStatus(STATUSES.find((s) => statusLabel(s) === v) ?? ''); setPage(1) }} />
         </>} />}
         columns={[
-          { key: 'createdAt', header: t('communication.log.when'), nowrap: true, render: (v) => <span className="text-sm">{dateTime(v)}</span> },
-          { key: 'event', header: t('communication.log.what'), render: (v) => <span className="text-sm">{v ? t(`communication.log.events.${v.replace(/\./g, '_')}`, NOTIFY_EVENT_BY[v]?.label ?? v) : '—'}</span> },
-          { key: 'studentName', header: t('communication.log.student'), mobilePrimary: true, render: (v, r) => <div><p className="text-sm text-ink">{v ?? '—'}</p><p className="text-xs text-ink-faint font-mono-num">{r.to ?? '—'}</p></div> },
-          { key: 'channel', header: t('communication.log.channel'), render: (v) => t(`communication.channels.${v}`, v) },
+          { key: 'createdAt', header: t('communication.log.when'), nowrap: true, render: (v) => <DateCell value={v} time /> },
+          { key: 'event', header: t('communication.log.what'), render: (v) => (v ? <ColorChip label={t(`communication.log.events.${v.replace(/\./g, '_')}`, NOTIFY_EVENT_BY[v]?.label ?? v)} seed={v} dot /> : '—') },
+          { key: 'studentName', header: t('communication.log.student'), mobilePrimary: true, render: (v, r) => <PersonCell name={v} sub={r.to ?? undefined} size={28} /> },
+          { key: 'channel', header: t('communication.log.channel'), render: (v) => <ColorChip label={t(`communication.channels.${v}`, v)} seed={`channel-${v}`} icon={CHANNEL_ICON[v]} /> },
           { key: 'body', header: t('communication.log.message'), mobileHidden: true, render: (v) => <span className="text-xs text-ink-muted line-clamp-2">{v}</span> },
           { key: 'status', header: t('communication.statusLabel'), render: (v, r) => <div><StatusPill tone={MESSAGE_STATUSES[v]?.tone}>{statusLabel(v)}</StatusPill>{r.reason && <p className="text-xs text-ink-faint mt-0.5 line-clamp-2">{r.reason}</p>}{r.delivery?.status && <p className="text-xs text-ink-faint">{r.delivery.status}</p>}</div> },
           { key: 'id', header: '', align: 'right', width: 60, render: (id, r) => ['FAILED', 'SKIPPED'].includes(r.status) && hasPermission('communication.messages.send') && (

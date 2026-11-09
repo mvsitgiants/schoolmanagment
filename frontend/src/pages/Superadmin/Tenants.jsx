@@ -2,18 +2,24 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Trans, useTranslation } from 'react-i18next'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Building2, Plus } from 'lucide-react'
-import { formatINR } from '@schoolgiant/shared'
+import { AlertTriangle, Building2, CircleCheck, Clock, Plus, ShieldOff } from 'lucide-react'
 import {
-  ControlChip, DataTable, Drawer, FormField, Input, Note, PageContainer, PageHeader, Select, StatusPill, Toolbar, VerifiedBadge, ViewControls,
+  ControlChip, DataTable, DateCell, Drawer, FormField, Input, LevelBar, Money, Note, PageContainer, PageHeader, Select, StatCardRow, StatusPill, Toolbar, VerifiedBadge, ViewControls, daysUntil,
 } from '../../components/system'
 import { canPlatform } from '../../api/auth'
 import Button from '../../components/ui/Button'
-import { fetchSaPlans, fetchTenants, provisionTenant } from '../../api/superadmin'
+import { fetchDashboard, fetchSaPlans, fetchTenants, provisionTenant } from '../../api/superadmin'
 import useDebouncedValue from '../../hooks/useDebouncedValue'
 import { useSnackbar } from '../../context/SnackbarContext'
-import { useFormat } from '../../context/SettingsContext'
-import { TENANT_STATUS, tenantStatusLabel } from './Dashboard'
+import { InstitutionCell, PlanChip, TENANT_STATUS, tenantStatusLabel } from './Dashboard'
+
+// the status tiles over the list: each filters the list to that status
+const STATUS_TILES = [
+  { code: 'ACTIVE', icon: CircleCheck, tone: 'success' },
+  { code: 'TRIAL', icon: Clock, tone: 'info' },
+  { code: 'PAST_DUE', icon: AlertTriangle, tone: 'warning' },
+  { code: 'SUSPENDED', icon: ShieldOff, tone: 'danger' },
+]
 
 function ProvisionDrawer({ open, onClose, plans, onDone }) {
   const { t } = useTranslation('superadmin')
@@ -70,7 +76,6 @@ export default function Tenants() {
   const navigate = useNavigate()
   const qc = useQueryClient()
   const { showSuccess } = useSnackbar()
-  const { date } = useFormat()
   const [params, setParams] = useSearchParams()
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
@@ -83,6 +88,8 @@ export default function Tenants() {
   const query = { search: q, status, planCode, page, pageSize: 25 }
   const { data, isLoading } = useQuery({ queryKey: ['sa-tenants', query], queryFn: () => fetchTenants(query), placeholderData: (p) => p })
   const { data: plans = [] } = useQuery({ queryKey: ['sa-plans'], queryFn: fetchSaPlans })
+  // the platform overview already counts institutions by status; the tiles reuse it
+  const { data: overview } = useQuery({ queryKey: ['sa-dashboard'], queryFn: fetchDashboard })
   const setParam = (k, v) => { const n = new URLSearchParams(params); if (v) n.set(k, v); else n.delete(k); setParams(n) }
   const meta = data?.meta
 
@@ -90,6 +97,15 @@ export default function Tenants() {
     <PageContainer>
       <PageHeader icon={Building2} title={t('superadmin.tenants.title')} subtitle={t('superadmin.tenants.subtitle')}
         actions={canPlatform('tenants.create') && <Button icon={Plus} onClick={() => setCreating(true)}>{t('superadmin.tenants.newInstitution')}</Button>} />
+      {overview?.byStatus && (
+        <StatCardRow items={STATUS_TILES.map((s) => ({
+          icon: s.icon, tone: s.tone, label: tenantStatusLabel(t, s.code), value: overview.byStatus[s.code] ?? 0,
+          sub: t('superadmin.tenants.ofAll', { count: overview.tenants }),
+          progress: overview.tenants ? ((overview.byStatus[s.code] ?? 0) / overview.tenants) * 100 : 0,
+          onClick: () => setParam('status', status === s.code ? '' : s.code),
+          className: status === s.code ? 'ring-2 ring-brand-400' : status ? 'opacity-60 hover:opacity-100' : undefined,
+        }))} />
+      )}
       <DataTable
         rows={data?.data ?? []}
         loading={isLoading}
@@ -103,13 +119,32 @@ export default function Tenants() {
           )} />
         )}
         columns={[
-          { key: 'name', header: t('superadmin.common.institution'), mobilePrimary: true, render: (v, r) => <div><p className="font-medium text-ink">{v}{r.verified && <VerifiedBadge size="xs" className="ms-1" title={t('superadmin.verification.verified')} />}</p><p className="text-xs text-ink-faint">{[r.city, r.email].filter(Boolean).join(' · ')}</p></div> },
-          { key: 'planName', header: t('superadmin.common.plan'), render: (v, r) => <div><p className="text-sm text-ink">{v}</p><p className="text-xs text-ink-faint">{r.billingCycle === 'YEARLY' ? t('superadmin.cycle.YEARLY') : t('superadmin.cycle.MONTHLY')}</p></div> },
+          { key: 'name', header: t('superadmin.common.institution'), mobilePrimary: true, render: (v, r) => (
+            <InstitutionCell name={v} sub={[r.city, r.email].filter(Boolean).join(' · ')}
+              badge={r.verified && <VerifiedBadge size="xs" className="ms-1" title={t('superadmin.verification.verified')} />} />
+          ) },
+          { key: 'planName', header: t('superadmin.common.plan'), render: (v, r) => (
+            <span className="inline-flex flex-col items-start gap-0.5">
+              <PlanChip code={r.planCode} name={v} />
+              <span className="text-[11px] text-ink-faint">{r.billingCycle === 'YEARLY' ? t('superadmin.cycle.YEARLY') : t('superadmin.cycle.MONTHLY')}</span>
+            </span>
+          ) },
           { key: 'status', header: t('common.status'), render: (v) => <StatusPill tone={TENANT_STATUS[v]?.tone}>{tenantStatusLabel(t, v)}</StatusPill> },
-          { key: 'users', header: t('superadmin.common.users'), align: 'right', render: (v, r) => <span className={r.userLimit != null && v >= r.userLimit ? 'text-danger-600' : ''}>{v}<span className="text-ink-faint"> / {r.userLimit ?? '∞'}</span></span> },
-          { key: 'mrr', header: t('superadmin.dashboard.mrr'), align: 'right', render: (v) => (v ? formatINR(v) : <span className="text-ink-faint">—</span>) },
-          { key: 'currentPeriodEnd', header: t('superadmin.tenants.renews'), nowrap: true, mobileHidden: true, render: (v, r) => <span className="text-sm text-ink-muted">{['TRIAL', 'TRIAL_EXPIRED'].includes(r.status) ? t('superadmin.tenants.trialUntil', { date: date(r.trialEndsAt) }) : v ? date(v) : '—'}</span> },
-          { key: 'createdAt', header: t('superadmin.common.joined'), nowrap: true, mobileHidden: true, render: (v) => <span className="text-sm text-ink-muted">{date(v)}</span> },
+          { key: 'users', header: t('superadmin.common.users'), align: 'right', render: (v, r) => (r.userLimit != null
+            ? <LevelBar value={v} max={r.userLimit} highIsBad warnAt={r.userLimit * 0.8} dangerAt={r.userLimit} width="w-24" />
+            : <span className="tabular-nums"><span className="font-semibold text-ink">{v}</span><span className="text-ink-faint"> / ∞</span></span>) },
+          { key: 'mrr', header: t('superadmin.dashboard.mrr'), align: 'right', render: (v) => (v ? <Money value={v} paise currency="INR" className="font-semibold" /> : <span className="text-ink-faint">—</span>) },
+          { key: 'currentPeriodEnd', header: t('superadmin.tenants.renews'), nowrap: true, mobileHidden: true, render: (v, r) => {
+            if (!['TRIAL', 'TRIAL_EXPIRED'].includes(r.status)) return <DateCell value={v} />
+            const left = r.trialEndsAt ? daysUntil(r.trialEndsAt) : null
+            return (
+              <span className="block">
+                <span className="block text-[10.5px] font-semibold uppercase tracking-wide text-ink-faint">{tenantStatusLabel(t, 'TRIAL')}</span>
+                <DateCell value={r.trialEndsAt} tone={left != null && left < 0 ? 'danger' : left != null && left <= 7 ? 'warning' : undefined} />
+              </span>
+            )
+          } },
+          { key: 'createdAt', header: t('superadmin.common.joined'), nowrap: true, mobileHidden: true, render: (v) => <DateCell value={v} /> },
         ]}
         pagination={meta && { page: meta.page - 1, size: meta.pageSize, totalElements: meta.total, totalPages: meta.totalPages, onPageChange: (p) => setPage(p + 1) }}
         emptyIcon={Building2} emptyTitle={t('superadmin.tenants.empty')}

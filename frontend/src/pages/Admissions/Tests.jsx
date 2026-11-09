@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { ChevronLeft, NotebookPen, Plus, Save, UserPlus } from 'lucide-react'
-import { DataTable, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, Textarea, useConfirm } from '../../components/system'
+import { CheckCheck, ChevronLeft, NotebookPen, Plus, Save, UserPlus, UsersRound } from 'lucide-react'
+import { CodeBadge, ColorChip, DataTable, DateCell, FormField, HeaderButton, Input, LevelBar, Modal, Note, PageContainer, PageHeader, PersonCell, StatCardRow, Textarea, localIso, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
 import useCycle from '../../components/admissions/useCycle'
 import { assignTest, createTest, fetchTestMarks, fetchTests, saveTestMarks, updateTest } from '../../api/admissions'
@@ -74,8 +74,8 @@ function MarksSheet({ testId, onBack }) {
         rows={data.rows}
         dense
         columns={[
-          { key: 'applicationNo', header: t('admissions.applications.no'), render: (v) => <span className="font-mono-num">{v}</span> },
-          { key: 'childName', header: t('admissions.enquiries.child'), mobilePrimary: true, render: (v, r) => <div><p className="font-medium text-ink">{v}</p><p className="text-xs text-ink-faint">{r.className}</p></div> },
+          { key: 'applicationNo', header: t('admissions.applications.no'), render: (v) => <CodeBadge>{v}</CodeBadge> },
+          { key: 'childName', header: t('admissions.enquiries.child'), mobilePrimary: true, render: (v, r) => <PersonCell name={v} sub={r.className} /> },
           { key: 'marks', header: t('admissions.tests.marks'), width: 140, render: (_, r) => <Input type="number" min="0" max={test.maxMarks} className="w-24 text-right" disabled={!canEdit || rows[r.id]?.absent} value={rows[r.id]?.marks ?? ''} onChange={(e) => setRows((x) => ({ ...x, [r.id]: { ...x[r.id], marks: e.target.value } }))} aria-label={t('admissions.tests.marks')} /> },
           { key: 'absent', header: t('admissions.tests.absent'), width: 90, render: (_, r) => <input type="checkbox" disabled={!canEdit} checked={!!rows[r.id]?.absent} onChange={(e) => setRows((x) => ({ ...x, [r.id]: { ...x[r.id], absent: e.target.checked } }))} aria-label={t('admissions.tests.absent')} className="rounded border-border text-brand-500 focus:ring-brand-500" /> },
         ]}
@@ -88,17 +88,26 @@ function MarksSheet({ testId, onBack }) {
 export default function Tests() {
   const { t } = useTranslation('admissions')
   const qc = useQueryClient()
-  const { date } = useFormat()
   const { showSuccess } = useSnackbar()
   const { cycle, chip } = useCycle()
   const [editing, setEditing] = useState(null)
   const [openId, setOpenId] = useState(null)
   const { data: rows = [], isLoading, error, refetch } = useQuery({ queryKey: ['admission-tests', cycle?.id], queryFn: () => fetchTests(cycle.id), enabled: !!cycle })
+  const today = localIso(new Date())
+  const applicants = rows.reduce((n, r) => n + r.applicants, 0)
+  const marked = rows.reduce((n, r) => n + r.marked, 0)
   return (
     <PageContainer>
       <PageHeader icon={NotebookPen} title={t('admissions.tests.title')} subtitle={t('admissions.tests.subtitle')}
         actions={!openId && cycle && <HeaderButton icon={Plus} variant="primary" requires="admissions.tests.create" onClick={() => setEditing('new')}>{t('admissions.tests.new')}</HeaderButton>} />
       {!cycle && <Note tone="warning">{t('admissions.noCycles')}</Note>}
+      {!openId && rows.length > 0 && (
+        <StatCardRow className="mb-4" items={[
+          { icon: NotebookPen, tone: 'brand', label: t('admissions.tests.summary.tests'), value: rows.length, sub: t('admissions.tests.summary.upcoming', { count: rows.filter((r) => r.date >= today).length }) },
+          { icon: UsersRound, tone: 'violet', label: t('admissions.tests.applicants'), value: applicants },
+          { icon: CheckCheck, tone: applicants && marked >= applicants ? 'success' : 'warning', label: t('admissions.tests.marked'), value: marked, sub: t('admissions.tests.summary.ofApplicants', { count: applicants }), progress: applicants ? (marked / applicants) * 100 : undefined },
+        ]} />
+      )}
       {openId ? <MarksSheet testId={openId} onBack={() => setOpenId(null)} /> : cycle && (
         <DataTable
           rows={rows}
@@ -107,11 +116,21 @@ export default function Tests() {
           onRetry={refetch}
           toolbar={<div className="flex justify-end">{chip}</div>}
           columns={[
-            { key: 'name', header: t('admissions.tests.name'), mobilePrimary: true, render: (v, r) => <div><p className="font-medium text-ink">{v}</p><p className="text-xs text-ink-faint">{r.classes.join(', ')}</p></div> },
-            { key: 'date', header: t('admissions.tests.date'), nowrap: true, render: (v, r) => `${date(v)}${r.time ? ` · ${r.time}` : ''}` },
-            { key: 'venue', header: t('admissions.tests.venue'), mobileHidden: true, render: (v) => v ?? '—' },
-            { key: 'applicants', header: t('admissions.tests.applicants'), align: 'right' },
-            { key: 'marked', header: t('admissions.tests.marked'), align: 'right', render: (v, r) => `${v} / ${r.applicants}` },
+            { key: 'name', header: t('admissions.tests.name'), mobilePrimary: true, render: (v, r) => (
+              <div className="min-w-0">
+                <p className="font-medium text-ink">{v}</p>
+                <div className="mt-1 flex flex-wrap gap-1">{r.classes.map((c, i) => <ColorChip key={c} label={c} seed={r.classIds?.[i] ?? c} />)}</div>
+              </div>
+            ) },
+            { key: 'date', header: t('admissions.tests.date'), nowrap: true, render: (v, r) => (
+              <span className="block">
+                <DateCell value={v} tone={v < today && r.marked < r.applicants ? 'danger' : v === today ? 'warning' : undefined} />
+                {r.time && <span className="block text-[11px] text-ink-faint tabular-nums">{r.time}</span>}
+              </span>
+            ) },
+            { key: 'venue', header: t('admissions.tests.venue'), mobileHidden: true, render: (v) => (v ? <span className="text-sm text-ink-muted">{v}</span> : <span className="text-ink-faint">—</span>) },
+            { key: 'applicants', header: t('admissions.tests.applicants'), align: 'right', render: (v) => <span className="font-semibold tabular-nums text-ink">{v}</span> },
+            { key: 'marked', header: t('admissions.tests.marked'), align: 'right', render: (v, r) => (r.applicants ? <LevelBar value={v} max={r.applicants} warnAt={r.applicants - 1} /> : <span className="text-ink-faint">—</span>) },
             { key: 'id', header: '', align: 'right', width: 80, render: (_, r) => hasPermission('admissions.tests.edit') && <Button size="sm" variant="ghost" onClick={(e) => { e.stopPropagation(); setEditing(r) }}>{t('admissions.tests.edit')}</Button> },
           ]}
           onRowClick={(r) => setOpenId(r.id)}

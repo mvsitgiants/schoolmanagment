@@ -3,12 +3,11 @@ import { useTranslation } from 'react-i18next'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { KeyRound, Plus, UserCog } from 'lucide-react'
 import { PLATFORM_ROLES } from '@schoolgiant/shared'
-import { DataTable, FormField, Input, Modal, PageContainer, PageHeader, Select, StatusPill, useConfirm } from '../../components/system'
+import { DataTable, DateCell, FormField, Input, Modal, PageContainer, PageHeader, PersonCell, Select, StatusPill, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { createStaff, fetchStaff, resetStaffPassword, updateStaff } from '../../api/superadmin'
 import { getCurrentUser } from '../../api/auth'
 import { useSnackbar } from '../../context/SnackbarContext'
-import { useFormat } from '../../context/SettingsContext'
 
 const roleLabel = (t, r) => t(`superadmin.staff.roles.${r}`, { defaultValue: PLATFORM_ROLES.find((x) => x.value === r)?.label ?? r })
 
@@ -54,7 +53,6 @@ export default function Staff() {
   const qc = useQueryClient()
   const { showSuccess, showError } = useSnackbar()
   const confirm = useConfirm()
-  const { dateTime } = useFormat()
   const me = getCurrentUser()
   const { data: rows = [], isLoading } = useQuery({ queryKey: ['sa-staff'], queryFn: fetchStaff })
   const [adding, setAdding] = useState(false)
@@ -69,13 +67,13 @@ export default function Staff() {
         rows={rows}
         loading={isLoading}
         columns={[
-          { key: 'name', header: t('common.name'), mobilePrimary: true, render: (v, r) => <div><p className="font-medium text-ink">{v}{r.id === me?.user?.id && <span className="text-ink-faint font-normal"> · {t('superadmin.staff.you')}</span>}</p><p className="text-xs text-ink-muted">{r.email}</p></div> },
+          { key: 'name', header: t('common.name'), mobilePrimary: true, render: (v, r) => <PersonCell name={v} sub={r.id === me?.user?.id ? `${r.email} · ${t('superadmin.staff.you')}` : r.email} /> },
           { key: 'role', header: t('superadmin.staff.role'), render: (v, r) => (
             <Select value={v} disabled={r.id === me?.user?.id || act.isPending} onChange={(e) => act.mutate({ fn: () => updateStaff(r.id, { role: e.target.value }), done: () => showSuccess(t('superadmin.staff.saved')) })} aria-label={t('superadmin.staff.role')}>
               {PLATFORM_ROLES.map((x) => <option key={x.value} value={x.value}>{roleLabel(t, x.value)}</option>)}
             </Select>
           ) },
-          { key: 'lastLoginAt', header: t('superadmin.staff.lastSignIn'), mobileHidden: true, render: (v) => (v ? dateTime(v) : t('superadmin.staff.never')) },
+          { key: 'lastLoginAt', header: t('superadmin.staff.lastSignIn'), mobileHidden: true, render: (v) => (v ? <DateCell value={v} time /> : <span className="text-ink-faint">{t('superadmin.staff.never')}</span>) },
           { key: 'active', header: t('common.status'), render: (v, r) => <StatusPill tone={!v ? 'neutral' : r.mustChangePassword ? 'warning' : 'success'}>{!v ? t('superadmin.staff.inactive') : r.mustChangePassword ? t('superadmin.staff.tempPassword') : t('superadmin.staff.active')}</StatusPill> },
           { key: 'id', header: '', align: 'right', render: (_, r) => r.id !== me?.user?.id && (
             <div className="flex justify-end gap-1">

@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { Building, GraduationCap, Pencil, Plus, Trash2, Wrench, Briefcase } from 'lucide-react'
 import { ImportExportButtons,
-  ControlChip, DataTable, FormField, HeaderButton, Input, Modal, PageContainer, PageHeader, Select, StatCardRow, StatusPill, Textarea, Toolbar, useConfirm,
+  ColorChip, ControlChip, DataTable, FormField, HeaderButton, Input, Modal, PageContainer, PageHeader, PersonCell, Select, StatCardRow, StatusPill, TONE, Textarea, Toolbar, useConfirm,
 } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { Switch } from '../../components/app/Controls'
@@ -18,6 +18,9 @@ export const DEPT_TYPES = {
   ADMINISTRATIVE: { label: 'Administrative', tone: 'neutral', icon: Briefcase },
   SUPPORT: { label: 'Support', tone: 'success', icon: Wrench },
 }
+
+// the colour a department type shows in (administrative is not "nothing", so not grey)
+const typeTone = (k) => (k === 'ADMINISTRATIVE' ? 'violet' : DEPT_TYPES[k]?.tone ?? 'neutral')
 
 function DeptForm({ dept, onClose, onSaved }) {
   const { t } = useTranslation('admin')
@@ -87,21 +90,22 @@ export default function Departments() {
             onDone={() => { qc.invalidateQueries({ queryKey: ['departments'] }); qc.invalidateQueries({ queryKey: ['setup'] }) }} />}
           {<HeaderButton icon={Plus} variant="primary" requires="create" onClick={() => setEditing('new')}>{t('admin.departments.newDepartment')}</HeaderButton>}
         </>} />
-      <StatCardRow items={[
-        { icon: GraduationCap, label: typeLabel('ACADEMIC'), value: count('ACADEMIC'), tone: 'brand', onClick: () => setType('ACADEMIC') },
-        { icon: Briefcase, label: typeLabel('ADMINISTRATIVE'), value: count('ADMINISTRATIVE'), tone: 'neutral', onClick: () => setType('ADMINISTRATIVE') },
-        { icon: Wrench, label: typeLabel('SUPPORT'), value: count('SUPPORT'), tone: 'success', onClick: () => setType('SUPPORT') },
-      ]} />
+      <StatCardRow items={Object.keys(DEPT_TYPES).map((k) => ({
+        icon: DEPT_TYPES[k].icon, label: typeLabel(k), value: count(k), tone: typeTone(k),
+        sub: t('admin.departments.staffIn', { count: rows.filter((d) => d.type === k && d.active).reduce((n, d) => n + (d.staffCount ?? 0), 0) }),
+        onClick: () => setType(type === k ? '' : k),
+        className: type === k ? 'ring-2 ring-brand-400' : type ? 'opacity-60 hover:opacity-100' : undefined,
+      }))} />
       <DataTable
         rows={shown}
         loading={isLoading}
         exportable exportName="departments"
         toolbar={<Toolbar search={search} onSearch={setSearch} searchPlaceholder={t('admin.departments.searchPlaceholder')} right={<ControlChip label={t('admin.departments.type')} value={type ? typeLabel(type) : t('admin.departments.all')} active={!!type} options={[t('admin.departments.all'), ...Object.keys(DEPT_TYPES).map(typeLabel)]} onChange={(v) => setType(Object.keys(DEPT_TYPES).find((k) => typeLabel(k) === v) ?? '')} />} />}
         columns={[
-          { key: 'name', header: t('admin.departments.department'), mobilePrimary: true, render: (v, r) => { const T = DEPT_TYPES[r.type]; const Icon = T?.icon ?? Building; return <div className="flex items-center gap-3"><span className="w-8 h-8 rounded-lg bg-bg flex items-center justify-center text-ink-muted"><Icon className="w-4 h-4" /></span><div><p className="font-medium text-ink">{v}</p><p className="text-xs text-ink-faint font-mono-num">{r.code}</p></div></div> } },
-          { key: 'type', header: t('admin.departments.type'), render: (v) => <StatusPill tone={DEPT_TYPES[v]?.tone}>{typeLabel(v)}</StatusPill> },
-          { key: 'headName', header: t('admin.departments.headCol'), mobileHidden: true, render: (v) => v || <span className="text-ink-faint">—</span> },
-          { key: 'staffCount', header: t('admin.departments.staff'), align: 'right', sortable: true },
+          { key: 'name', header: t('admin.departments.department'), mobilePrimary: true, render: (v, r) => { const T = DEPT_TYPES[r.type]; const Icon = T?.icon ?? Building; const tn = TONE[typeTone(r.type)]; return <div className="flex items-center gap-3"><span className={`w-9 h-9 rounded-xl border flex items-center justify-center shrink-0 ${tn.bg} ${tn.text} ${tn.border}`}><Icon className="w-4 h-4" /></span><div><p className="font-medium text-ink">{v}</p><p className="text-xs text-ink-faint font-mono-num">{r.code}</p></div></div> } },
+          { key: 'type', header: t('admin.departments.type'), render: (v) => <ColorChip label={typeLabel(v)} tone={typeTone(v)} icon={DEPT_TYPES[v]?.icon} /> },
+          { key: 'headName', header: t('admin.departments.headCol'), mobileHidden: true, render: (v) => (v ? <PersonCell name={v} size={26} /> : <span className="text-ink-faint">—</span>) },
+          { key: 'staffCount', header: t('admin.departments.staff'), align: 'right', sortable: true, render: (v) => <span className={`tabular-nums ${v ? 'font-semibold text-ink' : 'text-ink-faint'}`}>{v ?? 0}</span> },
           { key: 'active', header: t('common.status'), render: (v) => <StatusPill tone={v ? 'success' : 'neutral'}>{v ? t('status.active') : t('admin.departments.inactive')}</StatusPill> },
           { key: 'id', header: '', align: 'right', width: 90, render: (_, r) => (
             <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>

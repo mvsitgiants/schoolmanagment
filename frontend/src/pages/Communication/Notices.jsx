@@ -3,14 +3,13 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tansta
 import { useTranslation } from 'react-i18next'
 import { Eye, Megaphone, Pin, Plus, Send, Trash2, Undo2 } from 'lucide-react'
 import { NOTICE_CATEGORIES, NOTICE_STATUS, SEND_CHANNELS } from '@schoolgiant/shared'
-import { Attachments, ControlChip, DataTable, Drawer, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, Select, StatusPill, Textarea, Toolbar, useConfirm } from '../../components/system'
+import { Attachments, ColorChip, ControlChip, DataTable, DateCell, Drawer, FormField, HeaderButton, Input, Modal, LevelBar, Note, PageContainer, PageHeader, Select, StatusPill, Textarea, Toolbar, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
 import AudiencePicker, { emptyAudience } from '../../components/communication/AudiencePicker'
 import useDebouncedValue from '../../hooks/useDebouncedValue'
 import { createNotice, deleteNotice, fetchNotices, publishNotice, updateNotice, withdrawNotice } from '../../api/communication'
 import { hasPermission } from '../../api/auth'
 import { useSnackbar } from '../../context/SnackbarContext'
-import { useFormat } from '../../context/SettingsContext'
 
 const catKey = (c) => c.replace(/[^A-Za-z]/g, '')
 
@@ -83,7 +82,6 @@ export default function Notices() {
   const { t } = useTranslation('communication')
   const qc = useQueryClient()
   const confirm = useConfirm()
-  const { dateTime } = useFormat()
   const { showSuccess, showError } = useSnackbar()
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState('')
@@ -112,10 +110,10 @@ export default function Notices() {
         toolbar={<Toolbar search={search} onSearch={(v) => { setSearch(v); setPage(1) }} searchPlaceholder={t('communication.notices.search')}
           right={<ControlChip label={t('communication.statusLabel')} value={statusLabel(status)} active={!!status} options={STATUSES.map(statusLabel)} onChange={(v) => { setStatus(STATUSES.find((s) => statusLabel(s) === v) ?? ''); setPage(1) }} />} />}
         columns={[
-          { key: 'title', header: t('communication.notices.titleLabel'), mobilePrimary: true, render: (v, r) => <div><p className="font-medium text-ink flex items-center gap-1">{r.pinned && <Pin size={13} className="text-amber-500" />}{v}</p><p className="text-xs text-ink-faint">{t(`communication.categories.${catKey(r.category)}`, r.category)}{r.files ? ` · ${t('communication.notices.filesN', { count: r.files })}` : ''}</p></div> },
+          { key: 'title', header: t('communication.notices.titleLabel'), mobilePrimary: true, render: (v, r) => <div><p className="font-medium text-ink flex items-center gap-1">{r.pinned && <Pin size={13} className="text-amber-500" />}{v}</p><div className="mt-1"><ColorChip label={t(`communication.categories.${catKey(r.category)}`, r.category)} seed={`notice-${catKey(r.category)}`} dot sub={r.files ? t('communication.notices.filesN', { count: r.files }) : undefined} /></div></div> },
           { key: 'audience', header: t('communication.notices.forWhom'), render: (_, r) => <span className="text-sm text-ink-muted line-clamp-2">{audienceText(r)}</span> },
-          { key: 'publishedAt', header: t('communication.notices.published'), mobileHidden: true, render: (v, r) => (v ? <span className="text-sm">{dateTime(v)}<span className="block text-xs text-ink-faint">{r.publishedBy}</span></span> : '—') },
-          { key: 'reads', header: t('communication.notices.reads'), align: 'right', render: (v, r) => (r.status === 'DRAFT' ? '—' : <span title={t('communication.notices.readsHint')}>{v} / {r.recipients ?? '—'}</span>) },
+          { key: 'publishedAt', header: t('communication.notices.published'), mobileHidden: true, render: (v, r) => (v ? <span className="block"><DateCell value={v} time />{r.publishedBy && <span className="block text-xs text-ink-faint mt-0.5">{r.publishedBy}</span>}</span> : '—') },
+          { key: 'reads', header: t('communication.notices.reads'), align: 'right', render: (v, r) => (r.status === 'DRAFT' ? '—' : r.recipients ? <span title={t('communication.notices.readsHint')} className="inline-flex justify-end"><LevelBar value={v} max={r.recipients} width="w-24" /></span> : <span title={t('communication.notices.readsHint')}>{v} / —</span>) },
           { key: 'status', header: t('communication.statusLabel'), render: (v) => <StatusPill tone={NOTICE_STATUS[v]?.tone}>{statusLabel(v)}</StatusPill> },
           { key: 'id', header: '', align: 'right', width: 130, render: (id, r) => (
             <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>

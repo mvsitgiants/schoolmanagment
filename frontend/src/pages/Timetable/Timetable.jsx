@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { CalendarDays, FilePlus2, Lock, LockOpen, Plus, Send, Settings2, Trash2, Wand2, X } from 'lucide-react'
 import { TIMETABLE_STATUS, WEEK_DAYS } from '@schoolgiant/shared'
-import { DataTable, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, Panel, ProgressBar, SegmentedControl, Select, StatusPill, Textarea, useConfirm } from '../../components/system'
+import { ColorChip, DataTable, DateCell, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, Panel, PersonCell, ProgressBar, SegmentedControl, Select, StatusPill, Textarea, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
 import WeekGrid from '../../components/timetable/WeekGrid'
 import { fetchAcademicLookup } from '../../api/academics'
@@ -130,7 +130,7 @@ function LoadPanel({ timetableId }) {
   return (
     <Panel title={t('timetable.load.title')} subtitle={t('timetable.load.subtitle')} flush>
       <DataTable rows={data} loading={isLoading} dense rowKey="teacherId" className="border-0 shadow-none" columns={[
-        { key: 'name', header: t('timetable.load.teacher'), mobilePrimary: true },
+        { key: 'name', header: t('timetable.load.teacher'), mobilePrimary: true, render: (v) => <PersonCell name={v} size={26} /> },
         { key: 'periods', header: t('timetable.load.periods'), align: 'right', render: (v, r) => <span className={v < r.wanted ? 'text-danger-600 font-medium' : ''}>{t('timetable.load.ofWanted', { n: v, wanted: r.wanted })}</span> },
         { key: 'wanted', header: '', width: 160, render: (v, r) => <ProgressBar value={v ? Math.min(100, Math.round((r.periods / v) * 100)) : 0} /> },
       ]} emptyTitle={t('timetable.load.empty')} />
@@ -141,7 +141,6 @@ function LoadPanel({ timetableId }) {
 /** A teacher's own week, from the published timetable, with the classes they cover soon. */
 function MyWeek() {
   const { t } = useTranslation('timetable')
-  const { date } = useFormat()
   const { data, isLoading } = useQuery({ queryKey: ['timetable-mine'], queryFn: fetchMyTimetable })
   if (isLoading) return <p className="text-sm text-ink-faint">{t('timetable.loading')}</p>
   if (!data?.timetable) return <Note>{t('timetable.mine.none')}</Note>
@@ -151,10 +150,10 @@ function MyWeek() {
       {data.covering?.length > 0 && (
         <Panel title={t('timetable.mine.covering')} flush>
           <DataTable rows={data.covering} dense className="border-0 shadow-none" columns={[
-            { key: 'date', header: t('timetable.subs.date'), nowrap: true, render: (v) => date(v) },
+            { key: 'date', header: t('timetable.subs.date'), nowrap: true, render: (v) => <DateCell value={v} /> },
             { key: 'period', header: t('timetable.subs.period'), align: 'right' },
-            { key: 'section', header: t('timetable.subs.section'), mobilePrimary: true },
-            { key: 'forTeacher', header: t('timetable.subs.forTeacher') },
+            { key: 'section', header: t('timetable.subs.section'), mobilePrimary: true, render: (v) => <ColorChip label={v} /> },
+            { key: 'forTeacher', header: t('timetable.subs.forTeacher'), render: (v) => <PersonCell name={v} size={26} /> },
           ]} />
         </Panel>
       )}

@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { CalendarOff, Check, Plus, X, XCircle } from 'lucide-react'
-import { LEAVE_STATUS } from '@schoolgiant/shared'
-import { ControlChip, DataTable, FormField, HeaderButton, Input, Modal, PageContainer, PageHeader, Select, StatusPill, Textarea, useConfirm } from '../../components/system'
+import { CalendarOff, Check, CheckCircle2, Hourglass, Plus, X, XCircle } from 'lucide-react'
+import { LEAVE_STATUS, daysBetween } from '@schoolgiant/shared'
+import { ColorChip, ControlChip, DataTable, FormField, HeaderButton, Input, Modal, PageContainer, PageHeader, PersonCell, Select, StackCell, StatCardRow, StatusPill, TONE, Textarea, localIso, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
 import useDebouncedValue from '../../hooks/useDebouncedValue'
 import { applyStudentLeave, cancelStudentLeave, decideStudentLeave, fetchStudentLeave } from '../../api/attendance'
@@ -53,16 +53,28 @@ export default function Leave() {
   const [status, setStatus] = useState('PENDING')
   const [adding, setAdding] = useState(false)
   const { data: rows = [], isLoading, error, refetch } = useQuery({ queryKey: ['student-leave', status], queryFn: () => fetchStudentLeave({ status: status || undefined }) })
+  // the tiles count every request, whichever status is picked (the same list as "All")
+  const { data: all = [] } = useQuery({ queryKey: ['student-leave', ''], queryFn: () => fetchStudentLeave({}) })
+  const tally = all.reduce((m, r) => ({ ...m, [r.status]: (m[r.status] ?? 0) + 1 }), {})
+  const today = localIso(new Date())
   const refresh = () => { qc.invalidateQueries({ queryKey: ['student-leave'] }); qc.invalidateQueries({ queryKey: ['attendance-sheet'] }) }
   const act = useMutation({ mutationFn: ({ fn }) => fn(), onSuccess: (_, v) => { refresh(); showSuccess(v.done) }, onError: (e) => showError(e.message) })
   const statusLabel = (s) => (s ? t(`attendance.leave.status.${s}`, LEAVE_STATUS[s]?.label) : t('attendance.all'))
   const STATUSES = ['PENDING', 'APPROVED', 'REJECTED', 'CANCELLED', '']
+  const STATUS_LOOK = { PENDING: { icon: Hourglass, tone: 'warning' }, APPROVED: { icon: CheckCircle2, tone: 'success' }, REJECTED: { icon: X, tone: 'danger' }, CANCELLED: { icon: XCircle, tone: 'neutral' } }
   const canDecide = hasPermission('attendance.leave.approve')
 
   return (
     <PageContainer>
       <PageHeader icon={CalendarOff} title={t('attendance.leave.title')} subtitle={t('attendance.leave.subtitle')}
         actions={<HeaderButton icon={Plus} variant="primary" onClick={() => setAdding(true)}>{t('attendance.leave.new')}</HeaderButton>} />
+      {all.length > 0 && (
+        <StatCardRow className="mb-4" items={STATUSES.filter(Boolean).map((k) => ({
+          label: statusLabel(k), value: tally[k] ?? 0, ...STATUS_LOOK[k],
+          onClick: () => setStatus(status === k ? '' : k),
+          className: status === k ? 'ring-2 ring-brand-400' : status ? 'opacity-60 hover:opacity-100' : undefined,
+        }))} />
+      )}
       <DataTable
         rows={rows}
         loading={isLoading}
@@ -70,10 +82,15 @@ export default function Leave() {
         onRetry={refetch}
         toolbar={<div className="flex justify-end"><ControlChip label={t('attendance.leave.statusLabel')} value={statusLabel(status)} active={status !== 'PENDING'} options={STATUSES.map(statusLabel)} onChange={(v) => setStatus(STATUSES.find((s) => statusLabel(s) === v) ?? 'PENDING')} /></div>}
         columns={[
-          { key: 'studentName', header: t('attendance.leave.student'), mobilePrimary: true, render: (v, r) => <div><p className="font-medium text-ink">{v}</p><p className="text-xs text-ink-faint">{[r.classShort, r.admissionNo].filter(Boolean).join(' · ')}</p></div> },
-          { key: 'from', header: t('attendance.leave.dates'), render: (v, r) => <span className="text-sm">{date(v)}{r.to !== v ? ` – ${date(r.to)}` : ''}</span> },
+          { key: 'studentName', header: t('attendance.leave.student'), mobilePrimary: true, render: (v, r) => <PersonCell name={v} sub={r.admissionNo} size={34} /> },
+          { key: 'classShort', header: t('attendance.leave.class'), mobileHidden: true, render: (v) => <ColorChip label={v} /> },
+          { key: 'from', header: t('attendance.leave.dates'), nowrap: true, render: (v, r) => {
+            const live = ['PENDING', 'APPROVED'].includes(r.status)
+            const tone = live && v <= today && r.to >= today ? 'info' : r.status === 'PENDING' && v < today ? 'danger' : undefined
+            return <StackCell title={<span className={tone ? TONE[tone].text : undefined}>{date(v)}{r.to !== v ? ` – ${date(r.to)}` : ''}</span>} sub={t('attendance.leave.days', { count: daysBetween(v, r.to).length })} />
+          } },
           { key: 'reason', header: t('attendance.leave.reason'), render: (v) => <span className="text-sm text-ink-muted line-clamp-2">{v}</span> },
-          { key: 'appliedByName', header: t('attendance.leave.askedBy'), mobileHidden: true, render: (v, r) => <span className="text-sm text-ink-muted">{v}{r.decidedBy ? ` → ${r.decidedBy}` : ''}</span> },
+          { key: 'appliedByName', header: t('attendance.leave.askedBy'), mobileHidden: true, render: (v, r) => <StackCell title={v ?? '—'} sub={r.decidedBy ? `→ ${r.decidedBy}` : undefined} /> },
           { key: 'status', header: t('attendance.leave.statusLabel'), render: (v) => <StatusPill tone={LEAVE_STATUS[v]?.tone}>{statusLabel(v)}</StatusPill> },
           { key: 'id', header: '', align: 'right', width: 130, render: (id, r) => (
             <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>

@@ -1,9 +1,9 @@
 import { useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { ArrowLeftRight, BookCheck, BookPlus, BookX, IndianRupee, RefreshCw, ScanBarcode, UserSearch, X } from 'lucide-react'
+import { AlarmClock, ArrowLeftRight, BookCheck, BookPlus, BookX, CalendarClock, IndianRupee, RefreshCw, ScanBarcode, UserSearch, X } from 'lucide-react'
 import { formatINR, toPaise } from '@schoolgiant/shared'
-import { DataTable, FormField, Input, Note, PageContainer, PageHeader, Panel, SearchInput, SegmentedControl, StatCardRow, Tabs, useConfirm, usePrompt } from '../../components/system'
+import { DataTable, DateCell, FormField, Input, Money, Note, PageContainer, PageHeader, Panel, PersonCell, SearchInput, StackCell, SegmentedControl, StatCardRow, Tabs, useConfirm, usePrompt } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { fetchBorrower, fetchCopyByCode, fetchDesk, fetchLoans, issueBooks, markLost, renewLoan, returnBook, searchBorrowers } from '../../api/library'
 import { hasPermission } from '../../api/auth'
@@ -197,7 +197,6 @@ function Loans() {
   const qc = useQueryClient()
   const confirm = useConfirm()
   const prompt = usePrompt()
-  const { date } = useFormat()
   const { showError, showSuccess } = useSnackbar()
   const [state, setState] = useState('OVERDUE')
   const [search, setSearch] = useState('')
@@ -219,10 +218,15 @@ function Loans() {
         <div className="w-64"><SearchInput value={search} onChange={(v) => { setSearch(v); setPage(1) }} placeholder={t('library.loans.search')} /></div>
       </div>
       <DataTable rows={data?.data ?? []} loading={isLoading} columns={[
-        { key: 'title', header: t('library.loans.book'), mobilePrimary: true, render: (v, l) => <span>{v}<span className="block text-xs text-ink-faint">{l.accessionNo}</span></span> },
-        { key: 'borrower', header: t('library.loans.borrower'), render: (v) => <span>{v?.name}<span className="block text-xs text-ink-faint">{[L.kind(v?.kind), v?.place].filter(Boolean).join(' · ')}</span></span> },
-        { key: 'issuedOn', header: t('library.loans.issued'), mobileHidden: true, render: (v) => date(v) },
-        { key: 'dueOn', header: t('library.loans.due'), render: (v, l) => <span>{date(l.returnedOn ?? v)}{l.daysLate > 0 && <span className="block text-xs text-danger-600">{t('library.desk.lateBy', { count: l.daysLate })}{l.fineSoFar > 0 && ` · ${formatINR(l.fineSoFar)}`}</span>}</span> },
+        { key: 'title', header: t('library.loans.book'), mobilePrimary: true, render: (v, l) => <StackCell title={v} sub={l.accessionNo} subMono /> },
+        { key: 'borrower', header: t('library.loans.borrower'), render: (v) => <PersonCell name={v?.name} sub={[L.kind(v?.kind), v?.place].filter(Boolean).join(' · ') || undefined} /> },
+        { key: 'issuedOn', header: t('library.loans.issued'), mobileHidden: true, render: (v) => <DateCell value={v} relative={false} /> },
+        { key: 'dueOn', header: t('library.loans.due'), render: (v, l) => (
+          <span className="block">
+            <DateCell value={l.returnedOn ?? v} relative={!l.daysLate} tone={l.daysLate > 0 && !l.returnedOn ? 'danger' : undefined} />
+            {l.daysLate > 0 && <span className="mt-0.5 block text-xs text-danger-600">{t('library.desk.lateBy', { count: l.daysLate })}{l.fineSoFar > 0 && <> · <Money value={l.fineSoFar} paise tone="danger" className="text-xs" /></>}</span>}
+          </span>
+        ) },
         { key: 'state', header: t('library.loans.status'), render: (v) => <LoanPill state={v} /> },
         { key: 'id', header: '', align: 'right', width: 110, render: (_, l) => l.status === 'ISSUED' && (
           <div className="flex justify-end gap-1">
@@ -246,10 +250,10 @@ export default function Circulation() {
       <PageHeader icon={ScanBarcode} title={t('library.desk.title')} subtitle={t('library.desk.subtitle')} />
       <div className="space-y-4">
         {d && <StatCardRow items={[
-          { label: t('library.desk.issuedToday'), value: d.issued },
-          { label: t('library.desk.returnedToday'), value: d.returned },
-          { label: t('library.desk.dueToday'), value: d.dueToday },
-          { label: t('library.desk.overdue'), value: d.overdue, tone: d.overdue ? 'danger' : 'neutral' },
+          { icon: BookPlus, tone: 'brand', label: t('library.desk.issuedToday'), value: d.issued },
+          { icon: BookCheck, tone: 'success', label: t('library.desk.returnedToday'), value: d.returned },
+          { icon: CalendarClock, tone: d.dueToday ? 'warning' : 'sky', label: t('library.desk.dueToday'), value: d.dueToday },
+          { icon: AlarmClock, label: t('library.desk.overdue'), value: d.overdue, tone: d.overdue ? 'danger' : 'neutral' },
         ]} />}
         <Tabs value={tab} onChange={setTab} tabs={[{ value: 'DESK', label: t('library.desk.tabDesk'), icon: UserSearch }, { value: 'LOANS', label: t('library.desk.tabLoans') }]} />
         {tab === 'DESK' ? <div className="grid lg:grid-cols-2 gap-4 items-start"><IssuePanel /><ReturnPanel /></div> : <Loans />}

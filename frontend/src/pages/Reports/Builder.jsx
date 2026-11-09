@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { CalendarClock, ChevronLeft, Pencil, Play, Plus, Trash2, Users, Wrench } from 'lucide-react'
 import { REPORT_FREQUENCIES } from '@schoolgiant/shared'
-import { DataTable, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, Select, StatusPill, useConfirm } from '../../components/system'
+import { ColorChip, DataTable, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, PersonCell, Select, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { ParamsForm, ResultTable, defaultParams } from '../../components/reports/ReportParts'
 import { createSavedReport, deleteSavedReport, fetchReportLibrary, fetchSavedReports, runSavedReport, updateSavedReport } from '../../api/reports'
@@ -174,10 +174,10 @@ export default function Builder() {
           error={error}
           onRetry={refetch}
           columns={[
-            { key: 'name', header: t('reports.name'), mobilePrimary: true, render: (v, r) => <div><p className="font-medium text-ink">{v}</p><p className="text-xs text-ink-faint">{libLabel.get(r.reportId) ?? r.label}</p></div> },
-            { key: 'owner', header: t('reports.builder.owner'), mobileHidden: true, render: (v, r) => <span className="text-sm text-ink-muted">{r.mine ? t('reports.builder.you') : v}{r.sharedRoleIds.length > 0 && <span className="ms-1 inline-flex items-center gap-0.5 text-xs text-ink-faint"><Users size={12} /> {r.sharedRoleIds.length}</span>}</span> },
+            { key: 'name', header: t('reports.name'), mobilePrimary: true, render: (v, r) => <div className="min-w-0"><p className="font-medium text-ink truncate">{v}</p><div className="mt-1"><ColorChip label={libLabel.get(r.reportId) ?? r.label} seed={r.reportId} dot /></div></div> },
+            { key: 'owner', header: t('reports.builder.owner'), mobileHidden: true, render: (v, r) => <span className="inline-flex items-center gap-2"><PersonCell name={r.mine ? t('reports.builder.you') : v} size={26} />{r.sharedRoleIds.length > 0 && <span className="inline-flex items-center gap-0.5 text-xs text-ink-faint"><Users size={12} /> {r.sharedRoleIds.length}</span>}</span> },
             { key: 'schedule', header: t('reports.builder.schedule'), render: (s, r) => (s.active
-              ? <div><StatusPill tone="info">{`${freq(s)} · ${String(s.hour).padStart(2, '0')}:00`}</StatusPill>{r.lastError ? <p className="text-xs text-danger-600 mt-0.5 line-clamp-1">{r.lastError}</p> : r.lastRunAt && <p className="text-xs text-ink-faint mt-0.5">{t('reports.builder.lastSent', { at: dateTime(r.lastRunAt), count: r.lastRows ?? 0 })}</p>}</div>
+              ? <div><ColorChip label={`${freq(s)} · ${String(s.hour).padStart(2, '0')}:00`} tone="info" icon={CalendarClock} />{r.lastError ? <p className="text-xs text-danger-600 mt-0.5 line-clamp-1">{r.lastError}</p> : r.lastRunAt && <p className="text-xs text-ink-faint mt-0.5">{t('reports.builder.lastSent', { at: dateTime(r.lastRunAt), count: r.lastRows ?? 0 })}</p>}</div>
               : <span className="text-xs text-ink-faint">{t('reports.builder.notScheduled')}</span>) },
             { key: 'id', header: '', align: 'right', width: 130, render: (id, r) => (
               <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>

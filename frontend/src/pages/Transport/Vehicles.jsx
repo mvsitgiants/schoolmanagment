@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { Bus, Copy, Pencil, Plus, Radio, Trash2 } from 'lucide-react'
+import { Armchair, Bike, Bus, BusFront, CarFront, Copy, FileWarning, Pencil, Plus, Radio, Route as RouteIcon, Trash2 } from 'lucide-react'
 import { VEHICLE_DOCS, VEHICLE_STATUS, VEHICLE_TYPES } from '@schoolgiant/shared'
-import { DataTable, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, Panel, PhoneLink, Select, StatCardRow, Textarea, useConfirm } from '../../components/system'
+import { CodeBadge, ColorChip, DataTable, DateCell, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, Panel, PersonCell, PhoneLink, Select, StatCardRow, Textarea, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { deleteVehicle, fetchGpsHook, fetchStaffLogins, fetchVehicles, saveVehicle } from '../../api/transport'
 import { hasPermission } from '../../api/auth'
@@ -11,6 +11,8 @@ import { useSnackbar } from '../../context/SnackbarContext'
 import { useFormat } from '../../context/SettingsContext'
 import { DocStatePill, VehicleStatusPill, useTransportLabels } from '../../components/transport/TransportKit'
 
+// each vehicle type's icon in the fleet table
+const TYPE_ICON = { BUS: Bus, MINI_BUS: BusFront, VAN: BusFront, CAR: CarFront, AUTO: Bike }
 const blankPerson = { name: '', mobile: '', licenceNo: '', licenceExpiry: '', userId: '' }
 const personOf = (p) => ({ ...blankPerson, ...Object.fromEntries(Object.entries(p ?? {}).map(([k, v]) => [k, v ?? ''])) })
 
@@ -120,7 +122,7 @@ export default function Vehicles() {
   const L = useTransportLabels()
   const qc = useQueryClient()
   const confirm = useConfirm()
-  const { date, dateTime } = useFormat()
+  const { date } = useFormat()
   const { showSuccess, showError } = useSnackbar()
   const [editing, setEditing] = useState(null)
   const { data: rows = [], isLoading } = useQuery({ queryKey: ['transport', 'vehicles'], queryFn: fetchVehicles })
@@ -134,18 +136,23 @@ export default function Vehicles() {
         actions={<HeaderButton icon={Plus} variant="primary" requires="transport.vehicles.create" onClick={() => setEditing('new')}>{t('transport.vehicles.new')}</HeaderButton>} />
       <div className="space-y-4">
         <StatCardRow items={[
-          { label: t('transport.vehicles.onRoad'), value: rows.filter((v) => v.status === 'ACTIVE').length },
-          { label: t('transport.vehicles.seats'), value: rows.filter((v) => v.status === 'ACTIVE').reduce((n, v) => n + (v.capacity ?? 0), 0) },
-          { label: t('transport.vehicles.papersDue'), value: expiring.length, tone: expiring.length ? 'warning' : 'neutral' },
-          { label: t('transport.vehicles.withGps'), value: rows.filter((v) => v.gpsDeviceId).length },
+          { icon: Bus, tone: 'brand', label: t('transport.vehicles.onRoad'), value: rows.filter((v) => v.status === 'ACTIVE').length },
+          { icon: Armchair, tone: 'violet', label: t('transport.vehicles.seats'), value: rows.filter((v) => v.status === 'ACTIVE').reduce((n, v) => n + (v.capacity ?? 0), 0) },
+          { icon: FileWarning, label: t('transport.vehicles.papersDue'), value: expiring.length, tone: expiring.length ? 'warning' : 'neutral' },
+          { icon: Radio, tone: 'sky', label: t('transport.vehicles.withGps'), value: rows.filter((v) => v.gpsDeviceId).length },
         ]} />
         {expiring.length > 0 && <Note tone="warning">{t('transport.vehicles.dueNote', { list: expiring.map((v) => v.regNo).join(', ') })}</Note>}
         <DataTable rows={rows} loading={isLoading} columns={[
-          { key: 'regNo', header: t('transport.vehicles.regNo'), mobilePrimary: true, render: (v, r) => <span className="font-medium">{v}<span className="block text-xs text-ink-faint">{[L.type(r.type), t('transport.vehicles.seatsN', { count: r.capacity }), r.make].filter(Boolean).join(' · ')}</span></span> },
-          { key: 'driver', header: t('transport.vehicles.driver'), render: (v) => (v?.name ? <span>{v.name}{v.mobile && <span className="block text-xs"><PhoneLink number={v.mobile} /></span>}</span> : '—') },
-          { key: 'routes', header: t('transport.vehicles.routes'), mobileHidden: true, render: (v) => (v?.length ? v.map((r) => r.name).join(', ') : <span className="text-ink-faint">{t('transport.vehicles.noRoute')}</span>) },
+          { key: 'regNo', header: t('transport.vehicles.regNo'), mobilePrimary: true, render: (v, r) => (
+            <span className="flex flex-col items-start gap-1">
+              <CodeBadge>{v}</CodeBadge>
+              <ColorChip label={L.type(r.type)} seed={`vehicle-${r.type}`} icon={TYPE_ICON[r.type] ?? Bus} sub={[t('transport.vehicles.seatsN', { count: r.capacity }), r.make].filter(Boolean).join(' · ')} />
+            </span>
+          ) },
+          { key: 'driver', header: t('transport.vehicles.driver'), render: (v) => (v?.name ? <PersonCell name={v.name} sub={v.mobile ? <PhoneLink number={v.mobile} /> : undefined} size={28} /> : '—') },
+          { key: 'routes', header: t('transport.vehicles.routes'), mobileHidden: true, render: (v) => (v?.length ? <span className="flex flex-wrap gap-1">{v.map((r) => <ColorChip key={r.id} label={r.name} seed={r.id} icon={RouteIcon} />)}</span> : <span className="text-ink-faint">{t('transport.vehicles.noRoute')}</span>) },
           { key: 'docsState', header: t('transport.vehicles.papers'), render: (v, r) => <span className="flex flex-col items-start gap-0.5"><DocStatePill state={v} />{r.docs.filter((d) => d.state === 'EXPIRED' || d.state === 'DUE').slice(0, 2).map((d) => <span key={d.kind} className="text-[11px] text-ink-faint">{L.doc(d.kind)} · {date(d.expiry)}</span>)}</span> },
-          { key: 'lastPosition', header: t('transport.vehicles.lastSeen'), mobileHidden: true, render: (v, r) => (v?.at ? (r.map ? <a href={r.map} target="_blank" rel="noreferrer" className="text-brand-700 text-xs">{dateTime(v.at)}</a> : dateTime(v.at)) : '—') },
+          { key: 'lastPosition', header: t('transport.vehicles.lastSeen'), mobileHidden: true, render: (v, r) => (v?.at ? (r.map ? <a href={r.map} target="_blank" rel="noreferrer" className="text-brand-700 hover:underline" onClick={(e) => e.stopPropagation()}><DateCell value={v.at} time /></a> : <DateCell value={v.at} time />) : '—') },
           { key: 'status', header: t('transport.vehicles.status'), render: (v) => <VehicleStatusPill status={v} /> },
           { key: 'id', header: '', align: 'right', width: 90, render: (_, r) => (
             <div className="flex justify-end gap-1">

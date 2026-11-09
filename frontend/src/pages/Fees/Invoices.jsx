@@ -2,9 +2,9 @@ import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { FileText, Printer, Receipt, XCircle } from 'lucide-react'
-import { INVOICE_STATUS, PAYMENT_MODES, formatINR } from '@schoolgiant/shared'
-import { ControlChip, DataTable, Input, PageContainer, PageHeader, StatusPill, Tabs, Toolbar, usePrompt } from '../../components/system'
+import { AlarmClock, CircleCheckBig, FileText, Hourglass, Printer, Receipt, XCircle } from 'lucide-react'
+import { INVOICE_STATUS, PAYMENT_MODES, formatINR, formatINRCompact } from '@schoolgiant/shared'
+import { ColorChip, ControlChip, DataTable, DateCell, Money, PaidBar, PersonCell, StackCell, StatCardRow, Input, PageContainer, PageHeader, StatusPill, Tabs, Toolbar, usePrompt } from '../../components/system'
 import Button from '../../components/ui/Button'
 import useDebouncedValue from '../../hooks/useDebouncedValue'
 import { fetchAcademicLookup } from '../../api/academics'
@@ -15,7 +15,7 @@ import { useSnackbar } from '../../context/SnackbarContext'
 import { useFormat } from '../../context/SettingsContext'
 
 const pagination = (meta, setPage) => meta && meta.totalPages > 1 && { page: meta.page - 1, size: meta.pageSize, totalElements: meta.total, totalPages: meta.totalPages, onPageChange: (p) => setPage(p + 1) }
-const studentCell = (r) => <div><p className="font-medium text-ink">{r.student?.name ?? '—'}</p><p className="text-xs text-ink-faint">{[r.student?.classShort, r.student?.admissionNo].filter(Boolean).join(' · ')}</p></div>
+const studentCell = (r) => <PersonCell name={r.student?.name ?? '—'} sub={[r.student?.classShort, r.student?.admissionNo].filter(Boolean).join(' · ')} size={32} />
 
 function InvoiceList() {
   const { t } = useTranslation('fees')
@@ -34,8 +34,27 @@ function InvoiceList() {
   const STATUSES = ['', 'UNPAID', 'PARTIAL', 'PAID', 'CANCELLED']
   const statusLabel = (s) => (s ? t(`fees.invoiceStatus.${s}`, INVOICE_STATUS[s]?.label) : t('fees.all'))
   const reset = (fn) => (v) => { fn(v); setPage(1) }
+  const sum = data?.summary
+  const pct = (part, whole) => (whole > 0 ? Math.round((part / whole) * 100) : 0)
 
   return (
+    <div className="flex flex-col gap-4">
+    {sum && sum.invoices > 0 && (
+      <StatCardRow items={[
+        { icon: FileText, tone: 'brand', label: t('fees.invoices.summary.billed'), value: formatINRCompact(sum.billed), sub: t('fees.invoices.summary.invoices', { count: sum.invoices }) },
+        { icon: CircleCheckBig, tone: 'success', label: t('fees.invoices.summary.collected'), value: formatINRCompact(sum.collected),
+          sub: t('fees.invoices.summary.ofBilled', { pct: pct(sum.collected, sum.billed) }), progress: pct(sum.collected, sum.billed) },
+        { icon: Hourglass, tone: 'warning', label: t('fees.invoices.summary.outstanding'), value: formatINRCompact(sum.outstanding),
+          segments: [
+            { label: statusLabel('PAID'), value: sum.counts.PAID ?? 0, tone: 'success' },
+            { label: statusLabel('PARTIAL'), value: sum.counts.PARTIAL ?? 0, tone: 'info' },
+            { label: statusLabel('UNPAID'), value: sum.counts.UNPAID ?? 0, tone: 'warning' },
+          ] },
+        { icon: AlarmClock, tone: 'danger', label: t('fees.invoices.summary.overdue'), value: formatINRCompact(sum.overdue),
+          sub: t('fees.invoices.summary.overdueSub', { count: sum.overdueCount }),
+          onClick: () => { setOverdue(!overdue); setPage(1) }, className: overdue ? 'ring-2 ring-danger-300' : undefined },
+      ]} />
+    )}
     <DataTable
       rows={data?.data ?? []}
       loading={isLoading}
@@ -50,18 +69,18 @@ function InvoiceList() {
         <ControlChip label={t('fees.invoices.overdueOnly')} value={overdue ? t('fees.yes') : t('fees.no')} active={overdue} options={[t('fees.no'), t('fees.yes')]} onChange={(v) => { setOverdue(v === t('fees.yes')); setPage(1) }} />
       </>} />}
       columns={[
-        { key: 'invoiceNo', header: t('fees.invoices.no'), nowrap: true, render: (v) => <span className="font-mono-num">{v}</span> },
+        { key: 'invoiceNo', header: t('fees.invoices.no'), nowrap: true, render: (v, r) => <StackCell title={v} mono sub={r.installment} /> },
         { key: 'student', header: t('fees.invoices.student'), mobilePrimary: true, render: (_, r) => studentCell(r) },
-        { key: 'installment', header: t('fees.invoices.installment') },
-        { key: 'dueDate', header: t('fees.invoices.due'), nowrap: true, render: (v) => date(v) },
-        { key: 'net', header: t('fees.invoices.amount'), align: 'right', render: (v) => formatINR(v) },
-        { key: 'balance', header: t('fees.invoices.balance'), align: 'right', render: (v) => formatINR(v) },
+        { key: 'dueDate', header: t('fees.invoices.due'), nowrap: true, render: (v, r) => <DateCell value={v} tone={r.overdue ? 'danger' : undefined} relative={r.balance > 0} /> },
+        { key: 'net', header: t('fees.invoices.amount'), align: 'right', render: (v) => <Money value={v} paise /> },
+        { key: 'balance', header: t('fees.invoices.balance'), align: 'right', render: (v, r) => (r.status === 'CANCELLED' ? <span className="text-ink-faint">—</span> : <PaidBar total={r.net} balance={v} paise overdue={r.overdue} paidLabel={t('fees.invoices.summary.paid')} />) },
         { key: 'status', header: t('fees.invoices.status'), render: (v) => <StatusPill tone={INVOICE_STATUS[v]?.tone}>{statusLabel(v)}</StatusPill> },
       ]}
       onRowClick={hasPermission('fees.collect.view') ? (r) => navigate(`/fees/collect?student=${r.studentId}`) : undefined}
       pagination={pagination(data?.meta, setPage)}
       emptyIcon={FileText} emptyTitle={q || status || sectionId || overdue ? t('fees.invoices.noMatch') : t('fees.invoices.empty')} emptyHint={t('fees.invoices.emptyHint')}
     />
+    </div>
   )
 }
 
@@ -108,7 +127,7 @@ function ReceiptList() {
         { key: 'receiptNo', header: t('fees.receipts.no'), nowrap: true, render: (v) => <span className="font-mono-num">{v}</span> },
         { key: 'student', header: t('fees.receipts.student'), mobilePrimary: true, render: (_, r) => studentCell(r) },
         { key: 'date', header: t('fees.receipts.date'), nowrap: true, render: (v, r) => <span title={dateTime(r.at)}>{date(v)}</span> },
-        { key: 'mode', header: t('fees.receipts.mode'), render: (v, r) => <span className="text-sm">{modeLabel(v)}{r.reference ? <span className="text-ink-faint"> · {r.reference}</span> : ''}</span> },
+        { key: 'mode', header: t('fees.receipts.mode'), render: (v, r) => <ColorChip label={modeLabel(v)} seed={v} dot sub={r.reference || undefined} /> },
         { key: 'collectedBy', header: t('fees.receipts.by'), mobileHidden: true, render: (v) => <span className="text-sm text-ink-muted">{v ?? '—'}</span> },
         { key: 'amount', header: t('fees.receipts.amount'), align: 'right', render: (v, r) => <span>{formatINR(v)}{r.refunded ? <span className="block text-xs text-ink-faint">{t('fees.receipts.refundedSub', { amount: formatINR(r.refunded) })}</span> : null}</span> },
         { key: 'status', header: t('fees.receipts.status'), render: (v, r) => <div><StatusPill tone={v === 'VALID' ? 'success' : 'neutral'}>{statusLabel(v)}</StatusPill>{r.cancelReason && <p className="text-xs text-ink-faint mt-0.5 line-clamp-1">{r.cancelReason}</p>}</div> },

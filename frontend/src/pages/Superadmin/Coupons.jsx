@@ -1,14 +1,14 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Check, Plus, Tag } from 'lucide-react'
-import { DataTable, Drawer, FormField, Input, PageContainer, PageHeader, StatusPill } from '../../components/system'
+import { Check, Percent, Plus, Tag, TicketPercent } from 'lucide-react'
+import { ColorChip, DataTable, DateCell, Drawer, ExpiryBadge, FormField, Input, LevelBar, PageContainer, PageHeader, StatusPill } from '../../components/system'
 import { canPlatform } from '../../api/auth'
 import Button from '../../components/ui/Button'
 import { Switch } from '../../components/app/Controls'
 import { createCoupon, fetchCoupons, fetchSaPlans, updateCoupon } from '../../api/superadmin'
 import { useSnackbar } from '../../context/SnackbarContext'
-import { useFormat } from '../../context/SettingsContext'
+import { PlanChip } from './Dashboard'
 
 const BLANK = { code: '', pct: 10, description: '', planCodes: [], validUntil: '', maxUses: '', active: true }
 
@@ -61,7 +61,6 @@ export default function Coupons() {
   const { t } = useTranslation('superadmin')
   const qc = useQueryClient()
   const { showSuccess } = useSnackbar()
-  const { date } = useFormat()
   const { data: rows = [], isLoading } = useQuery({ queryKey: ['sa-coupons'], queryFn: fetchCoupons })
   const { data: plans = [] } = useQuery({ queryKey: ['sa-plans'], queryFn: fetchSaPlans })
   const [editing, setEditing] = useState(null)
@@ -76,11 +75,16 @@ export default function Coupons() {
         loading={isLoading}
         onRowClick={canPlatform('coupons') ? setEditing : undefined}
         columns={[
-          { key: 'code', header: t('superadmin.coupons.code'), mobilePrimary: true, render: (v, r) => <div><p className="font-mono-num font-medium text-ink">{v}</p>{r.description && <p className="text-xs text-ink-muted line-clamp-1">{r.description}</p>}</div> },
-          { key: 'pct', header: t('superadmin.coupons.off'), align: 'right', render: (v) => `${v}%` },
-          { key: 'planCodes', header: t('superadmin.coupons.plans'), mobileHidden: true, render: (v) => <span className="text-sm text-ink-muted">{v?.length ? v.map(planName).join(', ') : t('superadmin.coupons.allPlans')}</span> },
-          { key: 'uses', header: t('superadmin.coupons.uses'), align: 'right', render: (v, r) => (r.maxUses != null ? `${v} / ${r.maxUses}` : v) },
-          { key: 'validUntil', header: t('superadmin.coupons.validUntil'), mobileHidden: true, render: (v) => (v ? date(v) : '—') },
+          { key: 'code', header: t('superadmin.coupons.code'), mobilePrimary: true, render: (v, r) => (
+            <div className="flex items-start gap-3">
+              <span className="w-9 h-9 rounded-xl border flex items-center justify-center shrink-0 bg-pink-50 text-pink-700 border-pink-200"><TicketPercent className="w-4 h-4" /></span>
+              <div className="min-w-0"><p className="font-mono-num font-semibold tracking-wide text-ink">{v}</p>{r.description && <p className="text-xs text-ink-muted line-clamp-1">{r.description}</p>}</div>
+            </div>
+          ) },
+          { key: 'pct', header: t('superadmin.coupons.off'), align: 'right', render: (v) => <ColorChip label={`${v}%`} tone="pink" icon={Percent} /> },
+          { key: 'planCodes', header: t('superadmin.coupons.plans'), mobileHidden: true, render: (v) => (v?.length ? <div className="flex flex-wrap gap-1">{v.map((c) => <PlanChip key={c} code={c} name={planName(c)} />)}</div> : <span className="text-sm text-ink-muted">{t('superadmin.coupons.allPlans')}</span>) },
+          { key: 'uses', header: t('superadmin.coupons.uses'), align: 'right', render: (v, r) => (r.maxUses != null ? <LevelBar value={v} max={r.maxUses} highIsBad warnAt={r.maxUses * 0.8} dangerAt={r.maxUses} width="w-24" /> : <span className="font-semibold tabular-nums text-ink">{v}</span>) },
+          { key: 'validUntil', header: t('superadmin.coupons.validUntil'), mobileHidden: true, render: (v, r) => (v ? (r.active ? <ExpiryBadge value={v} warnDays={14} dangerDays={3} /> : <DateCell value={v} relative={false} />) : '—') },
           { key: 'active', header: t('common.status'), render: (v, r) => <StatusPill tone={v && !expired(r) && !usedUp(r) ? 'success' : 'neutral'}>{!v ? t('superadmin.coupons.off_status') : expired(r) ? t('superadmin.coupons.expired') : usedUp(r) ? t('superadmin.coupons.usedUp') : t('superadmin.coupons.live')}</StatusPill> },
         ]}
         emptyIcon={Tag} emptyTitle={t('superadmin.coupons.empty')} emptyHint={t('superadmin.coupons.emptyHint')}

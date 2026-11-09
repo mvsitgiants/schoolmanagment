@@ -2,9 +2,9 @@ import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { FileText, GraduationCap, Plus } from 'lucide-react'
+import { BadgeCheck, FileText, GraduationCap, Hourglass, Monitor, Plus, Store } from 'lucide-react'
 import { APPLICATION_STATUS } from '@schoolgiant/shared'
-import { Attachments, ControlChip, DataTable, Drawer, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, Select, StatusPill, Toolbar, usePrompt } from '../../components/system'
+import { Attachments, CodeBadge, ColorChip, ContactCell, ControlChip, DataTable, DateCell, Drawer, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, PersonCell, Select, StatCardRow, StatusPill, Toolbar, usePrompt } from '../../components/system'
 import Button from '../../components/ui/Button'
 import ApplicationForm, { applicationBody, emptyApplication } from '../../components/admissions/ApplicationForm'
 import FormRenderer from '../../components/forms/FormRenderer'
@@ -145,7 +145,6 @@ function ApplicationDrawer({ id, cycles, onClose }) {
 export default function Applications() {
   const { t } = useTranslation('admissions')
   const qc = useQueryClient()
-  const { dateTime } = useFormat()
   const { showSuccess } = useSnackbar()
   const [params, setParams] = useSearchParams()
   const { cycles, cycle, chip } = useCycle()
@@ -163,12 +162,24 @@ export default function Applications() {
   const STATUSES = ['', ...Object.keys(APPLICATION_STATUS)]
   const statusLabel = (s) => (s ? t(`admissions.status.${s}`, APPLICATION_STATUS[s]?.label) : t('admissions.all'))
   const meta = data?.meta
+  // the cycle's own counts (all of it, or the picked class)
+  const counted = classId ? classes.filter((c) => c.classId === classId) : classes
+  const sum = (k) => counted.reduce((n, c) => n + (c[k] ?? 0), 0)
+  const seats = sum('seats')
 
   return (
     <PageContainer>
       <PageHeader icon={FileText} title={t('admissions.applications.title')} subtitle={t('admissions.applications.subtitle')}
         actions={<HeaderButton icon={Plus} variant="primary" requires="admissions.applications.create" onClick={() => setAdding({})}>{t('admissions.applications.new')}</HeaderButton>} />
       {!cycles.length && <Note tone="warning" className="mb-4">{t('admissions.noCycles')}</Note>}
+      {sum('applications') > 0 && (
+        <StatCardRow className="mb-4" items={[
+          { icon: FileText, tone: 'brand', label: t('admissions.applications.summary.total'), value: sum('applications'), sub: seats ? t('admissions.applications.summary.seats', { count: seats }) : undefined },
+          { icon: Hourglass, tone: 'info', label: t('admissions.applications.summary.live'), value: sum('live') },
+          { icon: BadgeCheck, tone: 'warning', label: t('admissions.applications.summary.offered'), value: sum('offered'), progress: seats ? (sum('offered') / seats) * 100 : undefined, onClick: () => { setStatus(status === 'OFFERED' ? '' : 'OFFERED'); setPage(1) } },
+          { icon: GraduationCap, tone: 'success', label: t('admissions.applications.summary.admitted'), value: sum('admitted'), sub: seats ? t('admissions.applications.summary.ofSeats', { count: seats }) : undefined, progress: seats ? (sum('admitted') / seats) * 100 : undefined, onClick: () => { setStatus(status === 'ADMITTED' ? '' : 'ADMITTED'); setPage(1) } },
+        ]} />
+      )}
       <DataTable
         rows={data?.data ?? []}
         loading={isLoading}
@@ -181,13 +192,19 @@ export default function Applications() {
           <ControlChip label={t('admissions.statusLabel')} value={statusLabel(status)} active={!!status} options={STATUSES.map(statusLabel)} onChange={(v) => { setStatus(STATUSES.find((s) => statusLabel(s) === v) ?? ''); setPage(1) }} />
         </>} />}
         columns={[
-          { key: 'applicationNo', header: t('admissions.applications.no'), nowrap: true, render: (v) => <span className="font-mono-num">{v}</span> },
-          { key: 'childName', header: t('admissions.enquiries.child'), mobilePrimary: true, render: (v, r) => <div><p className="font-medium text-ink">{v}</p><p className="text-xs text-ink-faint">{r.className}</p></div> },
-          { key: 'parent', header: t('admissions.form.parentName'), render: (v) => <div><p className="text-sm">{v.name}</p><p className="text-xs text-ink-faint font-mono-num">{v.mobile}</p></div> },
-          { key: 'score', header: t('admissions.applications.score'), align: 'right', mobileHidden: true, render: (v, r) => (r.testAbsent ? t('admissions.applications.ab') : v ?? '—') },
-          { key: 'rank', header: t('admissions.applications.rank'), align: 'right', mobileHidden: true, render: (v) => v ?? '—' },
+          { key: 'applicationNo', header: t('admissions.applications.no'), nowrap: true, render: (v) => <CodeBadge>{v}</CodeBadge> },
+          { key: 'childName', header: t('admissions.enquiries.child'), mobilePrimary: true, render: (v, r) => <PersonCell name={v} size={34} /> },
+          { key: 'className', header: t('admissions.form.class'), render: (v, r) => <ColorChip label={v} seed={r.classId} /> },
+          { key: 'parent', header: t('admissions.form.parentName'), render: (v) => <ContactCell name={v?.name} phone={v?.mobile} /> },
+          { key: 'score', header: t('admissions.applications.score'), align: 'right', mobileHidden: true, render: (v, r) => (r.testAbsent ? <CodeBadge tone="danger">{t('admissions.applications.ab')}</CodeBadge> : v != null ? <span className="font-semibold tabular-nums text-ink">{v}</span> : <span className="text-ink-faint">—</span>) },
+          { key: 'rank', header: t('admissions.applications.rank'), align: 'right', mobileHidden: true, render: (v) => (v != null ? <CodeBadge tone={v <= 3 ? 'brand' : 'neutral'}>{v}</CodeBadge> : <span className="text-ink-faint">—</span>) },
           { key: 'status', header: t('admissions.statusLabel'), render: (v) => <StatusPill tone={APPLICATION_STATUS[v]?.tone}>{statusLabel(v)}</StatusPill> },
-          { key: 'submittedAt', header: t('admissions.applications.submitted'), nowrap: true, mobileHidden: true, render: (v, r) => <span className="text-sm text-ink-muted">{dateTime(v)}<span className="block text-xs text-ink-faint">{t(`admissions.channels.${r.channel}`)}</span></span> },
+          { key: 'submittedAt', header: t('admissions.applications.submitted'), nowrap: true, mobileHidden: true, render: (v, r) => (
+            <span className="inline-flex flex-col items-start gap-1">
+              <DateCell value={v} time relative={false} className="text-sm" />
+              <ColorChip label={t(`admissions.channels.${r.channel}`)} icon={r.channel === 'ONLINE' ? Monitor : Store} tone={r.channel === 'ONLINE' ? 'sky' : 'neutral'} />
+            </span>
+          ) },
         ]}
         onRowClick={(r) => setOpenId(r.id)}
         pagination={meta && meta.totalPages > 1 && { page: meta.page - 1, size: meta.pageSize, totalElements: meta.total, totalPages: meta.totalPages, onPageChange: (p) => setPage(p + 1) }}

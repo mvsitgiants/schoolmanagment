@@ -3,27 +3,27 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { FileBadge, Printer, Save, Send } from 'lucide-react'
 import { RESULT_STATUS } from '@schoolgiant/shared'
-import { BulkActionBar, DataTable, Input, Note, PageContainer, PageHeader, StatusPill, useConfirm } from '../../components/system'
+import { BulkActionBar, ColorChip, DataTable, DateCell, Input, LevelBar, Note, PageContainer, PageHeader, PersonCell, StatusPill, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
 import useExamPick from '../../components/exams/useExamPick'
 import { fetchCandidates, saveRemarks, sendReportCards } from '../../api/exams'
 import { hasPermission } from '../../api/auth'
 import { printDocument, printDocuments } from '../../components/print/printDocument'
 import { useSnackbar } from '../../context/SnackbarContext'
-import { useFormat } from '../../context/SettingsContext'
+
+const NO_ROWS = [] // stable: a fresh [] each render would re-run the remarks effect forever
 
 /** A section's report cards: the class teacher's remarks, printing, and sending them to families. */
 export default function ReportCards() {
   const { t } = useTranslation('exams')
   const qc = useQueryClient()
   const confirm = useConfirm()
-  const { dateTime } = useFormat()
   const { showSuccess, showError } = useSnackbar()
   const { exam, examId, sectionId, chips, noExams } = useExamPick()
   const [selected, setSelected] = useState([])
   const [remarks, setRemarks] = useState({})
   const key = ['exam-candidates', examId, sectionId]
-  const { data: rows = [], isLoading, error, refetch } = useQuery({ queryKey: key, queryFn: () => fetchCandidates(examId, sectionId), enabled: !!examId && !!sectionId })
+  const { data: rows = NO_ROWS, isLoading, error, refetch } = useQuery({ queryKey: key, queryFn: () => fetchCandidates(examId, sectionId), enabled: !!examId && !!sectionId })
   useEffect(() => { setRemarks(Object.fromEntries(rows.map((r) => [r.id, r.remark ?? '']))) }, [rows])
   const changed = rows.filter((r) => (remarks[r.id] ?? '') !== (r.remark ?? ''))
   const canRemark = hasPermission('exams.marks.create') || hasPermission('exams.report-cards.publish')
@@ -72,13 +72,19 @@ export default function ReportCards() {
         toolbar={<div className="flex flex-wrap justify-end gap-2">{chips}</div>}
         columns={[
           { key: 'rollNo', header: t('exams.roll'), width: 60, render: (v) => <span className="font-mono-num">{v ?? '—'}</span> },
-          { key: 'name', header: t('exams.student'), mobilePrimary: true, render: (v, r) => <div><p className="font-medium text-ink">{v}</p><p className="text-xs text-ink-faint font-mono-num">{r.admissionNo}</p></div> },
-          { key: 'pct', header: '%', align: 'right', render: (v, r) => (v === null ? '—' : <span>{v}{r.grade ? <span className="text-ink-faint"> · {r.grade}</span> : ''}</span>) },
+          { key: 'name', header: t('exams.student'), mobilePrimary: true, render: (v, r) => <PersonCell name={v} sub={r.admissionNo} /> },
+          { key: 'pct', header: '%', align: 'right', render: (v, r) => (v === null || v === undefined ? '—' : (
+            <div className="inline-flex items-center justify-end gap-2">
+              <LevelBar bare value={v} max={100} width="w-14" dangerAt={r.result === 'FAIL' ? 100 : undefined} />
+              <span className={r.result === 'FAIL' ? 'font-semibold tabular-nums text-danger-600' : 'font-semibold tabular-nums text-ink'}>{v}%</span>
+              {r.grade && <ColorChip label={r.grade} seed={`grade-${r.grade}`} mono />}
+            </div>
+          )) },
           { key: 'result', header: t('exams.results.result'), render: (v) => (v ? <StatusPill tone={RESULT_STATUS[v]?.tone}>{t(`exams.result.${v}`, RESULT_STATUS[v]?.label)}</StatusPill> : '—') },
           { key: 'remark', header: t('exams.reportCards.remark'), clamp: false, render: (_, r) => (canRemark
             ? <div onClick={(e) => e.stopPropagation()}><Input value={remarks[r.id] ?? ''} maxLength={300} onChange={(e) => setRemarks((x) => ({ ...x, [r.id]: e.target.value }))} placeholder={t('exams.reportCards.remarkPlaceholder')} aria-label={t('exams.reportCards.remark')} /></div>
             : <span className="text-sm text-ink-muted">{r.remark || '—'}</span>) },
-          { key: 'notifiedAt', header: t('exams.reportCards.sentCol'), mobileHidden: true, render: (v) => (v ? <span className="text-xs text-ink-muted">{dateTime(v)}</span> : <span className="text-xs text-ink-faint">{t('exams.reportCards.notSent')}</span>) },
+          { key: 'notifiedAt', header: t('exams.reportCards.sentCol'), mobileHidden: true, render: (v) => (v ? <DateCell value={v} time /> : <span className="text-xs text-ink-faint">{t('exams.reportCards.notSent')}</span>) },
           { key: 'id', header: '', align: 'right', width: 60, render: (id) => canPrint && <Button size="sm" variant="ghost" icon={Printer} aria-label={t('exams.reportCards.print')} title={t('exams.reportCards.print')} onClick={() => printDocument('REPORT_CARD', id)} /> },
         ]}
         emptyIcon={FileBadge} emptyTitle={exam ? t('exams.reportCards.empty') : t('exams.pick.pickFirst')}

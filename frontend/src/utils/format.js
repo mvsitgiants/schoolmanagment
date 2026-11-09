@@ -83,7 +83,8 @@ export function formatCurrency(value, { currency = cfg.currency, compact = false
   const n = Number(value)
   try {
     return new Intl.NumberFormat(cfg.locale, {
-      style: 'currency', currency, maximumFractionDigits: compact ? 0 : 2,
+      // whole amounts without ".00" (₹55,000), paise shown when there are any (₹27,500.50)
+      style: 'currency', currency, maximumFractionDigits: compact ? 0 : 2, minimumFractionDigits: compact || Number.isInteger(n) ? 0 : 2,
       notation: compact ? 'compact' : 'standard',
     }).format(n)
   } catch {

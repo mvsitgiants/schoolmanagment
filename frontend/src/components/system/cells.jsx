@@ -1,10 +1,10 @@
 import clsx from 'clsx'
-import { ArrowDown, ArrowUp, CalendarClock } from 'lucide-react'
+import { ArrowDown, ArrowUp, CalendarClock, Phone } from 'lucide-react'
 import { useFormat } from '../../context/SettingsContext'
 import Avatar from './Avatar'
 import Tag from './Tag'
 import { daysUntil, useTimeAgo } from './timeAgo'
-import { TONE } from './tokens'
+import { TONE, hueTone } from './tokens'
 
 // Cell renderers for <DataTable> columns (and anywhere a list shows the same kind of value).
 // Each one is the house style for that kind of value, so every table reads the same:
@@ -229,5 +229,83 @@ export function Totals({ rows = [], paise = false, wide = false, className }) {
         </div>
       ))}
     </dl>
+  )
+}
+
+/**
+ * A category as a coloured chip — a class, a department, a staff category, a route. The colour comes from the
+ * name (or `seed`), so "Class 7" is the same colour on every screen. `sub` adds a muted tail (roll no., room).
+ *
+ *   <ColorChip label="7-B" sub="Roll 12" />   <ColorChip label={r.categoryLabel} seed={r.category} dot />
+ */
+export function ColorChip({ label, sub, seed, tone, icon: Icon, dot = false, mono = false, className }) {
+  if (label == null || label === '') return <span className="text-ink-faint">—</span>
+  const t = TONE[tone ?? hueTone(seed ?? label)]
+  return (
+    <span className={clsx('inline-flex max-w-full items-center gap-1.5 whitespace-nowrap align-middle', className)}>
+      <span className={clsx('inline-flex min-w-0 items-center gap-1.5 rounded-lg border px-2 py-0.5 text-[12px] font-semibold', mono && 'font-mono tabular-nums tracking-tight', t.bg, t.text, t.border)}>
+        {Icon ? <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden /> : dot && <span className={clsx('h-1.5 w-1.5 shrink-0 rounded-full', t.dot)} />}
+        <span className="truncate">{label}</span>
+      </span>
+      {sub && <span className="text-[11.5px] text-ink-faint tabular-nums">{sub}</span>}
+    </span>
+  )
+}
+
+const GENDER = {
+  MALE: { sign: '♂', tone: 'info' },
+  FEMALE: { sign: '♀', tone: 'pink' },
+  OTHER: { sign: '⚧', tone: 'violet' },
+}
+/** A gender as a small coloured tag with its symbol. `label` is the translated word. */
+export function GenderTag({ value, label, className }) {
+  if (!value) return <span className="text-ink-faint">—</span>
+  const g = GENDER[String(value).toUpperCase()] ?? { sign: '•', tone: 'neutral' }
+  const t = TONE[g.tone]
+  return (
+    <span className={clsx('inline-flex items-center gap-1.5 text-[12.5px] text-ink', className)}>
+      <span aria-hidden className={clsx('inline-flex h-5 w-5 items-center justify-center rounded-full text-[12px] font-bold leading-none', t.bg, t.text)}>{g.sign}</span>
+      {label ?? value}
+    </span>
+  )
+}
+
+/**
+ * What is still owed on an amount, with a bar of how much is paid. Green when settled, amber part-way, red when
+ * nothing is paid and `overdue`. `paise` when the amounts are stored in paise.
+ *
+ *   <PaidBar total={r.amount} balance={r.balance} paise overdue={r.overdue} paidLabel={t('…paid')} />
+ */
+export function PaidBar({ total, balance, paise = false, overdue = false, paidLabel, width = 'w-32', className }) {
+  const tot = Number(total) || 0
+  const bal = Math.max(0, Number(balance) || 0)
+  const paid = Math.max(0, tot - bal)
+  const pct = tot > 0 ? Math.round((paid / tot) * 100) : 0
+  const tone = bal <= 0 ? 'success' : paid > 0 ? 'warning' : overdue ? 'danger' : 'neutral'
+  return (
+    <span className={clsx('ms-auto inline-flex flex-col items-end gap-1', width, className)}>
+      <span className="flex w-full items-baseline justify-between gap-2">
+        <span className={clsx('text-[11px] font-semibold tabular-nums', tone === 'neutral' ? 'text-ink-faint' : TONE[tone].text)}>{pct}%{paidLabel ? ` ${paidLabel}` : ''}</span>
+        <Money value={bal} paise={paise} tone={bal > 0 ? (overdue ? 'danger' : undefined) : 'success'} className="text-[13px]" />
+      </span>
+      <span className="h-1.5 w-full overflow-hidden rounded-full bg-black/[0.06]">
+        <span className={clsx('block h-full rounded-full transition-all', TONE[tone === 'neutral' ? 'danger' : tone].fill, tone === 'neutral' && 'opacity-0')} style={{ width: `${pct}%` }} />
+      </span>
+    </span>
+  )
+}
+
+/** A name with a phone number under it, behind a small phone icon. */
+export function ContactCell({ name, phone, className }) {
+  if (!name && !phone) return <span className="text-ink-faint">—</span>
+  return (
+    <span className={clsx('block min-w-0 leading-tight', className)}>
+      {name && <span className="block truncate text-ink">{name}</span>}
+      {phone && (
+        <span className="mt-0.5 inline-flex items-center gap-1 text-[11.5px] text-ink-faint font-mono-num">
+          <Phone className="h-3 w-3 shrink-0 text-success-500" aria-hidden />{phone}
+        </span>
+      )}
+    </span>
   )
 }

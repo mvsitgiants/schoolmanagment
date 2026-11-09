@@ -68,7 +68,19 @@
       "guardian": "Parent / guardian",
       "noMatch": "No student matches.",
       "emptyTitle": "No students yet",
-      "emptyHint": "Admit students one by one, or import a spreadsheet of the whole school."
+      "emptyHint": "Admit students one by one, or import a spreadsheet of the whole school.",
+      "summary": {
+        "total": "Students",
+        "inClasses_one": "in {{count}} class",
+        "inClasses_other": "in {{count}} classes",
+        "genderMix": "Boys : girls",
+        "boys": "Boys",
+        "girls": "Girls",
+        "unset": "Not set",
+        "strength": "Class strength",
+        "strengthHint": "Pick a class to list only its students",
+        "showing": "Showing {{name}} — pick it again to clear"
+      }
     },
     "form": {
       "placement": "Class and admission",
@@ -164,7 +176,13 @@
       "name": "Parent / guardian",
       "children": "Children",
       "empty": "No parents yet — they come with admissions.",
-      "editNote": "To change a parent’s details, open the child’s record (Student 360 › Edit)."
+      "editNote": "To change a parent’s details, open the child’s record (Student 360 › Edit).",
+      "summary": {
+        "parents": "Parents & guardians",
+        "children": "Children",
+        "siblings": "With 2+ children",
+        "siblingsHint": "Parents with more than one child here"
+      }
     },
     "promotion": {
       "title": "Promotion",
@@ -192,7 +210,13 @@
         "title": "Move the students of {{section}}?",
         "message": "Students go to their sections in {{year}} and the outcome is kept in each student’s history."
       },
-      "done": "Done: {{promoted}} promoted, {{detained}} in the same class, {{passed}} passed out, {{left}} left."
+      "done": "Done: {{promoted}} promoted, {{detained}} in the same class, {{passed}} passed out, {{left}} left.",
+      "tiles": {
+        "PROMOTE": "Promoted",
+        "DETAIN": "Same class",
+        "PASS_OUT": "Passing out",
+        "LEAVE": "Leaving"
+      }
     },
     "transfer": {
       "title": "Transfer & leaving",
@@ -328,7 +352,13 @@
       "printed": "Printed before",
       "notYet": "Not printed",
       "empty": "No students in this class",
-      "hint": "The layout, colour, fields and the text on the back are set in Settings › Students. A reprint keeps the same QR."
+      "hint": "The layout, colour, fields and the text on the back are set in Settings › Students. A reprint keeps the same QR.",
+      "summary": {
+        "students": "Students",
+        "withPhoto": "With photo",
+        "printed": "Cards printed",
+        "ofTotal": "of {{count}}"
+      }
     },
     "verifyCard": {
       "validTitle": "This ID card is valid",

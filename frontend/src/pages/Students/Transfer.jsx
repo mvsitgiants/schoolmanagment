@@ -2,16 +2,15 @@ import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { ArrowLeftRight, CheckCircle2, Plus, Printer, XCircle } from 'lucide-react'
+import { ArrowLeftRight, CheckCircle2, Hourglass, Plus, Printer, XCircle } from 'lucide-react'
 import { CONDUCT_OPTIONS, LEAVING_REASONS, TC_STATUS } from '@schoolgiant/shared'
-import { ControlChip, DataTable, FormField, HeaderButton, Input, Modal, PageContainer, PageHeader, Select, StatusPill, Textarea, useConfirm, usePrompt } from '../../components/system'
+import { CodeBadge, ColorChip, ControlChip, DataTable, DateCell, FormField, HeaderButton, Input, Modal, PageContainer, PageHeader, PersonCell, Select, StackCell, StatCardRow, StatusPill, Textarea, useConfirm, usePrompt } from '../../components/system'
 import Button from '../../components/ui/Button'
 import useDebouncedValue from '../../hooks/useDebouncedValue'
 import { cancelTc, fetchStudent, fetchStudents, fetchTcs, issueTc, requestTc } from '../../api/students'
 import { hasPermission } from '../../api/auth'
 import { printDocument } from '../../components/print/printDocument'
 import { useSnackbar } from '../../context/SnackbarContext'
-import { useFormat } from '../../context/SettingsContext'
 
 function RequestTc({ studentId: presetId, onClose, onSaved }) {
   const { t } = useTranslation('students')
@@ -64,22 +63,32 @@ export default function Transfer() {
   const qc = useQueryClient()
   const confirm = useConfirm()
   const prompt = usePrompt()
-  const { date } = useFormat()
   const { showSuccess, showError } = useSnackbar()
   const [params, setParams] = useSearchParams()
   const [status, setStatus] = useState('')
   const [asking, setAsking] = useState(null)
   const { data: rows = [], isLoading, error, refetch } = useQuery({ queryKey: ['tcs', status], queryFn: () => fetchTcs(status) })
+  // the tiles count every TC, whichever status is picked (the same list as "All", so it is usually cached)
+  const { data: all = [] } = useQuery({ queryKey: ['tcs', ''], queryFn: () => fetchTcs('') })
+  const tally = all.reduce((m, r) => ({ ...m, [r.status]: (m[r.status] ?? 0) + 1 }), {})
   useEffect(() => { const sid = params.get('student'); if (sid) { setAsking(sid); setParams({}, { replace: true }) } }, [params, setParams])
   const refresh = () => { qc.invalidateQueries({ queryKey: ['tcs'] }); qc.invalidateQueries({ queryKey: ['students'] }); qc.invalidateQueries({ queryKey: ['student'] }) }
   const act = useMutation({ mutationFn: ({ fn }) => fn(), onSuccess: (_, v) => { refresh(); showSuccess(v.done) }, onError: (e) => showError(e.message) })
   const statusLabel = (s) => (s ? t(`students.transfer.status.${s}`, TC_STATUS[s]?.label) : t('students.all'))
   const STATUSES = ['', 'REQUESTED', 'ISSUED', 'CANCELLED']
+  const STATUS_LOOK = { REQUESTED: { icon: Hourglass, tone: 'warning' }, ISSUED: { icon: CheckCircle2, tone: 'success' }, CANCELLED: { icon: XCircle, tone: 'neutral' } }
 
   return (
     <PageContainer>
       <PageHeader icon={ArrowLeftRight} title={t('students.transfer.title')} subtitle={t('students.transfer.subtitle')}
         actions={<HeaderButton icon={Plus} variant="primary" requires="create" onClick={() => setAsking('new')}>{t('students.transfer.new')}</HeaderButton>} />
+      {all.length > 0 && (
+        <StatCardRow className="mb-4" items={STATUSES.filter(Boolean).map((k) => ({
+          label: statusLabel(k), value: tally[k] ?? 0, ...STATUS_LOOK[k],
+          onClick: () => setStatus(status === k ? '' : k),
+          className: status === k ? 'ring-2 ring-brand-400' : status ? 'opacity-60 hover:opacity-100' : undefined,
+        }))} />
+      )}
       <DataTable
         rows={rows}
         loading={isLoading}
@@ -87,11 +96,15 @@ export default function Transfer() {
         onRetry={refetch}
         toolbar={<div className="flex justify-end"><ControlChip label={t('students.status.title')} value={statusLabel(status)} active={!!status} options={STATUSES.map(statusLabel)} onChange={(v) => setStatus(STATUSES.find((s) => statusLabel(s) === v) ?? '')} /></div>}
         columns={[
-          { key: 'tcNo', header: t('students.transfer.tcNo'), render: (v) => (v ? <span className="font-mono-num">{v}</span> : <span className="text-ink-faint">{t('students.transfer.draft')}</span>) },
-          { key: 'studentId', header: t('students.directory.student'), mobilePrimary: true, render: (v, r) => <div><Link to={`/students/profile/${v}`} className="font-medium text-brand-600 hover:underline">{r.snapshot?.name}</Link><p className="text-xs text-ink-faint">{r.lastClassLabel} · {r.snapshot?.admissionNo}</p></div> },
-          { key: 'leavingDate', header: t('students.transfer.leavingDate'), render: (v) => date(v) },
-          { key: 'reasonLabel', header: t('students.transfer.reason'), mobileHidden: true },
-          { key: 'requestedBy', header: t('students.transfer.requestedBy'), mobileHidden: true, render: (v, r) => <span className="text-sm text-ink-muted">{v}{r.issuedBy ? ` → ${r.issuedBy}` : ''}</span> },
+          { key: 'tcNo', header: t('students.transfer.tcNo'), render: (v) => (v ? <CodeBadge tone="success">{v}</CodeBadge> : <span className="text-xs text-ink-faint">{t('students.transfer.draft')}</span>) },
+          { key: 'studentId', header: t('students.directory.student'), mobilePrimary: true, render: (v, r) => (
+            <Link to={`/students/profile/${v}`} onClick={(e) => e.stopPropagation()} className="block max-w-full hover:[&_span.font-medium]:text-brand-700">
+              <PersonCell name={r.snapshot?.name} sub={[r.lastClassLabel, r.snapshot?.admissionNo].filter(Boolean).join(' · ')} size={34} />
+            </Link>
+          ) },
+          { key: 'leavingDate', header: t('students.transfer.leavingDate'), nowrap: true, render: (v) => <DateCell value={v} /> },
+          { key: 'reasonLabel', header: t('students.transfer.reason'), mobileHidden: true, render: (v, r) => <ColorChip dot seed={r.reason} label={r.reason === 'OTHER' && r.reasonText ? r.reasonText : r.reason ? t(`students.transfer.reasons.${r.reason}`, v ?? r.reason) : v} /> },
+          { key: 'requestedBy', header: t('students.transfer.requestedBy'), mobileHidden: true, render: (v, r) => <StackCell title={v ?? '—'} sub={r.issuedBy ? `→ ${r.issuedBy}` : undefined} /> },
           { key: 'status', header: t('students.status.title'), render: (v) => <StatusPill tone={TC_STATUS[v]?.tone}>{statusLabel(v)}</StatusPill> },
           { key: 'id', header: '', align: 'right', width: 140, render: (id, r) => (
             <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>

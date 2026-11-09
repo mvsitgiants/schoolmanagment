@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { Ban, Download, HandCoins, IndianRupee, Plus, Undo2 } from 'lucide-react'
+import { BadgeCheck, Ban, Download, HandCoins, IndianRupee, Plus, Undo2 } from 'lucide-react'
 import { FINE_REASONS, formatINR, toPaise } from '@schoolgiant/shared'
-import { DataTable, FormField, HeaderButton, Input, Modal, Money, PageContainer, PageHeader, SearchInput, SegmentedControl, Select, StatCardRow, Textarea, usePrompt } from '../../components/system'
+import { ColorChip, DataTable, DateCell, FormField, HeaderButton, Input, Modal, Money, PageContainer, PageHeader, PersonCell, SearchInput, SegmentedControl, Select, StatCardRow, Textarea, usePrompt } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { cancelFinePayment, createFine, exportFines, fetchFines, waiveFine } from '../../api/library'
 import { hasPermission } from '../../api/auth'
@@ -71,19 +71,19 @@ export default function Fines() {
         </>} />
       <div className="space-y-4">
         <StatCardRow items={[
-          { label: t('library.fines.toCollect'), value: formatINR(tot.OPEN?.amount ?? 0), tone: tot.OPEN?.amount ? 'warning' : 'neutral' },
-          { label: t('library.fines.collectedTotal'), value: formatINR(tot.PAID?.amount ?? 0) },
-          { label: t('library.fines.waivedTotal'), value: formatINR(tot.WAIVED?.amount ?? 0) },
+          { icon: HandCoins, label: t('library.fines.toCollect'), value: formatINR(tot.OPEN?.amount ?? 0), tone: tot.OPEN?.amount ? 'warning' : 'neutral', onClick: () => { setStatus('OPEN'); setPage(1) } },
+          { icon: BadgeCheck, tone: 'success', label: t('library.fines.collectedTotal'), value: formatINR(tot.PAID?.amount ?? 0), onClick: () => { setStatus('PAID'); setPage(1) } },
+          { icon: Ban, tone: 'violet', label: t('library.fines.waivedTotal'), value: formatINR(tot.WAIVED?.amount ?? 0), onClick: () => { setStatus('WAIVED'); setPage(1) } },
         ]} />
         <div className="flex flex-wrap items-center gap-2">
           <SegmentedControl value={status} onChange={(v) => { setStatus(v); setPage(1) }} options={['OPEN', 'PAID', 'WAIVED', 'ALL'].map((v) => ({ value: v, label: v === 'ALL' ? t('library.fines.all') : L.fine(v) }))} />
           <div className="w-64"><SearchInput value={search} onChange={(v) => { setSearch(v); setPage(1) }} placeholder={t('library.fines.search')} /></div>
         </div>
         <DataTable rows={rows} loading={isLoading} columns={[
-          { key: 'borrower', header: t('library.fines.borrower'), mobilePrimary: true, render: (v) => <span>{v?.name}<span className="block text-xs text-ink-faint">{[L.kind(v?.kind), v?.place, v?.code].filter(Boolean).join(' · ')}</span></span> },
-          { key: 'reason', header: t('library.fines.reason'), render: (v, f) => <span>{L.reason(v)}{f.days ? <span className="text-xs text-ink-faint"> · {t('library.desk.lateBy', { count: f.days })}</span> : null}<span className="block text-xs text-ink-faint">{[f.title, f.accessionNo].filter(Boolean).join(' · ') || f.note}</span></span> },
-          { key: 'date', header: t('library.fines.date'), mobileHidden: true, render: (v) => date(v) },
-          { key: 'amount', header: t('library.fines.amount'), align: 'right', render: (v) => <Money value={v} paise /> },
+          { key: 'borrower', header: t('library.fines.borrower'), mobilePrimary: true, render: (v) => <PersonCell name={v?.name} sub={[L.kind(v?.kind), v?.place, v?.code].filter(Boolean).join(' · ') || undefined} /> },
+          { key: 'reason', header: t('library.fines.reason'), render: (v, f) => <span className="flex flex-col items-start gap-0.5"><ColorChip label={L.reason(v)} seed={`fine-${v}`} dot sub={f.days ? t('library.desk.lateBy', { count: f.days }) : undefined} /><span className="block text-xs text-ink-faint">{[f.title, f.accessionNo].filter(Boolean).join(' · ') || f.note}</span></span> },
+          { key: 'date', header: t('library.fines.date'), mobileHidden: true, render: (v) => <DateCell value={v} /> },
+          { key: 'amount', header: t('library.fines.amount'), align: 'right', render: (v, f) => <Money value={v} paise tone={f.status === 'OPEN' ? 'danger' : undefined} muted={f.status === 'WAIVED'} /> },
           { key: 'status', header: t('library.fines.status'), render: (v, f) => <span className="flex flex-col items-start gap-0.5"><FinePill status={v} />{f.paid?.receiptNo && <span className="text-[11px] text-ink-faint">{f.paid.receiptNo} · {date(f.paid.date)}</span>}{f.waived?.reason && <span className="text-[11px] text-ink-faint">{f.waived.reason}</span>}</span> },
           { key: 'id', header: '', align: 'right', width: 120, render: (_, f) => (
             <div className="flex justify-end gap-1">

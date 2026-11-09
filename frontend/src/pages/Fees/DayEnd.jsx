@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { Banknote, CheckCircle2, Lock, Receipt, Scale } from 'lucide-react'
 import { DAY_END_STATUS, PAYMENT_MODES, formatINR, toPaise } from '@schoolgiant/shared'
-import { DataTable, FormField, Input, Note, PageContainer, PageHeader, Panel, StatCardRow, StatusPill, Tabs, Textarea, useConfirm } from '../../components/system'
+import { ColorChip, DataTable, DateCell, FormField, Input, Money, Note, PageContainer, PageHeader, Panel, PersonCell, StatCardRow, StatusPill, Tabs, Textarea, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { approveDayVariance, closeFeeDay, fetchDayClosings, fetchDaySummary } from '../../api/fees'
 import { hasPermission } from '../../api/auth'
@@ -45,8 +45,9 @@ function MyDay() {
       {error && <Note tone="warning" actions={<Button size="sm" variant="secondary" onClick={() => refetch()}>{t('fees.retry')}</Button>}>{error.message}</Note>}
       {sum && <>
         <StatCardRow items={[
-          { icon: Receipt, label: t('fees.dayEnd.receipts'), value: sum.receipts.length, sub: sum.refunds ? t('fees.dayEnd.refundsSub', { count: sum.refunds }) : undefined },
-          { icon: Scale, label: t('fees.dayEnd.total'), value: formatINR(sum.total) },
+          { icon: Receipt, tone: 'brand', label: t('fees.dayEnd.receipts'), value: sum.receipts.length, sub: sum.refunds ? t('fees.dayEnd.refundsSub', { count: sum.refunds }) : undefined },
+          { icon: Scale, tone: 'success', label: t('fees.dayEnd.total'), value: formatINR(sum.total),
+            segments: modes.length > 1 ? modes.map(([m]) => ({ label: modeLabel(m), value: sum.receipts.filter((r) => r.mode === m).length })) : undefined },
           { icon: Banknote, label: t('fees.dayEnd.expectedCash'), value: formatINR(sum.expectedCash), tone: 'info' },
         ]} />
         <div className="grid lg:grid-cols-[1fr_22rem] gap-4 items-start">
@@ -54,7 +55,7 @@ function MyDay() {
             {modes.length > 0 && (
               <Panel title={t('fees.dayEnd.byMode')}>
                 <div className="divide-y divide-border">
-                  {modes.map(([m, v]) => <div key={m} className="flex justify-between py-1.5 text-sm"><span>{modeLabel(m)}</span><span className="font-mono-num">{formatINR(v)}</span></div>)}
+                  {modes.map(([m, v]) => <div key={m} className="flex justify-between py-1.5 text-sm"><ColorChip label={modeLabel(m)} seed={m} dot /><Money value={v} paise /></div>)}
                 </div>
               </Panel>
             )}
@@ -65,9 +66,9 @@ function MyDay() {
               columns={[
                 { key: 'receiptNo', header: t('fees.receipts.no'), render: (v) => <span className="font-mono-num">{v}</span> },
                 { key: 'at', header: t('fees.dayEnd.time'), nowrap: true, render: (v) => time(v) },
-                { key: 'student', header: t('fees.receipts.student'), mobilePrimary: true, render: (v) => <span className="text-sm">{v?.name ?? '—'}{v?.classShort ? <span className="text-ink-faint"> · {v.classShort}</span> : ''}</span> },
-                { key: 'mode', header: t('fees.receipts.mode'), render: (v) => modeLabel(v) },
-                { key: 'amount', header: t('fees.receipts.amount'), align: 'right', render: (v) => formatINR(v) },
+                { key: 'student', header: t('fees.receipts.student'), mobilePrimary: true, render: (v) => <PersonCell name={v?.name ?? '—'} sub={v?.classShort} size={28} /> },
+                { key: 'mode', header: t('fees.receipts.mode'), render: (v) => <ColorChip label={modeLabel(v)} seed={v} dot /> },
+                { key: 'amount', header: t('fees.receipts.amount'), align: 'right', render: (v) => <Money value={v} paise /> },
               ]}
               emptyIcon={Receipt} emptyTitle={t('fees.dayEnd.noReceipts')}
             />
@@ -126,12 +127,12 @@ function Closings() {
       exportable exportName="fee-day-end"
       rowTone={(r) => (r.status === 'VARIANCE' ? 'warning' : undefined)}
       columns={[
-        { key: 'date', header: t('fees.dayEnd.date'), nowrap: true, render: (v) => date(v) },
-        { key: 'collector', header: t('fees.dayEnd.collector'), mobilePrimary: true },
+        { key: 'date', header: t('fees.dayEnd.date'), nowrap: true, render: (v) => <DateCell value={v} /> },
+        { key: 'collector', header: t('fees.dayEnd.collector'), mobilePrimary: true, render: (v) => <PersonCell name={v} size={28} /> },
         { key: 'receipts', header: t('fees.dayEnd.receipts'), align: 'right', mobileHidden: true },
-        { key: 'total', header: t('fees.dayEnd.total'), align: 'right', render: (v) => formatINR(v) },
-        { key: 'cashCounted', header: t('fees.dayEnd.cashCounted'), align: 'right', mobileHidden: true, render: (v) => formatINR(v) },
-        { key: 'variance', header: t('fees.dayEnd.variance'), align: 'right', render: (v) => <span className={v < 0 ? 'text-danger-600' : v > 0 ? 'text-amber-700' : 'text-ink-faint'}>{signed(v)}</span> },
+        { key: 'total', header: t('fees.dayEnd.total'), align: 'right', render: (v) => <Money value={v} paise /> },
+        { key: 'cashCounted', header: t('fees.dayEnd.cashCounted'), align: 'right', mobileHidden: true, render: (v) => <Money value={v} paise /> },
+        { key: 'variance', header: t('fees.dayEnd.variance'), align: 'right', render: (v) => <Money value={v} paise signed tone={v < 0 ? 'danger' : v > 0 ? 'warning' : undefined} /> },
         { key: 'status', header: t('fees.dayEnd.status'), render: (v, r) => <div><StatusPill tone={DAY_END_STATUS[v]?.tone}>{t(`fees.dayEndStatus.${v}`, DAY_END_STATUS[v]?.label)}</StatusPill>{r.approvedBy && <p className="text-xs text-ink-faint mt-0.5">{r.approvedBy}</p>}</div> },
         { key: 'id', header: '', align: 'right', width: 60, render: (id, r) => r.status === 'VARIANCE' && canApprove && (
           <Button size="sm" variant="ghost" icon={CheckCircle2} title={t('fees.dayEnd.approve')} aria-label={t('fees.dayEnd.approve')}

@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { CalendarClock, CalendarRange, ChevronLeft, ClipboardList, Pencil, Plus, Send, Trash2, Undo2, Wand2, X } from 'lucide-react'
 import { EXAM_STATUS, addMinutes, clashes } from '@schoolgiant/shared'
-import { ControlChip, DataTable, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, Panel, ProgressBar, Select, StatusPill, Textarea, useConfirm } from '../../components/system'
+import { ColorChip, ControlChip, DataTable, DateCell, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, Panel, ProgressBar, Select, StatusPill, Textarea, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { fetchAcademicLookup, fetchGrading } from '../../api/academics'
 import { createExam, deleteExam, fetchExam, fetchExamTypes, fetchExams, savePapers, scheduleExam, suggestPapers, unscheduleExam, updateExam } from '../../api/exams'
@@ -192,9 +192,9 @@ function ExamDetail({ examId, onBack }) {
             dense
             className="border-0 shadow-none"
             columns={[
-              { key: 'date', header: t('exams.papers.date'), nowrap: true, render: (v) => (v ? date(v) : <span className="text-danger-600">{t('exams.schedule.noDate')}</span>) },
+              { key: 'date', header: t('exams.papers.date'), nowrap: true, render: (v) => (v ? <DateCell value={v} /> : <span className="text-danger-600">{t('exams.schedule.noDate')}</span>) },
               { key: 'startTime', header: t('exams.papers.time'), nowrap: true, render: (v, r) => (v ? `${v}${r.endTime ? ` – ${r.endTime}` : ''}` : '—') },
-              { key: 'subject', header: t('exams.papers.subject'), mobilePrimary: true },
+              { key: 'subject', header: t('exams.papers.subject'), mobilePrimary: true, render: (v, r) => <ColorChip label={v} seed={r.subjectId} dot sub={r.subjectCode ?? undefined} /> },
               { key: 'maxMarks', header: t('exams.papers.max'), align: 'right', render: (v, r) => (r.gradeOnly ? t('exams.papers.gradeOnly') : v) },
               { key: 'passMarks', header: t('exams.papers.pass'), align: 'right', render: (v, r) => (r.gradeOnly ? '—' : v) },
             ]}
@@ -238,8 +238,13 @@ export default function Schedule() {
             <ControlChip label={t('exams.schedule.year')} value={year?.name ?? '—'} active={!!yearId} options={years.map((y) => y.name)} onChange={(v) => setYearId(years.find((y) => y.name === v)?.id ?? '')} />
           </div>}
           columns={[
-            { key: 'name', header: t('exams.schedule.name'), mobilePrimary: true, render: (v, r) => <div><p className="font-medium text-ink">{v}</p><p className="text-xs text-ink-faint">{[r.typeName, r.term].filter(Boolean).join(' · ') || '—'}</p></div> },
-            { key: 'classes', header: t('exams.schedule.classes'), mobileHidden: true, render: (v) => <span className="text-sm text-ink-muted">{v.map((c) => c.code).join(', ')}</span> },
+            { key: 'name', header: t('exams.schedule.name'), mobilePrimary: true, render: (v, r) => (
+              <div className="min-w-0">
+                <p className="font-medium text-ink truncate">{v}</p>
+                {(r.typeName || r.term) && <div className="mt-1"><ColorChip label={r.typeName || r.term} seed={r.examTypeId ?? undefined} dot sub={r.typeName ? r.term || undefined : undefined} /></div>}
+              </div>
+            ) },
+            { key: 'classes', header: t('exams.schedule.classes'), mobileHidden: true, render: (v) => <div className="flex flex-wrap gap-1">{v.map((c) => <ColorChip key={c.id} label={c.code || c.name} seed={c.id} />)}</div> },
             { key: 'startDate', header: t('exams.schedule.dates'), nowrap: true, render: (v, r) => (v ? <span className="text-sm">{date(v)}{r.endDate && r.endDate !== v ? ` – ${date(r.endDate)}` : ''}</span> : '—') },
             { key: 'papers', header: t('exams.schedule.papers'), align: 'right' },
             { key: 'sheetsLocked', header: t('exams.schedule.marksLocked'), mobileHidden: true, render: (v, r) => (r.status === 'DRAFT' || !r.sheetsExpected ? '—' : <div className="min-w-[110px]"><ProgressBar value={Math.round((v / r.sheetsExpected) * 100)} /><p className="text-xs text-ink-faint mt-0.5">{t('exams.schedule.sheetsOf', { locked: v, total: r.sheetsExpected })}</p></div>) },

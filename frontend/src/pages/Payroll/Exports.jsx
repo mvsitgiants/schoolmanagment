@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { Download, FileSpreadsheet } from 'lucide-react'
+import { Download, FileCheck2, FileClock, FileSpreadsheet } from 'lucide-react'
 import { Note, PageContainer, PageHeader, Panel, Select } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { downloadExport, fetchExportOptions, fetchRuns } from '../../api/payroll'
@@ -40,7 +40,7 @@ export default function Exports() {
           </div>
           <div className="grid sm:grid-cols-2 gap-3">
             {options.map((o) => (
-              <Panel key={o.kind} title={t(`payroll.exports.kinds.${o.kind}`)} subtitle={o.ready ? t('payroll.exports.rows', { count: o.rows }) : t(o.released ? 'payroll.exports.needsApproval' : 'payroll.exports.needsCalculation')}>
+              <Panel key={o.kind} icon={o.ready ? FileCheck2 : FileClock} title={t(`payroll.exports.kinds.${o.kind}`)} subtitle={o.ready ? t('payroll.exports.rows', { count: o.rows }) : t(o.released ? 'payroll.exports.needsApproval' : 'payroll.exports.needsCalculation')}>
                 <p className="text-xs text-ink-muted mb-3">{t(`payroll.exports.hints.${o.kind}`)}</p>
                 <Button size="sm" variant="secondary" icon={Download} disabled={!o.ready || !hasPermission('payroll.exports.export')} loading={dl.isPending && dl.variables === o.kind} onClick={() => dl.mutate(o.kind)}>{t('payroll.exports.download')}</Button>
               </Panel>

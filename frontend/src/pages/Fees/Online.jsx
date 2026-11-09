@@ -1,15 +1,14 @@
 import { useEffect, useState } from 'react'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { Copy, CreditCard, PlugZap, RefreshCw, Undo2, XCircle } from 'lucide-react'
-import { GATEWAY_ORDER_STATUSES, formatINR } from '@schoolgiant/shared'
-import { ControlChip, DataTable, FormField, Input, Note, PageContainer, PageHeader, Panel, Select, StatCardRow, StatusPill, Toolbar, useConfirm, usePrompt } from '../../components/system'
+import { AlertTriangle, CircleCheckBig, Copy, CreditCard, Hourglass, Link2, PlugZap, RefreshCw, Smartphone, Undo2, XCircle } from 'lucide-react'
+import { GATEWAY_ORDER_STATUSES, formatINR, formatINRCompact } from '@schoolgiant/shared'
+import { ColorChip, ControlChip, DataTable, DateCell, FormField, Input, Money, Note, PageContainer, PageHeader, Panel, PersonCell, Select, StatCardRow, StatusPill, Toolbar, useConfirm, usePrompt } from '../../components/system'
 import Button from '../../components/ui/Button'
 import useDebouncedValue from '../../hooks/useDebouncedValue'
 import { cancelOnlineOrder, fetchOnlineConfig, fetchOnlineOrders, refundOnlineOrder, saveOnlineConfig, syncOnlineOrder, testOnlineConfig } from '../../api/fees'
 import { hasPermission } from '../../api/auth'
 import { useSnackbar } from '../../context/SnackbarContext'
-import { useFormat } from '../../context/SettingsContext'
 
 /** The school's Razorpay account: keys, mode, webhook. Secrets are never shown again — blank keeps the saved one. */
 function Setup() {
@@ -75,7 +74,6 @@ export default function Online() {
   const qc = useQueryClient()
   const confirm = useConfirm()
   const prompt = usePrompt()
-  const { dateTime } = useFormat()
   const { showSuccess, showError } = useSnackbar()
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState('')
@@ -95,10 +93,10 @@ export default function Online() {
       <PageHeader icon={CreditCard} title={t('fees.online.title')} subtitle={t('fees.online.subtitle')} />
       <Setup />
       <StatCardRow className="my-4" items={[
-        { label: t('fees.online.k.received'), value: formatINR(s30.APPLIED?.amount ?? 0, { decimals: 0 }), sub: t('fees.online.k.count', { count: s30.APPLIED?.count ?? 0 }), tone: 'success' },
-        { label: t('fees.online.k.waiting'), value: s30.CREATED?.count ?? 0, tone: 'info' },
-        { label: t('fees.online.k.review'), value: s30.NEEDS_REVIEW?.count ?? 0, tone: s30.NEEDS_REVIEW?.count ? 'danger' : 'neutral', onClick: () => setStatus('NEEDS_REVIEW') },
-        { label: t('fees.online.k.refunded'), value: s30.REFUNDED?.count ?? 0 },
+        { icon: CircleCheckBig, label: t('fees.online.k.received'), value: formatINRCompact(s30.APPLIED?.amount ?? 0), sub: t('fees.online.k.count', { count: s30.APPLIED?.count ?? 0 }), tone: 'success' },
+        { icon: Hourglass, label: t('fees.online.k.waiting'), value: s30.CREATED?.count ?? 0, tone: 'info', onClick: () => { setStatus('CREATED'); setPage(1) } },
+        { icon: AlertTriangle, label: t('fees.online.k.review'), value: s30.NEEDS_REVIEW?.count ?? 0, tone: s30.NEEDS_REVIEW?.count ? 'danger' : 'neutral', onClick: () => { setStatus('NEEDS_REVIEW'); setPage(1) } },
+        { icon: Undo2, label: t('fees.online.k.refunded'), value: s30.REFUNDED?.count ?? 0, tone: 'orange' },
       ]} />
       <DataTable
         title={t('fees.online.transactions')}
@@ -111,10 +109,10 @@ export default function Online() {
         toolbar={<Toolbar search={search} onSearch={(v) => { setSearch(v); setPage(1) }} searchPlaceholder={t('fees.online.search')}
           right={<ControlChip label={t('fees.online.statusLabel')} value={statusLabel(status)} active={!!status} options={STATUSES.map(statusLabel)} onChange={(v) => { setStatus(STATUSES.find((s) => statusLabel(s) === v) ?? ''); setPage(1) }} />} />}
         columns={[
-          { key: 'createdAt', header: t('fees.online.when'), nowrap: true, render: (v) => <span className="text-sm">{dateTime(v)}</span> },
-          { key: 'studentName', header: t('fees.online.student'), mobilePrimary: true, render: (v, r) => <div><p className="font-medium text-ink">{v}</p><p className="text-xs text-ink-faint font-mono-num">{r.admissionNo}</p></div> },
-          { key: 'source', header: t('fees.online.source'), render: (v, r) => <span className="text-sm">{t(`fees.online.sources.${v}`)}{r.method ? <span className="text-ink-faint"> · {r.method}</span> : ''}</span> },
-          { key: 'amount', header: t('fees.online.amount'), align: 'right', render: (v) => formatINR(v) },
+          { key: 'createdAt', header: t('fees.online.when'), nowrap: true, render: (v) => <DateCell value={v} time /> },
+          { key: 'studentName', header: t('fees.online.student'), mobilePrimary: true, render: (v, r) => <PersonCell name={v} sub={r.admissionNo} size={32} /> },
+          { key: 'source', header: t('fees.online.source'), render: (v, r) => <ColorChip label={t(`fees.online.sources.${v}`)} seed={v} icon={v === 'APP' ? Smartphone : Link2} sub={r.method || undefined} /> },
+          { key: 'amount', header: t('fees.online.amount'), align: 'right', render: (v, r) => <Money value={v} paise tone={r.status === 'APPLIED' ? 'success' : undefined} muted={['CANCELLED', 'EXPIRED', 'FAILED'].includes(r.status)} /> },
           { key: 'status', header: t('fees.online.statusLabel'), render: (v, r) => <div><StatusPill tone={GATEWAY_ORDER_STATUSES[v]?.tone}>{statusLabel(v)}</StatusPill>{r.receiptNos?.length > 0 && <p className="text-xs text-ink-faint font-mono-num mt-0.5">{r.receiptNos.join(', ')}</p>}{r.error && <p className="text-xs text-danger-600 mt-0.5 line-clamp-2">{r.error}</p>}</div> },
           { key: 'providerOrderId', header: t('fees.online.reference'), mobileHidden: true, render: (v, r) => <span className="font-mono-num text-xs text-ink-muted">{r.providerPaymentId ?? v}</span> },
           { key: 'id', header: '', align: 'right', width: 120, render: (id, r) => (

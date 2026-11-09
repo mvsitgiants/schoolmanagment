@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { CalendarDays, ChevronLeft, ChevronRight, Download, Eye, EyeOff, ListChecks, Pencil, Plus, Send, Trash2 } from 'lucide-react'
+import { Bus, CalendarDays, CheckCircle2, ChevronLeft, ChevronRight, Download, Eye, EyeOff, Flag, Hourglass, ListChecks, Music, NotebookPen, PartyPopper, Pencil, Plus, Send, Shapes, Sparkles, Trash2, Trophy, UsersRound, XCircle } from 'lucide-react'
 import { EVENT_KINDS, REPLY_KINDS, addDaysYmd, monthGrid } from '@schoolgiant/shared'
-import { Attachments, DataTable, Drawer, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, Panel, PhoneLink, SegmentedControl, Select, StatCardRow, StatusPill, Textarea, localIso, useConfirm } from '../../components/system'
+import { Attachments, ColorChip, DataTable, Drawer, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, Panel, PersonCell, PhoneLink, SegmentedControl, Select, StatCardRow, StatusPill, Textarea, localIso, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { deleteEvent, downloadIcs, exportReplies, fetchCalendar, fetchEvent, fetchEvents, fetchReplies, publishEvent, saveEvent, saveReply, unpublishEvent } from '../../api/events'
 import { hasPermission } from '../../api/auth'
@@ -11,6 +11,8 @@ import { useSnackbar } from '../../context/SnackbarContext'
 import { useFormat } from '../../context/SettingsContext'
 import { AudienceFields, chipClass, toneOf, useEventLabels } from '../../components/events/EventsKit'
 
+// each event kind's icon in the events list
+const KIND_ICON = { EVENT: Sparkles, CELEBRATION: PartyPopper, CULTURAL: Music, SPORTS: Trophy, TRIP: Bus, EXAM: NotebookPen, DEADLINE: Flag, MEETING: UsersRound, OTHER: Shapes }
 const DOW = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN']
 
 function EventForm({ event, day, onClose, onSaved }) {
@@ -89,8 +91,8 @@ function RepliesDrawer({ event, onClose }) {
           <Button size="sm" variant="secondary" icon={Download} onClick={() => exportReplies(event.id).catch((e) => showError(e.message))}>{t('events.replies.export')}</Button>
         </div>
         <DataTable rows={data?.rows ?? []} loading={isLoading} rowKey="studentId" columns={[
-          { key: 'name', header: t('events.replies.student'), mobilePrimary: true, render: (v, r) => <span>{v}<span className="block text-xs text-ink-faint">{[r.section, r.admissionNo].filter(Boolean).join(' · ')}</span></span> },
-          { key: 'guardian', header: t('events.replies.parent'), mobileHidden: true, render: (v, r) => <span>{v ?? '—'}{r.mobile && <span className="block text-xs"><PhoneLink number={r.mobile} /></span>}</span> },
+          { key: 'name', header: t('events.replies.student'), mobilePrimary: true, render: (v, r) => <PersonCell name={v} sub={[r.section, r.admissionNo].filter(Boolean).join(' · ') || undefined} /> },
+          { key: 'guardian', header: t('events.replies.parent'), mobileHidden: true, render: (v, r) => (v || r.mobile ? <PersonCell name={v} sub={r.mobile ? <PhoneLink number={r.mobile} /> : undefined} size={26} /> : '—') },
           { key: 'answer', header: t('events.replies.reply'), render: (v, r) => (canEdit
             ? <div className="w-40"><Select value={v ?? ''} aria-label={t('events.replies.reply')} onChange={(e) => set.mutate({ studentId: r.studentId, answer: e.target.value || null })}><option value="">{t('events.replies.none')}</option><option value="YES">{words.YES}</option><option value="NO">{words.NO}</option></Select></div>
             : v ? <StatusPill tone={v === 'YES' ? 'success' : 'danger'}>{words[v]}</StatusPill> : <span className="text-xs text-ink-faint">{t('events.replies.none')}</span>) },
@@ -139,9 +141,9 @@ function EventDrawer({ id, onClose, onEdit }) {
           <Panel title={L.reply(e.reply.kind)} actions={<Button size="sm" variant="secondary" icon={ListChecks} onClick={() => setReplies(true)}>{t('events.drawer.seeReplies')}</Button>}>
             {e.reply.question && <p className="text-sm text-ink mb-2">{e.reply.question}</p>}
             <StatCardRow items={[
-              { label: t('events.drawer.yes'), value: e.replySummary.yes, tone: 'success' },
-              { label: t('events.drawer.no'), value: e.replySummary.no },
-              { label: t('events.drawer.waiting'), value: e.replySummary.waiting, tone: e.replySummary.waiting ? 'warning' : 'neutral' },
+              { icon: CheckCircle2, label: t('events.drawer.yes'), value: e.replySummary.yes, tone: 'success' },
+              { icon: XCircle, tone: 'pink', label: t('events.drawer.no'), value: e.replySummary.no },
+              { icon: Hourglass, label: t('events.drawer.waiting'), value: e.replySummary.waiting, tone: e.replySummary.waiting ? 'warning' : 'neutral' },
             ]} />
             {e.reply.by && <p className="mt-2 text-xs text-ink-faint">{t('events.drawer.replyBy', { date: date(e.reply.by) })}</p>}
           </Panel>
@@ -218,9 +220,19 @@ function ListView({ onOpen }) {
       <SegmentedControl value={when} onChange={setWhen} options={['UPCOMING', 'PAST', 'DRAFTS'].map((v) => ({ value: v, label: t(`events.list.${v}`) }))} />
       <DataTable rows={data} loading={isLoading} columns={[
         { key: 'startDate', header: t('events.list.when'), nowrap: true, render: (v, e) => <span>{date(v)}{e.endDate !== v && <span className="text-ink-faint"> – {date(e.endDate)}</span>}{e.startTime && <span className="block text-xs text-ink-faint">{e.startTime}–{e.endTime}</span>}</span> },
-        { key: 'title', header: t('events.list.event'), mobilePrimary: true, render: (v, e) => <span>{v}<span className="block text-xs text-ink-faint">{[L.kind(e.kind), e.venue].filter(Boolean).join(' · ')}</span></span> },
+        { key: 'title', header: t('events.list.event'), mobilePrimary: true, render: (v, e) => (
+          <span className="flex min-w-0 flex-col items-start gap-1">
+            <span className="font-medium text-ink">{v}</span>
+            <ColorChip label={L.kind(e.kind)} tone={toneOf({ source: 'EVENT', kind: e.kind })} icon={KIND_ICON[e.kind] ?? Sparkles} sub={e.venue || undefined} />
+          </span>
+        ) },
         { key: 'audienceLabel', header: t('events.list.for'), mobileHidden: true, render: (v, e) => (e.audience === 'EVERYONE' ? L.audience('EVERYONE') : e.audience === 'STAFF' ? L.audience('STAFF') : v) },
-        { key: 'replies', header: t('events.list.replies'), mobileHidden: true, render: (v) => (v ? t('events.list.replyCounts', { yes: v.yes, no: v.no }) : '—') },
+        { key: 'replies', header: t('events.list.replies'), mobileHidden: true, render: (v) => (v ? (
+          <span className="inline-flex items-center gap-3 text-sm tabular-nums" title={t('events.list.replyCounts', { yes: v.yes, no: v.no })}>
+            <span className="inline-flex items-center gap-1 font-semibold text-success-600"><CheckCircle2 className="h-3.5 w-3.5" aria-label={t('events.drawer.yes')} />{v.yes}</span>
+            <span className={v.no ? 'inline-flex items-center gap-1 font-semibold text-danger-600' : 'inline-flex items-center gap-1 text-ink-faint'}><XCircle className="h-3.5 w-3.5" aria-label={t('events.drawer.no')} />{v.no}</span>
+          </span>
+        ) : '—') },
         { key: 'published', header: '', render: (v) => <StatusPill tone={v ? 'success' : 'neutral'}>{v ? t('events.drawer.onFamilies') : t('events.drawer.draft')}</StatusPill> },
       ]} onRowClick={(e) => onOpen({ source: 'EVENT', id: e.id })} emptyTitle={t('events.list.empty')} />
     </div>

@@ -2,12 +2,26 @@ import { useEffect, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import clsx from 'clsx'
-import { BarChart3, ChevronLeft } from 'lucide-react'
-import { DataTable, FormField, Input, Note, PageContainer, PageHeader, StatCardRow } from '../../components/system'
+import { BarChart3, CalendarCheck, ChevronLeft, LayoutGrid, Percent, TriangleAlert } from 'lucide-react'
+import { CodeBadge, ColorChip, DataTable, FormField, Input, LevelBar, Note, PageContainer, PageHeader, PersonCell, StatCardRow, TONE } from '../../components/system'
+import { attendancePct } from '@schoolgiant/shared'
 import Button from '../../components/ui/Button'
 import { fetchAttendanceReport } from '../../api/attendance'
 
-const pctCell = (v, min) => (v == null ? '—' : <span className={clsx('font-semibold', v < min ? 'text-danger-600' : 'text-ink')}>{v}%</span>)
+/** Attendance % as a coloured figure over a thin bar: red under the minimum (75% when none is set), amber under 90%, else green. */
+export function PctCell({ value, min }) {
+  if (value == null) return <span className="text-ink-faint">—</span>
+  const floor = min || 75
+  const tone = value < floor ? 'danger' : value < 90 ? 'warning' : 'success'
+  return (
+    <span className="ms-auto inline-flex w-20 flex-col items-end gap-1">
+      <span className={clsx('text-[13px] font-semibold tabular-nums', TONE[tone].text)}>{value}%</span>
+      <LevelBar bare value={value} max={100} dangerAt={floor - 0.001} warnAt={89.999} width="w-full" />
+    </span>
+  )
+}
+const pctCell = (v, min) => <PctCell value={v} min={min} />
+const countCell = (v, tone) => (v ? <span className={clsx('font-semibold tabular-nums', TONE[tone].text)}>{v}</span> : <span className="text-ink-faint tabular-nums">0</span>)
 
 /** Attendance over a date range: every section, then one section's students (those under the minimum in red). */
 export default function Reports() {
@@ -23,6 +37,9 @@ export default function Reports() {
   const ready = !!from && !!to
   const { data, isLoading, error } = useQuery({ queryKey: ['attendance-report', from, to, sectionId], queryFn: () => fetchAttendanceReport({ from, to, sectionId }), enabled: ready })
   const min = data?.minimumPct ?? 0
+  // every section's marks added up, for the overall figure on the tiles
+  const overall = data?.sections ? attendancePct(data.sections.reduce((m, s) => { for (const k of ['P', 'A', 'L', 'HD', 'LV', 'total']) m[k] += s.counts?.[k] ?? 0; return m }, { P: 0, A: 0, L: 0, HD: 0, LV: 0, total: 0 })) : null
+  const overallTone = overall == null ? 'neutral' : overall < (min || 75) ? 'danger' : overall < 90 ? 'warning' : 'success'
 
   return (
     <PageContainer>
@@ -37,17 +54,18 @@ export default function Reports() {
       {data && !sectionId && (
         <>
           <StatCardRow items={[
-            { label: t('attendance.reports.sections'), value: data.sections.length },
-            { label: t('attendance.reports.taken'), value: data.sections.filter((s) => s.daysTaken).length },
-            { label: t('attendance.reports.belowMin'), value: data.sections.reduce((n, s) => n + s.below, 0), tone: 'danger' },
+            { icon: LayoutGrid, tone: 'brand', label: t('attendance.reports.sections'), value: data.sections.length },
+            { icon: CalendarCheck, tone: 'info', label: t('attendance.reports.taken'), value: data.sections.filter((s) => s.daysTaken).length, progress: data.sections.length ? (data.sections.filter((s) => s.daysTaken).length / data.sections.length) * 100 : undefined },
+            { icon: Percent, tone: overallTone, label: t('attendance.reports.overall'), value: overall == null ? '—' : `${overall}%`, progress: overall ?? undefined },
+            { icon: TriangleAlert, label: t('attendance.reports.belowMin'), value: data.sections.reduce((n, s) => n + s.below, 0), tone: 'danger' },
           ]} />
           <DataTable rows={data.sections} loading={isLoading} exportable exportName={`attendance-${from}-${to}`}
             columns={[
-              { key: 'label', header: t('attendance.reports.section'), mobilePrimary: true, render: (v) => <span className="font-medium text-ink">{v}</span> },
-              { key: 'daysTaken', header: t('attendance.reports.daysTaken'), align: 'right' },
+              { key: 'label', header: t('attendance.reports.section'), mobilePrimary: true, render: (v, r) => <ColorChip label={v} seed={`class-${r.classOrder}`} dot /> },
+              { key: 'daysTaken', header: t('attendance.reports.daysTaken'), align: 'right', render: (v) => (v ? <span className="font-semibold tabular-nums text-ink">{v}</span> : <span className="text-ink-faint tabular-nums">0</span>) },
               { key: 'pct', header: t('attendance.reports.average'), align: 'right', render: (v) => pctCell(v, min) },
-              { key: 'absent', header: t('attendance.reports.absences'), align: 'right', render: (_, r) => r.counts.A },
-              { key: 'below', header: t('attendance.reports.belowMinShort', { min }), align: 'right', render: (v) => (v ? <span className="text-danger-600 font-semibold">{v}</span> : 0) },
+              { key: 'absent', header: t('attendance.reports.absences'), align: 'right', render: (_, r) => countCell(r.counts.A, 'warning') },
+              { key: 'below', header: t('attendance.reports.belowMinShort', { min }), align: 'right', render: (v) => countCell(v, 'danger') },
             ]}
             onRowClick={(r) => setSectionId(r.id)}
             emptyIcon={BarChart3} emptyTitle={t('attendance.reports.empty')} />
@@ -58,11 +76,11 @@ export default function Reports() {
         <DataTable rows={data.students ?? []} loading={isLoading} exportable exportName={`attendance-${data.section?.label}-${from}-${to}`}
           title={t('attendance.reports.studentsTitle', { section: data.section?.label, days: data.daysTaken })}
           columns={[
-            { key: 'rollNo', header: t('attendance.register.roll'), width: 60, render: (v) => v ?? '–' },
-            { key: 'name', header: t('attendance.register.student'), mobilePrimary: true, render: (v, r) => <div><p className="font-medium text-ink">{v}</p><p className="text-xs text-ink-faint font-mono-num">{r.admissionNo}</p></div> },
-            { key: 'present', header: t('attendance.register.present'), align: 'right', render: (_, r) => r.counts.P + r.counts.L + 0.5 * r.counts.HD },
-            { key: 'absent', header: t('attendance.register.absent'), align: 'right', render: (_, r) => r.counts.A },
-            { key: 'leave', header: t('attendance.reports.leave'), align: 'right', mobileHidden: true, render: (_, r) => r.counts.LV },
+            { key: 'rollNo', header: t('attendance.register.roll'), width: 60, render: (v) => <CodeBadge>{v}</CodeBadge> },
+            { key: 'name', header: t('attendance.register.student'), mobilePrimary: true, render: (v, r) => <PersonCell name={v} sub={r.admissionNo} /> },
+            { key: 'present', header: t('attendance.register.present'), align: 'right', render: (_, r) => countCell(r.counts.P + r.counts.L + 0.5 * r.counts.HD, 'success') },
+            { key: 'absent', header: t('attendance.register.absent'), align: 'right', render: (_, r) => countCell(r.counts.A, 'danger') },
+            { key: 'leave', header: t('attendance.reports.leave'), align: 'right', mobileHidden: true, render: (_, r) => countCell(r.counts.LV, 'info') },
             { key: 'pct', header: '%', align: 'right', render: (v) => pctCell(v, min) },
           ]}
           emptyIcon={BarChart3} emptyTitle={t('attendance.reports.noStudents')} />

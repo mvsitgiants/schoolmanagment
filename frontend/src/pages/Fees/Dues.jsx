@@ -3,21 +3,19 @@ import { useNavigate } from 'react-router-dom'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { AlertTriangle, BellRing, IndianRupee, Users } from 'lucide-react'
-import { formatINR } from '@schoolgiant/shared'
-import { BulkActionBar, ControlChip, DataTable, PageContainer, PageHeader, StatCardRow, useConfirm } from '../../components/system'
+import { formatINR, formatINRCompact } from '@schoolgiant/shared'
+import { BulkActionBar, ContactCell, ControlChip, DataTable, DateCell, Money, PageContainer, PageHeader, PersonCell, StatCardRow, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { fetchAcademicLookup } from '../../api/academics'
 import { fetchDues, sendFeeReminders } from '../../api/fees'
 import { hasPermission } from '../../api/auth'
 import { useSnackbar } from '../../context/SnackbarContext'
-import { useFormat } from '../../context/SettingsContext'
 
 /** Families with fees outstanding — pick some (or all) and send them a reminder. */
 export default function Dues() {
   const { t } = useTranslation('fees')
   const navigate = useNavigate()
   const confirm = useConfirm()
-  const { date } = useFormat()
   const { showSuccess, showError } = useSnackbar()
   const [sectionId, setSectionId] = useState('')
   const [overdueOnly, setOverdueOnly] = useState(false)
@@ -43,9 +41,12 @@ export default function Dues() {
       <PageHeader icon={IndianRupee} title={t('fees.dues.title')} subtitle={t('fees.dues.subtitle')}
         actions={canSend && rows.length > 0 && <Button icon={BellRing} variant="secondary" loading={remind.isPending} onClick={() => ask(rows.map((r) => r.studentId))}>{t('fees.dues.remindAll', { count: rows.length })}</Button>} />
       <StatCardRow className="mb-4" items={[
-        { icon: Users, label: t('fees.dues.students'), value: rows.length },
-        { icon: IndianRupee, label: t('fees.dues.totalDue'), value: formatINR(totalDue), tone: totalDue ? 'warning' : 'success' },
-        { icon: AlertTriangle, label: t('fees.dues.totalOverdue'), value: formatINR(totalOverdue), tone: totalOverdue ? 'danger' : 'neutral' },
+        { icon: Users, tone: 'brand', label: t('fees.dues.students'), value: rows.length,
+          sub: t('fees.dues.overdueStudents', { count: rows.filter((r) => r.overdue > 0).length }) },
+        { icon: IndianRupee, label: t('fees.dues.totalDue'), value: formatINRCompact(totalDue), tone: totalDue ? 'warning' : 'success', sub: formatINR(totalDue) },
+        { icon: AlertTriangle, label: t('fees.dues.totalOverdue'), value: formatINRCompact(totalOverdue), tone: totalOverdue ? 'danger' : 'neutral',
+          sub: t('fees.dues.overdueShare', { pct: totalDue > 0 ? Math.round((totalOverdue / totalDue) * 100) : 0 }), progress: totalDue > 0 ? (totalOverdue / totalDue) * 100 : 0,
+          onClick: () => { setOverdueOnly(!overdueOnly); setSelected([]) }, className: overdueOnly ? 'ring-2 ring-danger-300' : undefined },
       ]} />
       <BulkActionBar count={selected.length} onClear={() => setSelected([])}>
         {canSend && <Button size="sm" icon={BellRing} loading={remind.isPending} onClick={() => ask(selected)}>{t('fees.dues.remind')}</Button>}
@@ -66,12 +67,12 @@ export default function Dues() {
             options={[t('fees.no'), t('fees.yes')]} onChange={(v) => { setOverdueOnly(v === t('fees.yes')); setSelected([]) }} />
         </div>}
         columns={[
-          { key: 'name', header: t('fees.dues.student'), mobilePrimary: true, render: (v, r) => <div><p className="font-medium text-ink">{v}</p><p className="text-xs text-ink-faint">{[r.classShort, r.admissionNo].filter(Boolean).join(' · ')}</p></div> },
-          { key: 'guardianName', header: t('fees.dues.guardian'), mobileHidden: true, render: (v, r) => (v ? <div><p className="text-sm">{v}</p>{r.guardianMobile && <p className="text-xs text-ink-faint font-mono-num">{r.guardianMobile}</p>}</div> : '—') },
-          { key: 'oldestDue', header: t('fees.dues.since'), nowrap: true, render: (v) => date(v) },
+          { key: 'name', header: t('fees.dues.student'), mobilePrimary: true, render: (v, r) => <PersonCell name={v} sub={[r.classShort, r.admissionNo].filter(Boolean).join(' · ')} size={32} /> },
+          { key: 'guardianName', header: t('fees.dues.guardian'), mobileHidden: true, render: (v, r) => <ContactCell name={v} phone={r.guardianMobile} /> },
+          { key: 'oldestDue', header: t('fees.dues.since'), nowrap: true, render: (v, r) => <DateCell value={v} tone={r.overdue > 0 ? 'danger' : undefined} /> },
           { key: 'invoices', header: t('fees.dues.installments'), align: 'right', mobileHidden: true },
-          { key: 'overdue', header: t('fees.dues.overdue'), align: 'right', render: (v) => (v ? <span className="text-danger-600">{formatINR(v)}</span> : '—') },
-          { key: 'due', header: t('fees.dues.due'), align: 'right', render: (v) => formatINR(v) },
+          { key: 'overdue', header: t('fees.dues.overdue'), align: 'right', render: (v) => (v ? <Money value={v} paise tone="danger" /> : <span className="text-ink-faint">—</span>) },
+          { key: 'due', header: t('fees.dues.due'), align: 'right', render: (v) => <Money value={v} paise className="font-semibold" /> },
         ]}
         onRowClick={hasPermission('fees.collect.view') ? (r) => navigate(`/fees/collect?student=${r.studentId}`) : undefined}
         totals={{ overdue: formatINR(totalOverdue), due: formatINR(totalDue) }}

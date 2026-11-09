@@ -2,10 +2,10 @@ import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import clsx from 'clsx'
-import { Layers, Pencil, Plus, Sparkles, Trash2, Users } from 'lucide-react'
+import { BookOpen, GraduationCap, Layers, Pencil, Plus, Sparkles, Trash2, Users } from 'lucide-react'
 import { CLASS_PRESETS } from '@schoolgiant/shared'
 import {
-  ControlChip, DataTable, Drawer, FormField, HeaderButton, ImportExportButtons, Input, Modal, Note, PageContainer, PageHeader, Select, StatusPill, useConfirm,
+  ControlChip, DataTable, Drawer, FormField, HeaderButton, ImportExportButtons, Input, Modal, Note, PageContainer, PageHeader, Select, StatusPill, useConfirm, ColumnBars, LevelBar, StatCard, TONE, hueTone,
 } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { Switch } from '../../components/app/Controls'
@@ -253,7 +253,12 @@ export default function Classes() {
   const open = classes.find((c) => c.id === openId)
   const years = lookup?.years ?? []
   const yearName = (id) => years.find((y) => y.id === id)?.name
-  const totals = useMemo(() => ({ sections: classes.reduce((n, c) => n + c.sections.length, 0), students: classes.reduce((n, c) => n + c.sections.reduce((m, s) => m + s.studentCount, 0), 0) }), [classes])
+  const totals = useMemo(() => ({
+    sections: classes.reduce((n, c) => n + c.sections.length, 0),
+    students: classes.reduce((n, c) => n + c.sections.reduce((m, s) => m + s.studentCount, 0), 0),
+    capacity: classes.every((c) => c.sections.every((s) => s.capacity)) ? classes.reduce((n, c) => n + c.sections.reduce((m, s) => m + s.capacity, 0), 0) : 0,
+    biggest: Math.max(1, ...classes.map((c) => c.sections.reduce((m, s) => m + s.studentCount, 0))),
+  }), [classes])
   const canCreate = hasPermission('academics.classes.create')
 
   return (
@@ -271,8 +276,20 @@ export default function Classes() {
         <div className="flex flex-wrap items-center gap-3 mb-4">
           <ControlChip label={t('academics.classes.year')} value={year.name} active={!year.isCurrent}
             options={years.map((y) => y.name)} onChange={(name) => setYearId(years.find((y) => y.name === name)?.id ?? '')} />
-          <span className="text-sm text-ink-muted">{t('academics.classes.totals', { classes: classes.length, sections: totals.sections, students: totals.students })}</span>
+          <span className="text-sm text-ink-muted lg:hidden">{t('academics.classes.totals', { classes: classes.length, sections: totals.sections, students: totals.students })}</span>
           {year.closed && <StatusPill tone="neutral">{t('academics.years.closedPill')}</StatusPill>}
+        </div>
+      )}
+
+      {classes.length > 0 && (
+        <div className="mb-4 hidden grid-cols-4 gap-4 lg:grid">
+          <StatCard icon={Layers} tone="brand" label={t('academics.classes.stat.classes')} value={classes.length}
+            sub={t('academics.classes.stat.subjects', { count: new Set(classes.flatMap((c) => c.subjects.map((x) => x.id))).size })} />
+          <StatCard icon={GraduationCap} tone="violet" label={t('academics.classes.stat.students')} value={totals.students}
+            sub={t('academics.classes.stat.perSection', { count: totals.sections ? Math.round(totals.students / totals.sections) : 0 })}
+            progress={totals.capacity ? (totals.students / totals.capacity) * 100 : undefined} />
+          <ColumnBars className="col-span-2" title={t('academics.classes.stat.strength')} subtitle={t('academics.classes.stat.sections', { count: totals.sections })}
+            items={classes.map((c) => ({ id: c.id, label: c.name, short: c.code || c.name, value: c.sections.reduce((m, s) => m + s.studentCount, 0) }))} />
         </div>
       )}
 
@@ -283,11 +300,37 @@ export default function Classes() {
         onRetry={refetch}
         exportable exportName="classes"
         columns={[
-          { key: 'name', header: t('academics.classes.class'), mobilePrimary: true, render: (v, r) => <div><p className="font-medium text-ink">{v}</p><p className="text-xs text-ink-faint">{[r.code, r.departmentName].filter(Boolean).join(' · ')}</p></div> },
-          { key: 'sections', header: t('academics.sections.title'), render: (v) => (v.length
-            ? <div className="flex flex-wrap gap-1">{v.map((s) => <span key={s.id} title={s.classTeacherName ?? ''} className={clsx('text-xs px-2 py-0.5 rounded border font-mono-num', s.active ? 'border-border bg-bg text-ink' : 'border-border text-ink-faint line-through')}>{s.name}<span className="text-ink-faint ms-1">{s.studentCount}</span></span>)}</div>
+          { key: 'name', header: t('academics.classes.class'), mobilePrimary: true, render: (v, r) => {
+            const tone = TONE[hueTone(r.id)]
+            return (
+              <span className="flex items-center gap-3 min-w-0">
+                <span className={clsx('flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border text-[11px] font-bold font-mono-num', tone.bg, tone.text, tone.border)}>{(r.code || v).slice(0, 3)}</span>
+                <span className="min-w-0 leading-tight"><span className="block truncate font-medium text-ink">{v}</span>
+                  {r.departmentName && <span className="block truncate text-[11.5px] text-ink-faint">{r.departmentName}</span>}</span>
+              </span>
+            )
+          } },
+          { key: 'sections', header: t('academics.sections.title'), render: (v, r) => (v.length
+            ? <div className="flex flex-wrap gap-1.5">{v.map((s) => {
+              const tone = TONE[hueTone(r.id)]
+              return (
+                <span key={s.id} title={s.classTeacherName ?? ''} className={clsx('inline-flex items-center gap-1.5 rounded-lg border ps-2 pe-1 py-0.5 text-xs font-semibold', s.active ? clsx(tone.bg, tone.text, tone.border) : 'border-border text-ink-faint line-through')}>
+                  {s.name}
+                  <span className="inline-flex items-center gap-0.5 rounded-md bg-white/80 px-1 text-[10.5px] font-medium text-ink-muted tabular-nums"><Users className="h-2.5 w-2.5" aria-hidden />{s.studentCount}</span>
+                </span>
+              )
+            })}</div>
             : <span className="text-ink-faint text-sm">{t('academics.classes.noSections')}</span>) },
-          { key: 'subjects', header: t('academics.classes.subjects'), align: 'right', mobileHidden: true, render: (v) => v.length },
+          { key: 'strength', header: t('academics.classes.stat.strengthCol'), mobileHidden: true, sortable: true,
+            sortAccessor: (r) => r.sections.reduce((m, s) => m + s.studentCount, 0),
+            render: (_, r) => {
+              const n = r.sections.reduce((m, s) => m + s.studentCount, 0)
+              const cap = r.sections.every((s) => s.capacity) ? r.sections.reduce((m, s) => m + s.capacity, 0) : 0
+              return cap
+                ? <LevelBar value={n} max={cap} highIsBad warnAt={cap * 0.9} dangerAt={cap} />
+                : <span className="flex items-center gap-2"><span className="w-7 text-[13px] font-semibold tabular-nums text-ink">{n}</span><LevelBar bare value={n} max={totals.biggest} width="w-24" /></span>
+            } },
+          { key: 'subjects', header: t('academics.classes.subjects'), align: 'center', mobileHidden: true, render: (v) => <span className="inline-flex items-center gap-1 rounded-full bg-bg px-2 py-0.5 text-xs font-semibold text-ink-muted"><BookOpen className="h-3 w-3" aria-hidden />{v.length}</span> },
           { key: 'gradingSchemeName', header: t('academics.classes.grading'), mobileHidden: true, render: (v, r) => <span className="text-sm text-ink-muted">{v ?? '—'}{r.gradingIsDefault && v ? ` ${t('academics.classes.defaultTag')}` : ''}</span> },
           { key: 'active', header: t('academics.status'), render: (v) => <StatusPill tone={v ? 'success' : 'neutral'}>{v ? t('status.active') : t('academics.inactive')}</StatusPill> },
           { key: 'id', header: '', align: 'right', width: 90, render: (_, r) => (

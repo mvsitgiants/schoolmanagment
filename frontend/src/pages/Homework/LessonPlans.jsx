@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { Check, ChevronLeft, ChevronRight, ClipboardList, Pencil, Plus, SkipForward, Trash2, Undo2 } from 'lucide-react'
+import { CalendarClock, Check, CheckCircle2, ChevronLeft, ChevronRight, ClipboardList, Pencil, Plus, SkipForward, Trash2, Undo2 } from 'lucide-react'
 import { LESSON_STATUS, addDaysYmd, weekOf } from '@schoolgiant/shared'
-import { ControlChip, DataTable, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, Select, StatusPill, Textarea, localIso, useConfirm, usePrompt } from '../../components/system'
+import { ColorChip, ControlChip, DataTable, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, PersonCell, Select, StatCardRow, StatusPill, Textarea, localIso, useConfirm, usePrompt } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { createLessonPlan, deleteLessonPlan, fetchHomeworkLookup, fetchLessonPlans, fetchSyllabus, setLessonPlanStatus, updateLessonPlan } from '../../api/homework'
 import { hasPermission } from '../../api/auth'
@@ -107,12 +107,19 @@ export default function LessonPlans() {
   const act = useMutation({ mutationFn: ({ fn }) => fn(), onSuccess: (_, v) => { refresh(); showSuccess(v.done) }, onError: (e) => showError(e.message) })
   const canEdit = hasPermission('homework.lesson-plans.edit')
   const statusLabel = (s) => t(`homework.lessons.status.${s}`, LESSON_STATUS[s]?.label ?? s)
+  const countOf = (s) => rows.filter((r) => r.status === s).length
 
   return (
     <PageContainer>
       <PageHeader icon={ClipboardList} title={t('homework.lessons.title')} subtitle={t('homework.lessons.subtitle')}
         actions={<HeaderButton icon={Plus} variant="primary" requires="homework.lesson-plans.create" onClick={() => setEditing('new')}>{t('homework.lessons.new')}</HeaderButton>} />
       {lookup && !sections.length && <Note tone="warning" className="mb-4">{t('homework.noSections')}</Note>}
+      {rows.length > 0 && <StatCardRow className="mb-4" items={[
+        { icon: ClipboardList, tone: 'brand', label: t('homework.lessons.summary.total'), value: rows.length, sub: t('homework.lessons.week', { from: date(week.from), to: date(week.to) }) },
+        { icon: CheckCircle2, tone: 'success', label: statusLabel('DONE'), value: countOf('DONE'), progress: (countOf('DONE') / rows.length) * 100 },
+        { icon: CalendarClock, tone: 'info', label: statusLabel('PLANNED'), value: countOf('PLANNED') },
+        { icon: SkipForward, tone: countOf('SKIPPED') ? 'warning' : 'neutral', label: statusLabel('SKIPPED'), value: countOf('SKIPPED') },
+      ]} />}
       <DataTable
         rows={rows}
         loading={isLoading}
@@ -134,9 +141,9 @@ export default function LessonPlans() {
         </div>}
         columns={[
           { key: 'date', header: t('homework.lessons.date'), nowrap: true, render: (v, r) => <span>{date(v)}{r.period ? <span className="text-ink-faint"> · {t('homework.lessons.periodN', { n: r.period })}</span> : ''}</span> },
-          { key: 'section', header: t('homework.class'), render: (v, r) => <span className="text-sm">{v} · {r.subject}</span> },
+          { key: 'section', header: t('homework.class'), render: (v, r) => <div className="flex flex-wrap items-center gap-1"><ColorChip label={v} seed={r.classId ?? v} /><ColorChip label={r.subject} seed={r.subjectId} dot /></div> },
           { key: 'title', header: t('homework.lessons.lesson'), mobilePrimary: true, render: (v, r) => <div><p className="font-medium text-ink">{v}</p>{r.topics.length > 0 && <p className="text-xs text-ink-faint line-clamp-1">{r.topics.join(', ')}</p>}{r.reflection && <p className="text-xs text-ink-muted italic line-clamp-1">{r.reflection}</p>}</div> },
-          { key: 'teacher', header: t('homework.lessons.teacher'), mobileHidden: true, render: (v) => <span className="text-sm text-ink-muted">{v}</span> },
+          { key: 'teacher', header: t('homework.lessons.teacher'), mobileHidden: true, render: (v) => <PersonCell name={v} size={26} /> },
           { key: 'status', header: t('homework.lessons.statusLabel'), render: (v) => <StatusPill tone={LESSON_STATUS[v]?.tone}>{statusLabel(v)}</StatusPill> },
           { key: 'id', header: '', align: 'right', width: 160, render: (id, r) => r.canChange && canEdit && (
             <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>

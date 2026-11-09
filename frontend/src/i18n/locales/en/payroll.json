@@ -167,7 +167,8 @@
       "net": "Net a month",
       "cost": "Cost a month",
       "empty": "Nobody here.",
-      "emptyHint": "Add staff in Staff & HR, with their salary, then put them on a structure."
+      "emptyHint": "Add staff in Staff & HR, with their salary, then put them on a structure.",
+      "department": "Department"
     },
     "runs": {
       "title": "Payroll runs",
@@ -258,7 +259,9 @@
       "withLop": "With loss of pay",
       "flagged": "To check",
       "search": "Search name, code or payslip no.…",
-      "empty": "No payslips for this month."
+      "empty": "No payslips for this month.",
+      "flaggedCount_one": "{{count}} to check",
+      "flaggedCount_other": "{{count}} to check"
     },
     "loans": {
       "title": "Loans & advances",
@@ -282,7 +285,8 @@
       "closeTitle": "Close {{no}}?",
       "closeWhy": "Why (e.g. paid back in cash)",
       "closed": "Done.",
-      "empty": "No loans or advances here."
+      "empty": "No loans or advances here.",
+      "recoveredShort": "recovered"
     },
     "exports": {
       "title": "Bank & statutory exports",

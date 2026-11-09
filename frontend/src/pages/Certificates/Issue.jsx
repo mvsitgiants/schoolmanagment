@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next'
 import clsx from 'clsx'
 import { FileBadge, Printer } from 'lucide-react'
 import { CERTIFICATE_KINDS, CERTIFICATE_PURPOSES, CERTIFICATE_STATUS, CONDUCT_OPTIONS, formatINR, recentFinancialYears } from '@schoolgiant/shared'
-import { DataTable, FormField, Input, Note, PageContainer, PageHeader, Panel, Select, StatusPill, Textarea, localIso } from '../../components/system'
+import { CodeBadge, DataTable, DateCell, FormField, Input, Note, PageContainer, PageHeader, Panel, Select, StatusPill, Textarea, localIso } from '../../components/system'
 import Button from '../../components/ui/Button'
 import StudentPicker from '../../components/fees/StudentPicker'
 import useDebouncedValue from '../../hooks/useDebouncedValue'
@@ -16,6 +16,7 @@ import { getCurrentUser, hasPermission } from '../../api/auth'
 import { printDocument, printDocuments } from '../../components/print/printDocument'
 import { useSnackbar } from '../../context/SnackbarContext'
 import { useFormat } from '../../context/SettingsContext'
+import { KindChip } from './Register'
 
 const purposeKey = (p) => p.replace(/[^A-Za-z0-9]/g, '')
 
@@ -91,7 +92,6 @@ function Preview({ kind, snap }) {
 export default function Issue() {
   const { t } = useTranslation('certificates')
   const qc = useQueryClient()
-  const { date } = useFormat()
   const { showSuccess, showError } = useSnackbar()
   const [params] = useSearchParams()
   const today = localIso(new Date())
@@ -209,8 +209,13 @@ export default function Issue() {
               rows={history.data}
               dense
               columns={[
-                { key: 'certificateNo', header: t('certificates.register.no'), render: (v) => <span className="font-mono-num text-xs">{v}</span> },
-                { key: 'kindLabel', header: t('certificates.register.kind'), render: (v, r) => <span className="text-xs">{t(`certificates.kinds.${r.kind}.label`, v)}<span className="block text-ink-faint">{date(r.issueDate)}</span></span> },
+                { key: 'certificateNo', header: t('certificates.register.no'), render: (v) => <CodeBadge>{v}</CodeBadge> },
+                { key: 'kindLabel', header: t('certificates.register.kind'), render: (v, r) => (
+                  <span className="inline-flex flex-col items-start gap-1">
+                    <KindChip kind={r.kind} label={t(`certificates.kinds.${r.kind}.label`, v)} />
+                    <DateCell value={r.issueDate} className="text-[11.5px]" />
+                  </span>
+                ) },
                 { key: 'status', header: '', render: (v) => <StatusPill tone={CERTIFICATE_STATUS[v]?.tone}>{t(`certificates.status.${v}`)}</StatusPill> },
                 { key: 'id', header: '', align: 'right', width: 44, render: (id) => <Button size="sm" variant="ghost" icon={Printer} aria-label={t('certificates.register.print')} onClick={() => printDocument('CERTIFICATE', id)} /> },
               ]}

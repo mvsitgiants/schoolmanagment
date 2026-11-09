@@ -3,7 +3,7 @@ import { Trans, useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { AlertTriangle, Columns3, Copy, Layers, Lock, Pencil, Plus, Shield, ShieldCheck, Sparkles, Trash2, Users } from 'lucide-react'
-import { DataTable, FormField, Modal, Note, PageContainer, PageHeader, HeaderButton, Select, StatCardRow } from '../../components/system'
+import { ColorChip, DataTable, FormField, Modal, Note, PageContainer, PageHeader, HeaderButton, Select, StatCardRow, TONE, hueTone } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { cloneRole, deleteRole, fetchRoles } from '../../api/core'
 import { hasPermission } from '../../api/auth'
@@ -69,7 +69,7 @@ export default function Roles() {
         const Icon = r.system ? ShieldCheck : iconFor(r.icon || 'Shield')
         return (
           <div className="flex items-start gap-3">
-            <span className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${r.system ? 'bg-amber-50 text-amber-600' : 'bg-brand-50 text-brand-600'}`}><Icon className="w-4 h-4" /></span>
+            <span className={`w-9 h-9 rounded-xl border flex items-center justify-center shrink-0 ${r.system ? 'bg-amber-50 text-amber-600 border-amber-200' : `${TONE[hueTone(r.name)].bg} ${TONE[hueTone(r.name)].text} ${TONE[hueTone(r.name)].border}`}`}><Icon className="w-4 h-4" /></span>
             <div className="min-w-0">
               <p className="font-medium text-ink flex items-center gap-1.5">{v}{r.locked && <Lock className="w-3 h-3 text-ink-faint" aria-label={t('admin.roles.builtIn')} />}</p>
               {r.description && <p className="text-xs text-ink-muted line-clamp-1">{r.description}</p>}
@@ -78,7 +78,7 @@ export default function Roles() {
         )
       },
     },
-    { key: 'userCount', header: t('admin.roles.cols.users'), align: 'right', width: 80, sortable: true },
+    { key: 'userCount', header: t('admin.roles.cols.users'), align: 'right', width: 80, sortable: true, render: (v) => <span className={`inline-flex items-center gap-1 tabular-nums ${v ? 'font-semibold text-ink' : 'text-ink-faint'}`}><Users className="w-3.5 h-3.5 text-ink-faint" aria-hidden />{v}</span> },
     {
       key: 'access', header: t('admin.roles.cols.access'), width: 210, sortAccessor: (r) => (r.fullAccess ? 1e9 : r.permissionCount), sortable: true, render: (_, r) => (r.fullAccess ? (
         <span className="inline-flex items-center gap-1.5 text-xs font-medium px-2 py-1 rounded-md bg-amber-50 text-amber-600"><ShieldCheck className="w-3.5 h-3.5" />{t('admin.roles.fullAccess')}</span>
@@ -88,7 +88,7 @@ export default function Roles() {
         </div>
       )),
     },
-    { key: 'scope', header: t('admin.roles.cols.seesRecords'), mobileHidden: true, render: (_, r) => { const sc = r.fullAccess ? 'ALL' : r.dataScopes?.default; return <span className="text-sm text-ink-muted">{sc ? cl.scope(sc) : '—'}</span> } },
+    { key: 'scope', header: t('admin.roles.cols.seesRecords'), mobileHidden: true, render: (_, r) => { const sc = r.fullAccess ? 'ALL' : r.dataScopes?.default; return sc ? <ColorChip label={cl.scope(sc)} seed={sc} dot /> : <span className="text-ink-faint">—</span> } },
     {
       key: 'flags', header: t('admin.roles.cols.flags'), mobileHidden: true, render: (_, r) => (
         <div className="flex flex-wrap gap-1">

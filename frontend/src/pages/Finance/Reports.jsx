@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { Download, FileSpreadsheet, LineChart, RefreshCw } from 'lucide-react'
-import { fyRange } from '@schoolgiant/shared'
-import { DataTable, FormField, Input, Money, Note, PageContainer, PageHeader, Panel, Select, Tabs, useConfirm } from '../../components/system'
+import { Download, FileSpreadsheet, LineChart, PiggyBank, RefreshCw, TrendingDown, TrendingUp } from 'lucide-react'
+import { formatINR, formatINRCompact, fyRange } from '@schoolgiant/shared'
+import { CodeBadge, ColorChip, DataTable, DateCell, FormField, Input, Money, Note, PageContainer, PageHeader, Panel, Select, StatCardRow, Tabs, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { downloadReport, fetchReport, rebuildPostings } from '../../api/finance'
 import { hasPermission } from '../../api/auth'
@@ -18,7 +18,7 @@ function Sections({ title, section }) {
         {section.groups.map((g) => (
           <div key={g.name} className="px-4 py-2">
             <p className="text-xs font-semibold text-ink-muted uppercase tracking-wide mb-1">{g.name}</p>
-            {g.rows.map((r) => <div key={r.id} className="flex justify-between gap-3 text-sm py-0.5"><span><span className="font-mono-num text-xs text-ink-faint mr-2">{r.code}</span>{r.name}</span><Money value={r.amount} paise /></div>)}
+            {g.rows.map((r) => <div key={r.id} className="flex justify-between gap-3 text-sm py-0.5"><span className="inline-flex items-center gap-2"><CodeBadge>{r.code}</CodeBadge>{r.name}</span><Money value={r.amount} paise /></div>)}
             <div className="flex justify-between gap-3 text-sm font-semibold pt-1"><span /><Money value={g.total} paise /></div>
           </div>
         ))}
@@ -73,6 +73,12 @@ export default function Reports() {
         <>
           {tab === 'income-expenditure' && (
             <div className="space-y-4">
+              <StatCardRow items={[
+                { icon: TrendingUp, tone: 'success', label: t('finance.reports.income'), value: formatINRCompact(data.income.total), sub: formatINR(data.income.total) },
+                { icon: TrendingDown, tone: 'orange', label: t('finance.reports.expenditure'), value: formatINRCompact(data.expenses.total), sub: formatINR(data.expenses.total) },
+                { icon: PiggyBank, tone: data.profit >= 0 ? 'success' : 'danger', label: data.profit >= 0 ? t('finance.reports.surplus') : t('finance.reports.deficit'), value: formatINRCompact(Math.abs(data.profit)),
+                  sub: data.income.total > 0 ? t('finance.reports.ofIncome', { pct: Math.round((Math.abs(data.profit) / data.income.total) * 100) }) : undefined },
+              ]} />
               <div className="grid lg:grid-cols-2 gap-4"><Sections title={t('finance.reports.income')} section={data.income} /><Sections title={t('finance.reports.expenditure')} section={data.expenses} /></div>
               <Note tone={data.profit >= 0 ? 'success' : 'warning'}>{data.profit >= 0 ? t('finance.reports.surplus') : t('finance.reports.deficit')}: <Money value={Math.abs(data.profit)} paise /></Note>
             </div>
@@ -91,15 +97,15 @@ export default function Reports() {
             <>
               {!data.balanced && <Note tone="danger" className="mb-3">{t('finance.reports.notBalanced')}</Note>}
               <DataTable rows={[...data.rows, { id: 'total', code: '', name: t('finance.reports.total'), ...data.totals }]} dense columns={[
-                { key: 'name', header: t('finance.accounts.account'), mobilePrimary: true, render: (v, r) => <span className={r.id === 'total' ? 'font-semibold' : ''}><span className="font-mono-num text-xs text-ink-faint mr-2">{r.code}</span>{v}</span> },
+                { key: 'name', header: t('finance.accounts.account'), mobilePrimary: true, render: (v, r) => <span className={r.id === 'total' ? 'font-semibold' : 'inline-flex items-center gap-2'}>{r.code && <CodeBadge>{r.code}</CodeBadge>}{v}</span> },
                 ...['openingDr', 'openingCr', 'debit', 'credit', 'closingDr', 'closingCr'].map((k) => ({ key: k, header: t(`finance.reports.tb.${k}`), align: 'right', render: (v) => (v ? <Money value={v} paise /> : '') })),
               ]} />
             </>
           )}
           {tab === 'day-book' && (
             <DataTable rows={data.rows} dense columns={[
-              { key: 'date', header: t('finance.voucher.date'), nowrap: true, render: (v) => date(v) },
-              { key: 'voucherNo', header: t('finance.journals.voucher'), mobilePrimary: true, render: (v, r) => <span className="font-mono-num">{v}<span className="block text-[11px] text-ink-faint font-sans">{t(`finance.voucherTypes.${r.type}`)}</span></span> },
+              { key: 'date', header: t('finance.voucher.date'), nowrap: true, render: (v) => <DateCell value={v} relative={false} /> },
+              { key: 'voucherNo', header: t('finance.journals.voucher'), mobilePrimary: true, render: (v, r) => <div className="flex flex-col items-start gap-1"><CodeBadge>{v}</CodeBadge><ColorChip label={t(`finance.voucherTypes.${r.type}`)} seed={r.type} dot /></div> },
               { key: 'narration', header: t('finance.voucher.narration'), render: (v, r) => <span className="text-sm">{v}<span className="block text-xs text-ink-faint">{r.lines.map((l) => `${l.accountName} ${l.debit ? 'Dr' : 'Cr'}`).join(' · ')}</span></span> },
               { key: 'total', header: t('finance.voucher.amount'), align: 'right', render: (v) => <Money value={v} paise /> },
             ]} emptyTitle={t('finance.reports.none')} />
@@ -107,8 +113,8 @@ export default function Reports() {
           {tab === 'ledger' && (
             <DataTable rows={[{ journalId: 'open', line: 0, date: data.from, narration: t('finance.reports.opening'), balance: data.opening }, ...data.entries, { journalId: 'close', line: 0, date: data.to, narration: t('finance.reports.closing'), debit: data.totals.debit, credit: data.totals.credit, balance: data.closing }]}
               rowKey={(r) => `${r.journalId}:${r.line}`} dense columns={[
-                { key: 'date', header: t('finance.voucher.date'), nowrap: true, render: (v) => date(v) },
-                { key: 'voucherNo', header: t('finance.journals.voucher'), render: (v) => <span className="font-mono-num">{v ?? ''}</span> },
+                { key: 'date', header: t('finance.voucher.date'), nowrap: true, render: (v) => <DateCell value={v} relative={false} /> },
+                { key: 'voucherNo', header: t('finance.journals.voucher'), render: (v) => (v ? <CodeBadge>{v}</CodeBadge> : '') },
                 { key: 'narration', header: t('finance.voucher.narration'), mobilePrimary: true, render: (v, r) => <span className="text-sm">{v}{r.against && <span className="block text-xs text-ink-faint">{r.against}{r.party ? ` · ${r.party}` : ''}</span>}</span> },
                 { key: 'debit', header: t('finance.voucher.debit'), align: 'right', render: (v) => (v ? <Money value={v} paise /> : '') },
                 { key: 'credit', header: t('finance.voucher.credit'), align: 'right', render: (v) => (v ? <Money value={v} paise /> : '') },

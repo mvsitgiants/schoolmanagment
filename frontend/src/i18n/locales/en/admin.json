@@ -1514,7 +1514,9 @@
       "noMatch": "No departments match",
       "emptyTitle": "No departments yet",
       "emptyHint": "Add the departments your institution runs — Mathematics, Science, Languages, Accounts…",
-      "saved": "Department saved."
+      "saved": "Department saved.",
+      "staffIn_one": "{{count}} person",
+      "staffIn_other": "{{count}} people"
     },
     "institutionProfile": {
       "verified": "Verified",

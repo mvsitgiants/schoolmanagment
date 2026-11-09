@@ -3,7 +3,7 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tansta
 import { useTranslation } from 'react-i18next'
 import { FileQuestion, Plus, Trash2, X } from 'lucide-react'
 import { BLOOM_LEVELS, DIFFICULTY, QUESTION_TYPES, checkQuestion } from '@schoolgiant/shared'
-import { ControlChip, DataTable, FormField, HeaderButton, ImportExportButtons, Input, Modal, Note, PageContainer, PageHeader, Select, StatusPill, Textarea, Toolbar, useConfirm } from '../../components/system'
+import { ColorChip, ControlChip, DataTable, FormField, HeaderButton, ImportExportButtons, Input, Modal, Note, PageContainer, PageHeader, Select, StatusPill, Textarea, Toolbar, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
 import useDebouncedValue from '../../hooks/useDebouncedValue'
 import { createQuestion, deleteQuestion, fetchLmsLookup, fetchQuestions, importQuestions, updateQuestion } from '../../api/lms'
@@ -129,8 +129,8 @@ export default function QuestionBank() {
             {pick('difficulty', Object.keys(DIFFICULTY), (k) => t(`lms.difficulty.${k}`))}
           </>} />}
         columns={[
-          { key: 'text', header: t('lms.qb.question'), mobilePrimary: true, render: (v, r) => <div className="min-w-0"><p className="text-sm text-ink line-clamp-2 max-w-xl">{v}</p><p className="text-xs text-ink-faint">{[subjectName(r.subjectId), r.classId && className(r.classId), r.chapter].filter(Boolean).join(' · ')}</p></div> },
-          { key: 'type', header: t('lms.qb.type'), mobileHidden: true, render: (v) => t(`lms.qtypes.${v}`) },
+          { key: 'text', header: t('lms.qb.question'), mobilePrimary: true, render: (v, r) => <div className="min-w-0"><p className="text-sm text-ink line-clamp-2 max-w-xl">{v}</p><div className="mt-1 flex flex-wrap items-center gap-1"><ColorChip label={subjectName(r.subjectId)} seed={r.subjectId} dot />{r.classId && <ColorChip label={className(r.classId)} seed={r.classId} />}{r.chapter && <span className="text-xs text-ink-faint truncate">{r.chapter}</span>}</div></div> },
+          { key: 'type', header: t('lms.qb.type'), mobileHidden: true, render: (v) => <ColorChip label={t(`lms.qtypes.${v}`)} seed={`qtype-${v}`} dot /> },
           { key: 'marks', header: t('lms.qb.marks'), align: 'right', render: (v, r) => `${v}${r.negative ? ` / −${r.negative}` : ''}` },
           { key: 'difficulty', header: t('lms.qb.difficulty'), render: (v) => <StatusPill tone={DIFFICULTY[v]?.tone}>{t(`lms.difficulty.${v}`)}</StatusPill> },
           { key: 'id', header: '', align: 'right', width: 50, render: (id, r) => hasPermission('lms.question-bank.delete') && <Button size="sm" variant="ghost" icon={Trash2} aria-label={t('lms.delete')}

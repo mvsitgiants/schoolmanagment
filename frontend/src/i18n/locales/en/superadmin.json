@@ -186,7 +186,9 @@
       "renews": "Renews / trial ends",
       "trialUntil": "Trial · {{date}}",
       "empty": "No institutions match",
-      "created": "{{name}} created with one role: {{role}}."
+      "created": "{{name}} created with one role: {{role}}.",
+      "ofAll_one": "of {{count}} institution",
+      "ofAll_other": "of {{count}} institutions"
     },
     "tenantDetail": {
       "changePlan": "Change plan",

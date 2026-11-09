@@ -3,13 +3,14 @@ import { useTranslation } from 'react-i18next'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Check, Hash } from 'lucide-react'
 import { MODULE_BY_ID, RESETS, formatDocNumber, validatePattern } from '@schoolgiant/shared'
-import { DataTable, Input, Note, PageContainer, PageHeader, Select } from '../../components/system'
+import { CodeBadge, ColorChip, DataTable, Input, Note, PageContainer, PageHeader, Select } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { fetchNumberSeries, saveNumberSeries } from '../../api/core'
 import { hasPermission } from '../../api/auth'
 import { useSnackbar } from '../../context/SnackbarContext'
 import { useFormat } from '../../context/SettingsContext'
 import { useCatalogLabel } from '../../hooks/useCatalogLabel'
+import { iconFor } from '../../catalog/icons'
 
 // validatePattern (shared) answers in English; show its problem through our own keys.
 const PATTERN_PROBLEMS = {
@@ -68,7 +69,10 @@ export default function NumberSeries() {
           { key: 'label', header: t('admin.numberSeries.cols.document'), mobilePrimary: true, render: (_, s) => (
             <div className={s.moduleEnabled ? '' : 'opacity-60'}>
               <p className="text-sm font-medium text-ink">{docLabel(s)}</p>
-              <p className="text-xs text-ink-faint">{MODULE_BY_ID[s.module] ? cl.module(s.module) : ''}{!s.moduleEnabled && ` · ${t('admin.numberSeries.moduleOff')}`}{s.perBranch ? ` · ${t('admin.numberSeries.perBranch')}` : ''}</p>
+              <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                {MODULE_BY_ID[s.module] && <ColorChip label={cl.module(s.module)} seed={s.module} icon={iconFor(MODULE_BY_ID[s.module].icon)} />}
+                {(!s.moduleEnabled || s.perBranch) && <span className="text-xs text-ink-faint">{[!s.moduleEnabled && t('admin.numberSeries.moduleOff'), s.perBranch && t('admin.numberSeries.perBranch')].filter(Boolean).join(' · ')}</span>}
+              </div>
               {s.hint && <p className="text-[11px] text-ink-faint mt-0.5">{t(`admin.numberSeries.docs.${s.code}.hint`, { defaultValue: s.hint })}</p>}
             </div>
           ) },
@@ -88,7 +92,7 @@ export default function NumberSeries() {
           ) },
           { key: 'issued', header: t('admin.numberSeries.cols.next'), render: (_, s) => (
             <div>
-              <p className="font-mono-num text-sm text-brand-700 font-medium">{previewOf(s)}</p>
+              <CodeBadge tone="brand">{previewOf(s)}</CodeBadge>
               <p className="text-[11px] text-ink-faint">{s.issued ? t('admin.numberSeries.issued', { issued: number(s.issued), last: s.lastNumber }) : t('admin.numberSeries.noneIssued')}</p>
             </div>
           ) },

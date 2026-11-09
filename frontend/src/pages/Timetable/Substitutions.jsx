@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { Search, Trash2, UserCheck, UserRoundX } from 'lucide-react'
-import { DataTable, FormField, Input, Note, PageContainer, PageHeader, Panel, Select, localIso } from '../../components/system'
+import { ColorChip, DataTable, FormField, Input, Note, PageContainer, PageHeader, Panel, PersonCell, Select, localIso } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { createSubstitution, deleteSubstitution, fetchAwayTeachers, fetchSubstitutionNeeds, fetchSubstitutions, fetchTimetableTeachers } from '../../api/timetable'
 import { hasPermission } from '../../api/auth'
@@ -97,9 +97,9 @@ export default function Substitutions() {
         <Panel title={t('timetable.subs.booked')} flush>
           <DataTable rows={listQ.data ?? []} loading={listQ.isLoading} error={listQ.error} dense className="border-0 shadow-none" columns={[
             { key: 'period', header: t('timetable.subs.period'), align: 'right', width: 70 },
-            { key: 'section', header: t('timetable.subs.section'), mobilePrimary: true },
-            { key: 'absentTeacher', header: t('timetable.subs.forTeacher') },
-            { key: 'substitute', header: t('timetable.subs.substitute'), render: (v, r) => <span>{v}{r.note && <span className="block text-xs text-ink-faint">{r.note}</span>}</span> },
+            { key: 'section', header: t('timetable.subs.section'), mobilePrimary: true, render: (v) => <ColorChip label={v} /> },
+            { key: 'absentTeacher', header: t('timetable.subs.forTeacher'), render: (v) => <PersonCell name={v} size={26} /> },
+            { key: 'substitute', header: t('timetable.subs.substitute'), render: (v, r) => <PersonCell name={v} sub={r.note || undefined} size={26} /> },
             { key: 'id', header: '', align: 'right', width: 60, render: (id) => canCreate && <Button size="sm" variant="ghost" icon={Trash2} aria-label={t('timetable.subs.remove')} loading={remove.isPending && remove.variables === id} onClick={() => remove.mutate(id)} /> },
           ]} emptyTitle={t('timetable.subs.noneBooked')} />
         </Panel>

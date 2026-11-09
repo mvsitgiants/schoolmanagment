@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { Layers, Pencil, Plus, Trash2, UserCog } from 'lucide-react'
-import { DataTable, FormField, HeaderButton, Input, Modal, Money, Note, PageContainer, PageHeader, SegmentedControl, Select, StatCardRow, StatusPill, Tabs, Textarea, Toolbar, localIso, useConfirm } from '../../components/system'
+import { Layers, Pencil, Plus, Trash2, UserCog, UserX, Users, WalletCards } from 'lucide-react'
+import { CodeBadge, ColorChip, DataTable, FormField, HeaderButton, Input, Modal, Money, PersonCell, Note, PageContainer, PageHeader, SegmentedControl, Select, StatCardRow, StatusPill, Tabs, Textarea, Toolbar, localIso, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
 import useDebouncedValue from '../../hooks/useDebouncedValue'
 import { deleteAssignment, deleteStructure, fetchAssignmentHistory, fetchAssignments, fetchStructures, saveAssignment } from '../../api/payroll'
@@ -10,7 +10,9 @@ import { hasPermission } from '../../api/auth'
 import { useSnackbar } from '../../context/SnackbarContext'
 import { useFormat } from '../../context/SettingsContext'
 import { ComponentRows, StructureModal, useRuleText } from '../../components/payroll/PayrollKit'
-import { toPaise, toRupees } from '@schoolgiant/shared'
+import { PAY_COMPONENTS, toPaise, toRupees } from '@schoolgiant/shared'
+
+const KIND = Object.fromEntries(PAY_COMPONENTS.map((c) => [c.code, c.kind]))
 
 function StructuresTab() {
   const { t } = useTranslation('payroll')
@@ -25,9 +27,11 @@ function StructuresTab() {
     <>
       <div className="flex justify-end mb-3"><HeaderButton icon={Plus} variant="primary" requires="payroll.structures.create" onClick={() => setEditing('new')}>{t('payroll.structures.new')}</HeaderButton></div>
       <DataTable rows={rows} loading={isLoading} columns={[
-        { key: 'name', header: t('payroll.structures.name'), mobilePrimary: true, render: (v, r) => <div><p className={r.active ? 'font-medium text-ink' : 'text-ink-faint line-through'}>{v}</p><p className="text-xs text-ink-faint font-mono-num">{r.code}</p></div> },
-        { key: 'components', header: t('payroll.structures.components'), render: (v) => <span className="text-xs text-ink-muted">{v.filter((c) => c.rule.type !== 'STATUTORY' && c.rule.type !== 'LOANS').map((c) => <span key={c.code} className="inline-block mr-2">{t(`payroll.components.${c.code}`)}: {ruleText(c.rule)}</span>)}</span> },
-        { key: 'assigned', header: t('payroll.structures.staff'), align: 'right' },
+        { key: 'name', header: t('payroll.structures.name'), mobilePrimary: true, render: (v, r) => <div className="flex flex-col items-start gap-1"><p className={r.active ? 'font-medium text-ink' : 'text-ink-faint line-through'}>{v}</p><CodeBadge>{r.code}</CodeBadge></div> },
+        { key: 'components', header: t('payroll.structures.components'), render: (v) => <div className="flex flex-wrap gap-1.5 max-w-xl">{v.filter((c) => c.rule.type !== 'STATUTORY' && c.rule.type !== 'LOANS').map((c) => (
+          <ColorChip key={c.code} label={t(`payroll.components.${c.code}`)} tone={KIND[c.code] === 'DEDUCTION' ? 'danger' : undefined} seed={c.code} dot sub={ruleText(c.rule)} />
+        ))}</div> },
+        { key: 'assigned', header: t('payroll.structures.staff'), align: 'right', render: (v) => <span className={v ? 'inline-flex items-center gap-1 font-semibold tabular-nums text-ink' : 'text-ink-faint tabular-nums'}>{v > 0 && <Users className="h-3.5 w-3.5 text-ink-faint" aria-hidden />}{v ?? 0}</span> },
         { key: 'active', header: t('payroll.status'), render: (v) => <StatusPill tone={v ? 'success' : 'neutral'}>{v ? t('payroll.structures.inUse') : t('payroll.structures.off')}</StatusPill> },
         { key: 'id', header: '', align: 'right', width: 100, render: (_, r) => (
           <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>
@@ -122,18 +126,20 @@ function StaffTab() {
   return (
     <>
       <StatCardRow className="mb-3" items={[
-        { label: t('payroll.staff.total'), value: counts.total ?? 0 },
-        { label: t('payroll.staff.unassigned'), value: counts.unassigned ?? 0, tone: counts.unassigned ? 'warning' : 'neutral', onClick: () => setView('unassigned') },
-        { label: t('payroll.staff.noSalary'), value: counts.noSalary ?? 0, tone: counts.noSalary ? 'danger' : 'neutral' },
+        { icon: Users, tone: 'brand', label: t('payroll.staff.total'), value: counts.total ?? 0,
+          progress: counts.total ? ((counts.total - (counts.unassigned ?? 0)) / counts.total) * 100 : undefined },
+        { icon: UserX, label: t('payroll.staff.unassigned'), value: counts.unassigned ?? 0, tone: counts.unassigned ? 'warning' : 'neutral',
+          onClick: () => { setView(view === 'unassigned' ? 'all' : 'unassigned'); setPage(1) }, className: view === 'unassigned' ? 'ring-2 ring-amber-400' : undefined },
+        { icon: WalletCards, label: t('payroll.staff.noSalary'), value: counts.noSalary ?? 0, tone: counts.noSalary ? 'danger' : 'neutral' },
       ]} />
       <DataTable rows={data?.data ?? []} loading={isLoading} error={error} rowKey={(r) => r.employee.id}
         toolbar={<Toolbar search={search} onSearch={(v) => { setSearch(v); setPage(1) }} searchPlaceholder={t('payroll.staff.search')}
           right={<SegmentedControl value={view} onChange={(v) => { setView(v); setPage(1) }} options={[{ value: 'all', label: t('payroll.staff.everyone') }, { value: 'unassigned', label: t('payroll.staff.unassigned') }]} />} />}
         columns={[
-          { key: 'employee', header: t('payroll.staff.person'), mobilePrimary: true, render: (e) => <div><p className="font-medium text-ink">{e.name}</p><p className="text-xs text-ink-faint">{[e.code, e.designation].filter(Boolean).join(' · ')}</p></div> },
-          { key: 'assignment', header: t('payroll.assign.structure'), render: (a) => (a ? <div><p className="text-sm">{a.structureName}</p><p className="text-xs text-ink-faint">{t('payroll.staff.since', { date: date(a.effectiveFrom) })}</p></div> : <span className="text-amber-700 text-sm">{t('payroll.staff.none')}</span>) },
+          { key: 'employee', header: t('payroll.staff.person'), mobilePrimary: true, render: (e) => <PersonCell name={e.name} sub={[e.code, e.designation].filter(Boolean).join(' · ')} size={32} /> },
+          { key: 'assignment', header: t('payroll.assign.structure'), render: (a) => (a ? <div><ColorChip label={a.structureName} seed={a.structureId} dot /><p className="text-xs text-ink-faint mt-0.5">{t('payroll.staff.since', { date: date(a.effectiveFrom) })}</p></div> : <ColorChip label={t('payroll.staff.none')} tone="warning" icon={UserX} />) },
           { key: 'salary', header: t('payroll.staff.gross'), align: 'right', render: (s, r) => <Money value={r.assignment?.grossMonthly ?? s.grossMonthly} paise /> },
-          { key: 'monthly', header: t('payroll.staff.net'), align: 'right', render: (m) => (m ? <Money value={m.net} paise /> : '—') },
+          { key: 'monthly', header: t('payroll.staff.net'), align: 'right', render: (m) => (m ? <Money value={m.net} paise tone="success" /> : '—') },
           { key: 'cost', header: t('payroll.staff.cost'), align: 'right', mobileHidden: true, render: (_, r) => (r.monthly ? <Money value={r.monthly.employerCost} paise /> : '—') },
         ]}
         onRowClick={hasPermission('payroll.structures.edit') || hasPermission('payroll.structures.create') ? (r) => setOpen(r) : undefined}

@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import clsx from 'clsx'
 import { KeyRound, LogOut, Mail, Pencil, Shield, ShieldCheck, UserCheck, UserPlus, UserX, Users as UsersIcon } from 'lucide-react'
 import { ImportExportButtons,
-  Avatar, ControlChip, DataTable, FormField, HeaderButton, Input, Modal, PageContainer, PageHeader, RecordDrawer,
+  Avatar, ColorChip, ControlChip, DataTable, DateCell, FormField, HeaderButton, Input, Modal, PageContainer, PageHeader, RecordDrawer,
   Select, StatCardRow, StatusPill, Toolbar, VerifiedBadge, ViewControls, localIso, useConfirm,
 } from '../../components/system'
 import Button from '../../components/ui/Button'
@@ -164,10 +164,10 @@ export default function Users() {
       </div>
     ) },
     { key: 'roles', header: t('admin.users.cols.roles'), render: (v) => (
-      <div className="flex flex-wrap gap-1">{v.map((r) => <span key={r.id} className={clsx('text-[11px] px-1.5 py-0.5 rounded', r.fullAccess ? 'bg-amber-50 text-amber-600' : 'bg-brand-50 text-brand-700')}>{r.name}</span>)}</div>
+      <div className="flex flex-wrap gap-1">{v.map((r) => (r.fullAccess ? <ColorChip key={r.id} label={r.name} tone="warning" icon={ShieldCheck} /> : <ColorChip key={r.id} label={r.name} seed={r.id} dot />))}</div>
     ) },
-    { key: 'designation', header: t('admin.users.cols.designation'), mobileHidden: true, render: (v, r) => <div><p className="text-sm text-ink">{v || '—'}</p>{r.departments.length > 0 && <p className="text-xs text-ink-faint">{r.departments.map((d) => d.name).join(', ')}</p>}</div> },
-    { key: 'lastLoginAt', header: t('admin.users.cols.lastSignIn'), nowrap: true, mobileHidden: true, render: (v) => (v ? <span className="text-sm text-ink-muted">{dateTime(v)}</span> : <span className="text-xs text-ink-faint">{t('admin.users.never')}</span>) },
+    { key: 'designation', header: t('admin.users.cols.designation'), mobileHidden: true, render: (v, r) => <div><p className="text-sm text-ink">{v || '—'}</p>{r.departments.length > 0 && <div className="mt-1 flex flex-wrap gap-1">{r.departments.map((d) => <ColorChip key={d.id ?? d.name} label={d.name} seed={d.name} />)}</div>}</div> },
+    { key: 'lastLoginAt', header: t('admin.users.cols.lastSignIn'), nowrap: true, mobileHidden: true, render: (v) => (v ? <DateCell value={v} time /> : <span className="text-xs text-ink-faint">{t('admin.users.never')}</span>) },
     { key: 'active', header: t('admin.users.cols.status'), render: (v, r) => <StatusPill tone={v ? (r.mustChangePassword || r.invited ? 'warning' : 'success') : 'neutral'}>{v ? (r.mustChangePassword || r.invited ? t('admin.users.status.invited') : t('admin.users.status.active')) : t('admin.users.status.inactive')}</StatusPill> },
   ]
 
@@ -205,7 +205,7 @@ export default function Users() {
         </>} />
 
       <StatCardRow items={[
-        { icon: UserCheck, label: t('admin.users.stats.activeUsers'), value: activeCount, sub: seatLimit != null ? t('admin.users.stats.seatsLeft', { left: Math.max(0, seatLimit - activeCount), limit: seatLimit }) : t('admin.users.stats.unlimited'), tone: seatLimit != null && activeCount >= seatLimit ? 'danger' : 'brand', onClick: () => setStatus('active') },
+        { icon: UserCheck, label: t('admin.users.stats.activeUsers'), value: activeCount, sub: seatLimit != null ? t('admin.users.stats.seatsLeft', { left: Math.max(0, seatLimit - activeCount), limit: seatLimit }) : t('admin.users.stats.unlimited'), tone: seatLimit != null && activeCount >= seatLimit ? 'danger' : 'brand', progress: seatLimit ? (activeCount / seatLimit) * 100 : undefined, onClick: () => setStatus('active') },
         { icon: UserX, label: t('admin.users.status.inactive'), value: meta?.counts?.inactive ?? '—', sub: t('admin.users.stats.keptForHistory'), tone: 'neutral', onClick: () => setStatus('inactive') },
         { icon: ShieldCheck, label: t('admin.users.stats.fullAccessAdmins'), value: admins, sub: t('admin.users.stats.alwaysOne'), tone: 'warning' },
         { icon: Shield, label: t('admin.users.cols.roles'), value: roles.length, sub: t('admin.users.stats.severalPerUser'), tone: 'info' },

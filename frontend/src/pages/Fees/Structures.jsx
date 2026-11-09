@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { FilePlus2, Layers, Pencil, Plus, Tags, Trash2, X } from 'lucide-react'
-import { formatINR, splitEqually, toPaise, toRupees } from '@schoolgiant/shared'
-import { ControlChip, DataTable, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, Select, StatusPill, useConfirm } from '../../components/system'
+import { CircleCheckBig, FilePlus2, FileText, Hourglass, Layers, Pencil, Plus, Tags, Trash2, X } from 'lucide-react'
+import { formatINR, formatINRCompact, splitEqually, toPaise, toRupees } from '@schoolgiant/shared'
+import { CodeBadge, ColorChip, ControlChip, DataTable, DateCell, FormField, Fraction, HeaderButton, Input, LevelBar, Modal, Money, Note, PageContainer, PageHeader, Select, StackCell, StatCardRow, StatusPill, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { fetchAcademicLookup } from '../../api/academics'
 import { createFeeHead, createStructure, deleteStructure, fetchFeeHeads, fetchStructures, generateInvoices, updateFeeHead, updateStructure } from '../../api/fees'
@@ -171,9 +171,9 @@ function HeadsModal({ heads, onClose }) {
           rows={heads}
           dense
           columns={[
-            { key: 'name', header: t('fees.heads.name'), mobilePrimary: true, render: (v, r) => <span className={r.active ? 'text-ink' : 'text-ink-faint line-through'}>{v}</span> },
-            { key: 'code', header: t('fees.heads.code'), render: (v) => <span className="font-mono-num text-sm">{v}</span> },
-            { key: 'refundable', header: t('fees.heads.refundable'), render: (v) => (v ? t('fees.yes') : t('fees.no')) },
+            { key: 'name', header: t('fees.heads.name'), mobilePrimary: true, render: (v, r) => (r.active ? <ColorChip label={v} seed={r.id} dot /> : <span className="text-ink-faint line-through">{v}</span>) },
+            { key: 'code', header: t('fees.heads.code'), render: (v) => <CodeBadge>{v}</CodeBadge> },
+            { key: 'refundable', header: t('fees.heads.refundable'), render: (v) => <StatusPill tone={v ? 'success' : 'neutral'}>{v ? t('fees.yes') : t('fees.no')}</StatusPill> },
             { key: 'id', header: '', align: 'right', width: 150, render: (_, r) => canEdit && (
               <div className="flex justify-end gap-1">
                 <Button size="sm" variant="ghost" icon={Pencil} aria-label={t('fees.heads.edit')} onClick={() => setForm({ id: r.id, name: r.name, code: r.code, refundable: !!r.refundable })} />
@@ -205,6 +205,10 @@ export default function Structures() {
   const refresh = () => qc.invalidateQueries({ queryKey: ['fee-structures'] })
   const act = useMutation({ mutationFn: ({ fn }) => fn(), onSuccess: (res, v) => { refresh(); showSuccess(v.done(res)) }, onError: (e) => showError(e.message) })
   const canCreate = hasPermission('fees.structures.create')
+  const list = data?.structures ?? []
+  const billed = list.reduce((n, s) => n + s.billed, 0)
+  const collected = list.reduce((n, s) => n + s.collected, 0)
+  const pending = list.filter((s) => !s.invoices).length
 
   return (
     <PageContainer>
@@ -214,8 +218,17 @@ export default function Structures() {
           <HeaderButton icon={Plus} variant="primary" requires="fees.structures.create" onClick={() => setEditing('new')}>{t('fees.structures.new')}</HeaderButton>
         </>} />
       {year?.closed && <Note tone="warning" className="mb-4">{t('fees.structures.yearClosed', { year: year.name })}</Note>}
+      {list.length > 0 && (
+        <StatCardRow className="mb-4" items={[
+          { icon: Layers, tone: 'brand', label: t('fees.structures.summary.structures'), value: list.length, sub: t('fees.structures.summary.classes', { count: new Set(list.flatMap((s) => s.classIds)).size }) },
+          { icon: FileText, tone: 'violet', label: t('fees.structures.summary.billed'), value: formatINRCompact(billed), sub: t('fees.structures.summary.students', { count: list.reduce((n, s) => n + s.students, 0) }) },
+          { icon: CircleCheckBig, tone: 'success', label: t('fees.structures.summary.collected'), value: formatINRCompact(collected),
+            sub: t('fees.structures.summary.ofBilled', { pct: billed > 0 ? Math.round((collected / billed) * 100) : 0 }), progress: billed > 0 ? (collected / billed) * 100 : 0 },
+          { icon: Hourglass, tone: pending ? 'warning' : 'teal', label: t('fees.structures.notInvoiced'), value: pending },
+        ]} />
+      )}
       <DataTable
-        rows={data?.structures ?? []}
+        rows={list}
         loading={isLoading}
         error={error}
         onRetry={refetch}
@@ -224,12 +237,17 @@ export default function Structures() {
             options={years.map((y) => y.name)} onChange={(v) => setYearId(years.find((y) => y.name === v)?.id ?? '')} />
         </div>}
         columns={[
-          { key: 'name', header: t('fees.structures.name'), mobilePrimary: true, render: (v, r) => <div><p className="font-medium text-ink">{v}</p><p className="text-xs text-ink-faint">{r.classes.map((c) => c.name).join(', ') || '—'}</p></div> },
-          { key: 'lines', header: t('fees.structures.fees'), mobileHidden: true, render: (v) => <span className="text-sm text-ink-muted">{v.map((l) => l.name).join(', ')}</span> },
-          { key: 'installments', header: t('fees.structures.installments'), render: (v) => <span className="text-sm">{v.length === 1 ? date(v[0].dueDate) : t('fees.structures.installmentCount', { count: v.length })}</span> },
-          { key: 'total', header: t('fees.structures.perStudent'), align: 'right', render: (v) => formatINR(v) },
+          { key: 'name', header: t('fees.structures.name'), mobilePrimary: true, render: (v, r) => <div className="min-w-0"><p className="font-medium text-ink">{v}</p>
+            <div className="mt-1 flex flex-wrap gap-1">{r.classes.length ? r.classes.map((c) => <ColorChip key={c.id} label={c.name} seed={c.id} />) : <span className="text-xs text-ink-faint">—</span>}</div></div> },
+          { key: 'lines', header: t('fees.structures.fees'), mobileHidden: true, render: (v) => <div className="flex flex-wrap gap-1">{v.map((l) => <ColorChip key={l.feeHeadId} label={l.name} seed={l.feeHeadId} dot />)}</div> },
+          { key: 'installments', header: t('fees.structures.installments'), render: (v) => (v.length === 1
+            ? <DateCell value={v[0].dueDate} relative={false} />
+            : <StackCell title={t('fees.structures.installmentCount', { count: v.length })} sub={v[0] ? date(v[0].dueDate) : undefined} />) },
+          { key: 'total', header: t('fees.structures.perStudent'), align: 'right', render: (v) => <Money value={v} paise className="font-semibold" /> },
           { key: 'students', header: t('fees.structures.invoiced'), align: 'right', render: (v, r) => (r.invoices ? t('fees.structures.studentsCount', { count: v }) : <StatusPill tone="warning">{t('fees.structures.notInvoiced')}</StatusPill>) },
-          { key: 'collected', header: t('fees.structures.collected'), align: 'right', mobileHidden: true, render: (v, r) => (r.billed ? `${formatINR(v)} / ${formatINR(r.billed)}` : '—') },
+          { key: 'collected', header: t('fees.structures.collected'), align: 'right', mobileHidden: true, render: (v, r) => (r.billed
+            ? <span className="inline-flex flex-col items-end gap-1"><Fraction value={v} max={r.billed} format={formatINRCompact} /><LevelBar value={v} max={r.billed} bare width="w-24" /></span>
+            : <span className="text-ink-faint">—</span>) },
           { key: 'id', header: '', align: 'right', width: 140, render: (id, r) => (
             <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>
               {canCreate && !year?.closed && <Button size="sm" variant="ghost" icon={FilePlus2} title={t('fees.structures.generate')} aria-label={t('fees.structures.generate')}

@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { AlertTriangle, ArrowDownRight, ArrowUpRight, Check, CreditCard, Download, FileText, Minus, Printer, Receipt, Sparkles, Tag } from 'lucide-react'
 import { CATEGORIES, MODULES, MODULE_BY_ID, formatINR } from '@schoolgiant/shared'
 import {
-  DataTable, Drawer, FormField, Input, Modal, Note, PageContainer, PageHeader, Panel, SegmentedControl, StatusPill,
+  CodeBadge, ColorChip, DataTable, Drawer, FormField, Input, Modal, Money, Note, PageContainer, PageHeader, Panel, SegmentedControl, StatusPill,
 } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { DefinitionGrid, UsageMeter } from '../../components/app/Controls'
@@ -303,10 +303,10 @@ export default function Subscription() {
             rows={sub.invoices}
             onRowClick={(r) => setInvoiceId(r.id)}
             columns={[
-              { key: 'number', header: t('admin.subscription.invoice'), nowrap: true, mobilePrimary: true, render: (v) => <span className="font-mono-num text-ink">{v}</span> },
-              { key: 'kind', header: t('admin.subscription.type'), render: (v, r) => <div><p className="text-sm text-ink">{kindLabel(v)}</p><p className="text-xs text-ink-faint">{r.planName} · {cycleWord(t, r.cycle)}</p></div> },
+              { key: 'number', header: t('admin.subscription.invoice'), nowrap: true, mobilePrimary: true, render: (v) => <CodeBadge>{v}</CodeBadge> },
+              { key: 'kind', header: t('admin.subscription.type'), render: (v, r) => <div className="flex flex-col items-start gap-1"><ColorChip label={kindLabel(v)} seed={v} dot /><p className="text-xs text-ink-faint">{r.planName} · {cycleWord(t, r.cycle)}</p></div> },
               { key: 'periodStart', header: t('admin.subscription.period'), nowrap: true, mobileHidden: true, render: (v, r) => <span className="text-sm text-ink-muted">{date(v)} – {date(r.periodEnd)}</span> },
-              { key: 'total', header: t('admin.subscription.total'), align: 'right', render: (v) => formatINR(v) },
+              { key: 'total', header: t('admin.subscription.total'), align: 'right', render: (v, r) => <Money value={v} paise currency="INR" tone={r.status === 'DUE' ? 'warning' : undefined} className="font-semibold" /> },
               { key: 'status', header: t('common.status'), render: (v, r) => <StatusPill tone={INV_TONE[v]}>{v === 'PAID' ? t('admin.subscription.paidOn', { date: date(r.paidAt) }) : v === 'DUE' ? t('admin.subscription.dueOn', { date: date(r.dueDate) }) : invStatusLabel(v)}</StatusPill> },
             ]}
             emptyIcon={Receipt} emptyTitle={t('admin.subscription.noInvoices')} emptyHint={trial ? t('admin.subscription.noInvoicesTrial') : undefined}

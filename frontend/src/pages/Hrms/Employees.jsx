@@ -2,9 +2,9 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { Download, UserPlus, Users, UsersRound } from 'lucide-react'
+import { Briefcase, Bus, Download, Presentation, ShieldCheck, UserPlus, Users, UsersRound, Wrench } from 'lucide-react'
 import { EMPLOYEE_CATEGORIES, EMPLOYEE_STATUSES, EMPLOYMENT_TYPES, GENDERS } from '@schoolgiant/shared'
-import { ControlChip, DataTable, FormField, HeaderButton, ImportExportButtons, Input, Modal, PageContainer, PageHeader, Select, StatCardRow, StatusPill, Textarea, Toolbar, useConfirm } from '../../components/system'
+import { ColorChip, ContactCell, ControlChip, DataTable, DateCell, FormField, PersonCell, StackCell, HeaderButton, ImportExportButtons, Input, Modal, PageContainer, PageHeader, Select, StatCardRow, StatusPill, Textarea, Toolbar, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
 import useDebouncedValue from '../../hooks/useDebouncedValue'
 import { createEmployee, exportEmployees, fetchEmployees, importEmployees, recordsFromLogins, updateEmployee } from '../../api/hrms'
@@ -16,6 +16,15 @@ import { readSheet } from '../../utils/readSheet'
 import { useHrLabels, useHrMeta } from '../../components/hrms/HrKit'
 
 const WEEK = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN']
+// each staff category's icon and colour, on the tiles and in the table
+const CATEGORY_LOOK = {
+  TEACHING: { icon: Presentation, tone: 'brand' },
+  ADMIN: { icon: Briefcase, tone: 'violet' },
+  SUPPORT: { icon: Wrench, tone: 'orange' },
+  TRANSPORT: { icon: Bus, tone: 'info' },
+  SECURITY: { icon: ShieldCheck, tone: 'pink' },
+  OTHER: { icon: UsersRound, tone: 'sky' },
+}
 
 /** New staff record, or edit one (personal and job details; salary and ids are on the profile). */
 export function EmployeeForm({ employee, onClose, onSaved }) {
@@ -202,7 +211,12 @@ export default function Employees() {
           <HeaderButton icon={UserPlus} variant="primary" requires="hrms.employees.create" onClick={() => setAdding(true)}>{t('hrms.employees.new')}</HeaderButton>
         </>} />
       {Object.keys(counts).length > 0 && (
-        <StatCardRow className="mb-4" items={EMPLOYEE_CATEGORIES.filter((c) => counts[c.value]).map((c) => ({ label: L.category(c.value), value: counts[c.value] }))} />
+        <StatCardRow className="mb-4" items={EMPLOYEE_CATEGORIES.filter((c) => counts[c.value]).map((c) => ({
+          label: L.category(c.value), value: counts[c.value], ...CATEGORY_LOOK[c.value],
+          progress: (counts[c.value] / Object.values(counts).reduce((n, v) => n + v, 0)) * 100,
+          onClick: () => { setCategory(category === c.value ? '' : c.value); setPage(1) },
+          className: category === c.value ? 'ring-2 ring-brand-400' : category ? 'opacity-60 hover:opacity-100' : undefined,
+        }))} />
       )}
       <DataTable
         rows={rows}
@@ -217,11 +231,11 @@ export default function Employees() {
               options={STATUS.map(statusName)} onChange={(v) => { setStatus(STATUS.find((s) => statusName(s) === v) ?? 'CURRENT'); setPage(1) }} />
           </>} />}
         columns={[
-          { key: 'name', header: t('hrms.employees.person'), mobilePrimary: true, render: (v, r) => <div><p className="font-medium text-ink">{v}</p><p className="text-xs text-ink-faint font-mono-num">{r.employeeCode}</p></div> },
-          { key: 'designation', header: t('hrms.employees.designation'), render: (v, r) => <div><p className="text-sm text-ink">{v ?? '—'}</p><p className="text-xs text-ink-faint">{[L.category(r.category), r.department].filter(Boolean).join(' · ')}</p></div> },
-          { key: 'employmentType', header: t('hrms.employees.employmentType'), mobileHidden: true, render: (v) => L.employment(v) },
-          { key: 'mobile', header: t('hrms.employees.mobile'), mobileHidden: true, render: (v) => (v ? <span className="font-mono-num text-sm">{v}</span> : '—') },
-          { key: 'joiningDate', header: t('hrms.employees.joined'), mobileHidden: true, nowrap: true, render: (v) => date(v) },
+          { key: 'name', header: t('hrms.employees.person'), mobilePrimary: true, render: (v, r) => <PersonCell name={v} sub={r.employeeCode} size={34} /> },
+          { key: 'designation', header: t('hrms.employees.designation'), render: (v, r) => <StackCell title={v ?? '—'} sub={[L.employment(r.employmentType), r.department].filter(Boolean).join(' · ')} /> },
+          { key: 'category', header: t('hrms.employees.category'), mobileHidden: true, render: (v) => <ColorChip label={L.category(v)} icon={CATEGORY_LOOK[v]?.icon} tone={CATEGORY_LOOK[v]?.tone} /> },
+          { key: 'mobile', header: t('hrms.employees.mobile'), mobileHidden: true, render: (v) => <ContactCell phone={v} /> },
+          { key: 'joiningDate', header: t('hrms.employees.joined'), mobileHidden: true, nowrap: true, render: (v) => <DateCell value={v} /> },
           { key: 'hasLogin', header: t('hrms.employees.loginCol'), mobileHidden: true, render: (v) => (v ? <StatusPill tone="success">{t('hrms.employees.hasLogin')}</StatusPill> : <span className="text-xs text-ink-faint">{t('hrms.employees.noLogin')}</span>) },
           { key: 'status', header: t('hrms.employees.status'), render: (v, r) => <span><StatusPill tone={EMPLOYEE_STATUSES[v]?.tone}>{L.status(v)}</StatusPill>{r.lastWorkingDate && v !== 'ACTIVE' && <span className="block text-[11px] text-ink-faint mt-0.5">{t('hrms.employees.lastDay', { date: date(r.lastWorkingDate) })}</span>}</span> },
         ]}

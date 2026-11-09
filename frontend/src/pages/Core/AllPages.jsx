@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { AlertTriangle, ArrowLeft, Lock, Map as MapIcon, Settings2 } from 'lucide-react'
+import { AlertTriangle, ArrowLeft, Blocks, FileStack, Lock, Map as MapIcon, MousePointerClick, Settings2 } from 'lucide-react'
 import { PageContainer, PageHeader, StatCardRow, SearchInput } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { fetchCatalog } from '../../api/core'
@@ -41,10 +41,10 @@ export default function AllPages() {
         actions={<Button to="/core/roles" variant="secondary" icon={BackIcon}>{t('admin.allPages.roles')}</Button>}
       />
       <StatCardRow items={[
-        { label: t('admin.allPages.stats.modules'), value: isLoading ? '—' : enabled.length, sub: locked.length ? t('admin.allPages.stats.moreOnBigger', { count: locked.length }) : t('admin.allPages.stats.everythingIncluded'), tone: 'brand' },
-        { label: t('admin.allPages.stats.pages'), value: isLoading ? '—' : pages, sub: t('admin.allPages.stats.pagesSub'), tone: 'info' },
-        { label: t('admin.allPages.stats.actions'), value: isLoading ? '—' : actions, sub: t('admin.allPages.stats.actionsSub'), tone: 'neutral' },
-        { label: t('admin.allPages.stats.sensitive'), value: isLoading ? '—' : sensitive, sub: t('admin.allPages.stats.sensitiveSub'), tone: 'warning' },
+        { icon: Blocks, label: t('admin.allPages.stats.modules'), value: isLoading ? '—' : enabled.length, sub: locked.length ? t('admin.allPages.stats.moreOnBigger', { count: locked.length }) : t('admin.allPages.stats.everythingIncluded'), tone: 'brand' },
+        { icon: FileStack, label: t('admin.allPages.stats.pages'), value: isLoading ? '—' : pages, sub: t('admin.allPages.stats.pagesSub'), tone: 'info' },
+        { icon: MousePointerClick, label: t('admin.allPages.stats.actions'), value: isLoading ? '—' : actions, sub: t('admin.allPages.stats.actionsSub'), tone: 'violet' },
+        { icon: AlertTriangle, label: t('admin.allPages.stats.sensitive'), value: isLoading ? '—' : sensitive, sub: t('admin.allPages.stats.sensitiveSub'), tone: 'warning' },
       ]} />
       <SearchInput value={q} onChange={setQ} placeholder={t('admin.allPages.searchPlaceholder')} className="max-w-md" />
 

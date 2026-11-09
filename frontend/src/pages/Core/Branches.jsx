@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Trans, useTranslation } from 'react-i18next'
 import { Building2, MapPin, Pencil, Plus, Star } from 'lucide-react'
-import { DataTable, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, StatusPill } from '../../components/system'
+import { CodeBadge, ColorChip, DataTable, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, StatusPill, TONE, hueTone } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { Switch, UsageMeter } from '../../components/app/Controls'
 import { createBranch, fetchBranches, updateBranch } from '../../api/core'
@@ -72,9 +72,14 @@ export default function Branches() {
             loading={isLoading}
             onRowClick={hasPermission('core.branches.edit') ? setEditing : undefined}
             columns={[
-              { key: 'name', header: t('admin.branches.branch'), mobilePrimary: true, render: (v, r) => <div><p className="font-medium text-ink flex items-center gap-1.5">{v}{r.isDefault && <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" aria-label={t('admin.branches.mainBranch')} />}</p><p className="text-xs text-ink-faint font-mono-num">{r.code}</p></div> },
-              { key: 'city', header: t('admin.branches.location'), render: (v, r) => (v || r.addressLine ? <span className="text-sm text-ink-muted flex items-center gap-1"><MapPin className="w-3.5 h-3.5" />{[r.city, r.state].filter(Boolean).join(', ') || r.addressLine}</span> : <span className="text-ink-faint">—</span>) },
-              { key: 'userCount', header: t('admin.branches.staff'), align: 'right' },
+              { key: 'name', header: t('admin.branches.branch'), mobilePrimary: true, render: (v, r) => { const tn = TONE[r.isDefault ? 'warning' : hueTone(r.code ?? v)]; return (
+                <div className="flex items-center gap-3">
+                  <span className={`w-9 h-9 rounded-xl border flex items-center justify-center shrink-0 ${tn.bg} ${tn.text} ${tn.border}`}><Building2 className="w-4 h-4" /></span>
+                  <div className="min-w-0"><p className="font-medium text-ink flex items-center gap-1.5">{v}{r.isDefault && <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" aria-label={t('admin.branches.mainBranch')} />}</p><CodeBadge>{r.code}</CodeBadge></div>
+                </div>
+              ) } },
+              { key: 'city', header: t('admin.branches.location'), render: (v, r) => (v || r.addressLine ? <ColorChip label={[r.city, r.state].filter(Boolean).join(', ') || r.addressLine} seed={r.state || r.city} icon={MapPin} /> : <span className="text-ink-faint">—</span>) },
+              { key: 'userCount', header: t('admin.branches.staff'), align: 'right', render: (v) => <span className={`tabular-nums ${v ? 'font-semibold text-ink' : 'text-ink-faint'}`}>{v ?? 0}</span> },
               { key: 'active', header: t('common.status'), render: (v) => <StatusPill tone={v ? 'success' : 'neutral'}>{v ? t('status.active') : t('admin.branches.inactive')}</StatusPill> },
               { key: 'id', header: '', align: 'right', width: 60, render: (_, r) => hasPermission('core.branches.edit') && <button onClick={(e) => { e.stopPropagation(); setEditing(r) }} className="w-8 h-8 rounded-md flex items-center justify-center text-ink-muted hover:bg-bg" title={t('actions.edit')}><Pencil className="w-4 h-4" /></button> },
             ]}

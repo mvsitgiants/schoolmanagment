@@ -3,7 +3,7 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tansta
 import { useTranslation } from 'react-i18next'
 import { BookOpenCheck, CheckCheck, Pencil, Plus, Trash2 } from 'lucide-react'
 import { SUBMISSION_STATUS, addDaysYmd } from '@schoolgiant/shared'
-import { Attachments, ControlChip, DataTable, Drawer, localIso, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, ProgressBar, Select, StatusPill, Textarea, Toolbar, useConfirm } from '../../components/system'
+import { Attachments, ColorChip, ControlChip, DataTable, DateCell, Drawer, localIso, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, PersonCell, ProgressBar, Select, StatusPill, Textarea, Toolbar, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
 import useDebouncedValue from '../../hooks/useDebouncedValue'
 import { createHomework, deleteHomework, fetchHomework, fetchHomeworkList, fetchHomeworkLookup, saveHomeworkSubmissions, updateHomework } from '../../api/homework'
@@ -174,7 +174,6 @@ function HomeworkDrawer({ id, lookup, onClose }) {
 export default function HomeworkPage() {
   const { t } = useTranslation('homework')
   const qc = useQueryClient()
-  const { date } = useFormat()
   const { showSuccess } = useSnackbar()
   const [search, setSearch] = useState('')
   const [sectionId, setSectionId] = useState('')
@@ -187,6 +186,7 @@ export default function HomeworkPage() {
   const q = useDebouncedValue(search.trim(), 250)
   const { data: lookup } = useQuery({ queryKey: ['homework-lookup'], queryFn: fetchHomeworkLookup })
   const sections = lookup?.sections ?? []
+  const classOf = useMemo(() => new Map(sections.map((s) => [s.id, s.classId])), [sections])
   const subjects = useMemo(() => {
     const m = new Map()
     for (const s of sections) for (const x of s.subjects) m.set(x.id, x)
@@ -218,10 +218,10 @@ export default function HomeworkPage() {
           <ControlChip label={t('homework.setBy')} value={mine ? t('homework.me') : t('homework.anyone')} active={mine} options={[t('homework.anyone'), t('homework.me')]} onChange={(v) => { setMine(v === t('homework.me')); reset() }} />
         </>} />}
         columns={[
-          { key: 'dueDate', header: t('homework.due'), nowrap: true, render: (v, r) => <span className={r.overdue ? 'text-ink-muted' : 'font-medium'}>{date(v)}</span> },
-          { key: 'section', header: t('homework.class'), render: (v, r) => <span className="text-sm">{v} · {r.subject}</span> },
+          { key: 'dueDate', header: t('homework.due'), nowrap: true, render: (v, r) => <DateCell value={v} tone={r.overdue && r.needsSubmission && r.counts?.MISSING ? 'danger' : undefined} className={r.overdue ? 'opacity-80' : undefined} /> },
+          { key: 'section', header: t('homework.class'), render: (v, r) => <div className="flex flex-wrap items-center gap-1"><ColorChip label={v} seed={classOf.get(r.sectionId) ?? v} /><ColorChip label={r.subject} seed={r.subjectId} dot /></div> },
           { key: 'title', header: t('homework.what'), mobilePrimary: true, render: (v, r) => <div><p className="font-medium text-ink">{v}</p>{r.details && <p className="text-xs text-ink-faint line-clamp-1">{r.details}</p>}</div> },
-          { key: 'teacher', header: t('homework.setBy'), mobileHidden: true, render: (v) => <span className="text-sm text-ink-muted">{v}</span> },
+          { key: 'teacher', header: t('homework.setBy'), mobileHidden: true, render: (v) => <PersonCell name={v} size={26} /> },
           { key: 'counts', header: t('homework.handedIn'), render: (c, r) => (r.needsSubmission
             ? <div className="min-w-[110px]"><ProgressBar value={c.total ? Math.round((c.handedIn / c.total) * 100) : 0} /><p className="text-xs text-ink-faint mt-0.5">{t('homework.handedInOf', { done: c.handedIn, total: c.total })}{c.MISSING ? ` · ${t('homework.missingN', { count: c.MISSING })}` : ''}</p></div>
             : <span className="text-xs text-ink-faint">{t('homework.noHandIn')}</span>) },

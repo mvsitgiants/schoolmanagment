@@ -27,7 +27,15 @@
       "pendingCount_one": "{{count}} section still to mark.",
       "pendingCount_other": "{{count}} sections still to mark.",
       "allTaken": "Every section is marked.",
-      "none": "No sections to mark. Teachers see the sections they are class teacher of or teach (Academic setup › Teacher allocation)."
+      "none": "No sections to mark. Teachers see the sections they are class teacher of or teach (Academic setup › Teacher allocation).",
+      "summary": {
+        "sections": "Sections",
+        "taken": "Attendance taken",
+        "ofSections": "of {{count}} sections",
+        "present": "Present",
+        "ofMarked": "of {{count}} marked",
+        "absent": "Absent"
+      }
     },
     "mark": {
       "title": "Mark attendance",
@@ -64,7 +72,13 @@
       "absent": "Absent",
       "tableTitle": "{{section}} · {{taken}} days marked",
       "empty": "No students.",
-      "legend": "P present · A absent · L late · H half day · Lv on leave. A greyed name has moved out of the section."
+      "legend": "P present · A absent · L late · H half day · Lv on leave. A greyed name has moved out of the section.",
+      "summary": {
+        "students": "Students",
+        "days": "Days marked",
+        "average": "Average attendance",
+        "below": "Under {{min}}%"
+      }
     },
     "leave": {
       "title": "Student leave",
@@ -97,7 +111,10 @@
       "cancelConfirm": "Cancel the leave of {{name}}?",
       "cancelHint": "Days already marked stay as they are.",
       "cancelled": "Leave cancelled.",
-      "empty": "No leave here."
+      "empty": "No leave here.",
+      "class": "Class",
+      "days_one": "{{count}} day",
+      "days_other": "{{count}} days"
     },
     "reports": {
       "title": "Attendance reports",
@@ -116,7 +133,8 @@
       "studentsTitle": "{{section}} · {{days}} days marked",
       "leave": "On leave",
       "empty": "No sections.",
-      "noStudents": "No students."
+      "noStudents": "No students.",
+      "overall": "Overall attendance"
     }
   }
 }

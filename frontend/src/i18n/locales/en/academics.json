@@ -147,7 +147,19 @@
       "deleted": "Class deleted.",
       "saved": "Class saved.",
       "emptyTitle": "No classes yet",
-      "emptyHint": "Quick setup adds a standard set of classes, sections and subjects in one go — you can change everything afterwards."
+      "emptyHint": "Quick setup adds a standard set of classes, sections and subjects in one go — you can change everything afterwards.",
+      "stat": {
+        "classes": "Classes",
+        "students": "Students",
+        "strength": "Students per class",
+        "strengthCol": "Strength",
+        "subjects_one": "{{count}} subject taught",
+        "subjects_other": "{{count}} subjects taught",
+        "perSection_one": "about {{count}} per section",
+        "perSection_other": "about {{count}} per section",
+        "sections_one": "{{count}} section this year",
+        "sections_other": "{{count}} sections this year"
+      }
     },
     "sections": {
       "title": "Sections",

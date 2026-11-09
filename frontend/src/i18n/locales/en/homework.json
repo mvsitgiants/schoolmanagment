@@ -138,6 +138,9 @@
         "resources": "Resources",
         "homeworkNote": "Homework idea",
         "save": "Save plan"
+      },
+      "summary": {
+        "total": "Lessons this week"
       }
     },
     "syllabus": {

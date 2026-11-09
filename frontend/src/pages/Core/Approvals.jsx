@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { Check, CheckSquare, ExternalLink, Inbox, Undo2, X } from 'lucide-react'
 import { APPROVAL_STATUSES, formatINR } from '@schoolgiant/shared'
-import { DataTable, Drawer, FormField, Note, PageContainer, PageHeader, StatusPill, Tabs, Textarea } from '../../components/system'
+import { ColorChip, DataTable, DateCell, Drawer, FormField, Note, PageContainer, PageHeader, PersonCell, StatusPill, Tabs, Textarea } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { DefinitionGrid } from '../../components/app/Controls'
 import ApprovalSteps from '../../components/approvals/ApprovalSteps'
@@ -12,13 +12,6 @@ import { approveRequest, fetchApproval, fetchApprovalsPage, rejectRequest, withd
 import { hasPermission } from '../../api/auth'
 import { useFormat } from '../../context/SettingsContext'
 import { useSnackbar } from '../../context/SnackbarContext'
-
-const ago = (iso, t) => {
-  const mins = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60000))
-  if (mins < 60) return t('admin.approvals.agoMinutes', { count: mins })
-  const h = Math.round(mins / 60)
-  return h < 48 ? t('admin.approvals.agoHours', { count: h }) : t('admin.approvals.agoDays', { count: Math.round(h / 24) })
-}
 
 /** Where the request's record lives in the app. */
 function recordLink(r, t) {
@@ -142,11 +135,21 @@ export default function Approvals() {
             onRowClick={(r) => open(r.id)}
             pagination={data?.meta && { page: data.meta.page - 1, size: data.meta.pageSize, totalElements: data.meta.total, totalPages: data.meta.totalPages, onPageChange: (p) => setPage(p + 1) }}
             columns={[
-              { key: 'createdAt', header: t('admin.approvals.cols.asked'), nowrap: true, width: 150, render: (v) => <span className="text-sm text-ink-muted" title={dateTime(v)}>{ago(v, t)}</span> },
-              { key: 'title', header: t('admin.approvals.cols.request'), mobilePrimary: true, render: (v, r) => <div><p className="text-sm font-medium text-ink">{v}</p><p className="text-xs text-ink-muted">{r.summary}</p></div> },
-              { key: 'requestedBy', header: t('admin.approvals.cols.askedBy'), render: (v) => <span className="text-sm text-ink">{v}</span> },
-              { key: 'valueText', header: t('admin.approvals.cols.value'), align: 'right', nowrap: true },
-              { key: 'status', header: t('common.status'), render: (v, r) => <div className="flex items-center gap-2"><StatusPill tone={APPROVAL_STATUSES[v]?.tone}>{t(`admin.approvals.status.${v}`, { defaultValue: APPROVAL_STATUSES[v]?.label ?? v })}</StatusPill>{v === 'PENDING' && r.steps.length > 1 && <span className="text-[11px] text-ink-faint">{t('admin.approvals.stepOf', { n: r.currentStep + 1, total: r.steps.length })}</span>}</div> },
+              { key: 'createdAt', header: t('admin.approvals.cols.asked'), nowrap: true, width: 150, render: (v) => <span title={dateTime(v)}><DateCell value={v} time /></span> },
+              { key: 'title', header: t('admin.approvals.cols.request'), mobilePrimary: true, render: (v, r) => <div className="min-w-0">{r.typeLabel && <ColorChip label={r.typeLabel} seed={r.type} dot className="mb-1" />}<p className="text-sm font-medium text-ink">{v}</p><p className="text-xs text-ink-muted">{r.summary}</p></div> },
+              { key: 'requestedBy', header: t('admin.approvals.cols.askedBy'), render: (v) => <PersonCell name={v} size={26} /> },
+              { key: 'valueText', header: t('admin.approvals.cols.value'), align: 'right', nowrap: true, render: (v) => (v ? <span className="font-mono-num font-semibold text-ink">{v}</span> : <span className="text-ink-faint">—</span>) },
+              { key: 'status', header: t('common.status'), render: (v, r) => (
+                <div className="flex flex-col items-start gap-1">
+                  <StatusPill tone={APPROVAL_STATUSES[v]?.tone}>{t(`admin.approvals.status.${v}`, { defaultValue: APPROVAL_STATUSES[v]?.label ?? v })}</StatusPill>
+                  {v === 'PENDING' && r.steps.length > 1 && (
+                    <span className="inline-flex items-center gap-1.5" title={t('admin.approvals.stepOf', { n: r.currentStep + 1, total: r.steps.length })}>
+                      {r.steps.map((_, i) => <span key={i} className={`h-1.5 w-4 rounded-full ${i < r.currentStep ? 'bg-emerald-500' : i === r.currentStep ? 'bg-amber-500' : 'bg-black/10'}`} />)}
+                      <span className="text-[11px] text-ink-faint">{t('admin.approvals.stepOf', { n: r.currentStep + 1, total: r.steps.length })}</span>
+                    </span>
+                  )}
+                </div>
+              ) },
             ]}
             emptyIcon={Inbox}
             emptyTitle={tab === 'waiting' ? t('admin.approvals.emptyWaiting') : t('admin.approvals.emptyRequests')}

@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { ArrowDown, ArrowUp, Crosshair, MapPinned, Pencil, Plus, Route as RouteIcon, Trash2, X } from 'lucide-react'
 import { osmEmbed, toPaise, toRupees } from '@schoolgiant/shared'
-import { DataTable, Drawer, FormField, HeaderButton, Input, Modal, Money, Note, PageContainer, PageHeader, Select, StatusPill, Textarea, useConfirm } from '../../components/system'
+import { CodeBadge, ColorChip, DataTable, Drawer, FormField, HeaderButton, Input, LevelBar, Modal, Money, Note, PageContainer, PageHeader, PersonCell, Select, StatusPill, Textarea, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { deleteRoute, fetchRoutes, fetchVehicles, saveRoute } from '../../api/transport'
 import { hasPermission } from '../../api/auth'
@@ -141,10 +141,15 @@ export default function Routes() {
         actions={<HeaderButton icon={Plus} variant="primary" requires="transport.routes.create" onClick={() => setEditing('new')}>{t('transport.routes.new')}</HeaderButton>} />
       {unplaced > 0 && <Note className="mb-3" icon={MapPinned}>{t('transport.routes.unplacedNote', { count: unplaced })}</Note>}
       <DataTable rows={rows} loading={isLoading} columns={[
-        { key: 'name', header: t('transport.routes.name'), mobilePrimary: true, render: (v, r) => <span className="font-medium">{v}{r.code && <span className="ml-1 text-xs text-ink-faint">{r.code}</span>}<span className="block text-xs font-normal text-ink-faint">{r.stops.map((s) => s.name).slice(0, 4).join(' → ')}{r.stops.length > 4 ? ' …' : ''}</span></span> },
-        { key: 'vehicle', header: t('transport.routes.vehicle'), render: (v) => (v ? <span>{v.regNo}{v.driver && <span className="block text-xs text-ink-faint">{v.driver}</span>}</span> : <span className="text-ink-faint">—</span>) },
+        { key: 'name', header: t('transport.routes.name'), mobilePrimary: true, render: (v, r) => (
+          <span className="flex min-w-0 flex-col items-start gap-1">
+            <span className="flex flex-wrap items-center gap-1.5"><ColorChip label={v} seed={r.id} icon={RouteIcon} />{r.code && <CodeBadge>{r.code}</CodeBadge>}</span>
+            <span className="block text-xs font-normal text-ink-faint">{r.stops.map((s) => s.name).slice(0, 4).join(' → ')}{r.stops.length > 4 ? ' …' : ''}</span>
+          </span>
+        ) },
+        { key: 'vehicle', header: t('transport.routes.vehicle'), render: (v) => (v ? <span className="flex flex-col items-start gap-1"><CodeBadge>{v.regNo}</CodeBadge>{v.driver && <PersonCell name={v.driver} size={22} />}</span> : <span className="text-ink-faint">—</span>) },
         { key: 'stops', header: t('transport.routes.stops'), align: 'right', render: (v) => v.length },
-        { key: 'students', header: t('transport.routes.students'), align: 'right', render: (v, r) => <span className={r.vehicle?.capacity && v > r.vehicle.capacity ? 'text-danger-600 font-medium' : ''}>{r.vehicle?.capacity ? `${v}/${r.vehicle.capacity}` : v}</span> },
+        { key: 'students', header: t('transport.routes.students'), align: 'right', render: (v, r) => (r.vehicle?.capacity ? <LevelBar value={v} max={r.vehicle.capacity} highIsBad warnAt={r.vehicle.capacity} dangerAt={r.vehicle.capacity + 1} width="w-24" /> : <span className="tabular-nums">{v}</span>) },
         { key: 'active', header: '', render: (v) => !v && <StatusPill tone="neutral">{t('transport.routes.off')}</StatusPill> },
         { key: 'id', header: '', align: 'right', width: 90, render: (_, r) => (
           <div className="flex justify-end gap-1">

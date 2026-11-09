@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { History, Minus, Plus, ScrollText, ShieldAlert } from 'lucide-react'
 import { describePermission, MODULE_BY_ID } from '@schoolgiant/shared'
 import {
-  ControlChip, DataTable, DateRangeChip, Drawer, PageContainer, PageHeader, StatusPill, Toolbar, ViewControls, presetRange,
+  ColorChip, ControlChip, DataTable, DateCell, DateRangeChip, Drawer, PageContainer, PageHeader, PersonCell, StatusPill, Toolbar, ViewControls, presetRange,
 } from '../../components/system'
 import { DefinitionGrid } from '../../components/app/Controls'
 import { fetchAudit } from '../../api/core'
@@ -64,11 +64,11 @@ export default function AuditLog() {
           )} />
         )}
         columns={[
-          { key: 'at', header: t('admin.auditLog.when'), nowrap: true, width: 170, render: (v) => <span className="text-sm text-ink-muted">{dateTime(v)}</span> },
-          { key: 'userName', header: t('admin.auditLog.who'), render: (v) => <span className="text-sm text-ink">{v}</span> },
+          { key: 'at', header: t('admin.auditLog.when'), nowrap: true, width: 170, render: (v) => <DateCell value={v} time /> },
+          { key: 'userName', header: t('admin.auditLog.who'), render: (v) => <PersonCell name={v} size={26} /> },
           { key: 'action', header: t('admin.auditLog.action'), render: (v) => <StatusPill tone={ACTIONS[v]?.[0]}>{actionLabel(v)}</StatusPill> },
           { key: 'summary', header: t('admin.auditLog.whatHappened'), mobilePrimary: true, render: (v, r) => <div><p className="text-sm text-ink">{v}</p>{(r.added?.length > 0 || r.removed?.length > 0) && <p className="text-xs text-ink-faint">{t('admin.auditLog.itemsChanged', { changes: [r.added?.length ? `+${r.added.length}` : '', r.removed?.length ? `−${r.removed.length}` : ''].filter(Boolean).join(' · ') })}</p>}</div> },
-          { key: 'entityType', header: t('admin.auditLog.record'), mobileHidden: true, render: (v, r) => <span className="text-xs text-ink-muted">{entityLabel(v)}{r.entityName ? ` · ${r.entityName}` : ''}</span> },
+          { key: 'entityType', header: t('admin.auditLog.record'), mobileHidden: true, render: (v, r) => (v ? <ColorChip label={entityLabel(v)} seed={v} dot sub={r.entityName || undefined} /> : <span className="text-ink-faint">—</span>) },
         ]}
         pagination={meta && { page: meta.page - 1, size: meta.pageSize, totalElements: meta.total, totalPages: meta.totalPages, onPageChange: (p) => setPage(p + 1) }}
         emptyIcon={History}

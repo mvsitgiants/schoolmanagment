@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { ChevronLeft, ClipboardPaste, ListChecks, Pencil, Plus, Save, X } from 'lucide-react'
 import { parseSyllabusText } from '@schoolgiant/shared'
-import { DataTable, FormField, Input, Modal, Note, PageContainer, PageHeader, Panel, ProgressBar, Tabs, Textarea } from '../../components/system'
+import { ColorChip, DataTable, FormField, Input, Modal, Note, PageContainer, PageHeader, Panel, ProgressBar, Tabs, Textarea } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { fetchSyllabus, fetchSyllabusOverview, markSyllabusTopics, saveSyllabus } from '../../api/homework'
 import { hasPermission } from '../../api/auth'
@@ -168,7 +168,7 @@ export default function Syllabus() {
           error={error}
           onRetry={refetch}
           columns={[
-            { key: 'className', header: t('homework.syllabus.class'), mobilePrimary: true, render: (v, r) => <div><p className="font-medium text-ink">{v} · {r.subject}</p><p className="text-xs text-ink-faint">{r.topics ? t('homework.syllabus.counts', { units: r.units, topics: r.topics }) : t('homework.syllabus.notSet')}</p></div> },
+            { key: 'className', header: t('homework.syllabus.class'), mobilePrimary: true, render: (v, r) => <div><div className="flex flex-wrap items-center gap-1"><ColorChip label={v} seed={r.classId} /><ColorChip label={r.subject} seed={r.subjectId} dot /></div><p className="text-xs text-ink-faint mt-1">{r.topics ? t('homework.syllabus.counts', { units: r.units, topics: r.topics }) : t('homework.syllabus.notSet')}</p></div> },
             { key: 'sections', header: t('homework.syllabus.progress'), clamp: false, render: (v, r) => (r.topics ? (
               <div className="flex flex-wrap gap-3">
                 {v.map((s) => <div key={s.id} className="w-28"><p className="text-xs text-ink-muted mb-0.5">{s.short} · {s.done}/{s.topics}</p><ProgressBar value={s.pct} showValue={false} /></div>)}

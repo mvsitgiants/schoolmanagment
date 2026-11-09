@@ -6,7 +6,7 @@ import clsx from 'clsx'
 import { ArrowLeft, BadgeCheck, Ban, Boxes, Building2, CalendarPlus, CreditCard, Gauge, Layers, Percent, Receipt, Shield, Users } from 'lucide-react'
 import { CATEGORY_BY_ID, formatINR } from '@schoolgiant/shared'
 import {
-  DataTable, FormField, Input, Modal, Note, PageContainer, PageHeader, Panel, Select, StatCardRow, StatusPill, Tabs, Textarea, VerifiedBadge, useConfirm,
+  CodeBadge, ColorChip, DataTable, DateCell, FormField, Input, Modal, Money, Note, PageContainer, PageHeader, Panel, PersonCell, Select, StatCardRow, StatusPill, Tabs, Textarea, VerifiedBadge, useConfirm,
 } from '../../components/system'
 import { canPlatform } from '../../api/auth'
 import Button from '../../components/ui/Button'
@@ -16,7 +16,7 @@ import { useSnackbar } from '../../context/SnackbarContext'
 import { useFormat } from '../../context/SettingsContext'
 import { iconFor } from '../../catalog/icons'
 import { useCatalogLabel } from '../../hooks/useCatalogLabel'
-import { TENANT_STATUS, tenantStatusLabel } from './Dashboard'
+import { TENANT_STATUS, planLook, tenantStatusLabel } from './Dashboard'
 import { bannerText } from '../../utils/subscriptionBanner'
 
 const INV_TONE = { DUE: 'warning', PAID: 'success', VOID: 'neutral' }
@@ -172,10 +172,10 @@ export default function TenantDetail() {
         </>} />
 
       <StatCardRow items={[
-        { icon: CreditCard, label: t('superadmin.common.plan'), value: plans.find((p) => p.code === tn.planCode)?.name ?? tn.planCode, sub: `${tn.billingCycle === 'YEARLY' ? t('superadmin.cycle.YEARLY') : t('superadmin.cycle.MONTHLY')} · ${tenantStatusLabel(t, sub.status)}`, tone: st.tone === 'danger' ? 'danger' : 'brand' },
-        { icon: Users, label: t('superadmin.common.users'), value: sub.usage.users, sub: t('superadmin.tenantDetail.ofLimit', { limit: sub.limits.users }), tone: sub.usage.users >= sub.limits.users ? 'danger' : 'info' },
-        { icon: Shield, label: t('superadmin.tenantDetail.roles'), value: tn.roles.length, sub: tn.roles.length === 1 ? t('superadmin.tenantDetail.onlyAdmin') : t('superadmin.tenantDetail.designedByInstitution'), tone: 'neutral' },
-        { icon: Boxes, label: t('superadmin.tenantDetail.modulesOn'), value: modulesOn.length, sub: t('superadmin.tenantDetail.ofLimit', { limit: tn.modules.length }), tone: 'success' },
+        { icon: planLook(tn.planCode).icon ?? CreditCard, label: t('superadmin.common.plan'), value: plans.find((p) => p.code === tn.planCode)?.name ?? tn.planCode, sub: `${tn.billingCycle === 'YEARLY' ? t('superadmin.cycle.YEARLY') : t('superadmin.cycle.MONTHLY')} · ${tenantStatusLabel(t, sub.status)}`, tone: st.tone === 'danger' ? 'danger' : planLook(tn.planCode).tone ?? 'brand' },
+        { icon: Users, label: t('superadmin.common.users'), value: sub.usage.users, sub: t('superadmin.tenantDetail.ofLimit', { limit: sub.limits.users }), tone: sub.usage.users >= sub.limits.users ? 'danger' : 'info', progress: sub.limits.users ? (sub.usage.users / sub.limits.users) * 100 : undefined },
+        { icon: Shield, label: t('superadmin.tenantDetail.roles'), value: tn.roles.length, sub: tn.roles.length === 1 ? t('superadmin.tenantDetail.onlyAdmin') : t('superadmin.tenantDetail.designedByInstitution'), tone: 'violet' },
+        { icon: Boxes, label: t('superadmin.tenantDetail.modulesOn'), value: modulesOn.length, sub: t('superadmin.tenantDetail.ofLimit', { limit: tn.modules.length }), tone: 'success', progress: tn.modules.length ? (modulesOn.length / tn.modules.length) * 100 : undefined },
       ]} />
 
       <div className="rounded-xl border border-border bg-surface shadow-card">
@@ -232,10 +232,10 @@ export default function TenantDetail() {
           {tab === 'invoices' && (
             <DataTable rows={tn.invoices} dense
               columns={[
-                { key: 'number', header: t('superadmin.common.invoice'), nowrap: true, mobilePrimary: true, render: (v) => <span className="font-mono-num">{v}</span> },
-                { key: 'kind', header: t('superadmin.common.type'), render: (v, r) => <div><p className="text-sm">{KINDS.includes(v) ? t(`superadmin.tenantDetail.kind.${v}`) : v}</p><p className="text-xs text-ink-faint">{r.planName} · {r.cycle ? t(`superadmin.cycle.${r.cycle}`, { defaultValue: r.cycle.toLowerCase() }) : ''}</p></div> },
+                { key: 'number', header: t('superadmin.common.invoice'), nowrap: true, mobilePrimary: true, render: (v) => <CodeBadge>{v}</CodeBadge> },
+                { key: 'kind', header: t('superadmin.common.type'), render: (v, r) => <div className="flex flex-col items-start gap-0.5"><ColorChip label={KINDS.includes(v) ? t(`superadmin.tenantDetail.kind.${v}`) : v} seed={v} dot /><p className="text-xs text-ink-faint">{r.planName} · {r.cycle ? t(`superadmin.cycle.${r.cycle}`, { defaultValue: r.cycle.toLowerCase() }) : ''}</p></div> },
                 { key: 'periodStart', header: t('superadmin.tenantDetail.period'), nowrap: true, render: (v, r) => <span className="text-sm text-ink-muted">{date(v)} – {date(r.periodEnd)}</span> },
-                { key: 'total', header: t('ui.common.total'), align: 'right', render: (v) => formatINR(v) },
+                { key: 'total', header: t('ui.common.total'), align: 'right', render: (v, r) => <Money value={v} paise currency="INR" tone={r.status === 'DUE' ? 'warning' : undefined} className="font-semibold" /> },
                 { key: 'status', header: t('common.status'), render: (v, r) => (
                   <div>
                     <StatusPill tone={INV_TONE[v]}>{v === 'PAID' ? t('superadmin.common.paidOn', { date: date(r.paidAt) }) : v === 'DUE' ? t('superadmin.common.dueOn', { date: date(r.dueDate) }) : t('superadmin.common.void')}</StatusPill>
@@ -256,11 +256,11 @@ export default function TenantDetail() {
 
           {tab === 'users' && (
             <div className="space-y-4">
-              <div className="flex flex-wrap gap-1.5">{tn.roles.map((r) => <span key={r.id} className={clsx('text-xs px-2 py-1 rounded-md', r.fullAccess ? 'bg-amber-50 text-amber-600' : 'bg-brand-50 text-brand-700')}>{r.name}</span>)}</div>
+              <div className="flex flex-wrap gap-1.5">{tn.roles.map((r) => (r.fullAccess ? <ColorChip key={r.id} label={r.name} tone="warning" icon={Shield} /> : <ColorChip key={r.id} label={r.name} seed={r.id} dot />))}</div>
               <DataTable rows={tn.users} dense columns={[
-                { key: 'name', header: t('common.name'), mobilePrimary: true, render: (v, r) => <div><p className="font-medium text-ink">{v}{r.emailVerifiedAt && <VerifiedBadge size="xs" className="ms-1" title={t('superadmin.verification.userVerified')} />}</p><p className="text-xs text-ink-faint">{r.email}</p></div> },
-                { key: 'roles', header: t('superadmin.tenantDetail.roles'), render: (v) => v.join(', ') },
-                { key: 'lastLoginAt', header: t('superadmin.tenantDetail.lastSignIn'), nowrap: true, render: (v) => (v ? dateTime(v) : <span className="text-ink-faint">{t('superadmin.tenantDetail.never')}</span>) },
+                { key: 'name', header: t('common.name'), mobilePrimary: true, render: (v, r) => <span className="inline-flex items-center gap-1"><PersonCell name={v} sub={r.email} />{r.emailVerifiedAt && <VerifiedBadge size="xs" title={t('superadmin.verification.userVerified')} />}</span> },
+                { key: 'roles', header: t('superadmin.tenantDetail.roles'), render: (v) => <div className="flex flex-wrap gap-1">{v.map((name) => <ColorChip key={name} label={name} seed={tn.roles.find((x) => x.name === name)?.id ?? name} tone={tn.roles.find((x) => x.name === name)?.fullAccess ? 'warning' : undefined} dot />)}</div> },
+                { key: 'lastLoginAt', header: t('superadmin.tenantDetail.lastSignIn'), nowrap: true, render: (v) => (v ? <DateCell value={v} time /> : <span className="text-ink-faint">{t('superadmin.tenantDetail.never')}</span>) },
                 { key: 'active', header: t('common.status'), render: (v) => <StatusPill tone={v ? 'success' : 'neutral'}>{v ? t('superadmin.common.active') : t('superadmin.common.inactive')}</StatusPill> },
               ]} />
             </div>

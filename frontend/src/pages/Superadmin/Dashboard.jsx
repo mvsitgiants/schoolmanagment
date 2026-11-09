@@ -1,16 +1,15 @@
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { AlertTriangle, Building2, Clock, IndianRupee, LayoutDashboard, PlayCircle, Receipt, TrendingUp } from 'lucide-react'
+import { AlertTriangle, Building2, Clock, Crown, Gem, GraduationCap, IndianRupee, LayoutDashboard, PlayCircle, Receipt, Rocket, Sprout, TrendingUp } from 'lucide-react'
 import { formatINR, formatINRCompact } from '@schoolgiant/shared'
 import {
-  BreakdownDonut, CHART, DataTable, MiniBarChart, PageContainer, PageHeader, RailList, StatCardRow, StatusPill, TrendArea,
+  Avatar, BreakdownDonut, CHART, ColorChip, DataTable, DateCell, MiniBarChart, PageContainer, PageHeader, RailList, StatCardRow, StatusPill, TrendArea,
 } from '../../components/system'
 import { canPlatform } from '../../api/auth'
 import Button from '../../components/ui/Button'
 import { fetchDashboard, runBilling } from '../../api/superadmin'
 import { useSnackbar } from '../../context/SnackbarContext'
-import { useFormat } from '../../context/SettingsContext'
 
 export const TENANT_STATUS = {
   TRIAL: { tone: 'info', label: 'Trial', color: CHART.status.info },
@@ -24,6 +23,33 @@ export const TENANT_STATUS = {
 /** Translated tenant status label (keys superadmin.tenantStatus.<code>). */
 export const tenantStatusLabel = (t, code) => t(`superadmin.tenantStatus.${code}`, { defaultValue: TENANT_STATUS[code]?.label ?? code })
 
+// each plan's chip icon and colour (a plan added later gets a gem and a colour from its code)
+const PLAN_LOOK = {
+  STARTER: { icon: Sprout, tone: 'teal' },
+  GROWTH: { icon: Rocket, tone: 'brand' },
+  HIGHER_ED: { icon: GraduationCap, tone: 'violet' },
+  ENTERPRISE: { icon: Crown, tone: 'orange' },
+}
+export const planLook = (code) => PLAN_LOOK[code] ?? { icon: Gem, seed: code }
+
+/** A plan as a coloured chip with its icon. */
+export function PlanChip({ code, name, sub }) {
+  return <ColorChip label={name ?? code} sub={sub} {...planLook(code)} />
+}
+
+/** An institution's initials on a rounded tile, with its name (and a muted line) beside it. */
+export function InstitutionCell({ name, sub, size = 36, badge }) {
+  return (
+    <span className="inline-flex max-w-full min-w-0 items-center gap-3 align-middle">
+      <Avatar name={name} size={size} soft className="!rounded-xl" />
+      <span className="min-w-0 leading-tight">
+        <span className="block truncate font-medium text-ink">{name || '—'}{badge}</span>
+        {sub && <span className="block truncate text-[11.5px] text-ink-faint">{sub}</span>}
+      </span>
+    </span>
+  )
+}
+
 const SOURCES = ['SIGNUP', 'SUPERADMIN', 'SEED']
 
 const daysUntil = (d) => Math.ceil((+new Date(d) - Date.now()) / 864e5)
@@ -33,7 +59,6 @@ export default function Dashboard() {
   const navigate = useNavigate()
   const qc = useQueryClient()
   const { showSuccess, showError } = useSnackbar()
-  const { date } = useFormat()
   const { data: d, isLoading } = useQuery({ queryKey: ['sa-dashboard'], queryFn: fetchDashboard })
   const billing = useMutation({
     mutationFn: runBilling,
@@ -77,11 +102,11 @@ export default function Dashboard() {
         rows={d.recent}
         onRowClick={(r) => navigate(`/superadmin/tenants/${r.id}`)}
         columns={[
-          { key: 'name', header: t('superadmin.common.institution'), mobilePrimary: true, render: (v) => <span className="font-medium text-ink">{v}</span> },
-          { key: 'planCode', header: t('superadmin.common.plan') },
+          { key: 'name', header: t('superadmin.common.institution'), mobilePrimary: true, render: (v) => <InstitutionCell name={v} size={30} /> },
+          { key: 'planCode', header: t('superadmin.common.plan'), render: (v) => <PlanChip code={v} name={d.byPlan.find((p) => p.code === v)?.name} /> },
           { key: 'status', header: t('common.status'), render: (v) => <StatusPill tone={TENANT_STATUS[v]?.tone}>{tenantStatusLabel(t, v)}</StatusPill> },
-          { key: 'createdVia', header: t('superadmin.common.source'), render: (v) => <span className="text-sm text-ink-muted">{SOURCES.includes(v) ? t(`superadmin.dashboard.source.${v}`) : v}</span> },
-          { key: 'createdAt', header: t('superadmin.common.joined'), nowrap: true, render: (v) => date(v) },
+          { key: 'createdVia', header: t('superadmin.common.source'), render: (v) => (v ? <ColorChip label={SOURCES.includes(v) ? t(`superadmin.dashboard.source.${v}`) : v} seed={v} dot /> : <span className="text-ink-faint">—</span>) },
+          { key: 'createdAt', header: t('superadmin.common.joined'), nowrap: true, render: (v) => <DateCell value={v} /> },
         ]}
       />
     </PageContainer>

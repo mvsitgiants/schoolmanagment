@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { Building2, Link2, Plus, Unlink, Upload, Wand2 } from 'lucide-react'
-import { DataTable, FormField, HeaderButton, Input, Modal, Money, Note, PageContainer, PageHeader, Panel, SegmentedControl, Select, StatCardRow, StatusPill, Textarea } from '../../components/system'
+import { BookOpen, Building2, FileQuestion, FileSpreadsheet, Link2, Plus, ScrollText, Unlink, Upload, Wand2 } from 'lucide-react'
+import { formatINR, formatINRCompact } from '@schoolgiant/shared'
+import { CodeBadge, DataTable, DateCell, FormField, HeaderButton, Input, Modal, Money, Note, PageContainer, PageHeader, Panel, SegmentedControl, Select, StackCell, StatCardRow, StatusPill, Textarea } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { autoMatch, createBankAccount, fetchBankAccounts, fetchReconciliation, importStatement, matchLine, unmatchLine } from '../../api/finance'
 import { hasPermission } from '../../api/auth'
@@ -70,10 +71,10 @@ function Reconcile({ bank }) {
   return (
     <div className="space-y-4">
       {s && <StatCardRow items={[
-        { label: t('finance.bank.bookBalance'), value: <Money value={s.bookBalance} paise /> },
-        { label: t('finance.bank.statementBalance'), value: s.statementBalance != null ? <Money value={s.statementBalance} paise /> : '—', sub: s.statementDate ? date(s.statementDate) : undefined },
-        { label: t('finance.bank.unmatchedStatement'), value: s.statementUnreconciled.count, tone: s.statementUnreconciled.count ? 'warning' : 'neutral' },
-        { label: t('finance.bank.unmatchedBook'), value: s.bookUnreconciled.count },
+        { icon: BookOpen, tone: 'brand', label: t('finance.bank.bookBalance'), value: formatINRCompact(s.bookBalance), sub: formatINR(s.bookBalance) },
+        { icon: FileSpreadsheet, tone: 'info', label: t('finance.bank.statementBalance'), value: s.statementBalance != null ? formatINRCompact(s.statementBalance) : '—', sub: s.statementDate ? date(s.statementDate) : undefined },
+        { icon: FileQuestion, label: t('finance.bank.unmatchedStatement'), value: s.statementUnreconciled.count, tone: s.statementUnreconciled.count ? 'warning' : 'success' },
+        { icon: ScrollText, tone: 'violet', label: t('finance.bank.unmatchedBook'), value: s.bookUnreconciled.count },
       ]} />}
       <div className="flex flex-wrap items-center gap-2">
         <SegmentedControl value={status} onChange={setStatus} options={[{ value: 'UNRECONCILED', label: t('finance.bank.unmatched') }, { value: 'RECONCILED', label: t('finance.bank.matched') }, { value: '', label: t('finance.all') }]} />
@@ -82,10 +83,10 @@ function Reconcile({ bank }) {
       </div>
       {isLoading ? <p className="text-sm text-ink-faint">{t('finance.loading')}</p> : (
         <DataTable rows={data?.lines ?? []} dense columns={[
-          { key: 'date', header: t('finance.voucher.date'), nowrap: true, render: (v) => date(v) },
-          { key: 'description', header: t('finance.bank.narration'), mobilePrimary: true, render: (v, r) => <div className="min-w-0"><p className="text-sm text-ink truncate max-w-sm">{v || '—'}</p>{r.reference && <p className="text-xs text-ink-faint font-mono-num">{r.reference}</p>}</div> },
-          { key: 'deposit', header: t('finance.bank.deposit'), align: 'right', render: (v) => (v ? <Money value={v} paise /> : '') },
-          { key: 'withdrawal', header: t('finance.bank.withdrawal'), align: 'right', render: (v) => (v ? <Money value={v} paise /> : '') },
+          { key: 'date', header: t('finance.voucher.date'), nowrap: true, render: (v) => <DateCell value={v} relative={false} /> },
+          { key: 'description', header: t('finance.bank.narration'), mobilePrimary: true, render: (v, r) => <StackCell title={v || '—'} sub={r.reference} subMono className="max-w-sm" /> },
+          { key: 'deposit', header: t('finance.bank.deposit'), align: 'right', render: (v) => (v ? <Money value={v} paise signed /> : '') },
+          { key: 'withdrawal', header: t('finance.bank.withdrawal'), align: 'right', render: (v) => (v ? <Money value={-v} paise /> : '') },
           { key: 'status', header: t('finance.bank.match'), render: (v, r) => (v === 'RECONCILED'
             ? <span className="inline-flex items-center gap-1"><StatusPill tone="success">{r.match?.voucherNo}</StatusPill>{canRec && <Button size="sm" variant="ghost" icon={Unlink} aria-label={t('finance.bank.unmatch')} onClick={() => act.mutate({ fn: () => unmatchLine(r.id), done: t('finance.bank.unmatchedDone') })} />}</span>
             : canRec ? (
@@ -105,11 +106,11 @@ function Reconcile({ bank }) {
       {(data?.book ?? []).length > 0 && status === 'UNRECONCILED' && (
         <Panel title={t('finance.bank.bookNotOnStatement', { count: data.book.length })} flush>
           <DataTable rows={data.book.slice(0, 100)} dense rowKey={(b) => `${b.journalId}:${b.line}`} className="border-0 shadow-none" columns={[
-            { key: 'date', header: t('finance.voucher.date'), nowrap: true, render: (v) => date(v) },
-            { key: 'voucherNo', header: t('finance.journals.voucher'), mobilePrimary: true },
+            { key: 'date', header: t('finance.voucher.date'), nowrap: true, render: (v) => <DateCell value={v} relative={false} /> },
+            { key: 'voucherNo', header: t('finance.journals.voucher'), mobilePrimary: true, render: (v) => <CodeBadge>{v}</CodeBadge> },
             { key: 'narration', header: t('finance.voucher.narration'), render: (v) => <span className="text-sm text-ink-muted truncate max-w-sm inline-block">{v}</span> },
-            { key: 'debit', header: t('finance.bank.in'), align: 'right', render: (v) => (v ? <Money value={v} paise /> : '') },
-            { key: 'credit', header: t('finance.bank.out'), align: 'right', render: (v) => (v ? <Money value={v} paise /> : '') },
+            { key: 'debit', header: t('finance.bank.in'), align: 'right', render: (v) => (v ? <Money value={v} paise signed /> : '') },
+            { key: 'credit', header: t('finance.bank.out'), align: 'right', render: (v) => (v ? <Money value={-v} paise /> : '') },
           ]} />
         </Panel>
       )}

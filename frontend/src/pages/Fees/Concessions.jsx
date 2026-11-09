@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { BadgePercent, Check, Plus, Undo2, X } from 'lucide-react'
+import { BadgePercent, Check, IndianRupee, Percent, Plus, Undo2, X } from 'lucide-react'
 import { CONCESSION_KINDS, CONCESSION_REASONS, CONCESSION_STATUS, formatINR, toPaise } from '@schoolgiant/shared'
-import { ControlChip, DataTable, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, Select, StatusPill, Textarea, useConfirm } from '../../components/system'
+import { ColorChip, ControlChip, DataTable, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, PersonCell, Select, StatusPill, Textarea, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
 import StudentPicker from '../../components/fees/StudentPicker'
 import { decideConcession, fetchConcessions, fetchFeeHeads, requestConcession, withdrawConcession } from '../../api/fees'
@@ -94,10 +94,10 @@ export default function Concessions() {
         onRetry={refetch}
         toolbar={<div className="flex justify-end"><ControlChip label={t('fees.concessions.statusLabel')} value={statusLabel(status)} active={status !== 'PENDING'} options={STATUSES.map(statusLabel)} onChange={(v) => setStatus(STATUSES.find((s) => statusLabel(s) === v) ?? 'PENDING')} /></div>}
         columns={[
-          { key: 'student', header: t('fees.concessions.student'), mobilePrimary: true, render: (v, r) => <div><p className="font-medium text-ink">{v?.name ?? '—'}</p><p className="text-xs text-ink-faint">{[v?.classShort, v?.admissionNo, r.yearName].filter(Boolean).join(' · ')}</p></div> },
-          { key: 'value', header: t('fees.concessions.concession'), render: (_, r) => <div><p className="text-sm font-medium">{valueText(r)}</p><p className="text-xs text-ink-faint">{r.heads.length ? r.heads.join(', ') : t('fees.concessions.allHeads')}</p></div> },
-          { key: 'reason', header: t('fees.concessions.reason'), render: (v, r) => <div><p className="text-sm">{t(`fees.concessions.reasons.${reasonKey(v)}`, v)}</p>{r.note && <p className="text-xs text-ink-faint line-clamp-2">{r.note}</p>}</div> },
-          { key: 'requestedBy', header: t('fees.concessions.askedBy'), mobileHidden: true, render: (v, r) => <span className="text-sm text-ink-muted">{v}{r.decidedBy ? ` → ${r.decidedBy}` : ''}<span className="block text-xs text-ink-faint">{date(String(r.createdAt).slice(0, 10))}</span></span> },
+          { key: 'student', header: t('fees.concessions.student'), mobilePrimary: true, render: (v, r) => <PersonCell name={v?.name ?? '—'} sub={[v?.classShort, v?.admissionNo, r.yearName].filter(Boolean).join(' · ')} size={32} /> },
+          { key: 'value', header: t('fees.concessions.concession'), render: (_, r) => <div><ColorChip label={valueText(r)} icon={r.kind === 'PCT' ? Percent : IndianRupee} tone={r.kind === 'PCT' ? 'violet' : 'teal'} /><p className="text-xs text-ink-faint mt-1">{r.heads.length ? r.heads.join(', ') : t('fees.concessions.allHeads')}</p></div> },
+          { key: 'reason', header: t('fees.concessions.reason'), render: (v, r) => <div><ColorChip label={t(`fees.concessions.reasons.${reasonKey(v)}`, v)} seed={reasonKey(v)} dot />{r.note && <p className="text-xs text-ink-faint line-clamp-2 mt-1">{r.note}</p>}</div> },
+          { key: 'requestedBy', header: t('fees.concessions.askedBy'), mobileHidden: true, render: (v, r) => <PersonCell name={v} sub={[r.decidedBy && `→ ${r.decidedBy}`, date(String(r.createdAt).slice(0, 10))].filter(Boolean).join(' · ')} size={26} /> },
           { key: 'status', header: t('fees.concessions.statusLabel'), render: (v) => <StatusPill tone={CONCESSION_STATUS[v]?.tone}>{statusLabel(v)}</StatusPill> },
           { key: 'id', header: '', align: 'right', width: 130, render: (id, r) => (
             <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>

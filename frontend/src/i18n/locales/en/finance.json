@@ -185,7 +185,9 @@
         "approved": "Approved by {{by}}",
         "rejected": "Rejected by {{by}}: {{reason}}",
         "paid": "Paid {{date}} by {{mode}} {{ref}} · {{no}}"
-      }
+      },
+      "billsCount_one": "{{count}} bill",
+      "billsCount_other": "{{count}} bills"
     },
     "bank": {
       "title": "Bank",
@@ -277,7 +279,8 @@
         "credit": "Credit",
         "closingDr": "Closing Dr",
         "closingCr": "Closing Cr"
-      }
+      },
+      "ofIncome": "{{pct}}% of income"
     }
   }
 }

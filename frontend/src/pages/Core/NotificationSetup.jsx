@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { Check, MessageSquareText, Plus, RotateCcw, Send, Trash2 } from 'lucide-react'
+import { Ban, Check, CircleCheck, CircleX, Clock, Mail, MessageCircle, MessageSquareText, Plus, RotateCcw, Send, Smartphone, Trash2 } from 'lucide-react'
 import { CHANNEL_LABEL, MESSAGE_STATUSES, TEMPLATE_SAMPLE, renderTemplate, smsParts } from '@schoolgiant/shared'
 import {
-  ControlChip, DataTable, Drawer, FormField, Input, Note, PageContainer, PageHeader, Panel, Select, StatusPill, Tabs, Textarea, Toolbar, ViewControls,
+  ColorChip, ControlChip, DataTable, DateCell, Drawer, FormField, Input, Note, PageContainer, PageHeader, Panel, PersonCell, Select, StatCardRow, StatusPill, Tabs, Textarea, Toolbar, ViewControls,
 } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { DefinitionGrid, Switch } from '../../components/app/Controls'
@@ -21,6 +21,9 @@ const canEdit = () => hasPermission('core.notifications-setup.edit')
 const canEditDelivery = () => hasAnyPermission('core.notifications-setup.edit', 'integrations.messaging.configure')
 const errorsOf = (e) => e.response?.data?.details?.fields ?? {}
 // labels: admin.notificationSetup.channels.<CH> · statuses.<STATUS> · providers.<CH>.<value> · events.<event, . → _>
+// each channel's chip, and each delivery count's tile
+const CHANNEL_LOOK = { SMS: { icon: Smartphone, tone: 'sky' }, WHATSAPP: { icon: MessageCircle, tone: 'success' }, EMAIL: { icon: Mail, tone: 'violet' } }
+const WEEK_LOOK = { SENT: { icon: CircleCheck, tone: 'success' }, QUEUED: { icon: Clock, tone: 'info' }, FAILED: { icon: CircleX, tone: 'danger' }, SKIPPED: { icon: Ban, tone: 'orange' } }
 const chLabel = (t, ch) => t(`admin.notificationSetup.channels.${ch}`, { defaultValue: CHANNEL_LABEL[ch] ?? ch })
 const statusText = (t, s) => (MESSAGE_STATUSES[s] ? t(`admin.notificationSetup.statuses.${s}`, { defaultValue: MESSAGE_STATUSES[s].label }) : s)
 const keyOf = (code) => String(code).replace(/\./g, '_')
@@ -294,9 +297,11 @@ function LogTab() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap gap-2 text-xs">
-        {['SENT', 'QUEUED', 'FAILED', 'SKIPPED'].map((k) => <span key={k} className="px-2.5 py-1 rounded-md bg-surface border border-border text-ink-muted">{t('admin.notificationSetup.last7Days', { status: statusLabel[k] })} <span className="font-semibold text-ink">{week[k] ?? 0}</span></span>)}
-      </div>
+      <StatCardRow items={['SENT', 'QUEUED', 'FAILED', 'SKIPPED'].map((k) => ({
+        label: t('admin.notificationSetup.last7Days', { status: statusLabel[k] }), value: week[k] ?? 0, ...WEEK_LOOK[k],
+        onClick: () => setStatus(status === k ? '' : k),
+        className: status === k ? 'ring-2 ring-brand-400' : undefined,
+      }))} />
       <DataTable
         rows={data?.data ?? []}
         loading={isLoading}
@@ -310,9 +315,9 @@ function LogTab() {
           )} />
         )}
         columns={[
-          { key: 'createdAt', header: t('admin.notificationSetup.cols.when'), nowrap: true, width: 160, render: (v) => <span className="text-sm text-ink-muted">{dateTime(v)}</span> },
-          { key: 'channel', header: t('admin.notificationSetup.channel'), nowrap: true, render: (v) => chLabel(t, v) },
-          { key: 'studentName', header: t('admin.notificationSetup.cols.to'), render: (v, r) => <div><p className="text-sm text-ink">{v ?? (r.test ? t('admin.notificationSetup.testMessage') : '—')}</p><p className="text-xs text-ink-faint font-mono-num">{r.to ?? '—'}</p></div> },
+          { key: 'createdAt', header: t('admin.notificationSetup.cols.when'), nowrap: true, width: 160, render: (v) => <DateCell value={v} time /> },
+          { key: 'channel', header: t('admin.notificationSetup.channel'), nowrap: true, render: (v) => <ColorChip label={chLabel(t, v)} {...CHANNEL_LOOK[v]} /> },
+          { key: 'studentName', header: t('admin.notificationSetup.cols.to'), render: (v, r) => <PersonCell name={v ?? (r.test ? t('admin.notificationSetup.testMessage') : '—')} sub={r.to ?? '—'} size={26} /> },
           { key: 'body', header: t('admin.notificationSetup.message'), mobilePrimary: true, render: (v) => <span className="text-sm text-ink-muted line-clamp-2">{v}</span> },
           { key: 'status', header: t('common.status'), render: (v, r) => <div><StatusPill tone={MESSAGE_STATUSES[v]?.tone}>{statusText(t, v)}</StatusPill>{r.reason && <p className="text-[11px] text-ink-faint mt-0.5 line-clamp-2">{r.reason}</p>}</div> },
         ]}

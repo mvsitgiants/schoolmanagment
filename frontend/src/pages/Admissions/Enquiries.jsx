@@ -3,9 +3,9 @@ import { useNavigate } from 'react-router-dom'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import clsx from 'clsx'
-import { ClipboardList, PhoneCall, Plus, UserPlus } from 'lucide-react'
+import { CalendarDays, ClipboardList, Footprints, Globe, Megaphone, MoreHorizontal, Newspaper, Phone, PhoneCall, Plus, Share2, UserPlus, Users } from 'lucide-react'
 import { ENQUIRY_SOURCES, ENQUIRY_STAGES, FOLLOWUP_TYPES, GENDERS, LOST_REASONS, addDaysYmd } from '@schoolgiant/shared'
-import { ControlChip, DataTable, Drawer, FormField, HeaderButton, Input, Modal, PageContainer, PageHeader, PhoneLink, Select, StatusPill, Textarea, Timeline, Toolbar, localIso } from '../../components/system'
+import { ColorChip, ContactCell, ControlChip, DataTable, DateCell, Drawer, FormField, HeaderButton, Input, Modal, PageContainer, PageHeader, PersonCell, PhoneLink, Select, StatusPill, Textarea, Timeline, Toolbar, localIso } from '../../components/system'
 import Button from '../../components/ui/Button'
 import useDebouncedValue from '../../hooks/useDebouncedValue'
 import { fetchAcademicLookup } from '../../api/academics'
@@ -15,6 +15,8 @@ import { useSnackbar } from '../../context/SnackbarContext'
 import { useFormat } from '../../context/SettingsContext'
 
 const reasonKey = (r) => r.replace(/[^A-Za-z]/g, '')
+// each enquiry source's icon in the table
+const SOURCE_ICON = { WALK_IN: Footprints, PHONE: Phone, WEBSITE: Globe, SOCIAL: Share2, REFERRAL: Users, NEWSPAPER: Newspaper, HOARDING: Megaphone, EVENT: CalendarDays, OTHER: MoreHorizontal }
 const STAGE_ORDER = Object.entries(ENQUIRY_STAGES).sort((a, b) => a[1].order - b[1].order).map(([k]) => k)
 
 function NewEnquiry({ onClose, onSaved }) {
@@ -117,7 +119,6 @@ function EnquiryDrawer({ id, onClose }) {
 export default function Enquiries() {
   const { t } = useTranslation('admissions')
   const qc = useQueryClient()
-  const { date } = useFormat()
   const { showSuccess } = useSnackbar()
   const [search, setSearch] = useState('')
   const [stage, setStage] = useState('')
@@ -161,12 +162,13 @@ export default function Enquiries() {
           </>} />}
         rowTone={(r) => (r.nextFollowUpOn && r.nextFollowUpOn < today && ['NEW', 'CONTACTED', 'VISIT', 'VISITED'].includes(r.stage) ? 'warning' : undefined)}
         columns={[
-          { key: 'childName', header: t('admissions.enquiries.child'), mobilePrimary: true, render: (v, r) => <div><p className="font-medium text-ink">{v}</p><p className="text-xs text-ink-faint">{[r.className, r.enquiryNo].filter(Boolean).join(' · ')}</p></div> },
-          { key: 'parentName', header: t('admissions.form.parentName'), render: (v, r) => <div><p className="text-sm">{v ?? '—'}</p><p className="text-xs text-ink-faint font-mono-num">{r.mobile}</p></div> },
-          { key: 'source', header: t('admissions.enquiries.source'), mobileHidden: true, render: (v) => <span className="text-sm text-ink-muted">{sourceLabel(v)}</span> },
+          { key: 'childName', header: t('admissions.enquiries.child'), mobilePrimary: true, render: (v, r) => <PersonCell name={v} sub={r.enquiryNo} size={34} /> },
+          { key: 'className', header: t('admissions.form.class'), render: (v, r) => <ColorChip label={v} seed={r.classId ?? v} /> },
+          { key: 'parentName', header: t('admissions.form.parentName'), render: (v, r) => <ContactCell name={v ?? '—'} phone={r.mobile} /> },
+          { key: 'source', header: t('admissions.enquiries.source'), mobileHidden: true, render: (v) => <ColorChip label={sourceLabel(v)} seed={v} icon={SOURCE_ICON[v]} /> },
           { key: 'stage', header: t('admissions.enquiries.stage'), render: (v) => <StatusPill tone={ENQUIRY_STAGES[v]?.tone}>{t(`admissions.stages.${v}`, ENQUIRY_STAGES[v]?.label)}</StatusPill> },
-          { key: 'nextFollowUpOn', header: t('admissions.enquiries.next'), nowrap: true, render: (v) => (v ? date(v) : '—') },
-          { key: 'createdAt', header: t('admissions.enquiries.received'), nowrap: true, mobileHidden: true, render: (v) => <span className="text-sm text-ink-muted">{date(String(v).slice(0, 10))}</span> },
+          { key: 'nextFollowUpOn', header: t('admissions.enquiries.next'), nowrap: true, render: (v, r) => <DateCell value={v} tone={v && ['NEW', 'CONTACTED', 'VISIT', 'VISITED'].includes(r.stage) ? (v < today ? 'danger' : v === today ? 'warning' : undefined) : undefined} /> },
+          { key: 'createdAt', header: t('admissions.enquiries.received'), nowrap: true, mobileHidden: true, render: (v) => <DateCell value={v ? String(v).slice(0, 10) : null} /> },
         ]}
         onRowClick={(r) => setOpenId(r.id)}
         pagination={meta && meta.totalPages > 1 && { page: meta.page - 1, size: meta.pageSize, totalElements: meta.total, totalPages: meta.totalPages, onPageChange: (p) => setPage(p + 1) }}

@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { Copy, DoorOpen, ExternalLink, Plus, Settings2, X } from 'lucide-react'
 import { CYCLE_STATUS, MERIT_BASES } from '@schoolgiant/shared'
-import { DataTable, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, Panel, Select, StatusPill, Textarea, useConfirm } from '../../components/system'
+import { ColorChip, DataTable, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, Panel, Select, StatusPill, Textarea, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { fetchAcademicLookup } from '../../api/academics'
 import { fetchForms } from '../../api/forms'
@@ -108,7 +108,7 @@ export default function AdmissionSettings() {
         onRetry={refetch}
         columns={[
           { key: 'name', header: t('admissions.settings.name'), mobilePrimary: true, render: (v, r) => <div><p className="font-medium text-ink">{v}</p><p className="text-xs text-ink-faint">{[r.yearName, r.opensOn && `${date(r.opensOn)} – ${r.closesOn ? date(r.closesOn) : '…'}`].filter(Boolean).join(' · ')}</p></div> },
-          { key: 'classes', header: t('admissions.settings.classes'), render: (v) => <div className="flex flex-wrap gap-1.5">{v.map((c) => <span key={c.classId} className="text-xs rounded bg-bg border border-border px-1.5 py-0.5">{c.className}: {t('admissions.settings.seatLine', { taken: c.offered + c.admitted, seats: c.seats, apps: c.applications })}</span>)}</div> },
+          { key: 'classes', header: t('admissions.settings.classes'), render: (v) => <div className="flex flex-wrap gap-x-3 gap-y-1.5">{v.map((c) => <ColorChip key={c.classId} label={c.className} seed={c.classId} sub={t('admissions.settings.seatLine', { taken: c.offered + c.admitted, seats: c.seats, apps: c.applications })} />)}</div> },
           { key: 'status', header: t('admissions.statusLabel'), render: (v) => <StatusPill tone={CYCLE_STATUS[v]?.tone}>{t(`admissions.cycleStatus.${v}`, CYCLE_STATUS[v]?.label)}</StatusPill> },
           { key: 'id', header: '', align: 'right', width: 200, render: (id, r) => canEdit && (
             <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>

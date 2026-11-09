@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { Check, Plus, Receipt, Wallet, X } from 'lucide-react'
-import { EXPENSE_PAY_MODES, EXPENSE_STATUSES, TDS_SECTIONS, toPaise, toRupees } from '@schoolgiant/shared'
-import { Attachments, DataTable, Drawer, FormField, HeaderButton, Input, Modal, Money, Note, PageContainer, PageHeader, Select, SegmentedControl, StatusPill, Textarea, Toolbar, localIso, usePrompt } from '../../components/system'
+import { BadgeCheck, Check, CircleCheckBig, Hourglass, Plus, Receipt, Wallet, X, XCircle } from 'lucide-react'
+import { EXPENSE_PAY_MODES, EXPENSE_STATUSES, TDS_SECTIONS, formatINRCompact, toPaise, toRupees } from '@schoolgiant/shared'
+import { Attachments, ColorChip, DataTable, DateCell, Drawer, FormField, HeaderButton, Input, Modal, Money, Note, PageContainer, PageHeader, PersonCell, Select, SegmentedControl, StatCardRow, StatusPill, Textarea, Toolbar, localIso, usePrompt } from '../../components/system'
 import Button from '../../components/ui/Button'
 import useDebouncedValue from '../../hooks/useDebouncedValue'
 import { cancelExpense, createExpense, decideExpense, fetchExpense, fetchExpenseHeads, fetchExpenses, payExpense } from '../../api/finance'
@@ -112,7 +112,6 @@ function ExpenseDrawer({ id, onClose, onChanged }) {
 export default function Expenses() {
   const { t } = useTranslation('finance')
   const qc = useQueryClient()
-  const { date } = useFormat()
   const [status, setStatus] = useState('SUBMITTED')
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
@@ -128,12 +127,20 @@ export default function Expenses() {
     <PageContainer>
       <PageHeader icon={Receipt} title={t('finance.expenses.title')} subtitle={t('finance.expenses.subtitle')}
         actions={<HeaderButton icon={Plus} variant="primary" requires="finance.expenses.create" onClick={() => setCreating(true)}>{t('finance.expenses.new')}</HeaderButton>} />
+      {Object.keys(sum).length > 0 && (
+        <StatCardRow className="mb-4" items={[['SUBMITTED', Hourglass], ['APPROVED', BadgeCheck], ['PAID', CircleCheckBig], ['REJECTED', XCircle]].map(([k, icon]) => ({
+          icon, tone: EXPENSE_STATUSES[k].tone, label: t(`finance.expenseStatus.${k}`), value: formatINRCompact(sum[k]?.amount ?? 0),
+          sub: t('finance.expenses.billsCount', { count: sum[k]?.count ?? 0 }),
+          onClick: () => { setStatus(status === k ? '' : k); setPage(1) }, className: status === k ? 'ring-2 ring-brand-300' : undefined,
+        }))} />
+      )}
       <SegmentedControl className="mb-3" value={status} onChange={(v) => { setStatus(v); setPage(1) }} options={[...Object.keys(EXPENSE_STATUSES).map((k) => ({ value: k, label: `${t(`finance.expenseStatus.${k}`)}${sum[k]?.count ? ` (${sum[k].count})` : ''}` })), { value: '', label: t('finance.all') }]} />
       <DataTable rows={data?.data ?? []} loading={isLoading}
         toolbar={<Toolbar search={search} onSearch={(v) => { setSearch(v); setPage(1) }} searchPlaceholder={t('finance.expenses.search')} />}
         columns={[
-          { key: 'date', header: t('finance.expenses.billDate'), nowrap: true, render: (v) => date(v) },
-          { key: 'payee', header: t('finance.expenses.payee'), mobilePrimary: true, render: (v, r) => <div><p className="font-medium text-ink">{v.name}</p><p className="text-xs text-ink-faint">{r.expenseNo} · {r.accountName}</p></div> },
+          { key: 'date', header: t('finance.expenses.billDate'), nowrap: true, render: (v) => <DateCell value={v} /> },
+          { key: 'payee', header: t('finance.expenses.payee'), mobilePrimary: true, render: (v, r) => <PersonCell name={v.name} sub={r.expenseNo} size={32} /> },
+          { key: 'accountName', header: t('finance.expenses.head'), render: (v, r) => <ColorChip label={v} seed={r.accountId} dot /> },
           { key: 'description', header: t('finance.expenses.description'), mobileHidden: true, render: (v) => <span className="text-sm text-ink-muted truncate max-w-xs inline-block">{v}</span> },
           { key: 'amount', header: t('finance.expenses.amount'), align: 'right', render: (v) => <Money value={v} paise /> },
           { key: 'status', header: t('finance.status'), render: (v) => <StatusPill tone={EXPENSE_STATUSES[v]?.tone}>{t(`finance.expenseStatus.${v}`)}</StatusPill> },

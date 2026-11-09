@@ -420,7 +420,14 @@
       "deleteConfirm": "Delete {{name}}?",
       "deleted": "Holiday deleted.",
       "empty": "No holidays in {{year}}.",
-      "emptyHint": "Add the year’s holidays — paste the whole list at once."
+      "emptyHint": "Add the year’s holidays — paste the whole list at once.",
+      "stats": {
+        "total": "Holidays",
+        "closed": "Closed days",
+        "optional": "Optional",
+        "upcoming": "Still to come",
+        "next": "Next: {{name}}, {{when}}"
+      }
     },
     "hiring": {
       "title": "Recruitment",
@@ -626,7 +633,12 @@
       "saved": "Saved.",
       "recordHint": "For other changes (name, designation, bank details) ask the office.",
       "holidays": "Coming holidays",
-      "noHolidays": "No holidays listed."
+      "noHolidays": "No holidays listed.",
+      "balance": {
+        "free": "Free",
+        "pending": "Waiting",
+        "taken": "Taken"
+      }
     }
   }
 }

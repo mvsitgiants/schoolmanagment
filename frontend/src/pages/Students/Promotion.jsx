@@ -1,14 +1,22 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { ArrowUpRight } from 'lucide-react'
+import { ArrowUpRight, DoorOpen, GraduationCap, RotateCcw } from 'lucide-react'
 import { PROMOTION_OUTCOMES } from '@schoolgiant/shared'
-import { ControlChip, DataTable, Note, PageContainer, PageHeader, Select, useConfirm } from '../../components/system'
+import { CodeBadge, ControlChip, DataTable, Note, PageContainer, PageHeader, PersonCell, Select, StatCardRow, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { fetchAcademicLookup } from '../../api/academics'
 import { fetchPromotion, runPromotion } from '../../api/students'
 import { hasPermission } from '../../api/auth'
 import { useSnackbar } from '../../context/SnackbarContext'
+
+// each outcome's icon and colour on the summary tiles
+const OUTCOME_LOOK = {
+  PROMOTE: { icon: ArrowUpRight, tone: 'success' },
+  DETAIN: { icon: RotateCcw, tone: 'warning' },
+  PASS_OUT: { icon: GraduationCap, tone: 'violet' },
+  LEAVE: { icon: DoorOpen, tone: 'danger' },
+}
 
 /**
  * Year end, one section at a time: each student is promoted, kept in the same class, passed out
@@ -79,12 +87,18 @@ export default function Promotion() {
                 : <p className="text-sm text-ink-faint">{t('students.promotion.noSections', { name: p.sameClass.name, year: p.toYear.name })}</p>}
             </div>
           </div>
+          {p.students.length > 0 && (
+            <StatCardRow className="mb-4" items={PROMOTION_OUTCOMES.filter((o) => o.value !== 'PROMOTE' || p.nextClass).map((o) => ({
+              label: t(`students.promotion.tiles.${o.value}`), value: counts[o.value] ?? 0, ...OUTCOME_LOOK[o.value],
+              progress: ((counts[o.value] ?? 0) / p.students.length) * 100,
+            }))} />
+          )}
           <DataTable
             rows={p.students}
             loading={isLoading}
             columns={[
-              { key: 'rollNo', header: t('students.promotion.roll'), width: 70, render: (v) => v ?? '—' },
-              { key: 'name', header: t('students.directory.student'), mobilePrimary: true, render: (v, r) => <div><p className="font-medium text-ink">{v}</p><p className="text-xs text-ink-faint font-mono-num">{r.admissionNo}</p></div> },
+              { key: 'rollNo', header: t('students.promotion.roll'), width: 70, render: (v) => <CodeBadge>{v}</CodeBadge> },
+              { key: 'name', header: t('students.directory.student'), mobilePrimary: true, render: (v, r) => <PersonCell name={v} sub={r.admissionNo} size={34} /> },
               { key: 'id', header: t('students.promotion.outcome'), width: 260, render: (id) => (
                 <Select value={decisions[id] ?? ''} disabled={!canRun} onChange={(e) => setDecisions((d) => ({ ...d, [id]: e.target.value }))} aria-label={t('students.promotion.outcome')}>
                   {PROMOTION_OUTCOMES.filter((o) => o.value !== 'PROMOTE' || p.nextClass).map((o) => <option key={o.value} value={o.value}>{outcomeLabel(o.value)}</option>)}

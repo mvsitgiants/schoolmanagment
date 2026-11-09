@@ -1,7 +1,7 @@
 import { useId } from 'react'
 import clsx from 'clsx'
 import { ArrowDownRight, ArrowRight, ArrowUpRight } from 'lucide-react'
-import { PANEL, TONE } from './tokens'
+import { ACCENTS, PANEL, TONE } from './tokens'
 
 const STROKE = {
   neutral: '#64748B',
@@ -10,6 +10,11 @@ const STROKE = {
   warning: '#F59E0B',
   danger: '#EF4444',
   info: '#3B82F6',
+  violet: '#8B5CF6',
+  pink: '#EC4899',
+  sky: '#0EA5E9',
+  orange: '#F97316',
+  teal: '#14B8A6',
 }
 
 /** A smooth bezier sparkline with gradient area wash underneath. */
@@ -77,19 +82,48 @@ function Delta({ value, direction = 'flat', good, label }) {
   )
 }
 
+/** A thin split bar with a legend under it: boys / girls, paid / due, present / absent. */
+function Segments({ parts }) {
+  const list = parts.filter((p) => Number(p.value) > 0)
+  const sum = list.reduce((n, p) => n + Number(p.value), 0)
+  if (!sum) return null
+  return (
+    <div className="mt-2.5 w-full">
+      <div className="flex h-2 w-full gap-0.5 overflow-hidden rounded-full bg-black/[0.05]" role="img"
+        aria-label={list.map((p) => `${p.label}: ${p.value}`).join(', ')}>
+        {list.map((p, i) => (
+          <span key={p.label ?? i} className={clsx('h-full first:rounded-s-full last:rounded-e-full', (TONE[p.tone] ?? TONE[ACCENTS[i % ACCENTS.length]]).fill)}
+            style={{ width: `${(Number(p.value) / sum) * 100}%` }} />
+        ))}
+      </div>
+      <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-ink-muted">
+        {list.map((p, i) => (
+          <span key={p.label ?? i} className="inline-flex items-center gap-1 whitespace-nowrap">
+            <span className={clsx('h-1.5 w-1.5 rounded-full', (TONE[p.tone] ?? TONE[ACCENTS[i % ACCENTS.length]]).dot)} />
+            {p.label} <span className="font-semibold text-ink tabular-nums">{p.value}</span>
+            <span className="text-ink-faint tabular-nums">{Math.round((Number(p.value) / sum) * 100)}%</span>
+          </span>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 /**
- * One KPI tile: icon badge + label + big value + sub-line. Values must come from
+ * One KPI tile: icon badge (in its tone) + label + big value + sub-line. Values must come from
  * real data on the page — never a placeholder.
  *
  *   <StatCard icon={Calendar} tone="info" label="Planned Orders" value={42} sub="This week" />
  *
  * Optional:
- *   trend:   [n, n, n…] — draws a smooth gradient sparkline under the value
- *   delta:   { value: '+12%', direction: 'up' | 'down' | 'flat', good: true | false, label: 'vs last week' }
+ *   trend:    [n, n, n…] — draws a smooth gradient sparkline under the value
+ *   delta:    { value: '+12%', direction: 'up' | 'down' | 'flat', good: true | false, label: 'vs last week' }
  *   progress: 75 (displays a subtle progress bar)
- *   onClick: makes the tile a button; use it to jump to the list this number counts.
+ *   segments: [{ label, value, tone? }] — a split bar with a legend (boys / girls, paid / due)
+ *   onClick:  makes the tile a button; use it to jump to the list this number counts.
+ * `tone` may be a meaning (success, warning, danger, info) or a decorative accent (brand, violet, pink, sky, orange, teal).
  */
-export function StatCard({ icon: Icon, label, value, sub, tone = 'neutral', trend, delta, progress, onClick, className }) {
+export function StatCard({ icon: Icon, label, value, sub, tone = 'neutral', trend, delta, progress, segments, onClick, className }) {
   const t = TONE[tone] ?? TONE.neutral
   const Tag = onClick ? 'button' : 'div'
 
@@ -117,34 +151,36 @@ export function StatCard({ icon: Icon, label, value, sub, tone = 'neutral', tren
           </span>
         )}
         <div className="flex flex-col justify-center min-w-0 flex-1">
-          <div className="text-[11px] sm:text-xs font-semibold text-ink-muted mb-0.5 truncate uppercase tracking-wider">{label}</div>
-          <div className="text-2xl sm:text-[26px] font-bold text-ink font-mono-num tabular-nums leading-none tracking-tight mb-1">
+          <div className="text-[11px] sm:text-xs font-semibold text-ink-muted mb-1 truncate uppercase tracking-wider">{label}</div>
+          <div className="font-display text-2xl sm:text-[26px] font-bold text-ink tabular-nums leading-none tracking-tight mb-1">
             {value}
           </div>
           {sub != null && <div className="text-[11px] sm:text-xs text-ink-faint truncate font-medium">{sub}</div>}
           {delta && <Delta {...delta} />}
           {progress != null && (
-            <div className="mt-2 w-full h-1.5 rounded-full bg-slate-100 overflow-hidden">
+            <div className="mt-2 w-full h-1.5 rounded-full bg-black/[0.06] overflow-hidden">
               <div
                 className={clsx('h-full rounded-full transition-all duration-500', t.fill)}
                 style={{ width: `${Math.max(0, Math.min(100, progress))}%` }}
               />
             </div>
           )}
+          {segments && <Segments parts={segments} />}
           {trend && <Sparkline values={trend} tone={tone} />}
         </div>
       </div>
-      <div className={clsx('absolute bottom-0 inset-x-0 h-0.5 opacity-0 group-hover:opacity-100 transition-opacity', t.fill)} />
     </Tag>
   )
 }
 
 /** A responsive row of StatCards. 2-up on phones, flex row from `sm`.
- *  Pass `items: [{ icon, label, value, sub, tone, trend, delta, onClick }]`. */
+ *  Pass `items: [{ icon, label, value, sub, tone, trend, delta, segments, onClick }]`.
+ *  A tile without a `tone` takes the next decorative accent, so a row of plain counts is still colourful. */
+const ROW_COLS = { 3: 'lg:grid-cols-3', 5: 'lg:grid-cols-3 xl:grid-cols-5', 6: 'lg:grid-cols-3 2xl:grid-cols-6' }
 export function StatCardRow({ items = [], className }) {
   return (
-    <div className={clsx('grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4 w-full', className)}>
-      {items.map((it) => <StatCard key={it.label} {...it} />)}
+    <div className={clsx('grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4 w-full', ROW_COLS[items.length] ?? 'lg:grid-cols-4', className)}>
+      {items.map((it, i) => <StatCard key={it.label} {...it} tone={it.tone ?? ACCENTS[i % ACCENTS.length]} />)}
     </div>
   )
 }

@@ -130,6 +130,26 @@ export default function Thing() {
 | `useFormat()` | `.date` `.dateTime` `.time` `.number` `.currencyValue` — respects tenant settings |
 | `useBrand()` | `companyName`, `logoUrl`, `primaryColor` with defaults |
 
+## Make data visual
+
+A table is never a wall of plain text. Use the cell renderers (`components/system/cells.jsx`):
+
+| Value | Renderer |
+|---|---|
+| a person (student, staff, guardian) | `PersonCell` — avatar + name + muted sub-line |
+| a class, section, category, mode, route | `ColorChip` — colour comes from the name (seed a class with `classId`) |
+| gender | `GenderTag` |
+| phone | `ContactCell` |
+| money | `Money paise`; owed vs total → `PaidBar` |
+| a date | `DateCell` (`tone="danger"` when overdue) |
+| x of y (seats, copies, marks) | `LevelBar` / `Fraction` |
+
+Above a list, a `StatCardRow` gives the picture at a glance: every tile gets an `icon` and a `tone`
+(decorative: brand, violet, info, pink, orange, sky, teal; meaning: success, warning, danger), plus
+`progress` or `segments` where there is a split. Counts per class → `ColumnBars` (click to filter).
+Have the list API return a `summary` for the whole filtered set rather than counting the visible page.
+Reference: `pages/Students/Directory.jsx`, `pages/Fees/Invoices.jsx`, `pages/Hrms/Employees.jsx`.
+
 ## Reference pages
 
 - List + Drawer + sort + export: `Manufacturing/features/WorkOrders.jsx`

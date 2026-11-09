@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { BookCopy, Download, Library, Pencil, Plus, Printer, ScanSearch, Trash2 } from 'lucide-react'
+import { AlarmClock, BookCopy, BookMarked, BookOpen, BookUp, Disc3, Download, GraduationCap, Library, Newspaper, Pencil, Plus, Printer, ScanSearch, ScrollText, TabletSmartphone, Trash2 } from 'lucide-react'
 import { COPY_SOURCES, COPY_STATUS, ITEM_TYPES, hasCopies, toPaise, toRupees } from '@schoolgiant/shared'
-import { Attachments, DataTable, Drawer, FormField, HeaderButton, ImportExportButtons, Input, Modal, Money, Note, PageContainer, PageHeader, Panel, SearchInput, Select, StatCardRow, Textarea, useConfirm, usePrompt } from '../../components/system'
+import { Attachments, CodeBadge, ColorChip, DataTable, Drawer, FormField, HeaderButton, ImportExportButtons, Input, LevelBar, Modal, Money, Note, PageContainer, PageHeader, Panel, PersonCell, SearchInput, Select, StatCardRow, Textarea, useConfirm, usePrompt } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { addCopies, deleteCopy, deleteTitle, exportCatalogue, fetchTitle, fetchTitles, importCatalogue, lookupIsbn, saveTitle, updateCopy } from '../../api/library'
 import { fetchAcademicLookup } from '../../api/academics'
@@ -14,6 +14,9 @@ import { readSheet } from '../../utils/readSheet'
 import { useSnackbar } from '../../context/SnackbarContext'
 import { useFormat } from '../../context/SettingsContext'
 import { CopyPill, LoanPill, useLibraryLabels, useLibraryMeta } from '../../components/library/LibraryKit'
+
+// each item type's icon in the catalogue table
+const TYPE_ICON = { BOOK: BookOpen, REFERENCE: BookMarked, TEXTBOOK: GraduationCap, MAGAZINE: Newspaper, JOURNAL: ScrollText, MEDIA: Disc3, EBOOK: TabletSmartphone }
 
 const PAGE = 50
 
@@ -206,7 +209,7 @@ function TitleDrawer({ id, onClose, onEdit, onChanged }) {
         ) : (
           <Panel title={t('library.copies.title', { count: x.copies.total })} flush>
             <DataTable rows={x.copyList} columns={[
-              { key: 'accessionNo', header: t('library.copies.accessionNo'), mobilePrimary: true, render: (v) => <span className="font-mono-num">{v}</span> },
+              { key: 'accessionNo', header: t('library.copies.accessionNo'), mobilePrimary: true, render: (v) => <CodeBadge>{v}</CodeBadge> },
               { key: 'status', header: t('library.copies.status'), render: (v, c) => <span className="flex flex-col items-start gap-0.5"><CopyPill status={v} />{c.loan && <span className="text-[11px] text-ink-faint">{t('library.copies.withDue', { name: c.loan.borrower, date: date(c.loan.dueOn) })}</span>}</span> },
               { key: 'shelf', header: t('library.copies.shelf'), mobileHidden: true, render: (v) => v || '—' },
               { key: 'price', header: t('library.copies.price'), align: 'right', mobileHidden: true, render: (v) => (v != null ? <Money value={v} paise /> : '—') },
@@ -225,7 +228,7 @@ function TitleDrawer({ id, onClose, onEdit, onChanged }) {
             <div className="divide-y divide-border">
               {x.history.map((h) => (
                 <div key={h.id} className="flex items-center justify-between gap-2 px-4 py-2 text-sm">
-                  <span>{h.borrower}<span className="block text-xs text-ink-faint">{[h.place, h.accessionNo].filter(Boolean).join(' · ')}</span></span>
+                  <PersonCell name={h.borrower} sub={[h.place, h.accessionNo].filter(Boolean).join(' · ') || undefined} size={28} />
                   <span className="text-right text-xs text-ink-muted">{date(h.issuedOn)} → {h.returnedOn ? date(h.returnedOn) : date(h.dueOn)}<span className="block"><LoanPill state={h.status === 'ISSUED' ? 'ISSUED' : h.status} /></span></span>
                 </div>
               ))}
@@ -260,7 +263,7 @@ export default function Catalogue() {
   const tot = meta?.totals
   return (
     <PageContainer>
-      <PageHeader icon={Library} title={t('library.titles.pageTitle')} subtitle={t('library.titles.subtitle')}
+      <PageHeader icon={Library} title={t('library.titles.pageTitle')} subtitle={t('library.titles.pageSubtitle')}
         actions={<>
           {hasPermission('library.catalogue.import') && <ImportExportButtons resourceLabel={t('library.titles.resource')} requires="library.catalogue.import"
             onImport={async (file) => importCatalogue(await readSheet(file), true)} onCommit={(r) => importCatalogue(r, false)}
@@ -272,10 +275,10 @@ export default function Catalogue() {
         </>} />
       <div className="space-y-4">
         {tot && <StatCardRow items={[
-          { label: t('library.titles.titlesN'), value: tot.titles },
-          { label: t('library.titles.copiesN'), value: tot.copies },
-          { label: t('library.titles.out'), value: tot.issued },
-          { label: t('library.titles.overdue'), value: tot.overdue, tone: tot.overdue ? 'danger' : 'neutral' },
+          { icon: Library, tone: 'brand', label: t('library.titles.titlesN'), value: tot.titles },
+          { icon: BookCopy, tone: 'violet', label: t('library.titles.copiesN'), value: tot.copies },
+          { icon: BookUp, tone: 'info', label: t('library.titles.out'), value: tot.issued, progress: tot.copies ? (tot.issued / tot.copies) * 100 : undefined },
+          { icon: AlarmClock, label: t('library.titles.overdue'), value: tot.overdue, tone: tot.overdue ? 'danger' : 'neutral' },
         ]} />}
         {tot && !tot.titles && <Note>{t('library.titles.emptyHint')}</Note>}
         <div className="flex flex-wrap items-center gap-2">
@@ -285,10 +288,10 @@ export default function Catalogue() {
         </div>
         <DataTable rows={data?.data ?? []} loading={isLoading} columns={[
           { key: 'title', header: t('library.titles.title'), mobilePrimary: true, render: (v, r) => <span className="font-medium">{v}<span className="block text-xs font-normal text-ink-faint">{r.authors.join(', ')}</span></span> },
-          { key: 'type', header: t('library.titles.type'), mobileHidden: true, render: (v) => L.type(v) },
-          { key: 'category', header: t('library.titles.category'), mobileHidden: true, render: (v) => v || '—' },
-          { key: 'callNo', header: t('library.titles.callNo'), mobileHidden: true, render: (v) => v || '—' },
-          { key: 'copies', header: t('library.titles.onShelf'), align: 'right', render: (v, r) => (hasCopies(r.type) ? <span className={v.total && !v.available ? 'text-danger-600' : ''}>{v.available}/{v.total}</span> : '—') },
+          { key: 'type', header: t('library.titles.type'), mobileHidden: true, render: (v) => <ColorChip label={L.type(v)} seed={`item-${v}`} icon={TYPE_ICON[v] ?? BookOpen} /> },
+          { key: 'category', header: t('library.titles.category'), mobileHidden: true, render: (v) => <ColorChip label={v} dot /> },
+          { key: 'callNo', header: t('library.titles.callNo'), mobileHidden: true, render: (v) => <CodeBadge>{v}</CodeBadge> },
+          { key: 'copies', header: t('library.titles.onShelf'), align: 'right', render: (v, r) => (hasCopies(r.type) && v.total ? <LevelBar value={v.available} max={v.total} dangerAt={0} width="w-24" /> : hasCopies(r.type) ? <span className="text-ink-faint">0</span> : '—') },
           { key: 'id', header: '', align: 'right', width: 90, render: (_, r) => (
             <div className="flex justify-end gap-1">
               {hasPermission('library.catalogue.edit') && <Button size="sm" variant="ghost" icon={Pencil} aria-label={t('library.edit')} onClick={(e) => { e.stopPropagation(); setEditing(r) }} />}

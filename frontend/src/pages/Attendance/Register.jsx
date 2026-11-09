@@ -2,12 +2,14 @@ import { useEffect, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import clsx from 'clsx'
-import { BookOpenCheck } from 'lucide-react'
-import { MARK_BY } from '@schoolgiant/shared'
-import { ControlChip, DataTable, FormField, Input, Note, PageContainer, PageHeader } from '../../components/system'
+import { BookOpenCheck, CalendarCheck, Percent, TriangleAlert, UsersRound } from 'lucide-react'
+import { MARK_BY, attendancePct } from '@schoolgiant/shared'
+import { ControlChip, DataTable, FormField, Input, Note, PageContainer, PageHeader, PersonCell, StatCardRow, TONE } from '../../components/system'
 import { fetchAttendanceBoard, fetchRegister } from '../../api/attendance'
+import { PctCell } from './Reports'
 
-const CELL = { P: 'text-success-600', A: 'text-danger-600 font-semibold', L: 'text-amber-600', HD: 'text-info-600', LV: 'text-ink-muted' }
+// each mark as a small coloured square in the day columns
+const MARK_TONE = { P: 'success', A: 'danger', L: 'warning', HD: 'info', LV: 'neutral' }
 
 /** A section's month at a glance: a column per day, a row per student, totals and % on the right. */
 export default function Register() {
@@ -21,17 +23,27 @@ export default function Register() {
   const { data: reg, isLoading } = useQuery({ queryKey: ['attendance-register', sectionId, month], queryFn: () => fetchRegister(sectionId, month), enabled: !!sectionId && !!month })
   const days = reg?.days.filter((d) => d.taken || d.working) ?? []
   const short = (v) => (v ? t(`attendance.short.${v}`, MARK_BY[v]?.short ?? v) : '')
+  const students = reg?.students ?? []
+  const min = reg?.minimumPct || 75
+  const overall = reg ? attendancePct(students.reduce((m, r) => { for (const k of ['P', 'A', 'L', 'HD', 'LV', 'total']) m[k] += r.counts?.[k] ?? 0; return m }, { P: 0, A: 0, L: 0, HD: 0, LV: 0, total: 0 })) : null
+  const below = students.filter((r) => r.pct != null && r.pct < min).length
+  const takenDays = reg ? reg.days.filter((d) => d.taken).length : 0
 
   const columns = [
-    { key: 'rollNo', header: t('attendance.register.roll'), width: 50, render: (v) => v ?? '–' },
-    { key: 'name', header: t('attendance.register.student'), mobilePrimary: true, render: (v, r) => <span className={clsx('font-medium', r.current ? 'text-ink' : 'text-ink-faint')}>{v}</span> },
+    { key: 'rollNo', header: t('attendance.register.roll'), width: 50, render: (v) => <span className="font-mono-num text-ink-muted">{v ?? '–'}</span> },
+    { key: 'name', header: t('attendance.register.student'), mobilePrimary: true, render: (v, r) => <PersonCell name={v} size={24} className={r.current ? undefined : 'opacity-50'} /> },
     ...days.map((d) => ({
       key: d.date, header: <span className={clsx('font-mono-num', !d.taken && 'text-ink-faint')} title={d.date}>{Number(d.date.slice(8))}</span>, align: 'center', width: 30, mobileHidden: true,
-      render: (_, r) => <span className={clsx('text-xs font-mono-num', CELL[r.marks[d.date]])}>{short(r.marks[d.date])}</span>,
+      render: (_, r) => {
+        const m = r.marks[d.date]
+        if (!m) return null
+        const tone = TONE[MARK_TONE[m] ?? 'neutral']
+        return <span className={clsx('inline-flex h-5 min-w-[20px] items-center justify-center rounded px-0.5 text-[10.5px] font-semibold font-mono-num', tone.bg, tone.text)}>{short(m)}</span>
+      },
     })),
-    { key: 'present', header: t('attendance.register.present'), align: 'right', render: (_, r) => (r.counts.P + r.counts.L) + 0.5 * r.counts.HD },
-    { key: 'absent', header: t('attendance.register.absent'), align: 'right', render: (_, r) => r.counts.A },
-    { key: 'pct', header: '%', align: 'right', render: (v) => (v == null ? '—' : <span className={clsx('font-semibold', v < (reg?.minimumPct ?? 0) ? 'text-danger-600' : 'text-ink')}>{v}</span>) },
+    { key: 'present', header: t('attendance.register.present'), align: 'right', render: (_, r) => <span className={clsx('font-semibold tabular-nums', TONE.success.text)}>{(r.counts.P + r.counts.L) + 0.5 * r.counts.HD}</span> },
+    { key: 'absent', header: t('attendance.register.absent'), align: 'right', render: (_, r) => (r.counts.A ? <span className={clsx('font-semibold tabular-nums', TONE.danger.text)}>{r.counts.A}</span> : <span className="text-ink-faint tabular-nums">0</span>) },
+    { key: 'pct', header: '%', align: 'right', render: (v) => <PctCell value={v} min={reg?.minimumPct} /> },
   ]
 
   return (
@@ -42,6 +54,14 @@ export default function Register() {
         <FormField label={t('attendance.register.month')}><Input type="month" value={month} max={board?.today?.slice(0, 7)} onChange={(e) => setMonth(e.target.value)} /></FormField>
       </div>
       {board && !sections.length && <Note>{t('attendance.board.none')}</Note>}
+      {reg && students.length > 0 && (
+        <StatCardRow className="mb-4" items={[
+          { icon: UsersRound, tone: 'brand', label: t('attendance.register.summary.students'), value: students.length },
+          { icon: CalendarCheck, tone: 'info', label: t('attendance.register.summary.days'), value: takenDays },
+          { icon: Percent, tone: overall == null ? 'neutral' : overall < min ? 'danger' : overall < 90 ? 'warning' : 'success', label: t('attendance.register.summary.average'), value: overall == null ? '—' : `${overall}%`, progress: overall ?? undefined },
+          { icon: TriangleAlert, tone: below ? 'danger' : 'success', label: t('attendance.register.summary.below', { min }), value: below },
+        ]} />
+      )}
       {reg && (
         <DataTable rows={reg.students} columns={columns} loading={isLoading} dense exportable exportName={`attendance-${reg.section.label}-${month}`}
           title={t('attendance.register.tableTitle', { section: reg.section.label, taken: reg.days.filter((d) => d.taken).length })}

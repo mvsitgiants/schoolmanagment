@@ -112,7 +112,17 @@
       },
       "generated": "{{created}} invoice(s) raised for {{students}} student(s).",
       "empty": "No fee structures for this year",
-      "emptyHint": "Make one per group of classes that pays the same fees, then raise the invoices."
+      "emptyHint": "Make one per group of classes that pays the same fees, then raise the invoices.",
+      "summary": {
+        "structures": "Structures",
+        "classes_one": "{{count}} class covered",
+        "classes_other": "{{count}} classes covered",
+        "billed": "Billed",
+        "students_one": "{{count}} student invoiced",
+        "students_other": "{{count}} students invoiced",
+        "collected": "Collected",
+        "ofBilled": "{{pct}}% of billed"
+      }
     },
     "collect": {
       "title": "Collect fees",
@@ -151,7 +161,11 @@
       "linkSms": "Razorpay texts the link to the parent",
       "makeLink": "Make payment link",
       "linkSent": "Payment link sent to the parent.",
-      "linkMade": "Payment link ready — copy it to send."
+      "linkMade": "Payment link ready — copy it to send.",
+      "installmentCount_one": "{{count}} installment",
+      "installmentCount_other": "{{count}} installments",
+      "ofBilled": "{{pct}}% of billed",
+      "paidShort": "paid"
     },
     "invoices": {
       "title": "Invoices & receipts",
@@ -169,7 +183,19 @@
       "balance": "Balance",
       "empty": "No invoices yet",
       "emptyHint": "Invoices are raised from Fee structures.",
-      "noMatch": "No invoices match these filters"
+      "noMatch": "No invoices match these filters",
+      "summary": {
+        "billed": "Billed",
+        "collected": "Collected",
+        "outstanding": "Outstanding",
+        "overdue": "Overdue",
+        "invoices_one": "{{count}} invoice",
+        "invoices_other": "{{count}} invoices",
+        "ofBilled": "{{pct}}% of what was billed",
+        "overdueSub_one": "{{count}} invoice past due",
+        "overdueSub_other": "{{count}} invoices past due",
+        "paid": "paid"
+      }
     },
     "receipts": {
       "tab": "Receipts",
@@ -221,7 +247,10 @@
       "sent_one": "Reminder sent to {{count}} family.",
       "sent_other": "Reminders sent to {{count}} families.",
       "empty": "No fees due",
-      "emptyHint": "Every invoice in this view is paid."
+      "emptyHint": "Every invoice in this view is paid.",
+      "overdueStudents_one": "{{count}} with overdue fees",
+      "overdueStudents_other": "{{count}} with overdue fees",
+      "overdueShare": "{{pct}}% of all dues"
     },
     "concessions": {
       "title": "Concessions",
@@ -299,7 +328,14 @@
       "date": "Date",
       "total": "Total",
       "empty": "No refunds",
-      "emptyHint": "Refunds are made against a receipt."
+      "emptyHint": "Refunds are made against a receipt.",
+      "summary": {
+        "refunded": "Refunded",
+        "count_one": "{{count}} refund",
+        "count_other": "{{count}} refunds",
+        "students": "Students refunded",
+        "largest": "Largest refund"
+      }
     },
     "dayEnd": {
       "title": "Day-end",

@@ -168,7 +168,10 @@
       "grade": "Grade",
       "absent": "Absent",
       "exempt": "Not taking",
-      "noStudents": "No students in this class"
+      "noStudents": "No students in this class",
+      "summary": {
+        "sheets": "Mark sheets"
+      }
     },
     "results": {
       "title": "Results",

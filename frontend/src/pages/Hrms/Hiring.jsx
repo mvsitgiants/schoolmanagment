@@ -2,9 +2,9 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { Briefcase, ChevronLeft, Pencil, Plus, Star, UserCheck } from 'lucide-react'
+import { Briefcase, Bus, ChevronLeft, Pencil, Plus, Presentation, ShieldCheck, Star, UserCheck, UsersRound, Wrench } from 'lucide-react'
 import { CANDIDATE_SOURCES, CANDIDATE_STAGES, EMPLOYEE_CATEGORIES, EMPLOYMENT_TYPES, OPEN_CANDIDATE_STAGES, REQUISITION_STATUSES, toPaise, toRupees } from '@schoolgiant/shared'
-import { Attachments, DataTable, Drawer, FormField, HeaderButton, Input, Modal, Money, Note, PageContainer, PageHeader, Panel, SegmentedControl, Select, StatusPill, Textarea, Timeline } from '../../components/system'
+import { Attachments, ColorChip, ContactCell, DataTable, DateCell, Drawer, FormField, HeaderButton, Input, LevelBar, Modal, Money, Note, PageContainer, PageHeader, Panel, PersonCell, SegmentedControl, Select, StatusPill, Textarea, Timeline } from '../../components/system'
 import Button from '../../components/ui/Button'
 import {
   createCandidate, createRequisition, evaluateCandidate, fetchCandidate, fetchCandidates, fetchRequisitions, hireCandidate, moveCandidate, offerCandidate,
@@ -14,6 +14,29 @@ import { hasPermission } from '../../api/auth'
 import { useSnackbar } from '../../context/SnackbarContext'
 import { useFormat } from '../../context/SettingsContext'
 import { useHrLabels, useHrMeta } from '../../components/hrms/HrKit'
+
+// each staff category's icon and colour (as on the Staff list)
+const CATEGORY_LOOK = {
+  TEACHING: { icon: Presentation, tone: 'brand' },
+  ADMIN: { icon: Briefcase, tone: 'violet' },
+  SUPPORT: { icon: Wrench, tone: 'orange' },
+  TRANSPORT: { icon: Bus, tone: 'info' },
+  SECURITY: { icon: ShieldCheck, tone: 'pink' },
+  OTHER: { icon: UsersRound, tone: 'sky' },
+}
+// a pipeline stage's chip colour (an applied candidate is not "neutral" on a chip)
+const stageTone = (s) => (s === 'APPLIED' ? 'sky' : CANDIDATE_STAGES[s]?.tone)
+
+/** A 1–5 rating as a row of stars. */
+function Stars({ value }) {
+  if (!value) return <span className="text-ink-faint">—</span>
+  return (
+    <span className="inline-flex items-center gap-0.5" title={`${value}/5`}>
+      {[1, 2, 3, 4, 5].map((n) => <Star key={n} aria-hidden className={`h-3.5 w-3.5 ${n <= Math.round(value) ? 'fill-amber-400 text-amber-400' : 'text-ink-faint/40'}`} />)}
+      <span className="ms-1 text-[12px] font-semibold tabular-nums text-amber-700">{value}</span>
+    </span>
+  )
+}
 
 function VacancyForm({ vacancy, onClose, onSaved }) {
   const { t } = useTranslation('hrms')
@@ -222,10 +245,15 @@ function VacancyDetail({ vacancy, onBack, onEdit }) {
       </div>
       <SegmentedControl value={stage} onChange={setStage} options={[{ value: 'OPEN', label: t('hrms.hiring.inProcess') }, ...['HIRED', 'REJECTED', 'WITHDRAWN'].map((s) => ({ value: s, label: L.stage(s) })), { value: '', label: t('hrms.all') }]} />
       <DataTable rows={rows} loading={isLoading} columns={[
-        { key: 'name', header: t('hrms.hiring.candidate'), mobilePrimary: true, render: (v, r) => <div><p className="font-medium text-ink">{v}</p><p className="text-xs text-ink-faint">{[r.mobile, r.qualifications].filter(Boolean).join(' · ')}</p></div> },
-        { key: 'stage', header: t('hrms.hiring.stage'), render: (v, r) => <span><StatusPill tone={CANDIDATE_STAGES[v]?.tone}>{L.stage(v)}</StatusPill>{r.next?.date && <span className="block text-[11px] text-ink-faint mt-0.5">{date(r.next.date)} {r.next.time ?? ''}</span>}</span> },
-        { key: 'rating', header: t('hrms.hiring.rating'), align: 'right', render: (v) => (v ? <span className="text-amber-700">★ {v}</span> : '—') },
-        { key: 'source', header: t('hrms.hiring.source'), mobileHidden: true, render: (v) => t(`hrms.hiring.sources.${v}`, v) },
+        { key: 'name', header: t('hrms.hiring.candidate'), mobilePrimary: true, render: (v, r) => (
+          <span className="inline-flex items-center gap-3 min-w-0">
+            <PersonCell name={v} sub={r.qualifications} />
+            {r.mobile && <ContactCell phone={r.mobile} className="hidden sm:block" />}
+          </span>
+        ) },
+        { key: 'stage', header: t('hrms.hiring.stage'), render: (v, r) => <span><ColorChip label={L.stage(v)} tone={stageTone(v)} dot />{r.next?.date && <span className="block text-[11px] text-ink-faint mt-0.5">{date(r.next.date)} {r.next.time ?? ''}</span>}</span> },
+        { key: 'rating', header: t('hrms.hiring.rating'), align: 'right', render: (v) => <Stars value={v} /> },
+        { key: 'source', header: t('hrms.hiring.source'), mobileHidden: true, render: (v) => (v ? <ColorChip label={t(`hrms.hiring.sources.${v}`, v)} seed={v} /> : '—') },
       ]} onRowClick={(r) => setOpenId(r.id)} emptyTitle={t('hrms.hiring.noCandidates')} />
       {vacancy.description && <Panel title={t('hrms.hiring.description')}><p className="text-sm text-ink-muted whitespace-pre-line">{vacancy.description}</p></Panel>}
       {adding && <CandidateForm requisitionId={vacancy.id} onClose={() => setAdding(false)} onSaved={(c) => { setAdding(false); refresh(); setOpenId(c.id); showSuccess(t('hrms.hiring.saved')) }} />}
@@ -240,7 +268,6 @@ export default function Hiring() {
   const L = useHrLabels()
   const navigate = useNavigate()
   const qc = useQueryClient()
-  const { date } = useFormat()
   const { showSuccess } = useSnackbar()
   const [status, setStatus] = useState('ACTIVE')
   const [openId, setOpenId] = useState(null)
@@ -255,11 +282,27 @@ export default function Hiring() {
         <>
           <SegmentedControl className="mb-3" value={status} onChange={setStatus} options={[{ value: 'ACTIVE', label: t('hrms.hiring.active') }, { value: 'FILLED', label: L.reqStatus('FILLED') }, { value: 'CLOSED', label: L.reqStatus('CLOSED') }, { value: 'ALL', label: t('hrms.all') }]} />
           <DataTable rows={rows} loading={isLoading} columns={[
-            { key: 'title', header: t('hrms.hiring.post'), mobilePrimary: true, render: (v, r) => <div><p className="font-medium text-ink">{v}</p><p className="text-xs text-ink-faint">{[r.requisitionNo, L.category(r.category), r.department].filter(Boolean).join(' · ')}</p></div> },
-            { key: 'count', header: t('hrms.hiring.posts'), align: 'right', render: (v, r) => t('hrms.hiring.filledOf', { filled: r.filled ?? 0, count: v }) },
-            { key: 'inProcess', header: t('hrms.hiring.inProcess'), align: 'right', render: (v, r) => <span>{v}<span className="text-xs text-ink-faint"> / {r.candidates}</span></span> },
-            { key: 'byStage', header: t('hrms.hiring.pipeline'), mobileHidden: true, render: (v) => <span className="text-xs text-ink-muted">{OPEN_CANDIDATE_STAGES.filter((s) => v?.[s]).map((s) => `${L.stage(s)} ${v[s]}`).join(' · ') || '—'}</span> },
-            { key: 'targetDate', header: t('hrms.hiring.targetDate'), mobileHidden: true, render: (v) => (v ? date(v) : '—') },
+            { key: 'title', header: t('hrms.hiring.post'), mobilePrimary: true, render: (v, r) => (
+              <div className="min-w-0">
+                <p className="font-medium text-ink">{v}</p>
+                <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                  <ColorChip label={L.category(r.category)} {...CATEGORY_LOOK[r.category]} />
+                  <span className="text-xs text-ink-faint">{[r.requisitionNo, r.department].filter(Boolean).join(' · ')}</span>
+                </div>
+              </div>
+            ) },
+            { key: 'count', header: t('hrms.hiring.posts'), align: 'right', render: (v, r) => (
+              <span className="inline-flex w-28 flex-col items-end gap-1">
+                <span className="text-[12.5px] font-medium tabular-nums text-ink">{t('hrms.hiring.filledOf', { filled: r.filled ?? 0, count: v })}</span>
+                <LevelBar value={r.filled ?? 0} max={v} bare width="w-full" />
+              </span>
+            ) },
+            { key: 'inProcess', header: t('hrms.hiring.inProcess'), align: 'right', render: (v, r) => <span className="tabular-nums"><span className="font-display text-base font-bold text-ink">{v}</span><span className="text-xs text-ink-faint"> / {r.candidates}</span></span> },
+            { key: 'byStage', header: t('hrms.hiring.pipeline'), mobileHidden: true, render: (v) => {
+              const stages = OPEN_CANDIDATE_STAGES.filter((s) => v?.[s])
+              return stages.length ? <div className="flex flex-wrap gap-1">{stages.map((s) => <ColorChip key={s} label={L.stage(s)} sub={String(v[s])} tone={stageTone(s)} dot />)}</div> : '—'
+            } },
+            { key: 'targetDate', header: t('hrms.hiring.targetDate'), mobileHidden: true, nowrap: true, render: (v) => <DateCell value={v} /> },
             { key: 'status', header: t('hrms.employees.status'), render: (v) => <StatusPill tone={REQUISITION_STATUSES[v]?.tone}>{L.reqStatus(v)}</StatusPill> },
           ]} onRowClick={(r) => setOpenId(r.id)} emptyIcon={Briefcase} emptyTitle={t('hrms.hiring.noVacancies')} />
           <p className="text-xs text-ink-faint mt-3">{t('hrms.hiring.joinHint')} <button type="button" className="underline" onClick={() => navigate('/hrms/employees')}>{t('hrms.employees.title')}</button></p>

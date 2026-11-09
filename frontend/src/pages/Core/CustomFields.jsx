@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { ArrowDown, ArrowUp, ListPlus, Pencil, Plus, Trash2 } from 'lucide-react'
+import { ArrowDown, ArrowUp, Calendar, Check, CircleDot, Hash, ListChecks, ListPlus, Pencil, Plus, ToggleLeft, Trash2, Type } from 'lucide-react'
 import { CUSTOM_FIELD_ENTITIES, CUSTOM_FIELD_TYPES } from '@schoolgiant/shared'
 import {
-  DataTable, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, SegmentedControl, Select, StatusPill, useConfirm,
+  ColorChip, DataTable, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, SegmentedControl, Select, StatusPill, useConfirm,
 } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { Switch } from '../../components/app/Controls'
@@ -13,6 +13,11 @@ import { hasPermission } from '../../api/auth'
 import { useSnackbar } from '../../context/SnackbarContext'
 
 const TYPE_LABEL = Object.fromEntries(CUSTOM_FIELD_TYPES.map((x) => [x.value, x.label]))
+// each field type's chip
+const TYPE_LOOK = {
+  TEXT: { icon: Type, tone: 'sky' }, NUMBER: { icon: Hash, tone: 'violet' }, DATE: { icon: Calendar, tone: 'orange' },
+  BOOL: { icon: ToggleLeft, tone: 'teal' }, SELECT: { icon: CircleDot, tone: 'pink' }, MULTI: { icon: ListChecks, tone: 'info' },
+}
 
 function FieldForm({ field, entity, onClose, onSaved }) {
   const { t } = useTranslation('admin')
@@ -88,9 +93,9 @@ export default function CustomFields() {
             </div>
           ) },
           { key: 'label', header: t('admin.customFields.field'), mobilePrimary: true, render: (v, r) => <div><p className="font-medium text-ink">{v}{r.required && <span className="text-danger-500"> *</span>}</p>{r.help && <p className="text-xs text-ink-faint">{r.help}</p>}</div> },
-          { key: 'type', header: t('admin.customFields.type'), render: (v) => t(`admin.customFields.types.${v}`, { defaultValue: TYPE_LABEL[v] ?? v }) },
-          { key: 'options', header: t('admin.customFields.options'), render: (v) => (v?.length ? <span className="text-xs text-ink-muted">{v.join(', ')}</span> : <span className="text-ink-faint">—</span>) },
-          { key: 'showInList', header: t('admin.customFields.inList'), render: (v) => (v ? t('common.yes') : '—') },
+          { key: 'type', header: t('admin.customFields.type'), render: (v) => <ColorChip label={t(`admin.customFields.types.${v}`, { defaultValue: TYPE_LABEL[v] ?? v })} {...TYPE_LOOK[v]} /> },
+          { key: 'options', header: t('admin.customFields.options'), render: (v) => (v?.length ? <span className="flex flex-wrap gap-1">{v.slice(0, 6).map((o) => <span key={o} className="rounded-md border border-border bg-bg px-1.5 py-0.5 text-[11px] text-ink-muted">{o}</span>)}{v.length > 6 && <span className="text-[11px] text-ink-faint">+{v.length - 6}</span>}</span> : <span className="text-ink-faint">—</span>) },
+          { key: 'showInList', header: t('admin.customFields.inList'), render: (v) => (v ? <span className="inline-flex items-center gap-1 text-sm text-success-700"><Check className="w-4 h-4" aria-hidden />{t('common.yes')}</span> : <span className="text-ink-faint">—</span>) },
           { key: 'active', header: t('common.status'), render: (v, r) => canEdit ? <Switch size="sm" checked={v} onChange={(on) => patch.mutate({ id: r.id, body: { active: on } })} label={t('status.active')} /> : <StatusPill tone={v ? 'success' : 'neutral'}>{v ? t('ui.common.on') : t('ui.common.off')}</StatusPill> },
           { key: 'id', header: '', align: 'right', render: (_, r) => (
             <div className="flex justify-end gap-1">

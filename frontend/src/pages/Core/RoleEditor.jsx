@@ -6,7 +6,7 @@ import clsx from 'clsx'
 import { AlertTriangle, ArrowLeft, Check, Eye, Layers, Lock, Shield, ShieldCheck, Users as UsersIcon } from 'lucide-react'
 import { describePermission, normalizePermissions, sensitivePermissions, sodWarnings, visiblePages } from '@schoolgiant/shared'
 import {
-  DataTable, FormField, Input, Note, PageContainer, PageHeader, RecordHistory, Select, StatusPill, Tabs, Textarea, useConfirm,
+  DataTable, DateCell, FormField, Input, Note, PageContainer, PageHeader, PersonCell, RecordHistory, Select, StatusPill, Tabs, Textarea, useConfirm,
 } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { Switch } from '../../components/app/Controls'
@@ -18,7 +18,6 @@ import { createRole, fetchCatalog, fetchRole, fetchRoleMembers, fetchRoleTemplat
 import { hasPermission, isFullAccess } from '../../api/auth'
 import useAuthUser from '../../hooks/useAuthUser'
 import { useSnackbar } from '../../context/SnackbarContext'
-import { useFormat } from '../../context/SettingsContext'
 import { useCatalogLabel } from '../../hooks/useCatalogLabel'
 
 const EMPTY = { name: '', description: '', homePage: '', fullAccess: false, permissions: [], dataScopes: { default: 'BRANCH' }, limits: {}, security: { idleMinutes: null, require2fa: false } }
@@ -34,7 +33,6 @@ export default function RoleEditor() {
   const qc = useQueryClient()
   const confirm = useConfirm()
   const { showSuccess, showError } = useSnackbar()
-  const { dateTime } = useFormat()
   const me = useAuthUser()
 
   const catalogQ = useQuery({ queryKey: ['catalog'], queryFn: fetchCatalog })
@@ -261,9 +259,9 @@ export default function RoleEditor() {
                 <DataTable
                   rowKey="id" loading={membersQ.isLoading} rows={membersQ.data ?? []} dense
                   columns={[
-                    { key: 'name', header: t('admin.users.cols.name'), mobilePrimary: true, render: (v, r) => <div><p className="font-medium text-ink">{v}</p><p className="text-[11px] text-ink-faint">{r.email}</p></div> },
+                    { key: 'name', header: t('admin.users.cols.name'), mobilePrimary: true, render: (v, r) => <PersonCell name={v} sub={r.email} /> },
                     { key: 'designation', header: t('admin.users.cols.designation') },
-                    { key: 'lastLoginAt', header: t('admin.users.cols.lastSignIn'), nowrap: true, render: (v) => (v ? dateTime(v) : <span className="text-ink-faint">{t('admin.users.never')}</span>) },
+                    { key: 'lastLoginAt', header: t('admin.users.cols.lastSignIn'), nowrap: true, render: (v) => (v ? <DateCell value={v} time /> : <span className="text-ink-faint">{t('admin.users.never')}</span>) },
                     { key: 'active', header: t('admin.users.cols.status'), render: (v) => <StatusPill tone={v ? 'success' : 'neutral'}>{v ? t('admin.users.status.active') : t('admin.users.status.inactive')}</StatusPill> },
                   ]}
                   emptyIcon={UsersIcon} emptyTitle={t('admin.roleEditor.noMembers')} emptyHint={t('admin.roleEditor.noMembersHint')}

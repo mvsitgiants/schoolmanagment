@@ -2,9 +2,9 @@ import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { ChevronLeft, Eye, EyeOff, History, KeyRound, LogOut, Pencil, Undo2, UserRound, Wallet } from 'lucide-react'
+import { ChevronLeft, Eye, EyeOff, History, KeyRound, LogOut, Palmtree, Pencil, Undo2, UserRound, Wallet } from 'lucide-react'
 import { EMPLOYEE_STATUSES, EXIT_TYPES, SALARY_MODES, toPaise, toRupees } from '@schoolgiant/shared'
-import { Attachments, DataTable, Fact, FactGrid, FormField, Input, Modal, Money, Note, PageContainer, Panel, Select, StatusPill, Tabs, Textarea, Timeline, useConfirm } from '../../components/system'
+import { Attachments, Avatar, ColorChip, DataTable, DateCell, Fact, FactGrid, FormField, Input, Modal, Money, Note, PageContainer, Panel, PersonCell, Select, StatCard, StatusPill, Tabs, Textarea, Timeline, hueTone, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
 import {
   adjustEmployeeLeave, cancelEmployeeExit, createEmployeeLogin, exitEmployee, fetchEmployee, fetchEmployeeLeave, fetchEmployeeLedger, fetchEmployeeSensitive, fetchLeaveTypes,
@@ -163,10 +163,13 @@ function LoginPanel({ emp, onChanged }) {
   )
 }
 
+// a leave ledger entry's chip: credits green, what is used up red, corrections violet
+const KIND_TONE = { CREDIT: 'success', ACCRUAL: 'success', CARRY: 'teal', TAKEN: 'danger', LAPSE: 'orange', REVERSAL: 'sky', ADJUST: 'violet' }
+const typeTone = (b) => (b.tone && b.tone !== 'neutral' ? b.tone : hueTone(b.code))
+
 function LeaveTab({ emp }) {
   const { t } = useTranslation('hrms')
   const qc = useQueryClient()
-  const { date } = useFormat()
   const { showSuccess, showError } = useSnackbar()
   const [typeId, setTypeId] = useState('')
   const [adj, setAdj] = useState({ leaveTypeId: '', days: '', note: '' })
@@ -180,22 +183,25 @@ function LeaveTab({ emp }) {
   })
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        {balances.map((b) => (
-          <button key={b.leaveTypeId} type="button" onClick={() => setTypeId(typeId === b.leaveTypeId ? '' : b.leaveTypeId)} className={`text-left rounded-xl border p-3 ${typeId === b.leaveTypeId ? 'border-brand-400 bg-brand-50/40' : 'border-border bg-surface hover:bg-bg'}`}>
-            <p className="text-xs text-ink-muted">{b.name}</p>
-            <p className="text-xl font-semibold text-ink font-mono-num">{b.balance}</p>
-            <p className="text-[11px] text-ink-faint">{t('hrms.leave.takenPending', { taken: b.taken, pending: b.pending })}</p>
-          </button>
-        ))}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        {balances.map((b) => {
+          const credited = Math.max(0, b.balance + b.taken)
+          return (
+            <StatCard key={b.leaveTypeId} icon={Palmtree} tone={typeTone(b)} label={b.name} value={b.balance}
+              sub={t('hrms.leave.takenPending', { taken: b.taken, pending: b.pending })}
+              progress={credited > 0 ? (b.balance / credited) * 100 : undefined}
+              onClick={() => setTypeId(typeId === b.leaveTypeId ? '' : b.leaveTypeId)}
+              className={typeId === b.leaveTypeId ? 'ring-2 ring-brand-400' : typeId ? 'opacity-60 hover:opacity-100' : undefined} />
+          )
+        })}
       </div>
       {hasPermission('hrms.leave.view') && (
         <Panel title={t('hrms.profile.ledger')} flush>
           <DataTable rows={ledger} dense className="border-0 shadow-none" columns={[
-            { key: 'date', header: t('hrms.profile.ledgerDate'), nowrap: true, render: (v) => date(v) },
-            { key: 'leaveCode', header: t('hrms.leave.type') },
-            { key: 'kind', header: t('hrms.profile.ledgerKind'), render: (v) => t(`hrms.leave.kinds.${v}`, v) },
-            { key: 'days', header: t('hrms.profile.ledgerDays'), align: 'right', render: (v) => <span className={`font-mono-num ${v < 0 ? 'text-danger-600' : 'text-success-700'}`}>{v > 0 ? `+${v}` : v}</span> },
+            { key: 'date', header: t('hrms.profile.ledgerDate'), nowrap: true, render: (v) => <DateCell value={v} /> },
+            { key: 'leaveCode', header: t('hrms.leave.type'), render: (v) => { const b = balances.find((x) => x.code === v); return <ColorChip label={v} tone={b ? typeTone(b) : undefined} mono dot /> } },
+            { key: 'kind', header: t('hrms.profile.ledgerKind'), render: (v) => <ColorChip label={t(`hrms.leave.kinds.${v}`, v)} tone={KIND_TONE[v] ?? 'neutral'} dot /> },
+            { key: 'days', header: t('hrms.profile.ledgerDays'), align: 'right', render: (v) => <span className={`font-mono-num font-semibold ${v < 0 ? 'text-danger-600' : 'text-success-700'}`}>{v > 0 ? `+${v}` : v}</span> },
             { key: 'note', header: t('hrms.profile.ledgerNote'), render: (v, r) => <span className="text-xs text-ink-muted">{[v, r.by].filter(Boolean).join(' · ')}</span> },
           ]} emptyTitle={t('hrms.profile.ledgerEmpty')} />
         </Panel>
@@ -256,6 +262,7 @@ export default function EmployeeProfile() {
       <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
         <div className="flex items-start gap-2 min-w-0">
           <Button size="sm" variant="ghost" icon={ChevronLeft} onClick={() => navigate('/hrms/employees')} aria-label={t('hrms.profile.back')} />
+          <Avatar name={emp.name} size={44} soft />
           <div className="min-w-0">
             <h1 className="text-lg font-semibold text-ink truncate">{emp.name}</h1>
             <p className="text-sm text-ink-muted">{[emp.designation, L.category(emp.category), emp.department].filter(Boolean).join(' · ')} <span className="font-mono-num text-ink-faint">· {emp.employeeCode}</span></p>
@@ -297,7 +304,7 @@ export default function EmployeeProfile() {
             <LoginPanel emp={emp} onChanged={refresh} />
             {emp.reports.length > 0 && (
               <Panel title={t('hrms.profile.reports', { count: emp.reports.length })}>
-                {emp.reports.map((r) => <button key={r.id} type="button" onClick={() => navigate(`/hrms/employees/${r.id}`)} className="block w-full text-left py-1.5 text-sm text-ink hover:text-brand-600">{r.name}<span className="text-xs text-ink-faint"> · {r.designation ?? ''}</span></button>)}
+                {emp.reports.map((r) => <div key={r.id} className="py-1.5 text-sm"><PersonCell name={r.name} sub={r.designation} size={26} onClick={() => navigate(`/hrms/employees/${r.id}`)} /></div>)}
               </Panel>
             )}
           </div>

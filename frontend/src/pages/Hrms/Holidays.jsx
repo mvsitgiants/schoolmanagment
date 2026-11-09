@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { CalendarHeart, ClipboardPaste, Pencil, Plus, Trash2 } from 'lucide-react'
-import { ControlChip, DataTable, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, StatusPill, Textarea, useConfirm } from '../../components/system'
+import { CalendarCheck, CalendarClock, CalendarHeart, ClipboardPaste, MapPin, Pencil, Plus, Sun, Trash2 } from 'lucide-react'
+import { ColorChip, ControlChip, DataTable, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, StatCardRow, Textarea, localIso, useConfirm, useTimeAgo } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { addHolidays, createHoliday, deleteHoliday, fetchHolidays, updateHoliday } from '../../api/hrms'
 import { hasPermission } from '../../api/auth'
@@ -82,6 +82,10 @@ export default function Holidays() {
   const refresh = () => qc.invalidateQueries({ queryKey: ['holidays'] })
   const remove = useMutation({ mutationFn: deleteHoliday, onSuccess: () => { refresh(); showSuccess(t('hrms.holidays.deleted')) }, onError: (e) => showError(e.message) })
   const years = [thisYear - 1, thisYear, thisYear + 1]
+  const ago = useTimeAgo()
+  const today = localIso(new Date())
+  const upcoming = rows.filter((r) => r.date >= today)
+  const closedDays = rows.filter((r) => !r.optional).length
   return (
     <PageContainer>
       <PageHeader icon={CalendarHeart} title={t('hrms.holidays.title')} subtitle={t('hrms.holidays.subtitle')}
@@ -91,11 +95,33 @@ export default function Holidays() {
         </>} />
       <div className="mb-3"><ControlChip label={t('hrms.holidays.year')} value={String(year)} active={year !== thisYear} options={years.map(String)} onChange={(v) => setYear(Number(v))} /></div>
       {!isLoading && !rows.length && <Note className="mb-3">{t('hrms.holidays.emptyHint')}</Note>}
+      {rows.length > 0 && (
+        <StatCardRow className="mb-4" items={[
+          { icon: CalendarHeart, tone: 'pink', label: t('hrms.holidays.stats.total'), value: rows.length, sub: String(year) },
+          { icon: Sun, tone: 'success', label: t('hrms.holidays.stats.closed'), value: closedDays, progress: (closedDays / rows.length) * 100 },
+          { icon: CalendarCheck, tone: 'info', label: t('hrms.holidays.stats.optional'), value: rows.length - closedDays, progress: ((rows.length - closedDays) / rows.length) * 100 },
+          { icon: CalendarClock, tone: 'orange', label: t('hrms.holidays.stats.upcoming'), value: upcoming.length, sub: upcoming[0] ? t('hrms.holidays.stats.next', { name: upcoming[0].name, when: ago(upcoming[0].date) }) : undefined },
+        ]} />
+      )}
       <DataTable rows={rows} loading={isLoading} columns={[
-        { key: 'date', header: t('hrms.holidays.date'), nowrap: true, render: (v) => <span>{date(v)} <span className="text-xs text-ink-faint">{L.day(DOW[new Date(`${v}T12:00:00Z`).getUTCDay()])}</span></span> },
-        { key: 'name', header: t('hrms.holidays.name'), mobilePrimary: true },
-        { key: 'optional', header: t('hrms.holidays.kind'), render: (v, r) => <span className="flex flex-wrap gap-1">{v ? <StatusPill tone="info">{t('hrms.holidays.optionalShort')}</StatusPill> : <StatusPill tone="success">{t('hrms.holidays.closed')}</StatusPill>}{!r.forStudents && <StatusPill tone="neutral">{t('hrms.holidays.staffOnly')}</StatusPill>}</span> },
-        { key: 'branches', header: t('hrms.holidays.campusesCol'), render: (v) => (v?.length ? v.join(', ') : t('hrms.holidays.everywhere')) },
+        { key: 'date', header: t('hrms.holidays.date'), nowrap: true, render: (v) => {
+          const past = v < today
+          return (
+            <span className={`inline-flex items-center gap-2.5 ${past ? 'opacity-60' : ''}`}>
+              <span className={`inline-flex h-10 w-10 shrink-0 flex-col items-center justify-center rounded-lg border leading-none ${past ? 'border-border bg-bg text-ink-muted' : 'border-pink-200 bg-pink-50 text-pink-700'}`}>
+                <span className="text-[15px] font-bold tabular-nums">{Number(v.slice(8, 10))}</span>
+                <span className="mt-0.5 text-[9.5px] font-semibold uppercase tracking-wide">{L.day(DOW[new Date(`${v}T12:00:00Z`).getUTCDay()])}</span>
+              </span>
+              <span className="leading-tight">
+                <span className="block tabular-nums text-ink">{date(v)}</span>
+                <span className="block text-[11px] text-ink-faint">{ago(v)}</span>
+              </span>
+            </span>
+          )
+        } },
+        { key: 'name', header: t('hrms.holidays.name'), mobilePrimary: true, render: (v) => <span className="font-medium text-ink">{v}</span> },
+        { key: 'optional', header: t('hrms.holidays.kind'), render: (v, r) => <span className="flex flex-wrap gap-1">{v ? <ColorChip label={t('hrms.holidays.optionalShort')} tone="info" icon={CalendarCheck} /> : <ColorChip label={t('hrms.holidays.closed')} tone="success" icon={Sun} />}{!r.forStudents && <ColorChip label={t('hrms.holidays.staffOnly')} tone="neutral" dot />}</span> },
+        { key: 'branches', header: t('hrms.holidays.campusesCol'), render: (v) => (v?.length ? <span className="flex flex-wrap gap-1">{v.map((b) => <ColorChip key={b} label={b} icon={MapPin} />)}</span> : <span className="text-sm text-ink-muted">{t('hrms.holidays.everywhere')}</span>) },
         { key: 'id', header: '', align: 'right', width: 100, render: (_, r) => (
           <div className="flex justify-end gap-1">
             {hasPermission('hrms.holidays.edit') && <Button size="sm" variant="ghost" icon={Pencil} aria-label={t('hrms.edit')} onClick={() => setEditing(r)} />}

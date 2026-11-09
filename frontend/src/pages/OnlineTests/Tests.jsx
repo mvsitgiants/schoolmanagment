@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { ArrowDown, ArrowUp, ChevronLeft, ClipboardCheck, Lock, Plus, Send, Shuffle, Trash2, X } from 'lucide-react'
 import { DIFFICULTY, QUESTION_TYPES, RESULT_RELEASE, TEST_STATUS } from '@schoolgiant/shared'
-import { DataTable, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, Panel, SegmentedControl, Select, StatusPill, Textarea, localIso, useConfirm } from '../../components/system'
+import { ColorChip, DataTable, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, Panel, SegmentedControl, Select, StatusPill, Textarea, localIso, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { addTestQuestions, closeTest, createTest, deleteTest, fetchTest, fetchTests, pickTestQuestions, publishTest, setTestQuestions, updateTest } from '../../api/onlineTests'
 import { fetchQuestions } from '../../api/lms'
@@ -192,10 +192,18 @@ export default function Tests() {
         <>
           <SegmentedControl className="mb-3" value={status} onChange={setStatus} options={[{ value: '', label: t('tests.all') }, ...Object.keys(TEST_STATUS).map((k) => ({ value: k, label: t(`tests.status.${k}`) }))]} />
           <DataTable rows={rows} loading={isLoading} columns={[
-            { key: 'title', header: t('tests.form.title'), mobilePrimary: true, render: (v, r) => <div><p className="font-medium text-ink">{v}</p><p className="text-xs text-ink-faint">{[r.className, r.subject, r.sections.join(', ')].filter(Boolean).join(' · ')}</p></div> },
+            { key: 'title', header: t('tests.form.title'), mobilePrimary: true, render: (v, r) => (
+              <div className="min-w-0">
+                <p className="font-medium text-ink truncate">{v}</p>
+                <div className="mt-1 flex flex-wrap items-center gap-1">
+                  <ColorChip label={r.className} seed={r.classId} />
+                  <ColorChip label={r.subject} seed={r.subjectId} dot sub={r.sections.join(', ') || undefined} />
+                </div>
+              </div>
+            ) },
             { key: 'opens', header: t('tests.when'), nowrap: true, render: (v, r) => (v?.date ? <span className="text-sm">{date(v.date)} {v.time}<span className="block text-xs text-ink-faint">{t('tests.until', { when: `${date(r.closes.date)} ${r.closes.time}` })}</span></span> : '—') },
             { key: 'questions', header: t('tests.questionsCol'), align: 'right', render: (v, r) => t('tests.qm', { q: v, m: r.totalMarks }) },
-            { key: 'attempts', header: t('tests.attemptsCol'), align: 'right', render: (v, r) => <span>{v}{r.toEvaluate > 0 && <span className="block text-[11px] text-amber-700">{t('tests.toEvaluate', { count: r.toEvaluate })}</span>}</span> },
+            { key: 'attempts', header: t('tests.attemptsCol'), align: 'right', render: (v, r) => <span><span className={v ? 'font-semibold tabular-nums text-ink' : 'tabular-nums text-ink-faint'}>{v}</span>{r.toEvaluate > 0 && <span className="block text-[11px] font-medium text-amber-700">{t('tests.toEvaluate', { count: r.toEvaluate })}</span>}</span> },
             { key: 'status', header: t('tests.statusCol'), render: (v) => <StatusPill tone={TEST_STATUS[v]?.tone}>{t(`tests.status.${v}`)}</StatusPill> },
           ]} onRowClick={(r) => setOpen(r.id)} emptyIcon={ClipboardCheck} emptyTitle={t('tests.empty')} emptyHint={t('tests.emptyHint')} />
         </>

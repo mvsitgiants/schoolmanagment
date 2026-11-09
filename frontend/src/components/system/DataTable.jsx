@@ -211,7 +211,7 @@ export default function DataTable({
 
       <div className="flex-1 overflow-auto scroll-thin" style={maxHeight ? { maxHeight } : undefined}>
         <table className="w-full text-start text-[13px]">
-          <thead className="bg-slate-50 border-b border-border text-xs font-semibold text-ink-muted sticky top-0 z-10">
+          <thead className="bg-slate-50/95 backdrop-blur border-b border-border text-[10.5px] font-semibold uppercase tracking-wider text-ink-faint sticky top-0 z-10">
             <tr>
               {cols.map((c) => {
                 const active = sort?.key === c.key
@@ -279,9 +279,11 @@ export default function DataTable({
                       select(row)
                     } : undefined}
                     className={clsx(
-                      'transition-colors',
+                      'group/row transition-colors',
                       select && 'cursor-pointer',
-                      selected ? 'bg-brand-50/70 font-medium' : ROW_TONE[rowTone?.(row)] || (select ? 'hover:bg-slate-50/80' : 'hover:bg-slate-50/40'),
+                      selected
+                        ? 'bg-brand-50/70 font-medium shadow-[inset_3px_0_0_rgb(var(--brand-500))]'
+                        : ROW_TONE[rowTone?.(row)] || clsx('even:bg-slate-50/50', select ? 'hover:bg-brand-50/50 hover:shadow-[inset_3px_0_0_rgb(var(--brand-500))]' : 'hover:bg-slate-50'),
                     )}
                   >
                     {cols.map((c) => (

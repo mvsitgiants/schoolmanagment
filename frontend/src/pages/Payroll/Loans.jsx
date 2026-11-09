@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { HandCoins, Plus } from 'lucide-react'
+import { HandCoins, Landmark, Plus, Zap } from 'lucide-react'
 import { LOAN_STATUSES, LOAN_TYPES, toPaise, toRupees } from '@schoolgiant/shared'
-import { DataTable, FormField, HeaderButton, Input, Modal, Money, PageContainer, PageHeader, ProgressBar, SegmentedControl, Select, StatusPill, localIso, usePrompt } from '../../components/system'
+import { ColorChip, DataTable, FormField, HeaderButton, Input, Modal, Money, PageContainer, PageHeader, PaidBar, PersonCell, SegmentedControl, Select, StatusPill, localIso, usePrompt } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { closeLoan, createLoan, fetchLoans, fetchPayrollStaff, updateLoan } from '../../api/payroll'
 import { hasPermission } from '../../api/auth'
@@ -73,10 +73,11 @@ export default function Loans() {
         actions={<HeaderButton icon={Plus} variant="primary" requires="payroll.loans.create" onClick={() => setEditing('new')}>{t('payroll.loans.new')}</HeaderButton>} />
       <SegmentedControl className="mb-3" value={status} onChange={(v) => { setStatus(v); setPage(1) }} options={[...Object.keys(LOAN_STATUSES).map((k) => ({ value: k, label: t(`payroll.loanStatus.${k}`) })), { value: '', label: t('payroll.all') }]} />
       <DataTable rows={data?.data ?? []} loading={isLoading} columns={[
-        { key: 'employeeName', header: t('payroll.staff.person'), mobilePrimary: true, render: (v, r) => <div><p className="font-medium text-ink">{v}</p><p className="text-xs text-ink-faint font-mono-num">{r.loanNo} · {t(`payroll.loanTypes.${r.type}`)}</p></div> },
+        { key: 'employeeName', header: t('payroll.staff.person'), mobilePrimary: true, render: (v, r) => <PersonCell name={v} sub={r.loanNo} size={32} /> },
+        { key: 'type', header: t('payroll.loans.type'), mobileHidden: true, render: (v) => <ColorChip label={t(`payroll.loanTypes.${v}`)} icon={v === 'ADVANCE' ? Zap : Landmark} tone={v === 'ADVANCE' ? 'sky' : 'violet'} /> },
         { key: 'amount', header: t('payroll.loans.amount'), align: 'right', render: (v) => <Money value={v} paise /> },
         { key: 'instalment', header: t('payroll.loans.instalment'), align: 'right', render: (v, r) => <span><Money value={v} paise /><span className="block text-[11px] text-ink-faint">{t('payroll.loans.fromShort', { month: monthLabel(r.startMonth) })}</span></span> },
-        { key: 'balance', header: t('payroll.loans.balance'), align: 'right', render: (v, r) => <span><Money value={v} paise /><span className="block w-24 ml-auto mt-1"><ProgressBar value={r.amount ? (r.recovered / r.amount) * 100 : 0} showValue={false} /></span></span> },
+        { key: 'balance', header: t('payroll.loans.balance'), align: 'right', render: (v, r) => <PaidBar total={r.amount} balance={v} paise paidLabel={t('payroll.loans.recoveredShort')} /> },
         { key: 'status', header: t('payroll.status'), render: (v) => <StatusPill tone={LOAN_STATUSES[v]?.tone}>{t(`payroll.loanStatus.${v}`)}</StatusPill> },
         { key: 'id', header: '', align: 'right', width: 120, render: (id, r) => canEdit && r.status === 'ACTIVE' && (
           <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>

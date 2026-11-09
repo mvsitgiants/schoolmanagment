@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { Plus, Square, Users, Video, XCircle } from 'lucide-react'
 import { LIVE_PROVIDERS, LIVE_STATUS } from '@schoolgiant/shared'
-import { DataTable, Drawer, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, SegmentedControl, Select, StatusPill, Textarea, localIso, usePrompt } from '../../components/system'
+import { ColorChip, DataTable, DateCell, Drawer, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, PersonCell, SegmentedControl, Select, StatusPill, Textarea, localIso, usePrompt } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { cancelLiveClass, createLiveClass, endLiveClass, fetchLiveAttendance, fetchLiveClasses, startLiveClass } from '../../api/lms'
 import { hasPermission } from '../../api/auth'
@@ -46,7 +46,7 @@ function LiveForm({ onClose, onSaved }) {
 function LiveDrawer({ live, onClose, onChanged }) {
   const { t } = useTranslation('lms')
   const prompt = usePrompt()
-  const { date, dateTime } = useFormat()
+  const { date } = useFormat()
   const { showSuccess, showError } = useSnackbar()
   const [recording, setRecording] = useState(live.recordingUrl ?? '')
   const { data: att } = useQuery({ queryKey: ['lms-live-att', live.id], queryFn: () => fetchLiveAttendance(live.id) })
@@ -74,8 +74,8 @@ function LiveDrawer({ live, onClose, onChanged }) {
         <div>
           <p className="text-sm font-medium text-ink mb-2 inline-flex items-center gap-1.5"><Users className="w-4 h-4" />{t('lms.live.joinedOf', { joined: att?.joined ?? 0, total: att?.total ?? 0 })}</p>
           <DataTable rows={att?.rows ?? []} rowKey="studentId" dense columns={[
-            { key: 'name', header: t('lms.progress.student'), mobilePrimary: true, render: (v, r) => <span>{v}<span className="block text-xs text-ink-faint">{r.section}</span></span> },
-            { key: 'joinedAt', header: t('lms.live.joinedAt'), render: (v) => (v ? dateTime(v) : <span className="text-ink-faint">—</span>) },
+            { key: 'name', header: t('lms.progress.student'), mobilePrimary: true, render: (v, r) => <PersonCell name={v} sub={r.section || undefined} size={28} /> },
+            { key: 'joinedAt', header: t('lms.live.joinedAt'), render: (v) => <DateCell value={v} time /> },
           ]} />
         </div>
       </div>
@@ -104,8 +104,17 @@ export default function LiveClasses() {
       <SegmentedControl className="mb-3" value={when} onChange={setWhen} options={[{ value: 'UPCOMING', label: t('lms.live.upcoming') }, { value: 'PAST', label: t('lms.live.past') }]} />
       <DataTable rows={shown} loading={isLoading} columns={[
         { key: 'date', header: t('lms.live.when'), nowrap: true, render: (v, r) => <span>{date(v)}<span className="block text-xs text-ink-faint">{r.start} · {t('lms.live.minutes', { count: r.durationMin })}</span></span> },
-        { key: 'title', header: t('lms.live.name'), mobilePrimary: true, render: (v, r) => <div><p className="font-medium text-ink">{v}</p><p className="text-xs text-ink-faint">{[r.className, r.subject, r.sections.join(', '), r.hostName].filter(Boolean).join(' · ')}</p></div> },
-        { key: 'joined', header: t('lms.live.joined'), align: 'right' },
+        { key: 'title', header: t('lms.live.name'), mobilePrimary: true, render: (v, r) => (
+          <div className="min-w-0">
+            <p className="font-medium text-ink truncate">{v}</p>
+            <div className="mt-1 flex flex-wrap items-center gap-1">
+              <ColorChip label={r.className} seed={r.classId} />
+              <ColorChip label={r.subject} seed={r.subjectId ?? r.subject} dot sub={[r.sections.join(', '), r.hostName].filter(Boolean).join(' · ') || undefined} />
+            </div>
+          </div>
+        ) },
+        { key: 'provider', header: t('lms.live.provider'), mobileHidden: true, render: (v) => <ColorChip label={t(`lms.providers.${v}`)} seed={`live-${v}`} icon={Video} /> },
+        { key: 'joined', header: t('lms.live.joined'), align: 'right', render: (v) => <span className={v ? 'font-semibold tabular-nums text-success-600' : 'tabular-nums text-ink-faint'}>{v}</span> },
         { key: 'status', header: t('lms.status'), render: (v) => <StatusPill tone={LIVE_STATUS[v]?.tone}>{t(`lms.liveStatus.${v}`)}</StatusPill> },
       ]} onRowClick={(r) => setOpen(r)} emptyIcon={Video} emptyTitle={when === 'UPCOMING' ? t('lms.live.noneUpcoming') : t('lms.live.nonePast')} />
       {open && <LiveDrawer live={rows.find((r) => r.id === open.id) ?? open} onClose={() => setOpen(null)} onChanged={refresh} />}

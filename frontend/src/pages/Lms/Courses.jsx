@@ -3,12 +3,11 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { ArrowDown, ArrowUp, ChevronLeft, Eye, EyeOff, Library, Plus, Send, Trash2, X } from 'lucide-react'
 import { COURSE_STATUS, ITEM_KINDS } from '@schoolgiant/shared'
-import { Attachments, DataTable, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, Panel, ProgressBar, SegmentedControl, Select, StatusPill, Tabs, Textarea, useConfirm } from '../../components/system'
+import { Attachments, ColorChip, DataTable, DateCell, Fraction, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, Panel, PersonCell, ProgressBar, SegmentedControl, Select, StatusPill, Tabs, Textarea, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { createCourse, deleteCourse, fetchCourse, fetchCourseProgress, fetchCourses, fetchLmsLookup, saveOutline, setCourseStatus, updateCourse } from '../../api/lms'
 import { hasPermission } from '../../api/auth'
 import { useSnackbar } from '../../context/SnackbarContext'
-import { useFormat } from '../../context/SettingsContext'
 
 const useLookup = () => useQuery({ queryKey: ['lms-lookup'], queryFn: fetchLmsLookup, staleTime: 60_000 })
 
@@ -143,13 +142,12 @@ function Outline({ course, onSaved }) {
 
 function Progress({ courseId }) {
   const { t } = useTranslation('lms')
-  const { dateTime } = useFormat()
   const { data, isLoading } = useQuery({ queryKey: ['lms-progress', courseId], queryFn: () => fetchCourseProgress(courseId) })
   return (
     <DataTable rows={data?.rows ?? []} loading={isLoading} rowKey="studentId" dense columns={[
-      { key: 'name', header: t('lms.progress.student'), mobilePrimary: true, render: (v, r) => <span>{v}<span className="block text-xs text-ink-faint">{[r.section, r.rollNo && t('lms.progress.roll', { n: r.rollNo })].filter(Boolean).join(' · ')}</span></span> },
+      { key: 'name', header: t('lms.progress.student'), mobilePrimary: true, render: (v, r) => <PersonCell name={v} sub={[r.section, r.rollNo && t('lms.progress.roll', { n: r.rollNo })].filter(Boolean).join(' · ') || undefined} size={28} /> },
       { key: 'pct', header: t('lms.progress.done'), render: (v, r) => <div className="flex items-center gap-2 w-48"><div className="flex-1"><ProgressBar value={v} showValue={false} /></div><span className="text-xs text-ink-muted">{r.done}/{data.total}</span></div> },
-      { key: 'lastAt', header: t('lms.progress.last'), mobileHidden: true, render: (v) => (v ? dateTime(v) : '—') },
+      { key: 'lastAt', header: t('lms.progress.last'), mobileHidden: true, render: (v) => <DateCell value={v} time /> },
     ]} emptyTitle={t('lms.progress.empty')} />
   )
 }
@@ -203,8 +201,16 @@ export default function Courses() {
         <>
           <SegmentedControl className="mb-3" value={status} onChange={setStatus} options={[{ value: '', label: t('lms.current') }, ...Object.keys(COURSE_STATUS).map((k) => ({ value: k, label: t(`lms.courseStatus.${k}`) }))]} />
           <DataTable rows={rows} loading={isLoading} columns={[
-            { key: 'title', header: t('lms.courses.name'), mobilePrimary: true, render: (v, r) => <div><p className="font-medium text-ink">{v}</p><p className="text-xs text-ink-faint">{[r.className, r.subject, r.sections.length ? r.sections.join(', ') : t('lms.allSections')].join(' · ')}</p></div> },
-            { key: 'items', header: t('lms.courses.items'), align: 'right', render: (v, r) => t('lms.courses.itemsLine', { units: r.units, published: r.published, items: v }) },
+            { key: 'title', header: t('lms.courses.name'), mobilePrimary: true, render: (v, r) => (
+              <div className="min-w-0">
+                <p className="font-medium text-ink truncate">{v}</p>
+                <div className="mt-1 flex flex-wrap items-center gap-1">
+                  <ColorChip label={r.className} seed={r.classId} />
+                  <ColorChip label={r.subject} seed={r.subjectId} dot sub={r.sections.length ? r.sections.join(', ') : t('lms.allSections')} />
+                </div>
+              </div>
+            ) },
+            { key: 'items', header: t('lms.courses.items'), align: 'right', render: (v, r) => (v ? <Fraction value={r.published} max={v} label={t('lms.courses.unitsShown', { count: r.units })} /> : t('lms.courses.itemsLine', { units: r.units, published: r.published, items: v })) },
             { key: 'status', header: t('lms.status'), render: (v) => <StatusPill tone={COURSE_STATUS[v]?.tone}>{t(`lms.courseStatus.${v}`)}</StatusPill> },
           ]} onRowClick={(r) => setOpen(r.id)} emptyIcon={Library} emptyTitle={t('lms.courses.empty')} emptyHint={t('lms.courses.emptyHint')} />
         </>

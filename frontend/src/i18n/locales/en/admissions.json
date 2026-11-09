@@ -194,7 +194,15 @@
       "absent": "Absent",
       "marks": "{{marks}} / {{max}}",
       "notMarked": "Not marked yet",
-      "answers": "Answers"
+      "answers": "Answers",
+      "summary": {
+        "total": "Applications",
+        "seats": "for {{count}} seats",
+        "live": "In the running",
+        "offered": "Seat offered",
+        "admitted": "Admitted",
+        "ofSeats": "of {{count}} seats"
+      }
     },
     "tests": {
       "title": "Entrance tests",
@@ -228,7 +236,13 @@
       "marks": "Marks",
       "absent": "Absent",
       "noApplicants": "No applicants for this test yet",
-      "noApplicantsHint": "Use “Put applicants down”."
+      "noApplicantsHint": "Use “Put applicants down”.",
+      "summary": {
+        "tests": "Tests",
+        "upcoming_one": "{{count}} coming up",
+        "upcoming_other": "{{count}} coming up",
+        "ofApplicants": "of {{count}} applicants"
+      }
     },
     "merit": {
       "title": "Merit lists",

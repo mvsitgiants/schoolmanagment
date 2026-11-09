@@ -1,9 +1,9 @@
 import { useMemo } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { Award, CheckCircle2, Trophy, Undo2, Users, XCircle } from 'lucide-react'
+import { Award, CheckCircle2, Medal, Trophy, Undo2, Users, XCircle } from 'lucide-react'
 import { RESULT_STATUS } from '@schoolgiant/shared'
-import { DataTable, Note, PageContainer, PageHeader, StatCardRow, StatusPill, useConfirm } from '../../components/system'
+import { ColorChip, DataTable, LevelBar, Note, PageContainer, PageHeader, PersonCell, StatCardRow, StatusPill, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
 import useExamPick from '../../components/exams/useExamPick'
 import { fetchResults, publishResults, unpublishResults } from '../../api/exams'
@@ -29,9 +29,10 @@ export default function Results() {
   const published = data?.exam.status === 'PUBLISHED'
   const resultLabel = (r) => t(`exams.result.${r}`, RESULT_STATUS[r]?.label ?? r)
 
+  const RANK_TONE = ['warning', 'neutral', 'orange']
   const columns = useMemo(() => [
     { key: 'rollNo', header: t('exams.roll'), width: 60, render: (v) => <span className="font-mono-num">{v ?? '—'}</span> },
-    { key: 'name', header: t('exams.student'), mobilePrimary: true, render: (v, r) => <div><p className="font-medium text-ink">{v}</p><p className="text-xs text-ink-faint font-mono-num">{r.admissionNo}</p></div> },
+    { key: 'name', header: t('exams.student'), mobilePrimary: true, render: (v, r) => <PersonCell name={v} sub={r.admissionNo} /> },
     ...(data?.papers ?? []).map((p) => ({
       key: `p_${p.id}`, header: p.locked ? p.subject : `${p.subject} *`,
       align: p.gradeOnly ? 'center' : 'right', mobileHidden: true, sortable: false,
@@ -45,9 +46,14 @@ export default function Results() {
       },
     })),
     { key: 'total', header: t('exams.results.total'), align: 'right', render: (v, r) => (v === null || v === undefined ? '—' : `${num(v)} / ${r.max}`) },
-    { key: 'pct', header: '%', align: 'right', sortable: true, render: (v) => num(v) },
-    { key: 'grade', header: t('exams.results.grade'), align: 'center', render: (v) => v ?? '—' },
-    { key: 'rank', header: t('exams.results.rank'), align: 'right', sortable: true, render: (v) => v ?? '—' },
+    { key: 'pct', header: '%', align: 'right', sortable: true, render: (v, r) => (v === null || v === undefined ? '—' : (
+      <div className="inline-flex items-center justify-end gap-2">
+        <LevelBar bare value={v} max={100} width="w-14" dangerAt={r.result === 'FAIL' ? 100 : undefined} />
+        <span className={r.result === 'FAIL' ? 'font-semibold tabular-nums text-danger-600' : 'font-semibold tabular-nums text-ink'}>{num(v)}</span>
+      </div>
+    )) },
+    { key: 'grade', header: t('exams.results.grade'), align: 'center', render: (v) => <ColorChip label={v} seed={v ? `grade-${v}` : undefined} mono /> },
+    { key: 'rank', header: t('exams.results.rank'), align: 'right', sortable: true, render: (v) => (v != null && v <= 3 ? <ColorChip label={v} icon={Medal} tone={RANK_TONE[v - 1]} /> : v ?? '—') },
     { key: 'result', header: t('exams.results.result'), render: (v) => <StatusPill tone={RESULT_STATUS[v]?.tone}>{resultLabel(v)}</StatusPill> },
   ], [data, t]) // eslint-disable-line react-hooks/exhaustive-deps
   // each paper's mark as plain text too, so the CSV export carries it

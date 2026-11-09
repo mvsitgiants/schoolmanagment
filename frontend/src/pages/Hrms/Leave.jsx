@@ -4,13 +4,16 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { Ban, Check, Palmtree, Pencil, Plus, X } from 'lucide-react'
 import { EMPLOYEE_CATEGORIES, GENDERS, LEAVE_ACCRUALS, LEAVE_STATUSES } from '@schoolgiant/shared'
-import { DataTable, FormField, Input, Modal, PageContainer, PageHeader, SegmentedControl, Select, StatusPill, Tabs, usePrompt } from '../../components/system'
+import { ColorChip, DataTable, FormField, Input, LevelBar, Modal, PageContainer, PageHeader, PersonCell, SegmentedControl, Select, StatusPill, Tabs, usePrompt } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { applyLeaveFor, cancelLeave, createLeaveType, decideLeave, fetchLeaveBalances, fetchLeaveTypes, fetchLeaves, updateLeaveType } from '../../api/hrms'
 import { hasPermission } from '../../api/auth'
 import { useSnackbar } from '../../context/SnackbarContext'
 import { useFormat } from '../../context/SettingsContext'
 import { LeaveApplyForm, useHrLabels, useHrMeta, useLeaveSpan } from '../../components/hrms/HrKit'
+
+// a leave type's chip colour: the tone set on the type, else one picked from its code
+const typeTone = (tone) => (tone && tone !== 'neutral' ? tone : undefined)
 
 function TypeForm({ type, onClose, onSaved }) {
   const { t } = useTranslation('hrms')
@@ -103,10 +106,10 @@ function Requests() {
         {hasPermission('hrms.leave.apply_on_behalf') && <Button icon={Plus} onClick={() => setApplying(true)}>{t('hrms.leave.applyFor')}</Button>}
       </div>
       <DataTable rows={data?.rows ?? []} loading={isLoading} error={error} onRetry={refetch} columns={[
-        { key: 'employeeName', header: t('hrms.leave.person'), mobilePrimary: true, render: (v, r) => <button type="button" className="text-left" onClick={() => navigate(`/hrms/employees/${r.employeeId}`)}><p className="font-medium text-ink">{v}</p><p className="text-xs text-ink-faint font-mono-num">{r.employeeCode}</p></button> },
-        { key: 'leaveName', header: t('hrms.leave.type'), render: (v, r) => <span>{v}{r.paid === false && <span className="text-xs text-danger-600"> · {t('hrms.leave.unpaid')}</span>}</span> },
+        { key: 'employeeName', header: t('hrms.leave.person'), mobilePrimary: true, render: (v, r) => <PersonCell name={v} sub={r.employeeCode} onClick={() => navigate(`/hrms/employees/${r.employeeId}`)} /> },
+        { key: 'leaveName', header: t('hrms.leave.type'), render: (v, r) => <span className="inline-flex flex-col items-start gap-0.5"><ColorChip label={v} seed={r.leaveCode} tone={typeTone(types.find((x) => x.id === String(r.leaveTypeId))?.tone)} dot />{r.paid === false && <span className="text-[11px] font-medium text-danger-600">{t('hrms.leave.unpaid')}</span>}</span> },
         { key: 'from', header: t('hrms.leave.when'), nowrap: true, render: (_, r) => span(r, date) },
-        { key: 'days', header: t('hrms.leave.days'), align: 'right' },
+        { key: 'days', header: t('hrms.leave.days'), align: 'right', render: (v) => <span className="font-display text-base font-bold tabular-nums text-ink">{v}</span> },
         { key: 'reason', header: t('hrms.leave.reason'), mobileHidden: true, render: (v, r) => <span className="text-sm text-ink-muted">{v}{r.arrangement && <span className="block text-xs text-ink-faint">{t('hrms.leave.arrangementShort', { text: r.arrangement })}</span>}</span> },
         { key: 'status', header: t('hrms.leave.status'), render: (v, r) => <span><StatusPill tone={LEAVE_STATUSES[v]?.tone}>{L.leaveStatus(v)}</StatusPill>{r.decided?.by && <span className="block text-[11px] text-ink-faint mt-0.5">{r.decided.by}</span>}</span> },
         { key: 'id', header: '', align: 'right', width: 150, render: (_, r) => (
@@ -132,11 +135,19 @@ function Balances() {
   const types = (data?.types ?? []).filter((x) => x.active)
   return (
     <DataTable rows={data?.rows ?? []} loading={isLoading} error={error} rowKey="employeeId" columns={[
-      { key: 'name', header: t('hrms.leave.person'), mobilePrimary: true, render: (v, r) => <div><p className="font-medium text-ink">{v}</p><p className="text-xs text-ink-faint">{[r.code, r.designation].filter(Boolean).join(' · ')}</p></div> },
+      { key: 'name', header: t('hrms.leave.person'), mobilePrimary: true, render: (v, r) => <PersonCell name={v} sub={[r.code, r.designation].filter(Boolean).join(' · ')} /> },
       ...types.map((ty) => ({
         key: ty.code, header: ty.code, align: 'right', render: (_, r) => {
           const b = r.balances.find((x) => x.leaveTypeId === ty.id)
-          return b ? <span className="font-mono-num" title={t('hrms.leave.takenPending', { taken: b.taken, pending: b.pending })}>{b.balance}{b.pending > 0 && <span className="text-amber-600 text-xs"> −{b.pending}</span>}</span> : <span className="text-ink-faint">—</span>
+          if (!b) return <span className="text-ink-faint">—</span>
+          // the bar is what is left of what was credited (left + taken)
+          const credited = Math.max(0, b.balance + b.taken)
+          return (
+            <span className="inline-flex flex-col items-end gap-0.5" title={t('hrms.leave.takenPending', { taken: b.taken, pending: b.pending })}>
+              <LevelBar value={b.balance} max={credited} warnAt={credited * 0.25} dangerAt={0} width="w-20" />
+              {b.pending > 0 && <span className="text-amber-600 text-[11px] tabular-nums">−{b.pending}</span>}
+            </span>
+          )
         },
       })),
     ]} onRowClick={(r) => navigate(`/hrms/employees/${r.employeeId}`)} emptyTitle={t('hrms.leave.noStaff')} />
@@ -154,10 +165,10 @@ function Types() {
     <>
       {canEdit && <div className="flex justify-end mb-3"><Button icon={Plus} onClick={() => setEditing('new')}>{t('hrms.leave.typeForm.new')}</Button></div>}
       <DataTable rows={rows} loading={isLoading} columns={[
-        { key: 'name', header: t('hrms.leave.typeForm.name'), mobilePrimary: true, render: (v, r) => <span className={r.active ? 'font-medium text-ink' : 'text-ink-faint line-through'}>{v} <span className="text-xs font-mono-num text-ink-faint">{r.code}</span></span> },
+        { key: 'name', header: t('hrms.leave.typeForm.name'), mobilePrimary: true, render: (v, r) => (r.active ? <ColorChip label={v} seed={r.code} tone={typeTone(r.tone)} dot sub={r.code} /> : <span className="text-ink-faint line-through">{v} <span className="text-xs font-mono-num">{r.code}</span></span>) },
         { key: 'accrual', header: t('hrms.leave.typeForm.accrual'), render: (v, r) => (v === 'NONE' ? t('hrms.leave.accruals.NONE') : t('hrms.leave.perYear', { n: r.perYear, how: t(`hrms.leave.accrualShort.${v}`) })) },
-        { key: 'carryForwardMax', header: t('hrms.leave.typeForm.carry'), align: 'right' },
-        { key: 'paid', header: t('hrms.leave.typeForm.paid'), render: (v) => (v ? t('hrms.yes') : <span className="text-danger-600">{t('hrms.no')}</span>) },
+        { key: 'carryForwardMax', header: t('hrms.leave.typeForm.carry'), align: 'right', render: (v) => <span className="font-semibold tabular-nums text-ink">{v}</span> },
+        { key: 'paid', header: t('hrms.leave.typeForm.paid'), render: (v) => <StatusPill tone={v ? 'success' : 'danger'}>{v ? t('hrms.yes') : t('hrms.no')}</StatusPill> },
         { key: 'id', header: '', align: 'right', width: 60, render: (_, r) => canEdit && <Button size="sm" variant="ghost" icon={Pencil} aria-label={t('hrms.edit')} onClick={() => setEditing(r)} /> },
       ]} onRowClick={canEdit ? (r) => setEditing(r) : undefined} />
       {editing && <TypeForm type={editing === 'new' ? null : editing} onClose={() => setEditing(null)} onSaved={() => { setEditing(null); qc.invalidateQueries({ queryKey: ['leave-types'] }); qc.invalidateQueries({ queryKey: ['leave-balances'] }); showSuccess(t('hrms.leave.typeForm.saved')) }} />}

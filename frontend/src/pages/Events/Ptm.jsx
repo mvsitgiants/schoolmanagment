@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { CalendarClock, Check, Download, DoorOpen, Lock, MessageSquareText, Pencil, Plus, Trash2, UserPlus, UserX, Users, Video, X } from 'lucide-react'
 import { BOOKING_STATUS, PTM_MODES, PTM_STATUS, ptmSlots } from '@schoolgiant/shared'
-import { Drawer, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, Panel, PhoneLink, SegmentedControl, Select, StatusPill, Tabs, Textarea, localIso, useConfirm, usePrompt } from '../../components/system'
+import { Drawer, FormField, HeaderButton, Input, LevelBar, Modal, Note, PageContainer, PageHeader, Panel, PhoneLink, SegmentedControl, Select, StatusPill, Tabs, Textarea, localIso, useConfirm, usePrompt } from '../../components/system'
 import Button from '../../components/ui/Button'
 import StudentPicker from '../../components/fees/StudentPicker'
 import { bookSlot, deleteSession, exportSession, fetchClassTeachers, fetchMyMeetings, fetchSession, fetchSessions, openBooking, saveSession, setSessionStatus, updateBooking } from '../../api/events'
@@ -247,6 +247,7 @@ function Sessions({ onOpen }) {
                 </div>
                 <StatusPill tone={PTM_STATUS[p.status]?.tone}>{L.ptm(p.status)}</StatusPill>
               </div>
+              {p.capacity > 0 && <LevelBar bare value={p.booked} max={p.capacity} width="w-full" className="mt-3" />}
               <p className="mt-2 text-xs text-ink-faint">{t('events.ptm.cardLine', { teachers: p.hosts.length, booked: p.booked, capacity: p.capacity, met: p.met })}</p>
             </button>
           ))}

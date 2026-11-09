@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { Pencil, Plus, Settings2 } from 'lucide-react'
-import { DataTable, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, StatusPill } from '../../components/system'
+import { CodeBadge, ColorChip, DataTable, FormField, HeaderButton, Input, LevelBar, Modal, Note, PageContainer, PageHeader, StatusPill } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { createExamType, fetchExamTypes, updateExamType } from '../../api/exams'
 import { hasPermission } from '../../api/auth'
@@ -57,10 +57,15 @@ export default function Setup() {
         error={error}
         onRetry={refetch}
         columns={[
-          { key: 'name', header: t('exams.setup.name'), mobilePrimary: true, render: (v, r) => <span className={r.active ? 'font-medium text-ink' : 'text-ink-faint line-through'}>{v}</span> },
-          { key: 'code', header: t('exams.setup.code'), render: (v) => <span className="font-mono-num text-sm">{v}</span> },
+          { key: 'name', header: t('exams.setup.name'), mobilePrimary: true, render: (v, r) => (r.active ? <ColorChip label={v} seed={r.id} dot /> : <span className="text-ink-faint line-through">{v}</span>) },
+          { key: 'code', header: t('exams.setup.code'), render: (v) => <CodeBadge>{v}</CodeBadge> },
           { key: 'defaultMaxMarks', header: t('exams.setup.defaultMax'), align: 'right' },
-          { key: 'weightage', header: t('exams.setup.weightage'), align: 'right', render: (v) => `${v ?? 0}%` },
+          { key: 'weightage', header: t('exams.setup.weightage'), align: 'right', render: (v, r) => (
+            <div className="inline-flex items-center justify-end gap-2">
+              <LevelBar bare value={r.active ? v ?? 0 : 0} max={100} width="w-16" />
+              <span className="font-semibold tabular-nums">{v ?? 0}%</span>
+            </div>
+          ) },
           { key: 'active', header: t('exams.setup.status'), render: (v) => <StatusPill tone={v ? 'success' : 'neutral'}>{v ? t('exams.setup.inUse') : t('exams.setup.notInUse')}</StatusPill> },
           { key: 'id', header: '', align: 'right', width: 150, render: (_, r) => canEdit && (
             <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>

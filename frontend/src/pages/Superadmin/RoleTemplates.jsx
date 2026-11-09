@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Check, ShieldCheck } from 'lucide-react'
-import { modulesTouched, normalizePermissions, sensitivePermissions } from '@schoolgiant/shared'
-import { DataTable, Drawer, FormField, Input, Note, PageContainer, PageHeader, StatusPill, Textarea } from '../../components/system'
+import { AlertTriangle, Check, ShieldCheck } from 'lucide-react'
+import { MODULE_BY_ID, modulesTouched, normalizePermissions, sensitivePermissions } from '@schoolgiant/shared'
+import { ColorChip, DataTable, Drawer, FormField, Input, Note, PageContainer, PageHeader, StatusPill, TONE, Textarea, hueTone } from '../../components/system'
 import { canPlatform } from '../../api/auth'
 import Button from '../../components/ui/Button'
 import { Switch } from '../../components/app/Controls'
@@ -55,10 +55,10 @@ export default function RoleTemplates() {
         loading={isLoading}
         onRowClick={canPlatform('templates') ? setEditing : undefined}
         columns={[
-          { key: 'name', header: t('superadmin.roleTemplates.template'), mobilePrimary: true, render: (v, r) => { const Icon = iconFor(r.icon); return <div className="flex items-start gap-3"><span className="w-8 h-8 rounded-lg bg-brand-50 text-brand-600 flex items-center justify-center shrink-0"><Icon className="w-4 h-4" /></span><div><p className="font-medium text-ink">{v}</p><p className="text-xs text-ink-muted line-clamp-1">{r.description}</p></div></div> } },
-          { key: 'permissions', header: t('superadmin.roleTemplates.permissions'), align: 'right', render: (v) => v.length },
-          { key: 'modules', header: t('superadmin.common.modules'), mobileHidden: true, render: (_, r) => { const m = modulesTouched(r.permissions); return <span className="text-xs text-ink-muted">{m.slice(0, 4).map((id) => cl.module(id)).join(', ')}{m.length > 4 ? ` +${m.length - 4}` : ''}</span> } },
-          { key: 'sensitive', header: t('superadmin.roleTemplates.sensitive'), align: 'right', mobileHidden: true, render: (_, r) => { const n = sensitivePermissions(r.permissions).length; return n ? <span className="text-amber-600">{n}</span> : <span className="text-ink-faint">—</span> } },
+          { key: 'name', header: t('superadmin.roleTemplates.template'), mobilePrimary: true, render: (v, r) => { const Icon = iconFor(r.icon); const tn = TONE[hueTone(r.code ?? v)]; return <div className="flex items-start gap-3"><span className={`w-9 h-9 rounded-xl border flex items-center justify-center shrink-0 ${tn.bg} ${tn.text} ${tn.border}`}><Icon className="w-4 h-4" /></span><div><p className="font-medium text-ink">{v}</p><p className="text-xs text-ink-muted line-clamp-1">{r.description}</p></div></div> } },
+          { key: 'permissions', header: t('superadmin.roleTemplates.permissions'), align: 'right', render: (v) => <span className="font-semibold tabular-nums text-ink">{v.length}</span> },
+          { key: 'modules', header: t('superadmin.common.modules'), mobileHidden: true, render: (_, r) => { const m = modulesTouched(r.permissions); return <span className="flex flex-wrap items-center gap-1">{m.slice(0, 4).map((id) => <ColorChip key={id} label={cl.module(id)} seed={id} icon={MODULE_BY_ID[id] ? iconFor(MODULE_BY_ID[id].icon) : undefined} />)}{m.length > 4 && <span className="text-[11px] text-ink-faint">+{m.length - 4}</span>}</span> } },
+          { key: 'sensitive', header: t('superadmin.roleTemplates.sensitive'), align: 'right', mobileHidden: true, render: (_, r) => { const n = sensitivePermissions(r.permissions).length; return n ? <ColorChip label={String(n)} tone="warning" icon={AlertTriangle} /> : <span className="text-ink-faint">—</span> } },
           { key: 'active', header: t('common.status'), render: (v) => <StatusPill tone={v ? 'success' : 'neutral'}>{v ? t('superadmin.roleTemplates.offered') : t('superadmin.roleTemplates.hidden')}</StatusPill> },
         ]}
       />

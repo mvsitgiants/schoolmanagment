@@ -3,14 +3,55 @@
     "edit": "Edit",
     "delete": "Delete",
     "loading": "Loading…",
-    "types": { "BOOK": "Book", "REFERENCE": "Reference (not lent)", "TEXTBOOK": "Textbook", "MAGAZINE": "Magazine", "JOURNAL": "Journal", "MEDIA": "CD / DVD", "EBOOK": "E-book / link" },
-    "copyStatus": { "AVAILABLE": "On the shelf", "ISSUED": "Issued", "LOST": "Lost", "DAMAGED": "Damaged", "WITHDRAWN": "Withdrawn" },
-    "sources": { "PURCHASE": "Bought", "DONATION": "Donated", "GRANT": "Grant / scheme" },
-    "loanStatus": { "ISSUED": "Out", "OVERDUE": "Overdue", "RETURNED": "Returned", "LOST": "Lost" },
-    "fineReasons": { "LATE": "Late return", "LOST": "Lost book", "DAMAGED": "Damaged book", "OTHER": "Other" },
-    "fineStatus": { "OPEN": "To pay", "PAID": "Paid", "WAIVED": "Waived" },
-    "kinds": { "STUDENT": "Student", "STAFF": "Staff" },
-    "modes": { "CASH": "Cash", "UPI": "UPI", "CARD": "Card", "CHEQUE": "Cheque / DD", "BANK_TRANSFER": "Bank transfer" },
+    "types": {
+      "BOOK": "Book",
+      "REFERENCE": "Reference (not lent)",
+      "TEXTBOOK": "Textbook",
+      "MAGAZINE": "Magazine",
+      "JOURNAL": "Journal",
+      "MEDIA": "CD / DVD",
+      "EBOOK": "E-book / link"
+    },
+    "copyStatus": {
+      "AVAILABLE": "On the shelf",
+      "ISSUED": "Issued",
+      "LOST": "Lost",
+      "DAMAGED": "Damaged",
+      "WITHDRAWN": "Withdrawn"
+    },
+    "sources": {
+      "PURCHASE": "Bought",
+      "DONATION": "Donated",
+      "GRANT": "Grant / scheme"
+    },
+    "loanStatus": {
+      "ISSUED": "Out",
+      "OVERDUE": "Overdue",
+      "RETURNED": "Returned",
+      "LOST": "Lost"
+    },
+    "fineReasons": {
+      "LATE": "Late return",
+      "LOST": "Lost book",
+      "DAMAGED": "Damaged book",
+      "OTHER": "Other"
+    },
+    "fineStatus": {
+      "OPEN": "To pay",
+      "PAID": "Paid",
+      "WAIVED": "Waived"
+    },
+    "kinds": {
+      "STUDENT": "Student",
+      "STAFF": "Staff"
+    },
+    "modes": {
+      "CASH": "Cash",
+      "UPI": "UPI",
+      "CARD": "Card",
+      "CHEQUE": "Cheque / DD",
+      "BANK_TRANSFER": "Bank transfer"
+    },
     "blocks": {
       "NOT_ACTIVE": "No longer at the institution.",
       "LIMIT": "Has as many books as allowed.",
@@ -26,7 +67,7 @@
     },
     "titles": {
       "pageTitle": "Catalogue",
-      "subtitle": "Every title, its copies on the shelf and their accession numbers, and the e-library.",
+      "subtitle": "Subtitle",
       "resource": "titles",
       "new": "Add title",
       "newTitle": "Add a title",
@@ -56,7 +97,6 @@
       "isbnNotFound": "Nothing found for this ISBN. Fill it in by hand.",
       "isbnExists": "“{{title}}” already has this ISBN — add copies to it instead.",
       "title": "Title",
-      "subtitle": "Subtitle",
       "authors": "Authors",
       "authorsHint": "Separate several with commas.",
       "type": "Type",
@@ -80,7 +120,8 @@
       "files": "Files",
       "copiesCount": "Copies to add",
       "copiesHint": "Each copy gets the next accession number. Books that already carry numbers: add them from the title afterwards.",
-      "history": "Lent to"
+      "history": "Lent to",
+      "pageSubtitle": "Every book, textbook and e-resource the library holds, and how many copies are on the shelf."
     },
     "copies": {
       "title_one": "{{count}} copy",
@@ -161,7 +202,13 @@
       "onTime": "On time"
     },
     "loans": {
-      "states": { "OVERDUE": "Overdue", "DUE_TODAY": "Due today", "OUT": "All out", "RETURNED": "Returned", "LOST": "Lost" },
+      "states": {
+        "OVERDUE": "Overdue",
+        "DUE_TODAY": "Due today",
+        "OUT": "All out",
+        "RETURNED": "Returned",
+        "LOST": "Lost"
+      },
       "search": "Borrower, book or accession no.",
       "book": "Book",
       "borrower": "Borrower",

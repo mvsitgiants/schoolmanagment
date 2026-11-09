@@ -2,9 +2,9 @@ import { useEffect, useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import clsx from 'clsx'
-import { CalendarCheck, CheckCheck, ChevronLeft } from 'lucide-react'
+import { CalendarCheck, CheckCheck, ChevronLeft, LayoutGrid, UserCheck, UserX } from 'lucide-react'
 import { ATTENDANCE_MARKS, countMarks } from '@schoolgiant/shared'
-import { FormField, Input, Note, PageContainer, PageHeader, Select, StatusPill } from '../../components/system'
+import { ColorChip, FormField, Input, Note, PageContainer, PageHeader, PersonCell, Select, StatCardRow, StatusPill, TONE } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { fetchAttendanceBoard, fetchSheet, saveSheet } from '../../api/attendance'
 import { useSnackbar } from '../../context/SnackbarContext'
@@ -71,7 +71,7 @@ function SheetView({ sectionId, date, period, onBack }) {
           <li key={s.id} className="flex flex-wrap items-center justify-between gap-2 px-3 py-2.5">
             <div className="min-w-0 flex items-center gap-3">
               <span className="w-8 text-end text-sm text-ink-faint font-mono-num">{s.rollNo ?? '–'}</span>
-              <div className="min-w-0"><p className="text-sm font-medium text-ink truncate">{s.name}</p>{s.onLeave && <p className="text-xs text-ink-muted">{t('attendance.mark.onLeave')}</p>}</div>
+              <PersonCell name={s.name} sub={s.onLeave ? t('attendance.mark.onLeave') : undefined} size={32} />
             </div>
             <div className="flex gap-1" role="radiogroup" aria-label={t('attendance.mark.markFor', { name: s.name })}>
               {ATTENDANCE_MARKS.map((m) => (
@@ -109,15 +109,24 @@ export default function Mark() {
   const mine = sections.filter((s) => s.mine)
   const others = sections.filter((s) => !s.mine)
   const pending = sections.filter((s) => !s.taken).length
+  const took = sections.filter((s) => s.taken && s.counts)
+  const present = took.reduce((n, s) => n + (s.counts.P ?? 0) + (s.counts.L ?? 0) + (s.counts.HD ?? 0), 0)
+  const absent = took.reduce((n, s) => n + (s.counts.A ?? 0), 0)
+  const marked = took.reduce((n, s) => n + (s.counts.total ?? 0), 0)
 
   const tile = (s) => (
     <button key={s.id} type="button" onClick={() => setOpen(s.id)}
       className="text-start rounded-xl border border-border bg-surface p-4 shadow-card hover:border-brand-300 transition-colors">
       <div className="flex items-center justify-between gap-2">
-        <span className="font-semibold text-ink font-mono-num">{s.short}</span>
+        <ColorChip label={s.short} seed={`class-${s.classOrder}`} mono />
         {s.taken ? <StatusPill tone="success">{t('attendance.board.taken')}</StatusPill> : <StatusPill tone="warning">{t('attendance.board.pending')}</StatusPill>}
       </div>
-      <p className="text-xs text-ink-muted mt-1">{s.taken && s.counts ? t('attendance.board.counts', { present: (s.counts.P ?? 0) + (s.counts.L ?? 0) + (s.counts.HD ?? 0), absent: s.counts.A ?? 0, total: s.counts.total }) : t('attendance.board.strength', { count: s.strength })}</p>
+      <p className="text-xs text-ink-muted mt-2">{s.taken && s.counts ? t('attendance.board.counts', { present: (s.counts.P ?? 0) + (s.counts.L ?? 0) + (s.counts.HD ?? 0), absent: s.counts.A ?? 0, total: s.counts.total }) : t('attendance.board.strength', { count: s.strength })}</p>
+      {s.taken && s.counts?.total > 0 && (
+        <span className="mt-2 flex h-1.5 w-full gap-0.5 overflow-hidden rounded-full bg-black/[0.06]" aria-hidden>
+          {[['P', 'success'], ['L', 'warning'], ['HD', 'info'], ['LV', 'neutral'], ['A', 'danger']].map(([k, tone]) => (s.counts[k] ? <span key={k} className={clsx('h-full', TONE[tone].fill)} style={{ width: `${(s.counts[k] / s.counts.total) * 100}%` }} /> : null))}
+        </span>
+      )}
     </button>
   )
 
@@ -138,6 +147,14 @@ export default function Mark() {
         <>
           {isLoading && <p className="text-sm text-ink-faint">{t('attendance.loading')}</p>}
           {board && !sections.length && <Note>{t('attendance.board.none')}</Note>}
+          {board && sections.length > 0 && (
+            <StatCardRow className="mb-4" items={[
+              { icon: LayoutGrid, tone: 'brand', label: t('attendance.board.summary.sections'), value: sections.length },
+              { icon: CalendarCheck, tone: pending ? 'warning' : 'success', label: t('attendance.board.summary.taken'), value: sections.length - pending, sub: t('attendance.board.summary.ofSections', { count: sections.length }), progress: ((sections.length - pending) / sections.length) * 100 },
+              { icon: UserCheck, tone: 'success', label: t('attendance.board.summary.present'), value: present, sub: marked ? t('attendance.board.summary.ofMarked', { count: marked }) : undefined, progress: marked ? (present / marked) * 100 : undefined },
+              { icon: UserX, tone: 'danger', label: t('attendance.board.summary.absent'), value: absent },
+            ]} />
+          )}
           {board && sections.length > 0 && <p className="text-sm text-ink-muted mb-3">{pending ? t('attendance.board.pendingCount', { count: pending }) : t('attendance.board.allTaken')}</p>}
           {mine.length > 0 && (
             <section className="mb-6">

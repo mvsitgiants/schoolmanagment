@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { CheckCircle2, Download, ListChecks, Send, XCircle } from 'lucide-react'
+import { CheckCircle2, Download, Gauge, ListChecks, PencilLine, Send, Trophy, Users, XCircle } from 'lucide-react'
 import { ATTEMPT_STATUS, QUESTION_TYPES } from '@schoolgiant/shared'
-import { DataTable, Drawer, FormField, Input, Note, PageContainer, PageHeader, Panel, ProgressBar, Select, StatCardRow, StatusPill, Textarea } from '../../components/system'
+import { DataTable, Drawer, FormField, Input, LevelBar, Note, PageContainer, PageHeader, Panel, PersonCell, ProgressBar, Select, StackCell, StatCardRow, StatusPill, Textarea } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { downloadResults, evaluateAttempt, fetchAttempt, fetchTestAttempts, fetchTests, releaseResults } from '../../api/onlineTests'
 import { hasPermission } from '../../api/auth'
@@ -92,18 +92,23 @@ export default function Attempts() {
             {test?.results === 'MANUAL' && !test.resultsReleasedAt && <Button size="sm" icon={Send} loading={release.isPending} onClick={() => release.mutate()}>{t('tests.attempts.release')}</Button>}
           </div>
           {s && <StatCardRow items={[
-            { label: t('tests.attempts.attempted'), value: `${s.attempted}/${s.students}` },
-            { label: t('tests.attempts.toEvaluate'), value: s.toEvaluate, tone: s.toEvaluate ? 'warning' : 'neutral' },
-            { label: t('tests.attempts.average'), value: s.average ?? '—' },
-            { label: t('tests.attempts.highest'), value: s.highest ?? '—' },
-            { label: t('tests.attempts.passed'), value: s.passed },
+            { icon: Users, tone: 'brand', label: t('tests.attempts.attempted'), value: `${s.attempted}/${s.students}`, progress: s.students ? (s.attempted / s.students) * 100 : undefined },
+            { icon: PencilLine, label: t('tests.attempts.toEvaluate'), value: s.toEvaluate, tone: s.toEvaluate ? 'warning' : 'neutral' },
+            { icon: Gauge, tone: 'violet', label: t('tests.attempts.average'), value: s.average ?? '—' },
+            { icon: Trophy, tone: 'orange', label: t('tests.attempts.highest'), value: s.highest ?? '—' },
+            { icon: CheckCircle2, tone: 'success', label: t('tests.attempts.passed'), value: s.passed, progress: s.submitted ? (s.passed / s.submitted) * 100 : undefined },
           ]} />}
           <DataTable rows={data?.rows ?? []} loading={isLoading} rowKey="studentId" columns={[
-            { key: 'name', header: t('tests.attempts.student'), mobilePrimary: true, render: (v, r) => <span>{v}<span className="block text-xs text-ink-faint">{[r.section, r.rollNo && t('tests.attempts.roll', { n: r.rollNo })].filter(Boolean).join(' · ')}</span></span> },
+            { key: 'name', header: t('tests.attempts.student'), mobilePrimary: true, render: (v, r) => <PersonCell name={v} sub={[r.section, r.rollNo && t('tests.attempts.roll', { n: r.rollNo })].filter(Boolean).join(' · ') || undefined} /> },
             { key: 'status', header: t('tests.statusCol'), render: (v) => (v ? <StatusPill tone={ATTEMPT_STATUS[v]?.tone}>{t(`tests.attemptStatus.${v}`)}</StatusPill> : <span className="text-xs text-ink-faint">{t('tests.attempts.notTaken')}</span>) },
-            { key: 'score', header: t('tests.attempts.marksCol'), align: 'right', render: (v, r) => (v ? <span className={r.passed === false ? 'text-danger-600' : ''}>{v.total}/{data.test.totalMarks}<span className="block text-[11px] text-ink-faint">{v.pct}%</span></span> : '—') },
-            { key: 'submittedAt', header: t('tests.attempts.submitted'), mobileHidden: true, render: (v, r) => (v ? <span className="text-xs">{dateTime(v)}<span className="block text-ink-faint">{t(`tests.reasons.${r.submitReason}`)}</span></span> : '—') },
-            { key: 'tabSwitches', header: t('tests.attempts.left'), align: 'right', mobileHidden: true, render: (v) => (v ? <span className="text-amber-700">{v}</span> : '0') },
+            { key: 'score', header: t('tests.attempts.marksCol'), align: 'right', render: (v, r) => (v ? (
+              <span className="inline-flex flex-col items-end gap-0.5">
+                <LevelBar value={v.total} max={data.test.totalMarks} dangerAt={r.passed === false ? Infinity : undefined} width="w-24" />
+                <span className={r.passed === false ? 'text-[11px] font-medium text-danger-600' : 'text-[11px] text-ink-faint'}>{v.pct}%</span>
+              </span>
+            ) : '—') },
+            { key: 'submittedAt', header: t('tests.attempts.submitted'), mobileHidden: true, render: (v, r) => (v ? <StackCell title={dateTime(v)} sub={r.submitReason ? t(`tests.reasons.${r.submitReason}`) : undefined} /> : '—') },
+            { key: 'tabSwitches', header: t('tests.attempts.left'), align: 'right', mobileHidden: true, render: (v) => (v ? <span className="inline-flex min-w-[1.5rem] justify-center rounded-md bg-amber-50 px-1.5 py-0.5 text-[12px] font-semibold tabular-nums text-amber-700">{v}</span> : <span className="text-ink-faint">0</span>) },
           ]} onRowClick={(r) => r.attemptId && setOpen(r.attemptId)} emptyTitle={t('tests.attempts.noStudents')} />
           {(data?.questions ?? []).length > 0 && (
             <Panel title={t('tests.attempts.byQuestion')} flush>

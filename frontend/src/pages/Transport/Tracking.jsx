@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { CheckCircle2, Circle, LocateFixed, LocateOff, MapPin, Navigation, Play, Square, UserCheck, UserMinus, UserX } from 'lucide-react'
+import { CheckCircle2, Circle, LocateFixed, LocateOff, MapPin, Navigation, Play, Square, UserCheck, UserMinus, UserX, Users } from 'lucide-react'
 import { osmEmbed, osmLink } from '@schoolgiant/shared'
-import { Drawer, Note, PageContainer, PageHeader, Panel, PhoneLink, SegmentedControl, StatCardRow, StatusPill, useConfirm } from '../../components/system'
+import { Drawer, Note, PageContainer, PageHeader, Panel, PersonCell, PhoneLink, SegmentedControl, StatCardRow, StatusPill, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { endTrip, fetchBoard, fetchMyRoutes, fetchTrip, markRide, sendPosition, startTrip } from '../../api/transport'
 import { hasPermission } from '../../api/auth'
@@ -76,9 +76,9 @@ function TripView({ tripId, live = false, onEnded }) {
       )}
       {trip.map && <MapFrame src={trip.map} className="h-56" />}
       <StatCardRow items={[
-        { label: t('transport.track.students'), value: students.length },
-        { label: t('transport.track.onBus'), value: on },
-        { label: t('transport.track.absent'), value: students.filter((s) => lastOf(s) === 'ABSENT').length },
+        { icon: Users, tone: 'brand', label: t('transport.track.students'), value: students.length },
+        { icon: UserCheck, tone: 'success', label: t('transport.track.onBus'), value: on, progress: students.length ? (on / students.length) * 100 : undefined },
+        { icon: UserX, label: t('transport.track.absent'), value: students.filter((s) => lastOf(s) === 'ABSENT').length, tone: students.some((s) => lastOf(s) === 'ABSENT') ? 'warning' : 'neutral' },
       ]} />
       <ol className="space-y-2">
         {trip.stops.map((s) => (
@@ -96,8 +96,7 @@ function TripView({ tripId, live = false, onEnded }) {
                   return (
                     <div key={st.id} className="flex flex-wrap items-center gap-2 px-3 py-2">
                       <div className="flex-1 min-w-[140px]">
-                        <p className="text-sm text-ink">{st.name}</p>
-                        <p className="text-xs text-ink-faint">{st.className}{st.mobile && <> · <PhoneLink number={st.mobile} /></>}</p>
+                        <PersonCell name={st.name} size={28} sub={<>{st.className}{st.mobile && <> · <PhoneLink number={st.mobile} /></>}</>} />
                       </div>
                       {last && <StatusPill tone={LAST_EVENT_TONE[last]}>{L.ride(last)}</StatusPill>}
                       {running && canTrack && (
@@ -184,10 +183,10 @@ function Board() {
   return (
     <div className="space-y-4">
       <StatCardRow items={[
-        { label: t('transport.track.running'), value: trips.filter((x) => x.status === 'RUNNING').length, tone: 'success' },
-        { label: t('transport.track.done'), value: trips.filter((x) => x.status === 'DONE').length },
-        { label: t('transport.track.notStarted'), value: trips.filter((x) => x.status === 'NOT_STARTED').length },
-        { label: t('transport.track.noSignal'), value: running.filter((r) => !fresh(r.lastPosition)).length, tone: running.some((r) => !fresh(r.lastPosition)) ? 'warning' : 'neutral' },
+        { icon: Play, label: t('transport.track.running'), value: trips.filter((x) => x.status === 'RUNNING').length, tone: 'success' },
+        { icon: CheckCircle2, tone: 'info', label: t('transport.track.done'), value: trips.filter((x) => x.status === 'DONE').length },
+        { icon: Circle, tone: 'violet', label: t('transport.track.notStarted'), value: trips.filter((x) => x.status === 'NOT_STARTED').length },
+        { icon: LocateOff, label: t('transport.track.noSignal'), value: running.filter((r) => !fresh(r.lastPosition)).length, tone: running.some((r) => !fresh(r.lastPosition)) ? 'warning' : 'neutral' },
       ]} />
       {map && <MapFrame src={map} />}
       <div className="grid md:grid-cols-2 gap-3">

@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { Plus, Undo2 } from 'lucide-react'
-import { MODES_WITH_REFERENCE, PAYMENT_MODES, formatINR, toPaise, toRupees } from '@schoolgiant/shared'
-import { DataTable, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, Select, Textarea } from '../../components/system'
+import { Plus, TrendingUp, Undo2, Users } from 'lucide-react'
+import { MODES_WITH_REFERENCE, PAYMENT_MODES, formatINR, formatINRCompact, toPaise, toRupees } from '@schoolgiant/shared'
+import { CodeBadge, ColorChip, DataTable, DateCell, FormField, HeaderButton, Input, Modal, Money, Note, PageContainer, PageHeader, PersonCell, Select, StackCell, StatCardRow, Textarea } from '../../components/system'
 import Button from '../../components/ui/Button'
 import useDebouncedValue from '../../hooks/useDebouncedValue'
 import { fetchReceipts, fetchRefunds, refundReceipt } from '../../api/fees'
@@ -60,15 +60,24 @@ function NewRefund({ onClose, onSaved }) {
 export default function Refunds() {
   const { t } = useTranslation('fees')
   const qc = useQueryClient()
-  const { date } = useFormat()
   const { showSuccess } = useSnackbar()
   const [adding, setAdding] = useState(false)
   const { data: rows = [], isLoading, error, refetch } = useQuery({ queryKey: ['fee-refunds'], queryFn: fetchRefunds })
   const modeLabel = (v) => t(`fees.modes.${v}`, PAYMENT_MODES.find((m) => m.value === v)?.label ?? v)
+  const total = rows.reduce((n, r) => n + r.amount, 0)
+  const byMode = PAYMENT_MODES.map((m) => ({ label: modeLabel(m.value), value: rows.filter((r) => r.mode === m.value).length })).filter((m) => m.value > 0)
+  const largest = rows.reduce((top, r) => (!top || r.amount > top.amount ? r : top), null)
   return (
     <PageContainer>
       <PageHeader icon={Undo2} title={t('fees.refunds.title')} subtitle={t('fees.refunds.subtitle')}
         actions={<HeaderButton icon={Plus} variant="primary" requires="fees.refunds.refund" onClick={() => setAdding(true)}>{t('fees.refunds.new')}</HeaderButton>} />
+      {rows.length > 0 && (
+        <StatCardRow className="mb-4" items={[
+          { icon: Undo2, tone: 'danger', label: t('fees.refunds.summary.refunded'), value: formatINRCompact(total), sub: t('fees.refunds.summary.count', { count: rows.length }), segments: byMode },
+          { icon: Users, tone: 'violet', label: t('fees.refunds.summary.students'), value: new Set(rows.map((r) => r.studentId)).size },
+          { icon: TrendingUp, tone: 'orange', label: t('fees.refunds.summary.largest'), value: formatINRCompact(largest.amount), sub: largest.student?.name },
+        ]} />
+      )}
       <DataTable
         rows={rows}
         loading={isLoading}
@@ -77,14 +86,14 @@ export default function Refunds() {
         exportable exportName="fee-refunds"
         columns={[
           { key: 'refundNo', header: t('fees.refunds.no'), nowrap: true, render: (v) => <span className="font-mono-num">{v}</span> },
-          { key: 'student', header: t('fees.refunds.student'), mobilePrimary: true, render: (v) => <div><p className="font-medium text-ink">{v?.name ?? '—'}</p><p className="text-xs text-ink-faint">{[v?.classShort, v?.admissionNo].filter(Boolean).join(' · ')}</p></div> },
-          { key: 'date', header: t('fees.refunds.date'), nowrap: true, render: (v) => date(v) },
-          { key: 'receiptNo', header: t('fees.refunds.receipt'), mobileHidden: true, render: (v) => <span className="font-mono-num text-sm">{v ?? '—'}</span> },
-          { key: 'mode', header: t('fees.refunds.mode'), render: (v, r) => <span className="text-sm">{modeLabel(v)}{r.reference ? <span className="text-ink-faint"> · {r.reference}</span> : ''}</span> },
-          { key: 'reason', header: t('fees.refunds.reason'), mobileHidden: true, render: (v, r) => <span className="text-sm text-ink-muted">{v}{r.by ? <span className="block text-xs text-ink-faint">{r.by}</span> : null}</span> },
-          { key: 'amount', header: t('fees.refunds.amount'), align: 'right', render: (v) => formatINR(v) },
+          { key: 'student', header: t('fees.refunds.student'), mobilePrimary: true, render: (v) => <PersonCell name={v?.name ?? '—'} sub={[v?.classShort, v?.admissionNo].filter(Boolean).join(' · ')} size={32} /> },
+          { key: 'date', header: t('fees.refunds.date'), nowrap: true, render: (v) => <DateCell value={v} /> },
+          { key: 'receiptNo', header: t('fees.refunds.receipt'), mobileHidden: true, render: (v) => <CodeBadge>{v}</CodeBadge> },
+          { key: 'mode', header: t('fees.refunds.mode'), render: (v, r) => <ColorChip label={modeLabel(v)} seed={v} dot sub={r.reference || undefined} /> },
+          { key: 'reason', header: t('fees.refunds.reason'), mobileHidden: true, render: (v, r) => <StackCell title={v} sub={r.by} wrap className="max-w-xs text-sm" /> },
+          { key: 'amount', header: t('fees.refunds.amount'), align: 'right', render: (v) => <Money value={v} paise tone="danger" /> },
         ]}
-        totals={(list) => ({ amount: formatINR(list.reduce((n, r) => n + r.amount, 0)) })}
+        totals={{ amount: formatINR(total) }}
         totalsLabel={t('fees.refunds.total')}
         emptyIcon={Undo2} emptyTitle={t('fees.refunds.empty')} emptyHint={t('fees.refunds.emptyHint')}
       />

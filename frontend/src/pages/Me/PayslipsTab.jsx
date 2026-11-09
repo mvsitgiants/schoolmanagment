@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { Printer, Wallet } from 'lucide-react'
-import { DataTable, Money } from '../../components/system'
+import { CodeBadge, DataTable, Fraction, Money } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { fetchMyPayslipHtml, fetchMyPayslips } from '../../api/payroll'
 import { printHtml } from '../../components/print/printDocument'
@@ -16,8 +16,8 @@ export default function PayslipsTab() {
   const { data, isLoading } = useQuery({ queryKey: ['hrms', 'me', 'payslips'], queryFn: fetchMyPayslips })
   return (
     <DataTable rows={data?.payslips ?? []} loading={isLoading} columns={[
-      { key: 'month', header: t('payroll.month'), mobilePrimary: true, render: (v, r) => <div><p className="font-medium text-ink">{monthLabel(v)}</p><p className="text-xs text-ink-faint font-mono-num">{r.payslipNo}</p></div> },
-      { key: 'payDays', header: t('payroll.att.payDays'), align: 'right', render: (v, r) => `${v}/${r.baseDays}` },
+      { key: 'month', header: t('payroll.month'), mobilePrimary: true, render: (v, r) => <div className="flex items-center gap-3"><span className="w-9 h-9 rounded-xl border flex items-center justify-center shrink-0 bg-emerald-50 text-emerald-700 border-emerald-200"><Wallet className="w-4 h-4" /></span><div className="min-w-0"><p className="font-medium text-ink">{monthLabel(v)}</p><CodeBadge>{r.payslipNo}</CodeBadge></div></div> },
+      { key: 'payDays', header: t('payroll.att.payDays'), align: 'right', render: (v, r) => <Fraction value={v} max={r.baseDays} /> },
       { key: 'gross', header: t('payroll.runs.gross'), align: 'right', render: (v) => <Money value={v} paise /> },
       { key: 'net', header: t('payroll.runs.net'), align: 'right', render: (v) => <Money value={v} paise className="font-semibold" /> },
       { key: 'status', header: t('payroll.status'), render: (v, r) => <span><RunStatusPill status={v} />{r.paid?.date && <span className="block text-[11px] text-ink-faint">{date(r.paid.date)}</span>}</span> },

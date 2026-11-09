@@ -4,14 +4,13 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { AlertTriangle, CheckCircle2, Copy, IndianRupee, Link2, Printer, Receipt, Wallet } from 'lucide-react'
 import { INVOICE_STATUS, MODES_WITH_REFERENCE, PAYMENT_MODES, formatINR, toPaise, toRupees } from '@schoolgiant/shared'
-import { DataTable, FormField, Input, Note, PageContainer, PageHeader, Panel, Select, StatCardRow, StatusPill, Textarea } from '../../components/system'
+import { ColorChip, DataTable, DateCell, FormField, Input, Money, Note, PageContainer, PageHeader, PaidBar, Panel, Select, StackCell, StatCardRow, StatusPill, Textarea } from '../../components/system'
 import Button from '../../components/ui/Button'
 import StudentPicker from '../../components/fees/StudentPicker'
 import { collectFee, createPaymentLink, fetchFeeLedger, fetchOnlineStatus } from '../../api/fees'
 import { hasPermission } from '../../api/auth'
 import { printDocument } from '../../components/print/printDocument'
 import { useSnackbar } from '../../context/SnackbarContext'
-import { useFormat } from '../../context/SettingsContext'
 
 /** With online payment on: a Razorpay link for what is due now, to send the parent (SMS from Razorpay, or copy). */
 function OnlineLink({ studentId }) {
@@ -42,7 +41,6 @@ function OnlineLink({ studentId }) {
 export default function Collect() {
   const { t } = useTranslation('fees')
   const qc = useQueryClient()
-  const { date, dateTime } = useFormat()
   const { showSuccess, showError } = useSnackbar()
   const [params, setParams] = useSearchParams()
   const [studentId, setStudentId] = useState(params.get('student') ?? '')
@@ -97,8 +95,9 @@ export default function Collect() {
       {ledger && (
         <div className="space-y-4">
           <StatCardRow items={[
-            { icon: Receipt, label: t('fees.collect.billed'), value: formatINR(totals.billed) },
-            { icon: CheckCircle2, label: t('fees.collect.paid'), value: formatINR(totals.paid), tone: 'success' },
+            { icon: Receipt, tone: 'brand', label: t('fees.collect.billed'), value: formatINR(totals.billed), sub: t('fees.collect.installmentCount', { count: ledger.invoices.length }) },
+            { icon: CheckCircle2, label: t('fees.collect.paid'), value: formatINR(totals.paid), tone: 'success',
+              sub: t('fees.collect.ofBilled', { pct: totals.billed > 0 ? Math.round((totals.paid / totals.billed) * 100) : 0 }), progress: totals.billed > 0 ? (totals.paid / totals.billed) * 100 : 0 },
             { icon: IndianRupee, label: t('fees.collect.balance'), value: formatINR(totals.balance), tone: totals.balance ? 'warning' : 'success' },
             { icon: AlertTriangle, label: t('fees.collect.overdue'), value: formatINR(totals.overdue), tone: totals.overdue ? 'danger' : 'neutral', sub: lateFee ? t('fees.collect.lateFeeSub', { amount: formatINR(lateFee) }) : undefined },
           ]} />
@@ -115,11 +114,13 @@ export default function Collect() {
               rows={ledger.invoices}
               rowTone={(r) => (r.overdue ? 'danger' : undefined)}
               columns={[
-                { key: 'installment', header: t('fees.collect.installment'), mobilePrimary: true, render: (v, r) => <div><p className="font-medium text-ink">{v}</p><p className="text-xs text-ink-faint font-mono-num">{r.invoiceNo}</p></div> },
-                { key: 'dueDate', header: t('fees.collect.due'), nowrap: true, render: (v) => date(v) },
-                { key: 'net', header: t('fees.collect.amount'), align: 'right', render: (v, r) => <span title={r.concession ? t('fees.collect.concessionTip', { amount: formatINR(r.concession) }) : undefined}>{formatINR(v)}</span> },
-                { key: 'paid', header: t('fees.collect.paid'), align: 'right', mobileHidden: true, render: (v) => formatINR(v) },
-                { key: 'balance', header: t('fees.collect.balance'), align: 'right', render: (v, r) => <span>{formatINR(v)}{r.lateFeeDue ? <span className="block text-xs text-danger-600">{t('fees.collect.plusLate', { amount: formatINR(r.lateFeeDue) })}</span> : null}</span> },
+                { key: 'installment', header: t('fees.collect.installment'), mobilePrimary: true, render: (v, r) => <StackCell title={v} sub={r.invoiceNo} subMono /> },
+                { key: 'dueDate', header: t('fees.collect.due'), nowrap: true, render: (v, r) => <DateCell value={v} tone={r.overdue ? 'danger' : undefined} relative={r.balance > 0} /> },
+                { key: 'net', header: t('fees.collect.amount'), align: 'right', render: (v, r) => <span title={r.concession ? t('fees.collect.concessionTip', { amount: formatINR(r.concession) }) : undefined}><Money value={v} paise /></span> },
+                { key: 'paid', header: t('fees.collect.paid'), align: 'right', mobileHidden: true, render: (v) => <Money value={v} paise tone={v > 0 ? 'success' : undefined} /> },
+                { key: 'balance', header: t('fees.collect.balance'), align: 'right', render: (v, r) => (r.status === 'CANCELLED' ? <span className="text-ink-faint">—</span> : <span className="inline-flex flex-col items-end">
+                  <PaidBar total={r.net} balance={v} paise overdue={r.overdue} paidLabel={t('fees.collect.paidShort')} />
+                  {r.lateFeeDue ? <span className="text-xs text-danger-600 mt-0.5">{t('fees.collect.plusLate', { amount: formatINR(r.lateFeeDue) })}</span> : null}</span>) },
                 { key: 'status', header: t('fees.collect.status'), render: (v) => <StatusPill tone={INVOICE_STATUS[v]?.tone}>{statusLabel(v)}</StatusPill> },
               ]}
               emptyIcon={Receipt} emptyTitle={t('fees.collect.noInvoices')} emptyHint={t('fees.collect.noInvoicesHint')}
@@ -163,9 +164,9 @@ export default function Collect() {
             dense
             columns={[
               { key: 'receiptNo', header: t('fees.receipts.no'), mobilePrimary: true, render: (v) => <span className="font-mono-num">{v}</span> },
-              { key: 'at', header: t('fees.receipts.when'), nowrap: true, render: (v) => dateTime(v) },
-              { key: 'mode', header: t('fees.receipts.mode'), render: (v, r) => <span className="text-sm">{modeLabel(v)}{r.reference ? <span className="text-ink-faint"> · {r.reference}</span> : ''}</span> },
-              { key: 'amount', header: t('fees.receipts.amount'), align: 'right', render: (v, r) => <span>{formatINR(v)}{r.refunded ? <span className="block text-xs text-ink-faint">{t('fees.receipts.refundedSub', { amount: formatINR(r.refunded) })}</span> : null}</span> },
+              { key: 'at', header: t('fees.receipts.when'), nowrap: true, render: (v) => <DateCell value={v} time /> },
+              { key: 'mode', header: t('fees.receipts.mode'), render: (v, r) => <ColorChip label={modeLabel(v)} seed={v} dot sub={r.reference || undefined} /> },
+              { key: 'amount', header: t('fees.receipts.amount'), align: 'right', render: (v, r) => <span><Money value={v} paise muted={r.status !== 'VALID'} />{r.refunded ? <span className="block text-xs text-ink-faint">{t('fees.receipts.refundedSub', { amount: formatINR(r.refunded) })}</span> : null}</span> },
               { key: 'status', header: t('fees.receipts.status'), render: (v) => <StatusPill tone={v === 'VALID' ? 'success' : 'neutral'}>{t(`fees.receiptStatus.${v}`)}</StatusPill> },
               { key: 'id', header: '', align: 'right', width: 60, render: (id) => <Button size="sm" variant="ghost" icon={Printer} aria-label={t('fees.collect.print')} title={t('fees.collect.print')} onClick={() => printDocument('FEE_RECEIPT', id)} /> },
             ]}

@@ -1,15 +1,18 @@
 import { useState } from 'react'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { MessageSquareText, Send } from 'lucide-react'
+import { Mail, MessageCircle, MessageSquareText, Send, Smartphone } from 'lucide-react'
 import { SEND_CHANNELS, SMS_MAX } from '@schoolgiant/shared'
-import { DataTable, FormField, Input, Note, PageContainer, PageHeader, Panel, Textarea, useConfirm } from '../../components/system'
+import { ColorChip, DataTable, FormField, Input, LevelBar, Note, PageContainer, PageHeader, Panel, Textarea, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
 import AudiencePicker, { emptyAudience } from '../../components/communication/AudiencePicker'
 import { fetchBroadcasts, sendBroadcast } from '../../api/communication'
 import { hasPermission } from '../../api/auth'
 import { useSnackbar } from '../../context/SnackbarContext'
 import { useFormat } from '../../context/SettingsContext'
+
+// each channel's icon, wherever a message's channel is shown
+const CHANNEL_ICON = { SMS: Smartphone, WHATSAPP: MessageCircle, EMAIL: Mail }
 
 /** One-off messages to families: write it, pick who gets it and how, send. Every send is listed with its delivery. */
 export default function Messages() {
@@ -68,9 +71,9 @@ export default function Messages() {
           onRetry={refetch}
           columns={[
             { key: 'text', header: t('communication.messages.text'), mobilePrimary: true, render: (v, r) => <div><p className="text-sm text-ink line-clamp-2">{r.subject ? <b>{r.subject} · </b> : null}{v}</p><p className="text-xs text-ink-faint">{dateTime(r.createdAt)} · {r.sentBy}</p></div> },
-            { key: 'channels', header: t('communication.messages.how'), render: (v) => <span className="text-xs text-ink-muted">{v.map((c) => t(`communication.channels.${c}`)).join(', ')}</span> },
-            { key: 'recipients', header: t('communication.messages.families'), align: 'right' },
-            { key: 'delivery', header: t('communication.messages.delivery'), render: (d) => <span className="text-xs"><span className="text-success-700">{t('communication.messages.sentN', { n: d.sent })}</span>{d.queued ? <span className="text-ink-muted"> · {t('communication.messages.queuedN', { n: d.queued })}</span> : null}{d.failed ? <span className="text-danger-600"> · {t('communication.messages.failedN', { n: d.failed })}</span> : null}{d.skipped ? <span className="text-ink-faint"> · {t('communication.messages.skippedN', { n: d.skipped })}</span> : null}</span> },
+            { key: 'channels', header: t('communication.messages.how'), render: (v) => <span className="flex flex-wrap gap-1">{v.map((c) => <ColorChip key={c} label={t(`communication.channels.${c}`)} seed={`channel-${c}`} icon={CHANNEL_ICON[c]} />)}</span> },
+            { key: 'recipients', header: t('communication.messages.families'), align: 'right', render: (v) => <span className="font-semibold tabular-nums">{v}</span> },
+            { key: 'delivery', header: t('communication.messages.delivery'), render: (d) => <span className="flex flex-col gap-1 text-xs"><LevelBar bare value={d.sent} max={(d.sent ?? 0) + (d.queued ?? 0) + (d.failed ?? 0) + (d.skipped ?? 0)} warnAt={d.failed ? Infinity : undefined} width="w-32" /><span><span className="text-success-700">{t('communication.messages.sentN', { n: d.sent })}</span>{d.queued ? <span className="text-ink-muted"> · {t('communication.messages.queuedN', { n: d.queued })}</span> : null}{d.failed ? <span className="text-danger-600"> · {t('communication.messages.failedN', { n: d.failed })}</span> : null}{d.skipped ? <span className="text-ink-faint"> · {t('communication.messages.skippedN', { n: d.skipped })}</span> : null}</span></span> },
           ]}
           pagination={meta && meta.totalPages > 1 && { page: meta.page - 1, size: meta.pageSize, totalElements: meta.total, totalPages: meta.totalPages, onPageChange: (p) => setPage(p + 1) }}
           emptyIcon={MessageSquareText} emptyTitle={t('communication.messages.empty')}

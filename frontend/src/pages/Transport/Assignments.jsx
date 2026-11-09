@@ -1,16 +1,15 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { Download, LogOut, Plus, Users } from 'lucide-react'
+import { AlertTriangle, ArrowLeftRight, Download, LogOut, Plus, Route as RouteIcon, Users } from 'lucide-react'
 import { RIDE_MODES } from '@schoolgiant/shared'
-import { DataTable, FormField, HeaderButton, Input, Modal, Money, Note, PageContainer, PageHeader, PhoneLink, SearchInput, Select, StatCardRow, Textarea, localIso, useConfirm } from '../../components/system'
+import { ColorChip, DataTable, DateCell, FormField, HeaderButton, Input, Modal, Money, Note, PageContainer, PageHeader, PersonCell, PhoneLink, SearchInput, Select, StatCardRow, Textarea, localIso, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
 import StudentPicker from '../../components/fees/StudentPicker'
 import { assignStudent, downloadAssignments, endAssignment, fetchAssignments, fetchRoutes } from '../../api/transport'
 import { hasPermission } from '../../api/auth'
 import useDebouncedValue from '../../hooks/useDebouncedValue'
 import { useSnackbar } from '../../context/SnackbarContext'
-import { useFormat } from '../../context/SettingsContext'
 import { useTransportLabels } from '../../components/transport/TransportKit'
 
 function AssignForm({ routes, preset, onClose, onSaved }) {
@@ -52,7 +51,6 @@ export default function Assignments() {
   const L = useTransportLabels()
   const qc = useQueryClient()
   const confirm = useConfirm()
-  const { date } = useFormat()
   const { showSuccess, showError } = useSnackbar()
   const [routeId, setRouteId] = useState('')
   const [search, setSearch] = useState('')
@@ -76,9 +74,9 @@ export default function Assignments() {
       <div className="space-y-4">
         {!routes.length && <Note>{t('transport.assign.noRoutes')}</Note>}
         <StatCardRow items={[
-          { label: t('transport.assign.riding'), value: routes.reduce((n, r) => n + r.students, 0) },
-          { label: t('transport.assign.routesN'), value: routes.length },
-          { label: t('transport.assign.overfull'), value: over.length, tone: over.length ? 'danger' : 'neutral' },
+          { icon: Users, tone: 'brand', label: t('transport.assign.riding'), value: routes.reduce((n, r) => n + r.students, 0) },
+          { icon: RouteIcon, tone: 'info', label: t('transport.assign.routesN'), value: routes.length },
+          { icon: AlertTriangle, label: t('transport.assign.overfull'), value: over.length, tone: over.length ? 'danger' : 'neutral' },
         ]} />
         {over.length > 0 && <Note tone="warning">{t('transport.assign.overNote', { list: over.map((r) => `${r.name} (${r.students}/${r.vehicle.capacity})`).join(', ') })}</Note>}
         <div className="flex flex-wrap items-center gap-2">
@@ -87,13 +85,13 @@ export default function Assignments() {
           {route?.vehicle && <span className="text-xs text-ink-muted">{t('transport.assign.routeLine', { reg: route.vehicle.regNo, count: route.students, seats: route.vehicle.capacity })}</span>}
         </div>
         <DataTable rows={rows} loading={isLoading} columns={[
-          { key: 'student', header: t('transport.assign.student'), mobilePrimary: true, render: (v) => <span>{v?.name}<span className="block text-xs text-ink-faint">{[v?.className, v?.admissionNo].filter(Boolean).join(' · ')}</span></span> },
-          { key: 'route', header: t('transport.assign.route'), render: (v, r) => <span>{v}<span className="block text-xs text-ink-faint">{r.stop}</span></span> },
+          { key: 'student', header: t('transport.assign.student'), mobilePrimary: true, render: (v) => <PersonCell name={v?.name} sub={[v?.className, v?.admissionNo].filter(Boolean).join(' · ') || undefined} /> },
+          { key: 'route', header: t('transport.assign.route'), render: (v, r) => <span className="flex flex-col items-start gap-0.5"><ColorChip label={v} seed={r.routeId} icon={RouteIcon} /><span className="text-xs text-ink-faint">{r.stop}</span></span> },
           { key: 'pickupTime', header: t('transport.assign.times'), mobileHidden: true, render: (v, r) => [v, r.dropTime].filter(Boolean).join(' / ') || '—' },
-          { key: 'mode', header: t('transport.assign.mode'), mobileHidden: true, render: (v) => L.mode(v) },
+          { key: 'mode', header: t('transport.assign.mode'), mobileHidden: true, render: (v) => <ColorChip label={L.mode(v)} seed={`ride-${v}`} icon={ArrowLeftRight} /> },
           { key: 'fee', header: t('transport.assign.fee'), align: 'right', mobileHidden: true, render: (v) => (v != null ? <Money value={v} paise /> : '—') },
-          { key: 'guardian', header: t('transport.assign.parent'), mobileHidden: true, render: (_, r) => (r.student?.mobile ? <span>{r.student.guardian}<span className="block text-xs"><PhoneLink number={r.student.mobile} /></span></span> : '—') },
-          { key: 'from', header: t('transport.assign.since'), mobileHidden: true, render: (v) => date(v) },
+          { key: 'guardian', header: t('transport.assign.parent'), mobileHidden: true, render: (_, r) => (r.student?.mobile ? <PersonCell name={r.student.guardian} sub={<PhoneLink number={r.student.mobile} />} size={26} /> : '—') },
+          { key: 'from', header: t('transport.assign.since'), mobileHidden: true, render: (v) => <DateCell value={v} /> },
           { key: 'id', header: '', align: 'right', width: 60, render: (_, r) => canEdit && <Button size="sm" variant="ghost" icon={LogOut} aria-label={t('transport.assign.end')}
             onClick={async (e) => { e.stopPropagation(); if (await confirm({ title: t('transport.assign.endConfirm', { name: r.student?.name }), confirmLabel: t('transport.assign.end'), tone: 'danger' })) end.mutate(r.id) }} /> },
         ]} onRowClick={canEdit ? (r) => setEditing(r) : undefined} emptyTitle={t('transport.assign.empty')} />

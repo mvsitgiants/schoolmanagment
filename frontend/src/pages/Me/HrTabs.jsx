@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { Ban, Check, Plus, X } from 'lucide-react'
+import { Ban, CalendarHeart, Check, CircleCheck, CircleDashed, CircleX, Clock, Palmtree, Plus, X } from 'lucide-react'
 import { APPRAISAL_STATUS, LEAVE_STATUSES, STAFF_ATTENDANCE } from '@schoolgiant/shared'
-import { DataTable, Fact, FactGrid, FormField, Input, Note, Panel, StatCardRow, StatusPill, localIso, usePrompt } from '../../components/system'
+import { Avatar, ColorChip, DataTable, Fact, FactGrid, FormField, Input, LevelBar, Note, Panel, PersonCell, StatCard, StatCardRow, StatusPill, hueTone, localIso, usePrompt, useTimeAgo } from '../../components/system'
 import Button from '../../components/ui/Button'
 import {
   applyMyLeave, cancelMyLeave, decideAsManager, fetchMyApprovals, fetchMyAttendance, fetchMyLeave, fetchMyRecord, fetchMyReview, fetchMyReviews, submitManagerReview,
@@ -18,6 +18,9 @@ import clsx from 'clsx'
 // My workspace › the Staff & HR tabs: what a member of staff sees of their own record.
 
 export const ME_HR = ['hrms', 'me']
+
+// a leave type's colour: the tone set on the type, else one picked from its code
+const leaveTone = (b) => (b.tone && b.tone !== 'neutral' ? b.tone : hueTone(b.code))
 
 export function MyLeaveTab() {
   const { t } = useTranslation('hrms')
@@ -39,20 +42,27 @@ export function MyLeaveTab() {
         <p className="text-sm text-ink-muted">{t('hrms.me.leaveHint')}</p>
         {data?.canApply && <Button icon={Plus} onClick={() => setApplying(true)}>{t('hrms.me.apply')}</Button>}
       </div>
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        {(data?.balances ?? []).map((b) => (
-          <div key={b.leaveTypeId} className="rounded-xl border border-border bg-surface p-3">
-            <p className="text-xs text-ink-muted">{b.name}</p>
-            <p className="text-xl font-semibold text-ink font-mono-num">{b.available ?? b.balance}</p>
-            <p className="text-[11px] text-ink-faint">{b.available === null ? t('hrms.leave.noLimit') : t('hrms.leave.takenPending', { taken: b.taken, pending: b.pending })}</p>
-          </div>
-        ))}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        {(data?.balances ?? []).map((b) => {
+          // the bar is what is free of what was credited (left + taken); pending days are already spoken for
+          const credited = Math.max(0, b.balance + b.taken)
+          const free = b.available ?? b.balance
+          return (
+            <StatCard key={b.leaveTypeId} icon={Palmtree} tone={leaveTone(b)} label={b.name} value={free}
+              sub={b.available === null ? t('hrms.leave.noLimit') : t('hrms.leave.takenPending', { taken: b.taken, pending: b.pending })}
+              segments={b.available !== null && credited > 0 ? [
+                { label: t('hrms.me.balance.free'), value: Math.max(0, free), tone: leaveTone(b) },
+                { label: t('hrms.me.balance.pending'), value: b.pending, tone: 'warning' },
+                { label: t('hrms.me.balance.taken'), value: b.taken, tone: 'neutral' },
+              ] : undefined} />
+          )
+        })}
       </div>
       <Panel title={t('hrms.me.requests')} flush>
         <DataTable rows={data?.requests ?? []} dense className="border-0 shadow-none" columns={[
-          { key: 'leaveName', header: t('hrms.leave.type'), mobilePrimary: true },
+          { key: 'leaveName', header: t('hrms.leave.type'), mobilePrimary: true, render: (v, r) => { const b = (data?.balances ?? []).find((x) => x.leaveTypeId === String(r.leaveTypeId)); return <ColorChip label={v} seed={r.leaveCode} tone={b ? leaveTone(b) : undefined} dot /> } },
           { key: 'from', header: t('hrms.leave.when'), nowrap: true, render: (_, r) => span(r, date) },
-          { key: 'days', header: t('hrms.leave.days'), align: 'right' },
+          { key: 'days', header: t('hrms.leave.days'), align: 'right', render: (v) => <span className="font-semibold tabular-nums text-ink">{v}</span> },
           { key: 'status', header: t('hrms.leave.status'), render: (v, r) => <span><StatusPill tone={LEAVE_STATUSES[v]?.tone}>{L.leaveStatus(v)}</StatusPill>{r.decided?.note && <span className="block text-[11px] text-ink-faint">{r.decided.note}</span>}</span> },
           { key: 'id', header: '', align: 'right', width: 60, render: (id, r) => (r.status === 'PENDING' || (r.status === 'APPROVED' && r.from > today)) && (
             <Button size="sm" variant="ghost" icon={Ban} aria-label={t('hrms.leave.cancel')} title={t('hrms.leave.cancel')}
@@ -80,8 +90,11 @@ export function MyAttendanceTab() {
       {isLoading ? <p className="text-sm text-ink-faint">{t('hrms.loading')}</p> : (
         <>
           <StatCardRow items={[
-            { label: L.att('PRESENT'), value: tot.PRESENT ?? 0 }, { label: L.att('HALF_DAY'), value: tot.HALF_DAY ?? 0 }, { label: L.att('ABSENT'), value: tot.ABSENT ?? 0 },
-            { label: L.att('LEAVE'), value: tot.LEAVE ?? 0 }, { label: t('hrms.attendance.tot.late'), value: tot.late ?? 0 },
+            { icon: CircleCheck, tone: 'success', label: L.att('PRESENT'), value: tot.PRESENT ?? 0 },
+            { icon: CircleDashed, tone: 'warning', label: L.att('HALF_DAY'), value: tot.HALF_DAY ?? 0 },
+            { icon: CircleX, tone: 'danger', label: L.att('ABSENT'), value: tot.ABSENT ?? 0 },
+            { icon: Palmtree, tone: 'brand', label: L.att('LEAVE'), value: tot.LEAVE ?? 0 },
+            { icon: Clock, tone: 'orange', label: t('hrms.attendance.tot.late'), value: tot.late ?? 0 },
           ]} />
           <div className="grid grid-cols-7 gap-1.5 max-w-xl">
             {['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'].map((d) => <div key={d} className="text-center text-[11px] text-ink-faint">{L.day(d)}</div>)}
@@ -112,10 +125,10 @@ export function MyApprovalsTab() {
   const act = useMutation({ mutationFn: ({ id, approve, note }) => decideAsManager(id, { approve, note }), onSuccess: (_, v) => { qc.invalidateQueries({ queryKey: ME_HR }); qc.invalidateQueries({ queryKey: ['leaves'] }); showSuccess(v.approve ? t('hrms.leave.approved') : t('hrms.leave.rejected')) }, onError: (e) => showError(e.message) })
   return (
     <DataTable rows={rows} loading={isLoading} columns={[
-      { key: 'employeeName', header: t('hrms.leave.person'), mobilePrimary: true },
-      { key: 'leaveName', header: t('hrms.leave.type') },
+      { key: 'employeeName', header: t('hrms.leave.person'), mobilePrimary: true, render: (v, r) => <PersonCell name={v} sub={r.employeeCode} /> },
+      { key: 'leaveName', header: t('hrms.leave.type'), render: (v, r) => <ColorChip label={v} seed={r.leaveCode} dot /> },
       { key: 'from', header: t('hrms.leave.when'), nowrap: true, render: (_, r) => span(r, date) },
-      { key: 'days', header: t('hrms.leave.days'), align: 'right' },
+      { key: 'days', header: t('hrms.leave.days'), align: 'right', render: (v) => <span className="font-semibold tabular-nums text-ink">{v}</span> },
       { key: 'reason', header: t('hrms.leave.reason'), render: (v, r) => <span className="text-sm text-ink-muted">{v}{r.arrangement && <span className="block text-xs text-ink-faint">{t('hrms.leave.arrangementShort', { text: r.arrangement })}</span>}</span> },
       { key: 'id', header: '', align: 'right', width: 100, render: (id, r) => (
         <div className="flex justify-end gap-1">
@@ -139,13 +152,16 @@ export function MyReviewsTab() {
   if (isLoading) return <p className="text-sm text-ink-faint">{t('hrms.loading')}</p>
   const row = (a, mode) => (
     <div key={a.id} className="flex flex-wrap items-center justify-between gap-2 py-2.5 border-b border-border last:border-0">
-      <div className="min-w-0">
+      <div className="min-w-0 flex items-center gap-2.5">
+        {mode === 'manager' && <Avatar name={a.employeeName} size={30} soft />}
+        <div className="min-w-0">
         <p className="text-sm font-medium text-ink">{mode === 'self' ? a.cycle?.name : a.employeeName}</p>
         <p className="text-xs text-ink-faint">{mode === 'self' ? [a.cycle?.dueDate && t('hrms.performance.dueBy', { date: a.cycle.dueDate }), a.reviewerName && t('hrms.performance.reviewedBy', { name: a.reviewerName })].filter(Boolean).join(' · ') : [a.designation, a.cycle?.name].filter(Boolean).join(' · ')}</p>
+        </div>
       </div>
       <div className="flex items-center gap-2">
         <StatusPill tone={APPRAISAL_STATUS[a.status]?.tone}>{L.review(a.status)}</StatusPill>
-        {a.finalScore != null && <span className="text-sm font-semibold">{a.finalScore}/5</span>}
+        {a.finalScore != null && <LevelBar value={a.finalScore} max={5} warnAt={3.49} dangerAt={2.49} width="w-20" />}
         {mode === 'self' && a.status === 'SELF' && <Button size="sm" onClick={() => setOpen({ id: a.id, mode: 'self' })}>{t('hrms.performance.doSelf')}</Button>}
         {mode === 'manager' && a.status === 'MANAGER' && <Button size="sm" onClick={() => setOpen({ id: a.id, mode: 'manager' })}>{t('hrms.performance.doRate')}</Button>}
         {a.status === 'DONE' && <Button size="sm" variant="ghost" onClick={() => setOpen({ id: a.id, mode: 'view' })}>{t('hrms.performance.view')}</Button>}
@@ -180,6 +196,7 @@ export function MyProfileTab() {
   const L = useHrLabels()
   const qc = useQueryClient()
   const { date } = useFormat()
+  const ago = useTimeAgo()
   const { showSuccess, showError } = useSnackbar()
   const { data: me, isLoading } = useQuery({ queryKey: [...ME_HR, 'record'], queryFn: fetchMyRecord })
   const [edit, setEdit] = useState(null)
@@ -214,7 +231,18 @@ export function MyProfileTab() {
         <p className="text-xs text-ink-faint mt-3">{t('hrms.me.recordHint')}</p>
       </Panel>
       <Panel title={t('hrms.me.holidays')}>
-        {me.holidays.length ? me.holidays.map((h) => <p key={h.date + h.name} className="text-sm py-1"><span className="text-ink-muted">{date(h.date)}</span> · {h.name}{h.optional && <span className="text-xs text-ink-faint"> ({t('hrms.holidays.optionalShort')})</span>}</p>) : <p className="text-sm text-ink-faint">{t('hrms.me.noHolidays')}</p>}
+        {me.holidays.length ? me.holidays.map((h) => (
+          <div key={h.date + h.name} className="flex items-center gap-3 py-1.5">
+            <span className={clsx('inline-flex h-10 w-10 shrink-0 flex-col items-center justify-center rounded-lg border leading-none', h.optional ? 'border-sky-200 bg-sky-50 text-sky-700' : 'border-pink-200 bg-pink-50 text-pink-700')}>
+              <span className="text-[15px] font-bold tabular-nums">{Number(h.date.slice(8, 10))}</span>
+              <CalendarHeart className="mt-0.5 h-2.5 w-2.5" aria-hidden />
+            </span>
+            <div className="min-w-0 leading-tight">
+              <p className="text-sm font-medium text-ink truncate">{h.name}{h.optional && <span className="text-xs font-normal text-ink-faint"> ({t('hrms.holidays.optionalShort')})</span>}</p>
+              <p className="text-[11px] text-ink-faint">{date(h.date)} · {ago(h.date)}</p>
+            </div>
+          </div>
+        )) : <p className="text-sm text-ink-faint">{t('hrms.me.noHolidays')}</p>}
       </Panel>
     </div>
   )

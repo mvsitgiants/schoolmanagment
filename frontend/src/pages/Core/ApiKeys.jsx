@@ -3,10 +3,10 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useSearchParams } from 'react-router-dom'
 import clsx from 'clsx'
 import { Trans, useTranslation } from 'react-i18next'
-import { Ban, KeyRound, Pencil, Plus, Power, RotateCcw, Send, Trash2, Webhook } from 'lucide-react'
+import { Ban, FlaskConical, KeyRound, ListChecks, Pencil, Plus, Power, Radio, RotateCcw, Send, Trash2, Webhook } from 'lucide-react'
 import { INTEGRATION_MODES, WEBHOOK_DELIVERY_STATUSES } from '@schoolgiant/shared'
 import {
-  DataTable, Drawer, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, SegmentedControl, StatusPill, Tabs, Textarea, useConfirm,
+  CodeBadge, ColorChip, DataTable, DateCell, Drawer, ExpiryBadge, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, SegmentedControl, StatusPill, Tabs, Textarea, useConfirm,
 } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { DefinitionGrid } from '../../components/app/Controls'
@@ -105,7 +105,6 @@ function KeysTab({ meta }) {
   const { t } = useTranslation('admin')
   const qc = useQueryClient()
   const confirm = useConfirm()
-  const { dateTime, date } = useFormat()
   const { showSuccess, showError } = useSnackbar()
   // ?new=website (from Portal content › Website API): open a new key set up for the website
   const [params, setParams] = useSearchParams()
@@ -126,10 +125,10 @@ function KeysTab({ meta }) {
       </div>
       <DataTable rows={rows} loading={isLoading}
         columns={[
-          { key: 'name', header: t('admin.apiKeys.cols.key'), mobilePrimary: true, render: (v, k) => <div><p className="font-medium text-ink">{v}</p><p className="text-xs text-ink-faint font-mono">{k.hint}</p>{k.allowedOrigins?.length > 0 && <p className="text-[11px] text-ink-muted truncate" title={k.allowedOrigins.join('\n')}>{t('admin.apiKeys.originsShort', { list: k.allowedOrigins.map((o) => o.replace(/^https?:\/\//, '')).join(', ') })}</p>}</div> },
-          { key: 'scopes', header: t('admin.apiKeys.cols.permissions'), render: (v) => <span className="text-sm text-ink-muted" title={(v ?? []).join('\n')}>{v?.length ?? 0}</span> },
-          { key: 'expiresAt', header: t('admin.apiKeys.cols.expires'), render: (v) => <span className="text-sm text-ink-muted">{v ? date(v) : t('admin.apiKeys.never')}</span> },
-          { key: 'lastUsedAt', header: t('admin.apiKeys.cols.lastUsed'), render: (v, k) => <span className="text-sm text-ink-muted">{v ? `${dateTime(v)}${k.lastUsedIp ? ` · ${k.lastUsedIp}` : ''}` : '—'}</span> },
+          { key: 'name', header: t('admin.apiKeys.cols.key'), mobilePrimary: true, render: (v, k) => <div className="flex items-start gap-3"><span className={clsx('w-9 h-9 rounded-xl border flex items-center justify-center shrink-0', k.state === 'REVOKED' ? 'bg-bg text-ink-faint border-border' : 'bg-violet-50 text-violet-700 border-violet-200')}><KeyRound className="w-4 h-4" /></span><div className="min-w-0"><p className="font-medium text-ink">{v}</p><CodeBadge>{k.hint}</CodeBadge>{k.allowedOrigins?.length > 0 && <p className="text-[11px] text-ink-muted truncate" title={k.allowedOrigins.join('\n')}>{t('admin.apiKeys.originsShort', { list: k.allowedOrigins.map((o) => o.replace(/^https?:\/\//, '')).join(', ') })}</p>}</div></div> },
+          { key: 'scopes', header: t('admin.apiKeys.cols.permissions'), render: (v) => <span title={(v ?? []).join('\n')}><ColorChip label={String(v?.length ?? 0)} tone="info" icon={ListChecks} /></span> },
+          { key: 'expiresAt', header: t('admin.apiKeys.cols.expires'), render: (v, k) => (v ? (k.state === 'REVOKED' ? <DateCell value={v} relative={false} /> : <ExpiryBadge value={v} warnDays={30} dangerDays={7} />) : <span className="text-sm text-ink-muted">{t('admin.apiKeys.never')}</span>) },
+          { key: 'lastUsedAt', header: t('admin.apiKeys.cols.lastUsed'), render: (v, k) => (v ? <span className="block leading-tight"><DateCell value={v} time />{k.lastUsedIp && <span className="block font-mono-num text-[11px] text-ink-faint">{k.lastUsedIp}</span>}</span> : <span className="text-ink-faint">—</span>) },
           { key: 'state', header: t('common.status'), render: (v) => <StatusPill tone={KEY_STATE[v]?.tone}>{t(`admin.apiKeys.state.${v}`, { defaultValue: KEY_STATE[v]?.label ?? v })}</StatusPill> },
           { key: 'actions', header: '', align: 'right', render: (_, k) => k.state !== 'REVOKED' && (
             <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>
@@ -190,7 +189,6 @@ function WebhookModal({ meta, hook, onClose, onSaved }) {
 function Deliveries({ endpointId, compact }) {
   const { t } = useTranslation('admin')
   const qc = useQueryClient()
-  const { dateTime } = useFormat()
   const { showSuccess, showError } = useSnackbar()
   const [page, setPage] = useState(1)
   const params = { page, pageSize: compact ? 10 : 30 }
@@ -200,8 +198,8 @@ function Deliveries({ endpointId, compact }) {
   return (
     <DataTable rows={data?.data ?? []} loading={isLoading} dense={compact}
       columns={[
-        { key: 'createdAt', header: t('admin.apiKeys.cols.when'), nowrap: true, render: (v) => <span className="text-sm text-ink-muted">{dateTime(v)}</span> },
-        !endpointId && { key: 'endpointName', header: t('admin.apiKeys.cols.webhook') },
+        { key: 'createdAt', header: t('admin.apiKeys.cols.when'), nowrap: true, render: (v) => <DateCell value={v} time /> },
+        !endpointId && { key: 'endpointName', header: t('admin.apiKeys.cols.webhook'), render: (v) => (v ? <ColorChip label={v} seed={v} icon={Webhook} /> : <span className="text-ink-faint">—</span>) },
         { key: 'event', header: t('admin.apiKeys.cols.event'), mobilePrimary: true, render: (v, d) => <div><p className="text-sm font-mono">{v}</p><p className="text-[11px] text-ink-faint font-mono">{d.deliveryId}</p></div> },
         { key: 'status', header: t('common.status'), render: (v, d) => <div><StatusPill tone={WEBHOOK_DELIVERY_STATUSES[v]?.tone}>{t(`admin.apiKeys.deliveryStatus.${v}`, { defaultValue: WEBHOOK_DELIVERY_STATUSES[v]?.label ?? v })}</StatusPill><p className="text-[11px] text-ink-faint">{[d.responseStatus && `HTTP ${d.responseStatus}`, d.attempts && t('admin.apiKeys.attempts', { count: d.attempts }), d.error].filter(Boolean).join(' · ')}</p></div> },
         { key: 'actions', header: '', align: 'right', render: (_, d) => !d.test && ['FAILED', 'SUCCESS'].includes(d.status) && (
@@ -244,10 +242,10 @@ function WebhooksTab({ meta }) {
       </div>
       <DataTable rows={rows} loading={isLoading} onRowClick={(h) => { setTestResult(null); setOpen(h) }}
         columns={[
-          { key: 'name', header: t('admin.apiKeys.cols.webhook'), mobilePrimary: true, render: (v, h) => <div><p className="font-medium text-ink">{v}</p><p className="text-xs text-ink-faint font-mono truncate max-w-[280px]">{host(h.url)}</p></div> },
-          { key: 'events', header: t('admin.apiKeys.cols.events'), render: (v) => <span className="text-sm text-ink-muted">{v?.length ?? 0}</span> },
-          { key: 'mode', header: t('admin.apiKeys.mode'), render: (v) => <span className="text-sm text-ink-muted">{v === 'SANDBOX' ? t('admin.apiKeys.sandbox') : t('admin.apiKeys.live')}</span> },
-          { key: 'lastStatus', header: t('admin.apiKeys.cols.lastDelivery'), render: (v, h) => (v ? <div><StatusPill tone={WEBHOOK_DELIVERY_STATUSES[v]?.tone}>{t(`admin.apiKeys.deliveryStatus.${v}`, { defaultValue: WEBHOOK_DELIVERY_STATUSES[v]?.label ?? v })}</StatusPill><p className="text-[11px] text-ink-faint">{dateTime(h.lastDeliveryAt)}</p></div> : <span className="text-ink-faint">—</span>) },
+          { key: 'name', header: t('admin.apiKeys.cols.webhook'), mobilePrimary: true, render: (v, h) => <div className="flex items-start gap-3"><span className="w-9 h-9 rounded-xl border flex items-center justify-center shrink-0 bg-sky-50 text-sky-700 border-sky-200"><Webhook className="w-4 h-4" /></span><div className="min-w-0"><p className="font-medium text-ink">{v}</p><p className="text-xs text-ink-faint font-mono truncate max-w-[280px]">{host(h.url)}</p></div></div> },
+          { key: 'events', header: t('admin.apiKeys.cols.events'), render: (v) => <ColorChip label={String(v?.length ?? 0)} tone="info" icon={ListChecks} /> },
+          { key: 'mode', header: t('admin.apiKeys.mode'), render: (v) => (v === 'SANDBOX' ? <ColorChip label={t('admin.apiKeys.sandbox')} tone="orange" icon={FlaskConical} /> : <ColorChip label={t('admin.apiKeys.live')} tone="success" icon={Radio} />) },
+          { key: 'lastStatus', header: t('admin.apiKeys.cols.lastDelivery'), render: (v, h) => (v ? <div className="flex flex-col items-start gap-0.5"><StatusPill tone={WEBHOOK_DELIVERY_STATUSES[v]?.tone}>{t(`admin.apiKeys.deliveryStatus.${v}`, { defaultValue: WEBHOOK_DELIVERY_STATUSES[v]?.label ?? v })}</StatusPill><DateCell value={h.lastDeliveryAt} time relative={false} className="text-[11px]" /></div> : <span className="text-ink-faint">—</span>) },
           { key: 'active', header: t('ui.common.on'), render: (v, h) => <StatusPill tone={v ? 'success' : 'neutral'}>{v ? t('ui.common.on') : h.failures >= 25 ? t('admin.apiKeys.pausedFailing') : t('admin.apiKeys.paused')}</StatusPill> },
         ]}
         emptyIcon={Webhook} emptyTitle={t('admin.apiKeys.noWebhooks')} emptyHint={t('admin.apiKeys.noWebhooksHint')} />

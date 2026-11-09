@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { FileText, Printer, ShieldAlert } from 'lucide-react'
-import { DataTable, FormField, Input, Money, PageContainer, PageHeader, StatCardRow, Toolbar, localIso } from '../../components/system'
+import { CalendarMinus, FileText, Printer, ShieldAlert } from 'lucide-react'
+import { ColorChip, DataTable, FormField, Input, LevelBar, Money, PageContainer, PageHeader, PersonCell, StatCardRow, Toolbar, localIso } from '../../components/system'
 import Button from '../../components/ui/Button'
 import useDebouncedValue from '../../hooks/useDebouncedValue'
 import { fetchPayslips } from '../../api/payroll'
@@ -26,16 +26,20 @@ export default function Payslips() {
       <PageHeader icon={FileText} title={t('payroll.payslips.title')} subtitle={t('payroll.payslips.subtitle')} />
       <div className="flex flex-wrap items-end gap-3 mb-3">
         <div className="w-44"><FormField label={t('payroll.month')}><Input type="month" value={month} onChange={(e) => { setMonth(e.target.value); setPage(1) }} /></FormField></div>
-        <StatCardRow items={[{ label: t('payroll.payslips.count'), value: meta?.total ?? 0 }, { label: t('payroll.payslips.withLop'), value: data?.summary?.lop ?? 0 }, { label: t('payroll.payslips.flagged'), value: data?.summary?.flagged ?? 0, tone: data?.summary?.flagged ? 'warning' : 'neutral' }]} />
+        <StatCardRow items={[
+          { icon: FileText, tone: 'brand', label: t('payroll.payslips.count'), value: meta?.total ?? 0 },
+          { icon: CalendarMinus, tone: 'orange', label: t('payroll.payslips.withLop'), value: data?.summary?.lop ?? 0 },
+          { icon: ShieldAlert, label: t('payroll.payslips.flagged'), value: data?.summary?.flagged ?? 0, tone: data?.summary?.flagged ? 'warning' : 'neutral' },
+        ]} />
       </div>
       <DataTable rows={data?.data ?? []} loading={isLoading} error={error}
         toolbar={<Toolbar search={search} onSearch={(v) => { setSearch(v); setPage(1) }} searchPlaceholder={t('payroll.payslips.search')} />}
         columns={[
-          { key: 'name', header: t('payroll.staff.person'), mobilePrimary: true, render: (v, r) => <div><p className="font-medium text-ink">{v}</p><p className="text-xs text-ink-faint font-mono-num">{r.payslipNo}</p></div> },
-          { key: 'structureName', header: t('payroll.assign.structure'), mobileHidden: true },
-          { key: 'payDays', header: t('payroll.att.payDays'), align: 'right', render: (v, r) => `${v}/${r.baseDays}` },
+          { key: 'name', header: t('payroll.staff.person'), mobilePrimary: true, render: (v, r) => <PersonCell name={v} sub={[r.code, r.payslipNo].filter(Boolean).join(' · ')} size={32} /> },
+          { key: 'structureName', header: t('payroll.assign.structure'), mobileHidden: true, render: (v) => <ColorChip label={v} dot /> },
+          { key: 'payDays', header: t('payroll.att.payDays'), align: 'right', render: (v, r) => <LevelBar value={v} max={r.baseDays} warnAt={r.lop > 0 ? v : undefined} width="w-20" /> },
           { key: 'gross', header: t('payroll.runs.gross'), align: 'right', render: (v) => <Money value={v} paise /> },
-          { key: 'net', header: t('payroll.runs.net'), align: 'right', render: (v) => <Money value={v} paise className="font-semibold" /> },
+          { key: 'net', header: t('payroll.runs.net'), align: 'right', render: (v) => <Money value={v} paise tone="success" className="font-semibold" /> },
           { key: 'status', header: t('payroll.status'), render: (v, r) => <span className="inline-flex items-center gap-1"><RunStatusPill status={v} />{r.warnings.length > 0 && <ShieldAlert className="h-4 w-4 text-amber-500" />}</span> },
           { key: 'id', header: '', align: 'right', width: 50, render: (id) => <Button size="sm" variant="ghost" icon={Printer} aria-label={t('payroll.printSlip')} onClick={(e) => { e.stopPropagation(); printDocument('PAYSLIP', id) }} /> },
         ]}

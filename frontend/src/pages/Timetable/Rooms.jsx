@@ -1,15 +1,17 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { BellRing, DoorOpen, Pencil, Plus, Star, Trash2, X } from 'lucide-react'
+import { BellRing, DoorOpen, FlaskConical, Library, Monitor, Pencil, Plus, School, Shapes, Star, Theater, Trash2, Trophy, X } from 'lucide-react'
 import { DEFAULT_BELL, ROOM_KINDS, SLOT_KINDS, checkBell, teachingPeriods } from '@schoolgiant/shared'
-import { DataTable, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, Panel, Select, StatusPill, Tabs, useConfirm } from '../../components/system'
+import { CodeBadge, ColorChip, DataTable, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, Panel, Select, StatusPill, Tabs, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { fetchAcademicLookup } from '../../api/academics'
 import { createBell, createRoom, deleteBell, deleteRoom, fetchBells, fetchRooms, updateBell, updateRoom } from '../../api/timetable'
 import { hasPermission } from '../../api/auth'
 import { useSnackbar } from '../../context/SnackbarContext'
 
+// each room kind's icon in the rooms table
+const KIND_ICON = { CLASSROOM: School, LAB: FlaskConical, COMPUTER: Monitor, HALL: Theater, LIBRARY: Library, GROUND: Trophy, OTHER: Shapes }
 const kindLabel = (t, k) => t(`timetable.roomKinds.${k}`, ROOM_KINDS.find((x) => x.value === k)?.label ?? k)
 
 function RoomForm({ room, onClose, onSaved }) {
@@ -79,10 +81,10 @@ function RoomsTab() {
       {!isLoading && !labs && <Note className="mb-3">{t('timetable.rooms.noLabsHint')}</Note>}
       <DataTable rows={rows} loading={isLoading} error={error} onRetry={refetch} columns={[
         { key: 'name', header: t('timetable.rooms.name'), mobilePrimary: true, render: (v, r) => <span className={r.active ? 'font-medium text-ink' : 'text-ink-faint line-through'}>{v}</span> },
-        { key: 'code', header: t('timetable.rooms.code'), render: (v) => (v ? <span className="font-mono-num text-sm">{v}</span> : '—') },
-        { key: 'kind', header: t('timetable.rooms.kind'), render: (v) => kindLabel(t, v) },
+        { key: 'code', header: t('timetable.rooms.code'), render: (v) => <CodeBadge>{v}</CodeBadge> },
+        { key: 'kind', header: t('timetable.rooms.kind'), render: (v) => <ColorChip label={kindLabel(t, v)} seed={`room-${v}`} icon={KIND_ICON[v] ?? DoorOpen} /> },
         { key: 'capacity', header: t('timetable.rooms.capacity'), align: 'right', render: (v) => v ?? '—' },
-        { key: 'section', header: t('timetable.rooms.homeOf'), render: (v) => v ?? '—' },
+        { key: 'section', header: t('timetable.rooms.homeOf'), render: (v) => <ColorChip label={v} /> },
         { key: 'active', header: t('timetable.rooms.status'), render: (v) => <StatusPill tone={v ? 'success' : 'neutral'}>{v ? t('timetable.rooms.inUse') : t('timetable.rooms.notInUse')}</StatusPill> },
         { key: 'id', header: '', align: 'right', width: 100, render: (_, r) => (
           <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>

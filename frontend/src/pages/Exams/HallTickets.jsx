@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { Printer, Ticket } from 'lucide-react'
-import { BulkActionBar, DataTable, Note, PageContainer, PageHeader } from '../../components/system'
+import { BulkActionBar, DataTable, Note, PageContainer, PageHeader, PersonCell } from '../../components/system'
 import Button from '../../components/ui/Button'
 import useExamPick from '../../components/exams/useExamPick'
 import { fetchCandidates } from '../../api/exams'
@@ -39,7 +39,7 @@ export default function HallTickets() {
         toolbar={<div className="flex flex-wrap justify-end gap-2">{chips}</div>}
         columns={[
           { key: 'rollNo', header: t('exams.roll'), width: 70, render: (v) => <span className="font-mono-num">{v ?? '—'}</span> },
-          { key: 'name', header: t('exams.student'), mobilePrimary: true, render: (v, r) => <div><p className="font-medium text-ink">{v}</p><p className="text-xs text-ink-faint font-mono-num">{r.admissionNo}</p></div> },
+          { key: 'name', header: t('exams.student'), mobilePrimary: true, render: (v, r) => <PersonCell name={v} sub={r.admissionNo} /> },
           { key: 'id', header: '', align: 'right', width: 60, render: (id) => canPrint && <Button size="sm" variant="ghost" icon={Printer} aria-label={t('exams.hallTickets.print')} title={t('exams.hallTickets.print')} onClick={() => printDocument('HALL_TICKET', id)} /> },
         ]}
         emptyIcon={Ticket} emptyTitle={exam ? t('exams.hallTickets.empty') : t('exams.pick.pickFirst')}

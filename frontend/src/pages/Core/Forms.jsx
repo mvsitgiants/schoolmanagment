@@ -5,7 +5,7 @@ import clsx from 'clsx'
 import { useTranslation } from 'react-i18next'
 import { Archive, ArchiveRestore, ArrowDown, ArrowLeft, ArrowUp, Check, ClipboardList, Copy, Plus, Rocket, Trash2 } from 'lucide-react'
 import { COMPUTED_TYPES, FIELD_TYPES, FIELD_TYPE_LABEL, FORM_STATUSES, FORM_USES, FORM_USE_LABEL, checkFormDefinition } from '@schoolgiant/shared'
-import { DataTable, FormField, Input, Modal, Note, PageContainer, PageHeader, Panel, SegmentedControl, Select, StatusPill, Tabs, Textarea, useConfirm } from '../../components/system'
+import { CodeBadge, ColorChip, DataTable, DateCell, FormField, Input, Modal, Note, PageContainer, PageHeader, Panel, PersonCell, SegmentedControl, Select, StatusPill, Tabs, Textarea, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { Switch } from '../../components/app/Controls'
 import FormRenderer from '../../components/forms/FormRenderer'
@@ -62,11 +62,11 @@ function FormList() {
             loading={isLoading}
             onRowClick={(r) => navigate(`/core/forms/${r.id}`)}
             columns={[
-              { key: 'name', header: t('admin.forms.cols.form'), mobilePrimary: true, render: (v, r) => <div><p className="text-sm font-medium text-ink">{v}</p><p className="text-xs text-ink-faint font-mono-num">{r.code}</p></div> },
-              { key: 'useLabel', header: t('admin.forms.usedAs'), render: (v, r) => (r.use ? t(`admin.forms.uses.${r.use}`, { defaultValue: v ?? r.use }) : v) },
-              { key: 'fields', header: t('admin.forms.cols.fields'), align: 'right', render: (v, r) => t('admin.forms.fieldsInSections', { fields: v, count: r.sections }) },
+              { key: 'name', header: t('admin.forms.cols.form'), mobilePrimary: true, render: (v, r) => <div className="flex items-start gap-3"><span className="w-9 h-9 rounded-xl border flex items-center justify-center shrink-0 bg-teal-50 text-teal-700 border-teal-200"><ClipboardList className="w-4 h-4" /></span><div className="min-w-0"><p className="text-sm font-medium text-ink">{v}</p><CodeBadge>{r.code}</CodeBadge></div></div> },
+              { key: 'useLabel', header: t('admin.forms.usedAs'), render: (v, r) => <ColorChip label={r.use ? t(`admin.forms.uses.${r.use}`, { defaultValue: v ?? r.use }) : v} seed={r.use ?? v} dot /> },
+              { key: 'fields', header: t('admin.forms.cols.fields'), align: 'right', render: (v, r) => <span className="text-sm font-medium tabular-nums text-ink">{t('admin.forms.fieldsInSections', { fields: v, count: r.sections })}</span> },
               { key: 'status', header: t('common.status'), render: (v, r) => <div className="flex items-center gap-2"><StatusPill tone={FORM_STATUSES[v]?.tone}>{t(`admin.forms.status.${v}`, { defaultValue: FORM_STATUSES[v]?.label ?? v })}{r.version ? ` · v${r.version}` : ''}</StatusPill>{v === 'PUBLISHED' && r.changedSincePublish && <span className="text-[11px] text-amber-700">{t('admin.forms.changesNotPublished')}</span>}</div> },
-              { key: 'updatedAt', header: t('admin.forms.cols.changed'), mobileHidden: true, render: (v, r) => <span className="text-xs text-ink-muted">{r.updatedBy ? `${r.updatedBy} · ` : ''}{dateTime(v)}</span> },
+              { key: 'updatedAt', header: t('admin.forms.cols.changed'), mobileHidden: true, render: (v, r) => (r.updatedBy ? <PersonCell name={r.updatedBy} sub={dateTime(v)} size={26} /> : <DateCell value={v} time />) },
             ]}
             emptyIcon={ClipboardList}
             emptyTitle={t('admin.forms.empty')}

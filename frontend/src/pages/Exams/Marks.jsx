@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { ChevronLeft, Lock, LockOpen, NotebookPen, Save } from 'lucide-react'
+import { ChevronLeft, CircleDashed, ClipboardList, Lock, LockOpen, NotebookPen, PencilLine, Save } from 'lucide-react'
 import { SHEET_STATUS, checkMark } from '@schoolgiant/shared'
-import { DataTable, Input, Note, PageContainer, PageHeader, StatusPill, usePrompt } from '../../components/system'
+import { ColorChip, DataTable, DateCell, Fraction, Input, Note, PageContainer, PageHeader, PersonCell, StatCardRow, StatusPill, usePrompt } from '../../components/system'
 import Button from '../../components/ui/Button'
 import useExamPick from '../../components/exams/useExamPick'
 import { fetchMarkSheet, fetchMarksBoard, lockMarkSheet, saveMarkSheet, unlockMarkSheet } from '../../api/exams'
@@ -83,7 +83,7 @@ function SheetView({ paperId, sectionId, onBack }) {
         dense
         columns={[
           { key: 'rollNo', header: t('exams.roll'), width: 60, render: (v) => <span className="font-mono-num">{v ?? '—'}</span> },
-          { key: 'name', header: t('exams.student'), mobilePrimary: true, render: (v, s) => <div><p className="font-medium text-ink">{v}</p><p className="text-xs text-ink-faint font-mono-num">{s.admissionNo}</p></div> },
+          { key: 'name', header: t('exams.student'), mobilePrimary: true, render: (v, s) => <PersonCell name={v} sub={s.admissionNo} size={28} /> },
           { key: 'marks', header: paper.gradeOnly ? t('exams.marks.grade') : t('exams.marks.marks'), width: 150, render: (_, s) => {
             const r = rows[s.id] ?? {}
             const off = ro || r.absent || r.exempt
@@ -112,19 +112,28 @@ function SheetView({ paperId, sectionId, onBack }) {
 
 export default function Marks() {
   const { t } = useTranslation('exams')
-  const { date } = useFormat()
   const { exam, examId, chips, noExams } = useExamPick({ withSection: false })
   const [open, setOpen] = useState(null)
+  const [statusFilter, setStatusFilter] = useState('')
   const { data: board, isLoading, error, refetch } = useQuery({ queryKey: ['marks-board', examId], queryFn: () => fetchMarksBoard(examId), enabled: !!examId && !open })
   const show = setOpen
+  const sheets = board?.sheets ?? []
+  const countOf = (s) => sheets.filter((x) => x.status === s).length
+  const pick = (s) => setStatusFilter((cur) => (cur === s ? '' : s))
 
   return (
     <PageContainer>
       <PageHeader icon={NotebookPen} title={t('exams.marks.title')} subtitle={t('exams.marks.subtitle')} />
       {noExams && <Note className="mb-4">{t('exams.pick.noneScheduled')}</Note>}
+      {!open && sheets.length > 0 && <StatCardRow className="mb-4" items={[
+        { icon: ClipboardList, tone: 'brand', label: t('exams.marks.summary.sheets'), value: sheets.length, onClick: () => setStatusFilter('') },
+        { icon: Lock, tone: 'success', label: sheetLabel(t, 'LOCKED'), value: countOf('LOCKED'), progress: (countOf('LOCKED') / sheets.length) * 100, onClick: () => pick('LOCKED') },
+        { icon: PencilLine, tone: 'warning', label: sheetLabel(t, 'OPEN'), value: countOf('OPEN'), onClick: () => pick('OPEN') },
+        { icon: CircleDashed, tone: countOf('NOT_STARTED') ? 'danger' : 'neutral', label: sheetLabel(t, 'NOT_STARTED'), value: countOf('NOT_STARTED'), onClick: () => pick('NOT_STARTED') },
+      ]} />}
       {open ? <SheetView paperId={open.paperId} sectionId={open.sectionId} onBack={() => show(null)} /> : (
         <DataTable
-          rows={board?.sheets ?? []}
+          rows={statusFilter ? sheets.filter((x) => x.status === statusFilter) : sheets}
           rowKey="key"
           loading={isLoading}
           error={error}
@@ -132,10 +141,10 @@ export default function Marks() {
           toolbar={<div className="flex flex-wrap justify-end gap-2">{chips}</div>}
           rowTone={(r) => (r.status === 'LOCKED' ? 'success' : undefined)}
           columns={[
-            { key: 'section', header: t('exams.marks.section'), mobilePrimary: true, render: (v, r) => <span className="font-medium text-ink">{r.sectionShort}</span> },
-            { key: 'subject', header: t('exams.marks.subject') },
-            { key: 'date', header: t('exams.marks.date'), nowrap: true, mobileHidden: true, render: (v) => (v ? date(v) : '—') },
-            { key: 'entered', header: t('exams.marks.entered'), align: 'right', render: (v, r) => `${v} / ${r.strength}` },
+            { key: 'section', header: t('exams.marks.section'), mobilePrimary: true, render: (v, r) => <ColorChip label={r.sectionShort} /> },
+            { key: 'subject', header: t('exams.marks.subject'), render: (v) => <ColorChip label={v} dot /> },
+            { key: 'date', header: t('exams.marks.date'), nowrap: true, mobileHidden: true, render: (v) => <DateCell value={v} /> },
+            { key: 'entered', header: t('exams.marks.entered'), align: 'right', render: (v, r) => <Fraction value={v} max={r.strength} /> },
             { key: 'status', header: t('exams.marks.status'), render: (v, r) => <div><StatusPill tone={SHEET_STATUS[v]?.tone}>{sheetLabel(t, v)}</StatusPill>{r.enteredBy && <p className="text-xs text-ink-faint mt-0.5">{r.enteredBy}</p>}</div> },
           ]}
           onRowClick={(r) => show({ paperId: r.paperId, sectionId: r.sectionId })}

@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import clsx from 'clsx'
 import { Check, Layers, Pencil, Plus, Star } from 'lucide-react'
 import { CATEGORIES, closeOverDependencies, formatINR } from '@schoolgiant/shared'
-import { Drawer, FormField, Input, Note, PageContainer, PageHeader, Select, StatusPill, Textarea } from '../../components/system'
+import { Drawer, FormField, Input, Note, PageContainer, PageHeader, Select, StatusPill, TONE, Textarea, hueTone } from '../../components/system'
 import { canPlatform } from '../../api/auth'
 import Button from '../../components/ui/Button'
 import { Switch, Tick } from '../../components/app/Controls'
@@ -12,6 +12,7 @@ import { createPlan, fetchSaCatalog, fetchSaPlans, updatePlan } from '../../api/
 import { useSnackbar } from '../../context/SnackbarContext'
 import { iconFor } from '../../catalog/icons'
 import { useCatalogLabel } from '../../hooks/useCatalogLabel'
+import { planLook } from './Dashboard'
 
 const SWITCHES = ['isPublic', 'active', 'highlight']
 
@@ -142,12 +143,16 @@ export default function Plans() {
         actions={canPlatform('plans') && <Button icon={Plus} onClick={() => setEditing({})}>{t('superadmin.plans.newPlan')}</Button>} />
       {isLoading ? <div className="h-64 rounded-xl bg-black/5 animate-pulse" /> : (
         <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-4">
-          {plans.map((p) => (
-            <article key={p.code} className={clsx('rounded-xl border bg-surface shadow-card p-5 flex flex-col', !p.active && 'opacity-60')}>
+          {plans.map((p) => { const look = planLook(p.code); const tn = TONE[look.tone ?? hueTone(p.code)]; const PlanIcon = look.icon; return (
+            <article key={p.code} className={clsx('relative overflow-hidden rounded-xl border bg-surface shadow-card p-5 flex flex-col', !p.active && 'opacity-60')}>
+              <span aria-hidden className={clsx('absolute inset-x-0 top-0 h-[3px]', tn.fill)} />
               <div className="flex items-start justify-between gap-2">
+                <div className="flex items-start gap-3">
+                <span className={clsx('w-10 h-10 rounded-xl border flex items-center justify-center shrink-0', tn.bg, tn.text, tn.border)}><PlanIcon className="w-5 h-5" /></span>
                 <div>
                   <h3 className="font-display text-lg font-semibold text-ink flex items-center gap-1.5">{p.name}{p.highlight && <Star className="w-4 h-4 text-amber-400 fill-amber-400" />}</h3>
                   <p className="text-xs text-ink-faint font-mono-num">{p.code}</p>
+                </div>
                 </div>
                 <div className="flex gap-1">{!p.isPublic && <StatusPill tone="neutral">{t('superadmin.plans.private')}</StatusPill>}{!p.active && <StatusPill tone="danger">{t('superadmin.common.inactive')}</StatusPill>}</div>
               </div>
@@ -162,7 +167,7 @@ export default function Plans() {
               <ul className="mt-4 space-y-1 flex-1">{p.features.slice(0, 4).map((f) => <li key={f} className="text-xs text-ink-muted flex gap-1.5"><Check className="w-3.5 h-3.5 text-brand-500 shrink-0" />{f}</li>)}</ul>
               {canPlatform('plans') && <Button variant="secondary" icon={Pencil} className="mt-4" onClick={() => setEditing(p)}>{t('superadmin.plans.edit')}</Button>}
             </article>
-          ))}
+          ) })}
         </div>
       )}
       {editing && catalog && <PlanEditor plan={editing.code ? editing : null} plans={plans} catalog={catalog} onClose={() => setEditing(null)} onSaved={() => { setEditing(null); qc.invalidateQueries({ queryKey: ['sa-plans'] }); showSuccess(t('superadmin.plans.saved')) }} />}

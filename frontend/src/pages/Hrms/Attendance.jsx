@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { CalendarCheck2, CheckCheck, Download, Upload } from 'lucide-react'
+import { Briefcase, CalendarCheck2, CalendarHeart, CheckCheck, CircleCheck, CircleDashed, CircleHelp, CircleX, Coffee, Download, Palmtree, Upload } from 'lucide-react'
 import { EMPLOYEE_CATEGORIES, MARKABLE, STAFF_ATTENDANCE } from '@schoolgiant/shared'
-import { ControlChip, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, SegmentedControl, StatCardRow, Textarea, localIso } from '../../components/system'
+import { Avatar, ControlChip, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, PersonCell, SegmentedControl, StatCardRow, Textarea, localIso } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { exportStaffMonth, fetchStaffDay, fetchStaffMonth, importStaffAttendance, saveStaffDay } from '../../api/hrms'
 import { hasPermission } from '../../api/auth'
@@ -16,6 +16,17 @@ const TONE_CLS = {
   info: 'bg-sky-50 text-sky-700 border-sky-200', brand: 'bg-brand-50 text-brand-700 border-brand-200', neutral: 'bg-bg text-ink-muted border-border',
 }
 const toneOf = (s) => TONE_CLS[STAFF_ATTENDANCE[s]?.tone ?? 'neutral']
+// each day count's tile on the day view
+const COUNT_LOOK = {
+  PRESENT: { icon: CircleCheck, tone: 'success' },
+  HALF_DAY: { icon: CircleDashed, tone: 'warning' },
+  ABSENT: { icon: CircleX, tone: 'danger' },
+  ON_DUTY: { icon: Briefcase, tone: 'info' },
+  LEAVE: { icon: Palmtree, tone: 'brand' },
+  HOLIDAY: { icon: CalendarHeart, tone: 'sky' },
+  WEEKLY_OFF: { icon: Coffee, tone: 'teal' },
+  UNMARKED: { icon: CircleHelp, tone: 'orange' },
+}
 
 /** Paste the machine's export: code, date, in, out (comma or tab separated, a header row is fine). */
 function ImportModal({ onClose, onDone }) {
@@ -80,7 +91,9 @@ function DayView({ category }) {
       </div>
       {data?.holiday && <Note>{t('hrms.attendance.holidayToday', { name: data.holiday })}</Note>}
       {data && !data.editable && <Note tone="warning">{t('hrms.attendance.notEditable')}</Note>}
-      {Object.keys(counts).length > 0 && <StatCardRow items={Object.entries(counts).map(([k, n]) => ({ label: k === 'UNMARKED' ? t('hrms.attendance.unmarked') : L.att(k), value: n }))} />}
+      {Object.keys(counts).length > 0 && <StatCardRow items={Object.entries(counts).map(([k, n]) => ({
+        label: k === 'UNMARKED' ? t('hrms.attendance.unmarked') : L.att(k), value: n, ...COUNT_LOOK[k],
+      }))} />}
       {isLoading ? <p className="text-sm text-ink-faint">{t('hrms.loading')}</p> : error ? <Note tone="warning">{error.message}</Note> : !rows.length ? <Note>{t('hrms.attendance.nobody')}</Note> : (
         <div className="rounded-xl border border-border bg-surface divide-y divide-border">
           {rows.map((r) => {
@@ -88,9 +101,9 @@ function DayView({ category }) {
             const timed = ['PRESENT', 'HALF_DAY', 'ON_DUTY'].includes(v.status)
             return (
               <div key={r.employeeId} className="grid gap-2 px-4 py-3 md:grid-cols-[1.4fr_2.2fr_1.2fr] items-center">
-                <div className="min-w-0">
-                  <p className="text-sm font-medium text-ink truncate">{r.name}{r.late && <span className="ml-2 text-[11px] text-amber-700">{t('hrms.attendance.late')}</span>}</p>
-                  <p className="text-xs text-ink-faint truncate">{[r.code, r.designation].filter(Boolean).join(' · ')}</p>
+                <div className="flex min-w-0 items-center gap-2">
+                  <PersonCell name={r.name} sub={[r.code, r.designation].filter(Boolean).join(' · ')} className="text-sm" />
+                  {r.late && <span className="shrink-0 rounded-md bg-amber-50 px-1.5 py-0.5 text-[11px] font-medium text-amber-700">{t('hrms.attendance.late')}</span>}
                 </div>
                 {r.locked ? (
                   <p className="text-sm text-brand-700">{t('hrms.attendance.onLeave', { code: r.leave?.code ?? '', portion: r.leave?.portion === 0.5 ? t('hrms.leave.halfDayShort') : '' })}</p>
@@ -142,9 +155,12 @@ function MonthView({ category }) {
             {['paid', 'lop', 'late', 'unmarked'].map((k) => <div key={k} className="py-2 text-center text-[11px] font-semibold text-ink-muted bg-bg border-b border-l border-border">{t(`hrms.attendance.tot.${k}`)}</div>)}
             {(data?.rows ?? []).map((r) => (
               <div key={r.employeeId} className="contents">
-                <div className="sticky left-0 z-10 bg-surface px-3 py-1.5 border-b border-border min-w-0">
-                  <p className="text-xs font-medium text-ink truncate">{r.name}</p>
-                  <p className="text-[10px] text-ink-faint truncate">{r.code}</p>
+                <div className="sticky left-0 z-10 flex items-center gap-2 bg-surface px-3 py-1.5 border-b border-border min-w-0">
+                  <Avatar name={r.name} size={22} soft />
+                  <div className="min-w-0">
+                    <p className="text-xs font-medium text-ink truncate">{r.name}</p>
+                    <p className="text-[10px] text-ink-faint truncate">{r.code}</p>
+                  </div>
                 </div>
                 {days.map((d) => {
                   const c = r.cells[d]

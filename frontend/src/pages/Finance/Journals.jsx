@@ -1,19 +1,17 @@
 import { useState } from 'react'
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { BookOpen, Plus } from 'lucide-react'
+import { BookOpen, Plus, Zap } from 'lucide-react'
 import { POSTING_SOURCES, VOUCHER_TYPES } from '@schoolgiant/shared'
-import { ControlChip, DataTable, HeaderButton, Money, PageContainer, PageHeader, SegmentedControl, Toolbar } from '../../components/system'
+import { CodeBadge, ColorChip, ControlChip, DataTable, DateCell, HeaderButton, Money, PageContainer, PageHeader, SegmentedControl, Toolbar } from '../../components/system'
 import useDebouncedValue from '../../hooks/useDebouncedValue'
 import { fetchJournals } from '../../api/finance'
-import { useFormat } from '../../context/SettingsContext'
 import { JournalStatus, VoucherDrawer, VoucherForm } from '../../components/finance/FinanceKit'
 
 /** Accounts › Journals: every voucher — fee receipts, refunds, payroll and expenses posted on their own, and vouchers by hand. */
 export default function Journals() {
   const { t } = useTranslation('finance')
   const qc = useQueryClient()
-  const { date } = useFormat()
   const [status, setStatus] = useState('')
   const [source, setSource] = useState('')
   const [type, setType] = useState('')
@@ -41,8 +39,9 @@ export default function Journals() {
             <ControlChip label={t('finance.voucher.type')} value={typeName(type)} active={!!type} options={['', ...VOUCHER_TYPES.map((x) => x.value)].map(typeName)} onChange={(v) => { setType(['', ...VOUCHER_TYPES.map((x) => x.value)].find((k) => typeName(k) === v) ?? ''); setPage(1) }} />
           </>} />}
         columns={[
-          { key: 'date', header: t('finance.voucher.date'), nowrap: true, render: (v) => date(v) },
-          { key: 'voucherNo', header: t('finance.journals.voucher'), mobilePrimary: true, render: (v, r) => <div><p className="font-mono-num text-sm text-ink">{v ?? t('finance.voucher.draft')}</p><p className="text-xs text-ink-faint">{t(`finance.voucherTypes.${r.type}`)}{r.auto ? ` · ${t(`finance.sources.${r.source?.type}`, r.source?.type)}` : ''}</p></div> },
+          { key: 'date', header: t('finance.voucher.date'), nowrap: true, render: (v) => <DateCell value={v} /> },
+          { key: 'voucherNo', header: t('finance.journals.voucher'), mobilePrimary: true, render: (v, r) => <div className="flex flex-col items-start gap-1"><CodeBadge tone={v ? 'neutral' : 'warning'}>{v ?? t('finance.voucher.draft')}</CodeBadge>
+            <ColorChip label={t(`finance.voucherTypes.${r.type}`)} seed={r.type} icon={r.auto ? Zap : undefined} dot sub={r.auto ? t(`finance.sources.${r.source?.type}`, r.source?.type) : undefined} /></div> },
           { key: 'narration', header: t('finance.voucher.narration'), render: (v, r) => <div className="min-w-0"><p className="text-sm text-ink truncate max-w-md">{v || '—'}</p><p className="text-xs text-ink-faint truncate max-w-md">{r.accounts.join(' · ')}</p></div> },
           { key: 'total', header: t('finance.voucher.amount'), align: 'right', render: (v) => <Money value={v} paise /> },
           { key: 'status', header: t('finance.status'), render: (v) => <JournalStatus status={v} /> },

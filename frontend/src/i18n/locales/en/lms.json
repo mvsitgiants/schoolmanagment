@@ -86,7 +86,9 @@
       "deleted": "Course deleted.",
       "draftHint": "Students can’t see a draft. Add the material, then publish.",
       "tabOutline": "Material",
-      "tabProgress": "Student progress"
+      "tabProgress": "Student progress",
+      "unitsShown_one": "{{count}} unit · items shown",
+      "unitsShown_other": "{{count}} units · items shown"
     },
     "outline": {
       "unit": "Unit",

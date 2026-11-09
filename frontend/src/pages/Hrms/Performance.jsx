@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { Award, ChevronLeft, Pencil, Play, Plus, Square, X } from 'lucide-react'
 import { APPRAISAL_CYCLE_STATUS, APPRAISAL_STATUS, EMPLOYEE_CATEGORIES, TEACHER_CRITERIA } from '@schoolgiant/shared'
-import { DataTable, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, Select, StatusPill, useConfirm } from '../../components/system'
+import { ColorChip, DataTable, DateCell, FormField, HeaderButton, Input, LevelBar, localIso, Modal, Note, PageContainer, PageHeader, PersonCell, Select, StatusPill, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { closeCycle, createCycle, fetchCycleReviews, fetchCycles, launchCycle, rateAsHr, setReviewer, updateCycle } from '../../api/hrms'
 import { fetchUsers } from '../../api/core'
@@ -12,6 +12,13 @@ import { useSnackbar } from '../../context/SnackbarContext'
 import { useFormat } from '../../context/SettingsContext'
 import { useHrLabels } from '../../components/hrms/HrKit'
 import ReviewForm from '../../components/hrms/ReviewForm'
+
+// a score out of 5 as a short bar: green from 3.5, amber from 2.5, red under that
+function Score({ value, strong = false }) {
+  if (value == null) return <span className="text-ink-faint">—</span>
+  const n = Number(value)
+  return <LevelBar value={n} max={5} warnAt={3.49} dangerAt={2.49} width={strong ? 'w-24' : 'w-20'} className={strong ? 'font-bold' : undefined} />
+}
 
 function CycleForm({ cycle, onClose, onSaved }) {
   const { t } = useTranslation('hrms')
@@ -102,7 +109,7 @@ function CycleDetail({ cycleId, onBack, onEdit }) {
       </div>
       {c.status === 'DRAFT' && <Note>{t('hrms.performance.draftHint')}</Note>}
       <DataTable rows={data.rows} columns={[
-        { key: 'employeeName', header: t('hrms.performance.person'), mobilePrimary: true, render: (v, r) => <div><p className="font-medium text-ink">{v}</p><p className="text-xs text-ink-faint">{[r.employeeCode, r.designation].filter(Boolean).join(' · ')}</p></div> },
+        { key: 'employeeName', header: t('hrms.performance.person'), mobilePrimary: true, render: (v, r) => <PersonCell name={v} sub={[r.employeeCode, r.designation].filter(Boolean).join(' · ')} /> },
         { key: 'reviewerName', header: t('hrms.performance.reviewer'), render: (v, r) => (canEdit && open && r.status !== 'DONE' ? (
           <div className="w-48" onClick={(e) => e.stopPropagation()}>
             <Select value={r.reviewerUserId ?? ''} onChange={(e) => act.mutate({ fn: () => setReviewer(r.id, e.target.value || null), done: t('hrms.performance.reviewerSet') })} aria-label={t('hrms.performance.reviewer')}>
@@ -110,10 +117,10 @@ function CycleDetail({ cycleId, onBack, onEdit }) {
               {(users?.data ?? []).map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
             </Select>
           </div>
-        ) : (v ?? t('hrms.performance.hr'))) },
+        ) : (v ? <PersonCell name={v} size={24} /> : <ColorChip label={t('hrms.performance.hr')} tone="violet" dot />)) },
         { key: 'status', header: t('hrms.performance.status'), render: (v) => <StatusPill tone={APPRAISAL_STATUS[v]?.tone}>{L.review(v)}</StatusPill> },
-        { key: 'self', header: t('hrms.performance.selfScore'), align: 'right', render: (v) => (v?.score != null ? v.score : '—') },
-        { key: 'finalScore', header: t('hrms.performance.final'), align: 'right', render: (v) => (v != null ? <span className="font-semibold">{v}</span> : '—') },
+        { key: 'self', header: t('hrms.performance.selfScore'), align: 'right', render: (v) => <Score value={v?.score} /> },
+        { key: 'finalScore', header: t('hrms.performance.final'), align: 'right', render: (v) => <Score value={v} strong /> },
         { key: 'id', header: '', align: 'right', width: 110, render: (_, r) => canEdit && open && r.status !== 'DONE' && <Button size="sm" variant="ghost" onClick={(e) => { e.stopPropagation(); setRating(r) }}>{t('hrms.performance.rateHr')}</Button> },
       ]} emptyIcon={Award} emptyTitle={t('hrms.performance.noReviews')} />
       {rating && <ReviewForm review={{ ...rating, cycle: c }} mode="manager" submit={(body) => rateAsHr(rating.id, body)} onClose={() => setRating(null)} onSaved={() => { setRating(null); refresh(); showSuccess(t('hrms.performance.rated')) }} />}
@@ -137,9 +144,22 @@ export default function Performance() {
         actions={<HeaderButton icon={Plus} variant="primary" requires="hrms.performance.create" onClick={() => setEditing('new')}>{t('hrms.performance.newCycle')}</HeaderButton>} />
       {openId ? <CycleDetail cycleId={openId} onBack={() => setOpenId(null)} onEdit={() => setEditing(cycles.find((c) => c.id === openId))} /> : (
         <DataTable rows={cycles} loading={isLoading} columns={[
-          { key: 'name', header: t('hrms.performance.name'), mobilePrimary: true, render: (v, r) => <div><p className="font-medium text-ink">{v}</p><p className="text-xs text-ink-faint">{[r.from && r.to && `${date(r.from)} – ${date(r.to)}`, r.categories?.length ? r.categories.map(L.category).join(', ') : t('hrms.performance.everyone')].filter(Boolean).join(' · ')}</p></div> },
-          { key: 'dueDate', header: t('hrms.performance.due'), render: (v) => (v ? date(v) : '—') },
-          { key: 'total', header: t('hrms.performance.progress'), render: (v, r) => (v ? t('hrms.performance.doneOf', { done: r.byStatus?.DONE ?? 0, total: v }) : '—') },
+          { key: 'name', header: t('hrms.performance.name'), mobilePrimary: true, render: (v, r) => (
+            <div className="min-w-0">
+              <p className="font-medium text-ink">{v}</p>
+              {r.from && r.to && <p className="text-xs text-ink-faint tabular-nums">{`${date(r.from)} – ${date(r.to)}`}</p>}
+              <div className="mt-1 flex flex-wrap gap-1">
+                {r.categories?.length ? r.categories.map((c) => <ColorChip key={c} label={L.category(c)} seed={c} dot />) : <ColorChip label={t('hrms.performance.everyone')} tone="neutral" dot />}
+              </div>
+            </div>
+          ) },
+          { key: 'dueDate', header: t('hrms.performance.due'), nowrap: true, render: (v, r) => <DateCell value={v} tone={v && r.status === 'OPEN' && v < localIso(new Date()) ? 'danger' : undefined} /> },
+          { key: 'total', header: t('hrms.performance.progress'), render: (v, r) => (v ? (
+            <span className="inline-flex w-36 flex-col gap-1">
+              <span className="text-[12.5px] font-medium text-ink tabular-nums">{t('hrms.performance.doneOf', { done: r.byStatus?.DONE ?? 0, total: v })}</span>
+              <LevelBar value={r.byStatus?.DONE ?? 0} max={v} bare width="w-full" />
+            </span>
+          ) : '—') },
           { key: 'status', header: t('hrms.performance.status'), render: (v) => <StatusPill tone={APPRAISAL_CYCLE_STATUS[v]?.tone}>{L.cycle(v)}</StatusPill> },
         ]} onRowClick={(r) => setOpenId(r.id)} emptyIcon={Award} emptyTitle={t('hrms.performance.noCycles')} emptyHint={t('hrms.performance.noCyclesHint')} />
       )}
