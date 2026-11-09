@@ -1428,7 +1428,7 @@
       "branch": "Campus",
       "mainBranch": "Main campus",
       "location": "Location",
-      "attendanceSites": "Attendance sites",
+      "attendanceSites": "Check-in sites",
       "outline": "outline",
       "sites_one": "{{count}} site",
       "sites_other": "{{count}} sites",

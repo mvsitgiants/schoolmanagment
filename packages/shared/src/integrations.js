@@ -155,7 +155,9 @@ export const DEVICE_USED_FOR = [
 /** Kinds a device can be registered as here (bus GPS trackers can also be set on the vehicle in Transport). */
 // PHONE: a phone or tablet running the app's Gate scanner (camera or a scanner gun) — it punches as a signed-in
 // member of staff instead of with a device key.
-export const DEVICE_KINDS = ['BIOMETRIC', 'RFID', 'FACE', 'GPS', 'PHONE']
+// GEO: made by the system for phone check-ins inside a campus's attendance sites (staff in My workspace, students in the
+// student app) — so they travel the same way as any device's punches and show in the punch log.
+export const DEVICE_KINDS = ['BIOMETRIC', 'RFID', 'FACE', 'GPS', 'PHONE', 'GEO']
 /** A device's state, worked out from when it last called in. */
 export const DEVICE_STATUSES = {
   OK: { label: 'Online', tone: 'success' },

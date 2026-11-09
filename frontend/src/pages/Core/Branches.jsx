@@ -10,26 +10,29 @@ import { createBranch, fetchBranches, updateBranch } from '../../api/core'
 import { hasPermission } from '../../api/auth'
 import useAuthUser from '../../hooks/useAuthUser'
 import { useSnackbar } from '../../context/SnackbarContext'
+import AttendanceSites, { siteIn, siteOut, sitesValid } from '../../components/geo/AttendanceSitesEditor'
+import { metresText } from '@schoolgiant/shared'
 
 function BranchForm({ branch, onClose, onSaved }) {
   const { t } = useTranslation('admin')
-  const [form, setForm] = useState(() => ({ name: '', code: '', addressLine: '', city: '', state: '', pincode: '', phone: '', gstin: '', active: true, ...branch }))
+  const [form, setForm] = useState(() => ({ name: '', code: '', addressLine: '', city: '', state: '', pincode: '', phone: '', gstin: '', active: true, ...branch, attendanceSites: (branch?.attendanceSites ?? []).map(siteIn) }))
+  const sitesOk = sitesValid(form.attendanceSites)
   const [errors, setErrors] = useState({})
   const { showError } = useSnackbar()
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e?.target ? e.target.value : e }))
   const save = useMutation({
     mutationFn: () => {
       const { name, code, addressLine, city, state, pincode, phone, gstin, active } = form
-      const body = { name, code, addressLine, city, state, pincode, phone, gstin }
+      const body = { name, code, addressLine, city, state, pincode, phone, gstin, attendanceSites: form.attendanceSites.map(siteOut) }
       return branch ? updateBranch(branch.id, { ...body, active }) : createBranch(body)
     },
     onSuccess: onSaved,
     onError: (e) => { setErrors(e.response?.data?.details?.fields ?? {}); showError(e.message) },
   })
   return (
-    <Modal open onClose={onClose} title={branch ? t('admin.branches.editTitle', { name: branch.name }) : t('admin.branches.newBranch')} footer={<>
+    <Modal open onClose={onClose} size="lg" title={branch ? t('admin.branches.editTitle', { name: branch.name }) : t('admin.branches.newBranch')} footer={<>
       <Button variant="secondary" onClick={onClose}>{t('actions.cancel')}</Button>
-      <Button loading={save.isPending} disabled={!form.name || !form.code} onClick={() => save.mutate()}>{branch ? t('actions.save') : t('admin.branches.addBranch')}</Button>
+      <Button loading={save.isPending} disabled={!form.name || !form.code || !sitesOk} onClick={() => save.mutate()}>{branch ? t('actions.save') : t('admin.branches.addBranch')}</Button>
     </>}>
       <div className="grid grid-cols-3 gap-4">
         <div className="col-span-2"><FormField label={t('admin.branches.branchName')} required error={errors.name}><Input value={form.name} onChange={set('name')} placeholder={t('admin.branches.namePlaceholder')} /></FormField></div>
@@ -46,6 +49,7 @@ function BranchForm({ branch, onClose, onSaved }) {
         <FormField label="GSTIN" error={errors.gstin} hint={t('admin.branches.gstinHint')}><Input value={form.gstin ?? ''} onChange={(e) => set('gstin')(e.target.value.toUpperCase())} maxLength={15} /></FormField>
       </div>
       {branch && !branch.isDefault && <label className="mt-4 flex items-center justify-between rounded-lg border border-border px-3 py-2.5 text-sm text-ink">{t('status.active')} <Switch checked={form.active} onChange={set('active')} label={t('status.active')} /></label>}
+      <div className="mt-5"><AttendanceSites branchName={form.name} sites={form.attendanceSites} onChange={(attendanceSites) => setForm((f) => ({ ...f, attendanceSites }))} errors={errors} /></div>
     </Modal>
   )
 }
@@ -79,6 +83,11 @@ export default function Branches() {
                 </div>
               ) } },
               { key: 'city', header: t('admin.branches.location'), render: (v, r) => (v || r.addressLine ? <ColorChip label={[r.city, r.state].filter(Boolean).join(', ') || r.addressLine} seed={r.state || r.city} icon={MapPin} /> : <span className="text-ink-faint">—</span>) },
+              { key: 'attendanceSites', header: t('admin.branches.attendanceSites'), mobileHidden: true, render: (v) => {
+                const on = (v ?? []).filter((x) => x.active !== false)
+                const label = (x) => `${x.name} · ${x.shape === 'POLYGON' ? t('admin.branches.outline') : metresText(x.radiusM)}`
+                return on.length ? <span className="text-sm text-ink-muted" title={on.map(label).join('\n')}>{on.length === 1 ? label(on[0]) : t('admin.branches.sites', { count: on.length })}</span> : <span className="text-ink-faint">—</span>
+              } },
               { key: 'userCount', header: t('admin.branches.staff'), align: 'right', render: (v) => <span className={`tabular-nums ${v ? 'font-semibold text-ink' : 'text-ink-faint'}`}>{v ?? 0}</span> },
               { key: 'active', header: t('common.status'), render: (v) => <StatusPill tone={v ? 'success' : 'neutral'}>{v ? t('status.active') : t('admin.branches.inactive')}</StatusPill> },
               { key: 'id', header: '', align: 'right', width: 60, render: (_, r) => hasPermission('core.branches.edit') && <button onClick={(e) => { e.stopPropagation(); setEditing(r) }} className="w-8 h-8 rounded-md flex items-center justify-center text-ink-muted hover:bg-bg" title={t('actions.edit')}><Pencil className="w-4 h-4" /></button> },

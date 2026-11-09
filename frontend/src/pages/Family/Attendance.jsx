@@ -7,7 +7,7 @@ import { FormField, Input, StatusPill, Textarea, localIso } from '../../componen
 import Button from '../../components/ui/Button'
 import { FCard, FEmpty, FError, FSkeleton, useFamily, useFamilyQuery } from '../../components/family/FamilyKit'
 import { familyApplyLeave, familyAttendance, familyCancelLeave } from '../../api/family'
-import { PickupCard } from '../../components/family/Passes'
+import { PickupCard, StudentCheckInCard } from '../../components/family/Passes'
 import { useFormat } from '../../context/SettingsContext'
 
 const DOT = { P: 'bg-success-500 text-white', L: 'bg-amber-400 text-white', HD: 'bg-info-500 text-white', A: 'bg-danger-500 text-white', LV: 'bg-ink-muted text-white' }
@@ -64,6 +64,7 @@ export default function FamilyAttendance() {
 
   return (
     <>
+      <StudentCheckInCard />
       <PickupCard />
       <FCard title={t(`family.months.${m}`) + ` ${y}`} action={
         <div className="flex gap-1">

@@ -131,7 +131,9 @@
       "lastDay": "Last day {{date}}",
       "noMatch": "Nobody matches.",
       "emptyTitle": "No staff records yet",
-      "emptyHint": "Add them one by one, import a sheet, or make records from the logins you already have."
+      "emptyHint": "Add them one by one, import a sheet, or make records from the logins you already have.",
+      "geofenceExempt": "Field staff — may check in from anywhere",
+      "geofenceExemptHint": "Their phone check-ins skip the campus location check (drivers, staff on duty outside)."
     },
     "profile": {
       "back": "Back",

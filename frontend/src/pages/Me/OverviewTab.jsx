@@ -10,6 +10,9 @@ import { useWeekdayLabel } from '../../components/homework/HomeworkKit'
 import { useMonthLabel } from '../../components/payroll/PayrollKit'
 import { MoreToggle, QuietEmpty, TOUCH, Tile, daysNum, list } from './shared'
 import PunchCodeModal from '../../components/scan/PunchCodeModal'
+import SelfCheckIn from '../../components/geo/SelfCheckIn'
+import { fetchSelfAttendance, selfPunch } from '../../api/scan'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 
 /**
  * My workspace at a glance (as the hospital workspace's Overview): today's lessons, homework to
@@ -91,6 +94,7 @@ export default function OverviewTab({ teaching, record, leave, payslips, approva
 
   return (
     <div className="flex flex-col gap-6">
+      <StaffCheckIn />
       {/* Calm tiles (no shadow) in a plain grid: beside the rail a flex row squeezes them too narrow. */}
       <div className="flex flex-col gap-3">
         {cards.length > 0 && (
@@ -116,6 +120,21 @@ export default function OverviewTab({ teaching, record, leave, payslips, approva
       </div>
       {punch && <PunchCodeModal onClose={() => setPunch(false)} />}
     </div>
+  )
+}
+
+/* ------------------------------------------------------------------ check in / out from the phone */
+
+/** Staff mark themselves in and out (Settings › Staff & HR › self attendance) — only shown when it is switched on. */
+function StaffCheckIn() {
+  const { t } = useTranslation('geo')
+  const qc = useQueryClient()
+  const { data } = useQuery({ queryKey: ['self-attendance'], queryFn: fetchSelfAttendance, retry: false, staleTime: 30_000 })
+  if (!data?.enabled) return null
+  return (
+    <SectionCard icon={CalendarClock} title={t('geo.self.title')}>
+      <SelfCheckIn status={data} punch={selfPunch} onDone={(r) => qc.setQueryData(['self-attendance'], (d) => ({ ...d, today: r.today, next: r.direction === 'IN' ? 'OUT' : 'IN' }))} />
+    </SectionCard>
   )
 }
 

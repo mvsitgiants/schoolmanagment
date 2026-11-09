@@ -221,7 +221,8 @@
         "RFID": "RFID card reader / gate",
         "FACE": "Face recognition camera",
         "GPS": "Bus GPS tracker",
-        "PHONE": "Phone / tablet scanner (camera or scanner gun)"
+        "PHONE": "Phone / tablet scanner (camera or scanner gun)",
+        "GEO": "Phone check-in on campus (made by the system)"
       },
       "usedFor": {
         "STAFF": "Staff attendance",

@@ -40,7 +40,7 @@ export function EmployeeForm({ employee, onClose, onSaved }) {
     departmentId: e0.departmentId ?? '', branchId: e0.branchId ?? '', reportingManagerId: e0.reportingManagerId ?? '', joiningDate: e0.joiningDate ?? '', confirmationDate: e0.confirmationDate ?? '',
     gender: e0.gender ?? '', dob: e0.dob ?? '', bloodGroup: e0.bloodGroup ?? '', mobile: e0.mobile ?? '', email: e0.email ?? '',
     qualifications: e0.qualifications ?? '', experienceYears: e0.experienceYears ?? '', subjects: (e0.subjects ?? []).join(', '),
-    weeklyOffDays: e0.weeklyOffDays ?? [], notes: e0.notes ?? '', changeNote: '',
+    weeklyOffDays: e0.weeklyOffDays ?? [], notes: e0.notes ?? '', changeNote: '', geofenceExempt: !!e0.geofenceExempt,
     login: 'none', userId: '', loginEmail: '', roleId: '',
   })
   const [errors, setErrors] = useState({})
@@ -51,7 +51,7 @@ export function EmployeeForm({ employee, onClose, onSaved }) {
       departmentId: form.departmentId || null, branchId: form.branchId || null, reportingManagerId: form.reportingManagerId || null,
       joiningDate: form.joiningDate, confirmationDate: form.confirmationDate, gender: form.gender, dob: form.dob, bloodGroup: form.bloodGroup,
       mobile: form.mobile, email: form.email, qualifications: form.qualifications, experienceYears: form.experienceYears,
-      subjects: form.subjects.split(',').map((s) => s.trim()).filter(Boolean), weeklyOffDays: form.weeklyOffDays, notes: form.notes,
+      subjects: form.subjects.split(',').map((s) => s.trim()).filter(Boolean), weeklyOffDays: form.weeklyOffDays, notes: form.notes, geofenceExempt: form.geofenceExempt,
     }
     if (employee) return { ...b, changeNote: form.changeNote }
     if (form.login === 'link') b.userId = form.userId || null
@@ -166,6 +166,10 @@ export function EmployeeForm({ employee, onClose, onSaved }) {
         )}
 
         {employee && <FormField label={t('hrms.employees.changeNote')} hint={t('hrms.employees.changeNoteHint')}><Input value={form.changeNote} onChange={set('changeNote')} /></FormField>}
+        <label className="flex items-start gap-2.5 rounded-lg border border-border px-3 py-2.5 text-sm text-ink">
+          <input type="checkbox" checked={form.geofenceExempt} onChange={(e) => setForm((f) => ({ ...f, geofenceExempt: e.target.checked }))} className="mt-0.5 rounded border-border text-brand-500 focus:ring-brand-500" />
+          <span><span className="font-medium">{t('hrms.employees.geofenceExempt')}</span><span className="block text-xs text-ink-muted">{t('hrms.employees.geofenceExemptHint')}</span></span>
+        </label>
         <FormField label={t('hrms.employees.notes')}><Textarea rows={2} value={form.notes} onChange={set('notes')} /></FormField>
       </div>
     </Modal>

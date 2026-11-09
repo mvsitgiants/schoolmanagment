@@ -6,7 +6,8 @@ import { FormField, Input, Modal } from '../system'
 import Button from '../ui/Button'
 import QrCode from '../scan/QrCode'
 import { FCard, useFamily, useFamilyQuery } from './FamilyKit'
-import { familyPasses, familyPickupCancel, familyPickupCreate } from '../../api/family'
+import { familyPasses, familyPickupCancel, familyPickupCreate, familySelfAttendance, familySelfCheckIn } from '../../api/family'
+import SelfCheckIn from '../geo/SelfCheckIn'
 import { useFormat } from '../../context/SettingsContext'
 
 // Passes a family shows at school (the school scans them with the app's Scan button): an event pass for an RSVP "yes",
@@ -119,6 +120,21 @@ export function PickupCard() {
         </Modal>
       )}
       {showing && active && <PassModal title={t('family.passes.pickupTitle')} code={active.code} onClose={() => setShowing(false)} lines={[t('family.passes.pickupBy', { name: active.person.name }), active.person.relation]} />}
+    </FCard>
+  )
+}
+
+/** The student app: check in / out on the campus — the student's own login only, when the school switched it on. */
+export function StudentCheckInCard() {
+  const { t } = useTranslation('geo')
+  const { slug, studentId } = useFamily()
+  const qc = useQueryClient()
+  const { data } = useFamilyQuery(['self-attendance'], () => familySelfAttendance(slug, studentId), { staleTime: 30_000 })
+  if (!data?.enabled || !data.ownLogin) return null
+  return (
+    <FCard title={t('geo.self.studentTitle')}>
+      <SelfCheckIn status={data} punch={(body) => familySelfCheckIn(slug, studentId, body)}
+        onDone={(r) => qc.setQueryData(['family', slug, studentId, 'self-attendance'], (d) => ({ ...d, today: r.today, next: r.direction === 'IN' ? 'OUT' : 'IN' }))} />
     </FCard>
   )
 }

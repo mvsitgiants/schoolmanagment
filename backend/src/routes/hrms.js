@@ -54,6 +54,7 @@ const employeeSchema = z.object({
   category: z.enum(values(EMPLOYEE_CATEGORIES)), employmentType: z.enum(values(EMPLOYMENT_TYPES)),
   joiningDate: ymd, confirmationDate: blank(ymd),
   weeklyOffDays: z.array(z.enum(['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'])).max(3).optional(),
+  geofenceExempt: z.boolean().optional(), // field staff: may check in from their phone anywhere
   notes: optionalText(2000),
   userId: optId,
   login: z.object({ email: blank(email), roleIds: z.array(objectId).min(1, 'Pick a role'), invite: z.boolean().default(true), password: optionalText(100) }).optional(),

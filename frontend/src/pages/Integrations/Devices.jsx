@@ -67,7 +67,7 @@ function DeviceModal({ device, options, onClose, onSaved }) {
         <FormField label={t('integrations.devices.name')} required error={errors.name}><Input value={f.name} maxLength={80} onChange={(e) => set('name', e.target.value)} placeholder={t('integrations.devices.namePlaceholder')} /></FormField>
         <div className="grid sm:grid-cols-2 gap-3">
           <FormField label={t('integrations.devices.kindCol')}>
-            <Select value={f.kind} disabled={!!device} onChange={(e) => pickKind(e.target.value)}>{DEVICE_KINDS.map((k) => <option key={k} value={k}>{kindLabel(t, k)}</option>)}</Select>
+            <Select value={f.kind} disabled={!!device} onChange={(e) => pickKind(e.target.value)}>{DEVICE_KINDS.filter((k) => k !== 'GEO' || f.kind === 'GEO').map((k) => <option key={k} value={k}>{kindLabel(t, k)}</option>)}</Select>
           </FormField>
           {gps ? (
             <FormField label={t('integrations.devices.vehicle')} required error={errors.vehicleId}>

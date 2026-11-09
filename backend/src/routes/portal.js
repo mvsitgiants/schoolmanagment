@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import { cancelPickupPass, createPickupPass, familyPasses } from '../services/passes.js'
+import { studentSelfCheckIn, studentSelfStatus } from '../services/selfAttendance.js'
 import { forgetFamilySession, pushPublicKey, removePushSubscription, savePushSubscription } from '../services/push.js'
 import rateLimit from 'express-rate-limit'
 import { config } from '../config.js'
@@ -370,3 +371,11 @@ familyRouter.post('/students/:studentId/pickup-passes', async (req, res) => {
   res.status(201).json({ data: await createPickupPass(req.family, sid(req), body, req) })
 })
 familyRouter.post('/students/:studentId/pickup-passes/:passId/cancel', async (req, res) => { res.json({ data: await cancelPickupPass(req.family, sid(req), req.params.passId) }) })
+// the student app: check in / out from the student's own phone, inside an attendance site (Settings › Attendance)
+const selfBody = z.object({
+  direction: z.enum(['IN', 'OUT']).optional(),
+  location: z.object({ lat: z.number().min(-90).max(90), lng: z.number().min(-180).max(180), accuracy: z.number().min(0).max(100000).optional() }).optional(),
+  locationError: z.enum(['DENIED', 'UNAVAILABLE', 'TIMEOUT', 'UNSUPPORTED']).optional(),
+})
+familyRouter.get('/students/:studentId/self-attendance', async (req, res) => { res.json({ data: await studentSelfStatus(req.family, sid(req)) }) })
+familyRouter.post('/students/:studentId/self-attendance', async (req, res) => { res.json({ data: await studentSelfCheckIn(req.family, sid(req), selfBody.parse(req.body ?? {})) }) })

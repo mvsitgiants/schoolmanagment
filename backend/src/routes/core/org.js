@@ -7,6 +7,7 @@ import { requirePermission } from '../../platform/middleware.js'
 import { importDepartments } from '../../services/coreImport.js'
 import { objectId, optionalText, z } from '../../platform/validate.js'
 import { assertWithinLimit } from '../../services/subscription.js'
+import { attendanceSitesInput, sitesIn, sitesText } from '../../services/attendanceSites.js'
 
 const router = Router()
 
@@ -19,6 +20,7 @@ const branchSchema = z.object({
   phone: optionalText(30),
   gstin: z.string().trim().toUpperCase().regex(/^[0-9A-Z]{15}$/, 'GSTIN has 15 letters/digits').optional().or(z.literal('').transform(() => undefined)),
   // self-attendance geofence: named sites (circle or outline) of this branch
+  attendanceSites: attendanceSitesInput.optional(),
 })
 
 router.get('/branches', async (req, res) => {
@@ -33,7 +35,7 @@ router.get('/branches', async (req, res) => {
 router.post('/branches', requirePermission('core.branches.create'), async (req, res) => {
   const input = branchSchema.parse(req.body)
   await assertWithinLimit(req.auth.tenantId, 'branches', 1)
-  const branch = await Branch.create(input)
+  const branch = await Branch.create({ ...input, attendanceSites: sitesIn(input.attendanceSites) ?? [] })
   await audit({ action: 'CREATE', module: 'core', entityType: 'branch', entityId: String(branch._id), entityName: branch.name, summary: `Added branch ${branch.name}` }, req)
   res.status(201).json({ data: branch })
 })
@@ -45,10 +47,12 @@ router.patch('/branches/:id', requirePermission('core.branches.edit'), async (re
   if (input.active === false && branch.isDefault) throw badRequest('The main branch is always active.')
   if (input.active === true && !branch.active) await assertWithinLimit(req.auth.tenantId, 'branches', 1)
   const before = branch.toObject()
-  Object.assign(branch, input)
+  const { attendanceSites, ...rest } = input
+  Object.assign(branch, rest)
+  if (attendanceSites) branch.attendanceSites = sitesIn(attendanceSites)
   await branch.save()
   const after = branch.toObject()
-  const changes = diffFields(before, after, ['name', 'code', 'addressLine', 'city', 'state', 'pincode', 'phone', 'gstin', 'active'])
+  const changes = diffFields({ ...before, attendanceSites: sitesText(before.attendanceSites) }, { ...after, attendanceSites: sitesText(after.attendanceSites) }, ['name', 'code', 'addressLine', 'city', 'state', 'pincode', 'phone', 'gstin', 'attendanceSites', 'active'])
   if (changes.length) await audit({ action: 'UPDATE', module: 'core', entityType: 'branch', entityId: String(branch._id), entityName: branch.name, summary: `Updated branch ${branch.name}`, changes }, req)
   res.json({ data: branch })
 })

@@ -232,6 +232,23 @@
         "selfLeave": {
           "label": "Staff apply for leave themselves",
           "help": "In My workspace. Otherwise HR applies on their behalf."
+        },
+        "selfAttendance": {
+          "label": "Staff can mark themselves in and out from their phone (My workspace)",
+          "help": "Off: HR, the biometric device or a gate scanner marks staff attendance. They can check in and out several times a day; the first in and last out make the day."
+        },
+        "geofence": {
+          "label": "Where staff may mark themselves in and out",
+          "help": "Checks the phone’s location against the attendance sites of the person’s campus (Administration › Campuses). The location is read only at the moment they mark attendance — never tracked. HR can exempt field staff on their staff record.",
+          "options": {
+            "OFF": "Off — anywhere",
+            "WARN": "Allow, but flag punches outside an attendance site",
+            "REQUIRED": "Block — only within an attendance site"
+          }
+        },
+        "geofenceMaxAccuracyM": {
+          "label": "Refuse a staff location rougher than (metres)",
+          "help": "Phones indoors can be off by a few hundred metres; the punch is refused (or flagged) when the location is less accurate than this."
         }
       },
       "transport": {
@@ -440,6 +457,18 @@
         },
         "editDays": {
           "label": "Teachers can correct attendance up to (days back)"
+        },
+        "studentSelfCheckIn": {
+          "label": "Students check themselves in from the student app",
+          "help": "Only from a student’s own login (not a parent’s), and only inside an attendance site of their campus (Administration › Campuses). They can check in and out several times; teachers can always mark or correct the register by hand.",
+          "options": {
+            "OFF": "Off — the class teacher marks attendance",
+            "LOG": "Students check in on the campus; it goes to the gate log (the teacher still marks the register)",
+            "PRESENT": "Students check in on the campus; a check-in before the “mark by” time marks them present"
+          }
+        },
+        "studentGeofenceMaxAccuracyM": {
+          "label": "Refuse a student location rougher than (metres)"
         }
       },
       "exams": {

@@ -228,6 +228,9 @@ const devicePunchSchema = new Schema({
   outcome: { type: String, required: true }, // PUNCH_OUTCOMES
   note: String,
   test: { type: Boolean, default: false },
+  // a phone check-in (device kind GEO): where it was made — { lat, lng, accuracy, distanceM, siteName, inside, status }
+  geo: { type: Schema.Types.Mixed, default: undefined },
+  outsideGeofence: { type: Boolean, default: undefined },
 }, { timestamps: true })
 devicePunchSchema.plugin(tenantPlugin)
 // a device re-sending the same punch adds nothing

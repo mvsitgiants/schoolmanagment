@@ -4,6 +4,7 @@
 // grouped by module (a module's settings show once the module is switched on).
 import { SUPPORTED_LANGUAGES } from './languages.js'
 import { ID_CARD_ORIENTATIONS, STUDENT_ID_CARD_FIELDS } from './students.js'
+import { GEOFENCE_MODES, STUDENT_SELF_CHECKIN } from './geofence.js'
 
 export const SETTING_TYPES = ['bool', 'text', 'number', 'select', 'multi']
 
@@ -37,6 +38,9 @@ export const SETTINGS = [
   { module: 'hrms', key: 'lateAfter', type: 'text', label: 'Late after (HH:MM)', default: '', pattern: '^([01]\\d|2[0-3]):[0-5]\\d$', patternError: 'Use HH:MM', help: 'Arriving after this is marked late. Leave empty to not track late arrival.' },
   { module: 'hrms', key: 'attendanceEditDays', type: 'number', label: 'Staff attendance can be corrected up to (days back)', default: 7, min: 0, max: 62 },
   { module: 'hrms', key: 'selfLeave', type: 'bool', label: 'Staff apply for leave themselves', default: true, help: 'In My workspace. Otherwise HR applies on their behalf.' },
+  { module: 'hrms', key: 'selfAttendance', type: 'bool', label: 'Staff can mark themselves in and out from their phone (My workspace)', default: false, help: 'Off: HR, the biometric device or a gate scanner marks staff attendance. They can check in and out several times a day; the first in and last out make the day.' },
+  { module: 'hrms', key: 'geofence', type: 'select', label: 'Where staff may mark themselves in and out', default: 'REQUIRED', options: GEOFENCE_MODES, help: 'Checks the phone’s location against the attendance sites of the person’s campus (Administration › Campuses). The location is read only at the moment they mark attendance — never tracked. HR can exempt field staff on their staff record.' },
+  { module: 'hrms', key: 'geofenceMaxAccuracyM', type: 'number', label: 'Refuse a staff location rougher than (metres)', default: 100, min: 10, max: 2000, help: 'Phones indoors can be off by a few hundred metres; the punch is refused (or flagged) when the location is less accurate than this.' },
   { module: 'transport', key: 'alertNear', type: 'bool', label: 'Tell families when the bus is near their stop', default: true },
   { module: 'transport', key: 'nearMetres', type: 'number', label: 'Near means within (metres)', default: 1500, min: 300, max: 5000 },
   { module: 'transport', key: 'arriveMetres', type: 'number', label: 'At the stop means within (metres)', default: 150, min: 30, max: 500 },
@@ -98,6 +102,8 @@ export const SETTINGS = [
   { module: 'attendance', key: 'markBefore', type: 'text', label: 'Attendance to be marked by (HH:MM)', default: '10:00', pattern: '^([01]\\d|2[0-3]):[0-5]\\d$', patternError: 'Use HH:MM', help: 'Classes not marked by then show on the principal’s dashboard.' },
   { module: 'attendance', key: 'minimumPct', type: 'number', label: 'Minimum attendance required (%)', default: 75, min: 0, max: 100, help: 'Students below it are flagged in reports.' },
   { module: 'attendance', key: 'editDays', type: 'number', label: 'Teachers can correct attendance up to (days back)', default: 2, min: 0, max: 30 },
+  { module: 'attendance', key: 'studentSelfCheckIn', type: 'select', label: 'Students check themselves in from the student app', default: 'OFF', options: STUDENT_SELF_CHECKIN, help: 'Only from a student’s own login (not a parent’s), and only inside an attendance site of their campus (Administration › Campuses). They can check in and out several times; teachers can always mark or correct the register by hand.' },
+  { module: 'attendance', key: 'studentGeofenceMaxAccuracyM', type: 'number', label: 'Refuse a student location rougher than (metres)', default: 100, min: 10, max: 2000 },
 
   // ── Exams & report cards
   { module: 'exams', key: 'roundMarks', type: 'bool', label: 'Round totals to whole marks', default: true },

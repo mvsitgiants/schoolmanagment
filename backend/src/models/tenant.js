@@ -12,6 +12,16 @@ const branchSchema = new Schema({
   isDefault: { type: Boolean, default: false },
   addressLine: String, city: String, state: String, pincode: String,
   phone: String, gstin: String,
+  // Where staff and students may mark their own attendance (Settings › Staff & HR / Attendance › self attendance).
+  // A site is a circle (centre + radius) or a drawn outline (polygon corners); services/attendanceSites.js.
+  attendanceSites: [new Schema({
+    name: { type: String, trim: true },
+    shape: { type: String, default: 'CIRCLE' }, // SITE_SHAPES
+    lat: { type: Number, required: true }, lng: { type: Number, required: true },
+    radiusM: { type: Number, default: 200 },
+    polygon: { type: [[Number]], default: undefined }, // [[lat, lng], …] — POLYGON only
+    active: { type: Boolean, default: true },
+  })],
   active: { type: Boolean, default: true },
 }, { timestamps: true })
 branchSchema.plugin(tenantPlugin)

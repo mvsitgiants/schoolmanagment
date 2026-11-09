@@ -47,6 +47,7 @@ const employeeSchema = new Schema({
   weeklyOffDays: { type: [String], default: undefined }, // own weekly off (else Settings › Staff & HR)
 
   status: { type: String, default: 'ACTIVE' }, // EMPLOYEE_STATUSES — only the exit actions move it
+  geofenceExempt: { type: Boolean, default: false }, // field staff: may mark themselves in and out anywhere
   exit: { type: { type: String }, noticeDate: String, lastWorkingDate: String, reason: String, deactivateLogin: Boolean, ...by },
 
   statutory: { type: new Schema({ pan: secret, aadhaar: secret, uan: secret, esi: secret }, { _id: false }), select: false },

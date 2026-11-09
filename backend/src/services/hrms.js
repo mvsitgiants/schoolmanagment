@@ -103,7 +103,7 @@ export async function getEmployee(id, auth) {
   return {
     ...row(e, n), gender: e.gender ?? null, dob: e.dob ?? null, bloodGroup: e.bloodGroup ?? null, address: e.address ?? {}, emergencyContact: e.emergencyContact ?? {},
     qualifications: e.qualifications ?? null, experienceYears: e.experienceYears ?? null, subjects: e.subjects ?? [], confirmationDate: e.confirmationDate ?? null,
-    weeklyOffDays: e.weeklyOffDays ?? [], reportingManagerId: idStr(e.reportingManagerId), notes: e.notes ?? null,
+    weeklyOffDays: e.weeklyOffDays ?? [], reportingManagerId: idStr(e.reportingManagerId), notes: e.notes ?? null, geofenceExempt: !!e.geofenceExempt,
     manager: manager && { id: String(manager._id), name: manager.name, designation: manager.designation ?? null },
     login: user && { id: String(user._id), name: user.name, email: user.email, active: user.active, lastLoginAt: user.lastLoginAt ?? null },
     reports: reports.map((r) => ({ id: String(r._id), name: r.name, designation: r.designation ?? null })),
@@ -162,7 +162,7 @@ export async function createEmployee(input, auth, req) {
   const e = await Employee.create({
     ...personal(input), employeeCode: code,
     ...Object.fromEntries(JOB_FIELDS.map((k) => [k, input[k] || undefined])),
-    userId: input.userId || undefined, candidateId: input.candidateId || undefined,
+    userId: input.userId || undefined, candidateId: input.candidateId || undefined, geofenceExempt: !!input.geofenceExempt,
     jobHistory: [{ type: 'JOINED', date: input.joiningDate, to: input.designation, by: auth.user?.name, at: new Date() }],
     createdBy: auth.user?.name,
   })
@@ -191,6 +191,7 @@ export async function updateEmployee(id, input, auth, req) {
   }
   Object.assign(e, personal(input))
   if (input.employeeCode) e.employeeCode = input.employeeCode
+  if (input.geofenceExempt !== undefined) e.geofenceExempt = input.geofenceExempt
   e.jobHistory.push(...changes)
   await e.save()
   await audit({ action: 'UPDATE', module: 'hrms', entityType: 'employee', entityId: String(e._id), entityName: e.name, summary: `Updated staff record ${e.name}${changes.length ? ` (${changes.map((c) => c.type.toLowerCase()).join(', ')})` : ''}` }, req)

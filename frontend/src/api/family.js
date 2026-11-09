@@ -127,3 +127,7 @@ export const familyAnswerSurvey = (slug, id, surveyId, values) => fpost(slug, `$
 export const familyPasses = (slug, studentId) => fget(slug, `/students/${studentId}/passes`)
 export const familyPickupCreate = (slug, studentId, body) => fpost(slug, `/students/${studentId}/pickup-passes`, body)
 export const familyPickupCancel = (slug, studentId, passId) => fpost(slug, `/students/${studentId}/pickup-passes/${passId}/cancel`, {})
+
+// the student app: check in / out on the campus from the student's own phone (Settings › Attendance)
+export const familySelfAttendance = (slug, studentId) => fget(slug, `/students/${studentId}/self-attendance`)
+export const familySelfCheckIn = (slug, studentId, body) => fpost(slug, `/students/${studentId}/self-attendance`, body)
