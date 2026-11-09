@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import { authenticate, requireModule, requirePermission, subscriptionGate, tenantOnly } from '../platform/middleware.js'
 import { commandCentre } from '../services/dashboard.js'
+import { liveCampus } from '../services/liveCampus.js'
 import { institutionOverview } from '../services/overview.js'
 import { z } from '../platform/validate.js'
 
@@ -21,6 +22,14 @@ router.get('/overview', async (req, res) => {
 router.get('/command', requireModule('dashboard'), requirePermission('dashboard.command.view'), async (req, res) => {
   res.setHeader('Cache-Control', 'private, no-store')
   res.json({ data: await commandCentre(req.auth) })
+})
+
+// Live campus: every section right now (period, teacher and their presence, substitute, attendance), the teachers,
+// the syllabus against the plan, what needs attention and the next 7 days. `at` (HH:MM) looks at another time today.
+router.get('/live', requireModule('dashboard'), requirePermission('dashboard.live.view'), async (req, res) => {
+  const q = z.object({ at: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Use HH:MM').optional(), branchId: z.string().optional() }).parse(req.query)
+  res.setHeader('Cache-Control', 'private, no-store')
+  res.json({ data: await liveCampus(req.auth, q) })
 })
 
 export default router

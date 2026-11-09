@@ -53,7 +53,7 @@
       "integrations": "Integrations"
     },
     "descriptions": {
-      "dashboard": "Role home and the principal’s command centre.",
+      "dashboard": "Role home, the principal’s command centre and the live campus board.",
       "core": "Institution profile, campuses, users, roles, subscription and every setting.",
       "students": "Student information system: admission, profile, guardians, documents, promotion and transfer.",
       "admissions": "Enquiry CRM, online application, entrance test, merit list and seat allotment.",
@@ -95,7 +95,8 @@
     },
     "pages": {
       "dashboard": {
-        "command": "Command centre"
+        "command": "Command centre",
+        "live": "Live campus"
       },
       "core": {
         "setup": "Setup hub",
