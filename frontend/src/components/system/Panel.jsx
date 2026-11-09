@@ -16,7 +16,7 @@ export default function Panel({ title, subtitle, icon: Icon, iconTone = 'brand',
   return (
     <div className={clsx(PANEL, 'flex flex-col min-w-0', className)}>
       {(title || actions) && (
-        <div className="ui-panel-head flex items-center justify-between gap-3 px-5 py-4 border-b border-border">
+        <div className="ui-panel-head flex items-center justify-between gap-3 px-4 py-3 border-b border-border">
           <div className="flex items-center gap-3 min-w-0">
             {Icon && <IconTile icon={Icon} tone={iconTone} size="xs" />}
             <div className="min-w-0">
@@ -27,7 +27,7 @@ export default function Panel({ title, subtitle, icon: Icon, iconTone = 'brand',
           {actions && <div className="flex items-center gap-2 shrink-0">{actions}</div>}
         </div>
       )}
-      <div className={clsx('ui-panel-body', flush ? '' : 'p-5', 'flex-1 min-w-0', bodyClassName)}>{children}</div>
+      <div className={clsx('ui-panel-body', flush ? '' : 'p-4', 'flex-1 min-w-0', bodyClassName)}>{children}</div>
     </div>
   )
 }

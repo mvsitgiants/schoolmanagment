@@ -1,14 +1,23 @@
 import { useState } from 'react'
-import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { Link, Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { useIsFetching, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { ArrowLeftRight, Eye, EyeOff, FileText, History, Pencil, Phone, Printer, Star, UserMinus, UserRound, UserCheck } from 'lucide-react'
-import { HISTORY_EVENTS, STUDENT_STATUS, TC_STATUS } from '@schoolgiant/shared'
-import { Attachments, FactGrid, Modal, Note, PageContainer, Panel, RecordHero, StatusPill, Tabs, Timeline, useConfirm } from '../../components/system'
+import { ArrowLeft, RefreshCw } from 'lucide-react'
+import { Modal, Note, PageContainer, Skeleton, SkeletonRows, Tabs, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
 import StudentForm, { studentBody, studentFormValues } from '../../components/students/StudentForm'
-import StudentPhoto from '../../components/students/StudentPhoto'
-import { fetchStudent, setStudentStatus, updateStudent } from '../../api/students'
+import Hero, { HeroActions } from '../../components/students/profile/Hero'
+import KpiStrip from '../../components/students/profile/KpiStrip'
+import OverviewTab from '../../components/students/profile/OverviewTab'
+import ProfileTab, { completenessOf } from '../../components/students/profile/ProfileTab'
+import FamilyTab from '../../components/students/profile/FamilyTab'
+import AcademicsTab from '../../components/students/profile/AcademicsTab'
+import AttendanceTab from '../../components/students/profile/AttendanceTab'
+import FeesTab from '../../components/students/profile/FeesTab'
+import CampusTab from '../../components/students/profile/CampusTab'
+import DocumentsTab from '../../components/students/profile/DocumentsTab'
+import HistoryTab from '../../components/students/profile/HistoryTab'
+import { fetchStudent, fetchStudentOverview, fetchStudentPhoto, setStudentStatus, updateStudent } from '../../api/students'
 import { hasPermission } from '../../api/auth'
 import { printDocument } from '../../components/print/printDocument'
 import { useSnackbar } from '../../context/SnackbarContext'
@@ -34,154 +43,110 @@ function EditStudent({ student, onClose, onSaved }) {
   )
 }
 
+const TAB_ORDER = ['overview', 'profile', 'family', 'academics', 'attendance', 'fees', 'campus', 'documents', 'history']
+
+/**
+ * Student 360: who the student is (hero, Profile, Family, Documents — GET /students/:id) and their school life
+ * (KPIs, Overview, Academics, Attendance, Fees, Campus life — GET /students/:id/overview, a section per module the
+ * caller may see). A tab shows only when it has something for this student and this role. ?tab= opens one.
+ */
 export default function Profile() {
   const { id } = useParams()
   const { t } = useTranslation('students')
   const navigate = useNavigate()
   const qc = useQueryClient()
   const confirm = useConfirm()
-  const { date, dateTime } = useFormat()
   const { showSuccess, showError } = useSnackbar()
-  const [tab, setTab] = useState('overview')
+  const { date } = useFormat()
+  const [params, setParams] = useSearchParams()
   const [reveal, setReveal] = useState(false)
   const [editing, setEditing] = useState(false)
   const { data: s, isLoading, error } = useQuery({ queryKey: ['student', id, reveal], queryFn: () => fetchStudent(id, { reveal }), enabled: !!id, retry: false })
+  const ov = useQuery({ queryKey: ['student', id, 'overview'], queryFn: () => fetchStudentOverview(id), enabled: !!id, retry: false, staleTime: 60_000 })
+  const photo = useQuery({ queryKey: ['student-photo', id], queryFn: () => fetchStudentPhoto(id), enabled: !!id, staleTime: 300_000 })
+  const fetching = useIsFetching({ queryKey: ['student', id] })
   const refresh = () => { qc.invalidateQueries({ queryKey: ['student', id] }); qc.invalidateQueries({ queryKey: ['students'] }) }
   const status = useMutation({ mutationFn: (to) => setStudentStatus(id, to), onSuccess: () => { refresh(); showSuccess(t('students.profile.statusSaved')) }, onError: (e) => showError(e.message) })
 
   if (!id) return <Navigate to="/students/directory" replace />
-  if (isLoading) return <PageContainer><p className="text-sm text-ink-faint">{t('students.loading')}</p></PageContainer>
+  if (isLoading) {
+    return (
+      <PageContainer>
+        <div className="flex items-center gap-4 rounded-2xl border border-border bg-surface p-5" aria-busy="true">
+          <Skeleton className="h-24 w-24 shrink-0 rounded-2xl" />
+          <div className="flex flex-1 flex-col gap-2"><Skeleton className="h-5 w-1/3" /><Skeleton className="h-4 w-1/2" /><span className="sr-only">{t('students.loading')}</span></div>
+        </div>
+        <div className="rounded-xl border border-border bg-surface py-3"><SkeletonRows rows={4} /></div>
+      </PageContainer>
+    )
+  }
   if (error || !s) return <PageContainer><Note tone="warning">{error?.response?.status === 404 ? t('students.profile.notFound') : error?.message}</Note></PageContainer>
 
+  const o = ov.data
   const canEdit = hasPermission('students.profile.edit')
-  const genderAge = [s.gender && t(`students.genders.${s.gender}`, s.gender), s.age != null && t('students.directory.age', { count: s.age })].filter(Boolean).join(' · ')
-  const tabs = [
-    { value: 'overview', label: t('students.profile.tabs.overview') },
-    { value: 'family', label: t('students.profile.tabs.family') },
-    { value: 'documents', label: t('students.profile.tabs.documents') },
-    { value: 'history', label: t('students.profile.tabs.history') },
-  ]
-  const relation = (r) => (r ? t(`students.relations.${r}`, r) : null)
+  const can = { edit: canEdit, idCard: hasPermission('students.id-cards.print'), tc: hasPermission('students.transfer.create') }
+  const completeness = completenessOf(s, !!photo.data?.photo, t)
+
+  // a tab only when there is something in it for this student and this role
+  const has = {
+    overview: true, profile: true, family: true, documents: true, history: true,
+    academics: !!(o?.exams || o?.homework || o?.programs || o?.timetable?.perWeek?.length),
+    attendance: !!o?.attendance,
+    fees: !!o?.fees,
+    campus: !!(o?.transport || o?.hostel || o?.library || o?.canteen || o?.health),
+  }
+  const tabs = TAB_ORDER.filter((x) => has[x]).map((x) => ({ value: x, label: t(`students.profile.tabs.${x}`) }))
+  const wanted = params.get('tab') || 'overview'
+  // a deep link to a module tab waits for the overview rather than bouncing to Overview
+  const tab = has[wanted] ? wanted : ov.isPending && TAB_ORDER.includes(wanted) ? wanted : 'overview'
+  const setTab = (x) => setParams(x === 'overview' ? {} : { tab: x }, { replace: true })
+  const goto = (x) => { setTab(x); window.scrollTo({ top: 0, behavior: 'smooth' }) }
+  const waiting = ov.isPending && !has[tab]
+
+  const makeInactive = async () => {
+    if (await confirm({ title: t('students.profile.inactiveConfirm.title', { name: s.name }), message: t('students.profile.inactiveConfirm.message'), confirmLabel: t('students.profile.markInactive') })) status.mutate('INACTIVE')
+  }
 
   return (
     <PageContainer>
-      <div className="mb-3 text-sm"><Link to="/students/directory" className="text-brand-600 hover:underline">{t('students.profile.back')}</Link></div>
-      <RecordHero name={s.name} icon={UserRound}
-        subtitle={[s.classLabel, s.rollNo && t('students.directory.roll', { no: s.rollNo }), genderAge].filter(Boolean).join(' · ')}
-        chips={<span className="text-xs font-mono-num px-2 py-0.5 rounded bg-bg border border-border text-ink">{s.admissionNo}</span>}
-        status={<StatusPill tone={STUDENT_STATUS[s.status]?.tone}>{t(`students.status.${s.status}`, STUDENT_STATUS[s.status]?.label)}</StatusPill>}
-        aside={<div className="flex flex-wrap gap-2">
-          {canEdit && <Button variant="secondary" icon={Pencil} onClick={() => setEditing(true)}>{t('actions.edit')}</Button>}
-          {s.status === 'ACTIVE' && hasPermission('students.transfer.create') && <Button variant="secondary" icon={ArrowLeftRight} onClick={() => navigate(`/students/transfer?student=${s.id}`)}>{t('students.profile.requestTc')}</Button>}
-          {canEdit && s.status === 'ACTIVE' && <Button variant="ghost" icon={UserMinus} onClick={async () => { if (await confirm({ title: t('students.profile.inactiveConfirm.title', { name: s.name }), message: t('students.profile.inactiveConfirm.message'), confirmLabel: t('students.profile.markInactive') })) status.mutate('INACTIVE') }}>{t('students.profile.markInactive')}</Button>}
-          {canEdit && s.status !== 'ACTIVE' && <Button variant="secondary" icon={UserCheck} onClick={() => status.mutate('ACTIVE')}>{t('students.profile.markActive')}</Button>}
-        </div>}
-        facts={[
-          { label: t('students.profile.primaryGuardian'), value: s.guardianName ? `${s.guardianName}${s.guardianMobile ? ` · ${s.guardianMobile}` : ''}` : '—' },
-          { label: t('students.form.admissionDate'), value: s.admissionDate ? date(s.admissionDate) : '—' },
-          { label: t('students.profile.year'), value: s.yearName ?? '—' },
-        ]} />
+      <div className="flex items-center justify-between gap-3 text-sm">
+        <Link to="/students/directory" className="inline-flex items-center gap-1.5 text-brand-600 hover:underline"><ArrowLeft className="h-4 w-4 rtl:rotate-180" aria-hidden />{t('students.profile.backLabel')}</Link>
+        <Button size="sm" variant="ghost" icon={RefreshCw} loading={fetching > 0} onClick={refresh} title={t('students.profile.refresh')} aria-label={t('students.profile.refresh')} />
+      </div>
 
-      {s.leaving?.tcNo && <Note tone="warning" className="mt-4">{t('students.profile.leftNote', { date: date(s.leaving.date), tc: s.leaving.tcNo })}</Note>}
+      <Hero s={s} onPhoto={() => goto('documents')}
+        actions={<HeroActions s={s} can={can} busy={status.isPending} onEdit={() => setEditing(true)} onIdCard={() => printDocument('STUDENT_ID_CARD', [s.id])}
+          onTc={() => navigate(`/students/transfer?student=${s.id}`)} onInactive={makeInactive} onActive={() => status.mutate('ACTIVE')} />} />
 
-      <Tabs tabs={tabs} value={tab} onChange={setTab} className="mt-6 mb-4" />
+      {s.leaving?.tcNo && <Note tone="warning">{t('students.profile.leftNote', { date: date(s.leaving.date), tc: s.leaving.tcNo })}</Note>}
 
-      {tab === 'overview' && (
-        <div className="grid lg:grid-cols-2 gap-6">
-          <Panel title={t('students.form.student')} actions={hasPermission('students.profile.view_sensitive') && s.aadhaarSet && (
-            <Button size="sm" variant="ghost" icon={reveal ? EyeOff : Eye} onClick={() => setReveal(!reveal)}>{reveal ? t('students.profile.hideIds') : t('students.profile.showIds')}</Button>
-          )}>
-            <FactGrid cols={2} items={[
-              { label: t('students.form.dob'), value: s.dob ? date(s.dob) : null },
-              { label: t('students.form.gender'), value: s.gender && t(`students.genders.${s.gender}`, s.gender) },
-              { label: t('students.form.bloodGroup'), value: s.bloodGroup },
-              { label: t('students.form.category'), value: s.category && t(`students.categories.${s.category}`, s.category) },
-              { label: t('students.form.religion'), value: s.religion },
-              { label: t('students.form.nationality'), value: s.nationality },
-              { label: t('students.form.motherTongue'), value: s.motherTongue },
-              { label: t('students.form.aadhaar'), value: s.aadhaar, mono: true },
-              { label: t('students.form.apaarId'), value: s.apaarId, mono: true },
-              { label: t('students.form.pen'), value: s.pen, mono: true },
-            ]} />
-          </Panel>
-          <Panel title={t('students.form.contact')}>
-            <FactGrid cols={2} items={[
-              { label: t('students.form.addressLine'), value: [s.address?.line, s.address?.city, s.address?.state, s.address?.pincode].filter(Boolean).join(', ') || null, span: 'full' },
-              { label: t('students.form.studentMobile'), value: s.mobile, mono: true },
-              { label: t('students.form.studentEmail'), value: s.email },
-            ]} />
-          </Panel>
-          <Panel title={t('students.form.previousSchool')}>
-            <FactGrid cols={2} items={[
-              { label: t('students.form.schoolName'), value: s.previousSchool?.name, span: 'full' },
-              { label: t('students.form.board'), value: s.previousSchool?.board },
-              { label: t('students.form.lastClass'), value: s.previousSchool?.lastClass },
-              { label: t('students.form.tcNo'), value: s.previousSchool?.tcNo, mono: true },
-            ]} />
-          </Panel>
-          <Panel title={t('students.form.medical')}>
-            <FactGrid cols={1} items={[
-              { label: t('students.form.allergies'), value: s.medical?.allergies },
-              { label: t('students.form.conditions'), value: s.medical?.conditions },
-              { label: t('students.form.medicalNotes'), value: s.medical?.notes, text: true },
-            ]} />
-          </Panel>
-        </div>
-      )}
+      {ov.isPending ? <KpiSkeleton /> : <KpiStrip o={o} onGoto={goto} />}
+      {ov.error && <Note tone="warning">{t('students.profile.overviewFailed')}</Note>}
 
-      {tab === 'family' && (
-        <div className="grid lg:grid-cols-2 gap-6">
-          {s.guardians.map((g) => (
-            <Panel key={g.id} title={g.name} subtitle={[relation(g.relation), g.occupation].filter(Boolean).join(' · ')}
-              actions={g.isPrimary && <span className="inline-flex items-center gap-1 text-xs font-medium text-brand-700"><Star className="w-3.5 h-3.5" />{t('students.form.primary')}</span>}>
-              <FactGrid cols={2} items={[
-                { label: t('students.form.mobile'), value: g.mobile, icon: Phone, mono: true },
-                { label: t('students.form.email'), value: g.email },
-              ]} />
-            </Panel>
-          ))}
-          <Panel title={t('students.profile.siblings')}>
-            {s.siblings.length ? (
-              <ul className="divide-y divide-border">{s.siblings.map((x) => (
-                <li key={x.id} className="py-2 flex items-center justify-between text-sm"><Link to={`/students/profile/${x.id}`} className="text-brand-600 hover:underline">{x.name}</Link><span className="text-ink-faint font-mono-num">{x.classShort} · {x.admissionNo}</span></li>
-              ))}</ul>
-            ) : <p className="text-sm text-ink-faint">{t('students.profile.noSiblings')}</p>}
-          </Panel>
-        </div>
-      )}
+      <div className="flex min-w-0 flex-col gap-5">
+        <Tabs tabs={tabs} value={tab} onChange={setTab} />
+        {waiting && <div className="rounded-xl border border-border bg-surface py-3"><SkeletonRows rows={5} /></div>}
+        {tab === 'overview' && <OverviewTab s={s} o={o} loading={ov.isPending} completeness={completeness} onGoto={goto} />}
+        {tab === 'profile' && <ProfileTab s={s} completeness={completeness} canEdit={canEdit} onEdit={() => setEditing(true)}
+          canReveal={hasPermission('students.profile.view_sensitive')} reveal={reveal} onReveal={() => setReveal((v) => !v)} />}
+        {tab === 'family' && <FamilyTab s={s} canEdit={canEdit || hasPermission('students.guardians.edit')} onEdit={() => setEditing(true)} />}
+        {tab === 'academics' && has.academics && <AcademicsTab s={s} o={o} />}
+        {tab === 'attendance' && has.attendance && <AttendanceTab a={o.attendance} />}
+        {tab === 'fees' && has.fees && <FeesTab s={s} f={o.fees} />}
+        {tab === 'campus' && has.campus && <CampusTab o={o} />}
+        {tab === 'documents' && <DocumentsTab s={s} o={o} canEdit={canEdit} />}
+        {tab === 'history' && <HistoryTab s={s} o={o} />}
+      </div>
 
-      {tab === 'documents' && (
-        <div className="grid lg:grid-cols-[14rem_1fr] gap-6 items-start">
-          <Panel title={t('students.photo.title')} subtitle={t('students.photo.hint')}>
-            <StudentPhoto studentId={s.id} name={s.name} canEdit={canEdit || hasPermission('students.id-cards.print')} />
-          </Panel>
-          <Panel title={t('students.profile.tabs.documents')} subtitle={t('students.profile.documentsHint')}>
-            <Attachments entityType="student" entityId={s.id} canAdd={canEdit || hasPermission('students.admit.create')} />
-          </Panel>
-        </div>
-      )}
-
-      {tab === 'history' && (
-        <div className="grid lg:grid-cols-[2fr_1fr] gap-6">
-          <Panel title={t('students.profile.tabs.history')} icon={History}>
-            <Timeline items={[...s.history].reverse().map((h, i) => ({
-              id: String(i), title: t(`students.history.${h.event}`, HISTORY_EVENTS[h.event] ?? h.event),
-              time: dateTime(h.at), meta: [h.classLabel, h.yearName, h.by].filter(Boolean).join(' · '), body: h.note,
-            }))} />
-          </Panel>
-          <Panel title={t('students.profile.tcs')} icon={FileText}>
-            {s.tcs.length ? s.tcs.map((tc) => (
-              <div key={tc.id} className="py-2 border-b border-border last:border-0 flex items-center justify-between gap-2">
-                <div className="min-w-0"><p className="text-sm text-ink font-mono-num">{tc.tcNo ?? t('students.transfer.draft')}</p><p className="text-xs text-ink-faint">{date(tc.leavingDate)} · {tc.reasonLabel}</p></div>
-                <div className="flex items-center gap-1"><StatusPill tone={TC_STATUS[tc.status]?.tone}>{t(`students.transfer.status.${tc.status}`, tc.statusLabel)}</StatusPill>
-                  {hasPermission('students.transfer.print') && <Button size="sm" variant="ghost" icon={Printer} aria-label={t('students.transfer.print')} title={t('students.transfer.print')} onClick={() => printDocument('TRANSFER_CERTIFICATE', tc.id)} />}</div>
-              </div>
-            )) : <p className="text-sm text-ink-faint">{t('students.profile.noTcs')}</p>}
-          </Panel>
-        </div>
-      )}
-
-      {editing && <EditStudent student={s} onClose={() => setEditing(false)} onSaved={() => { refresh(); showSuccess(t('students.profile.saved')); setEditing(false) }} />}
+      {editing && <EditStudent student={s} onClose={() => setEditing(false)} onSaved={() => { refresh(); qc.invalidateQueries({ queryKey: ['student-photo', id] }); showSuccess(t('students.profile.saved')); setEditing(false) }} />}
     </PageContainer>
+  )
+}
+
+function KpiSkeleton() {
+  return (
+    <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-3 xl:grid-cols-5">
+      {[0, 1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-[92px] rounded-xl" />)}
+    </div>
   )
 }

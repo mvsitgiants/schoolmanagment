@@ -91,7 +91,8 @@ function Heatmap({ a }) {
         <span />
         {weeks.map((w, i) => {
           const m = w.slice(0, 7)
-          const firstOfMonth = i === 0 || weeks[i - 1].slice(0, 7) !== m
+          // a month's name over its first week — not over a lone first column (no room before the next name)
+          const firstOfMonth = i === 0 ? weeks[1]?.slice(0, 7) === m && weeks[2]?.slice(0, 7) === m : weeks[i - 1].slice(0, 7) !== m
           return <span key={w} className="truncate text-[10px] font-medium text-ink-faint">{firstOfMonth ? month(m) : ''}</span>
         })}
         {[0, 1, 2, 3, 4, 5, 6].map((d) => (

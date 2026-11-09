@@ -160,7 +160,7 @@ const EvPtm = lazy(() => import('./pages/Events/Ptm'))
 const EvGallery = lazy(() => import('./pages/Events/Gallery'))
 const StudentIdCards = lazy(() => import('./pages/Students/IdCards'))
 // Dashboard & reports
-const CommandCentre = lazy(() => import('./pages/Dashboard/Command'))
+const LiveCampus = lazy(() => import('./pages/Dashboard/Live'))
 const ReportLibrary = lazy(() => import('./pages/Reports/Library'))
 const ReportBuilder = lazy(() => import('./pages/Reports/Builder'))
 // Parent & student app
@@ -416,8 +416,9 @@ export default function App() {
           <Route path="certificates" element={<Navigate to="/certificates/issue" replace />} />
           <Route path="certificates/issue" element={<CertificateIssue />} />
           <Route path="certificates/register" element={<CertificateRegister />} />
-          <Route path="dashboard" element={<Navigate to="/dashboard/command" replace />} />
-          <Route path="dashboard/command" element={<CommandCentre />} />
+          <Route path="dashboard" element={<Navigate to="/dashboard/live" replace />} />
+          <Route path="dashboard/command" element={<Navigate to="/dashboard/live" replace />} />
+          <Route path="dashboard/live" element={<LiveCampus />} />
           <Route path="reports" element={<Navigate to="/reports/library" replace />} />
           <Route path="reports/library" element={<ReportLibrary />} />
           <Route path="reports/builder" element={<ReportBuilder />} />

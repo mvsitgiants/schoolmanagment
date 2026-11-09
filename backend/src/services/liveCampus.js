@@ -58,13 +58,14 @@ function phaseOf(slots, time, schoolDay) {
 
 const elapsed = (slot, time) => (slot ? Math.max(0, Math.min(100, Math.round(((toMin(time) - toMin(slot.start)) / Math.max(1, toMin(slot.end) - toMin(slot.start))) * 100))) : null)
 
-async function dayContext(auth, { at, branchId }) {
+async function dayContext(auth, { at, branchId, date }) {
   const clock = await institutionNow()
-  const today = clock.date
-  const time = /^([01]\d|2[0-3]):[0-5]\d$/.test(at ?? '') ? at : clock.time
+  // the day looked at: today, or another day close by (yesterday's picture, tomorrow's plan, the next school day)
+  const today = /^\d{4}-\d{2}-\d{2}$/.test(date ?? '') && Math.abs(Date.parse(date) - Date.parse(clock.date)) <= 31 * 864e5 ? date : clock.date
+  const isToday = today === clock.date
   const [year, bells, core, attCfg, hrCfg, branches, holidays] = await Promise.all([
     currentYear(), listBells(), getSettings('core'), getSettings('attendance'), getSettings('hrms'),
-    Branch.find().select('name code isDefault').sort({ isDefault: -1, name: 1 }).lean(), Holiday.find({ date: { $gte: today, $lte: addDaysYmd(today, 6) } }).lean(),
+    Branch.find().select('name code isDefault').sort({ isDefault: -1, name: 1 }).lean(), Holiday.find({ date: { $gte: addDaysYmd(today, -14), $lte: addDaysYmd(today, 14) } }).lean(),
   ])
   // a campus can be picked by someone who sees the whole institution
   const canPick = branches.length > 1 && (scopeOf(auth, 'attendance') === 'ALL' || !auth.user?.branchId)
@@ -72,19 +73,25 @@ async function dayContext(auth, { at, branchId }) {
   const inBranch = (doc) => !picked || String(doc ?? '') === String(picked._id) || (picked.isDefault && !doc)
   const def = bells.find((b) => b.isDefault) ?? bells[0]
   const bellOf = (classId) => bells.find((b) => (b.classIds ?? []).includes(String(classId))) ?? def
+  const frame = def?.slots ?? []
+  const valid = (x) => /^([01]\d|2[0-3]):[0-5]\d$/.test(x ?? '')
+  // another day with no time picked opens at its first period
+  const time = valid(at) ? at : isToday ? clock.time : frame.find((sl) => sl.kind === 'PERIOD' && sl.no > 0)?.start ?? '09:00'
   const workingDays = WEEK_DAYS.filter((d) => (core.workingDays ?? ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']).includes(d))
-  const holidayOn = (date) => holidays.find((h) => h.date === date && !h.optional && h.forStudents !== false && (!h.branchIds?.length || !picked || h.branchIds.some((b) => String(b) === String(picked._id))))
+  const holidayOn = (d) => holidays.find((h) => h.date === d && !h.optional && h.forStudents !== false && (!h.branchIds?.length || !picked || h.branchIds.some((b) => String(b) === String(picked._id))))
+  const isSchoolDay = (d) => workingDays.includes(weekdayCode(d)) && !holidayOn(d)
   const holiday = holidayOn(today)
   const workingDay = workingDays.includes(weekdayCode(today))
   const pub = year ? await Timetable.findOne({ academicYearId: year._id, status: 'PUBLISHED' }).lean() : null
   const inUse = !!pub && (!pub.effectiveFrom || today >= pub.effectiveFrom)
   const schoolDay = workingDay && !holiday
-  const frame = def?.slots ?? []
   const { phase, slot } = phaseOf(frame, time, schoolDay)
+  const near = (step) => { for (let i = 1; i <= 14; i++) { const d = addDaysYmd(today, step * i); if (isSchoolDay(d)) return d } return null }
   // half the day, for half-day leave (first half: until the middle of the bell)
   const mid = frame.length ? Math.round((toMin(frame[0].start) + toMin(frame.at(-1).end)) / 2) : 12 * 60
   return {
-    auth, clock, today, time, live: !at || at === clock.time, year, bellOf, def, frame, workingDays, holidays, holidayOn, holiday, workingDay, schoolDay, phase, slot,
+    auth, clock, today, isToday, future: today > clock.date, time, live: isToday && (!valid(at) || at === clock.time), year, bellOf, def, frame, workingDays, holidays, holidayOn, holiday, workingDay, schoolDay, phase, slot,
+    prevSchoolDay: near(-1), nextSchoolDay: near(1),
     pub, inUse, attCfg: { mode: 'DAILY', markBefore: '10:00', ...attCfg }, hrCfg, branches, canPick, picked, inBranch, mid,
   }
 }
@@ -110,7 +117,7 @@ async function presenceOf(ctx, userIds) {
   const leaveOf = new Map(leaves.map((l) => [String(l.employeeId), l]))
   const firstIn = new Map()
   for (const p of punches) if (p.direction !== 'OUT' && !firstIn.has(String(p.personId))) firstIn.set(String(p.personId), p.time)
-  const started = ctx.schoolDay && ctx.phase !== 'BEFORE'
+  const started = ctx.schoolDay && (!ctx.isToday || ctx.phase !== 'BEFORE')
   for (const e of emps) {
     const a = attOf.get(String(e._id))
     const l = leaveOf.get(String(e._id))
@@ -127,6 +134,8 @@ async function presenceOf(ctx, userIds) {
       row.state = ctx.hrCfg.lateAfter && row.inTime > ctx.hrCfg.lateAfter ? 'LATE' : 'PRESENT'
     } else if (!ctx.schoolDay || dayOffFor(e, ctx.today, { settings: ctx.hrCfg, holidays: ctx.holidays })) {
       row.state = 'OFF'
+    } else if (ctx.future) {
+      row.state = 'EXPECTED'
     } else {
       row.state = 'NOT_IN_YET'
       row.overdue = started // the day has begun and nothing shows them in
@@ -172,7 +181,7 @@ async function classBoard(ctx, sections, presenceOn) {
   const strengthOf = new Map(strength.map((x) => [String(x._id), x.n]))
   const person = (id) => (id ? { id: String(id), name: users.get(String(id))?.name ?? '', state: presenceOn ? presence.get(String(id))?.state ?? 'UNKNOWN' : null } : null)
   const periodMode = ['PERIOD', 'BOTH'].includes(ctx.attCfg.mode)
-  const markDue = ctx.schoolDay && ctx.time >= (ctx.attCfg.markBefore || '23:59')
+  const markDue = ctx.schoolDay && !ctx.future && (!ctx.isToday || ctx.time >= (ctx.attCfg.markBefore || '23:59'))
 
   const board = sections.map((s) => {
     const sid = String(s._id)
@@ -281,7 +290,7 @@ async function teachersBlock(ctx, sections, board, presence, users) {
     }
   }).filter((t) => t.name)
     .sort((a, b) => a.name.localeCompare(b.name))
-  const counts = { total: list.length, PRESENT: 0, LATE: 0, ON_LEAVE: 0, ABSENT: 0, NOT_IN_YET: 0, OFF: 0, UNKNOWN: 0 }
+  const counts = { total: list.length, PRESENT: 0, LATE: 0, ON_LEAVE: 0, ABSENT: 0, NOT_IN_YET: 0, EXPECTED: 0, OFF: 0, UNKNOWN: 0 }
   for (const t of list) counts[t.state] = (counts[t.state] ?? 0) + 1
   return { counts, list, uncovered, freeNow: list.filter((t) => t.free).length }
 }
@@ -533,10 +542,10 @@ async function agendaBlock(ctx, { sections, uncoveredToday }) {
 
 // ───────────────────────────────────────────────────────── the page
 
-export async function liveCampus(auth, { at, branchId } = {}) {
-  const ctx = await dayContext(auth, { at, branchId })
+export async function liveCampus(auth, { at, branchId, date } = {}) {
+  const ctx = await dayContext(auth, { at, branchId, date })
   const out = {
-    now: { date: ctx.today, time: ctx.time, clock: ctx.clock.time, live: ctx.live, day: weekdayCode(ctx.today), schoolDay: ctx.schoolDay, workingDay: ctx.workingDay, holiday: ctx.holiday?.name ?? null, phase: ctx.phase, slot: ctx.slot, elapsed: elapsed(ctx.slot, ctx.time) },
+    now: { date: ctx.today, today: ctx.clock.date, isToday: ctx.isToday, time: ctx.time, clock: ctx.clock.time, live: ctx.live, prevSchoolDay: ctx.prevSchoolDay, nextSchoolDay: ctx.nextSchoolDay, day: weekdayCode(ctx.today), schoolDay: ctx.schoolDay, workingDay: ctx.workingDay, holiday: ctx.holiday?.name ?? null, phase: ctx.phase, slot: ctx.slot, elapsed: elapsed(ctx.slot, ctx.time) },
     year: ctx.year ? { id: String(ctx.year._id), name: ctx.year.name } : null,
     branches: ctx.canPick ? ctx.branches.map((b) => ({ id: String(b._id), name: b.name, code: b.code })) : [], branchId: ctx.picked ? String(ctx.picked._id) : null,
     frame: ctx.frame, published: !!ctx.pub, inUse: ctx.inUse, attendanceMode: ctx.attCfg.mode, markBefore: ctx.attCfg.markBefore || null,

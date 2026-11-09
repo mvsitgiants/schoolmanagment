@@ -191,10 +191,23 @@
     "soon": "soon"
   },
   "search": {
-    "placeholder": "Search screens…",
+    "placeholder": "Search students, parents, staff, receipts, screens…",
     "screen": "Screen",
     "searching": "Searching…",
-    "noMatch": "No match for “{{query}}”. Try a screen name."
+    "noMatch": "No match for “{{query}}”. Try a name, mobile number, admission or receipt number, or a screen name.",
+    "screens": "Screens",
+    "kinds": {
+      "STUDENT": "Students",
+      "GUARDIAN": "Parents & guardians",
+      "STAFF": "Staff",
+      "RECEIPT": "Fee receipts",
+      "ENQUIRY": "Enquiries",
+      "APPLICATION": "Applications",
+      "BOOK": "Library",
+      "ASSET": "Assets",
+      "VEHICLE": "Vehicles",
+      "VISITOR": "Visitors"
+    }
   },
   "common": {
     "print": "Print",

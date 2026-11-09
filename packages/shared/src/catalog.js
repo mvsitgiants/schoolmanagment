@@ -85,7 +85,7 @@ export const MODULES = [
   // ───────────────────────────────── Administration
   { id: 'dashboard', name: 'Dashboard', category: 'platform', icon: 'LayoutDashboard', mandatory: true, phase: 1,
     desc: 'Role home, the principal’s command centre and the live campus board.',
-    pages: [pg('command', 'Command centre', 'V'), pg('live', 'Live campus', 'V')] },
+    pages: [pg('live', 'Live campus', 'V')] },
   { id: 'core', name: 'Administration', category: 'platform', icon: 'Settings2', mandatory: true, phase: 0,
     desc: 'Institution profile, campuses, users, roles, subscription and every setting.',
     pages: [

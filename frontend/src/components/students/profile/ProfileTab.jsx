@@ -77,44 +77,49 @@ export default function ProfileTab({ s, completeness, canEdit, onEdit, canReveal
       <section className="rounded-xl border border-border bg-surface p-4">
         <CompletenessBar c={completeness} onEdit={canEdit && completeness.missing.length ? onEdit : undefined} />
       </section>
+      {/* two stacks rather than a grid, so a short card doesn’t leave a hole beside a long one */}
       <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-2">
-        <Group icon={UserRound} title={t('students.profile.groups.personal')} fields={[
-          { label: t('students.form.dob'), value: s.dob ? `${date(s.dob)}${s.age != null ? ` · ${t('students.directory.age', { count: s.age })}` : ''}` : null },
-          { label: t('students.form.gender'), value: opt('genders', s.gender) },
-          { label: t('students.form.bloodGroup'), value: s.bloodGroup },
-          { label: t('students.form.category'), value: opt('categories', s.category) },
-          { label: t('students.form.religion'), value: s.religion },
-          { label: t('students.form.nationality'), value: s.nationality },
-          { label: t('students.form.motherTongue'), value: s.motherTongue },
-          { label: t('students.form.admissionDate'), value: s.admissionDate ? date(s.admissionDate) : null },
-        ]} />
-        <Group icon={Fingerprint} title={t('students.profile.groups.identity')}
-          actions={canReveal && s.aadhaarSet && <Button size="sm" variant="ghost" className="-my-1" icon={reveal ? EyeOff : Eye} onClick={onReveal}>{reveal ? t('students.profile.hideIds') : t('students.profile.showIds')}</Button>}
-          fields={[
-            { label: t('students.form.admissionNo'), value: s.admissionNo, mono: true },
-            { label: t('students.form.aadhaar'), value: s.aadhaar, mono: true },
-            { label: t('students.form.apaarId'), value: s.apaarId, mono: true },
-            { label: t('students.form.pen'), value: s.pen, mono: true },
+        <div className="flex min-w-0 flex-col gap-6">
+          <Group icon={UserRound} title={t('students.profile.groups.personal')} fields={[
+            { label: t('students.form.dob'), value: s.dob ? `${date(s.dob)}${s.age != null ? ` · ${t('students.directory.age', { count: s.age })}` : ''}` : null },
+            { label: t('students.form.gender'), value: opt('genders', s.gender) },
+            { label: t('students.form.bloodGroup'), value: s.bloodGroup },
+            { label: t('students.form.category'), value: opt('categories', s.category) },
+            { label: t('students.form.religion'), value: s.religion },
+            { label: t('students.form.nationality'), value: s.nationality },
+            { label: t('students.form.motherTongue'), value: s.motherTongue },
+            { label: t('students.form.admissionDate'), value: s.admissionDate ? date(s.admissionDate) : null },
           ]} />
-        <Group icon={MapPinHouse} title={t('students.form.contact')} fields={[
-          { label: t('students.form.addressLine'), value: s.address?.line, full: true },
-          { label: t('students.form.city'), value: s.address?.city },
-          { label: t('students.form.state'), value: s.address?.state },
-          { label: t('students.form.pincode'), value: s.address?.pincode, mono: true },
-          { label: t('students.form.studentMobile'), value: s.mobile, mono: true },
-          { label: t('students.form.studentEmail'), value: s.email },
-        ]} />
-        <Group icon={School} title={t('students.form.previousSchool')} fields={[
-          { label: t('students.form.schoolName'), value: s.previousSchool?.name, full: true },
-          { label: t('students.form.board'), value: s.previousSchool?.board },
-          { label: t('students.form.lastClass'), value: s.previousSchool?.lastClass },
-          { label: t('students.form.tcNo'), value: s.previousSchool?.tcNo, mono: true },
-        ]} />
-        <Group icon={HeartPulse} title={t('students.form.medical')} className="lg:col-span-2" fields={[
-          { label: t('students.form.allergies'), value: s.medical?.allergies },
-          { label: t('students.form.conditions'), value: s.medical?.conditions },
-          { label: t('students.form.medicalNotes'), value: s.medical?.notes, text: true, full: true },
-        ]} />
+          <Group icon={MapPinHouse} title={t('students.form.contact')} fields={[
+            { label: t('students.form.addressLine'), value: s.address?.line, full: true },
+            { label: t('students.form.city'), value: s.address?.city },
+            { label: t('students.form.state'), value: s.address?.state },
+            { label: t('students.form.pincode'), value: s.address?.pincode, mono: true },
+            { label: t('students.form.studentMobile'), value: s.mobile, mono: true },
+            { label: t('students.form.studentEmail'), value: s.email },
+          ]} />
+        </div>
+        <div className="flex min-w-0 flex-col gap-6">
+          <Group icon={Fingerprint} title={t('students.profile.groups.identity')}
+            actions={canReveal && s.aadhaarSet && <Button size="sm" variant="ghost" className="-my-1" icon={reveal ? EyeOff : Eye} onClick={onReveal}>{reveal ? t('students.profile.hideIds') : t('students.profile.showIds')}</Button>}
+            fields={[
+              { label: t('students.form.admissionNo'), value: s.admissionNo, mono: true },
+              { label: t('students.form.aadhaar'), value: s.aadhaar, mono: true },
+              { label: t('students.form.apaarId'), value: s.apaarId, mono: true },
+              { label: t('students.form.pen'), value: s.pen, mono: true },
+            ]} />
+          <Group icon={School} title={t('students.form.previousSchool')} fields={[
+            { label: t('students.form.schoolName'), value: s.previousSchool?.name, full: true },
+            { label: t('students.form.board'), value: s.previousSchool?.board },
+            { label: t('students.form.lastClass'), value: s.previousSchool?.lastClass },
+            { label: t('students.form.tcNo'), value: s.previousSchool?.tcNo, mono: true },
+          ]} />
+          <Group icon={HeartPulse} title={t('students.form.medical')} fields={[
+            { label: t('students.form.allergies'), value: s.medical?.allergies },
+            { label: t('students.form.conditions'), value: s.medical?.conditions },
+            { label: t('students.form.medicalNotes'), value: s.medical?.notes, text: true, full: true },
+          ]} />
+        </div>
       </div>
     </div>
   )

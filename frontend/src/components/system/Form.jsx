@@ -13,7 +13,7 @@ const fieldBase =
   'focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 disabled:bg-bg disabled:text-ink-faint'
 
 export const Label = ({ children, htmlFor, required }) => (
-  <label htmlFor={htmlFor} className="block text-xs font-medium text-ink-muted mb-1.5">
+  <label htmlFor={htmlFor} className="block text-xs font-medium text-ink-muted mb-1">
     {children} {required && <span className="text-danger-500" aria-hidden="true">*</span>}
   </label>
 )

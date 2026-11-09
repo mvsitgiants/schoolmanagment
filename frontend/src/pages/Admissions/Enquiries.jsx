@@ -13,6 +13,7 @@ import { addFollowUp, createEnquiry, fetchEnquiries, fetchEnquiry, updateEnquiry
 import { hasPermission } from '../../api/auth'
 import { useSnackbar } from '../../context/SnackbarContext'
 import { useFormat } from '../../context/SettingsContext'
+import useUrlSearch from '../../hooks/useUrlSearch'
 
 const reasonKey = (r) => r.replace(/[^A-Za-z]/g, '')
 // each enquiry source's icon in the table
@@ -120,7 +121,7 @@ export default function Enquiries() {
   const { t } = useTranslation('admissions')
   const qc = useQueryClient()
   const { showSuccess } = useSnackbar()
-  const [search, setSearch] = useState('')
+  const [search, setSearch] = useUrlSearch()
   const [stage, setStage] = useState('')
   const [source, setSource] = useState('')
   const [due, setDue] = useState(false)
@@ -128,7 +129,7 @@ export default function Enquiries() {
   const [adding, setAdding] = useState(false)
   const [openId, setOpenId] = useState(null)
   const q = useDebouncedValue(search.trim(), 250)
-  const params = { search: q || undefined, stage: stage || undefined, source: source || undefined, due: due ? '1' : undefined, open: !stage && !due ? '1' : undefined, page, pageSize: 50 }
+  const params = { search: q || undefined, stage: stage || undefined, source: source || undefined, due: due ? '1' : undefined, open: !stage && !due && !q ? '1' : undefined, page, pageSize: 50 } // a search looks at every enquiry, closed ones too
   const { data, isLoading, error, refetch } = useQuery({ queryKey: ['enquiries', params], queryFn: () => fetchEnquiries(params), placeholderData: keepPreviousData })
   const meta = data?.meta
   const today = localIso(new Date())

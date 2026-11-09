@@ -16,6 +16,7 @@ import { hasPermission } from '../../api/auth'
 import { useSnackbar } from '../../context/SnackbarContext'
 import { useFormat } from '../../context/SettingsContext'
 import { useIsMobile } from '../../hooks/useMediaQuery'
+import useUrlSearch from '../../hooks/useUrlSearch'
 
 function NewApplication({ cycles, cycle, enquiryId, onClose, onSaved }) {
   const { t } = useTranslation('admissions')
@@ -149,7 +150,7 @@ export default function Applications() {
   const { showSuccess } = useSnackbar()
   const [params, setParams] = useSearchParams()
   const { cycles, cycle, chip, isLoading: cyclesLoading } = useCycle()
-  const [search, setSearch] = useState('')
+  const [search, setSearch] = useUrlSearch()
   const [pickedClassId, setClassId] = useState('')
   const [status, setStatus] = useState('')
   const [page, setPage] = useState(1)

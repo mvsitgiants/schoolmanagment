@@ -296,7 +296,8 @@ async function healthSection(s, auth) {
 
 async function canteenSection(s, { today }) {
   const [w, spent, set] = await Promise.all([walletFor(s._id), spentOn(s._id, today), canteenSettings()])
-  return { balance: w.balance ?? 0, spentToday: spent, dailyLimit: w.dailyLimit ?? null, low: (w.balance ?? 0) < set.lowBalance, lowBalance: set.lowBalance }
+  // a student who never had a wallet isn't "running low"
+  return { hasWallet: !!w._id, balance: w.balance ?? 0, spentToday: spent, dailyLimit: w.dailyLimit ?? null, low: !!w._id && (w.balance ?? 0) < set.lowBalance, lowBalance: set.lowBalance }
 }
 
 // ───────────────────────────────────────────────────────── college extras

@@ -25,7 +25,7 @@ export const BUILT_PAGES = new Set([
   'exams.schedule', 'exams.hall-tickets', 'exams.seating', 'exams.question-papers', 'exams.marks', 'exams.results', 'exams.report-cards', 'exams.year-results', 'exams.setup',
   'homework.homework', 'homework.lesson-plans', 'homework.syllabus',
   'certificates.issue', 'certificates.register',
-  'dashboard.command', 'reports.library', 'reports.builder',
+  'dashboard.live', 'reports.library', 'reports.builder',
   'portal.settings', 'portal.content',
   'communication.notices', 'communication.messages', 'communication.chat', 'communication.log',
 ])

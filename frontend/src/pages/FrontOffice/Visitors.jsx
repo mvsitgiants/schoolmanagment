@@ -16,6 +16,8 @@ import useDebouncedValue from '../../hooks/useDebouncedValue'
 import { useFormat } from '../../context/SettingsContext'
 import { useSnackbar } from '../../context/SnackbarContext'
 import { printQrCards } from '../../components/scan/printPoster'
+import useUrlSearch from '../../hooks/useUrlSearch'
+import { useSearchParams } from 'react-router-dom'
 
 const EMPTY = { name: '', mobile: '', purpose: 'MEET_STAFF', purposeNote: '', from: '', people: 1, hostId: '', student: null, idType: '', idNumber: '', photo: '', badgeNo: '', vehicleNo: '', note: '' }
 const PAGE = 50
@@ -238,10 +240,12 @@ export default function FrontOfficeVisitors() {
   const { data: desk, isLoading, error, refetch } = useQuery({ queryKey: ['frontoffice', 'visitors', 'desk'], queryFn: fetchVisitorDesk, refetchInterval: 60_000 })
   // the log, a page at a time (today's, or a search across dates); a new tab, range, purpose or search starts at page 1
   const [page, setPage] = useState(1)
-  const [tab, setTab] = useState('TODAY')
-  const [range, setRange] = useState({ from: '', to: '' })
+  // opened from the header search: the search tab, from the visitor's day
+  const [urlParams] = useSearchParams()
+  const [search, setSearch, fromUrl] = useUrlSearch()
+  const [tab, setTab] = useState(fromUrl ? 'SEARCH' : 'TODAY')
+  const [range, setRange] = useState({ from: urlParams.get('date') ?? '', to: '' })
   const [purpose, setPurpose] = useState('')
-  const [search, setSearch] = useState('')
   const paged = (set) => (v) => { set(v); setPage(1) }
   const q = useDebouncedValue(search.trim(), 300)
   const params = tab === 'TODAY' ? { from: desk?.date, to: desk?.date } : { from: range.from || desk?.weekStart, to: range.to || desk?.date, purpose, search: q }

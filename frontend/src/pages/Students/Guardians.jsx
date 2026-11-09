@@ -6,13 +6,14 @@ import { Baby, Star, Users, UsersRound } from 'lucide-react'
 import { ColorChip, ContactCell, DataTable, PageContainer, PageHeader, PersonCell, StatCardRow, Toolbar } from '../../components/system'
 import useDebouncedValue from '../../hooks/useDebouncedValue'
 import { fetchAllGuardians, fetchGuardians } from '../../api/students'
+import useUrlSearch from '../../hooks/useUrlSearch'
 
 const PAGE = 50
 
 /** Every parent and guardian of current students, one row per mobile number, with their children — a page at a time. */
 export default function Guardians() {
   const { t } = useTranslation('students')
-  const [search, setSearch] = useState('')
+  const [search, setSearch] = useUrlSearch()
   const [page, setPage] = useState(1)
   const q = useDebouncedValue(search.trim(), 250)
   const params = { search: q || undefined, page, pageSize: PAGE }

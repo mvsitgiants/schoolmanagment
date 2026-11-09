@@ -29,7 +29,7 @@ const TEACHING = [
 
 // prettier-ignore
 const DEFS = [
-  { code: 'PRINCIPAL', name: 'Principal / Management', icon: 'Briefcase', homePage: '/dashboard/command',
+  { code: 'PRINCIPAL', name: 'Principal / Management', icon: 'Briefcase', homePage: '/dashboard/live',
     description: 'Sees every screen and dashboard; publishes results, approves concessions, refunds, promotions and purchases.',
     dataScopes: { default: 'ALL' },
     limits: { 'fees.discountMaxPct': 100, 'fees.refundMax': 1000000, 'inventory.poApproveMax': 10000000, 'finance.expenseApproveMax': 10000000 },

@@ -21,23 +21,37 @@ export default function AcademicsTab({ s, o }) {
   const { t } = useTranslation('students')
   const ex = o.exams
   const hw = o.homework
+  const week = o.timetable && !broken(o.timetable) && o.timetable.published && list(o.timetable.perWeek).length > 0
+  const scored = list(ex?.results).filter((r) => r.pct != null)
+  // nothing published yet (and no year figure): one quiet card rather than three empty ones
+  const noResults = ex && !broken(ex) && !list(ex.results).length && ex.year?.pct == null
   return (
     <div className="flex flex-col gap-6">
       {o.programs && <ProgramCard p={o.programs} placements={o.placements} />}
-      {ex && (broken(ex) ? <SectionCard icon={Trophy} title={t('students.profile.academics.results')}><SectionError /></SectionCard> : (
+      {ex && (broken(ex) ? <SectionCard icon={Trophy} title={t('students.profile.academics.results')}><SectionError /></SectionCard> : noResults ? (
+        <div className={clsx('grid grid-cols-1 items-start gap-6', ex.upcoming && 'xl:grid-cols-2')}>
+          <SectionCard icon={Trophy} title={t('students.profile.academics.results')}><Quiet icon={Trophy} title={t('students.profile.academics.noResults')} hint={t('students.profile.academics.noResultsHint')} /></SectionCard>
+          {ex.upcoming && <NextExam up={ex.upcoming} />}
+        </div>
+      ) : (
         <>
           <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)]">
             {ex.year ? <YearCard y={ex.year} studentId={s.id} /> : <ResultsChart ex={ex} />}
             <LatestExam latest={ex.latest} />
           </div>
-          <ResultsTable ex={ex} />
+          {ex.year && scored.length > 1 ? (
+            <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
+              <ResultsChart ex={ex} />
+              <ResultsTable ex={ex} />
+            </div>
+          ) : <ResultsTable ex={ex} />}
           {ex.upcoming && <NextExam up={ex.upcoming} />}
         </>
       ))}
-      {(hw || o.timetable) && (
-        <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
+      {(hw || week) && (
+        <div className={clsx('grid grid-cols-1 items-start gap-6', hw && week && 'xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]')}>
           {hw && <Homework hw={hw} />}
-          {o.timetable && !broken(o.timetable) && o.timetable.published && <WeekSubjects tt={o.timetable} />}
+          {week && <WeekSubjects tt={o.timetable} />}
         </div>
       )}
     </div>
@@ -100,7 +114,7 @@ function ResultsTable({ ex }) {
           { key: 'exam', header: t('students.profile.academics.exam'), mobileTitle: true, render: (v, r) => <span className="block leading-tight"><span className="block font-medium text-ink">{v}</span>{r.term && <span className="block text-[11px] text-ink-faint">{r.term}</span>}</span> },
           { key: 'startDate', header: t('students.profile.academics.held'), nowrap: true, render: (v) => <DateCell value={v} relative={false} /> },
           { key: 'total', header: t('students.profile.academics.marks'), align: 'right', render: (v, r) => (v != null ? `${v} / ${r.max}` : '—') },
-          { key: 'pct', header: '%', align: 'right', mobilePrimary: true, render: (v) => (v != null ? <span className={clsx('font-semibold', pctTone(v, 33, 60) === 'danger' && 'text-danger-600')}>{v}%</span> : '—') },
+          { key: 'pct', header: '%', mobileLabel: t('students.profile.academics.score'), align: 'right', mobilePrimary: true, render: (v) => (v != null ? <span className={clsx('font-semibold', pctTone(v, 33, 60) === 'danger' && 'text-danger-600')}>{v}%</span> : '—') },
           { key: 'grade', header: t('students.profile.academics.grade'), render: (v) => (v ? <ColorChip label={v} seed={`grade-${v}`} /> : '—') },
           ...(ex.showRank ? [{ key: 'rank', header: t('students.profile.academics.rank'), align: 'right', render: (v) => (v != null ? `#${v}` : '—') }] : []),
           { key: 'result', header: t('students.profile.academics.result'), render: (v) => (v ? <StatusPill tone={L.resultTone(v)}>{L.result(v)}</StatusPill> : '—') },
@@ -167,7 +181,7 @@ function Homework({ hw }) {
           <ul className="mt-3 divide-y divide-border border-t border-border">
             {hw.items.map((h) => (
               <li key={h.id} className="flex items-center gap-3 px-4 py-2.5">
-                <ColorChip label={h.subject} seed={h.subject} className="hidden max-w-[9rem] sm:inline-flex" />
+                <span className="hidden w-36 shrink-0 sm:block"><ColorChip label={h.subject} seed={h.subject} /></span>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-sm text-ink">{h.title}</span>
                   <span className={clsx('block truncate text-[11px]', h.overdue ? 'text-danger-600' : 'text-ink-faint')}>

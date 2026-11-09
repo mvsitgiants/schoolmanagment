@@ -26,11 +26,11 @@ export default function OverviewTab({ s, o, loading, completeness, onGoto }) {
         {(o?.timetable || att) && <TodayCard tt={o.timetable} att={att} />}
         {(att?.months?.length > 0 || ex?.results?.length > 0) && <YearCharts att={att} ex={ex} onGoto={onGoto} />}
         {ex?.upcoming && <NextExam up={ex.upcoming} />}
-        <KeyFacts s={s} completeness={completeness} onGoto={onGoto} />
       </div>
       <div className="flex min-w-0 flex-col gap-6">
         <Attention o={o} onGoto={onGoto} />
         {o?.messages && <Messages rows={list(o.messages).slice(0, 5)} error={broken(o.messages)} onAll={() => onGoto('history')} />}
+        <KeyFacts s={s} completeness={completeness} onGoto={onGoto} />
       </div>
     </div>
   )
@@ -53,14 +53,15 @@ function TodayCard({ tt, att }) {
       {broken(tt) ? <SectionError />
         : !tt ? <p className="px-4 py-4 text-sm text-ink-faint">{t('students.profile.today.noTimetableModule')}</p>
           : !tt.published ? <Quiet icon={CalendarClock} title={t('students.profile.today.noTimetable')} hint={t('students.profile.today.noTimetableHint')} />
+            : !tt.periods.some((p) => p.subject) ? <Quiet icon={CalendarClock} title={t('students.profile.today.noPeriods')} hint={t('students.profile.today.noPeriodsHint')} />
             : (
               <ul className="divide-y divide-border">
                 {tt.periods.map((p) => {
                   const isPeriod = p.kind === 'PERIOD'
                   const now = nowIn(p)
                   return (
-                    <li key={`${p.kind}-${p.no}-${p.start}`} className={clsx('flex items-center gap-3 px-4', isPeriod ? 'py-2.5' : 'py-1.5 bg-bg/50', now && 'bg-brand-50/70')}>
-                      <span className="w-[4.6rem] shrink-0 font-mono-num text-[11.5px] tabular-nums text-ink-faint">{p.start}{p.end ? `–${p.end}` : ''}</span>
+                    <li key={`${p.kind}-${p.no}-${p.start}`} className={clsx('flex items-center gap-3 px-4', isPeriod ? 'py-2' : 'py-1 bg-bg/50', now && 'bg-brand-50/70')}>
+                      <span className="w-[6.2rem] shrink-0 whitespace-nowrap font-mono-num text-[11.5px] tabular-nums text-ink-faint">{p.start}{p.end ? `–${p.end}` : ''}</span>
                       {isPeriod ? (
                         <>
                           <span className="hidden w-7 shrink-0 text-center text-[11px] font-semibold text-ink-muted sm:block">{t('students.profile.today.periodShort', { n: p.no })}</span>

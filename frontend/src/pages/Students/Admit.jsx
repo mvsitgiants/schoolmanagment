@@ -33,7 +33,7 @@ export default function Admit() {
       <PageHeader icon={UserPlus} title={t('students.admit.title')} subtitle={t('students.admit.subtitle')}
         actions={<Button loading={save.isPending} disabled={!ready} onClick={() => save.mutate()}>{t('students.admit.save')}</Button>} />
       <StudentForm value={form} onChange={setForm} errors={errors} />
-      <div className="flex justify-end gap-2 mt-6">
+      <div className="flex justify-end gap-2 mt-4">
         <Button variant="secondary" onClick={() => navigate('/students/directory')}>{t('actions.cancel')}</Button>
         <Button loading={save.isPending} disabled={!ready} onClick={() => save.mutate()}>{t('students.admit.save')}</Button>
       </div>

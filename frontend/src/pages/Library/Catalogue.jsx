@@ -15,6 +15,7 @@ import { readSheet } from '../../utils/readSheet'
 import { useSnackbar } from '../../context/SnackbarContext'
 import { useFormat } from '../../context/SettingsContext'
 import { CopyPill, LoanPill, useLibraryLabels, useLibraryMeta } from '../../components/library/LibraryKit'
+import useUrlSearch from '../../hooks/useUrlSearch'
 
 // each item type's icon in the catalogue table
 const TYPE_ICON = { BOOK: BookOpen, REFERENCE: BookMarked, TEXTBOOK: GraduationCap, MAGAZINE: Newspaper, JOURNAL: ScrollText, MEDIA: Disc3, EBOOK: TabletSmartphone }
@@ -251,7 +252,7 @@ export default function Catalogue() {
   const confirm = useConfirm()
   const { showSuccess, showError } = useSnackbar()
   const { data: meta } = useLibraryMeta()
-  const [search, setSearch] = useState('')
+  const [search, setSearch] = useUrlSearch()
   const q = useDebouncedValue(search.trim(), 300)
   const [type, setType] = useState('')
   const [category, setCategory] = useState('')

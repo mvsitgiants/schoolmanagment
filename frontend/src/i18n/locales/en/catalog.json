@@ -95,7 +95,6 @@
     },
     "pages": {
       "dashboard": {
-        "command": "Command centre",
         "live": "Live campus"
       },
       "core": {
