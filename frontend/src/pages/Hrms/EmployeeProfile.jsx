@@ -165,7 +165,7 @@ function LoginPanel({ emp, onChanged }) {
 }
 
 // a leave ledger entry's chip: credits green, what is used up red, corrections violet
-const KIND_TONE = { CREDIT: 'success', ACCRUAL: 'success', CARRY: 'teal', TAKEN: 'danger', LAPSE: 'orange', REVERSAL: 'sky', ADJUST: 'violet' }
+const KIND_TONE = { CREDIT: 'success', ACCRUAL: 'success', CARRY: 'teal', TAKEN: 'danger', LAPSE: 'orange', REVERSAL: 'sky', ADJUST: 'violet', ADJUSTMENT: 'violet', OPENING: 'success', COMP_OFF: 'success' }
 const typeTone = (b) => (b.tone && b.tone !== 'neutral' ? b.tone : hueTone(b.code))
 
 function LeaveTab({ emp }) {

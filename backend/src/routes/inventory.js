@@ -59,6 +59,9 @@ const itemBody = z.object({
   reorderLevel: z.coerce.number().int().min(0).max(1_000_000).default(0),
   location: optionalText(60),
   hasExpiry: z.boolean().default(false),
+  // GST: the HSN / SAC code and the rate (%) — printed on tax invoices and purchase orders
+  hsn: z.string().trim().max(12).regex(/^[0-9A-Za-z]*$/, 'Digits only').optional(),
+  gstRate: z.coerce.number().min(0).max(40).optional().nullable(),
   description: optionalText(1000),
   active: z.boolean().default(true),
 })

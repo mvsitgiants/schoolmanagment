@@ -121,6 +121,10 @@ export default function InstitutionProfile() {
               {field('registrationNo', t('admin.institutionProfile.fields.registrationNo'))}
               {field('affiliationNo', t('admin.institutionProfile.fields.affiliationNo'))}
               {field('udiseCode', t('admin.institutionProfile.fields.udiseCode'))}
+              {field('board', t('admin.institutionProfile.fields.board'), { hint: t('admin.institutionProfile.fields.boardHint') })}
+              {field('schoolCode', t('admin.institutionProfile.fields.schoolCode'), { hint: t('admin.institutionProfile.fields.schoolCodeHint') })}
+              {field('trustName', t('admin.institutionProfile.fields.trustName'), { hint: t('admin.institutionProfile.fields.trustNameHint') })}
+              {field('reg80G', t('admin.institutionProfile.fields.reg80G'), { hint: t('admin.institutionProfile.fields.reg80GHint') })}
               {field('gstin', 'GSTIN', { maxLength: 15 })}
               {field('pan', 'PAN', { maxLength: 10 })}
             </div>

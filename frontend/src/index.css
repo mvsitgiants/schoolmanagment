@@ -227,3 +227,6 @@ h1, h2, h3, h4, .font-display {
 }
 
 
+
+/* The punch-in card's map: muted streets so the campus area and "you are here" stand out (components/geo/PunchMap.jsx). */
+.punch-map .leaflet-tile-pane { filter: grayscale(0.85) brightness(1.06) contrast(0.92); }

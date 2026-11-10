@@ -1,6 +1,9 @@
 import { randomInt } from 'node:crypto'
-import { HISTORY_EVENTS, LEAVING_REASONS, TC_STATUS, ageYears, isValidAadhaar, sectionLabel } from '@schoolgiant/shared'
-import { AcademicYear, ClassLevel, Section } from '../models/academics.js'
+import { HISTORY_EVENTS, LEAVING_REASONS, TC_STATUS, ageYears, countMarks, isValidAadhaar, sectionLabel } from '@schoolgiant/shared'
+import { AcademicYear, ClassLevel, Section, Subject } from '../models/academics.js'
+import { AttendanceSheet } from '../models/attendance.js'
+import { Exam, ExamCandidate } from '../models/exams.js'
+import { Concession, FeeInvoice } from '../models/fees.js'
 import { Student, TransferCertificate, studentName, newTcCode } from '../models/students.js'
 import { Tenant } from '../models/platform.js'
 import { can } from '../platform/access.js'
@@ -533,6 +536,72 @@ export async function cancelTc(id, reason, auth, req) {
   return tcDto(tc.toObject())
 }
 
+/** A TC waiting for approval can still be corrected (the details it prints); an issued one is fixed. */
+export async function updateTc(id, input, auth, req) {
+  const tc = await TransferCertificate.findById(id)
+  if (!tc) throw notFound('Transfer certificate')
+  if (tc.status !== 'REQUESTED') throw conflict(`This TC is ${TC_STATUS[tc.status]?.label.toLowerCase()} and can’t be changed.`)
+  const s = await Student.findById(tc.studentId).lean()
+  await assertInScope(s, auth)
+  for (const [k, v] of Object.entries(input)) tc.set(k, v === '' || v === null ? undefined : v)
+  await tc.save()
+  await audit({ action: 'UPDATE', module: 'students', entityType: 'tc', entityId: String(tc._id), entityName: studentName(s), studentId: s._id, summary: `Changed the TC details of ${studentName(s)}` }, req)
+  return tcDto(tc.toObject())
+}
+
+const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+
+/**
+ * What the school already knows for a new TC, to fill the form: the class's subjects, working / present days this
+ * session (attendance), the month the fees are paid up to, any approved concession and the last published exam.
+ * Each part is best effort — a module that is off or has no data leaves its field empty.
+ */
+export async function tcPrefill(studentId, auth) {
+  if (!isOid(studentId)) throw notFound('Student')
+  const s = await Student.findById(studentId).lean()
+  if (!s) throw notFound('Student')
+  await assertInScope(s, auth)
+  const out = { subjects: [], workingDays: null, presentDays: null, feesPaidUpTo: null, concession: null, lastExam: null, lastExamResult: null, firstClass: s.history?.[0]?.classLabel ?? null, admissionDate: s.admissionDate ?? null }
+  const section = s.sectionId ? await Section.findById(s.sectionId).lean() : null
+  const cls = section ? await ClassLevel.findById(section.classId).lean() : null
+  const year = section ? await AcademicYear.findById(section.academicYearId).lean() : null
+  if (cls?.subjectIds?.length) {
+    const subs = await Subject.find({ _id: { $in: cls.subjectIds } }).select('name').lean()
+    const order = new Map(cls.subjectIds.map((x, i) => [String(x), i]))
+    out.subjects = subs.sort((a, b) => order.get(String(a._id)) - order.get(String(b._id))).map((x) => x.name)
+  }
+  const safely = async (fn) => { try { await fn() } catch { /* that module's data is not there: leave the field empty */ } }
+  await safely(async () => {
+    if (!year || !section) return
+    const att = await AttendanceSheet.aggregate([
+      { $match: { sectionId: section._id, period: 0, date: { $gte: year.startDate, $lte: year.endDate } } },
+      { $unwind: '$entries' }, { $match: { 'entries.studentId': s._id } },
+      { $group: { _id: '$entries.status', n: { $sum: 1 } } },
+    ])
+    const c = countMarks(att.flatMap((a) => Array(a.n).fill({ status: a._id })))
+    if (c.total) { out.workingDays = c.total; out.presentDays = c.P + c.L + 0.5 * c.HD }
+  })
+  await safely(async () => {
+    // fees are paid up to the due month of the last installment before the first one still open
+    const invoices = await FeeInvoice.find({ studentId: s._id, status: { $ne: 'CANCELLED' } }).sort({ dueDate: 1 }).select('dueDate status').lean()
+    let upTo = null
+    for (const inv of invoices) { if (inv.status !== 'PAID') break; upTo = inv.dueDate }
+    if (upTo) out.feesPaidUpTo = `${MONTH_NAMES[Number(upTo.slice(5, 7)) - 1]} ${upTo.slice(0, 4)}`
+    const con = await Concession.find({ studentId: s._id, status: 'APPROVED' }).sort({ createdAt: -1 }).lean()
+    out.concession = con.length ? con.map((x) => `${x.reason}${x.kind === 'PCT' ? ` (${x.value}%)` : ''}`).join('; ') : null
+  })
+  await safely(async () => {
+    const cands = await ExamCandidate.find({ studentId: s._id, result: { $in: ['PASS', 'FAIL'] } }).select('examId result').lean()
+    const exams = await Exam.find({ _id: { $in: cands.map((c) => c.examId) }, status: 'PUBLISHED' }).sort({ endDate: -1, publishedAt: -1 }).limit(1).lean()
+    const ex = exams[0]
+    if (!ex) return
+    const y = await AcademicYear.findById(ex.academicYearId).select('name').lean()
+    out.lastExam = [ex.name, y?.name].filter(Boolean).join(', ')
+    out.lastExamResult = cands.find((c) => String(c.examId) === String(ex._id))?.result === 'PASS' ? 'Passed' : 'Not passed'
+  })
+  return out
+}
+
 /** The data a TC prints from (documents/registry.js TRANSFER_CERTIFICATE). */
 export async function tcPrintData(id, auth) {
   const tc = await TransferCertificate.findById(id).lean()
@@ -544,6 +613,30 @@ export async function tcPrintData(id, auth) {
   const s = await Student.findById(tc.studentId).lean()
   await assertInScope(s, auth)
   return { tc, student: s }
+}
+
+// ───────────────────────────────────────────────────────── admission form
+
+/**
+ * The data the admission form prints from (documents/studentDocs.js ADMISSION_FORM): the student as admitted, the
+ * class and year of admission, the parents, the previous school and brothers / sisters studying here (same parent's
+ * mobile). The Aadhaar prints masked; whatever the record lacks is a blank line for the family to fill in.
+ */
+export async function admissionFormData(id, auth) {
+  if (!isOid(id)) throw notFound('Student')
+  const s = await Student.findById(id).select('+photo').lean()
+  if (!s) throw notFound('Student')
+  await assertInScope(s, auth)
+  const admitted = s.history?.find((h) => h.event === 'ADMITTED') ?? s.history?.[0] ?? null
+  const mobiles = [...new Set((s.guardians ?? []).map((g) => g.mobile).filter(Boolean))]
+  const siblings = mobiles.length ? await Student.find({ _id: { $ne: s._id }, status: 'ACTIVE', 'guardians.mobile': { $in: mobiles } }).select('firstName middleName lastName admissionNo sectionId').limit(6).lean() : []
+  const place = await placeMap([s, ...siblings])
+  const cur = place.get(idStr(s.sectionId))
+  return {
+    student: s, place: cur ?? null,
+    admittedTo: admitted?.classLabel ?? cur?.label ?? null, admittedYear: admitted?.yearName ?? cur?.yearName ?? null,
+    siblings: siblings.map((x) => ({ name: studentName(x), admissionNo: x.admissionNo, class: place.get(idStr(x.sectionId))?.label ?? '' })),
+  }
 }
 
 // ───────────────────────────────────────────────────────── ID cards and photos

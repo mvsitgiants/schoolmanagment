@@ -1,32 +1,63 @@
-{{!-- CO–PO attainment report (A4) of a program for an exam session: each course's CO attainment (internal and
-      end-semester levels, the direct attainment) and the program outcomes' attainment from the CO–PO mapping. --}}
+{{!-- CO–PO attainment report (A4), NBA outcome-based format, of a programme for an exam session.
+      program.name, program.code · session · rules.targetPct, rules.internalWeight, rules.levels[] {level, min} ·
+      outcomes[] {code, kind, title} · courses[] {code, title, semester, average, cos[] {code, statement, bloom,
+      internalPct, externalPct, internalLevel, externalLevel, attainment}, pos[]} · po[] {code, value} ·
+      summary.courses, summary.cos, summary.cosAttained, summary.poAverage. --}}
 <style>
-  h1 { font-size: 13pt; text-align: center; letter-spacing: .06em; text-transform: uppercase; margin: 4mm 0 1mm }
-  .sub { text-align: center; font-size: 10pt; font-weight: 600; margin-bottom: 4mm }
-  .rules { font-size: 8.5pt; color: #5B616E; margin-bottom: 3mm }
-  h2 { font-size: 9.5pt; margin: 4mm 0 1mm; text-transform: uppercase; letter-spacing: .05em; color: #3A3F4B }
-  table.m { width: 100%; border-collapse: collapse; font-size: 8.5pt }
-  table.m th { text-align: left; font-weight: 600; color: #5B616E; border-bottom: 1px solid #C8CCD4; padding: 1.2mm; background: #F6F7F9 }
-  table.m td { padding: 1.1mm 1.2mm; border-bottom: 1px solid #EEF0F3 }
-  table.m .n { text-align: right; white-space: nowrap }
-  table.m .c { text-align: center }
+  .sec { font-weight: 700; font-size: 9.6pt; margin: 4.5mm 0 1.4mm; text-transform: uppercase; letter-spacing: .03em }
+  .crs { font-weight: 700; font-size: 9pt; margin: 3mm 0 1mm }
+  table.grid { font-size: 8.4pt } table.grid th { text-align: center; vertical-align: middle } table.grid th.l { text-align: left }
+  table.grid th, table.grid td { padding: .9mm 1.6mm } table.grid td.c { text-align: center; white-space: nowrap }
+  .signs { margin-top: 26mm } .signs .sealed { position: relative } .signs .sealed .seal { position: absolute; left: 50%; bottom: 100%; transform: translate(-50%, -1.5mm); margin: 0 }
 </style>
 {{#> letterhead}}{{/letterhead}}
-<h1>{{t "programs.print.attainment.title" "CO–PO attainment"}}</h1>
-<div class="sub">{{program.name}}{{#if session}} · {{session}}{{/if}}</div>
-<p class="rules">{{t "programs.print.attainment.rules" "Target"}}: {{rules.targetPct}}% · {{t "programs.print.attainment.weight" "Internal weight"}}: {{rules.internalWeight}}% · {{#each rules.levels}}L{{level}} ≥ {{min}}%{{#unless @last}}, {{/unless}}{{/each}}</p>
+<div class="doc-title">{{t "programs.print.attainment.title" "CO–PO attainment report"}}</div>
+<div class="doc-sub">{{program.name}}{{#if program.code}} ({{program.code}}){{/if}}{{#if session}} · {{session}}{{/if}}</div>
 
+<div class="sec">{{t "programs.print.attainment.s1" "1. Attainment method"}}</div>
+<table class="grid">
+  <tr><th class="l" style="width:55mm">{{t "programs.print.attainment.rules" "Target (marks a student must reach)"}}</th><td>{{rules.targetPct}}%</td></tr>
+  <tr><th class="l">{{t "programs.print.attainment.weight" "Weight of internal assessment"}}</th><td>{{rules.internalWeight}}% {{t "programs.print.attainment.internalVsExternal" "internal, the rest end-semester (direct attainment)"}}</td></tr>
+  <tr><th class="l">{{t "programs.print.attainment.levels" "Attainment levels"}}</th><td>{{#each rules.levels}}{{t "programs.print.attainment.levelRule" "Level {{level}}: at least {{min}}% of students reach the target" level=level min=min}}{{#unless @last}}; {{/unless}}{{/each}}</td></tr>
+</table>
+
+<div class="sec">{{t "programs.print.attainment.s2" "2. Course outcome (CO) attainment"}}</div>
 {{#each courses}}
-  <h2>{{code}} · {{title}}</h2>
-  <table class="m">
-    <thead><tr><th>CO</th><th>{{t "programs.print.attainment.statement" "Outcome"}}</th><th class="n">{{t "programs.print.attainment.internal" "Internal %"}}</th><th class="n">{{t "programs.print.attainment.external" "External %"}}</th><th class="c">{{t "programs.print.attainment.level" "Level"}}</th></tr></thead>
-    <tbody>{{#each cos}}<tr><td>{{code}}</td><td>{{statement}}</td><td class="n">{{default (num internalPct) "—"}}</td><td class="n">{{default (num externalPct) "—"}}</td><td class="c"><b>{{default (num attainment) "—"}}</b></td></tr>{{/each}}</tbody>
+  <div class="crs no-break">{{code}} · {{title}}{{#if semester}} · {{t "programs.print.attainment.semester" "Semester {{n}}" n=semester}}{{/if}}</div>
+  <table class="grid">
+    <thead><tr>
+      <th style="width:14mm">{{t "programs.print.attainment.co" "CO"}}</th><th class="l">{{t "programs.print.attainment.statement" "Course outcome"}}</th>
+      <th style="width:18mm">{{t "programs.print.attainment.internal" "Internal %"}}</th><th style="width:12mm">{{t "programs.print.attainment.levelShort" "Level"}}</th>
+      <th style="width:18mm">{{t "programs.print.attainment.external" "End-sem %"}}</th><th style="width:12mm">{{t "programs.print.attainment.levelShort" "Level"}}</th>
+      <th style="width:20mm">{{t "programs.print.attainment.level" "Attainment"}}</th>
+    </tr></thead>
+    <tbody>
+      {{#each cos}}<tr><td class="c">{{code}}</td><td>{{statement}}</td><td class="c">{{num internalPct}}</td><td class="c">{{internalLevel}}</td><td class="c">{{num externalPct}}</td><td class="c">{{externalLevel}}</td><td class="c"><b>{{num attainment}}</b></td></tr>{{/each}}
+      {{#if average}}<tr class="total"><td></td><td>{{t "programs.print.attainment.courseAvg" "Course average"}}</td><td></td><td></td><td></td><td></td><td class="c">{{num average}}</td></tr>{{/if}}
+    </tbody>
   </table>
 {{/each}}
 
-<h2>{{t "programs.print.attainment.po" "Program outcomes"}}</h2>
-<table class="m">
-  <thead><tr>{{#each po}}<th class="c">{{code}}</th>{{/each}}</tr></thead>
-  <tbody><tr>{{#each po}}<td class="c"><b>{{default (num value) "—"}}</b></td>{{/each}}</tr></tbody>
+<div class="sec no-break">{{t "programs.print.attainment.s3" "3. Programme outcome (PO / PSO) attainment"}}</div>
+<table class="grid">
+  <thead><tr><th class="l">{{t "programs.print.attainment.course" "Course"}}</th>{{#each po}}<th>{{code}}</th>{{/each}}</tr></thead>
+  <tbody>
+    {{#each courses}}<tr><td class="mono">{{code}}</td>{{#each pos}}<td class="c">{{num this}}</td>{{/each}}</tr>{{/each}}
+    <tr class="total"><td>{{t "programs.print.attainment.po" "Programme attainment"}}</td>{{#each po}}<td class="c">{{num value}}</td>{{/each}}</tr>
+  </tbody>
 </table>
+<p class="note">{{t "programs.print.attainment.summary" "{{courses}} courses · {{cos}} course outcomes, {{attained}} at level 2 or above · average PO attainment {{avg}} (on a scale of 3)." courses=summary.courses cos=summary.cos attained=summary.cosAttained avg=summary.poAverage}}</p>
+
+{{#if outcomes.length}}
+<div class="sec no-break">{{t "programs.print.attainment.s4" "4. Programme outcomes"}}</div>
+<table class="grid">
+  <tbody>{{#each outcomes}}<tr><td class="c" style="width:16mm"><b>{{code}}</b></td><td>{{title}}</td></tr>{{/each}}</tbody>
+</table>
+{{/if}}
+
+<div class="signs no-break">
+  <div>{{t "programs.print.attainment.coordinator" "Programme Coordinator"}}</div>
+  <div>{{t "programs.print.attainment.hod" "Head of the Department"}}</div>
+  <div class="sealed"><div class="seal">{{t "programs.print.attainment.seal" "Seal"}}</div>{{t "programs.print.attainment.principal" "Principal"}}</div>
+</div>
 {{> footer}}

@@ -11,7 +11,7 @@ import { recordEvent, subscriptionSummary } from '../../services/subscription.js
 
 const router = Router()
 
-const PROFILE_FIELDS = ['legalName', 'email', 'phone', 'website', 'addressLine', 'city', 'state', 'pincode', 'country', 'gstin', 'pan', 'registrationNo', 'affiliationNo', 'udiseCode', 'logoUrl', 'primaryColor', 'sidebarColor', 'timezone', 'currency', 'dateFormat']
+const PROFILE_FIELDS = ['legalName', 'email', 'phone', 'website', 'addressLine', 'city', 'state', 'pincode', 'country', 'gstin', 'pan', 'registrationNo', 'affiliationNo', 'udiseCode', 'board', 'schoolCode', 'trustName', 'reg80G', 'logoUrl', 'primaryColor', 'sidebarColor', 'timezone', 'currency', 'dateFormat']
 
 const shape = (t) => ({ id: String(t._id), name: t.name, slug: t.slug, ...(t.profile ?? {}), verification: t.verification?.at ? { at: t.verification.at } : null })
 
@@ -40,6 +40,7 @@ const settingsSchema = z.object({
   addressLine: optionalText(250), city: optionalText(80), state: optionalText(80), pincode: optionalText(12), country: optionalText(60),
   gstin: z.string().trim().toUpperCase().regex(/^[0-9A-Z]{15}$/, 'GSTIN has 15 letters/digits').optional().or(z.literal('').transform(() => undefined)),
   pan: optionalText(10), registrationNo: optionalText(60), affiliationNo: optionalText(60), udiseCode: optionalText(60),
+  board: optionalText(120), schoolCode: optionalText(30), trustName: optionalText(160), reg80G: optionalText(120),
   logoUrl: logo, primaryColor: hex, sidebarColor: hex,
   timezone: optionalText(60), currency: optionalText(3), dateFormat: z.enum(['DD/MM/YYYY', 'MM/DD/YYYY', 'YYYY-MM-DD']).optional(),
 })

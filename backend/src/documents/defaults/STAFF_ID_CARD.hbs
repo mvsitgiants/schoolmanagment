@@ -1,0 +1,146 @@
+{{!-- Staff ID card (CR80, 54 × 85.6 mm upright), the same look as the student card: logo and name on the coloured band,
+  photo (initials until a photo is pasted), name, designation, department, employee code, blood group, mobile, valid until and
+  the Principal's signature, with the emergency contact in the strip at the foot. The back: the rules, "if found, please
+  return to" with the address and phone, and the QR beside the employee-code barcode. Fields: staff[] {code, name, designation,
+  department, bloodGroup, mobile, emergency {name, relation, phone}, initials, qrImage, barcodeImage} · settings {signatory,
+  issued, validUntil, year} · theme · institution. The colour and the signature caption follow Settings › Students. --}}
+{{#*inline "org"}}<div class="org{{#unless @root.institution.logoUrl}} nologo{{/unless}}">{{#if @root.institution.logoUrl}}<span class="lg"><img src="{{@root.institution.logoUrl}}" alt=""></span>{{/if}}<div class="hn">{{@root.institution.name}}</div></div>{{/inline}}
+{{#*inline "sig"}}{{#if @root.settings.signatory}}{{@root.settings.signatory}}{{else}}{{t "hrms.print.idCard.signatory" "Principal"}}{{/if}}{{/inline}}
+<style>
+  :root { --c: {{theme.color}}; --d: {{theme.dark}}; --t: {{theme.tint}}; --s: {{theme.soft}}; --on: {{theme.ink}};
+    --chip: {{#if theme.light}}rgba(18,20,28,.08){{else}}rgba(255,255,255,.18){{/if}}; --chipb: {{#if theme.light}}rgba(18,20,28,.18){{else}}rgba(255,255,255,.38){{/if}} }
+  .card { width: 54mm; height: 85.6mm; position: relative; overflow: hidden; background: #fff; display: flex; flex-direction: column; font-size: 7pt; line-height: 1.25; color: #12141C; break-after: page; page-break-after: always; -webkit-font-smoothing: antialiased }
+  .land .card { width: 85.6mm; height: 54mm }
+  .pair:last-child .card:last-child { break-after: auto; page-break-after: auto }
+  @media screen {
+    .ids { display: flex; flex-direction: column; align-items: center; gap: 22px }
+    .pair { display: flex; flex-wrap: wrap; justify-content: center; gap: 18px }
+    .card { border-radius: 3.2mm; box-shadow: 0 1px 2px rgba(16,24,40,.08), 0 10px 28px rgba(16,24,40,.16) }
+  }
+  .one { white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
+  .two { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden }
+
+  /* front */
+  .hd { position: relative; display: flex; flex-shrink: 0; color: var(--on);
+    background: radial-gradient(circle at 100% 0, rgba(255,255,255,.16) 0 34%, transparent 34.5%), radial-gradient(circle at 0 115%, rgba(255,255,255,.10) 0 30%, transparent 30.5%), linear-gradient(135deg, var(--c), var(--d)) }
+  .org { display: flex; align-items: center; gap: 1.8mm; position: relative; min-width: 0 }
+  .lg { display: inline-flex; align-items: center; justify-content: center; height: 8mm; min-width: 8mm; max-width: 20mm; padding: .8mm 1.2mm; background: #fff; border-radius: 1.6mm; box-shadow: 0 .3mm .8mm rgba(0,0,0,.12); flex-shrink: 0 }
+  .lg img { max-height: 6.4mm; max-width: 17.6mm; object-fit: contain; display: block }
+  .hd .hn { color: var(--on) }
+  .hn { font-weight: 700; font-size: 8pt; line-height: 1.15; letter-spacing: .01em; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical }
+  .ttl { position: relative; display: inline-block; max-width: 100%; padding: .7mm 2.4mm; border-radius: 99px; font-size: 5.4pt; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; background: var(--chip); border: .2mm solid var(--chipb) }
+  .bd { display: flex; flex: 1; min-height: 0 }
+  .ph { position: relative; overflow: hidden; background: var(--t); border: .8mm solid #fff; box-shadow: 0 0 0 .35mm var(--s), 0 1mm 2.4mm rgba(16,24,40,.18); display: flex; align-items: center; justify-content: center; flex-shrink: 0 }
+  .ph img { width: 100%; height: 100%; object-fit: cover; display: block } .ph span { font-size: 17pt; font-weight: 700; color: var(--c); letter-spacing: .02em }
+  .main { min-width: 0; display: flex; flex-direction: column; flex: 1; min-height: 0 }
+  .who { min-height: 0; overflow: hidden } .mid { flex-shrink: 0 } /* a very long name gives way before the facts */
+  .nm { font-weight: 800; line-height: 1.15; color: #0B0D14; letter-spacing: -.005em }
+  .rl { margin-top: .7mm; font-size: 7.2pt; font-weight: 700; color: var(--d); line-height: 1.2 }
+  .dp { margin-top: .3mm; font-size: 6.4pt; color: #5B616E; line-height: 1.25 }
+  .mid { display: flex; flex-direction: column; gap: .8mm; width: 100% }
+  .fsign { align-self: end; text-align: center } .fsign .line { height: 4mm; border-bottom: .25mm solid #3A3F4B } .fsign .cap { font-size: 5pt; color: #5B616E; margin-top: .4mm; letter-spacing: .02em }
+  .facts { flex: 1; min-width: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 1mm 1.8mm; align-content: end; text-align: start }
+  .f { min-width: 0 } .f b { display: block; font-size: 4.8pt; font-weight: 600; color: #8B90A0; text-transform: uppercase; letter-spacing: .08em; line-height: 1.3 }
+  .f span { display: block; font-size: 7.2pt; font-weight: 700; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
+  .f.code { grid-column: 1 } .f.code span { font-family: "JetBrains Mono", ui-monospace, Menlo, monospace; font-size: 9.4pt; letter-spacing: .05em; color: var(--d) }
+  .f.blood span { color: #B42318 } .f.num span { font-variant-numeric: tabular-nums }
+  .codes { display: flex; align-items: center; gap: 2mm; margin-top: auto } .codes .bc { flex: 1; min-width: 0 }
+  .qr { width: 15.5mm; height: 15.5mm; flex-shrink: 0; padding: .8mm; background: #fff; border: .25mm solid #E6E8EE; border-radius: 1.2mm }
+  .ft { flex-shrink: 0; margin-top: 2mm; display: flex; align-items: center; gap: 1.6mm; padding: 1.3mm 3.2mm; background: var(--t); border-top: .9mm solid var(--c); font-size: 6pt; color: #2B303B; line-height: 1.2 }
+  .ft b { flex-shrink: 0; font-size: 4.8pt; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #fff; background: #B42318; border-radius: .8mm; padding: .4mm 1.1mm }
+  .ft span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600 }
+  .ft.empty { padding: 0; height: 1.6mm; border-top: 0; background: linear-gradient(90deg, var(--c), var(--d)) }
+
+  /* back */
+  .bar { height: 1.8mm; flex-shrink: 0; background: linear-gradient(90deg, var(--c), var(--d)) }
+  .bk { display: flex; flex: 1; min-height: 0; overflow: hidden }
+  .col { display: flex; flex-direction: column; min-width: 0; min-height: 0 }
+  .back .hn { color: #0B0D14; font-size: 7.6pt }
+  .back .lg { border: .25mm solid #E6E8EE; box-shadow: none }
+  .rules { background: var(--t); border-inline-start: .7mm solid var(--c); border-radius: .8mm; padding: 1.4mm 1.8mm; font-size: 5.8pt; line-height: 1.38; color: #2B303B; overflow: hidden; max-height: 22mm }
+  .rules p { margin: 0 } .rules p + p { margin-top: .6mm }
+  .kv b { display: block; font-size: 4.8pt; font-weight: 600; color: #8B90A0; text-transform: uppercase; letter-spacing: .08em; line-height: 1.3 }
+  .kv span { display: block; font-size: 6.4pt; font-weight: 700; line-height: 1.25 }
+  .dates { display: flex; gap: 4mm }
+  .ret { font-size: 5.7pt; line-height: 1.35; color: #3A3F4B; overflow: hidden } .ret .rt { font-style: italic; color: #5B616E } .ret .rn { font-weight: 700; font-size: 6.4pt; color: #0B0D14; margin-top: .3mm }
+  .ret .ra { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden }
+  .sign .line { height: 6mm; border-bottom: .25mm solid #3A3F4B; margin: 0 4mm } .sign .cap { text-align: center; font-size: 5.4pt; color: #5B616E; margin-top: .6mm; letter-spacing: .02em }
+  .bc { text-align: center } .bc img { display: block; width: 100%; max-width: 44mm; height: 6.4mm; margin: 0 auto } .bct { font-family: "JetBrains Mono", ui-monospace, Menlo, monospace; font-size: 6.2pt; font-weight: 600; letter-spacing: .14em; margin-top: .5mm }
+
+  /* upright */
+  .port .hd { height: 27mm; padding: 3mm 3.2mm 0; border-radius: 0 0 50% 50% / 0 0 4mm 4mm; flex-direction: column; align-items: center; gap: 1.8mm }
+  .port .nophoto .hd { height: 20mm }
+  .port .org { justify-content: center; max-width: 100% } .port .hn { max-width: 34mm } .port .nologo .hn { max-width: 46mm; text-align: center }
+  .port .bd { flex-direction: column; align-items: center; padding: 0 3.2mm; text-align: center }
+  .port .ph { width: 22mm; height: 22mm; margin-top: -11mm; border-radius: 3.2mm }
+  .port .main { width: 100% }
+  .port .who { margin-top: 2mm } .port .nm { font-size: 11pt }
+  .port .mid { margin-top: auto; padding-top: 1.6mm; border-top: .25mm solid #E6E8EE }
+  .port .bk { flex-direction: column; padding: 2.6mm 3.4mm 2.4mm } .port .col.a { gap: 1.8mm } .port .col.b { margin-top: auto; padding-top: 2mm; gap: 2.2mm }
+  .port .back .org { justify-content: center } .port .back .hn { max-width: 34mm } .port .rules { max-height: 15mm }
+
+  /* sideways */
+  .land .hd { height: 12mm; padding: 0 3.4mm; justify-content: space-between; align-items: center; gap: 2mm }
+  .land .hn { max-width: 46mm } .land .ttl { flex-shrink: 0; max-width: 30mm }
+  .land .bd { padding: 2.8mm 3.4mm 0; gap: 3.2mm; align-items: stretch }
+  .land .ph { width: 22mm; height: 26mm; border-radius: 2.4mm }
+  .land .nm { font-size: 10.5pt; white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
+  .land .rl, .land .dp { white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
+  .land .mid { margin-top: auto; padding-bottom: .4mm }
+  .land .bk { flex-direction: row; gap: 3.4mm; padding: 2.8mm 3.4mm 2.6mm } .land .col.a { flex: 1.15; gap: 1.6mm } .land .col.b { flex: 1; gap: 2mm; padding-inline-start: 3.4mm; border-inline-start: .25mm solid #E6E8EE }
+  .land .back .hn { max-width: 34mm } .land .col.b .codes { margin-top: auto } .land .codes .qr { width: 14mm; height: 14mm } .land .rules { max-height: 17mm }
+</style>
+<div class="ids port">
+{{#each staff}}
+<div class="pair">
+  <section class="card front">
+    <header class="hd">
+      {{> org}}
+      <div class="ttl">{{t "hrms.print.idCard.tag" "Staff ID card"}}</div>
+    </header>
+    <div class="bd">
+      <div class="ph"><span>{{initials}}</span></div>
+      <div class="main">
+        <div class="who">
+          <div class="nm two">{{name}}</div>
+          {{#if designation}}<div class="rl two">{{designation}}</div>{{/if}}
+          {{#if department}}<div class="dp one">{{department}}</div>{{/if}}
+        </div>
+        <div class="mid">
+          <div class="facts">
+            <div class="f code"><b>{{t "hrms.print.idCard.code" "Employee code"}}</b><span>{{code}}</span></div>
+            <div class="fsign"><div class="line"></div><div class="cap">{{> sig}}</div></div>
+            {{#if bloodGroup}}<div class="f blood"><b>{{t "hrms.print.idCard.bloodGroup" "Blood group"}}</b><span>{{bloodGroup}}</span></div>{{/if}}
+            {{#if mobile}}<div class="f num"><b>{{t "hrms.print.idCard.mobile" "Mobile"}}</b><span>{{mobile}}</span></div>{{/if}}
+            {{#if @root.settings.validUntil}}<div class="f"><b>{{t "hrms.print.idCard.validUntil" "Valid until"}}</b><span>{{date @root.settings.validUntil}}</span></div>{{/if}}
+          </div>
+        </div>
+      </div>
+    </div>
+    {{#if emergency}}<footer class="ft"><b>{{t "hrms.print.idCard.emergency" "Emergency"}}</b><span>{{#if emergency.name}}{{emergency.name}}{{#if emergency.relation}} ({{emergency.relation}}){{/if}} · {{/if}}{{emergency.phone}}</span></footer>{{else}}<footer class="ft empty"></footer>{{/if}}
+  </section>
+  <section class="card back">
+    <div class="bar"></div>
+    <div class="bk">
+      <div class="col a">
+        {{> org}}
+        <div class="rules"><p>{{t "hrms.print.idCard.rules" "This card is the property of the institution. Wear it on duty and return it when you leave. Report a lost card to the office at once."}}</p></div>
+        <div class="dates">
+          {{#if @root.settings.issued}}<div class="kv"><b>{{t "hrms.print.idCard.issued" "Issued"}}</b><span>{{date @root.settings.issued}}</span></div>{{/if}}
+          {{#if @root.settings.validUntil}}<div class="kv"><b>{{t "hrms.print.idCard.validUntil" "Valid until"}}</b><span>{{date @root.settings.validUntil}}</span></div>{{/if}}
+        </div>
+      </div>
+      <div class="col b">
+        <div class="ret">
+          <div class="rt">{{t "hrms.print.idCard.returnTo" "If found, please return to:"}}</div>
+          <div class="rn">{{@root.institution.name}}</div>
+          {{#if @root.institution.address}}<div class="ra">{{@root.institution.address}}</div>{{/if}}
+          {{#if @root.institution.phone}}<div class="ra">{{t "hrms.print.idCard.phone" "Phone {{phone}}" phone=@root.institution.phone}}</div>{{/if}}
+        </div>
+        <div class="codes">{{#if qrImage}}<img class="qr" src="{{qrImage}}" alt="QR">{{/if}}<div class="bc">{{#if barcodeImage}}<img src="{{barcodeImage}}" alt="">{{/if}}<div class="bct">{{code}}</div></div></div>
+      </div>
+    </div>
+  </section>
+</div>
+{{/each}}
+</div>

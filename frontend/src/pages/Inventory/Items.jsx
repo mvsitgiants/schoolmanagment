@@ -16,6 +16,7 @@ import { useSnackbar } from '../../context/SnackbarContext'
 import { CATEGORY_ICON, CampusSelect, LevelPill, MovePill, paiseOf, rupeesOf, useInventoryLabels } from '../../components/inventory/InventoryKit'
 
 const PAGE = 100
+const GST_RATES = [0, 5, 12, 18, 28]
 
 function ItemForm({ item, category, onClose, onSaved }) {
   const { t } = useTranslation('inventory')
@@ -26,6 +27,7 @@ function ItemForm({ item, category, onClose, onSaved }) {
     rate: rupeesOf(item?.rate), sellable: item?.sellable ?? !!STORE_CATEGORY_BY[item?.category ?? category ?? 'STATIONERY']?.sellable,
     salePrice: rupeesOf(item?.salePrice), sizes: (item?.sizes ?? []).map((s) => ({ size: s.size, salePrice: rupeesOf(s.salePrice) })),
     reorderLevel: item?.reorderLevel ?? 0, location: item?.location ?? '', hasExpiry: item?.hasExpiry ?? false, description: item?.description ?? '', active: item?.active ?? true,
+    hsn: item?.hsn ?? '', gstRate: item?.gstRate ?? '',
   })
   const [newSize, setNewSize] = useState('')
   const [errors, setErrors] = useState({})
@@ -40,6 +42,7 @@ function ItemForm({ item, category, onClose, onSaved }) {
       code: form.code, name: form.name, category: form.category, unit: form.unit, rate: paiseOf(form.rate) ?? 0, sellable: form.sellable,
       salePrice: paiseOf(form.salePrice), sizes: form.sizes.map((s) => ({ size: s.size, salePrice: paiseOf(s.salePrice) })),
       reorderLevel: Number(form.reorderLevel) || 0, location: form.location, hasExpiry: form.hasExpiry, description: form.description, active: form.active,
+      hsn: form.hsn.trim(), gstRate: form.gstRate === '' ? null : Number(form.gstRate),
     }),
     onSuccess: onSaved,
     onError: (e) => { setErrors(e.details?.fields ?? {}); showError(e.message) },
@@ -74,6 +77,16 @@ function ItemForm({ item, category, onClose, onSaved }) {
           <FormField label={t('inventory.items.rate')} hint={t('inventory.items.rateHint')}><Input type="number" min="0" step="0.01" value={form.rate} onChange={set('rate')} /></FormField>
           <FormField label={t('inventory.items.reorderLevel')} hint={t('inventory.items.reorderHint')}><Input type="number" min="0" value={form.reorderLevel} onChange={set('reorderLevel')} /></FormField>
           <FormField label={t('inventory.items.location')}><Input value={form.location} onChange={set('location')} placeholder={t('inventory.items.locationPlaceholder')} /></FormField>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-[12rem_10rem_1fr] sm:items-start">
+          <FormField label={t('inventory.items.hsn')} error={errors.hsn}><Input value={form.hsn} onChange={set('hsn')} maxLength={12} className="font-mono" /></FormField>
+          <FormField label={t('inventory.items.gstRate')} error={errors.gstRate}>
+            <Select value={String(form.gstRate)} onChange={set('gstRate')}>
+              <option value="">{t('inventory.items.gstNotSet')}</option>
+              {GST_RATES.map((r) => <option key={r} value={String(r)}>{r === 0 ? t('inventory.items.gstNil') : t('inventory.items.gstPct', { rate: r })}</option>)}
+            </Select>
+          </FormField>
+          <p className="text-xs text-ink-faint sm:pt-7">{t('inventory.items.gstHint')}</p>
         </div>
         <div className="space-y-3 rounded-xl border border-border p-3">
           <label className="inline-flex items-center gap-2 text-sm text-ink"><input type="checkbox" checked={form.sellable} onChange={set('sellable')} className="rounded border-border text-brand-500" />{t('inventory.items.sellable')}</label>

@@ -16,7 +16,7 @@
 // with its default Handlebars template in ./defaults/<DOC>.hbs (see engine.js for helpers).
 
 import { config } from '../config.js'
-import { CATEGORY_LABEL_OF, LEAVING_REASON_LABEL_OF, dateInWords } from './words.js'
+import { CATEGORY_LABEL_OF, LEAVING_REASON_LABEL_OF, classInWords, dateInWords, pronounsOf } from './words.js'
 import { TransferCertificate } from '../models/students.js'
 import { studentIdCards, tcPrintData } from '../services/students.js'
 import { studentIdCardModel, withPaper } from './studentIdCard.js'
@@ -24,22 +24,27 @@ import { Student } from '../models/students.js'
 import { AppError, notFound } from '../platform/errors.js'
 import { FeePayment } from '../models/fees.js'
 import { receiptPrintData } from '../services/fees.js'
+import { FEE_DOCS, withReceiptExtras } from './feeDocs.js'
+import { HR_DOCS } from './hrDocs.js'
 import { PAYMENT_MODE_LABEL, RESULT_STATUS, gradeFor } from '@schoolgiant/shared'
 import { hallTicketData, latestCandidate, reportCardData } from '../services/exams.js'
 import { certificatePrintData, latestCertificate } from '../services/certificates.js'
-import { CERTIFICATE_KIND_BY } from '@schoolgiant/shared'
+import { CERTIFICATE_KIND_BY, TC_FAILED, TUITION_HEAD_CODES } from '@schoolgiant/shared'
 import { translateDoc } from './engine.js'
 import { latestPayslipId, payslipModel, payslipPrint } from '../services/payrollRuns.js'
 import { labelsModel, labelsPrint, latestCopyId } from '../services/library.js'
 import { latestSectionId, seatLabelsModel, seatLabelsPrint } from '../services/academics.js'
 import { EXAM_SEATING_DOCS } from './examSeatingDocs.js'
 import { YEAR_RESULT_DOCS } from './yearResultDocs.js'
+import { bandRange, splitActivities, weekdayOf } from './examPrint.js'
 import { INVENTORY_DOCS } from './inventoryDocs.js'
 import { ALUMNI_DOCS } from './alumniDocs.js'
 import { QUESTION_PAPER_DOCS } from './questionPaperDocs.js'
 import { COE_DOCS } from './coeDocs.js'
 import { PROGRAM_DOCS } from './programDocs.js'
 import { ACCREDITATION_DOCS } from './accreditationDocs.js'
+import { STUDENT_DOCS } from './studentDocs.js'
+import { STAFF_DOCS } from './staffIdCard.js'
 
 const latestId = async (Model, filter, sort) => (await Model.findOne(filter).sort(sort).select('_id').lean())?._id
 const V = {
@@ -56,11 +61,18 @@ function tcModel({ tc, student }) {
       issuedAt: tc.issuedAt, issuedBy: tc.issuedBy, leavingDate: tc.leavingDate, reason: LEAVING_REASON_LABEL_OF(tc.reason) ?? tc.reasonText,
       reasonText: tc.reasonText, conduct: tc.conduct, lastClass: tc.lastClassLabel, promotedTo: tc.promotedTo, feesPaidUpTo: tc.feesPaidUpTo,
       remarks: tc.remarks, cancelReason: tc.cancelReason,
+      // the rest of the CBSE-format TC (empty ones print as a blank line)
+      lastClassWords: classInWords(tc.lastClassLabel), promotedToWords: classInWords(tc.promotedTo),
+      bookNo: tc.bookNo, applicationDate: tc.applicationDate, lastExam: tc.lastExam, lastExamResult: tc.lastExamResult,
+      failed: TC_FAILED.find((x) => x.value === tc.failed)?.label ?? null, subjects: tc.subjects ?? [], subjectsText: (tc.subjects ?? []).join(', '),
+      concession: tc.concession, workingDays: tc.workingDays ?? null, presentDays: tc.presentDays ?? null, nccScoutGuide: tc.nccScoutGuide, games: tc.games,
     },
     student: {
       name: sn.name, admissionNo: sn.admissionNo, dob: sn.dob, dobWords: dateInWords(sn.dob), gender: sn.gender, nationality: sn.nationality,
       category: CATEGORY_LABEL_OF(sn.category), religion: sn.religion, admissionDate: sn.admissionDate, firstClass: sn.firstClass,
       father: sn.father, mother: sn.mother, guardian: sn.guardian, apaarId: sn.apaarId, pen: sn.pen, language: student?.language,
+      // SC / ST / OBC row: the category, or "No" for General
+      reserved: ['SC', 'ST', 'OBC'].includes(sn.category) ? CATEGORY_LABEL_OF(sn.category) : sn.category ? 'No' : null,
     },
   }
 }
@@ -86,38 +98,49 @@ const studentBlock = (s, place, rollNo) => ({
   father: guardianOf(s, 'FATHER'), mother: guardianOf(s, 'MOTHER'),
 })
 
-function hallTicketModel({ candidate, exam, year, student, place, papers }) {
+function hallTicketModel({ candidate, exam, year, student, place, papers, classTeacher }) {
+  // one room and seat for every paper: printed once in the student block instead of on each row
+  const seats = [...new Set(papers.filter((p) => p.seat).map((p) => `${p.seat.room}|${p.seat.seat}`))]
+  const sameSeat = seats.length === 1 && papers.every((p) => p.seat || p.gradeOnly) ? papers.find((p) => p.seat).seat : null
   return {
-    exam: { name: exam.name, year: year?.name, term: exam.term, instructions: exam.instructions, startDate: exam.startDate, endDate: exam.endDate, verifyUrl: candidate.verifyCode ? `${config.appUrl}/verify/exam/${candidate.verifyCode}` : null },
-    student: studentBlock(student, place, candidate.rollNo),
-    papers: papers.map((p) => ({ subject: p.subject, date: p.date, startTime: p.startTime, endTime: p.endTime, maxMarks: p.maxMarks, gradeOnly: !!p.gradeOnly, room: p.seat?.room ?? null, seat: p.seat?.seat ?? null })),
+    exam: {
+      name: exam.name, year: year?.name, term: exam.term, instructions: exam.instructions, startDate: exam.startDate, endDate: exam.endDate, verifyUrl: candidate.verifyCode ? `${config.appUrl}/verify/exam/${candidate.verifyCode}` : null,
+      instructionLines: String(exam.instructions ?? '').split('\n').map((x) => x.trim()).filter(Boolean),
+    },
+    student: { ...studentBlock(student, place, candidate.rollNo), photo: student?.photo || null },
+    papers: papers.map((p) => ({ subject: p.subject, code: p.subjectCode ?? null, date: p.date, ...weekdayOf(p.date), startTime: p.startTime, endTime: p.endTime, maxMarks: p.maxMarks, gradeOnly: !!p.gradeOnly, room: p.seat?.room ?? null, seat: p.seat?.seat ?? null })),
     seated: papers.some((p) => p.seat),
+    seat: sameSeat ? { room: sameSeat.room, seat: sameSeat.seat } : null,
+    classTeacher: classTeacher ?? null,
   }
 }
 
-function reportCardModel({ candidate: c, exam, year, student, place, papers, entry, bands, attendance, showRank }) {
+function reportCardModel({ candidate: c, exam, year, student, place, papers, entry, bands, attendance, showRank, examType, classTeacher }) {
   const bandList = bands?.bands ?? []
   const subjects = papers.filter((p) => !p.gradeOnly).map((p) => {
     const x = entry.get(p.id)
     const marks = x?.marks ?? null
     return {
-      subject: p.subject, maxMarks: p.maxMarks, passMarks: p.passMarks, marks, absent: !!x?.absent, exempt: !!x?.exempt, counts: p.countsInTotal !== false,
+      subject: p.subject, code: p.subjectCode ?? null, maxMarks: p.maxMarks, passMarks: p.passMarks, marks, absent: !!x?.absent, exempt: !!x?.exempt, counts: p.countsInTotal !== false,
+      pct: marks !== null && p.maxMarks ? Math.round((marks / p.maxMarks) * 10000) / 100 : null,
       grade: marks !== null && p.maxMarks ? gradeFor(bandList, (marks / p.maxMarks) * 100)?.grade ?? null : null,
       below: !x?.exempt && (x?.absent || (marks !== null && marks < p.passMarks)),
     }
   })
   const activities = papers.filter((p) => p.gradeOnly).map((p) => ({ subject: p.subject, grade: entry.get(p.id)?.grade ?? null, exempt: !!entry.get(p.id)?.exempt }))
+  const { coScholastic, discipline } = splitActivities(activities) // CBSE Part 2 / Part 3
   return {
-    exam: { name: exam.name, year: year?.name, term: exam.term, published: exam.status === 'PUBLISHED', publishedAt: exam.publishedAt, verifyUrl: c.verifyCode ? `${config.appUrl}/verify/exam/${c.verifyCode}` : null },
+    exam: { name: exam.name, year: year?.name, term: exam.term, published: exam.status === 'PUBLISHED', publishedAt: exam.publishedAt, verifyUrl: c.verifyCode ? `${config.appUrl}/verify/exam/${c.verifyCode}` : null, typeName: examType?.name ?? null, typeCode: examType?.code ?? null },
     student: studentBlock(student, place, c.rollNo),
-    subjects, activities, hasActivities: activities.length > 0,
+    subjects, activities, hasActivities: activities.length > 0, coScholastic, discipline,
+    classTeacher: classTeacher ?? null,
     result: {
-      total: c.total, max: c.max, pct: c.pct, grade: c.grade, rank: showRank ? c.rank : null, showRank,
+      total: c.total, max: c.max, pct: c.pct, grade: c.grade, rank: showRank ? c.rank : null, showRank, date: exam.status === 'PUBLISHED' ? exam.publishedAt ?? null : null,
       status: c.result, label: RESULT_STATUS[c.result]?.label ?? '', pass: c.result === 'PASS', incomplete: c.result === 'INCOMPLETE', failed: c.failedSubjects ?? [],
     },
     attendance: { present: (attendance.P ?? 0) + (attendance.L ?? 0) + 0.5 * (attendance.HD ?? 0), working: attendance.total, pct: attendance.pct },
     remark: c.remark, remarkBy: c.remarkBy,
-    scheme: bands?.name ?? null, bands: bandList.map((b) => ({ grade: b.grade, min: b.min, max: b.max, remark: b.remark })),
+    scheme: bands?.name ?? null, bands: bandList.map((b) => ({ grade: b.grade, min: b.min, max: b.max, remark: b.remark, range: bandRange(b) })),
   }
 }
 
@@ -134,14 +157,22 @@ function certificateModel({ certificate: c, verifyUrl }) {
       ...sn, kid, parent: sn.father || sn.mother || null, studying: sn.studying ?? sn.status === 'ACTIVE',
       // ", son of Rajesh Sharma" — the relation word is translated in the template's language
       parentPhrase: sn.father || sn.mother ? `, ${translateDoc(sn.language || 'en', `certificates.print.childOf.${kid}`, kid === 'm' ? 'son of' : kid === 'f' ? 'daughter of' : 'ward of')} ${sn.father || sn.mother}` : '',
+      // he / she, his / her, Master / Kumari, S/o / D/o — from the gender, "he/she" when it isn't recorded
+      p: Object.fromEntries(Object.entries(pronounsOf(sn.gender)).map(([k, v]) => [k, k === 'kid' ? v : translateDoc(sn.language || 'en', `certificates.print.words.${k}.${kid}`, v)])),
+      dobWords: dateInWords(sn.dob), years: sn.years ?? [], hasYears: (sn.years ?? []).length > 0,
+      // "Master Aditya Iyer" and ", S/o Suresh Iyer" as Indian certificates write them
+      titleName: [translateDoc(sn.language || 'en', `certificates.print.words.title.${kid}`, pronounsOf(sn.gender).title), sn.name].filter(Boolean).join(' '),
+      relPhrase: sn.father || sn.mother ? `, ${translateDoc(sn.language || 'en', `certificates.print.words.rel.${kid}`, pronounsOf(sn.gender).rel)} ${sn.father || sn.mother}` : '',
     },
-    fees: sn.fees ?? null,
+    fees: sn.fees ? { ...sn.fees, heads: (sn.fees.heads ?? []).map((h, i) => ({ ...h, sl: i + 1, tuition: TUITION_HEAD_CODES.includes(h.code) })) } : null,
     verify: { url: verifyUrl, code: c.verifyCode },
   }
 }
 
 export const DOCS = {
   ...ALUMNI_DOCS, // donation receipts (documents/alumniDocs.js)
+  ...FEE_DOCS, // the fee invoice / bank challan (documents/feeDocs.js)
+  ...HR_DOCS, // the offer / appointment letter (documents/hrDocs.js)
   ...INVENTORY_DOCS, // purchase order, store sale receipt (documents/inventoryDocs.js)
   ...YEAR_RESULT_DOCS, // the year-end report card (documents/yearResultDocs.js)
   ...EXAM_SEATING_DOCS, // seating charts, door lists, invigilation duties (documents/examSeatingDocs.js)
@@ -149,13 +180,15 @@ export const DOCS = {
   ...COE_DOCS, // documents/coeDocs.js
   ...PROGRAM_DOCS, // documents/programDocs.js
   ...ACCREDITATION_DOCS, // documents/accreditationDocs.js
+  ...STUDENT_DOCS, // the admission form (documents/studentDocs.js)
+  ...STAFF_DOCS, // staff ID cards (documents/staffIdCard.js)
   FEE_RECEIPT: {
     perms: ['fees.invoices.print', 'fees.collect.view'],
     load: (id, auth) => receiptPrintData(id, auth),
-    model: receiptModel,
+    model: (d) => withReceiptExtras(receiptModel(d), d), // + the Indian-format extras (documents/feeDocs.js)
     title: (m) => `Receipt ${m.receipt.no} · ${m.student.name}`,
     sample: () => latestId(FeePayment, {}, { at: -1 }),
-    variables: [V.institution, 'student.name, student.admissionNo, student.class, student.rollNo', 'receipt.no, receipt.date, receipt.mode, receipt.reference, receipt.amount, receipt.collectedBy, receipt.cancelled, receipt.refunded', 'items[] {installment, invoiceNo, dueDate, paid, lateFee, lines[] {name, amount, concession}} · balance · {{money x}} · {{words receipt.amount}}', V.layout],
+    variables: [V.institution, 'student.name, student.admissionNo, student.class, student.rollNo', 'receipt.no, receipt.date, receipt.mode, receipt.reference, receipt.amount, receipt.collectedBy, receipt.cancelled, receipt.refunded', 'items[] {installment, invoiceNo, dueDate, paid, lateFee, lines[] {name, amount, concession}} · balance · {{money x}} · {{words receipt.amount}}', 'student.relation (S/o · D/o · Ward of), student.parent, student.father, student.mother, student.className, student.section, student.year · receipt.modeCode, receipt.cheque, receipt.chequeBank, receipt.chequeDate', 'rows[] {sl, name, period, amount, concession} · summary {subtotal, concession, lateFee, total, paidEarlier, paid, balance}', V.layout],
   },
   TRANSFER_CERTIFICATE: {
     perms: ['students.transfer.view', 'students.transfer.print'],
@@ -163,7 +196,7 @@ export const DOCS = {
     model: tcModel,
     title: (m) => `TC ${m.tc.no ?? '(draft)'} · ${m.student.name}`,
     sample: () => latestId(TransferCertificate, {}, { createdAt: -1 }),
-    variables: [V.institution, 'student.name, student.admissionNo, student.dob, student.dobWords, student.gender, student.nationality, student.category, student.religion', 'student.father, student.mother, student.guardian, student.admissionDate, student.firstClass, student.apaarId, student.pen', 'tc.no, tc.issued, tc.requested, tc.cancelled, tc.issuedAt, tc.issuedBy, tc.leavingDate, tc.reason, tc.conduct, tc.lastClass, tc.promotedTo, tc.feesPaidUpTo, tc.remarks', V.layout],
+    variables: [V.institution, 'student.name, student.admissionNo, student.dob, student.dobWords, student.gender, student.nationality, student.category, student.religion', 'student.father, student.mother, student.guardian, student.admissionDate, student.firstClass, student.apaarId, student.pen', 'tc.no, tc.issued, tc.requested, tc.cancelled, tc.issuedAt, tc.issuedBy, tc.leavingDate, tc.reason, tc.conduct, tc.lastClass, tc.promotedTo, tc.feesPaidUpTo, tc.remarks', 'tc.bookNo, tc.applicationDate, tc.lastClassWords, tc.promotedToWords, tc.lastExam, tc.lastExamResult, tc.failed, tc.subjects[], tc.subjectsText, tc.concession, tc.workingDays, tc.presentDays, tc.nccScoutGuide, tc.games · student.reserved', V.layout],
   },
   HALL_TICKET: {
     perms: ['exams.hall-tickets.view', 'exams.hall-tickets.print'],
@@ -171,7 +204,7 @@ export const DOCS = {
     model: hallTicketModel,
     title: (m) => `Hall ticket · ${m.exam.name} · ${m.student.name}`,
     sample: () => latestCandidate(),
-    variables: [V.institution, 'exam.name, exam.year, exam.term, exam.instructions, exam.startDate, exam.endDate', 'student.name, student.admissionNo, student.rollNo, student.class, student.dob, student.father, student.mother', 'papers[] {subject, date, startTime, endTime, maxMarks, gradeOnly, room, seat} · seated (any paper has a published seat)', V.layout],
+    variables: [V.institution, 'exam.name, exam.year, exam.term, exam.instructions, exam.startDate, exam.endDate', 'student.name, student.admissionNo, student.rollNo, student.class, student.dob, student.father, student.mother', 'papers[] {subject, code, date, day, dayLabel, startTime, endTime, maxMarks, gradeOnly, room, seat} · seated (any paper has a published seat) · seat {room, seat} (the same for every paper)', 'student.photo · classTeacher · exam.instructionLines[]', V.layout],
   },
   REPORT_CARD: {
     perms: ['exams.report-cards.view', 'exams.report-cards.print'],
@@ -179,7 +212,7 @@ export const DOCS = {
     model: reportCardModel,
     title: (m) => `Report card · ${m.exam.name} · ${m.student.name}`,
     sample: () => latestCandidate({ computedAt: { $ne: null } }),
-    variables: [V.institution, 'exam.name, exam.year, exam.term, exam.published', 'student.name, student.admissionNo, student.rollNo, student.class, student.dob, student.father, student.mother', 'subjects[] {subject, maxMarks, passMarks, marks, absent, exempt, grade, below} · activities[] {subject, grade}', 'result.total, result.max, result.pct, result.grade, result.rank, result.label, result.pass, result.failed[]', 'attendance.present, attendance.working, attendance.pct · remark, remarkBy · scheme, bands[] {grade, min, max, remark}', V.layout],
+    variables: [V.institution, 'exam.name, exam.year, exam.term, exam.published', 'student.name, student.admissionNo, student.rollNo, student.class, student.dob, student.father, student.mother', 'subjects[] {subject, code, maxMarks, passMarks, marks, pct, absent, exempt, grade, below} · activities[] {subject, grade} · coScholastic[] / discipline[] {subject, grade, exempt}', 'exam.typeName, exam.typeCode · classTeacher', 'result.total, result.max, result.pct, result.grade, result.rank, result.label, result.pass, result.failed[], result.date (published on)', 'attendance.present, attendance.working, attendance.pct · remark, remarkBy · scheme, bands[] {grade, min, max, remark, range ("81–90")}', V.layout],
   },
   CERTIFICATE: {
     perms: ['certificates.issue.print', 'certificates.register.view'],
@@ -187,7 +220,7 @@ export const DOCS = {
     model: certificateModel,
     title: (m) => `${m.certificate.kindLabel} ${m.certificate.no} · ${m.student.name}`,
     sample: () => latestCertificate(),
-    variables: [V.institution, 'certificate.no, certificate.kind, certificate.kindLabel, certificate.issueDate, certificate.purpose, certificate.remarks, certificate.cancelled, certificate.bonafide / character / study / fee / merit', 'student.name, student.admissionNo, student.class, student.yearName, student.dob, student.father, student.mother, student.parent, student.kid (m / f / x), student.admissionDate, student.conduct, student.from, student.to, student.fromClass, student.toClass, student.event, student.achievement, student.eventDate', 'fees.fy, fees.total, fees.tuition, fees.heads[] {name, amount}', 'verify.url, verify.code · {{qr verify.url 22}}', V.layout],
+    variables: [V.institution, 'certificate.no, certificate.kind, certificate.kindLabel, certificate.issueDate, certificate.purpose, certificate.remarks, certificate.cancelled, certificate.bonafide / character / study / fee / merit', 'student.name, student.admissionNo, student.class, student.yearName, student.dob, student.dobWords, student.father, student.mother, student.parent, student.kid (m / f / x), student.p {he, He, his, His, him, title (Master / Kumari), rel (S/o / D/o), child}, student.titleName, student.relPhrase, student.years[] {year, class}, student.admissionDate, student.conduct, student.from, student.to, student.fromClass, student.toClass, student.event, student.achievement, student.eventDate', 'fees.fy, fees.total, fees.tuition, fees.refunded, fees.heads[] {sl, name, amount, tuition}', 'verify.url, verify.code · {{qr verify.url 22}}', V.layout],
   },
   // ── Student ID cards: many students at once (GET /documents/STUDENT_ID_CARD?ids=…), a front page and — with the back
   // side switched on — a back page each, so double-sided printing lines up. Data from services/students.js studentIdCards.

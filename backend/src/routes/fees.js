@@ -71,6 +71,8 @@ router.post('/collect', requirePermission('fees.collect.create'), async (req, re
   const input = z.object({
     studentId: objectId, amount: paise.min(1, 'Enter the amount received'), mode: modes, reference: optionalText(60),
     waiveLateFee: z.boolean().optional(), note: optionalText(200), invoiceIds: z.array(objectId).max(50).optional(),
+    // a cheque / DD: the bank it is drawn on and its date, printed on the receipt
+    chequeBank: optionalText(80), chequeDate: ymd.optional(),
   }).refine((v) => v.mode === 'CASH' || !!v.reference, { message: 'Enter the reference (UTR, cheque no. or card last 4)', path: ['reference'] }).parse(req.body)
   res.status(201).json({ data: await collect(input, req.auth, req) })
 })

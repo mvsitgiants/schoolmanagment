@@ -48,7 +48,7 @@ export default function Collect() {
   const [params, setParams] = useSearchParams()
   const [studentId, setStudentId] = useState(params.get('student') ?? '')
   const [picked, setPicked] = useState(null)
-  const [form, setForm] = useState({ amount: '', mode: 'CASH', reference: '', waiveLateFee: false, note: '' })
+  const [form, setForm] = useState({ amount: '', mode: 'CASH', reference: '', chequeBank: '', chequeDate: '', waiveLateFee: false, note: '' })
   const [errors, setErrors] = useState({})
   const [last, setLast] = useState(null)
   const { data: ledger, isLoading, error, refetch } = useQuery({ queryKey: ['fee-ledger', studentId], queryFn: () => fetchFeeLedger(studentId), enabled: !!studentId })
@@ -61,7 +61,7 @@ export default function Collect() {
     setForm((f) => ({ ...f, amount: due ? String(toRupees(due)) : '' }))
   }, [ledger, form.waiveLateFee]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const pick = (id, s) => { setStudentId(id); setPicked(s ?? null); setLast(null); setErrors({}); setForm({ amount: '', mode: 'CASH', reference: '', waiveLateFee: false, note: '' }) }
+  const pick = (id, s) => { setStudentId(id); setPicked(s ?? null); setLast(null); setErrors({}); setForm({ amount: '', mode: 'CASH', reference: '', chequeBank: '', chequeDate: '', waiveLateFee: false, note: '' }) }
   const needsRef = MODES_WITH_REFERENCE.includes(form.mode)
   // the student's ID card at the counter opens their dues
   const [scanning, setScanning] = useState(false)
@@ -78,11 +78,12 @@ export default function Collect() {
     ? `upi://pay?pa=${encodeURIComponent(ledger.upi.id)}&pn=${encodeURIComponent(ledger.upi.payee)}&am=${(upiAmount / 100).toFixed(2)}&cu=INR&tn=${encodeURIComponent(t('fees.collect.upiNote', { no: ledger.student.admissionNo }))}`
     : null
   const save = useMutation({
-    mutationFn: () => collectFee({ studentId, amount: toPaise(form.amount), mode: form.mode, reference: form.reference || undefined, waiveLateFee: canWaive && form.waiveLateFee, note: form.note || undefined }),
+    mutationFn: () => collectFee({ studentId, amount: toPaise(form.amount), mode: form.mode, reference: form.reference || undefined,
+      ...(form.mode === 'CHEQUE' && { chequeBank: form.chequeBank.trim() || undefined, chequeDate: form.chequeDate || undefined }), waiveLateFee: canWaive && form.waiveLateFee, note: form.note || undefined }),
     onSuccess: (r) => {
       setLast(r)
       setErrors({})
-      setForm((f) => ({ ...f, reference: '', note: '' }))
+      setForm((f) => ({ ...f, reference: '', chequeBank: '', chequeDate: '', note: '' }))
       qc.invalidateQueries({ queryKey: ['fee-ledger', studentId] })
       qc.invalidateQueries({ queryKey: ['fee-receipts'] })
       qc.invalidateQueries({ queryKey: ['fee-invoices'] })
@@ -170,6 +171,16 @@ export default function Collect() {
                     {needsRef && <FormField label={t('fees.collect.reference')} required error={errors.reference} hint={t('fees.collect.referenceHint')}>
                       <Input value={form.reference} onChange={(e) => setForm((f) => ({ ...f, reference: e.target.value }))} />
                     </FormField>}
+                    {form.mode === 'CHEQUE' && (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <FormField label={t('fees.collect.chequeBank')} error={errors.chequeBank}>
+                          <Input value={form.chequeBank} maxLength={80} onChange={(e) => setForm((f) => ({ ...f, chequeBank: e.target.value }))} />
+                        </FormField>
+                        <FormField label={t('fees.collect.chequeDate')} error={errors.chequeDate}>
+                          <Input type="date" value={form.chequeDate} onChange={(e) => setForm((f) => ({ ...f, chequeDate: e.target.value }))} />
+                        </FormField>
+                      </div>
+                    )}
                     {canWaive && lateFee > 0 && (
                       <label className="flex items-center gap-2 text-sm">
                         <input type="checkbox" checked={form.waiveLateFee} onChange={(e) => setForm((f) => ({ ...f, waiveLateFee: e.target.checked }))} className="rounded border-border text-brand-500 focus:ring-brand-500" />

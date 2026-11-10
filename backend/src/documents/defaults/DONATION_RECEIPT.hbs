@@ -1,45 +1,72 @@
-{{!-- Donation receipt (A5). An 80G receipt adds the institution's PAN and registration and the donor's PAN. --}}
+{{!-- Donation receipt (A5). An 80G receipt names the trust, its PAN and its 80G registration number with validity
+      (Institution profile › 80G registration), the donor's name, address and PAN, the amount in figures and words, the
+      mode, date and purpose, and the 80G / Form 10BE note; it is signed by the trust's authorised signatory.
+      Main fields: receipt.no, receipt.date, receipt.amount, receipt.mode, receipt.reference, receipt.fund,
+      receipt.purpose, receipt.is80G, donor.name, donor.address, donor.pan, donor.batch, institution.trustName,
+      institution.legalName, institution.pan (or tax.pan), institution.reg80G, {{words receipt.amount}}. --}}
 <style>
-  h1 { font-size: 12pt; text-align: center; letter-spacing: .08em; text-transform: uppercase; margin: 4mm 0 2mm }
-  .meta { display: flex; justify-content: space-between; gap: 6mm; font-size: 9pt; margin-bottom: 4mm }
-  .meta b { font-weight: 600 }
-  .body { font-size: 10pt; line-height: 1.6 }
-  .amt { margin: 4mm 0; display: flex; justify-content: space-between; align-items: baseline; border-top: 1px solid #C8CCD4; border-bottom: 1px solid #C8CCD4; padding: 2mm 0; font-size: 11pt; font-weight: 700 }
-  .words { font-size: 9pt; color: #3A3F4B }
-  .tax { margin-top: 4mm; font-size: 8.5pt; color: #3A3F4B; border: 1px dashed #C8CCD4; border-radius: 2mm; padding: 2mm 3mm }
-  .foot { margin-top: 10mm; display: flex; justify-content: space-between; font-size: 9pt }
+  .lh-classic { grid-template-columns: 14mm 1fr 14mm; gap: 2mm } .crest { max-width: 14mm; max-height: 14mm }
+  .hn-classic { font-size: 14pt } .lh-trust, .lh-board, .lh-line { font-size: 7pt }
+  .dn { font-size: 9pt }
+  .dn .doc-title { margin: 3mm 0 1mm; font-size: 12pt }
+  .dn .doc-sub { margin: 0 0 2.5mm; font-weight: 400; font-size: 8pt; color: #3B3F47 }
+  .dn .trust { border: 0.3mm solid #444; padding: 1.5mm 2.5mm; margin-bottom: 2.5mm; font-size: 8.4pt }
+  .dn .trust .nm { font-weight: 700; text-transform: uppercase; letter-spacing: .02em }
+  .dn .trust table.kv td { padding: .2mm 0 } .dn .trust table.kv td.k { padding-right: 2mm }
+  .dn .noline { display: flex; justify-content: space-between; margin-bottom: 2mm }
+  .dn table.kv.main { border: 0.25mm solid #555 }
+  .dn table.kv.main td { padding: 1mm 2mm; border-bottom: 0.2mm dotted #B5BAC3 }
+  .dn table.kv.main tr:last-child td { border-bottom: 0 }
+  .dn table.kv.main td.k { width: 30% }
+  .dn .amt { font-size: 11pt; font-weight: 700 }
+  .dn .tax { margin-top: 3mm; border: 0.3mm dashed #555; padding: 2mm 3mm; font-size: 8.2pt }
+  .dn .thanks { margin-top: 2.5mm; font-style: italic }
+  .dn .sign { display: flex; justify-content: space-between; align-items: flex-end; gap: 6mm; margin-top: 6mm }
+  .dn .sign .rb { font-size: 7.6pt; color: #5B616E }
+  .dn .sign .for { text-align: center; min-width: 52mm; font-size: 8.4pt }
+  .dn .sign .for .line { border-top: 0.3mm solid #333; padding-top: 1.2mm; margin-top: 9mm }
+  .dn .sign .seal { margin-bottom: 0 }
   .void { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 46pt; font-weight: 800; color: rgba(214,69,69,.16); transform: rotate(-20deg); pointer-events: none }
 </style>
 {{#if receipt.cancelled}}<div class="void">{{t "alumni.print.receipt.stampCancelled" "CANCELLED"}}</div>{{/if}}
 {{#> letterhead}}{{/letterhead}}
-<h1>{{#if receipt.is80G}}{{t "alumni.print.receipt.title80G" "Donation receipt (80G)"}}{{else}}{{t "alumni.print.receipt.title" "Donation receipt"}}{{/if}}</h1>
-<div class="meta">
-  <div>
-    <div>{{t "alumni.print.receipt.no" "Receipt No."}} <b class="mono">{{receipt.no}}</b></div>
-    <div>{{t "alumni.print.receipt.date" "Date"}} <b>{{date receipt.date}}</b></div>
+<div class="dn">
+  <div class="doc-title">{{t "alumni.print.receipt.title" "Donation receipt"}}</div>
+  {{#if receipt.is80G}}<div class="doc-sub">{{t "alumni.print.receipt.sub80G" "Under section 80G of the Income-tax Act, 1961"}}</div>{{/if}}
+  {{#if receipt.is80G}}
+  <div class="trust">
+    <div class="nm">{{default institution.trustName (default institution.legalName institution.name)}}</div>
+    <table class="kv">
+      <tr><td class="k">{{t "alumni.print.receipt.ourPan" "PAN of the trust"}}</td><td class="v mono">{{#if institution.pan}}{{institution.pan}}{{else}}{{#if tax.pan}}{{tax.pan}}{{else}}<span class="fill" style="display:inline-block;min-width:30mm">&nbsp;</span>{{/if}}{{/if}}</td></tr>
+      <tr><td class="k">{{t "alumni.print.receipt.reg80G" "80G registration no. & validity"}}</td><td class="v">{{#if institution.reg80G}}{{institution.reg80G}}{{else}}<span class="fill" style="display:inline-block;min-width:45mm">&nbsp;</span>{{/if}}</td></tr>
+      {{#if tax.registrationNo}}<tr><td class="k">{{t "alumni.print.receipt.trustReg" "Trust registration no."}}</td><td class="v">{{tax.registrationNo}}</td></tr>{{/if}}
+    </table>
   </div>
-  <div style="text-align:right">
-    <div><b>{{donor.name}}</b></div>
-    {{#if donor.batch}}<div class="muted">{{t "alumni.print.receipt.batch" "Alumnus, batch of {{batch}}" batch=donor.batch}}</div>{{/if}}
-    {{#if donor.address}}<div class="muted">{{donor.address}}</div>{{/if}}
-    {{#if donor.pan}}<div class="muted">{{t "alumni.print.receipt.donorPan" "PAN"}} <span class="mono">{{donor.pan}}</span></div>{{/if}}
+  {{/if}}
+  <div class="noline">
+    <span>{{t "alumni.print.receipt.no" "Receipt No."}} <b class="mono">{{receipt.no}}</b></span>
+    <span>{{t "alumni.print.receipt.date" "Date"}} <b>{{date receipt.date}}</b></span>
   </div>
-</div>
-<div class="body">
-  {{t "alumni.print.receipt.thanks" "Received with thanks from {{name}} towards the {{fund}}." name=donor.name fund=receipt.fund}}
-  {{#if receipt.purpose}}<div class="muted">{{receipt.purpose}}</div>{{/if}}
-</div>
-<div class="amt"><span>{{t "alumni.print.receipt.amount" "Amount"}}</span><span>{{money receipt.amount}}</span></div>
-<div class="words">{{words receipt.amount}}</div>
-<div class="words">{{t "alumni.print.receipt.paidBy" "Paid by {{mode}}" mode=receipt.mode}}{{#if receipt.reference}} · {{t "alumni.print.receipt.ref" "Ref. {{ref}}" ref=receipt.reference}}{{/if}}</div>
-{{#if receipt.is80G}}
-<div class="tax">
-  {{t "alumni.print.receipt.taxNote" "This donation is eligible for deduction under section 80G of the Income-tax Act, 1961."}}
-  {{#if tax.pan}}<div>{{t "alumni.print.receipt.ourPan" "Our PAN"}} <span class="mono">{{tax.pan}}</span>{{#if tax.registrationNo}} · {{t "alumni.print.receipt.ourReg" "Registration {{no}}" no=tax.registrationNo}}{{/if}}</div>{{/if}}
-</div>
-{{/if}}
-<div class="foot">
-  <span class="muted">{{#if receipt.receivedBy}}{{t "alumni.print.receipt.receivedBy" "Received by {{name}}" name=receipt.receivedBy}}{{/if}}</span>
-  <span>{{t "alumni.print.receipt.signature" "Authorised signatory"}}</span>
+  <table class="kv main">
+    <tr><td class="k">{{t "alumni.print.receipt.donorName" "Received with thanks from"}}</td><td class="v">{{donor.name}}{{#if donor.batch}} <span class="muted">({{t "alumni.print.receipt.batch" "Alumnus, batch of {{batch}}" batch=donor.batch}})</span>{{/if}}</td></tr>
+    <tr><td class="k">{{t "alumni.print.receipt.address" "Address"}}</td><td class="v">{{#if donor.address}}{{donor.address}}{{else}}<span class="fill" style="display:inline-block;min-width:60mm">&nbsp;</span>{{/if}}</td></tr>
+    <tr><td class="k">{{t "alumni.print.receipt.donorPan" "PAN of the donor"}}</td><td class="v mono">{{#if donor.pan}}{{donor.pan}}{{else}}<span class="fill" style="display:inline-block;min-width:30mm">&nbsp;</span>{{/if}}</td></tr>
+    <tr><td class="k">{{t "alumni.print.receipt.amount" "Amount"}}</td><td class="v amt">{{money receipt.amount}}</td></tr>
+    <tr><td class="k">{{t "alumni.print.receipt.inWords" "Amount in words"}}</td><td class="v words">{{words receipt.amount}}</td></tr>
+    <tr><td class="k">{{t "alumni.print.receipt.mode" "Mode of payment"}}</td><td class="v">{{receipt.mode}}{{#if receipt.reference}} · {{t "alumni.print.receipt.ref" "Ref. {{ref}}" ref=receipt.reference}}{{/if}}</td></tr>
+    <tr><td class="k">{{t "alumni.print.receipt.purpose" "Purpose"}}</td><td class="v">{{receipt.fund}}{{#if receipt.purpose}} — {{receipt.purpose}}{{/if}}</td></tr>
+  </table>
+  {{#if receipt.is80G}}
+  <div class="tax">{{t "alumni.print.receipt.taxNote" "Donation eligible for deduction u/s 80G of the Income-tax Act, 1961. Statement of donation in Form 10BE will be issued."}}{{#if (and receipt.cash (gt receipt.amount 200000))}} {{t "alumni.print.receipt.cashNote" "A cash donation above ₹2,000 is not eligible for the deduction."}}{{/if}}</div>
+  {{/if}}
+  {{#if receipt.cancelled}}<div class="thanks"><b>{{t "alumni.print.receipt.cancelledNote" "This receipt is cancelled."}}</b></div>{{else}}<div class="thanks">{{t "alumni.print.receipt.thanksNote" "We thank you for your generous support."}}</div>{{/if}}
+  <div class="sign">
+    <span class="rb">{{#if receipt.receivedBy}}{{t "alumni.print.receipt.receivedBy" "Received by {{name}}" name=receipt.receivedBy}}{{/if}}</span>
+    <div class="for">
+      <div>{{t "alumni.print.receipt.forTrust" "For {{name}}" name=(default institution.trustName (default institution.legalName institution.name))}}</div>
+      <div class="seal">{{t "alumni.print.receipt.seal" "Seal"}}</div>
+      <div class="line" style="margin-top:2mm">{{t "alumni.print.receipt.signature" "Authorised signatory"}}</div>
+    </div>
+  </div>
 </div>
 {{> footer}}

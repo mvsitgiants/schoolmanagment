@@ -29,6 +29,8 @@ const itemSchema = new Schema({
   reorderLevel: { type: Number, default: 0 },
   location: { type: String, trim: true }, // rack / shelf in the store
   hasExpiry: { type: Boolean, default: false }, // lab chemicals and the like: receipts note the expiry
+  hsn: { type: String, trim: true }, // GST: HSN code (goods) / SAC (services), printed on tax invoices and POs
+  gstRate: Number, // GST %, e.g. 5 or 12 (sale prices include it); empty: not set
   description: String,
   active: { type: Boolean, default: true },
   createdBy: String,

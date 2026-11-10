@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import {
-  CANDIDATE_SOURCES, CANDIDATE_STAGES, EMPLOYEE_CATEGORIES, EMPLOYMENT_TYPES, EXIT_TYPES, GENDERS, LEAVE_ACCRUALS,
-  LEAVE_STATUSES, MARKABLE, REQUISITION_STATUSES, SALARY_MODES,
+  CANDIDATE_SOURCES, CANDIDATE_STAGES, EMPLOYEE_CATEGORIES, EMPLOYMENT_TYPES, EXIT_TYPES, GENDERS, LEAVE_ACCRUALS, LEAVE_APPROVER_TYPES,
+  LEAVE_CALENDAR_KINDS, LEAVE_CHAIN_MAX_STEPS, LEAVE_STATUSES, MARKABLE, NO_LEAVE_MODES, REQUISITION_STATUSES, SALARY_MODES,
 } from '@schoolgiant/shared'
 import { authenticate, requireModule, requirePermission, subscriptionGate, tenantOnly } from '../platform/middleware.js'
 import { email, mobile, objectId, optionalText, pageParams, z } from '../platform/validate.js'
@@ -11,8 +11,11 @@ import {
 } from '../services/hrms.js'
 import { dayRegister, exportMonth, importAttendance, monthRegister, myMonth, saveDay } from '../services/hrmsAttendance.js'
 import {
-  adjustBalance, applyFor, applyMine, balanceBoard, cancelLeave, decideLeave, employeeBalances, ledgerFor, listLeaveTypes, listLeaves, myLeave, saveLeaveType, waitingForMe,
+  adjustBalance, applyFor, applyMine, balanceBoard, calendarSuggestions, cancelLeave, creditCompOff, decideLeave, deleteCalendarDay, employeeBalances, getLeave,
+  leaveSummary, ledgerFor, listCalendarDays, listLeaveTypes, listLeaves, myLeave, previewFor, runYearEnd, saveCalendarDay, saveLeaveType, teamCalendar,
+  waitingForMe, yearEndPreview,
 } from '../services/hrmsLeave.js'
+import { deleteLeaveApprovalRule, leaveApprovalOptions, listLeaveApprovalRules, saveLeaveApprovalRule } from '../services/hrmsLeaveApprovals.js'
 import {
   evaluateCandidate, getCandidate, hireCandidate, listCandidates, listRequisitions, moveCandidate, offerCandidate, saveCandidate, saveRequisition, setRequisitionStatus,
 } from '../services/hrmsHiring.js'
@@ -124,7 +127,10 @@ router.get('/employees/:id/leave/ledger', requirePermission('hrms.leave.view'), 
   res.json({ data: await ledgerFor(id(req), req.query.leaveTypeId, req.auth) })
 })
 router.post('/employees/:id/leave/adjust', requirePermission('hrms.leave.edit'), async (req, res) => {
-  const input = z.object({ leaveTypeId: objectId, days: z.coerce.number().min(-365).max(365).refine((n) => n !== 0 && Math.abs(n * 2) % 1 === 0, 'Whole or half days'), note: z.string().trim().min(3, 'Say why').max(300) }).parse(req.body)
+  const input = z.object({
+    leaveTypeId: objectId, days: z.coerce.number().min(-365).max(365).refine((n) => n !== 0 && Math.abs(n * 2) % 1 === 0, 'Whole or half days'), note: z.string().trim().min(3, 'Say why').max(300),
+    kind: z.enum(['ADJUSTMENT', 'OPENING']).default('ADJUSTMENT'),
+  }).parse(req.body)
   res.json({ data: await adjustBalance(id(req), input, req.auth, req) })
 })
 
@@ -157,18 +163,47 @@ router.post('/attendance/import', requirePermission('hrms.attendance.import'), a
 
 // ───────────────────────────────────────────────────────── leave
 
+const days = (max) => z.coerce.number().min(0).max(max)
+const optNum = (schema) => schema.optional().nullable().or(z.literal('').transform(() => null))
 const leaveTypeSchema = z.object({
-  code: z.string().trim().min(1).max(8), name: z.string().trim().min(2).max(60), paid: z.boolean().default(true),
-  accrual: z.enum(values(LEAVE_ACCRUALS)).default('YEARLY'), perYear: z.coerce.number().min(0).max(365).default(0), carryForwardMax: z.coerce.number().min(0).max(365).default(0),
+  code: z.string().trim().min(1).max(8).regex(/^[A-Za-z0-9]+$/, 'Letters and numbers only'), name: z.string().trim().min(2).max(60), paid: z.boolean().default(true),
+  accrual: z.enum([...values(LEAVE_ACCRUALS), 'YEARLY']).default('ANNUAL_UPFRONT'), perYear: days(365).default(0),
+  carryForwardMax: optNum(days(365)).default(0), // null = no limit
   allowHalfDay: z.boolean().default(true), sandwich: z.boolean().default(false), allowNegative: z.boolean().default(false),
-  maxPerRequest: z.coerce.number().int().min(1).max(365).optional().nullable().or(z.literal('').transform(() => null)),
+  maxPerRequest: optNum(z.coerce.number().int().min(1).max(365)),
   genders: z.array(z.enum(values(GENDERS))).default([]), categories: z.array(z.enum(values(EMPLOYEE_CATEGORIES))).default([]),
+  categoryQuota: z.array(z.object({ category: z.enum(values(EMPLOYEE_CATEGORIES)), perYear: days(365) })).max(10).default([]),
+  pauseInVacation: z.boolean().default(false), blackoutExempt: z.boolean().default(false), compOff: z.boolean().default(false),
+  noticeDays: optNum(z.coerce.number().int().min(1).max(90)), description: optionalText(200),
   tone: z.string().max(20).default('neutral'), order: z.coerce.number().int().default(0), active: z.boolean().default(true),
 })
 const applySchema = z.object({
   leaveTypeId: objectId, from: ymd, to: ymd, halfDay: z.boolean().default(false), half: z.enum(['FIRST', 'SECOND']).optional(),
   reason: z.string().trim().min(2, 'Give a reason').max(500), arrangement: optionalText(500),
 })
+const previewSchema = applySchema.pick({ leaveTypeId: true, from: true, halfDay: true, half: true }).extend({ to: blank(ymd) })
+const decideSchema = z.object({ approve: z.boolean(), note: optionalText(300) })
+const ruleSchema = z.object({
+  name: z.string().trim().min(2, 'Name the chain').max(80), active: z.boolean().default(true), priority: z.coerce.number().int().min(0).max(999).default(0),
+  scope: z.object({
+    leaveTypeIds: z.array(objectId).max(30).default([]), departmentIds: z.array(objectId).max(60).default([]),
+    categories: z.array(z.enum(values(EMPLOYEE_CATEGORIES))).default([]), minDays: optNum(days(366)),
+  }).default({}),
+  steps: z.array(z.object({
+    label: optionalText(60), approverType: z.enum(values(LEAVE_APPROVER_TYPES)),
+    userIds: z.array(objectId).max(30).default([]), roleIds: z.array(objectId).max(20).default([]),
+  })).min(1, 'Add a step').max(LEAVE_CHAIN_MAX_STEPS),
+  skipSelfOrRepeat: z.boolean().default(true), escalateAfterHours: optNum(z.coerce.number().int().min(1).max(720)),
+})
+const calendarSchema = z.object({
+  kind: z.enum(Object.keys(LEAVE_CALENDAR_KINDS)), name: z.string().trim().min(2, 'Name it').max(80), from: ymd, to: ymd,
+  mode: z.enum(values(NO_LEAVE_MODES)).optional(), categories: z.array(z.enum(values(EMPLOYEE_CATEGORIES))).default([]), branchIds: z.array(objectId).max(50).default([]),
+  source: z.object({ type: z.enum(['EXAM', 'EVENT', 'PTM']), id: objectId }).optional(), note: optionalText(300),
+})
+const listQ = (q) => z.object({
+  status: z.enum([...Object.keys(LEAVE_STATUSES), 'UPCOMING']).optional(), box: z.enum(['mine', 'all']).optional(), employeeId: objectId.optional(), leaveTypeId: objectId.optional(),
+  departmentId: objectId.optional(), from: ymd.optional(), to: ymd.optional(), search: z.string().max(80).optional(), ...paging,
+}).parse(q)
 
 router.get('/leave/types', requirePermission('hrms.leave.view', 'hrms.leave.apply_on_behalf'), async (req, res) => {
   res.json({ data: await listLeaveTypes() })
@@ -177,22 +212,80 @@ router.post('/leave/types', requirePermission('hrms.leave.edit'), async (req, re
   res.status(201).json({ data: await saveLeaveType(null, leaveTypeSchema.parse(req.body), req) })
 })
 router.put('/leave/types/:id', requirePermission('hrms.leave.edit'), async (req, res) => {
-  res.json({ data: await saveLeaveType(id(req), leaveTypeSchema.parse(req.body), req) })
+  // the short name (code) stays as it was made: payroll and the ledger read it
+  res.json({ data: await saveLeaveType(id(req), leaveTypeSchema.omit({ code: true }).parse(req.body), req) })
 })
 router.get('/leave', requirePermission('hrms.leave.view'), async (req, res) => {
-  const q = z.object({ status: z.enum(Object.keys(LEAVE_STATUSES)).optional(), employeeId: objectId.optional(), leaveTypeId: objectId.optional(), from: ymd.optional(), to: ymd.optional(), search: z.string().max(80).optional(), ...paging }).parse(req.query)
-  res.json({ data: await listLeaves(q, req.auth) })
+  res.json({ data: await listLeaves(listQ(req.query), req.auth) })
+})
+router.get('/leave/summary', requirePermission('hrms.leave.view'), async (req, res) => {
+  res.json({ data: await leaveSummary(req.auth) })
 })
 router.get('/leave/balances', requirePermission('hrms.leave.view'), async (req, res) => {
-  res.json({ data: await balanceBoard(req.auth) })
+  const q = z.object({ search: z.string().max(80).optional(), departmentId: objectId.optional(), category: optionalText(20), ...paging }).parse(req.query)
+  res.json({ data: await balanceBoard(q, req.auth) })
+})
+router.get('/leave/calendar', requirePermission('hrms.leave.view'), async (req, res) => {
+  const q = z.object({ month: ym, departmentId: objectId.optional(), category: optionalText(20), search: z.string().max(80).optional() }).parse(req.query)
+  res.json({ data: await teamCalendar(q, req.auth) })
+})
+router.post('/leave/comp-off', requirePermission('hrms.leave.edit'), async (req, res) => {
+  const input = z.object({ employeeId: objectId, workedDate: ymd, days: z.union([z.literal(1), z.literal(0.5)]).default(1), note: optionalText(300) }).parse(req.body)
+  res.json({ data: await creditCompOff(input, req.auth, req) })
+})
+router.post('/leave/preview', requirePermission('hrms.leave.apply_on_behalf'), async (req, res) => {
+  res.json({ data: await previewFor(previewSchema.extend({ employeeId: objectId }).parse(req.body), req.auth, { self: false }) })
 })
 router.post('/leave', requirePermission('hrms.leave.apply_on_behalf'), async (req, res) => {
   const input = applySchema.extend({ employeeId: objectId, approveNow: z.boolean().default(false) }).parse(req.body)
   res.status(201).json({ data: await applyFor(input, req.auth, req) })
 })
+
+// setup: approval chains, no-leave days and vacations, the year end
+router.get('/leave/chains', requirePermission('hrms.leave.view'), async (req, res) => {
+  res.json({ data: await listLeaveApprovalRules() })
+})
+router.get('/leave/chains/options', requirePermission('hrms.leave.edit'), async (req, res) => {
+  res.json({ data: await leaveApprovalOptions() })
+})
+router.post('/leave/chains', requirePermission('hrms.leave.edit'), async (req, res) => {
+  res.status(201).json({ data: await saveLeaveApprovalRule(null, ruleSchema.parse(req.body), req.auth, req) })
+})
+router.put('/leave/chains/:id', requirePermission('hrms.leave.edit'), async (req, res) => {
+  res.json({ data: await saveLeaveApprovalRule(id(req), ruleSchema.parse(req.body), req.auth, req) })
+})
+router.delete('/leave/chains/:id', requirePermission('hrms.leave.edit'), async (req, res) => {
+  res.json({ data: await deleteLeaveApprovalRule(id(req), req) })
+})
+router.get('/leave/no-leave-days', requirePermission('hrms.leave.view'), async (req, res) => {
+  const q = z.object({ from: ymd.optional(), to: ymd.optional(), kind: z.enum(Object.keys(LEAVE_CALENDAR_KINDS)).optional() }).parse(req.query)
+  res.json({ data: await listCalendarDays(q) })
+})
+router.get('/leave/no-leave-days/suggestions', requirePermission('hrms.leave.edit'), async (req, res) => {
+  res.json({ data: await calendarSuggestions(req.auth) })
+})
+router.post('/leave/no-leave-days', requirePermission('hrms.leave.edit'), async (req, res) => {
+  res.status(201).json({ data: await saveCalendarDay(null, calendarSchema.parse(req.body), req.auth, req) })
+})
+router.put('/leave/no-leave-days/:id', requirePermission('hrms.leave.edit'), async (req, res) => {
+  res.json({ data: await saveCalendarDay(id(req), calendarSchema.parse(req.body), req.auth, req) })
+})
+router.delete('/leave/no-leave-days/:id', requirePermission('hrms.leave.edit'), async (req, res) => {
+  res.json({ data: await deleteCalendarDay(id(req), req) })
+})
+router.get('/leave/year-end', requirePermission('hrms.leave.view'), async (req, res) => {
+  res.json({ data: await yearEndPreview(req.auth) })
+})
+router.post('/leave/year-end', requirePermission('hrms.leave.edit'), async (req, res) => {
+  res.json({ data: await runYearEnd(req.auth, req) })
+})
+
+// one request (after the fixed /leave/… paths)
+router.get('/leave/:id', requirePermission('hrms.leave.view'), async (req, res) => {
+  res.json({ data: await getLeave(id(req), req.auth) })
+})
 router.post('/leave/:id/decide', requirePermission('hrms.leave.approve'), async (req, res) => {
-  const input = z.object({ approve: z.boolean(), note: optionalText(300) }).parse(req.body)
-  res.json({ data: await decideLeave(id(req), input, req.auth, req) })
+  res.json({ data: await decideLeave(id(req), decideSchema.parse(req.body), req.auth, req) })
 })
 router.post('/leave/:id/cancel', requirePermission('hrms.leave.cancel'), async (req, res) => {
   const { reason } = z.object({ reason: optionalText(300) }).parse(req.body ?? {})
@@ -327,6 +420,9 @@ router.patch('/me', async (req, res) => {
 router.get('/me/leave', async (req, res) => {
   res.json({ data: await myLeave(req.auth) })
 })
+router.post('/me/leave/preview', async (req, res) => {
+  res.json({ data: await previewFor(previewSchema.parse(req.body), req.auth, { self: true }) })
+})
 router.post('/me/leave', async (req, res) => {
   res.status(201).json({ data: await applyMine(applySchema.parse(req.body), req.auth, req) })
 })
@@ -342,9 +438,11 @@ router.get('/me/attendance', async (req, res) => {
 router.get('/me/approvals', async (req, res) => {
   res.json({ data: await waitingForMe(req.auth) })
 })
+router.get('/me/approvals/:id', async (req, res) => {
+  res.json({ data: await getLeave(id(req), req.auth) })
+})
 router.post('/me/approvals/:id', async (req, res) => {
-  const input = z.object({ approve: z.boolean(), note: optionalText(300) }).parse(req.body)
-  res.json({ data: await decideLeave(id(req), input, req.auth, req) })
+  res.json({ data: await decideLeave(id(req), decideSchema.parse(req.body), req.auth, req) })
 })
 router.get('/me/reviews', async (req, res) => {
   res.json({ data: await myReviews(req.auth) })

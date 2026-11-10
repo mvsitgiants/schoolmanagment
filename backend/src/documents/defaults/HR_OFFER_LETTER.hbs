@@ -1,0 +1,85 @@
+{{!-- Offer / appointment letter (A4) on the letterhead: ref. no. and date, the candidate's name and address, the
+      subject, the post, department and date of joining, the pay, probation, working hours, leave, notice period, the
+      documents to bring on joining, and an acceptance slip for the candidate to sign and return. Printed from
+      Recruitment (a candidate with an offer) or for a staff record (the appointment letter).
+      Main fields: letter.refNo, letter.date, letter.appointment, candidate.salutation, candidate.name,
+      candidate.address, candidate.mobile, post.designation, post.department, post.campus, post.employmentTypeLabel,
+      post.probation, post.joiningDate, post.grossMonthly, post.ctcAnnual, post.note, {{words post.grossMonthly}}.
+      The probation, notice and leave wording below is the institution's to change. --}}
+<style>
+  .ol { font-size: 10pt; line-height: 1.55 }
+  .ol .refline { display: flex; justify-content: space-between; margin: 4mm 0 4mm }
+  .ol .to { margin-bottom: 3.5mm }
+  .ol .subj { margin: 0 0 3mm; font-weight: 700 }
+  .ol .subj u { text-underline-offset: .8mm }
+  .ol p { margin: 0 0 2.5mm; text-align: justify }
+  .ol ol.terms { margin: 0 0 3mm; padding-left: 6mm }
+  .ol ol.terms li { margin-bottom: 1.6mm; padding-left: 1mm; text-align: justify }
+  .ol ol.docs { margin: 1mm 0 0; padding-left: 5mm; columns: 2; column-gap: 8mm; font-size: 9.4pt }
+  .ol .yours { display: flex; justify-content: flex-end; margin-top: 6mm }
+  .ol .yours > div { text-align: center; min-width: 62mm }
+  .ol .yours .line { border-top: 0.3mm solid #333; padding-top: 1.2mm; margin-top: 2mm }
+  .ol .yours .seal { margin-top: 2mm; margin-bottom: 0 }
+  .ol .accept { margin-top: 6mm; border: 0.3mm solid #444; padding: 3mm 4mm; font-size: 9.6pt }
+  .ol .accept .h { text-align: center; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 2mm }
+  .ol .accept .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 3mm 10mm; margin-top: 7mm }
+  .ol .accept .grid2 > div { border-top: 0.3mm solid #333; padding-top: 1mm; font-size: 8.8pt; text-align: center }
+</style>
+{{#> letterhead}}{{/letterhead}}
+<div class="ol">
+  <div class="refline">
+    <span>{{t "hrms.print.offer.refNo" "Ref. No.:"}} <b class="mono">{{letter.refNo}}</b></span>
+    <span>{{t "hrms.print.offer.date" "Date:"}} <b>{{date letter.date}}</b></span>
+  </div>
+  <div class="to">
+    {{t "hrms.print.offer.to" "To,"}}<br>
+    <b>{{#if candidate.salutation}}{{candidate.salutation}} {{/if}}{{candidate.name}}</b><br>
+    {{#if candidate.address}}{{candidate.address}}<br>{{else}}<span class="fill" style="display:inline-block;min-width:80mm">&nbsp;</span><br><span class="fill" style="display:inline-block;min-width:80mm;margin-top:2mm">&nbsp;</span><br>{{/if}}
+    {{#if candidate.mobile}}{{t "hrms.print.offer.mobile" "Mobile: {{no}}" no=candidate.mobile}}{{/if}}
+  </div>
+  <div class="subj">{{t "hrms.print.offer.subjectLabel" "Subject:"}} <u>{{#if letter.appointment}}{{t "hrms.print.offer.subjectAppt" "Appointment to the post of {{post}}" post=post.designation}}{{else}}{{t "hrms.print.offer.subjectOffer" "Offer of appointment to the post of {{post}}" post=post.designation}}{{/if}}</u></div>
+  <p>{{t "hrms.print.offer.dear" "Dear {{name}}," name=(join (array candidate.salutation candidate.name) " ")}}</p>
+  <p>{{#if letter.appointment}}{{t "hrms.print.offer.introAppt" "We are pleased to confirm your appointment as <b>{{post}}</b> at {{school}}, on the terms and conditions below." post=post.designation school=institution.name}}{{else}}{{t "hrms.print.offer.introOffer" "With reference to your application and the interview held with us, we are pleased to offer you the post of <b>{{post}}</b> at {{school}}, on the terms and conditions below." post=post.designation school=institution.name}}{{/if}}</p>
+  <ol class="terms">
+    <li><b>{{t "hrms.print.offer.postLabel" "Post:"}}</b> {{post.designation}}{{#if post.department}} — {{t "hrms.print.offer.deptName" "{{name}} department" name=post.department}}{{/if}}{{#if post.employmentTypeLabel}} ({{post.employmentTypeLabel}}){{/if}}{{#if post.campus}}, {{post.campus}}{{/if}}.</li>
+    <li><b>{{t "hrms.print.offer.joiningLabel" "Date of joining:"}}</b> {{#if post.joiningDate}}{{t "hrms.print.offer.joiningOn" "on or before {{date}}. If you do not join by then, this offer lapses unless extended in writing." date=(date post.joiningDate)}}{{else}}<span class="fill" style="display:inline-block;min-width:30mm">&nbsp;</span>{{/if}}</li>
+    <li><b>{{t "hrms.print.offer.payLabel" "Pay:"}}</b> {{#if post.grossMonthly}}{{t "hrms.print.offer.pay" "a gross salary of {{amount}} per month ({{words}}), with statutory deductions (PF, ESI, professional tax, TDS) as applicable." amount=(money post.grossMonthly 0) words=(words post.grossMonthly)}}{{#if post.ctcAnnual}} {{t "hrms.print.offer.ctc" "Cost to the institution: {{amount}} a year." amount=(money post.ctcAnnual 0)}}{{/if}}{{else}}{{t "hrms.print.offer.payRules" "as per the pay scale of the institution for the post."}}{{/if}}</li>
+    {{#if post.probation}}<li><b>{{t "hrms.print.offer.probationLabel" "Probation:"}}</b> {{t "hrms.print.offer.probation" "one year from the date of joining, which the management may extend. You will be confirmed in writing on completing it satisfactorily."}}</li>{{/if}}
+    <li><b>{{t "hrms.print.offer.hoursLabel" "Working hours:"}}</b> {{t "hrms.print.offer.hours" "as per the institution's timings and timetable, including duties on working Saturdays, examinations and school events as assigned by the Principal."}}</li>
+    <li><b>{{t "hrms.print.offer.leaveLabel" "Leave:"}}</b> {{t "hrms.print.offer.leave" "as per the leave rules of the institution."}}</li>
+    <li><b>{{t "hrms.print.offer.noticeLabel" "Notice period:"}}</b> {{#if post.probation}}{{t "hrms.print.offer.noticeProbation" "one month during probation and three months after confirmation, from either side, or salary for the notice period in lieu. Resignation in the middle of the academic session is not normally accepted."}}{{else}}{{t "hrms.print.offer.notice" "one month from either side, or one month's salary in lieu."}}{{/if}}</li>
+    <li><b>{{t "hrms.print.offer.rulesLabel" "Service rules:"}}</b> {{t "hrms.print.offer.rules" "you will follow the service rules, code of conduct and child-protection policy of the institution, as amended from time to time."}}</li>
+    {{#if post.note}}<li><b>{{t "hrms.print.offer.otherLabel" "Other terms:"}}</b> {{post.note}}</li>{{/if}}
+    <li><b>{{t "hrms.print.offer.docsLabel" "Please bring on the day of joining"}}</b> {{t "hrms.print.offer.docsSub" "(originals with one self-attested copy of each):"}}
+      <ol class="docs">
+        <li>{{t "hrms.print.offer.doc1" "Mark sheets and degree certificates"}}</li>
+        <li>{{t "hrms.print.offer.doc2" "Experience and relieving letters"}}</li>
+        <li>{{t "hrms.print.offer.doc3" "PAN card and Aadhaar card"}}</li>
+        <li>{{t "hrms.print.offer.doc4" "Bank account details (cancelled cheque)"}}</li>
+        <li>{{t "hrms.print.offer.doc5" "Four passport-size photographs"}}</li>
+        <li>{{t "hrms.print.offer.doc6" "Medical fitness certificate"}}</li>
+        {{#if post.teaching}}<li>{{t "hrms.print.offer.doc7" "B.Ed. / TET / CTET certificate, as applicable"}}</li>{{/if}}
+        <li>{{t "hrms.print.offer.doc8" "Police verification certificate"}}</li>
+      </ol>
+    </li>
+  </ol>
+  {{#unless letter.appointment}}<p>{{t "hrms.print.offer.acceptBy" "Please sign the acceptance below and return a copy of this letter to the office as a token of your acceptance."}}</p>{{/unless}}
+  <p>{{t "hrms.print.offer.welcome" "We welcome you to {{school}} and wish you a long and happy association with us." school=institution.name}}</p>
+  <div class="yours no-break">
+    <div>
+      <div>{{t "hrms.print.offer.yours" "Yours sincerely,"}}</div>
+      <div>{{t "hrms.print.offer.for" "For {{school}}" school=institution.name}}</div>
+      <div class="seal">{{t "hrms.print.offer.seal" "Seal"}}</div>
+      <div class="line">{{t "hrms.print.offer.signatory" "Principal / Authorised signatory"}}</div>
+    </div>
+  </div>
+  <div class="accept no-break">
+    <div class="h">{{t "hrms.print.offer.acceptTitle" "Acceptance"}}</div>
+    <div>{{t "hrms.print.offer.acceptText" "I, {{name}}, have read and understood the terms and conditions above and accept them. I shall join duty on" name=candidate.name}} <span class="fill" style="display:inline-block;min-width:32mm">&nbsp;</span>.</div>
+    <div class="grid2">
+      <div>{{t "hrms.print.offer.acceptSign" "Signature of the candidate"}}</div>
+      <div>{{t "hrms.print.offer.acceptDatePlace" "Date and place"}}</div>
+    </div>
+  </div>
+</div>
+{{> footer}}

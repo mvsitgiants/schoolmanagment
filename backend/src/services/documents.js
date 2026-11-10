@@ -46,6 +46,8 @@ export async function renderPrint(docType, raw, { templateId, body, layout: draf
   if (def.forPaper) model = def.forPaper(model, template.paper)
   const card = !!PAPER_BY[template.paper]?.card
   const letterhead = await getLetterhead()
+  // every template can print the institution's details (name, address, PAN, GSTIN, 80G registration …) as institution.*
+  model = { ...model, institution: { ...letterhead.institution, ...raw.institution, ...model.institution } }
   const layout = layoutFor(template, letterhead, raw.institution)
   const source = body ?? (template.body?.trim() ? template.body : defaultTemplate(docType))
   if (!source) throw notFound('Template')

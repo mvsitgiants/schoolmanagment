@@ -153,16 +153,29 @@
         "no": "Receipt No.",
         "date": "Date",
         "batch": "Alumnus, batch of {{batch}}",
-        "donorPan": "PAN",
+        "donorPan": "PAN of the donor",
         "thanks": "Received with thanks from {{name}} towards the {{fund}}.",
         "amount": "Amount",
         "paidBy": "Paid by {{mode}}",
         "ref": "Ref. {{ref}}",
-        "taxNote": "This donation is eligible for deduction under section 80G of the Income-tax Act, 1961.",
-        "ourPan": "Our PAN",
+        "taxNote": "Donation eligible for deduction u/s 80G of the Income-tax Act, 1961. Statement of donation in Form 10BE will be issued.",
+        "ourPan": "PAN of the trust",
         "ourReg": "Registration {{no}}",
         "receivedBy": "Received by {{name}}",
-        "signature": "Authorised signatory"
+        "signature": "Authorised signatory",
+        "sub80G": "Under section 80G of the Income-tax Act, 1961",
+        "reg80G": "80G registration no. & validity",
+        "trustReg": "Trust registration no.",
+        "donorName": "Received with thanks from",
+        "address": "Address",
+        "inWords": "Amount in words",
+        "mode": "Mode of payment",
+        "purpose": "Purpose",
+        "cashNote": "A cash donation above ₹2,000 is not eligible for the deduction.",
+        "cancelledNote": "This receipt is cancelled.",
+        "thanksNote": "We thank you for your generous support.",
+        "forTrust": "For {{name}}",
+        "seal": "Seal"
       }
     }
   }

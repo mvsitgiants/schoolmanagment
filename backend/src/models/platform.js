@@ -25,6 +25,8 @@ const tenantSchema = new Schema({
     legalName: String, email: String, phone: String, website: String,
     addressLine: String, city: String, state: String, pincode: String, country: { type: String, default: 'India' },
     gstin: String, pan: String, registrationNo: String, affiliationNo: String, udiseCode: String,
+    // for printed documents: the board line on the letterhead, the CBSE school number, the trust / society that runs it, 80G for donation receipts
+    board: String, schoolCode: String, trustName: String, reg80G: String,
     logoUrl: String, primaryColor: String, sidebarColor: String,
     timezone: { type: String, default: 'Asia/Kolkata' },
     currency: { type: String, default: 'INR' },

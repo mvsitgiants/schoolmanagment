@@ -1,0 +1,117 @@
+{{!-- Fee challan / fee demand slip: the same slip three times on one A4 sheet — Bank copy, School copy, Parent copy —
+      with cut lines between them. A4 portrait puts them one above the other; set the print template to A4 landscape and
+      they stand side by side like a bank pay-in slip.
+      Main fields: invoice.no, invoice.installment, invoice.dueDate, invoice.issued, invoice.year, lines[] {sl, name,
+      amount}, invoice.gross, invoice.concession, invoice.lateFee, invoice.paid, invoice.payable, lateFee.perDay,
+      lateFee.graceDays, invoice.lateFeeDue, invoice.payableNow, {{words invoice.payable}}, student.name,
+      student.relation (S/o · D/o), student.parent, student.admissionNo, student.class, student.rollNo,
+      pay.bank {name, bankName, branch, ifsc}, pay.upiId, pay.upiUrl ({{qr pay.upiUrl}}). --}}
+<style>
+  .sheet { container: sheet / inline-size }
+  .copies { display: grid; grid-template-columns: 1fr }
+  .copies > .cut { margin: 3.5mm 0 3mm }
+  @container sheet (min-width: 230mm) {
+    .copies { grid-template-columns: 1fr 7mm 1fr 7mm 1fr }
+    .copies > .cut { margin: 0; border-top: 0; border-left: 0.35mm dashed #8A8F99; width: 0; justify-self: center; line-height: normal; display: flex; align-items: center }
+    .copies > .cut span { writing-mode: vertical-rl; padding: 2mm 0; margin-left: -1.6mm }
+  }
+  .ch { container: slip / inline-size; position: relative; font-size: 8pt; break-inside: avoid }
+  .ch .top { display: flex; justify-content: space-between; align-items: flex-start; gap: 3mm; border-bottom: 0.5mm double #333; padding-bottom: 1mm; margin-bottom: 1.2mm }
+  .ch .sn { font-family: "Noto Serif", Georgia, "Times New Roman", serif; font-weight: 700; font-size: 10.5pt; text-transform: uppercase; letter-spacing: .02em; line-height: 1.15 }
+  .ch .sa { font-size: 6.8pt; color: #3B3F47 }
+  .ch .tr { text-align: right; white-space: nowrap }
+  .ch .ttl { font-weight: 700; font-size: 8.4pt; text-transform: uppercase; letter-spacing: .06em; margin-top: .8mm }
+  .ch .cols { display: grid; grid-template-columns: 1.25fr 1fr; gap: 3mm }
+  @container slip (max-width: 130mm) { .ch .cols { grid-template-columns: 1fr; gap: 1.5mm } }
+  .ch table.kv { border: 0.25mm solid #555; margin-bottom: 1.2mm }
+  .ch table.kv td { padding: .3mm 1.2mm; border-bottom: 0.2mm dotted #B5BAC3 }
+  .ch table.kv tr:last-child td { border-bottom: 0 }
+  .ch table.grid th, .ch table.grid td { padding: .35mm 1.3mm }
+  .ch table.grid .sl { width: 8mm; text-align: center } .ch table.grid .amt { width: 22mm }
+  .ch table.grid tfoot td { background: transparent; font-weight: 400 }
+  .ch table.grid tfoot tr.total td { font-weight: 700; background: #F1F3F6 }
+  .ch .words { margin-top: .8mm }
+  .ch .late { margin-top: .6mm; font-size: 7.4pt }
+  .ch .box { padding: 1.2mm 2mm; margin-bottom: 1.2mm }
+  .ch .box .h { font-weight: 700; font-size: 7.2pt; text-transform: uppercase; letter-spacing: .05em; margin-bottom: .5mm }
+  .ch .upi { display: flex; gap: 2mm; align-items: center }
+  .ch .fillrow { display: flex; gap: 1.5mm; margin-top: 1mm; font-size: 7.4pt } .ch .fillrow .fill { flex: 1 }
+  .ch .signs { margin-top: 9mm; gap: 4mm } .ch .signs > div { font-size: 7.4pt }
+  .ch .stamp { position: absolute; inset: 30% 0 auto 0; text-align: center; font-size: 30pt; font-weight: 800; color: rgba(214,69,69,.18); transform: rotate(-14deg); pointer-events: none }
+</style>
+{{#*inline "slip"}}
+<div class="ch">
+  {{#if @root.invoice.cancelled}}<div class="stamp">{{t "fees.print.challan.stampCancelled" "CANCELLED"}}</div>{{else}}{{#if @root.invoice.paidUp}}<div class="stamp">{{t "fees.print.challan.stampPaid" "PAID"}}</div>{{/if}}{{/if}}
+  <div class="top">
+    <div>
+      <div class="sn">{{@root.institution.name}}</div>
+      <div class="sa">{{join (array @root.institution.addressLine @root.institution.city @root.institution.pincode) ", "}}{{#if @root.institution.phone}} · {{t "fees.print.challan.ph" "Ph."}} {{@root.institution.phone}}{{/if}}</div>
+    </div>
+    <div class="tr">
+      <span class="copy">{{copyLabel}}</span>
+      <div class="ttl">{{t "fees.print.challan.title" "Fee challan"}}</div>
+    </div>
+  </div>
+  <div class="cols">
+    <div>
+      <table class="kv">
+        <tr><td class="k">{{t "fees.print.challan.no" "Challan No."}}</td><td class="v mono">{{@root.invoice.no}}</td><td class="k">{{t "fees.print.challan.issued" "Date"}}</td><td class="v">{{date @root.invoice.issued}}</td></tr>
+        <tr><td class="k">{{t "fees.print.challan.studentName" "Student"}}</td><td class="v upper" colspan="3">{{@root.student.name}}</td></tr>
+        <tr><td class="k">{{#if @root.student.parent}}{{@root.student.relation}}{{else}}{{t "fees.print.challan.fathersName" "Father's name"}}{{/if}}</td><td class="v" colspan="3">{{#if @root.student.parent}}{{@root.student.parent}}{{else}}<span class="fill">&nbsp;</span>{{/if}}</td></tr>
+        <tr><td class="k">{{t "fees.print.challan.admissionNo" "Adm. No."}}</td><td class="v mono">{{@root.student.admissionNo}}</td><td class="k">{{t "fees.print.challan.classSection" "Class"}}</td><td class="v">{{#if @root.student.className}}{{@root.student.className}}{{#if @root.student.section}} – {{@root.student.section}}{{/if}}{{else}}{{@root.student.class}}{{/if}}{{#if @root.student.rollNo}} · {{t "fees.print.challan.roll" "Roll {{no}}" no=@root.student.rollNo}}{{/if}}</td></tr>
+        <tr><td class="k">{{t "fees.print.challan.for" "Fees for"}}</td><td class="v">{{@root.invoice.installment}}{{#if @root.invoice.year}} · {{@root.invoice.year}}{{/if}}</td><td class="k">{{t "fees.print.challan.dueDate" "Due date"}}</td><td class="v">{{date @root.invoice.dueDate}}</td></tr>
+      </table>
+      <table class="grid">
+        <thead><tr><th class="sl">{{t "fees.print.challan.sl" "Sl."}}</th><th>{{t "fees.print.challan.particulars" "Fee head"}}</th><th class="r amt">{{t "fees.print.challan.amountRs" "Amount (₹)"}}</th></tr></thead>
+        <tbody>{{#each @root.lines}}<tr><td class="sl">{{sl}}</td><td>{{name}}</td><td class="r">{{amount amount}}</td></tr>{{/each}}</tbody>
+        <tfoot>
+          {{#if (or @root.invoice.concession @root.invoice.lateFee @root.invoice.paid)}}<tr><td></td><td class="r">{{t "fees.print.challan.totalFees" "Total fees"}}</td><td class="r">{{amount @root.invoice.gross}}</td></tr>{{/if}}
+          {{#if @root.invoice.concession}}<tr><td></td><td class="r">{{t "fees.print.challan.concession" "Less: Concession"}}</td><td class="r">− {{amount @root.invoice.concession}}</td></tr>{{/if}}
+          {{#if @root.invoice.lateFee}}<tr><td></td><td class="r">{{t "fees.print.challan.lateFee" "Add: Late fee"}}</td><td class="r">{{amount @root.invoice.lateFee}}</td></tr>{{/if}}
+          {{#if @root.invoice.paid}}<tr><td></td><td class="r">{{t "fees.print.challan.paid" "Less: Already paid"}}</td><td class="r">− {{amount @root.invoice.paid}}</td></tr>{{/if}}
+          <tr class="total"><td></td><td class="r">{{t "fees.print.challan.payable" "Amount payable by {{date}}" date=(date @root.invoice.dueDate)}}</td><td class="r">{{money @root.invoice.payable}}</td></tr>
+        </tfoot>
+      </table>
+      <div class="words">{{t "fees.print.challan.inWords" "In words:"}} <b>{{#if @root.invoice.payable}}{{words @root.invoice.payable}}{{else}}{{t "fees.print.challan.nil" "Nil"}}{{/if}}</b></div>
+      {{#if @root.lateFee.on}}<div class="late">{{#if @root.lateFee.graceDays}}{{t "fees.print.challan.lateRuleGrace" "After the due date a late fee of {{perDay}} a day is charged, from {{days}} days after it." perDay=(money @root.lateFee.perDay 0) days=@root.lateFee.graceDays}}{{else}}{{t "fees.print.challan.lateRule" "After the due date a late fee of {{perDay}} a day is charged." perDay=(money @root.lateFee.perDay 0)}}{{/if}}{{#if @root.invoice.lateFeeDue}} <b>{{t "fees.print.challan.payableToday" "Payable on {{date}}: {{amount}}" date=(date @root.invoice.today) amount=(money @root.invoice.payableNow)}}</b>{{/if}}</div>{{/if}}
+      {{#if @root.arrears}}<div class="late">{{t "fees.print.challan.arrears" "Earlier dues not on this challan: {{amount}}" amount=(money @root.arrears)}}</div>{{/if}}
+    </div>
+    <div>
+      {{#if @root.pay.bank}}
+      <div class="box">
+        <div class="h">{{t "fees.print.challan.depositIn" "Deposit in"}}</div>
+        <div><b>{{@root.pay.bank.name}}</b></div>
+        {{#if @root.pay.bank.bankName}}<div>{{@root.pay.bank.bankName}}{{#if @root.pay.bank.branch}}, {{@root.pay.bank.branch}}{{/if}}</div>{{/if}}
+        <div>{{t "fees.print.challan.accountNo" "A/c No."}} <span class="fill">{{#if @root.pay.bank.last4}}{{t "fees.print.challan.endingIn" "ending {{last4}}" last4=@root.pay.bank.last4}}{{else}}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{/if}}</span>{{#if @root.pay.bank.ifsc}} · {{t "fees.print.challan.ifsc" "IFSC"}} <span class="mono">{{@root.pay.bank.ifsc}}</span>{{/if}}</div>
+      </div>
+      {{/if}}
+      {{#if @root.pay.upiUrl}}
+      <div class="box upi">
+        {{qr @root.pay.upiUrl 15}}
+        <div><div class="h">{{t "fees.print.challan.upi" "Pay by UPI"}}</div><div class="mono">{{@root.pay.upiId}}</div><div class="note">{{t "fees.print.challan.upiNote" "Scan with any UPI app; write the UPI reference on the parent copy."}}</div></div>
+      </div>
+      {{/if}}
+      <div class="box">
+        <div class="h">{{t "fees.print.challan.paidBy" "Paid by"}}</div>
+        <div>{{t "fees.print.challan.modes" "Cash / Cheque / DD / UPI"}}</div>
+        <div class="fillrow"><span>{{t "fees.print.challan.chequeNo" "Cheque / DD / UTR No."}}</span><span class="fill">&nbsp;</span></div>
+        <div class="fillrow"><span>{{t "fees.print.challan.bankDate" "Bank & date"}}</span><span class="fill">&nbsp;</span></div>
+      </div>
+      <div class="signs">
+        <div>{{t "fees.print.challan.depositor" "Depositor's signature"}}</div>
+        <div>{{t "fees.print.challan.cashier" "Cashier (with seal)"}}</div>
+      </div>
+    </div>
+  </div>
+</div>
+{{/inline}}
+<div class="sheet">
+  <div class="copies">
+    {{> slip copyLabel=(t "fees.print.challan.bankCopy" "Bank copy")}}
+    <div class="cut"><span>{{t "fees.print.challan.cutHere" "✂ cut here"}}</span></div>
+    {{> slip copyLabel=(t "fees.print.challan.schoolCopy" "School copy")}}
+    <div class="cut"><span>{{t "fees.print.challan.cutHere" "✂ cut here"}}</span></div>
+    {{> slip copyLabel=(t "fees.print.challan.parentCopy" "Parent copy")}}
+  </div>
+</div>
+{{> footer}}

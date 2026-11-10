@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { BLOOD_GROUPS, CONDUCT_OPTIONS, GENDERS, GUARDIAN_RELATIONS, LEAVING_REASONS, PHOTO_DATA_URL, PHOTO_MAX_CHARS, PROMOTION_OUTCOMES, STUDENT_CATEGORIES, TC_STATUS } from '@schoolgiant/shared'
+import { BLOOD_GROUPS, CONDUCT_OPTIONS, GENDERS, GUARDIAN_RELATIONS, LEAVING_REASONS, PHOTO_DATA_URL, PHOTO_MAX_CHARS, PROMOTION_OUTCOMES, STUDENT_CATEGORIES, TC_FAILED, TC_STATUS } from '@schoolgiant/shared'
 import { can } from '../platform/access.js'
 import { authenticate, requireModule, requirePermission, subscriptionGate, tenantOnly } from '../platform/middleware.js'
 import { email, mobile, objectId, optionalText, pageParams, z } from '../platform/validate.js'
@@ -7,7 +7,7 @@ import { getStudentPhoto, idCardList, setStudentPhoto } from '../services/studen
 import { studentOverview } from '../services/student360.js'
 import {
   admitStudent, cancelTc, getStudent, importStudents, issueTc, listGuardians, listStudents, listTcs, promotionPreview, requestTc,
-  runPromotion, setStudentStatus, updateStudent,
+  runPromotion, setStudentStatus, tcPrefill, updateStudent, updateTc,
 } from '../services/students.js'
 
 // Students: /api/v1/students/*
@@ -97,12 +97,31 @@ router.get('/tc', requirePermission('students.transfer.view'), async (req, res) 
   const q = z.object({ status: optEnum(Object.keys(TC_STATUS)), search: z.string().max(80).optional(), from: optYmd, to: optYmd, ...paging }).parse(req.query)
   res.json({ data: await listTcs(q, req.auth) })
 })
+// the rest of the CBSE-format TC: all optional, a blank line is printed for whatever is left empty
+const optDays = z.union([z.literal('').transform(() => null), z.null(), z.coerce.number().min(0).max(400)]).optional()
+const tcDetails = {
+  bookNo: optionalText(30), applicationDate: optYmd, lastExam: optionalText(120), lastExamResult: optionalText(80), failed: optEnum(values(TC_FAILED)),
+  subjects: z.array(z.string().trim().min(1).max(60)).max(20).optional(), concession: optionalText(120), workingDays: optDays, presentDays: optDays,
+  nccScoutGuide: optionalText(120), games: optionalText(200),
+}
+router.get('/tc/prefill', requirePermission('students.transfer.create', 'students.transfer.approve'), async (req, res) => {
+  res.json({ data: await tcPrefill(objectId.parse(req.query.studentId), req.auth) })
+})
 router.post('/tc', requirePermission('students.transfer.create'), async (req, res) => {
   const input = z.object({
     studentId: objectId, leavingDate: ymd, reason: z.enum(values(LEAVING_REASONS)), reasonText: optionalText(200),
     conduct: z.enum(CONDUCT_OPTIONS).default('Good'), promotedTo: optionalText(120), feesPaidUpTo: optionalText(40), remarks: optionalText(500),
+    ...tcDetails,
   }).parse(req.body)
   res.status(201).json({ data: await requestTc(input, req.auth, req) })
+})
+router.patch('/tc/:id', requirePermission('students.transfer.create', 'students.transfer.approve'), async (req, res) => {
+  const input = z.object({
+    leavingDate: ymd.optional(), reason: z.enum(values(LEAVING_REASONS)).optional(), reasonText: optionalText(200),
+    conduct: z.enum(CONDUCT_OPTIONS).optional(), promotedTo: optionalText(120), feesPaidUpTo: optionalText(40), remarks: optionalText(500),
+    ...tcDetails,
+  }).parse(req.body)
+  res.json({ data: await updateTc(objectId.parse(req.params.id), input, req.auth, req) })
 })
 router.post('/tc/:id/issue', requirePermission('students.transfer.approve'), async (req, res) => {
   res.json({ data: await issueTc(objectId.parse(req.params.id), req.auth, req) })

@@ -1,17 +1,20 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { Ban, CalendarHeart, Check, CircleCheck, CircleDashed, CircleX, Clock, Palmtree, Plus, X } from 'lucide-react'
-import { APPRAISAL_STATUS, LEAVE_STATUSES, STAFF_ATTENDANCE } from '@schoolgiant/shared'
-import { Avatar, ColorChip, DataTable, Fact, FactGrid, FormField, Input, LevelBar, Note, Panel, PersonCell, StatCard, StatCardRow, StatusPill, hueTone, localIso, usePrompt, useTimeAgo } from '../../components/system'
+import { CalendarHeart, CalendarOff, CircleCheck, CircleDashed, CircleX, Clock, Palmtree, Plus, X } from 'lucide-react'
+import { APPRAISAL_STATUS, STAFF_ATTENDANCE } from '@schoolgiant/shared'
+import { Avatar, DataTable, Fact, FactGrid, FormField, Input, LevelBar, Note, Panel, PersonCell, StatCardRow, StatusPill, localIso, useTimeAgo } from '../../components/system'
 import Button from '../../components/ui/Button'
 import {
-  applyMyLeave, cancelMyLeave, decideAsManager, fetchMyApprovals, fetchMyAttendance, fetchMyLeave, fetchMyRecord, fetchMyReview, fetchMyReviews, submitManagerReview,
-  submitSelfReview, updateMyRecord,
+  fetchMyApprovals, fetchMyAttendance, fetchMyLeave, fetchMyRecord, fetchMyReview, fetchMyReviews, submitManagerReview, submitSelfReview, updateMyRecord,
 } from '../../api/hrms'
 import { useSnackbar } from '../../context/SnackbarContext'
 import { useFormat } from '../../context/SettingsContext'
-import { LeaveApplyForm, useHrLabels, useLeaveSpan } from '../../components/hrms/HrKit'
+import { useHrLabels } from '../../components/hrms/HrKit'
+import { BalanceBar, LeaveStatusPill, LeaveTypeName, halves, invalidateLeave, useBalanceText, useDaysText, useLeaveDates } from '../../components/hrms/leave/LeaveBits'
+import { LeaveChainInline, LeaveDecisionButtons, useLeaveDecision } from '../../components/hrms/leave/LeaveChain'
+import LeaveApplyModal from '../../components/hrms/leave/LeaveApplyModal'
+import LeaveDrawer from '../../components/hrms/leave/LeaveDrawer'
 import ReviewForm from '../../components/hrms/ReviewForm'
 import clsx from 'clsx'
 
@@ -19,61 +22,64 @@ import clsx from 'clsx'
 
 export const ME_HR = ['hrms', 'me']
 
-// a leave type's colour: the tone set on the type, else one picked from its code
-const leaveTone = (b) => (b.tone && b.tone !== 'neutral' ? b.tone : hueTone(b.code))
-
 /** `applyOpen`: open the apply form straight away (Overview › Apply for leave); `onApplyClose` when it closes. */
 export function MyLeaveTab({ applyOpen = false, onApplyClose } = {}) {
-  const { t } = useTranslation('hrms')
-  const L = useHrLabels()
+  const { t } = useTranslation('hrmsLeave')
   const qc = useQueryClient()
-  const prompt = usePrompt()
-  const { date } = useFormat()
-  const span = useLeaveSpan()
-  const { showSuccess, showError } = useSnackbar()
+  const days = useDaysText()
+  const dates = useLeaveDates()
+  const balanceText = useBalanceText()
+  const { showSuccess } = useSnackbar()
   const [applyingHere, setApplying] = useState(false)
+  const [open, setOpen] = useState(null)
   const applying = applyingHere || applyOpen
   const closeApply = () => { setApplying(false); onApplyClose?.() }
   const { data, isLoading } = useQuery({ queryKey: [...ME_HR, 'leave'], queryFn: fetchMyLeave })
-  const refresh = () => qc.invalidateQueries({ queryKey: ME_HR })
-  const cancel = useMutation({ mutationFn: ({ id, reason }) => cancelMyLeave(id, reason), onSuccess: () => { refresh(); showSuccess(t('hrms.leave.cancelled')) }, onError: (e) => showError(e.message) })
-  const today = localIso(new Date())
-  if (isLoading) return <p className="text-sm text-ink-faint">{t('hrms.loading')}</p>
+  if (isLoading) return <p className="text-sm text-ink-faint">{t('hrmsLeave.loading')}</p>
+  // leave HR gives when it is granted (maternity, child-care, compensatory off) shows once there is some; until then it is named in a line
+  const granted = (b) => !b.unlimited && !b.ofTotal && !b.available && !b.pending && !b.taken
+  const shown = (data?.balances ?? []).filter((b) => !granted(b))
+  const later = (data?.balances ?? []).filter(granted)
+  const noLeave = (data?.calendar ?? []).filter((c) => c.kind === 'NO_LEAVE')
+  const vacations = (data?.calendar ?? []).filter((c) => c.kind === 'VACATION')
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-sm text-ink-muted">{t('hrms.me.leaveHint')}</p>
-        {data?.canApply && <Button icon={Plus} onClick={() => setApplying(true)}>{t('hrms.me.apply')}</Button>}
+        <p className="text-sm text-ink-muted">{t('hrmsLeave.me.hint')}</p>
+        {data?.canApply ? <Button icon={Plus} onClick={() => setApplying(true)}>{t('hrmsLeave.me.apply')}</Button> : <p className="text-xs text-ink-faint">{t('hrmsLeave.me.officeApplies')}</p>}
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        {(data?.balances ?? []).map((b) => {
-          // the bar is what is free of what was credited (left + taken); pending days are already spoken for
-          const credited = Math.max(0, b.balance + b.taken)
-          const free = b.available ?? b.balance
-          return (
-            <StatCard key={b.leaveTypeId} icon={Palmtree} tone={leaveTone(b)} label={b.name} value={free}
-              sub={b.available === null ? t('hrms.leave.noLimit') : t('hrms.leave.takenPending', { taken: b.taken, pending: b.pending })}
-              segments={b.available !== null && credited > 0 ? [
-                { label: t('hrms.me.balance.free'), value: Math.max(0, free), tone: leaveTone(b) },
-                { label: t('hrms.me.balance.pending'), value: b.pending, tone: 'warning' },
-                { label: t('hrms.me.balance.taken'), value: b.taken, tone: 'neutral' },
-              ] : undefined} />
-          )
-        })}
+        {shown.map((b) => (
+          <div key={b.leaveTypeId} className="rounded-xl border border-border bg-surface px-4 py-3 min-w-0" title={b.description ?? undefined}>
+            <p className="text-xs font-semibold uppercase tracking-wide text-ink-muted truncate">{b.name}</p>
+            {b.unlimited
+              ? <p className="mt-1 text-sm text-ink">{balanceText(b)}</p>
+              : <p className="mt-1 font-display text-2xl font-bold tabular-nums text-ink">{halves(b.available)}<span className="ms-1.5 text-xs font-normal text-ink-muted">{b.ofTotal ? t('hrmsLeave.me.ofDays', { of: days(b.ofTotal) }) : t('hrmsLeave.me.daysLeft')}</span></p>}
+            {!b.unlimited && b.ofTotal > 0 && <BalanceBar left={b.available} of={b.ofTotal} className="mt-2" />}
+            {b.pending > 0 && <p className="mt-1.5 text-[11px] text-amber-700">{t('hrmsLeave.me.waiting', { days: days(b.pending) })}</p>}
+          </div>
+        ))}
       </div>
-      <Panel title={t('hrms.me.requests')} flush>
-        <DataTable rows={data?.requests ?? []} dense className="border-0 shadow-none" columns={[
-          { key: 'leaveName', header: t('hrms.leave.type'), mobilePrimary: true, render: (v, r) => { const b = (data?.balances ?? []).find((x) => x.leaveTypeId === String(r.leaveTypeId)); return <ColorChip label={v} seed={r.leaveCode} tone={b ? leaveTone(b) : undefined} dot /> } },
-          { key: 'from', header: t('hrms.leave.when'), nowrap: true, render: (_, r) => span(r, date) },
-          { key: 'days', header: t('hrms.leave.days'), align: 'right', render: (v) => <span className="font-semibold tabular-nums text-ink">{v}</span> },
-          { key: 'status', header: t('hrms.leave.status'), render: (v, r) => <span><StatusPill tone={LEAVE_STATUSES[v]?.tone}>{L.leaveStatus(v)}</StatusPill>{r.decided?.note && <span className="block text-[11px] text-ink-faint">{r.decided.note}</span>}</span> },
-          { key: 'id', header: '', align: 'right', width: 60, render: (id, r) => (r.status === 'PENDING' || (r.status === 'APPROVED' && r.from > today)) && (
-            <Button size="sm" variant="ghost" icon={Ban} aria-label={t('hrms.leave.cancel')} title={t('hrms.leave.cancel')}
-              onClick={async () => { const reason = await prompt({ title: t('hrms.me.cancelTitle'), label: t('hrms.leave.cancelWhy'), confirmLabel: t('hrms.leave.cancel') }); if (reason !== null) cancel.mutate({ id, reason: reason || undefined }) }} />
-          ) },
-        ]} emptyTitle={t('hrms.me.noRequests')} />
+      {later.length > 0 && <p className="-mt-1 text-xs text-ink-muted">{t('hrmsLeave.me.grantedLater', { types: later.map((b) => b.name).join(', ') })}</p>}
+      {noLeave.length > 0 && (
+        <Note tone="warning" icon={CalendarOff}>
+          <p className="font-medium">{t('hrmsLeave.me.noLeaveTitle')}</p>
+          {noLeave.map((c) => <p key={c.name + c.from}>{t(c.mode === 'BLOCK' ? 'hrmsLeave.me.noLeaveBlock' : c.mode === 'HR' ? 'hrmsLeave.me.noLeaveHr' : 'hrmsLeave.me.noLeaveWarn', { name: c.name, dates: dates(c) })}</p>)}
+        </Note>
+      )}
+      {vacations.length > 0 && <Note icon={Palmtree}>{vacations.map((c) => <p key={c.name + c.from}>{t('hrmsLeave.me.vacation', { name: c.name, dates: dates(c) })}</p>)}</Note>}
+      <Panel title={t('hrmsLeave.me.requests')} flush>
+        <DataTable rows={data?.requests ?? []} dense className="border-0 shadow-none" onRowClick={setOpen} columns={[
+          { key: 'leaveName', header: t('hrmsLeave.requests.leave'), mobilePrimary: true, render: (v, r) => <LeaveTypeName name={v} paid={r.paid} /> },
+          { key: 'from', header: t('hrmsLeave.requests.when'), render: (_, r) => <div className="leading-tight"><p className="text-ink whitespace-nowrap">{dates(r)}</p><p className="text-[11px] text-ink-muted">{days(r.days)}</p></div> },
+          { key: 'status', header: t('hrmsLeave.requests.where'), render: (v, r) => <div className="space-y-1">{v !== 'PENDING' && <LeaveStatusPill status={v} />}<LeaveChainInline chain={r.chain} /></div> },
+        ]} emptyTitle={t('hrmsLeave.me.noRequests')} />
       </Panel>
-      {applying && data && <LeaveApplyForm balances={data?.balances ?? []} submit={applyMyLeave} onClose={closeApply} onSaved={() => { closeApply(); refresh(); showSuccess(t('hrms.me.applied')) }} />}
+      {open && <LeaveDrawer leave={open} mode="self" onClose={() => setOpen(null)} />}
+      {applying && data && (
+        <LeaveApplyModal balances={data.balances} onClose={closeApply}
+          onDone={(l) => { closeApply(); qc.invalidateQueries({ queryKey: ME_HR }); showSuccess(l.chain?.waitingOn ? t('hrmsLeave.me.sentTo', { who: l.chain.waitingOn }) : t('hrmsLeave.me.sent')) }} />
+      )}
     </div>
   )
 }
@@ -118,29 +124,25 @@ export function MyAttendanceTab() {
 }
 
 export function MyApprovalsTab() {
-  const { t } = useTranslation('hrms')
+  const { t } = useTranslation('hrmsLeave')
   const qc = useQueryClient()
-  const prompt = usePrompt()
-  const { date } = useFormat()
-  const span = useLeaveSpan()
-  const { showSuccess, showError } = useSnackbar()
+  const days = useDaysText()
+  const dates = useLeaveDates()
+  const [open, setOpen] = useState(null)
   const { data: rows = [], isLoading } = useQuery({ queryKey: [...ME_HR, 'approvals'], queryFn: fetchMyApprovals })
-  const act = useMutation({ mutationFn: ({ id, approve, note }) => decideAsManager(id, { approve, note }), onSuccess: (_, v) => { qc.invalidateQueries({ queryKey: ME_HR }); qc.invalidateQueries({ queryKey: ['leaves'] }); showSuccess(v.approve ? t('hrms.leave.approved') : t('hrms.leave.rejected')) }, onError: (e) => showError(e.message) })
+  const { decide, busy } = useLeaveDecision(() => invalidateLeave(qc), { asManager: true })
   return (
-    <DataTable rows={rows} loading={isLoading} columns={[
-      { key: 'employeeName', header: t('hrms.leave.person'), mobilePrimary: true, render: (v, r) => <PersonCell name={v} sub={r.employeeCode} /> },
-      { key: 'leaveName', header: t('hrms.leave.type'), render: (v, r) => <ColorChip label={v} seed={r.leaveCode} dot /> },
-      { key: 'from', header: t('hrms.leave.when'), nowrap: true, render: (_, r) => span(r, date) },
-      { key: 'days', header: t('hrms.leave.days'), align: 'right', render: (v) => <span className="font-semibold tabular-nums text-ink">{v}</span> },
-      { key: 'reason', header: t('hrms.leave.reason'), render: (v, r) => <span className="text-sm text-ink-muted">{v}{r.arrangement && <span className="block text-xs text-ink-faint">{t('hrms.leave.arrangementShort', { text: r.arrangement })}</span>}</span> },
-      { key: 'id', header: '', align: 'right', width: 100, render: (id, r) => (
-        <div className="flex justify-end gap-1">
-          <Button size="sm" variant="ghost" icon={Check} aria-label={t('hrms.leave.approve')} title={t('hrms.leave.approve')} onClick={() => act.mutate({ id, approve: true })} />
-          <Button size="sm" variant="ghost" icon={X} aria-label={t('hrms.leave.reject')} title={t('hrms.leave.reject')}
-            onClick={async () => { const note = await prompt({ title: t('hrms.leave.rejectTitle', { name: r.employeeName }), label: t('hrms.leave.rejectWhy'), confirmLabel: t('hrms.leave.reject') }); if (note !== null) act.mutate({ id, approve: false, note: note || undefined }) }} />
-        </div>
-      ) },
-    ]} emptyTitle={t('hrms.me.noApprovals')} />
+    <div className="space-y-3">
+      <p className="text-sm text-ink-muted">{t('hrmsLeave.me.teamHint')}</p>
+      <DataTable rows={rows} loading={isLoading} onRowClick={(r) => setOpen(r.id)} columns={[
+        { key: 'employeeName', header: t('hrmsLeave.requests.person'), mobilePrimary: true, render: (v) => <PersonCell name={v} /> },
+        { key: 'leaveName', header: t('hrmsLeave.requests.leave'), render: (v, r) => <div><LeaveTypeName name={v} paid={r.paid} />{r.chain?.totalSteps > 1 && <p className="text-[11px] text-ink-muted">{t('hrmsLeave.chain.stepOf', { step: r.chain.stepNumber, total: r.chain.totalSteps })}</p>}</div> },
+        { key: 'from', header: t('hrmsLeave.requests.when'), render: (_, r) => <div className="leading-tight"><p className="text-ink whitespace-nowrap">{dates(r)}</p><p className="text-[11px] text-ink-muted">{days(r.days)}</p></div> },
+        { key: 'reason', header: t('hrmsLeave.requests.reason'), mobileHidden: true, render: (v, r) => <span className="text-sm text-ink-muted">{v}{r.arrangement && <span className="block text-xs text-ink-faint">{t('hrmsLeave.me.arranged', { text: r.arrangement })}</span>}</span> },
+        { key: 'id', header: '', align: 'right', render: (_, r) => <LeaveDecisionButtons leave={r} decide={decide} busy={busy} /> },
+      ]} emptyTitle={t('hrmsLeave.me.noApprovals')} />
+      {open && <LeaveDrawer id={open} mode="approver" onClose={() => setOpen(null)} />}
+    </div>
   )
 }
 

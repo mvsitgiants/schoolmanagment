@@ -5,7 +5,9 @@
 //   StaffAttendance  one row a day per person: status, in/out, payable and loss of pay (payroll reads these)
 //   LeaveType        a kind of leave and its policy
 //   LeaveLedger      append-only; a type's balance = Σ days
-//   Leave            a leave request and its decision
+//   Leave            a leave request, its approval chain and decision
+//   LeaveApprovalRule  who approves which leave, step by step
+//   LeaveCalendarDay   no-leave days and school vacations
 //   Requisition      a vacancy to fill
 //   Candidate        a person applying for one, through the hiring steps
 //   AppraisalCycle   a review round with its criteria
@@ -117,14 +119,21 @@ const leaveTypeSchema = new Schema({
   code: { type: String, required: true, uppercase: true, trim: true },
   name: { type: String, required: true, trim: true },
   paid: { type: Boolean, default: true },
-  accrual: { type: String, default: 'YEARLY' }, // LEAVE_ACCRUALS
+  accrual: { type: String, default: 'ANNUAL_UPFRONT' }, // LEAVE_ACCRUALS (older types say YEARLY — normalizeAccrual)
   perYear: { type: Number, default: 0 },
-  carryForwardMax: { type: Number, default: 0 }, // days kept into the next leave year
+  carryForwardMax: { type: Number, default: 0 }, // days kept into the next leave year; null = no limit
   allowHalfDay: { type: Boolean, default: true },
   sandwich: { type: Boolean, default: false }, // offs and holidays between leave days count
   allowNegative: { type: Boolean, default: false }, // may be taken without a balance
   maxPerRequest: Number,
   genders: { type: [String], default: [] }, categories: { type: [String], default: [] }, // empty = everyone
+  // a different number of days a year for some staff categories (teaching staff often get fewer earned leave)
+  categoryQuota: { type: [{ category: String, perYear: Number, _id: false }], default: [] },
+  pauseInVacation: { type: Boolean, default: false }, // monthly credit stops in a month that is mostly school vacation
+  blackoutExempt: { type: Boolean, default: false }, // the no-leave days (exams, annual day) don't apply to it
+  noticeDays: Number, // ask this many days ahead — a warning for the approver, not a block
+  compOff: { type: Boolean, default: false }, // the type HR credits for a day worked on a holiday
+  description: { type: String, trim: true }, // one line for staff choosing it
   tone: { type: String, default: 'neutral' },
   order: { type: Number, default: 0 },
   active: { type: Boolean, default: true },
@@ -149,6 +158,18 @@ leaveLedgerSchema.index({ tenantId: 1, employeeId: 1, leaveTypeId: 1, date: 1 })
 leaveLedgerSchema.index({ tenantId: 1, employeeId: 1, leaveTypeId: 1, kind: 1, period: 1 }, { unique: true, partialFilterExpression: { period: { $type: 'string' } } })
 export const LeaveLedger = model('LeaveLedger', leaveLedgerSchema, 'hr_leave_ledger')
 
+/** One step of a leave request's approval chain: who it is with, and what they decided. */
+const leaveStepSchema = new Schema({
+  step: Number, // 0-based
+  label: String,
+  approverType: String, // LEAVE_APPROVER_TYPES
+  approverIds: [ObjectId], approverNames: [String],
+  fallback: String, // why the principal / HR has it instead (no manager, no login …)
+  since: Date, // when it reached this step (moving on counts from here)
+  decision: String, // LEAVE_STEP_DECISIONS · none = not yet
+  decidedBy: String, decidedById: ObjectId, note: String, at: Date,
+}, { _id: false })
+
 const leaveSchema = new Schema({
   employeeId: { type: ObjectId, required: true },
   employeeName: String, employeeCode: String, departmentId: ObjectId, branchId: ObjectId, userId: ObjectId,
@@ -163,7 +184,14 @@ const leaveSchema = new Schema({
   applied: { ...by, onBehalf: Boolean },
   decided: { ...by, note: String },
   cancelled: { ...by, reason: String, afterApproval: Boolean },
-  pendingWith: [ObjectId], // the reporting manager's login ("waiting on me"); HR approvers see every request
+  // the approval chain (services/hrmsLeaveApprovals.js), snapshotted when the request is made; older requests have
+  // none and read as one "principal / HR" step
+  approvals: [leaveStepSchema],
+  currentStep: Number,
+  chain: { ruleId: ObjectId, ruleName: String, skipSelfOrRepeat: Boolean, escalateAfterHours: Number },
+  pendingWith: [ObjectId], // the current step's named approvers ("waiting on me")
+  pendingWithHr: Boolean, // the current step is the principal's / HR's: anyone with hrms.leave.approve, in scope
+  warnings: { type: [String], default: undefined }, // what the approver should know (no-leave days, short notice)
 }, { timestamps: true })
 leaveSchema.plugin(tenantPlugin)
 leaveSchema.index({ tenantId: 1, pendingWith: 1, status: 1 })
@@ -171,6 +199,45 @@ leaveSchema.index({ tenantId: 1, employeeId: 1, from: 1 })
 leaveSchema.index({ tenantId: 1, status: 1, from: 1 })
 leaveSchema.index({ tenantId: 1, 'dates.date': 1 })
 export const Leave = model('Leave', leaveSchema, 'hr_leaves')
+
+/** Who approves a leave request, step by step — the highest-priority active rule that matches wins. */
+const leaveApprovalRuleSchema = new Schema({
+  name: { type: String, required: true, trim: true },
+  active: { type: Boolean, default: true },
+  priority: { type: Number, default: 0 }, // higher wins
+  scope: { // empty = any
+    leaveTypeIds: [ObjectId], departmentIds: [ObjectId],
+    categories: [String], // EMPLOYEE_CATEGORIES
+    minDays: { type: Number, default: null },
+  },
+  steps: [new Schema({
+    label: { type: String, trim: true },
+    approverType: { type: String, required: true }, // LEAVE_APPROVER_TYPES
+    userIds: [ObjectId], roleIds: [ObjectId],
+  }, { _id: false })],
+  skipSelfOrRepeat: { type: Boolean, default: true },
+  escalateAfterHours: { type: Number, default: null },
+  createdBy: String, updatedBy: String,
+}, { timestamps: true })
+leaveApprovalRuleSchema.plugin(tenantPlugin)
+leaveApprovalRuleSchema.index({ tenantId: 1, active: 1, priority: -1 })
+export const LeaveApprovalRule = model('LeaveApprovalRule', leaveApprovalRuleSchema, 'hr_leave_approval_rules')
+
+/** The leave calendar: no-leave days (exams, annual day, PTM) and school vacations (LEAVE_CALENDAR_KINDS). */
+const leaveCalendarSchema = new Schema({
+  kind: { type: String, required: true }, // NO_LEAVE · VACATION
+  name: { type: String, required: true, trim: true },
+  from: { type: String, required: true }, to: { type: String, required: true },
+  mode: { type: String, default: 'WARN' }, // NO_LEAVE_MODES (no-leave days only)
+  categories: { type: [String], default: [] }, // staff it covers; empty = everyone
+  branchIds: { type: [ObjectId], default: [] }, // empty = every campus
+  source: { type: { type: String }, id: ObjectId }, // made from an exam, event or PTM on the calendar
+  note: String,
+  createdBy: String,
+}, { timestamps: true })
+leaveCalendarSchema.plugin(tenantPlugin)
+leaveCalendarSchema.index({ tenantId: 1, kind: 1, from: 1 })
+export const LeaveCalendarDay = model('LeaveCalendarDay', leaveCalendarSchema, 'hr_leave_calendar')
 
 // ───────────────────────────────────────────────────────── recruitment
 

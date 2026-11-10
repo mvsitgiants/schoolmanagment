@@ -1,48 +1,52 @@
-{{!-- Accreditation summary (A4): a framework's return (NAAC SSR, NIRF, AISHE) for an assessment year — per criterion
-      its completion, each quantitative metric's value with its status and note, and the qualitative narratives. --}}
+{{!-- Accreditation summary (A4): a framework's return (NAAC SSR, NIRF, AISHE) for an assessment year, criterion by
+      criterion. framework.code, framework.name · year · range.from, range.to · summary.total, complete, pct ·
+      criteria[] {code, title, weight, completion.complete, completion.total, metrics[] {code, title, qualitative, value,
+      computed, source, statusLabel, complete, note, narrative, words}}. --}}
 <style>
-  h1 { font-size: 13pt; text-align: center; letter-spacing: .06em; text-transform: uppercase; margin: 4mm 0 1mm }
-  .sub { text-align: center; font-size: 10pt; font-weight: 600; margin-bottom: 1mm }
-  .meta { text-align: center; font-size: 8.5pt; color: #5B616E; margin-bottom: 4mm }
-  h2 { font-size: 10pt; margin: 5mm 0 1mm; text-transform: uppercase; letter-spacing: .04em; color: #3A3F4B; display: flex; justify-content: space-between }
-  h2 small { font-weight: 500; text-transform: none; letter-spacing: 0; color: #5B616E }
-  table.m { width: 100%; border-collapse: collapse; font-size: 8.5pt }
-  table.m th { text-align: left; font-weight: 600; color: #5B616E; border-bottom: 1px solid #C8CCD4; padding: 1.2mm; background: #F6F7F9 }
-  table.m td { padding: 1.1mm 1.2mm; border-bottom: 1px solid #EEF0F3; vertical-align: top }
-  table.m .n { text-align: right; white-space: nowrap }
-  .code { font-weight: 600; white-space: nowrap }
-  .note { color: #5B616E; font-size: 7.5pt }
-  .ql { margin: 2mm 0 3mm; font-size: 8.8pt; page-break-inside: avoid }
-  .ql h3 { font-size: 9pt; margin: 0 0 1mm }
+  .crit { margin: 5mm 0 1.4mm; padding-bottom: .8mm; border-bottom: .35mm solid #333; display: flex; justify-content: space-between; align-items: baseline; gap: 4mm }
+  .crit b { font-size: 10pt; text-transform: uppercase; letter-spacing: .03em } .crit span { font-size: 8pt; color: #3B3F47; white-space: nowrap }
+  table.grid { font-size: 8.4pt } table.grid th { text-align: center; vertical-align: middle } table.grid th.l { text-align: left }
+  table.grid th, table.grid td { padding: .9mm 1.6mm } table.grid td.c { text-align: center; white-space: nowrap } table.grid td.r { text-align: right; white-space: nowrap }
+  .ql { margin: 2.5mm 0 3mm; font-size: 8.8pt; break-inside: avoid }
+  .ql .h { font-weight: 700; font-size: 9pt; margin-bottom: 1mm }
   .ql p { margin: 0 0 1.2mm; text-align: justify }
-  .pending { color: #B45309 }
-  .done { color: #047857 }
+  .signs { margin-top: 26mm } .signs .sealed { position: relative } .signs .sealed .seal { position: absolute; left: 50%; bottom: 100%; transform: translate(-50%, -1.5mm); margin: 0 }
 </style>
 {{#> letterhead}}{{/letterhead}}
-<h1>{{framework.name}}</h1>
-<div class="sub">{{t "accreditation.print.year" "Assessment year"}} {{year}}</div>
-<p class="meta">{{date range.from}} – {{date range.to}} · {{t "accreditation.print.complete" "Complete"}}: {{summary.complete}} / {{summary.total}} ({{summary.pct}}%)</p>
+<div class="doc-title">{{framework.name}}</div>
+<div class="doc-sub">{{t "accreditation.print.year" "Assessment year"}} {{year}}{{#if range.from}} · {{date range.from}} – {{date range.to}}{{/if}}</div>
+
+<table class="grid" style="margin-bottom:2mm">
+  <tr><th class="l" style="width:45mm">{{t "accreditation.print.institution" "Name of the institution"}}</th><td>{{institution.name}}{{#if institution.city}}, {{institution.city}}{{/if}}</td></tr>
+  {{#if (or institution.affiliationNo institution.registrationNo)}}<tr><th class="l">{{t "accreditation.print.ids" "Affiliation / registration"}}</th><td>{{join (array institution.affiliationNo institution.registrationNo) " · "}}</td></tr>{{/if}}
+  <tr><th class="l">{{t "accreditation.print.complete" "Metrics complete"}}</th><td>{{summary.complete}} / {{summary.total}} ({{summary.pct}}%)</td></tr>
+</table>
 
 {{#each criteria}}
-  <h2><span>{{code}} · {{title}}</span><small>{{#if weight}}{{t "accreditation.print.weight" "Weightage"}} {{weight}} · {{/if}}{{completion.complete}} / {{completion.total}}</small></h2>
-  <table class="m">
-    <thead><tr><th>{{t "accreditation.print.metric" "Metric"}}</th><th>{{t "accreditation.print.title" "Title"}}</th><th class="n">{{t "accreditation.print.value" "Value"}}</th><th>{{t "accreditation.print.status" "Status"}}</th></tr></thead>
+  <div class="crit no-break"><b>{{t "accreditation.print.criterion" "Criterion {{code}}" code=code}} – {{title}}</b><span>{{#if weight}}{{t "accreditation.print.weight" "Weightage"}} {{weight}} · {{/if}}{{completion.complete}} / {{completion.total}} {{t "accreditation.print.done" "complete"}}</span></div>
+  <table class="grid">
+    <thead><tr><th style="width:16mm">{{t "accreditation.print.metric" "Metric"}}</th><th class="l">{{t "accreditation.print.title" "Description"}}</th><th style="width:30mm">{{t "accreditation.print.value" "Value"}}</th><th style="width:22mm">{{t "accreditation.print.status" "Status"}}</th></tr></thead>
     <tbody>
       {{#each metrics}}{{#unless qualitative}}
         <tr>
-          <td class="code">{{code}}</td>
+          <td class="c">{{code}}</td>
           <td>{{title}}{{#if note}}<div class="note">{{note}}</div>{{/if}}</td>
-          <td class="n">{{default value "—"}}{{#if computed}}<div class="note">{{source}}</div>{{/if}}</td>
-          <td class="{{#if complete}}done{{else}}pending{{/if}}">{{statusLabel}}</td>
+          <td class="r">{{value}}{{#if computed}}<div class="note">{{source}}</div>{{/if}}</td>
+          <td class="c">{{statusLabel}}</td>
         </tr>
       {{/unless}}{{/each}}
     </tbody>
   </table>
   {{#each metrics}}{{#if qualitative}}
     <div class="ql">
-      <h3>{{code}} · {{title}} <span class="note">({{statusLabel}}{{#if words}} · {{words}} {{t "accreditation.print.words" "words"}}{{/if}})</span></h3>
+      <div class="h">{{code}} {{title}} <span class="note">({{statusLabel}}{{#if this.words}} · {{this.words}} {{t "accreditation.print.words" "words"}}{{/if}})</span></div>
       {{#if narrative}}{{paras narrative}}{{else}}<p class="note">{{t "accreditation.print.noNarrative" "Not written yet."}}</p>{{/if}}
     </div>
   {{/if}}{{/each}}
 {{/each}}
+
+<div class="signs no-break">
+  <div>{{t "accreditation.print.iqac" "IQAC Coordinator"}}</div>
+  <div class="sealed"><div class="seal">{{t "accreditation.print.seal" "Seal"}}</div>{{t "accreditation.print.head" "Principal / Head of the Institution"}}</div>
+</div>
 {{> footer}}

@@ -1,5 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { accrualUpTo, dayPay, leaveDates, leaveYear, monthTotals, monthsSoFar, weightedScore } from '@schoolgiant/shared'
+import {
+  accrualUpTo, countLeaveDays, dayPay, leaveDates, leaveYear, monthTotals, monthsSoFar, normalizeAccrual, pickLeaveRule, quotaFor, weightedScore,
+} from '@schoolgiant/shared'
 import { Employee, StaffAttendance } from '../src/models/hrms.js'
 import { User } from '../src/models/tenant.js'
 import { runAsTenant } from '../src/platform/context.js'
@@ -37,6 +39,27 @@ describe('helpers', () => {
     expect(monthsSoFar('2026-06-15', 4)).toEqual(['2026-04', '2026-05', '2026-06'])
     expect(accrualUpTo(15, 12)).toBe(15)
     expect(accrualUpTo(15, 1)).toBe(1)
+  })
+  it('counts leave days with the sandwich rule, reads older accruals and per-category quotas, and picks a chain', () => {
+    // Fri, Sat (off), Sun (off), Mon
+    const days = [{ date: 'f', working: true }, { date: 's', working: false }, { date: 'u', working: false }, { date: 'm', working: true }]
+    expect(countLeaveDays(days).days).toBe(2)
+    const sw = countLeaveDays(days, { sandwich: true })
+    expect(sw.days).toBe(4)
+    expect(sw.dates.filter((d) => d.sandwiched).length).toBe(2)
+    expect(countLeaveDays([{ date: 'x', working: true }], { halfDay: true }).days).toBe(0.5)
+    expect(normalizeAccrual('YEARLY')).toBe('ANNUAL_UPFRONT')
+    expect(normalizeAccrual(undefined)).toBe('NONE')
+    const el = { perYear: 15, categoryQuota: [{ category: 'TEACHING', perYear: 5 }] }
+    expect(quotaFor(el, { category: 'TEACHING' })).toBe(5)
+    expect(quotaFor(el, { category: 'ADMIN' })).toBe(15)
+    const rules = [
+      { id: 'a', priority: 1, scope: {}, active: true },
+      { id: 'b', priority: 5, scope: { categories: ['TEACHING'], minDays: 3 }, active: true },
+      { id: 'c', priority: 9, scope: {}, active: false },
+    ]
+    expect(pickLeaveRule(rules, { category: 'TEACHING', days: 4 }).id).toBe('b')
+    expect(pickLeaveRule(rules, { category: 'TEACHING', days: 2 }).id).toBe('a')
   })
   it('pays leave and counts a month', () => {
     expect(dayPay('LEAVE', { leavePaid: false, portion: 0.5 })).toEqual({ payable: 0.5, lop: 0.5 })
@@ -154,6 +177,160 @@ describe('leave', () => {
     const after = (await admin.post(`${api}/employees/${teacher.id}/leave/adjust`).send({ leaveTypeId: cl.id, days: 1.5, note: 'Worked on the annual day' })).body.data
     expect(after.find((b) => b.code === 'CL').balance).toBe(13.5)
     expect((await admin.post(`${api}/employees/${teacher.id}/leave/adjust`).send({ leaveTypeId: cl.id, days: 0.3, note: 'Bad' })).status).toBe(400)
+  })
+})
+
+describe('leave: starter types, approval chains, no-leave days, preview, comp-off, calendar and year end', () => {
+  let me
+  let p
+  let types
+  const type = (code) => types.find((x) => x.code === code)
+  beforeAll(async () => {
+    me = await signIn(app, 'sunil@hr.test', 'Sunil@1234')
+    p = await signIn(app, 'rekha@hr.test', 'Princ@1234')
+    types = (await admin.get(`${api}/leave/types`)).body.data
+  })
+
+  it('starts a school with its leave types; the short name stays as made', async () => {
+    for (const c of ['CL', 'SL', 'EL', 'ML', 'PL', 'CCL', 'DL', 'CO', 'LOP']) expect(type(c), c).toBeTruthy()
+    expect(type('CL').accrual).toBe('ANNUAL_UPFRONT')
+    expect(type('CO').compOff).toBe(true)
+    expect(type('DL').allowNegative).toBe(true)
+    // changing a policy keeps its code; teaching staff get their own number of earned leave
+    const el = (await admin.put(`${api}/leave/types/${type('EL').id}`).send({ ...type('EL'), code: 'ZZ', categories: [], categoryQuota: [{ category: 'TEACHING', perYear: 6 }] })).body.data
+    expect(el.code).toBe('EL')
+    const mine = (await me.get(`${api}/me/leave`)).body.data.balances.find((b) => b.code === 'EL')
+    expect(mine).toBeTruthy() // now for everyone, 6 a year for teachers, earned monthly
+    expect(mine.balance).toBeLessThanOrEqual(6)
+    // a new policy needs a unique short name
+    expect((await admin.post(`${api}/leave/types`).send({ code: 'CL', name: 'Copy', accrual: 'NONE' })).status).toBe(400)
+  })
+
+  it('previews a leave: the days that count, the balance after, the lessons and who approves it', async () => {
+    // Fri 8 – Mon 11 Jan 2027: Sat counts, Sunday is the weekly off
+    const pv = (await me.post(`${api}/me/leave/preview`).send({ leaveTypeId: type('CL').id, from: '2027-01-08', to: '2027-01-11' })).body.data
+    expect(pv.days).toBe(3)
+    expect(pv.dates.find((d) => d.date === '2027-01-10')).toMatchObject({ portion: 0, reason: 'Weekly off' })
+    expect(pv.after).toBe(pv.available - 3)
+    expect(pv.ok).toBe(true)
+    expect(pv.chain.steps[0].people).toContain('Rekha Principal')
+    // too long for casual leave: a problem, not an error
+    const long = (await me.post(`${api}/me/leave/preview`).send({ leaveTypeId: type('CL').id, from: '2027-01-11', to: '2027-01-16' })).body.data
+    expect(long.ok).toBe(false)
+    expect(long.problems.map((x) => x.code)).toContain('TOO_LONG')
+  })
+
+  let chain
+  it('a two-step chain: the reporting manager, then the principal / HR; days are held until the last step', async () => {
+    chain = (await admin.post(`${api}/leave/chains`).send({
+      name: 'Teachers — manager then office', priority: 10, scope: { categories: ['TEACHING'], leaveTypeIds: [type('CL').id] },
+      steps: [{ approverType: 'REPORTING_MANAGER' }, { approverType: 'HR', label: 'Office' }],
+    })).body.data
+    expect(chain.summary).toBe('Reporting manager → Office')
+    const before = (await me.get(`${api}/me/leave`)).body.data.balances.find((b) => b.code === 'CL')
+    const l = (await me.post(`${api}/me/leave`).send({ leaveTypeId: type('CL').id, from: '2027-01-04', to: '2027-01-05', reason: 'Wedding' })).body.data
+    expect(l.chain).toMatchObject({ status: 'PENDING', stepNumber: 1, totalSteps: 2, waitingOn: 'Reporting manager' })
+    const held = (await me.get(`${api}/me/leave`)).body.data.balances.find((b) => b.code === 'CL')
+    expect(held).toMatchObject({ balance: before.balance, pending: before.pending + 2 })
+    // saying no needs a reason
+    expect((await p.post(`${api}/me/approvals/${l.id}`).send({ approve: false })).status).toBe(400)
+    const step1 = (await p.post(`${api}/me/approvals/${l.id}`).send({ approve: true })).body.data
+    expect(step1.chain).toMatchObject({ status: 'PENDING', stepNumber: 2, waitingOn: 'Office' })
+    expect(step1.chain.steps[0]).toMatchObject({ state: 'APPROVED', decidedBy: 'Rekha Principal' })
+    // the manager's step is done: it's no longer waiting on her
+    expect((await p.get(`${api}/me/approvals`)).body.data.map((x) => x.id)).not.toContain(l.id)
+    // the office's step: in the HR inbox
+    const inbox = (await admin.get(`${api}/leave?box=mine`)).body.data
+    expect(inbox.rows.map((x) => x.id)).toContain(l.id)
+    expect(inbox.waitingOnMe).toBeGreaterThanOrEqual(1)
+    const done = (await admin.post(`${api}/leave/${l.id}/decide`).send({ approve: true, note: 'Enjoy' })).body.data
+    expect(done.status).toBe('APPROVED')
+    const after = (await me.get(`${api}/me/leave`)).body.data.balances.find((b) => b.code === 'CL')
+    expect(after).toMatchObject({ balance: before.balance - 2, pending: before.pending })
+    // the detail has the chain and the balance
+    const detail = (await admin.get(`${api}/leave/${l.id}`)).body.data
+    expect(detail.chain.steps.map((s) => s.state)).toEqual(['APPROVED', 'APPROVED'])
+    await admin.post(`${api}/leave/${l.id}/cancel`).send({ reason: 'Postponed' }).expect(200)
+  })
+
+  it('anyone who approves leave can decide in place of the step’s approver; nobody decides their own', async () => {
+    const l = (await me.post(`${api}/me/leave`).send({ leaveTypeId: type('CL').id, from: '2027-01-18', to: '2027-01-18', reason: 'Bank work' })).body.data
+    const seen = (await admin.get(`${api}/leave/${l.id}`)).body.data
+    expect(seen.chain).toMatchObject({ canAct: true, actingAsHr: true })
+    expect((await me.post(`${api}/me/approvals/${l.id}`).send({ approve: true })).status).toBe(403)
+    const done = (await admin.post(`${api}/leave/${l.id}/decide`).send({ approve: true })).body.data
+    expect(done.status).toBe('APPROVED')
+    expect(done.chain.steps[0].override).toBe(true)
+    await admin.post(`${api}/leave/${l.id}/cancel`).send({}).expect(200)
+    await admin.delete(`${api}/leave/chains/${chain.id}`).expect(200)
+  })
+
+  it('no-leave days: a warning, the principal’s approval, or not allowed (HR can still enter it)', async () => {
+    const exams = (await admin.post(`${api}/leave/no-leave-days`).send({ kind: 'NO_LEAVE', name: 'Pre-board exams', from: '2027-02-01', to: '2027-02-06', mode: 'BLOCK', categories: ['TEACHING'] })).body.data
+    const blocked = await me.post(`${api}/me/leave`).send({ leaveTypeId: type('CL').id, from: '2027-02-02', to: '2027-02-02', reason: 'Personal' })
+    expect(blocked.status).toBe(409)
+    // sick leave doesn't follow the no-leave days
+    const sick = (await me.post(`${api}/me/leave/preview`).send({ leaveTypeId: type('SL').id, from: '2027-02-02' })).body.data
+    expect(sick.ok).toBe(true)
+    expect(sick.noLeave).toEqual([])
+    // HR enters it anyway: a warning, and the principal / HR must approve it
+    const hr = (await admin.post(`${api}/leave`).send({ employeeId: teacher.id, leaveTypeId: type('CL').id, from: '2027-02-02', to: '2027-02-02', reason: 'Family emergency' })).body.data
+    expect(hr.warnings.join(' ')).toMatch(/Pre-board exams/)
+    expect(hr.chain.steps.at(-1).approverType).toBe('HR')
+    await admin.post(`${api}/leave/${hr.id}/cancel`).send({}).expect(200)
+    // a warning only
+    await admin.put(`${api}/leave/no-leave-days/${exams.id}`).send({ kind: 'NO_LEAVE', name: 'Pre-board exams', from: '2027-02-01', to: '2027-02-06', mode: 'WARN' }).expect(200)
+    const warn = (await me.post(`${api}/me/leave/preview`).send({ leaveTypeId: type('CL').id, from: '2027-02-03' })).body.data
+    expect(warn).toMatchObject({ ok: true, needsHr: false })
+    expect(warn.warnings.length).toBe(1)
+    await admin.delete(`${api}/leave/no-leave-days/${exams.id}`).expect(200)
+  })
+
+  it('a school vacation isn’t counted as leave for the staff it covers', async () => {
+    const v = (await admin.post(`${api}/leave/no-leave-days`).send({ kind: 'VACATION', name: 'Winter break', from: '2027-01-25', to: '2027-01-27', categories: ['TEACHING'] })).body.data
+    const pv = (await me.post(`${api}/me/leave/preview`).send({ leaveTypeId: type('SL').id, from: '2027-01-25', to: '2027-01-28' })).body.data
+    expect(pv.days).toBe(1)
+    expect(pv.dates[0].reason).toBe('Winter break')
+    await admin.delete(`${api}/leave/no-leave-days/${v.id}`).expect(200)
+  })
+
+  it('compensatory off for a day worked, once per day; an opening balance; the ledger says what each entry is', async () => {
+    const after = (await admin.post(`${api}/leave/comp-off`).send({ employeeId: teacher.id, workedDate: '2026-11-08', days: 1, note: 'Sports day' })).body.data
+    expect(after.find((b) => b.code === 'CO').balance).toBe(1)
+    expect((await admin.post(`${api}/leave/comp-off`).send({ employeeId: teacher.id, workedDate: '2026-11-08', days: 1 })).status).toBe(409)
+    const opened = (await admin.post(`${api}/employees/${teacher.id}/leave/adjust`).send({ leaveTypeId: type('SL').id, days: 20, kind: 'OPENING', note: 'Carried from the old register' })).body.data
+    expect(opened.find((b) => b.code === 'SL').balance).toBeGreaterThanOrEqual(20)
+    const ledger = (await admin.get(`${api}/employees/${teacher.id}/leave/ledger`)).body.data
+    expect(ledger.find((r) => r.kind === 'OPENING').kindLabel).toBe('Opening balance')
+    expect(ledger.find((r) => r.kind === 'COMP_OFF').period).toBe('2026-11-08')
+  })
+
+  it('the balances board pages on the server; the team calendar and the summary', async () => {
+    const board = (await admin.get(`${api}/leave/balances?pageSize=1`)).body.data
+    expect(board).toMatchObject({ page: 1, pageSize: 1 })
+    expect(board.rows.length).toBe(1)
+    expect(board.total).toBeGreaterThanOrEqual(2)
+    const l = (await admin.post(`${api}/leave`).send({ employeeId: teacher.id, leaveTypeId: type('CL').id, from: '2027-03-01', to: '2027-03-02', reason: 'Trip', approveNow: true })).body.data
+    const cal = (await admin.get(`${api}/leave/calendar?month=2027-03`)).body.data
+    const row = cal.rows.find((r) => r.employeeId === teacher.id)
+    expect(row.cells['2027-03-01']).toMatchObject({ status: 'APPROVED', leaveId: l.id })
+    expect(cal.days.find((d) => d.date === '2027-03-01').onLeave).toBeGreaterThanOrEqual(1)
+    const sum = (await admin.get(`${api}/leave/summary`)).body.data
+    expect(sum.year.label).toMatch(/^\d{4}-\d{2}$/)
+    expect(sum.counts.APPROVED).toBeGreaterThanOrEqual(1)
+    await admin.post(`${api}/leave/${l.id}/cancel`).send({}).expect(200)
+  })
+
+  it('the year end: what lapses above the carry-forward limit, and bringing everyone up to date (safe to run twice)', async () => {
+    const y = (await admin.get(`${api}/leave/year-end`)).body.data
+    const mine = y.projected.rows.find((r) => r.employeeId === teacher.id)
+    const cl = mine.items.find((x) => x.name === 'Casual leave')
+    expect(cl).toMatchObject({ cap: 0, keep: 0 }) // casual leave lapses at the year end
+    expect(cl.lapse).toBe(cl.left)
+    const run1 = (await admin.post(`${api}/leave/year-end`)).body.data
+    const run2 = (await admin.post(`${api}/leave/year-end`)).body.data
+    expect(run2.entries).toBe(0)
+    expect(run1.done.notYet).toBe(0)
   })
 })
 

@@ -1,79 +1,89 @@
-{{!-- Grade card (A4) for one student's semester in an exam session: per course the internal, end-semester and total
-      marks, letter grade and grade points; SGPA, CGPA and credits; the grading scale. RA = reappear (arrear).
-      University formats are made from this in Administration › Print templates. --}}
+{{!-- Grade card (A4), UGC CBCS format, for one student's semester in an exam session.
+      student.name, registerNo, admissionNo, dob, batch, semester · program.name, code, department, regulation ·
+      session.month / session.name, session.supplementary, session.published, session.publishedAt ·
+      courses[] {code, title, credits, grade, points, creditPoints, result (P / RA), revalued, internal, external, total, max}
+      · totals.credits, totals.creditPoints · result.sgpa, cgpa, creditsRegistered, creditsEarned, cumulativeCredits,
+      arrears, pass · scale[] {grade, label, range, points}. University formats are made from this in
+      Administration › Print templates. --}}
 <style>
-  h1 { font-size: 13pt; text-align: center; letter-spacing: .08em; text-transform: uppercase; margin: 4mm 0 1mm }
-  .sub { text-align: center; font-size: 10.5pt; font-weight: 600; margin-bottom: 5mm }
-  .who { display: grid; grid-template-columns: 1fr 1fr; gap: 1mm 8mm; font-size: 9.5pt; margin-bottom: 5mm }
-  .who span { color: #5B616E }
-  table.m { width: 100%; border-collapse: collapse; font-size: 9pt }
-  table.m th { text-align: left; font-weight: 600; color: #5B616E; border-bottom: 1px solid #C8CCD4; padding: 1.6mm 1.4mm; background: #F6F7F9 }
-  table.m td { padding: 1.4mm; border-bottom: 1px solid #EEF0F3 }
-  table.m .n { text-align: right; white-space: nowrap }
-  table.m .c { text-align: center }
-  .ra { color: #C0392B; font-weight: 700 }
-  .summary { display: flex; gap: 4mm; margin-top: 5mm }
-  .summary div { flex: 1; border: 1px solid #E3E5EA; border-radius: 2mm; padding: 2mm 3mm; font-size: 9pt }
-  .summary b { display: block; font-size: 13pt; margin-top: .5mm }
-  .scale { margin-top: 4mm; font-size: 8pt; color: #5B616E }
-  .scale span { display: inline-block; margin-right: 4mm }
-  .note { margin-top: 2mm; font-size: 8pt; color: #5B616E }
-  .sign { margin-top: 18mm; display: flex; justify-content: space-between; gap: 10mm; font-size: 9.5pt }
-  .sign div { flex: 1; text-align: center; border-top: 1px solid #8B90A0; padding-top: 2mm }
-  .draft { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 50pt; font-weight: 800; color: rgba(185,130,31,.16); transform: rotate(-20deg); pointer-events: none }
+  table.grid { font-size: 9pt } table.grid th { text-align: center; vertical-align: middle } table.grid th.l { text-align: left }
+  table.grid td.c { text-align: center; white-space: nowrap } table.grid td.sn { text-align: center; width: 9mm }
+  .who { margin-bottom: 3mm } .who td.k { padding-right: 3mm }
+  .ra { font-weight: 700; text-decoration: underline }
+  .sum { margin-top: 4mm } .sum td { text-align: center; font-weight: 700; font-size: 10pt } .sum th { font-size: 8.2pt }
+  .scale { margin-top: 4mm } .scale .cap { font-size: 7.8pt; font-weight: 600; margin-bottom: .8mm }
+  .scale table.grid { font-size: 7.4pt; table-layout: fixed } .scale table.grid th:first-child { width: 24mm } .scale table.grid th, .scale table.grid td { padding: .6mm .8mm; text-align: center }
+  .signs { margin-top: 26mm } .signs .sealed { position: relative } .signs .sealed .seal { position: absolute; left: 50%; bottom: 100%; transform: translate(-50%, -1.5mm); margin: 0 }
+  .place { margin-top: 6mm; font-size: 9pt; line-height: 1.7 }
+  .draft { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 50pt; font-weight: 800; color: rgba(0,0,0,.07); transform: rotate(-20deg); pointer-events: none }
 </style>
 {{#unless session.published}}<div class="draft">{{t "coe.print.gradeCard.provisional" "PROVISIONAL"}}</div>{{/unless}}
 {{#> letterhead}}{{/letterhead}}
-<h1>{{t "coe.print.gradeCard.title" "Grade card"}}</h1>
-<div class="sub">{{default session.month session.name}}{{#if session.supplementary}} · {{t "coe.print.gradeCard.supplementary" "Supplementary examination"}}{{/if}}</div>
-<div class="who">
-  <div><span>{{t "coe.print.gradeCard.name" "Name"}}:</span> <b>{{student.name}}</b></div>
-  <div><span>{{t "coe.print.gradeCard.registerNo" "Register No."}}:</span> <span class="mono">{{default student.registerNo student.admissionNo}}</span></div>
-  <div><span>{{t "coe.print.gradeCard.program" "Program"}}:</span> {{program.name}}</div>
-  <div><span>{{t "coe.print.gradeCard.semester" "Semester"}}:</span> {{student.semester}}</div>
-  {{#if program.department}}<div><span>{{t "coe.print.gradeCard.department" "Department"}}:</span> {{program.department}}</div>{{/if}}
-  {{#if program.regulation}}<div><span>{{t "coe.print.gradeCard.regulation" "Regulation"}}:</span> {{program.regulation}}</div>{{/if}}
-  {{#if student.batch}}<div><span>{{t "coe.print.gradeCard.batch" "Batch"}}:</span> {{student.batch}}</div>{{/if}}
-  {{#if student.dob}}<div><span>{{t "coe.print.gradeCard.dob" "Date of birth"}}:</span> {{date student.dob}}</div>{{/if}}
-</div>
+<div class="doc-title">{{t "coe.print.gradeCard.title" "Grade card"}}</div>
+<div class="doc-sub">{{t "coe.print.gradeCard.examOf" "End-semester examinations, {{month}}" month=(default session.month session.name)}}{{#if session.supplementary}} · {{t "coe.print.gradeCard.supplementary" "Supplementary examination"}}{{/if}}</div>
 
-<table class="m">
+<table class="kv who">
+  <tr><td class="k">{{t "coe.print.gradeCard.name" "Name of the student"}}</td><td class="v" colspan="3">{{upper student.name}}</td></tr>
+  <tr><td class="k">{{t "coe.print.gradeCard.registerNo" "Register No."}}</td><td class="v mono">{{default student.registerNo student.admissionNo}}</td>
+      <td class="k">{{t "coe.print.gradeCard.semester" "Semester"}}</td><td class="v">{{student.semester}}</td></tr>
+  <tr><td class="k">{{t "coe.print.gradeCard.program" "Programme"}}</td><td class="v">{{program.name}}{{#if program.code}} ({{program.code}}){{/if}}</td>
+      <td class="k">{{t "coe.print.gradeCard.batch" "Batch"}}</td><td class="v">{{student.batch}}</td></tr>
+  {{#if (or program.department student.dob)}}
+  <tr><td class="k">{{t "coe.print.gradeCard.department" "Department"}}</td><td class="v">{{program.department}}</td>
+      <td class="k">{{t "coe.print.gradeCard.dob" "Date of birth"}}</td><td class="v">{{#if student.dob}}{{date student.dob}}{{/if}}</td></tr>
+  {{/if}}
+  {{#if program.regulation}}<tr><td class="k">{{t "coe.print.gradeCard.regulation" "Regulation"}}</td><td class="v" colspan="3">{{program.regulation}}</td></tr>{{/if}}
+</table>
+
+<table class="grid">
   <thead><tr>
-    <th>{{t "coe.print.gradeCard.code" "Code"}}</th><th>{{t "coe.print.gradeCard.course" "Course"}}</th>
-    <th class="n">{{t "coe.print.gradeCard.credits" "Credits"}}</th><th class="n">{{t "coe.print.gradeCard.internal" "Internal"}}</th>
-    <th class="n">{{t "coe.print.gradeCard.external" "External"}}</th><th class="n">{{t "coe.print.gradeCard.total" "Total"}}</th>
-    <th class="c">{{t "coe.print.gradeCard.grade" "Grade"}}</th><th class="c">{{t "coe.print.gradeCard.points" "Points"}}</th><th class="c">{{t "coe.print.gradeCard.result" "Result"}}</th>
+    <th>{{t "coe.print.gradeCard.sno" "S. No."}}</th><th>{{t "coe.print.gradeCard.code" "Course code"}}</th><th class="l">{{t "coe.print.gradeCard.course" "Course title"}}</th>
+    <th>{{t "coe.print.gradeCard.credits" "Credits (C)"}}</th><th>{{t "coe.print.gradeCard.grade" "Grade"}}</th><th>{{t "coe.print.gradeCard.points" "Grade point (G)"}}</th>
+    <th>{{t "coe.print.gradeCard.creditPoints" "Credit points (C × G)"}}</th><th>{{t "coe.print.gradeCard.result" "Result"}}</th>
   </tr></thead>
   <tbody>
     {{#each courses}}
       <tr>
-        <td class="mono">{{code}}</td><td>{{title}}{{#if revalued}} *{{/if}}</td>
-        <td class="n">{{num credits}}</td><td class="n">{{default (num internal) "—"}}</td><td class="n">{{default (num external) "—"}}</td>
-        <td class="n">{{num total}} / {{max}}</td><td class="c"><b>{{grade}}</b></td><td class="c">{{points}}</td>
+        <td class="sn">{{inc @index}}</td><td class="c mono">{{code}}</td><td>{{title}}{{#if revalued}} *{{/if}}</td>
+        <td class="c">{{num credits}}</td><td class="c"><b>{{grade}}</b></td><td class="c">{{points}}</td><td class="c">{{num creditPoints}}</td>
         <td class="c{{#unless pass}} ra{{/unless}}">{{result}}</td>
       </tr>
     {{/each}}
+    <tr class="total"><td></td><td></td><td>{{t "coe.print.gradeCard.total" "Total"}}</td><td class="c">{{num totals.credits}}</td><td></td><td></td><td class="c">{{num totals.creditPoints}}</td><td></td></tr>
   </tbody>
 </table>
 
-<div class="summary">
-  <div>{{t "coe.print.gradeCard.sgpa" "SGPA"}}<b>{{default (num result.sgpa) "—"}}</b></div>
-  <div>{{t "coe.print.gradeCard.cgpa" "CGPA"}}<b>{{default (num result.cgpa) "—"}}</b></div>
-  <div>{{t "coe.print.gradeCard.creditsEarned" "Credits earned"}}<b>{{num result.creditsEarned}} / {{num result.creditsRegistered}}</b></div>
-  <div>{{t "coe.print.gradeCard.cumulative" "Total credits"}}<b>{{num result.cumulativeCredits}}</b></div>
-  <div>{{t "coe.print.gradeCard.arrears" "Arrears"}}<b>{{result.arrears}}</b></div>
-</div>
-<p class="note">{{t "coe.print.gradeCard.legend" "P: passed · RA: to reappear · * re-evaluated. SGPA = Σ(credits × grade points) / Σ credits."}}</p>
+<table class="grid sum">
+  <thead><tr>
+    <th>{{t "coe.print.gradeCard.creditsRegistered" "Credits registered"}}</th><th>{{t "coe.print.gradeCard.creditsEarned" "Credits earned"}}</th>
+    <th>{{t "coe.print.gradeCard.sgpa" "SGPA"}}</th><th>{{t "coe.print.gradeCard.cumulative" "Cumulative credits earned"}}</th><th>{{t "coe.print.gradeCard.cgpa" "CGPA"}}</th>
+    <th>{{t "coe.print.gradeCard.resultOverall" "Result"}}</th>
+  </tr></thead>
+  <tbody><tr>
+    <td>{{num result.creditsRegistered}}</td><td>{{num result.creditsEarned}}</td><td>{{num result.sgpa}}</td><td>{{num result.cumulativeCredits}}</td><td>{{num result.cgpa}}</td>
+    <td>{{#if result.pass}}{{t "coe.print.gradeCard.passed" "Pass"}}{{else}}{{t "coe.print.gradeCard.arrearsN" "{{n}} to reappear" n=result.arrears}}{{/if}}</td>
+  </tr></tbody>
+</table>
+<p class="note">{{t "coe.print.gradeCard.legend" "P: passed · RA: to reappear · * re-evaluated. SGPA = Σ(C × G) / ΣC over the semester’s courses; CGPA = the same over every semester so far."}}</p>
 
 {{#if scale.length}}
-<div class="scale"><b>{{t "coe.print.gradeCard.scale" "Grading scale"}}:</b>
-  {{#each scale}}<span>{{grade}} = {{points}} ({{num min}}%+)</span>{{/each}}
+<div class="scale no-break">
+  <div class="cap">{{t "coe.print.gradeCard.scale" "Grading system (UGC 10-point scale)"}}</div>
+  <table class="grid">
+    <tr><th>{{t "coe.print.gradeCard.letterGrade" "Letter grade"}}</th>{{#each scale}}<td><b>{{grade}}</b></td>{{/each}}<td><b>Ab</b></td></tr>
+    <tr><th>{{t "coe.print.gradeCard.meaning" "Meaning"}}</th>{{#each scale}}<td>{{label}}</td>{{/each}}<td>{{t "coe.print.gradeCard.absent" "Absent"}}</td></tr>
+    <tr><th>{{t "coe.print.gradeCard.points" "Grade point (G)"}}</th>{{#each scale}}<td>{{points}}</td>{{/each}}<td>0</td></tr>
+    <tr><th>{{t "coe.print.gradeCard.marksRange" "Marks (%)"}}</th>{{#each scale}}<td>{{range}}</td>{{/each}}<td>—</td></tr>
+  </table>
 </div>
 {{/if}}
 
-<div class="sign">
+<div class="place no-break">
+  {{#if institution.city}}<div>{{t "coe.print.gradeCard.place" "Place"}}: <b>{{institution.city}}</b></div>{{/if}}
+  <div>{{t "coe.print.gradeCard.dateOfIssue" "Date of issue"}}: {{#if session.publishedAt}}<b>{{date session.publishedAt}}</b>{{else}}<span class="fill">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>{{/if}}</div>
+</div>
+<div class="signs no-break">
   <div>{{t "coe.print.gradeCard.checkedBy" "Checked by"}}</div>
-  <div>{{t "coe.print.gradeCard.controller" "Controller of Examinations"}}</div>
-  <div>{{t "coe.print.gradeCard.principal" "Principal"}}</div>
+  <div class="sealed"><div class="seal">{{t "coe.print.gradeCard.seal" "Seal"}}</div>{{t "coe.print.gradeCard.controller" "Controller of Examinations"}}</div>
 </div>
 {{> footer}}

@@ -270,14 +270,31 @@
     },
     "print": {
       "attainment": {
-        "title": "CO–PO attainment",
-        "rules": "Target",
-        "weight": "Internal weight",
-        "statement": "Outcome",
+        "title": "CO–PO attainment report",
+        "rules": "Target (marks a student must reach)",
+        "weight": "Weight of internal assessment",
+        "statement": "Course outcome",
         "internal": "Internal %",
-        "external": "External %",
-        "level": "Level",
-        "po": "Program outcomes"
+        "external": "End-sem %",
+        "level": "Attainment",
+        "po": "Programme attainment",
+        "s1": "1. Attainment method",
+        "internalVsExternal": "internal, the rest end-semester (direct attainment)",
+        "levels": "Attainment levels",
+        "levelRule": "Level {{level}}: at least {{min}}% of students reach the target",
+        "s2": "2. Course outcome (CO) attainment",
+        "semester": "Semester {{n}}",
+        "co": "CO",
+        "levelShort": "Level",
+        "courseAvg": "Course average",
+        "s3": "3. Programme outcome (PO / PSO) attainment",
+        "course": "Course",
+        "summary": "{{courses}} courses · {{cos}} course outcomes, {{attained}} at level 2 or above · average PO attainment {{avg}} (on a scale of 3).",
+        "s4": "4. Programme outcomes",
+        "coordinator": "Programme Coordinator",
+        "hod": "Head of the Department",
+        "seal": "Seal",
+        "principal": "Principal"
       }
     },
     "semShort": "S{{n}}"

@@ -1,69 +1,113 @@
-{{!-- Purchase order (A4), sent to the vendor. A draft or one waiting for approval prints with a DRAFT stamp; a
-      cancelled one with CANCELLED. Data from services/inventoryPurchase.js (poPrintData). --}}
+{{!-- Purchase order (A4) in the GST format, sent to the vendor: buyer (the institution's GSTIN and PAN), vendor (GSTIN,
+      address), PO no. and date, delivery address, the items with HSN / SAC, the taxable value and CGST + SGST (a vendor
+      in the same state) or IGST (another state), the total in words, terms, and Prepared by · Approved by · Authorised
+      signatory. A draft or one waiting for approval prints with a DRAFT stamp; a cancelled one with CANCELLED.
+      Main fields: po.no, po.date, po.expectedOn, po.deliverTo, po.subtotal, po.tax, po.total, po.terms, po.raisedBy,
+      po.approvedBy, vendor.name, vendor.gstin, vendor.address, lines[] {n, name, size, hsn, qty, unit, rate, amount,
+      gstRate}, gst {taxable, intra, inter, cgst, sgst, igst, cgstRate, sgstRate, igstRate}, buyer {gstin, pan,
+      legalName}, {{words po.total}}. Data from services/inventoryPurchase.js (poPrintData). --}}
 <style>
-  h1 { font-size: 13pt; text-align: center; letter-spacing: .08em; text-transform: uppercase; margin: 4mm 0 3mm }
-  .parties { display: flex; justify-content: space-between; gap: 8mm; font-size: 9.5pt; margin-bottom: 4mm }
-  .parties .box { flex: 1; border: 1px solid #DDE0E6; border-radius: 2mm; padding: 2.5mm 3mm }
-  .parties .lbl { font-size: 7.5pt; text-transform: uppercase; letter-spacing: .06em; color: #5B616E; margin-bottom: 1mm }
-  .meta { display: flex; flex-wrap: wrap; gap: 2mm 8mm; font-size: 9pt; margin-bottom: 3mm }
-  .meta b { font-weight: 600 }
-  table.r { width: 100%; border-collapse: collapse; font-size: 9pt }
-  table.r th { text-align: left; font-weight: 600; color: #5B616E; border-bottom: 1px solid #C8CCD4; padding: 1.5mm 1mm }
-  table.r td { padding: 1.4mm 1mm; border-bottom: 1px solid #EEF0F3; vertical-align: top }
-  table.r .n { text-align: right; white-space: nowrap }
-  .sum { margin-left: auto; width: 70mm; margin-top: 3mm; font-size: 9.5pt }
-  .sum div { display: flex; justify-content: space-between; padding: .8mm 0 }
-  .sum .tot { font-weight: 700; font-size: 11pt; border-top: 1px solid #C8CCD4; margin-top: 1mm; padding-top: 1.5mm }
-  .words { font-size: 9pt; color: #3A3F4B; margin-top: 2mm }
-  .terms { margin-top: 5mm; font-size: 8.5pt; color: #3A3F4B; white-space: pre-line }
-  .foot { margin-top: 14mm; display: flex; justify-content: space-between; font-size: 9pt }
+  .po-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 0.3mm solid #444; border-bottom: 0; font-size: 8.8pt }
+  .po-meta > div { padding: 1.6mm 2.5mm; border-bottom: 0.3mm solid #444 }
+  .po-meta > div:nth-child(odd) { border-right: 0.3mm solid #444 }
+  .po-meta .lbl { font-size: 7.2pt; text-transform: uppercase; letter-spacing: .06em; color: #3B3F47; font-weight: 700; margin-bottom: .6mm }
+  .po-meta .nm { font-weight: 700; font-size: 9.6pt }
+  .po-meta table.kv td { padding: .25mm 0; } .po-meta table.kv td.k { padding-right: 2mm }
+  table.grid.items { margin-top: 3mm; font-size: 8.8pt }
+  table.grid.items th.c, table.grid.items td.c { text-align: center; width: 9mm }
+  table.grid.items tfoot td { background: transparent; font-weight: 400 }
+  table.grid.items tfoot tr.total td { font-weight: 700; background: #F1F3F6 }
+  .words { margin-top: 2mm }
+  .terms { margin-top: 4mm; font-size: 8.6pt }
+  .terms ol { margin: 1mm 0 0; padding-left: 5mm } .terms li { margin-bottom: .6mm }
+  .terms .own { white-space: pre-line; margin-top: 1mm }
+  .po-signs { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8mm; align-items: end; margin-top: 8mm; font-size: 8.6pt; text-align: center }
+  .po-signs .line { border-top: 0.3mm solid #333; padding-top: 1.2mm }
+  .po-signs .who { font-size: 7.6pt; color: #3B3F47; min-height: 3.5mm }
   .stamp { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 54pt; font-weight: 800; color: rgba(214,69,69,.14); transform: rotate(-22deg); pointer-events: none }
 </style>
 {{#if po.cancelled}}<div class="stamp">{{t "inventory.print.po.stampCancelled" "CANCELLED"}}</div>{{else}}{{#if po.draft}}<div class="stamp">{{t "inventory.print.po.stampDraft" "DRAFT"}}</div>{{/if}}{{/if}}
 {{#> letterhead}}{{/letterhead}}
-<h1>{{t "inventory.print.po.title" "Purchase order"}}</h1>
-<div class="meta">
-  <div>{{t "inventory.print.po.no" "PO No."}} <b class="mono">{{po.no}}</b></div>
-  <div>{{t "inventory.print.po.date" "Date"}} <b>{{date po.date}}</b></div>
-  {{#if po.expectedOn}}<div>{{t "inventory.print.po.expectedOn" "Deliver by"}} <b>{{date po.expectedOn}}</b></div>{{/if}}
-</div>
-<div class="parties">
-  <div class="box">
-    <div class="lbl">{{t "inventory.print.po.to" "To"}}</div>
-    <div><b>{{vendor.name}}</b></div>
-    {{#if vendor.contactPerson}}<div>{{vendor.contactPerson}}</div>{{/if}}
-    {{#if vendor.address}}<div class="muted">{{vendor.address}}</div>{{/if}}
-    {{#if vendor.phone}}<div class="muted">{{vendor.phone}}{{#if vendor.email}} · {{vendor.email}}{{/if}}</div>{{/if}}
-    {{#if vendor.gstin}}<div class="muted">{{t "inventory.print.po.gstin" "GSTIN"}} {{vendor.gstin}}</div>{{/if}}
+<div class="doc-title">{{t "inventory.print.po.title" "Purchase order"}}</div>
+<div class="po-meta">
+  <div>
+    <div class="lbl">{{t "inventory.print.po.buyer" "Buyer"}}</div>
+    <div class="nm">{{default buyer.legalName institution.name}}</div>
+    {{#if buyer.legalName}}<div>{{institution.name}}</div>{{/if}}
+    <div>{{join (array institution.addressLine institution.city institution.state institution.pincode) ", "}}</div>
+    <table class="kv">
+      {{#if buyer.gstin}}<tr><td class="k">{{t "inventory.print.po.gstin" "GSTIN"}}</td><td class="v mono">{{buyer.gstin}}</td></tr>{{/if}}
+      {{#if buyer.pan}}<tr><td class="k">{{t "inventory.print.po.pan" "PAN"}}</td><td class="v mono">{{buyer.pan}}</td></tr>{{/if}}
+      {{#if institution.state}}<tr><td class="k">{{t "inventory.print.po.state" "State"}}</td><td class="v">{{institution.state}}</td></tr>{{/if}}
+    </table>
   </div>
-  <div class="box">
-    <div class="lbl">{{t "inventory.print.po.deliverTo" "Deliver to"}}</div>
-    <div><b>{{institution.name}}</b></div>
-    {{#if po.deliverTo}}<div class="muted">{{po.deliverTo}}</div>{{/if}}
+  <div>
+    <table class="kv">
+      <tr><td class="k">{{t "inventory.print.po.no" "PO No."}}</td><td class="v mono">{{po.no}}</td></tr>
+      <tr><td class="k">{{t "inventory.print.po.date" "PO date"}}</td><td class="v">{{date po.date}}</td></tr>
+      <tr><td class="k">{{t "inventory.print.po.quotation" "Quotation ref."}}</td><td class="v"><span class="fill" style="display:inline-block;min-width:40mm">&nbsp;</span></td></tr>
+      {{#if po.expectedOn}}<tr><td class="k">{{t "inventory.print.po.expectedOn" "Deliver by"}}</td><td class="v">{{date po.expectedOn}}</td></tr>{{/if}}
+      {{#if po.approvedAt}}<tr><td class="k">{{t "inventory.print.po.approvedOn" "Approved on"}}</td><td class="v">{{date po.approvedAt}}</td></tr>{{/if}}
+    </table>
+  </div>
+  <div>
+    <div class="lbl">{{t "inventory.print.po.vendor" "Vendor / supplier"}}</div>
+    <div class="nm">{{vendor.name}}</div>
+    {{#if vendor.address}}<div>{{vendor.address}}</div>{{/if}}
+    <table class="kv">
+      {{#if vendor.gstin}}<tr><td class="k">{{t "inventory.print.po.gstin" "GSTIN"}}</td><td class="v mono">{{vendor.gstin}}</td></tr>{{/if}}
+      {{#if vendor.contactPerson}}<tr><td class="k">{{t "inventory.print.po.contact" "Contact"}}</td><td class="v">{{vendor.contactPerson}}</td></tr>{{/if}}
+      {{#if vendor.phone}}<tr><td class="k">{{t "inventory.print.po.phone" "Phone"}}</td><td class="v">{{vendor.phone}}{{#if vendor.email}} · {{vendor.email}}{{/if}}</td></tr>{{/if}}
+    </table>
+  </div>
+  <div>
+    <div class="lbl">{{t "inventory.print.po.deliverTo" "Delivery address"}}</div>
+    <div class="nm">{{institution.name}}{{#if po.campus}}{{#if (ne po.campus institution.name)}} — {{po.campus}}{{/if}}{{/if}}</div>
+    <div>{{#if po.deliverTo}}{{po.deliverTo}}{{else}}{{join (array institution.addressLine institution.city institution.state institution.pincode) ", "}}{{/if}}</div>
+    {{#if institution.phone}}<div>{{t "inventory.print.po.phone" "Phone"}} {{institution.phone}}</div>{{/if}}
   </div>
 </div>
-<table class="r">
+<p style="margin:3mm 0 0">{{t "inventory.print.po.intro" "Please supply the following items on the terms below, and quote this PO number on your invoice and delivery challan."}}</p>
+<table class="grid items">
   <thead><tr>
-    <th>#</th><th>{{t "inventory.print.po.item" "Item"}}</th><th class="n">{{t "inventory.print.po.qty" "Qty"}}</th>
-    <th class="n">{{t "inventory.print.po.rate" "Rate"}}</th><th class="n">{{t "inventory.print.po.amount" "Amount"}}</th>
+    <th class="c">{{t "inventory.print.po.sl" "Sl."}}</th><th>{{t "inventory.print.po.item" "Description"}}</th><th>{{t "inventory.print.po.hsn" "HSN / SAC"}}</th>
+    <th class="r">{{t "inventory.print.po.qty" "Qty"}}</th><th>{{t "inventory.print.po.unit" "Unit"}}</th>
+    <th class="r">{{t "inventory.print.po.rate" "Rate (₹)"}}</th><th class="r">{{t "inventory.print.po.amount" "Amount (₹)"}}</th>
   </tr></thead>
   <tbody>
     {{#each lines}}
-      <tr><td>{{n}}</td><td>{{name}}{{#if size}} <span class="muted">({{t "inventory.print.po.size" "size {{size}}" size=size}})</span>{{/if}}</td>
-        <td class="n">{{num qty}} {{unit}}</td><td class="n">{{money rate}}</td><td class="n">{{money amount}}</td></tr>
+      <tr><td class="c">{{n}}</td><td>{{name}}{{#if size}} <span class="muted">({{t "inventory.print.po.size" "size {{size}}" size=size}})</span>{{/if}}</td>
+        <td class="mono">{{hsn}}</td><td class="r">{{num qty}}</td><td>{{unit}}</td><td class="r">{{amount rate}}</td><td class="r">{{amount amount}}</td></tr>
     {{/each}}
   </tbody>
+  <tfoot>
+    <tr><td colspan="6" class="r">{{t "inventory.print.po.taxable" "Taxable value"}}</td><td class="r">{{amount gst.taxable}}</td></tr>
+    {{#if gst.tax}}
+      {{#if gst.inter}}
+      <tr><td colspan="6" class="r">{{#if gst.igstRate}}{{t "inventory.print.po.igstAt" "IGST @ {{rate}}%" rate=(num gst.igstRate)}}{{else}}{{t "inventory.print.po.igst" "IGST"}}{{/if}}</td><td class="r">{{amount gst.igst}}</td></tr>
+      {{else}}
+      <tr><td colspan="6" class="r">{{#if gst.cgstRate}}{{t "inventory.print.po.cgstAt" "CGST @ {{rate}}%" rate=(num gst.cgstRate)}}{{else}}{{t "inventory.print.po.cgst" "CGST"}}{{/if}}</td><td class="r">{{amount gst.cgst}}</td></tr>
+      <tr><td colspan="6" class="r">{{#if gst.sgstRate}}{{t "inventory.print.po.sgstAt" "SGST @ {{rate}}%" rate=(num gst.sgstRate)}}{{else}}{{t "inventory.print.po.sgst" "SGST"}}{{/if}}</td><td class="r">{{amount gst.sgst}}</td></tr>
+      {{/if}}
+    {{/if}}
+    <tr class="total"><td colspan="6" class="r">{{t "inventory.print.po.total" "Total"}}</td><td class="r">{{money po.total}}</td></tr>
+  </tfoot>
 </table>
-<div class="sum">
-  <div><span>{{t "inventory.print.po.subtotal" "Subtotal"}}</span><span>{{money po.subtotal}}</span></div>
-  {{#if po.tax}}<div><span>{{t "inventory.print.po.tax" "Tax"}}</span><span>{{money po.tax}}</span></div>{{/if}}
-  <div class="tot"><span>{{t "inventory.print.po.total" "Total"}}</span><span>{{money po.total}}</span></div>
+<div class="words">{{t "inventory.print.po.inWords" "Total in words:"}} <b>{{words po.total}}</b></div>
+<div class="terms no-break">
+  <b>{{t "inventory.print.po.terms" "Terms and conditions"}}</b>
+  <ol>
+    <li><b>{{t "inventory.print.po.termDeliveryLabel" "Delivery:"}}</b> {{#if po.expectedOn}}{{t "inventory.print.po.termDeliveryBy" "on or before {{date}} at the delivery address above, freight and packing included." date=(date po.expectedOn)}}{{else}}{{t "inventory.print.po.termDelivery" "at the delivery address above, freight and packing included."}}{{/if}}</li>
+    <li><b>{{t "inventory.print.po.termPaymentLabel" "Payment:"}}</b> {{t "inventory.print.po.termPayment" "within 30 days of receiving the goods in good condition and a correct GST invoice."}}</li>
+    <li><b>{{t "inventory.print.po.termWarrantyLabel" "Warranty:"}}</b> {{t "inventory.print.po.termWarranty" "as per the manufacturer; damaged or defective goods will be returned for free replacement."}}</li>
+    <li>{{t "inventory.print.po.termQuote" "Please quote the PO number on every invoice and delivery challan."}}</li>
+  </ol>
+  {{#if po.terms}}<div class="own">{{po.terms}}</div>{{/if}}
 </div>
-<div class="words">{{words po.total}}</div>
-{{#if po.terms}}<div class="terms"><b>{{t "inventory.print.po.terms" "Terms"}}</b><br>{{po.terms}}</div>{{/if}}
-{{#if po.cancelled}}<div class="words">{{t "inventory.print.po.cancelledNote" "Cancelled: {{reason}}" reason=po.cancelReason}}</div>{{/if}}
-<div class="foot">
-  <span class="muted">{{#if po.raisedBy}}{{t "inventory.print.po.raisedBy" "Raised by {{name}}" name=po.raisedBy}}{{/if}}</span>
-  <span>{{#if po.approvedBy}}{{t "inventory.print.po.approvedBy" "Approved by {{name}}" name=po.approvedBy}}{{else}}{{t "inventory.print.po.signature" "Authorised signatory"}}{{/if}}</span>
+{{#if po.cancelled}}<div class="words"><b>{{t "inventory.print.po.cancelledNote" "Cancelled: {{reason}}" reason=po.cancelReason}}</b></div>{{/if}}
+<div class="po-signs no-break">
+  <div><div class="who">{{po.raisedBy}}</div><div class="line">{{t "inventory.print.po.preparedBy" "Prepared by"}}</div></div>
+  <div><div class="who">{{po.approvedBy}}</div><div class="line">{{t "inventory.print.po.approvedByLabel" "Approved by"}}</div></div>
+  <div><div class="seal">{{t "inventory.print.po.seal" "Seal"}}</div><div class="line">{{t "inventory.print.po.signatory" "For {{name}} — Authorised signatory" name=institution.name}}</div></div>
 </div>
 {{> footer}}

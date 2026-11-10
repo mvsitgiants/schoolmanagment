@@ -366,7 +366,12 @@ export async function hallTicketData(candidateId, auth) {
     return [`${pl.date}|${pl.startTime}`, s && { room: room?.code || room?.name || '', seat: s.seat }]
   }))
   const seated = papers.map((p) => ({ ...p, seat: seatOf.get(`${p.date}|${p.startTime}`) ?? null }))
-  return { candidate: c, exam, year, student, place: sectionLabel(cls, section), papers: seated }
+  // the admit card's photo box and class teacher (photo is left out of ordinary reads)
+  const [photo, teacher] = await Promise.all([
+    Student.findById(c.studentId).select('+photo').lean().then((x) => x?.photo || null),
+    section?.classTeacherId ? User.findById(section.classTeacherId).select('name').lean() : null,
+  ])
+  return { candidate: c, exam, year, student: { ...student, photo }, place: sectionLabel(cls, section), papers: seated, classTeacher: teacher?.name ?? null }
 }
 
 // ───────────────────────────────────────────────────────── marks entry
@@ -689,7 +694,12 @@ export async function reportCardData(candidateId, auth) {
     { $group: { _id: '$entries.status', n: { $sum: 1 } } },
   ])
   const counts = countMarks(att.flatMap((a) => Array(a.n).fill({ status: a._id })))
-  return { candidate: fresh, exam, year, student, place: sectionLabel(cls, section), papers, entry, bands, attendance: { ...counts, pct: attendancePct(counts) }, showRank: !!cfg.showRank }
+  // the printed card's heading and signature line: the kind of exam (Half-yearly …) and the class teacher's name
+  const [examType, teacher] = await Promise.all([
+    exam.examTypeId ? ExamType.findById(exam.examTypeId).select('name code').lean() : null,
+    section?.classTeacherId ? User.findById(section.classTeacherId).select('name').lean() : null,
+  ])
+  return { candidate: fresh, exam, year, student, place: sectionLabel(cls, section), papers, entry, bands, attendance: { ...counts, pct: attendancePct(counts) }, showRank: !!cfg.showRank, examType, classTeacher: teacher?.name ?? null }
 }
 
 // ───────────────────────────────────────────────────────── print sample helpers

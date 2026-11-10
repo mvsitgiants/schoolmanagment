@@ -64,6 +64,13 @@ export const LEAVING_REASONS = [
 
 export const CONDUCT_OPTIONS = ['Excellent', 'Very good', 'Good', 'Satisfactory']
 
+/** TC row 10 — "Whether failed, if so once / twice in the same class". */
+export const TC_FAILED = [
+  { value: 'NO', label: 'No' },
+  { value: 'ONCE', label: 'Once' },
+  { value: 'TWICE', label: 'Twice' },
+]
+
 export const TC_STATUS = {
   REQUESTED: { label: 'Waiting for approval', tone: 'warning' },
   ISSUED: { label: 'Issued', tone: 'success' },

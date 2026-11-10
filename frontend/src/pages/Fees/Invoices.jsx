@@ -44,6 +44,7 @@ function InvoiceList() {
   const reset = (fn) => (v) => { fn(v); setPage(1) }
   const sum = data?.summary
   const pct = (part, whole) => (whole > 0 ? Math.round((part / whole) * 100) : 0)
+  const canPrint = hasPermission('fees.invoices.print')
 
   return (
     <SideNavLayout nav={classes.length > 1 && (
@@ -86,6 +87,11 @@ function InvoiceList() {
         { key: 'net', header: t('fees.invoices.amount'), align: 'right', render: (v) => <Money value={v} paise /> },
         { key: 'balance', header: t('fees.invoices.balance'), align: 'right', mobileTrail: true, render: (v, r) => (r.status === 'CANCELLED' ? <span className="text-ink-faint">—</span> : <PaidBar total={r.net} balance={v} paise overdue={r.overdue} paidLabel={t('fees.invoices.summary.paid')} />) },
         { key: 'status', header: t('fees.invoices.status'), render: (v) => <StatusPill tone={INVOICE_STATUS[v]?.tone}>{statusLabel(v)}</StatusPill> },
+        ...(canPrint ? [{ key: 'id', header: '', align: 'right', width: 60, mobileHidden: true, render: (id) => (
+          <div className="flex justify-end" onClick={(e) => e.stopPropagation()}>
+            <Button size="sm" variant="ghost" icon={Printer} title={t('fees.invoices.print')} aria-label={t('fees.invoices.print')} onClick={() => printDocument('FEE_INVOICE', id)} />
+          </div>
+        ) }] : []),
       ]}
       onRowClick={hasPermission('fees.collect.view') ? (r) => navigate(`/fees/collect?student=${r.studentId}`) : undefined}
       pagination={pagination(data?.meta, setPage)}

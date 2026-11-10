@@ -127,15 +127,10 @@ export default function OverviewTab({ teaching, record, leave, payslips, approva
 
 /** Staff mark themselves in and out (Settings › Staff & HR › self attendance) — only shown when it is switched on. */
 function StaffCheckIn() {
-  const { t } = useTranslation('geo')
   const qc = useQueryClient()
   const { data } = useQuery({ queryKey: ['self-attendance'], queryFn: fetchSelfAttendance, retry: false, staleTime: 30_000 })
   if (!data?.enabled) return null
-  return (
-    <SectionCard icon={CalendarClock} title={t('geo.self.title')}>
-      <SelfCheckIn status={data} punch={selfPunch} onDone={(r) => qc.setQueryData(['self-attendance'], (d) => ({ ...d, today: r.today, next: r.direction === 'IN' ? 'OUT' : 'IN' }))} />
-    </SectionCard>
-  )
+  return <SelfCheckIn status={data} punch={selfPunch} onDone={(r) => qc.setQueryData(['self-attendance'], (d) => ({ ...d, today: r.today, next: r.direction === 'IN' ? 'OUT' : 'IN' }))} />
 }
 
 /* ------------------------------------------------------------------ the week's lessons from today */

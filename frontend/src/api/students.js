@@ -40,6 +40,10 @@ export const runPromotion = (body) => post(`${BASE}/promotion`, body)
 /** One page of the TC register: `{ rows, total, page, pageSize, counts }` (counts by status, for the tiles). */
 export const fetchTcs = (params) => get(`${BASE}/tc`, params)
 export const requestTc = (body) => post(`${BASE}/tc`, body)
+/** Correct a TC still waiting for approval. */
+export const updateTc = (id, body) => patch(`${BASE}/tc/${id}`, body)
+/** What the school already knows for a new TC: subjects, working / present days, fees paid up to, concession, last exam. */
+export const fetchTcPrefill = (studentId) => get(`${BASE}/tc/prefill`, { studentId })
 export const issueTc = (id) => post(`${BASE}/tc/${id}/issue`)
 export const cancelTc = (id, reason) => post(`${BASE}/tc/${id}/cancel`, { reason })
 

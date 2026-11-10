@@ -27,3 +27,15 @@ export function LazySiteMap(props) {
     </MapBoundary>
   )
 }
+
+const PunchMap = lazy(() => import('./PunchMap'))
+
+/** The punch-in card's map (see PunchMap.jsx for the props). */
+export function LazyPunchMap({ height = 300, ...props }) {
+  const { t } = useTranslation('geo')
+  return (
+    <MapBoundary height={height} failedText={t('geo.maps.siteFailed')}>
+      <Suspense fallback={<Placeholder height={height} text={t('geo.maps.loading')} />}><PunchMap height={height} {...props} /></Suspense>
+    </MapBoundary>
+  )
+}

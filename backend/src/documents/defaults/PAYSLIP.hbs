@@ -1,82 +1,85 @@
-{{!-- Payslip (A4): one staff member, one month. Data from services/payrollRuns.js (payslipModel). --}}
+{{!-- Payslip (A4) in the usual Indian salary-slip format: "Pay slip for the month of <Month YYYY>", the employee block
+      (name, code, designation, department, date of joining, PAN, UAN, ESI no., bank and masked account, days in the
+      month, days paid, LOP days), earnings and deductions side by side with gross earnings, total deductions, net pay
+      and net pay in words, and the computer-generated note. Data from services/payrollRuns.js (payslipModel).
+      Main fields: payslip.monthLabel, payslip.no, payslip.draft, payslip.paid, employee.*, attendance.daysInMonth,
+      attendance.payDays, attendance.lop, rows[] {earning, deduction}, totals.gross, totals.deductions, totals.net,
+      employer[], ytd {label, gross, pf, tds, net}, fnf, {{words totals.net}}. --}}
 <style>
-  h1 { font-size: 12pt; text-align: center; letter-spacing: .06em; text-transform: uppercase; margin: 3mm 0 1mm }
-  .sub { text-align: center; font-size: 9.5pt; color: #3A3F4B; margin-bottom: 3mm }
-  .stamp { display: inline-block; border: 0.35mm solid; border-radius: 1mm; padding: 0 1.5mm; font-size: 7.5pt; margin-left: 2mm; vertical-align: middle }
-  table.kv { width: 100%; border-collapse: collapse; font-size: 8.8pt; margin-bottom: 3mm }
-  table.kv td { padding: 1.1mm 1.6mm; border: 1px solid #DDE1E7; vertical-align: top }
-  table.kv td.k { background: #F6F7F9; color: #5B616E; width: 17% }
-  table.kv td.v { width: 33% }
-  table.lines { width: 100%; border-collapse: collapse; font-size: 9pt }
-  table.lines th { text-align: left; font-weight: 600; background: #F0F2F5; border: 1px solid #C8CCD4; padding: 1.5mm 1.6mm }
-  table.lines td { border-left: 1px solid #C8CCD4; border-right: 1px solid #C8CCD4; padding: 1.1mm 1.6mm; vertical-align: top }
-  table.lines td.n, table.lines th.n { text-align: right; white-space: nowrap }
-  table.lines .basis { display: block; font-size: 7pt; color: #7A808C }
-  table.lines tr.sum td { font-weight: 700; background: #F6F7F9; border: 1px solid #C8CCD4 }
-  .net { margin-top: 3mm; border: 1px solid #C8CCD4; background: #F6F7F9; padding: 2mm 3mm; display: flex; justify-content: space-between; align-items: baseline }
-  .net b { font-size: 12pt }
-  .words { font-size: 8.5pt; color: #3A3F4B }
-  .small { font-size: 8pt; color: #5B616E; margin-top: 2.5mm }
-  .small table { border-collapse: collapse; width: 100% }
-  .small td { padding: .8mm 1.6mm; border-bottom: 1px solid #EEF0F3 }
-  .small td.n { text-align: right }
-  .cols { display: flex; gap: 5mm }
-  .cols > div { flex: 1 }
-  .note { margin-top: 4mm; font-size: 7.6pt; color: #6B7280; text-align: center }
+  .ps .doc-title { margin: 3mm 0 1mm; font-size: 12pt }
+  .ps .doc-sub { margin: 0 0 3mm; font-weight: 400 }
+  .ps .stamp { display: inline-block; border: 0.35mm solid; padding: 0 1.5mm; font-size: 7.5pt; margin-left: 2mm; vertical-align: middle; font-weight: 700 }
+  .ps table.emp { border: 0.3mm solid #444; font-size: 8.8pt; margin-bottom: 3mm }
+  .ps table.emp td { padding: .9mm 2mm; border-bottom: 0.2mm dotted #B5BAC3 }
+  .ps table.emp tr:last-child td { border-bottom: 0 }
+  .ps table.emp td.k { width: 17%; color: #3B3F47 } .ps table.emp td.v { width: 33%; font-weight: 600 }
+  .ps table.grid.pay { font-size: 9pt }
+  .ps table.grid.pay td { border-top: 0; border-bottom: 0 }
+  .ps table.grid.pay tr.sum td { border-top: 0.25mm solid #555; border-bottom: 0.25mm solid #555; font-weight: 700; background: #F6F7F9 }
+  .ps table.grid.pay .basis { display: block; font-size: 7pt; color: #6B7280 }
+  .ps .net { margin-top: 3mm; border: 0.3mm solid #444; padding: 2mm 3mm; display: flex; justify-content: space-between; align-items: baseline }
+  .ps .net b { font-size: 12pt }
+  .ps .words { margin-top: 1mm }
+  .ps .small { margin-top: 3mm; font-size: 8pt; display: flex; gap: 6mm }
+  .ps .small > div { flex: 1 }
+  .ps .small table td { padding: .7mm 1.5mm; border-bottom: 0.2mm solid #E3E5EA }
+  .ps .computer { margin-top: 5mm; text-align: center; font-size: 7.8pt; color: #3B3F47 }
 </style>
 {{#> letterhead}}{{/letterhead}}
-<h1>{{t "payroll.print.title" "Payslip"}}</h1>
-<div class="sub">{{payslip.monthLabel}} · <span class="mono">{{payslip.no}}</span>{{#if payslip.draft}}<span class="stamp" style="color:#B9821F">{{t "payroll.print.draft" "DRAFT — not approved"}}</span>{{/if}}{{#if payslip.paid}}<span class="stamp" style="color:#1F9D66">{{t "payroll.print.paid" "PAID"}} {{date payslip.paidOn}}</span>{{/if}}</div>
+<div class="ps">
+  <div class="doc-title">{{t "payroll.print.slipFor" "Pay slip for the month of {{month}}" month=payslip.monthLabel}}</div>
+  <div class="doc-sub center"><span class="mono">{{payslip.no}}</span>{{#if payslip.draft}}<span class="stamp">{{t "payroll.print.draft" "DRAFT — not approved"}}</span>{{/if}}{{#if payslip.paid}}<span class="stamp">{{t "payroll.print.paid" "PAID"}} {{date payslip.paidOn}}</span>{{/if}}</div>
 
-<table class="kv">
-  <tr><td class="k">{{t "payroll.print.name" "Name"}}</td><td class="v"><b>{{employee.name}}</b></td><td class="k">{{t "payroll.print.code" "Employee code"}}</td><td class="v mono">{{default employee.code "—"}}</td></tr>
-  <tr><td class="k">{{t "payroll.print.designation" "Designation"}}</td><td class="v">{{default employee.designation "—"}}</td><td class="k">{{t "payroll.print.department" "Department"}}</td><td class="v">{{default employee.departmentName "—"}}</td></tr>
-  <tr><td class="k">{{t "payroll.print.joined" "Date of joining"}}</td><td class="v">{{#if employee.joiningDate}}{{date employee.joiningDate}}{{else}}—{{/if}}</td><td class="k">{{t "payroll.print.paidBy" "Paid by"}}</td><td class="v">{{default employee.paymentModeLabel "—"}}{{#if employee.bankName}} · {{employee.bankName}}{{/if}}{{#if employee.accountMasked}} <span class="mono">{{employee.accountMasked}}</span>{{/if}}</td></tr>
-  <tr><td class="k">{{t "payroll.print.pan" "PAN"}}</td><td class="v mono">{{default employee.panMasked "—"}}</td><td class="k">{{t "payroll.print.uan" "UAN"}}</td><td class="v mono">{{default employee.uanMasked "—"}}</td></tr>
-  <tr><td class="k">{{t "payroll.print.days" "Days paid"}}</td><td class="v">{{attendance.payDays}} / {{attendance.baseDays}}</td><td class="k">{{t "payroll.print.lop" "Loss of pay"}}</td><td class="v">{{default attendance.lop 0}}{{#if attendance.lopEdited}} <span class="muted">({{t "payroll.print.lopEdited" "corrected"}})</span>{{/if}}</td></tr>
-</table>
+  <table class="emp">
+    <tr><td class="k">{{t "payroll.print.name" "Name"}}</td><td class="v">{{employee.name}}</td><td class="k">{{t "payroll.print.code" "Employee code"}}</td><td class="v mono">{{employee.code}}</td></tr>
+    <tr><td class="k">{{t "payroll.print.designation" "Designation"}}</td><td class="v">{{employee.designation}}</td><td class="k">{{t "payroll.print.department" "Department"}}</td><td class="v">{{employee.departmentName}}</td></tr>
+    <tr><td class="k">{{t "payroll.print.joined" "Date of joining"}}</td><td class="v">{{date employee.joiningDate}}</td><td class="k">{{t "payroll.print.pan" "PAN"}}</td><td class="v mono">{{employee.panMasked}}</td></tr>
+    <tr><td class="k">{{t "payroll.print.uan" "UAN"}}</td><td class="v mono">{{employee.uanMasked}}</td><td class="k">{{t "payroll.print.esi" "ESI No."}}</td><td class="v mono">{{employee.esiMasked}}</td></tr>
+    <tr><td class="k">{{t "payroll.print.bank" "Bank"}}</td><td class="v">{{#if employee.bankName}}{{employee.bankName}}{{else}}{{employee.paymentModeLabel}}{{/if}}</td><td class="k">{{t "payroll.print.account" "A/c No."}}</td><td class="v mono">{{employee.accountMasked}}</td></tr>
+    <tr><td class="k">{{t "payroll.print.daysInMonth" "Days in month"}}</td><td class="v">{{default attendance.daysInMonth attendance.baseDays}}</td><td class="k">{{t "payroll.print.daysPaid" "Days paid"}}</td><td class="v">{{num attendance.payDays}}</td></tr>
+    <tr><td class="k">{{t "payroll.print.lopDays" "LOP days"}}</td><td class="v">{{num (default attendance.lop 0)}}{{#if attendance.lopEdited}} <span class="muted">({{t "payroll.print.lopEdited" "corrected"}})</span>{{/if}}</td><td class="k">{{t "payroll.print.branch" "Campus"}}</td><td class="v">{{employee.branchName}}</td></tr>
+  </table>
 
-<table class="lines">
-  <thead><tr><th>{{t "payroll.print.earnings" "Earnings"}}</th><th class="n">{{t "payroll.print.amount" "Amount"}}</th><th>{{t "payroll.print.deductions" "Deductions"}}</th><th class="n">{{t "payroll.print.amount" "Amount"}}</th></tr></thead>
-  <tbody>
-    {{#each rows}}
+  <table class="grid pay">
+    <thead><tr><th>{{t "payroll.print.earnings" "Earnings"}}</th><th class="r">{{t "payroll.print.amountRs" "Amount (₹)"}}</th><th>{{t "payroll.print.deductions" "Deductions"}}</th><th class="r">{{t "payroll.print.amountRs" "Amount (₹)"}}</th></tr></thead>
+    <tbody>
+      {{#each rows}}
       <tr>
         <td>{{#if earning}}{{earning.label}}{{#if earning.basis}}<span class="basis">{{earning.basis}}</span>{{/if}}{{/if}}</td>
-        <td class="n">{{#if earning}}{{money earning.amount}}{{/if}}</td>
+        <td class="r">{{#if earning}}{{amount earning.amount}}{{/if}}</td>
         <td>{{#if deduction}}{{deduction.label}}{{#if deduction.basis}}<span class="basis">{{deduction.basis}}</span>{{/if}}{{/if}}</td>
-        <td class="n">{{#if deduction}}{{money deduction.amount}}{{/if}}</td>
+        <td class="r">{{#if deduction}}{{amount deduction.amount}}{{/if}}</td>
       </tr>
-    {{/each}}
-    <tr class="sum"><td>{{t "payroll.print.gross" "Gross earnings"}}</td><td class="n">{{money totals.gross}}</td><td>{{t "payroll.print.totalDeductions" "Total deductions"}}</td><td class="n">{{money totals.deductions}}</td></tr>
-  </tbody>
-</table>
+      {{/each}}
+      <tr class="sum"><td>{{t "payroll.print.gross" "Gross earnings"}}</td><td class="r">{{amount totals.gross}}</td><td>{{t "payroll.print.totalDeductions" "Total deductions"}}</td><td class="r">{{amount totals.deductions}}</td></tr>
+    </tbody>
+  </table>
 
-<div class="net"><span>{{t "payroll.print.net" "Net pay"}}</span><b>{{money totals.net}}</b></div>
-<div class="words">{{words totals.net}}</div>
+  <div class="net"><span>{{t "payroll.print.net" "Net pay"}}</span><b>{{money totals.net}}</b></div>
+  <div class="words">{{t "payroll.print.inWords" "Net pay in words:"}} <b>{{words totals.net}}</b></div>
 
-<div class="small cols">
-  {{#if employer.length}}
-  <div>
-    <b>{{t "payroll.print.employer" "Contributions by the institution"}}</b>
-    <table>{{#each employer}}<tr><td>{{label}}</td><td class="n">{{money amount}}</td></tr>{{/each}}<tr><td><b>{{t "payroll.print.total" "Total"}}</b></td><td class="n"><b>{{money totals.employerContributions}}</b></td></tr></table>
+  <div class="small">
+    {{#if employer.length}}
+    <div>
+      <b>{{t "payroll.print.employer" "Contributions by the institution"}}</b>
+      <table>{{#each employer}}<tr><td>{{label}}</td><td class="r">{{amount amount}}</td></tr>{{/each}}<tr><td><b>{{t "payroll.print.total" "Total"}}</b></td><td class="r"><b>{{amount totals.employerContributions}}</b></td></tr></table>
+    </div>
+    {{/if}}
+    <div>
+      <b>{{t "payroll.print.ytd" "This financial year ({{year}})" year=ytd.label}}</b>
+      <table>
+        <tr><td>{{t "payroll.print.gross" "Gross earnings"}}</td><td class="r">{{amount ytd.gross}}</td></tr>
+        <tr><td>{{t "payroll.print.ytdPf" "Provident fund"}}</td><td class="r">{{amount ytd.pf}}</td></tr>
+        <tr><td>{{t "payroll.print.ytdTds" "Income tax (TDS)"}}</td><td class="r">{{amount ytd.tds}}</td></tr>
+        <tr><td>{{t "payroll.print.ytdNet" "Net pay"}}</td><td class="r">{{amount ytd.net}}</td></tr>
+      </table>
+    </div>
   </div>
+
+  {{#if fnf}}
+  <div class="small"><div><b>{{t "payroll.print.fnf" "Full and final settlement"}}</b> — {{t "payroll.print.lastDay" "last working day"}} {{date fnf.lastWorkingDate}} · {{t "payroll.print.service" "service {{years}} year(s)" years=fnf.serviceYears}}{{#if fnf.note}} · {{fnf.note}}{{/if}}</div></div>
   {{/if}}
-  <div>
-    <b>{{t "payroll.print.ytd" "This financial year ({{year}})" year=ytd.label}}</b>
-    <table>
-      <tr><td>{{t "payroll.print.gross" "Gross earnings"}}</td><td class="n">{{money ytd.gross}}</td></tr>
-      <tr><td>{{t "payroll.print.ytdPf" "Provident fund"}}</td><td class="n">{{money ytd.pf}}</td></tr>
-      <tr><td>{{t "payroll.print.ytdTds" "Income tax (TDS)"}}</td><td class="n">{{money ytd.tds}}</td></tr>
-      <tr><td>{{t "payroll.print.ytdNet" "Net pay"}}</td><td class="n">{{money ytd.net}}</td></tr>
-    </table>
-  </div>
-</div>
 
-{{#if fnf}}
-<div class="small">
-  <b>{{t "payroll.print.fnf" "Full and final settlement"}}</b> — {{t "payroll.print.lastDay" "last working day"}} {{date fnf.lastWorkingDate}} · {{t "payroll.print.service" "service {{years}} year(s)" years=fnf.serviceYears}}{{#if fnf.note}} · {{fnf.note}}{{/if}}
+  <div class="computer">{{t "payroll.print.computerGenerated" "This is a computer-generated payslip and does not require a signature."}}</div>
 </div>
-{{/if}}
-
-<div class="note">{{t "payroll.print.computer" "This is a computer-generated payslip and needs no signature."}}</div>
 {{> footer}}

@@ -1,49 +1,53 @@
-{{!-- Answer key and marking scheme (A4) of one set: per question the right option or answer (the model answer for
-      short and long answers), its marks and the value points. For examiners only. Data from
-      services/questionPapers.js (questionPaperPrint). --}}
+{{!-- Marking scheme / answer key (A4) of one set, for examiners only: the same heading as the question paper, then
+      per question the right option or answer (the model answer for short and long answers), the value points and
+      its marks. exam.name, exam.year · paper.class, subject, subjectCode, set, showSet, durationMin, hours, maxMarks,
+      draft, setterName, approvedBy · sections[] {title, count, attempt, attemptAny, marks, total, rows[] {no, marks,
+      answer, scheme, or {answer, scheme}}} · total. Data from services/questionPapers.js (questionPaperPrint). --}}
 <style>
-  .ak-conf { text-align: right; font-size: 9pt; font-weight: 700; color: #B91C1C; letter-spacing: .08em }
-  .ak-conf b { display: block; font-size: 16pt; color: #12141C; letter-spacing: 0 }
-  .ak-draft { margin: 2mm 0; padding: 1.5mm 3mm; border: 1px dashed #C2410C; color: #C2410C; font-size: 8.5pt; text-align: center; font-weight: 600 }
-  h1.ak-title { font-size: 12pt; text-align: center; margin: 3mm 0 .5mm; text-transform: uppercase; letter-spacing: .06em }
-  .ak-sub { text-align: center; font-size: 10pt; font-weight: 600; margin-bottom: 3mm }
-  .ak-sec { margin-top: 4mm; break-inside: auto }
-  .ak-sec h2 { font-size: 10pt; margin: 0 0 1mm }
-  .ak-sec .note { font-size: 8.5pt; color: #5B616E; margin-bottom: 1mm }
-  table.ak { width: 100%; border-collapse: collapse; font-size: 9pt }
-  table.ak th { text-align: left; font-weight: 600; color: #5B616E; border-bottom: 1px solid #C8CCD4; padding: 1.2mm 1mm }
-  table.ak td { padding: 1.2mm 1mm; border-bottom: 1px solid #EEF0F3; vertical-align: top }
-  table.ak td.no { width: 10mm; font-weight: 600 }
-  table.ak td.mk { width: 12mm; text-align: right; white-space: nowrap }
-  table.ak td.sch { width: 38%; color: #3A3F4B }
-  table.ak tr.or td { border-top: 0 }
-  table.ak .orl { font-weight: 700; font-size: 8pt; letter-spacing: .06em; color: #5B616E }
-  .ak-total { text-align: right; margin-top: 3mm; font-size: 10pt; font-weight: 600 }
-  .ak-sign { margin-top: 12mm; display: flex; justify-content: space-between; gap: 8mm; font-size: 9pt }
-  .ak-sign div { flex: 1; text-align: center; border-top: 1px solid #8B90A0; padding-top: 1.5mm }
+  .ak-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 3mm; font-size: 9pt }
+  .ak-top b.box { display: inline-block; min-width: 14mm; border: .3mm solid #12141C; padding: .4mm 2mm; text-align: center; font-size: 10.5pt }
+  .ak-draft { margin: 2mm 0; padding: 1.5mm 3mm; border: .3mm dashed #333; font-size: 8.5pt; text-align: center; font-weight: 700 }
+  .qp-facts { width: 100%; font-size: 10pt; border-top: .35mm solid #12141C; border-bottom: .35mm solid #12141C; margin-bottom: 3mm }
+  .qp-facts td { padding: 1.1mm 0 } .qp-facts td.r { text-align: right }
+  .ak-sec { margin-top: 4mm }
+  .ak-sec h2 { font-size: 10pt; margin: 0 0 .6mm; text-transform: uppercase; letter-spacing: .06em }
+  .ak-sec .sn { font-size: 8.5pt; color: #3B3F47; margin-bottom: 1.2mm }
+  table.grid { font-size: 9pt } table.grid th { vertical-align: middle }
+  table.grid td.no { width: 11mm; text-align: center; font-weight: 600 } table.grid td.mk { width: 14mm; text-align: center; white-space: nowrap; font-weight: 600 }
+  table.grid td.sch { width: 36% } table.grid .orl { font-weight: 700; font-size: 8pt; letter-spacing: .06em }
+  .ak-total { text-align: right; margin-top: 3mm; font-size: 10pt; font-weight: 700 }
 </style>
-{{#> letterhead}}<div class="ak-conf">{{t "questionPapers.print.confidential" "CONFIDENTIAL"}}{{#if paper.showSet}}<b>{{t "questionPapers.print.set" "Set"}} {{paper.set}}</b>{{/if}}</div>{{/letterhead}}
+<div class="ak-top">
+  <span class="copy">{{t "questionPapers.print.confidential" "CONFIDENTIAL"}} · {{t "questionPapers.print.forExaminers" "for examiners only"}}</span>
+  <span>{{#if paper.subjectCode}}{{t "questionPapers.print.codeNo" "Code No."}} <b class="box">{{paper.subjectCode}}</b>{{/if}}{{#if paper.showSet}} &nbsp;{{t "questionPapers.print.set" "Set"}} <b class="box">{{paper.set}}</b>{{/if}}</span>
+</div>
+{{#> letterhead}}{{/letterhead}}
 {{#if paper.draft}}<div class="ak-draft">{{t "questionPapers.print.draft" "DRAFT — this paper has not been approved yet"}}</div>{{/if}}
-<h1 class="ak-title">{{t "questionPapers.print.answerKey" "Answer key and marking scheme"}}</h1>
-<div class="ak-sub">{{exam.name}} · {{paper.class}} · {{paper.subject}} · {{t "questionPapers.print.maxMarks" "Maximum marks"}} {{paper.maxMarks}}</div>
+<div class="doc-title">{{t "questionPapers.print.markingScheme" "Marking scheme"}}</div>
+<div class="doc-sub">{{exam.name}}{{#if exam.year}} ({{exam.year}}){{/if}}</div>
+<table class="qp-facts">
+  <tr><td>{{t "questionPapers.print.class" "Class"}}: <b>{{paper.class}}</b></td><td class="r">{{t "questionPapers.print.subject" "Subject"}}: <b>{{paper.subject}}</b></td></tr>
+  <tr><td>{{#if paper.durationMin}}{{t "questionPapers.print.time" "Time allowed"}}: <b>{{#if (eq paper.hours 1)}}{{t "questionPapers.print.hour" "1 hour"}}{{else if paper.hours}}{{t "questionPapers.print.hours" "{{n}} hours" n=paper.hours}}{{else}}{{t "questionPapers.print.minutes" "{{n}} minutes" n=paper.durationMin}}{{/if}}</b>{{/if}}</td>
+      <td class="r">{{t "questionPapers.print.maxMarks" "Maximum marks"}}: <b>{{paper.maxMarks}}</b></td></tr>
+</table>
 {{#each sections}}
 <div class="ak-sec">
   <h2>{{title}}</h2>
-  <div class="note">{{attempt}} × {{num marks}} = {{num total}}{{#if attemptAny}} · {{t "questionPapers.print.attemptAny" "Attempt any {{n}} of the {{of}} questions." n=attempt of=count}}{{/if}}</div>
-  <table class="ak">
-    <thead><tr><th>{{t "questionPapers.print.q" "Q."}}</th><th>{{t "questionPapers.print.answer" "Answer"}}</th><th>{{t "questionPapers.print.scheme" "Marking scheme"}}</th><th style="text-align:right">{{t "questionPapers.print.marks" "Marks"}}</th></tr></thead>
+  <div class="sn">{{attempt}} × {{num marks}} = {{num total}}{{#if attemptAny}} · {{t "questionPapers.print.attemptAny" "Attempt any {{n}} of the {{of}} questions." n=attempt of=count}}{{/if}}</div>
+  <table class="grid">
+    <thead><tr><th style="text-align:center">{{t "questionPapers.print.q" "Q. No."}}</th><th>{{t "questionPapers.print.answer" "Expected answer / value points"}}</th><th>{{t "questionPapers.print.scheme" "Distribution of marks"}}</th><th style="text-align:center">{{t "questionPapers.print.marks" "Marks"}}</th></tr></thead>
     <tbody>
       {{#each rows}}
-        <tr><td class="no">{{no}}</td><td>{{#if answer}}{{lines answer}}{{else}}—{{/if}}</td><td class="sch">{{lines scheme}}</td><td class="mk">{{num marks}}</td></tr>
-        {{#if or}}<tr class="or"><td class="no"><span class="orl">{{t "questionPapers.print.or" "OR"}}</span></td><td>{{#if or.answer}}{{lines or.answer}}{{else}}—{{/if}}</td><td class="sch">{{lines or.scheme}}</td><td class="mk">{{num ../marks}}</td></tr>{{/if}}
+        <tr><td class="no">{{no}}</td><td>{{lines answer}}</td><td class="sch">{{lines scheme}}</td><td class="mk">{{num marks}}</td></tr>
+        {{#if or}}<tr><td class="no"><span class="orl">{{t "questionPapers.print.or" "OR"}}</span></td><td>{{lines or.answer}}</td><td class="sch">{{lines or.scheme}}</td><td class="mk">{{num ../marks}}</td></tr>{{/if}}
       {{/each}}
     </tbody>
   </table>
 </div>
 {{/each}}
 <div class="ak-total">{{t "questionPapers.print.total" "Total"}}: {{num total}} / {{paper.maxMarks}}</div>
-<div class="ak-sign">
-  <div>{{t "questionPapers.print.setter" "Paper setter"}}{{#if paper.setterName}}<br>{{paper.setterName}}{{/if}}</div>
-  <div>{{t "questionPapers.print.approver" "Approved by"}}{{#if paper.approvedBy}}<br>{{paper.approvedBy}}{{/if}}</div>
+<div class="signs no-break">
+  <div>{{t "questionPapers.print.setter" "Paper setter"}}{{#if paper.setterName}}<br><span class="note">{{paper.setterName}}</span>{{/if}}</div>
+  <div>{{t "questionPapers.print.approver" "Approved by (Exam in-charge)"}}{{#if paper.approvedBy}}<br><span class="note">{{paper.approvedBy}}</span>{{/if}}</div>
 </div>
 {{> footer}}

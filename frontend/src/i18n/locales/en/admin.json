@@ -1554,7 +1554,15 @@
         "city": "City",
         "state": "State",
         "pincode": "PIN code",
-        "country": "Country"
+        "country": "Country",
+        "board": "Board / university",
+        "boardHint": "Printed on the letterhead, e.g. “Affiliated to CBSE, New Delhi”",
+        "schoolCode": "School code (board)",
+        "schoolCodeHint": "CBSE school no. or the board’s school code",
+        "trustName": "Run by (trust / society)",
+        "trustNameHint": "e.g. “Green Valley Educational Trust” — printed under the name",
+        "reg80G": "80G registration no.",
+        "reg80GHint": "For donation receipts, with validity, e.g. “AAATG1234F/80G/2024-25 (valid till 2029)”"
       },
       "dateFormat": "Date format",
       "timezone": "Time zone",

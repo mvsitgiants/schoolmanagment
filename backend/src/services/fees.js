@@ -5,6 +5,7 @@ import { AcademicYear, ClassLevel, Section } from '../models/academics.js'
 import { Concession, FeeDayEnd, FeeHead, FeeInvoice, FeePayment, FeeRefund, FeeStructure, newReceiptCode } from '../models/fees.js'
 import { Student, studentName } from '../models/students.js'
 import { Tenant } from '../models/platform.js'
+import { BankAccount } from '../models/finance.js'
 import { Branch } from '../models/tenant.js'
 import { can, scopeOf } from '../platform/access.js'
 import { audit } from '../platform/audit.js'
@@ -59,7 +60,7 @@ async function placeOf(sectionId) {
   const s = await Section.findById(sectionId).lean()
   if (!s) return null
   const c = await ClassLevel.findById(s.classId).select('name code').lean()
-  return { label: sectionLabel(c, s), short: sectionLabel(c, s, { short: true }) }
+  return { label: sectionLabel(c, s), short: sectionLabel(c, s, { short: true }), className: c?.name ?? null, section: s.name ?? null }
 }
 
 // ───────────────────────────────────────────────────────── invoices: totals and concessions
@@ -299,7 +300,7 @@ export async function studentLedger(studentId, auth) {
  * Take a payment. The late fee due on each overdue installment is charged first (unless waived by
  * someone who may give concessions at the counter), then the money pays installments oldest first.
  */
-export async function collect({ studentId, amount, mode, reference, waiveLateFee = false, note, invoiceIds, online = false }, auth, req) {
+export async function collect({ studentId, amount, mode, reference, chequeBank, chequeDate, waiveLateFee = false, note, invoiceIds, online = false }, auth, req) {
   const s = await studentInScope(studentId, auth)
   if (amount <= 0) throw fieldsError({ amount: 'Enter the amount received' })
   if (waiveLateFee && !can(auth, 'fees.collect.discount')) throw forbidden('Your role can’t waive late fees.')
@@ -327,6 +328,7 @@ export async function collect({ studentId, amount, mode, reference, waiveLateFee
     for (const inv of invoices) if (inv.isModified()) await inv.save()
     const [p] = await FeePayment.create([{
       receiptNo: await nextNumber('RECEIPT', { branchId: s.branchId }), studentId: s._id, branchId: s.branchId, date: t, mode, reference: reference || undefined,
+      ...(mode === 'CHEQUE' && (chequeBank || chequeDate) && { instrument: { bank: chequeBank || undefined, date: chequeDate || undefined } }),
       amount, allocations, collectedById: auth.userId, collectedBy: auth.user?.name, note: note || undefined,
     }])
     return p
@@ -732,8 +734,36 @@ export async function receiptPrintData(id, auth) {
   const s = await studentInScope(p.studentId, auth)
   const invoices = await FeeInvoice.find({ _id: { $in: p.allocations.map((a) => a.invoiceId) } }).lean()
   const open = await FeeInvoice.find({ studentId: s._id, status: { $in: ['UNPAID', 'PARTIAL'] } }).select('balance').lean()
-  return { payment: p, student: s, place: await placeOf(s.sectionId), invoices, balance: open.reduce((n, i) => n + i.balance, 0) }
+  const yearId = invoices[0]?.academicYearId
+  const year = yearId ? await AcademicYear.findById(yearId).select('name').lean() : null
+  return { payment: p, student: s, place: await placeOf(s.sectionId), invoices, balance: open.reduce((n, i) => n + i.balance, 0), year: year?.name ?? null }
 }
+
+/**
+ * A fee invoice printed as the bank challan / fee demand slip (documents FEE_INVOICE): the installment's fees, its due
+ * date, the late fee after it, the student, and where to pay — the institution's main bank account and UPI ID.
+ */
+export async function invoicePrintData(id, auth) {
+  const inv = isOid(id) ? await FeeInvoice.findById(id).lean() : null
+  if (!inv) throw notFound('Invoice')
+  const s = await studentInScope(inv.studentId, auth)
+  const [cfg, t, place, year, bank, others] = await Promise.all([
+    feeSettings(), today(), placeOf(inv.sectionId ?? s.sectionId),
+    AcademicYear.findById(inv.academicYearId).select('name').lean(),
+    BankAccount.findOne({ active: { $ne: false } }).sort({ isDefault: -1, createdAt: 1 }).lean(),
+    FeeInvoice.find({ studentId: s._id, _id: { $ne: inv._id }, status: { $in: ['UNPAID', 'PARTIAL'] }, dueDate: { $lt: inv.dueDate } }).select('balance').lean(),
+  ])
+  return {
+    invoice: inv, student: s, place, year: year?.name ?? null, today: t,
+    lateFeeDue: inv.status === 'CANCELLED' ? 0 : lateFeeFor({ dueDate: inv.dueDate, balance: inv.balance }, t, cfg),
+    lateFee: { perDay: cfg.perDay, graceDays: cfg.graceDays }, upiId: cfg.upiId || null,
+    bank: bank ? { name: bank.name, bankName: bank.bankName, branch: bank.branch, ifsc: bank.ifsc, last4: bank.accountNoLast4 } : null,
+    arrears: others.reduce((n, i) => n + Math.max(0, i.balance), 0),
+  }
+}
+
+export const latestInvoiceId = async () => (await FeeInvoice.findOne({ status: { $in: ['UNPAID', 'PARTIAL'] } }).sort({ dueDate: -1, createdAt: -1 }).select('_id').lean())?._id
+  ?? (await FeeInvoice.findOne().sort({ createdAt: -1 }).select('_id').lean())?._id
 
 /** Is this receipt genuine? The QR on a printed receipt opens /verify/receipt/<code> (receipt no, date, amount, whose, still valid). */
 export async function verifyReceipt(code) {

@@ -8,10 +8,10 @@ const { Schema, model } = mongoose
 
 const letterheadSchema = new Schema({
   key: { type: String, default: 'MAIN' }, // one letterhead per institution for now
-  align: { type: String, default: 'LEFT' },
+  align: { type: String, default: 'CENTER' },
   showLogo: { type: Boolean, default: true },
   showContacts: { type: Boolean, default: true },
-  ids: { type: [String], default: ['registrationNo', 'affiliationNo'] },
+  ids: { type: [String], default: ['affiliationNo', 'schoolCode', 'udiseCode'] },
   tagline: String,
   accentColor: String,
   footerText: String,

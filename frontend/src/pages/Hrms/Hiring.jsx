@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { Briefcase, Bus, ChevronLeft, Pencil, Plus, Presentation, ShieldCheck, Star, UserCheck, UsersRound, Wrench } from 'lucide-react'
+import { Briefcase, Bus, ChevronLeft, Pencil, Plus, Presentation, Printer, ShieldCheck, Star, UserCheck, UsersRound, Wrench } from 'lucide-react'
 import { CANDIDATE_SOURCES, CANDIDATE_STAGES, EMPLOYEE_CATEGORIES, EMPLOYMENT_TYPES, OPEN_CANDIDATE_STAGES, REQUISITION_STATUSES, toPaise, toRupees } from '@schoolgiant/shared'
 import { Attachments, ColorChip, ContactCell, DataTable, DateCell, Drawer, FormField, HeaderButton, Input, LevelBar, Modal, Money, Note, PageContainer, PageHeader, Panel, PersonCell, SearchInput, SegmentedControl, Select, SideNav, SideNavLayout, StatusPill, Textarea, Timeline } from '../../components/system'
 import Button from '../../components/ui/Button'
@@ -11,6 +11,7 @@ import {
   setRequisitionStatus, updateCandidate, updateRequisition,
 } from '../../api/hrms'
 import { hasPermission } from '../../api/auth'
+import { printDocument } from '../../components/print/printDocument'
 import { useSnackbar } from '../../context/SnackbarContext'
 import { useFormat } from '../../context/SettingsContext'
 import { useHrLabels, useHrMeta } from '../../components/hrms/HrKit'
@@ -139,7 +140,8 @@ function CandidateDrawer({ id, onClose, onChanged }) {
           <StatusPill tone={CANDIDATE_STAGES[c.stage]?.tone}>{L.stage(c.stage)}</StatusPill>
           {c.rating && <span className="inline-flex items-center gap-1 text-sm text-amber-700"><Star className="h-4 w-4" />{c.rating}</span>}
           {c.next?.date && <span className="text-xs text-ink-muted">{t('hrms.hiring.booked', { what: L.stage(c.next.kind), date: date(c.next.date), time: c.next.time ?? '', panel: c.next.panel ?? '' })}</span>}
-          {canEdit && <Button size="sm" variant="ghost" icon={Pencil} className="ml-auto" onClick={() => setEditing(true)}>{t('hrms.edit')}</Button>}
+          {c.offer?.joiningDate && <Button size="sm" variant="ghost" icon={Printer} className="ml-auto" onClick={() => printDocument('HR_OFFER_LETTER', id)}>{t('hrms.hiring.printOffer')}</Button>}
+          {canEdit && <Button size="sm" variant="ghost" icon={Pencil} className={c.offer?.joiningDate ? '' : 'ml-auto'} onClick={() => setEditing(true)}>{t('hrms.edit')}</Button>}
         </div>
         <p className="text-sm text-ink-muted">{[c.qualifications, c.experienceYears != null && t('hrms.profile.years', { count: c.experienceYears }), c.currentEmployer].filter(Boolean).join(' · ')}</p>
         {c.expectedSalary ? <p className="text-sm">{t('hrms.hiring.expected')}: <Money value={c.expectedSalary} paise /></p> : null}

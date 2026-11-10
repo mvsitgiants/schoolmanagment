@@ -113,6 +113,18 @@ const tcSchema = new Schema({
   promotedTo: String, // "Qualified for promotion to Class 9" etc., free text
   feesPaidUpTo: String,
   remarks: String,
+  // the rest of the CBSE-format TC (all optional; the printed TC leaves a blank line for whatever is empty)
+  bookNo: String, // the TC book / register number the school writes on top
+  applicationDate: ymd, // when the family applied for the TC
+  lastExam: String, // "School annual examination, March 2026" / "AISSE (Class X), 2026"
+  lastExamResult: String, // "Passed" / "Failed" / "Compartment in Mathematics"
+  failed: String, // TC_FAILED: NO · ONCE · TWICE
+  subjects: { type: [String], default: undefined },
+  concession: String, // "No" or its nature: "RTE seat (100%)", "Sibling concession 10%"
+  workingDays: Number, // in the academic session up to leaving
+  presentDays: Number,
+  nccScoutGuide: String, // "No" or the details
+  games: String, // games / activities with the level reached
   // a copy of the student as it was, so a reprint reads the same after later edits
   snapshot: { type: Schema.Types.Mixed, default: {} },
   requestedBy: String,

@@ -133,7 +133,10 @@
       "emptyTitle": "No staff records yet",
       "emptyHint": "Add them one by one, import a sheet, or make records from the logins you already have.",
       "geofenceExempt": "Field staff — may check in from anywhere",
-      "geofenceExemptHint": "Their phone check-ins skip the campus location check (drivers, staff on duty outside)."
+      "geofenceExemptHint": "Their phone check-ins skip the campus location check (drivers, staff on duty outside).",
+      "idCards": "Print ID cards",
+      "idCardsPicked": "Print {{count}} ID cards",
+      "idCardsPreparing": "Making the ID cards…"
     },
     "profile": {
       "back": "Back",
@@ -341,6 +344,9 @@
         "TAKEN": "Taken",
         "REVERSAL": "Given back",
         "ADJUST": "Adjusted",
+        "ADJUSTMENT": "Adjusted",
+        "OPENING": "Opening balance",
+        "COMP_OFF": "Compensatory off",
         "LAPSE": "Lapsed",
         "CARRY": "Carried forward"
       },
@@ -550,7 +556,8 @@
       "hired": "Joined — staff record made.",
       "files": "CV and papers",
       "history": "History",
-      "vacanciesNav": "Vacancies"
+      "vacanciesNav": "Vacancies",
+      "printOffer": "Print offer letter"
     },
     "performance": {
       "title": "Appraisal",
@@ -675,6 +682,73 @@
         "free": "Free",
         "pending": "Waiting",
         "taken": "Taken"
+      }
+    },
+    "print": {
+      "offer": {
+        "refNo": "Ref. No.:",
+        "date": "Date:",
+        "to": "To,",
+        "mobile": "Mobile: {{no}}",
+        "subjectLabel": "Subject:",
+        "subjectAppt": "Appointment to the post of {{post}}",
+        "subjectOffer": "Offer of appointment to the post of {{post}}",
+        "dear": "Dear {{name}},",
+        "introAppt": "We are pleased to confirm your appointment as <b>{{post}}</b> at {{school}}, on the terms and conditions below.",
+        "introOffer": "With reference to your application and the interview held with us, we are pleased to offer you the post of <b>{{post}}</b> at {{school}}, on the terms and conditions below.",
+        "postLabel": "Post:",
+        "deptName": "{{name}} department",
+        "joiningLabel": "Date of joining:",
+        "joiningOn": "on or before {{date}}. If you do not join by then, this offer lapses unless extended in writing.",
+        "payLabel": "Pay:",
+        "pay": "a gross salary of {{amount}} per month ({{words}}), with statutory deductions (PF, ESI, professional tax, TDS) as applicable.",
+        "ctc": "Cost to the institution: {{amount}} a year.",
+        "payRules": "as per the pay scale of the institution for the post.",
+        "probationLabel": "Probation:",
+        "probation": "one year from the date of joining, which the management may extend. You will be confirmed in writing on completing it satisfactorily.",
+        "hoursLabel": "Working hours:",
+        "hours": "as per the institution's timings and timetable, including duties on working Saturdays, examinations and school events as assigned by the Principal.",
+        "leaveLabel": "Leave:",
+        "leave": "as per the leave rules of the institution.",
+        "noticeLabel": "Notice period:",
+        "noticeProbation": "one month during probation and three months after confirmation, from either side, or salary for the notice period in lieu. Resignation in the middle of the academic session is not normally accepted.",
+        "notice": "one month from either side, or one month's salary in lieu.",
+        "rulesLabel": "Service rules:",
+        "rules": "you will follow the service rules, code of conduct and child-protection policy of the institution, as amended from time to time.",
+        "otherLabel": "Other terms:",
+        "docsLabel": "Please bring on the day of joining",
+        "docsSub": "(originals with one self-attested copy of each):",
+        "doc1": "Mark sheets and degree certificates",
+        "doc2": "Experience and relieving letters",
+        "doc3": "PAN card and Aadhaar card",
+        "doc4": "Bank account details (cancelled cheque)",
+        "doc5": "Four passport-size photographs",
+        "doc6": "Medical fitness certificate",
+        "doc7": "B.Ed. / TET / CTET certificate, as applicable",
+        "doc8": "Police verification certificate",
+        "acceptBy": "Please sign the acceptance below and return a copy of this letter to the office as a token of your acceptance.",
+        "welcome": "We welcome you to {{school}} and wish you a long and happy association with us.",
+        "yours": "Yours sincerely,",
+        "for": "For {{school}}",
+        "seal": "Seal",
+        "signatory": "Principal / Authorised signatory",
+        "acceptTitle": "Acceptance",
+        "acceptText": "I, {{name}}, have read and understood the terms and conditions above and accept them. I shall join duty on",
+        "acceptSign": "Signature of the candidate",
+        "acceptDatePlace": "Date and place"
+      },
+      "idCard": {
+        "signatory": "Principal",
+        "tag": "Staff ID card",
+        "code": "Employee code",
+        "bloodGroup": "Blood group",
+        "mobile": "Mobile",
+        "validUntil": "Valid until",
+        "emergency": "Emergency",
+        "rules": "This card is the property of the institution. Wear it on duty and return it when you leave. Report a lost card to the office at once.",
+        "issued": "Issued",
+        "returnTo": "If found, please return to:",
+        "phone": "Phone {{phone}}"
       }
     }
   }

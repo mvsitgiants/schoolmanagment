@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { Search, Trash2, UserCheck, UserRoundX } from 'lucide-react'
@@ -47,7 +48,9 @@ export default function Substitutions() {
   const qc = useQueryClient()
   const { showSuccess, showError } = useSnackbar()
   const canCreate = hasPermission('timetable.substitutions.create')
-  const [date, setDate] = useState(localIso(new Date()))
+  // ?date=YYYY-MM-DD: opened from an approved leave (Staff & HR › Leave › Arrange cover)
+  const [params] = useSearchParams()
+  const [date, setDate] = useState(() => (/^\d{4}-\d{2}-\d{2}$/.test(params.get('date') ?? '') ? params.get('date') : localIso(new Date())))
   const [absent, setAbsent] = useState([])
   const [asked, setAsked] = useState(null)
   const { data: teachers = [] } = useQuery({ queryKey: ['timetable-teachers'], queryFn: () => fetchTimetableTeachers() })

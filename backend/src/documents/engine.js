@@ -239,14 +239,24 @@ export function templateError(source) {
 /** The letterhead block for the layout (logo, name, address, contacts, registration numbers). */
 function letterheadBlock(lh, mode, h, accent) {
   if (mode === 'NONE') return `<div class="hn" style="font-size:11pt">${esc(h.name)}</div>`
-  const ids = (lh.ids ?? []).filter((k) => h[k]).map((k) => `${esc(LETTERHEAD_IDS.find((x) => x.value === k)?.label)} ${esc(h[k])}`).join(' · ')
+  const ids = (lh.ids ?? []).filter((k) => h[k]).map((k) => `${esc(LETTERHEAD_IDS.find((x) => x.value === k)?.short ?? LETTERHEAD_IDS.find((x) => x.value === k)?.label)} ${esc(h[k])}`)
+  const address = esc([h.addressLine, h.city, h.state, h.pincode].filter(Boolean).join(', '))
+  const contacts = lh.showContacts !== false ? [h.phone && `Ph: ${esc(h.phone)}`, h.email && `Email: ${esc(h.email)}`, h.website && esc(h.website)].filter(Boolean).join(' · ') : ''
+  if (lh.align === 'CENTER') {
+    // The usual Indian school letterhead: crest on the left, the name in capitals in the middle, the board and its
+    // numbers under it, then the address and contacts — over a double rule.
+    const logo = lh.showLogo !== false && h.logoUrl ? `<img class="crest" src="${esc(h.logoUrl)}" alt="" />` : ''
+    const board = [h.board && `Affiliated to ${esc(h.board)}`, ...ids].filter(Boolean).join(' · ')
+    return `<div class="lh-classic">${logo ? `<div class="crest-box">${logo}</div>` : '<div class="crest-box"></div>'}<div class="lh-mid">${h.trustName ? `<div class="lh-trust">${esc(h.trustName)}</div>` : ''}<div class="hn-classic" style="color:${esc(accent)}">${esc(h.name)}</div>${lh.tagline ? `<div class="lh-tag">${esc(lh.tagline)}</div>` : ''}${board ? `<div class="lh-board">${board}</div>` : ''}${address ? `<div class="lh-line">${address}</div>` : ''}${contacts ? `<div class="lh-line">${contacts}</div>` : ''}</div><div class="crest-box"></div></div>`
+  }
   return [
     lh.showLogo !== false && h.logoUrl ? `<img class="logo" src="${esc(h.logoUrl)}" alt="" />` : '',
     `<div class="hn" style="color:${esc(accent)}">${esc(h.name)}</div>`,
     lh.tagline ? `<div class="muted" style="font-style:italic">${esc(lh.tagline)}</div>` : '',
-    `<div class="muted">${esc([h.addressLine, h.city, h.state, h.pincode].filter(Boolean).join(', '))}</div>`,
-    lh.showContacts !== false ? `<div class="muted">${esc([h.phone, h.email, h.website].filter(Boolean).join(' · '))}</div>` : '',
-    ids ? `<div class="muted">${ids}</div>` : '',
+    h.board ? `<div class="muted">Affiliated to ${esc(h.board)}</div>` : '',
+    `<div class="muted">${address}</div>`,
+    contacts ? `<div class="muted">${contacts}</div>` : '',
+    ids.length ? `<div class="muted">${ids.join(' · ')}</div>` : '',
   ].filter(Boolean).join('')
 }
 
@@ -288,6 +298,29 @@ const BASE_CSS = (L) => `
   .mono { font-family: "JetBrains Mono", ui-monospace, monospace } .r { text-align: right; white-space: nowrap } .accent { color: ${L.accent} }
   .doc-foot { margin-top: 4mm; padding-top: 1.5mm; border-top: 0.3mm solid #E3E5EA; display: flex; justify-content: space-between; gap: 4mm; color: #5B616E; font-size: 7.6pt }
   table { width: 100%; border-collapse: collapse }
+  /* the classic (centred) letterhead */
+  .head.center { border-bottom: 0; padding-bottom: 0 }
+  .head.center .lh { border-bottom: 0.9mm double ${L.accent}; padding-bottom: 2mm }
+  .lh-classic { display: grid; grid-template-columns: 22mm 1fr 22mm; align-items: center; gap: 3mm }
+  .crest-box { display: flex; justify-content: center } .crest { max-width: 22mm; max-height: 22mm; object-fit: contain }
+  .lh-mid { text-align: center } .lh-trust { font-size: 7.8pt; color: #3B3F47; text-transform: uppercase; letter-spacing: .06em }
+  .hn-classic { font-family: "Noto Serif", Georgia, "Times New Roman", serif; font-size: 18pt; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; line-height: 1.15 }
+  .lh-tag { font-style: italic; font-size: 8.4pt; color: #3B3F47 } .lh-board { font-size: 8.2pt; font-weight: 600; color: #22252C; margin-top: .6mm } .lh-line { font-size: 8pt; color: #3B3F47 }
+  /* building blocks the built-in templates share (Indian school paperwork: ruled tables, signatures with the seal, office / parent copies) */
+  .doc-title { text-align: center; font-family: "Noto Serif", Georgia, "Times New Roman", serif; font-size: 13pt; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; text-decoration: underline; text-underline-offset: 1.3mm; margin: 4mm 0 3mm }
+  .doc-sub { text-align: center; font-size: 9pt; font-weight: 600; margin: -1.5mm 0 3mm }
+  .copy { display: inline-block; border: 0.3mm solid #333; padding: .4mm 2mm; font-size: 7.4pt; font-weight: 700; text-transform: uppercase; letter-spacing: .05em }
+  table.grid th, table.grid td { border: 0.25mm solid #555; padding: 1.2mm 2mm; vertical-align: top } table.grid th { background: #EEF0F3; font-weight: 600; text-align: left } table.grid .r { text-align: right }
+  table.grid tfoot td, table.grid tr.total td { font-weight: 700; background: #F6F7F9 }
+  table.kv td { padding: 1mm 1.5mm; vertical-align: top } table.kv td.k { color: #3B3F47; white-space: nowrap; width: 1% } table.kv td.v { font-weight: 600 }
+  .fill { border-bottom: 0.25mm dotted #555; padding: 0 1mm; font-weight: 600 }
+  .box { border: 0.3mm solid #444; padding: 2mm 3mm } .frame { border: 1.4mm double ${L.accent}; padding: 5mm 6mm; min-height: 255mm }
+  .words { font-style: italic } .note { font-size: 7.6pt; color: #3B3F47 } .center { text-align: center } .upper { text-transform: uppercase }
+  .photo { width: 28mm; height: 34mm; border: 0.3mm solid #555; display: flex; align-items: center; justify-content: center; text-align: center; color: #8A8F99; font-size: 7pt; overflow: hidden } .photo img { width: 100%; height: 100%; object-fit: cover }
+  .signs { display: flex; justify-content: space-between; align-items: flex-end; gap: 8mm; margin-top: 16mm } .signs > div { flex: 1; text-align: center; border-top: 0.3mm solid #333; padding-top: 1.2mm; font-size: 8.6pt }
+  .seal { width: 22mm; height: 22mm; border: 0.3mm dashed #9AA0AA; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #9AA0AA; font-size: 6.8pt; margin: 0 auto 2mm }
+  .cut { border-top: 0.35mm dashed #8A8F99; margin: 7mm 0 5mm; text-align: center; line-height: 0 } .cut span { background: #fff; padding: 0 2mm; font-size: 7pt; color: #8A8F99 }
+  @media print { .no-break { break-inside: avoid } .page-break { break-before: page } }
   ${L.card ? `* { -webkit-print-color-adjust: exact; print-color-adjust: exact } html, body { margin: 0; padding: 0 } .page { padding: 0 }
   @media screen { body { background: #E9ECF1; padding: 24px 12px } .page { background: transparent; max-width: none; padding: 0; box-shadow: none } }` : ''}
 `

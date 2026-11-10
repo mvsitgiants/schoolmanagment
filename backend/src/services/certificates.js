@@ -106,6 +106,14 @@ export async function feesPaidIn(studentId, fyLabel) {
   return { fy: fy.label, from: fy.from, to: fy.to, receipts: payments.length, paid, refunded, total: paid - refunded, tuition: Math.max(0, tuition - tuitionRefunded), heads }
 }
 
+/** The study certificate's table: each academic year here with the class studied (from the student's history), oldest first. */
+function studyYears(s, place) {
+  const byYear = new Map()
+  for (const h of s.history ?? []) if (h.yearName && h.classLabel) byYear.set(h.yearName, h.classLabel)
+  if (s.status === 'ACTIVE' && place?.yearName && place?.label) byYear.set(place.yearName, place.label)
+  return [...byYear.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([year, cls]) => ({ year, class: cls }))
+}
+
 /** What the certificate will state for this student, by kind. */
 async function snapshotFor(s, kind, input, auth) {
   const place = await placeOf(s.sectionId)
@@ -127,6 +135,7 @@ async function snapshotFor(s, kind, input, auth) {
       from: s.admissionDate ?? null, to: s.leaving?.date ?? null, studying: s.status === 'ACTIVE',
       fromClass: input.fromClass || s.history?.find((h) => h.event === 'ADMITTED')?.classLabel || first?.classLabel || null,
       toClass: input.toClass || (s.status === 'ACTIVE' ? place?.label : last?.classLabel) || null,
+      years: studyYears(s, place),
     })
   }
   if (kind === 'FEE') {
@@ -230,7 +239,13 @@ export async function cancelCertificate(id, reason, auth, req) {
 export async function certificatePrintData(id, auth) {
   const c = await certificateInScope(id, auth)
   await Certificate.updateOne({ _id: c._id }, { $inc: { prints: 1 }, $set: { lastPrintedAt: new Date() } })
-  return { certificate: c.toObject(), verifyUrl: verifyUrl(c.verifyCode) }
+  const certificate = c.toObject()
+  // study certificates issued before the year-by-year table was kept: read it from the student's history
+  if (c.kind === 'STUDY' && !certificate.snapshot?.years) {
+    const s = await Student.findById(c.studentId).select('history status sectionId').lean()
+    if (s) certificate.snapshot = { ...certificate.snapshot, years: studyYears(s, s.status === 'ACTIVE' ? await placeOf(s.sectionId) : null) }
+  }
+  return { certificate, verifyUrl: verifyUrl(c.verifyCode) }
 }
 
 /** Public: is this certificate genuine? Only what the paper itself shows, never more. */

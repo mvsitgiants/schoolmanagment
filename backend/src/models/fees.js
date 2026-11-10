@@ -83,6 +83,7 @@ const paymentSchema = new Schema({
   at: { type: Date, default: Date.now },
   mode: { type: String, required: true }, // PAYMENT_MODES
   reference: String,
+  instrument: { bank: String, date: String }, // a cheque / DD: the bank it is drawn on and its date
   amount: { type: Number, required: true },
   allocations: [{ _id: false, invoiceId: ObjectId, amount: Number }],
   refunded: paise,

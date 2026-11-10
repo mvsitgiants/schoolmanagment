@@ -1,64 +1,89 @@
-{{!-- Consolidated transcript (A4): every semester of the student's program with the latest attempt of each course,
-      the SGPA per semester, the CGPA, its percentage equivalent and the classification. Provisional until every
-      credit needed to graduate is earned. --}}
+{{!-- Consolidated transcript (A4), UGC CBCS format: every semester of the student's programme with the latest attempt
+      of each course, the SGPA per semester, the CGPA, its percentage equivalent and the classification.
+      student.name, registerNo, admissionNo, dob, batch · program.name, code, level, department, regulation, years ·
+      semesters[] {semester, sgpa, credits, earned, creditPoints, courses[] {code, title, credits, grade, points,
+      creditPoints, pass, session}} · result.cgpa, pct, multiplier, earned, required, arrears, classification, complete ·
+      scale[] {grade, label, range, points}. Provisional until every credit needed to graduate is earned. --}}
 <style>
-  h1 { font-size: 13pt; text-align: center; letter-spacing: .08em; text-transform: uppercase; margin: 4mm 0 1mm }
-  .sub { text-align: center; font-size: 10.5pt; font-weight: 600; margin-bottom: 5mm }
-  .who { display: grid; grid-template-columns: 1fr 1fr; gap: 1mm 8mm; font-size: 9.5pt; margin-bottom: 4mm }
-  .who span { color: #5B616E }
-  h2 { font-size: 9.5pt; margin: 4mm 0 1mm; text-transform: uppercase; letter-spacing: .05em; color: #3A3F4B; display: flex; justify-content: space-between }
-  table.m { width: 100%; border-collapse: collapse; font-size: 8.5pt }
-  table.m th { text-align: left; font-weight: 600; color: #5B616E; border-bottom: 1px solid #C8CCD4; padding: 1.2mm; background: #F6F7F9 }
-  table.m td { padding: 1.1mm 1.2mm; border-bottom: 1px solid #EEF0F3 }
-  table.m .n { text-align: right; white-space: nowrap }
-  table.m .c { text-align: center }
-  .ra { color: #C0392B; font-weight: 700 }
-  .summary { display: flex; gap: 4mm; margin-top: 5mm }
-  .summary div { flex: 1; border: 1px solid #E3E5EA; border-radius: 2mm; padding: 2mm 3mm; font-size: 9pt }
-  .summary b { display: block; font-size: 12pt; margin-top: .5mm }
-  .scale { margin-top: 3mm; font-size: 8pt; color: #5B616E }
-  .scale span { display: inline-block; margin-right: 4mm }
-  .sign { margin-top: 16mm; display: flex; justify-content: space-between; gap: 10mm; font-size: 9.5pt }
-  .sign div { flex: 1; text-align: center; border-top: 1px solid #8B90A0; padding-top: 2mm }
-  .draft { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 50pt; font-weight: 800; color: rgba(185,130,31,.16); transform: rotate(-20deg); pointer-events: none }
+  table.grid { font-size: 8.4pt } table.grid th { text-align: center; vertical-align: middle } table.grid th.l { text-align: left }
+  table.grid th, table.grid td { padding: .8mm 1.6mm } table.grid td.c { text-align: center; white-space: nowrap }
+  .who { margin-bottom: 2mm } .who td.k { padding-right: 3mm }
+  .sem { margin: 3.5mm 0 1mm; display: flex; justify-content: space-between; font-size: 9pt; font-weight: 700 } .sem span:last-child { font-weight: 600 }
+  .ra { font-weight: 700; text-decoration: underline }
+  .sum { margin-top: 4mm } .sum td { text-align: center; font-weight: 700; font-size: 10pt } .sum th { font-size: 8.2pt }
+  .scale { margin-top: 4mm } .scale .cap { font-size: 7.8pt; font-weight: 600; margin-bottom: .8mm }
+  .scale table.grid { font-size: 7.2pt; table-layout: fixed } .scale table.grid th:first-child { width: 24mm } .scale table.grid th, .scale table.grid td { padding: .5mm .8mm; text-align: center }
+  .place { margin-top: 6mm; font-size: 9pt; line-height: 1.7 }
+  .signs { margin-top: 26mm } .signs .sealed { position: relative } .signs .sealed .seal { position: absolute; left: 50%; bottom: 100%; transform: translate(-50%, -1.5mm); margin: 0 }
+  .draft { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 50pt; font-weight: 800; color: rgba(0,0,0,.07); transform: rotate(-20deg); pointer-events: none }
 </style>
 {{#unless result.complete}}<div class="draft">{{t "coe.print.transcript.provisional" "PROVISIONAL"}}</div>{{/unless}}
 {{#> letterhead}}{{/letterhead}}
-<h1>{{t "coe.print.transcript.title" "Consolidated grade transcript"}}</h1>
-<div class="sub">{{program.name}}</div>
-<div class="who">
-  <div><span>{{t "coe.print.transcript.name" "Name"}}:</span> <b>{{student.name}}</b></div>
-  <div><span>{{t "coe.print.transcript.registerNo" "Register No."}}:</span> <span class="mono">{{default student.registerNo student.admissionNo}}</span></div>
-  {{#if student.dob}}<div><span>{{t "coe.print.transcript.dob" "Date of birth"}}:</span> {{date student.dob}}</div>{{/if}}
-  <div><span>{{t "coe.print.transcript.batch" "Batch"}}:</span> {{student.batch}}</div>
-  {{#if program.department}}<div><span>{{t "coe.print.transcript.department" "Department"}}:</span> {{program.department}}</div>{{/if}}
-  {{#if program.regulation}}<div><span>{{t "coe.print.transcript.regulation" "Regulation"}}:</span> {{program.regulation}}</div>{{/if}}
-</div>
+<div class="doc-title">{{t "coe.print.transcript.title" "Consolidated grade transcript"}}</div>
+<div class="doc-sub">{{program.name}}{{#if program.code}} ({{program.code}}){{/if}}</div>
+
+<table class="kv who">
+  <tr><td class="k">{{t "coe.print.transcript.name" "Name of the student"}}</td><td class="v" colspan="3">{{upper student.name}}</td></tr>
+  <tr><td class="k">{{t "coe.print.transcript.registerNo" "Register No."}}</td><td class="v mono">{{default student.registerNo student.admissionNo}}</td>
+      <td class="k">{{t "coe.print.transcript.batch" "Batch"}}</td><td class="v">{{student.batch}}</td></tr>
+  {{#if (or program.department student.dob)}}
+  <tr><td class="k">{{t "coe.print.transcript.department" "Department"}}</td><td class="v">{{program.department}}</td>
+      <td class="k">{{t "coe.print.transcript.dob" "Date of birth"}}</td><td class="v">{{#if student.dob}}{{date student.dob}}{{/if}}</td></tr>
+  {{/if}}
+  {{#if (or program.regulation program.years)}}
+  <tr><td class="k">{{t "coe.print.transcript.regulation" "Regulation"}}</td><td class="v">{{program.regulation}}</td>
+      <td class="k">{{t "coe.print.transcript.duration" "Duration"}}</td><td class="v">{{#if program.years}}{{t "coe.print.transcript.years" "{{n}} years" n=program.years}}{{/if}}</td></tr>
+  {{/if}}
+</table>
 
 {{#each semesters}}
-  <h2><span>{{t "coe.print.transcript.semester" "Semester"}} {{semester}}</span><span>{{t "coe.print.transcript.sgpa" "SGPA"}} {{default (num sgpa) "—"}} · {{t "coe.print.transcript.credits" "Credits"}} {{num earned}} / {{num credits}}</span></h2>
-  <table class="m">
-    <thead><tr><th>{{t "coe.print.transcript.code" "Code"}}</th><th>{{t "coe.print.transcript.course" "Course"}}</th><th class="n">{{t "coe.print.transcript.credits" "Credits"}}</th><th class="c">{{t "coe.print.transcript.grade" "Grade"}}</th><th class="c">{{t "coe.print.transcript.points" "Points"}}</th><th>{{t "coe.print.transcript.passedIn" "Exam"}}</th></tr></thead>
+  <div class="sem no-break"><span>{{t "coe.print.transcript.semester" "Semester"}} {{semester}}</span>
+    <span>{{t "coe.print.transcript.sgpa" "SGPA"}}: {{num sgpa}} · {{t "coe.print.transcript.creditsEarned" "Credits earned"}}: {{num earned}} / {{num credits}}</span></div>
+  <table class="grid">
+    <thead><tr>
+      <th style="width:22mm">{{t "coe.print.transcript.code" "Course code"}}</th><th class="l">{{t "coe.print.transcript.course" "Course title"}}</th>
+      <th style="width:14mm">{{t "coe.print.transcript.credits" "Credits"}}</th><th style="width:13mm">{{t "coe.print.transcript.grade" "Grade"}}</th>
+      <th style="width:16mm">{{t "coe.print.transcript.points" "Grade point"}}</th><th style="width:18mm">{{t "coe.print.transcript.creditPoints" "Credit points"}}</th>
+      <th style="width:22mm">{{t "coe.print.transcript.passedIn" "Month & year of passing"}}</th>
+    </tr></thead>
     <tbody>
-      {{#each courses}}<tr><td class="mono">{{code}}</td><td>{{title}}</td><td class="n">{{num credits}}</td><td class="c{{#unless pass}} ra{{/unless}}"><b>{{grade}}</b></td><td class="c">{{points}}</td><td>{{session}}</td></tr>{{/each}}
+      {{#each courses}}<tr><td class="c mono">{{code}}</td><td>{{title}}</td><td class="c">{{num credits}}</td><td class="c{{#unless pass}} ra{{/unless}}"><b>{{grade}}</b></td><td class="c">{{points}}</td><td class="c">{{num creditPoints}}</td><td class="c">{{#if pass}}{{session}}{{/if}}</td></tr>{{/each}}
+      <tr class="total"><td></td><td>{{t "coe.print.transcript.total" "Total"}}</td><td class="c">{{num credits}}</td><td></td><td></td><td class="c">{{num creditPoints}}</td><td></td></tr>
     </tbody>
   </table>
 {{/each}}
 
-<div class="summary">
-  <div>{{t "coe.print.transcript.cgpa" "CGPA"}}<b>{{default (num result.cgpa) "—"}}</b></div>
-  <div>{{t "coe.print.transcript.percentage" "Equivalent %"}}<b>{{#if result.pct}}{{num result.pct}}%{{else}}—{{/if}}</b></div>
-  <div>{{t "coe.print.transcript.earned" "Credits earned"}}<b>{{num result.earned}}{{#if result.required}} / {{num result.required}}{{/if}}</b></div>
-  <div>{{t "coe.print.transcript.classification" "Classification"}}<b>{{#if result.classification}}{{result.classification}}{{else}}—{{/if}}</b></div>
-</div>
-<div class="scale"><b>{{t "coe.print.transcript.scale" "Grading scale"}}:</b>
-  {{#each scale}}<span>{{grade}} = {{points}}</span>{{/each}}
-  · {{t "coe.print.transcript.pctNote" "Percentage = CGPA ×"}} {{result.multiplier}}
-</div>
+<table class="grid sum no-break">
+  <thead><tr>
+    <th>{{t "coe.print.transcript.earned" "Total credits earned"}}</th><th>{{t "coe.print.transcript.cgpa" "CGPA"}}</th>
+    <th>{{t "coe.print.transcript.percentage" "Equivalent percentage"}}</th><th>{{t "coe.print.transcript.classification" "Classification"}}</th>
+  </tr></thead>
+  <tbody><tr>
+    <td>{{num result.earned}}{{#if result.required}} / {{num result.required}}{{/if}}</td><td>{{num result.cgpa}}</td>
+    <td>{{#if result.pct}}{{num result.pct}}%{{/if}}</td><td>{{#if result.classification}}{{result.classification}}{{else if result.arrears}}{{t "coe.print.transcript.arrearsN" "{{n}} course(s) to clear" n=result.arrears}}{{/if}}</td>
+  </tr></tbody>
+</table>
+<p class="note">{{t "coe.print.transcript.pctNote2" "CGPA = Σ(credits × grade point) / Σ credits over all semesters. Equivalent percentage = CGPA × {{m}}." m=result.multiplier}}</p>
 
-<div class="sign">
+{{#if scale.length}}
+<div class="scale no-break">
+  <div class="cap">{{t "coe.print.gradeCard.scale" "Grading system (UGC 10-point scale)"}}</div>
+  <table class="grid">
+    <tr><th>{{t "coe.print.gradeCard.letterGrade" "Letter grade"}}</th>{{#each scale}}<td><b>{{grade}}</b></td>{{/each}}<td><b>Ab</b></td></tr>
+    <tr><th>{{t "coe.print.gradeCard.meaning" "Meaning"}}</th>{{#each scale}}<td>{{label}}</td>{{/each}}<td>{{t "coe.print.gradeCard.absent" "Absent"}}</td></tr>
+    <tr><th>{{t "coe.print.gradeCard.points" "Grade point (G)"}}</th>{{#each scale}}<td>{{points}}</td>{{/each}}<td>0</td></tr>
+    <tr><th>{{t "coe.print.gradeCard.marksRange" "Marks (%)"}}</th>{{#each scale}}<td>{{range}}</td>{{/each}}<td>—</td></tr>
+  </table>
+</div>
+{{/if}}
+
+<div class="place no-break">
+  {{#if institution.city}}<div>{{t "coe.print.gradeCard.place" "Place"}}: <b>{{institution.city}}</b></div>{{/if}}
+  <div>{{t "coe.print.gradeCard.dateOfIssue" "Date of issue"}}: <b>{{date @root.$now}}</b></div>
+</div>
+<div class="signs no-break">
   <div>{{t "coe.print.transcript.preparedBy" "Prepared by"}}</div>
-  <div>{{t "coe.print.transcript.controller" "Controller of Examinations"}}</div>
-  <div>{{t "coe.print.transcript.principal" "Principal"}}</div>
+  <div>{{t "coe.print.transcript.checkedBy" "Checked by"}}</div>
+  <div class="sealed"><div class="seal">{{t "coe.print.gradeCard.seal" "Seal"}}</div>{{t "coe.print.transcript.controller" "Controller of Examinations"}}</div>
 </div>
 {{> footer}}

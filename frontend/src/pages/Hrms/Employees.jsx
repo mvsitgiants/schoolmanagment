@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { Briefcase, Bus, Download, Presentation, ShieldCheck, UserPlus, Users, UsersRound, Wrench } from 'lucide-react'
+import { Briefcase, Bus, CreditCard, Download, Presentation, ShieldCheck, UserPlus, Users, UsersRound, Wrench } from 'lucide-react'
 import { EMPLOYEE_CATEGORIES, EMPLOYEE_STATUSES, EMPLOYMENT_TYPES, GENDERS } from '@schoolgiant/shared'
 import { ColorChip, ContactCell, ControlChip, DataTable, DateCell, FormField, PersonCell, StackCell, HeaderButton, ImportExportButtons, Input, Modal, PageContainer, PageHeader, Select, StatCardRow, StatusPill, Textarea, Toolbar, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
@@ -11,6 +11,7 @@ import { createEmployee, exportEmployees, fetchEmployees, importEmployees, recor
 import { fetchRoles } from '../../api/core'
 import { hasPermission } from '../../api/auth'
 import { useSnackbar } from '../../context/SnackbarContext'
+import { printDocuments } from '../../components/print/printDocument'
 import { useFormat } from '../../context/SettingsContext'
 import { readSheet } from '../../utils/readSheet'
 import { useHrLabels, useHrMeta } from '../../components/hrms/HrKit'
@@ -189,6 +190,8 @@ export default function Employees() {
   const [status, setStatus] = useState('CURRENT')
   const [category, setCategory] = useState('')
   const [page, setPage] = useState(1)
+  // staff picked for ID cards (none picked: the cards of everyone on this page)
+  const [picked, setPicked] = useState([])
   const [adding, setAdding] = useState(false)
   const q = useDebouncedValue(search.trim(), 250)
   const params = { search: q || undefined, status, category: category || undefined, page, pageSize: 50 }
@@ -212,6 +215,12 @@ export default function Employees() {
             templateSample={['', 'Meena Iyer', 'TGT English', 'TEACHING', 'PERMANENT', '2024-06-01', 'FEMALE', '1990-02-14', '9845012345', 'meena@example.com']}
             onDone={refresh} />}
           {hasPermission('hrms.employees.export') && <HeaderButton icon={Download} onClick={() => exportEmployees({ status, category: category || undefined, search: q || undefined }).catch((e) => showError(e.message))}>{t('hrms.employees.export')}</HeaderButton>}
+          {rows.length > 0 && <HeaderButton icon={CreditCard} onClick={async () => {
+            const ids = picked.length ? picked : rows.filter((r) => r.status !== 'EXITED').map((r) => r.id)
+            if (!ids.length) return
+            const r = await printDocuments('STAFF_ID_CARD', ids, { preparing: t('hrms.employees.idCardsPreparing') })
+            if (r?.error) showError(r.error)
+          }}>{picked.length ? t('hrms.employees.idCardsPicked', { count: picked.length }) : t('hrms.employees.idCards')}</HeaderButton>}
           <HeaderButton icon={UserPlus} variant="primary" requires="hrms.employees.create" onClick={() => setAdding(true)}>{t('hrms.employees.new')}</HeaderButton>
         </>} />
       {Object.keys(counts).length > 0 && (
@@ -243,6 +252,7 @@ export default function Employees() {
           { key: 'hasLogin', header: t('hrms.employees.loginCol'), mobileHidden: true, render: (v) => (v ? <StatusPill tone="success">{t('hrms.employees.hasLogin')}</StatusPill> : <span className="text-xs text-ink-faint">{t('hrms.employees.noLogin')}</span>) },
           { key: 'status', header: t('hrms.employees.status'), render: (v, r) => <span><StatusPill tone={EMPLOYEE_STATUSES[v]?.tone}>{L.status(v)}</StatusPill>{r.lastWorkingDate && v !== 'ACTIVE' && <span className="block text-[11px] text-ink-faint mt-0.5">{t('hrms.employees.lastDay', { date: date(r.lastWorkingDate) })}</span>}</span> },
         ]}
+        selectable selectedIds={picked} onSelectionChange={setPicked}
         onRowClick={(r) => navigate(`/hrms/employees/${r.id}`)}
         pagination={meta && meta.totalPages > 1 && { page: meta.page - 1, size: meta.pageSize, totalElements: meta.total, totalPages: meta.totalPages, onPageChange: (p) => setPage(p + 1) }}
         emptyIcon={UsersRound}

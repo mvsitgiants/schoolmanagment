@@ -3,11 +3,26 @@
     "all": "All",
     "loading": "Loading…",
     "kinds": {
-      "BONAFIDE": { "label": "Bonafide certificate", "hint": "That the student studies here this year." },
-      "CHARACTER": { "label": "Character certificate", "hint": "The student’s conduct while here." },
-      "STUDY": { "label": "Study certificate", "hint": "The classes and years the student studied here — for former students too." },
-      "FEE": { "label": "Fee paid certificate", "hint": "Fees paid in a financial year, tuition shown separately (income tax, section 80C)." },
-      "MERIT": { "label": "Merit / participation certificate", "hint": "An achievement or event. Can be issued to many students at once." }
+      "BONAFIDE": {
+        "label": "Bonafide certificate",
+        "hint": "That the student studies here this year."
+      },
+      "CHARACTER": {
+        "label": "Character certificate",
+        "hint": "The student’s conduct while here."
+      },
+      "STUDY": {
+        "label": "Study certificate",
+        "hint": "The classes and years the student studied here — for former students too."
+      },
+      "FEE": {
+        "label": "Fee paid certificate",
+        "hint": "Fees paid in a financial year, tuition shown separately (income tax, section 80C)."
+      },
+      "MERIT": {
+        "label": "Merit / participation certificate",
+        "hint": "An achievement or event. Can be issued to many students at once."
+      }
     },
     "status": {
       "ISSUED": "Issued",
@@ -153,45 +168,104 @@
       "he": {
         "m": "he",
         "f": "she",
-        "x": "they"
+        "x": "he/she"
       },
       "His": {
         "m": "His",
         "f": "Her",
-        "x": "Their"
+        "x": "His/Her"
       },
       "bonafide": {
-        "text": "This is to certify that <b>{{name}}</b>{{parent}}, Admission No. {{admissionNo}}, is a bonafide student of this institution, studying in <b>{{cls}}</b> in the academic year {{year}}."
+        "text": "This is to certify that <b>{{name}}</b>{{rel}}, Admission No. {{admissionNo}}, is a bonafide student of {{school}}, studying in <b>{{cls}}</b> during the academic year <b>{{year}}</b>."
       },
-      "dobLine": "{{his}} date of birth, as per our records, is {{dob}}.",
+      "dobLine": "{{His}} date of birth as per the school records is <b>{{dob}}</b> ({{words}}).",
       "character": {
-        "textIs": "This is to certify that <b>{{name}}</b>{{parent}}, Admission No. {{admissionNo}}, is a student of this institution since {{from}}.",
-        "textWas": "This is to certify that <b>{{name}}</b>{{parent}}, Admission No. {{admissionNo}}, was a student of this institution from {{from}} to {{to}}.",
-        "conduct": "To the best of our knowledge {{he}} bears a good moral character. {{his}} conduct has been <b>{{conduct}}</b>."
+        "textIs": "This is to certify that <b>{{name}}</b>{{rel}}, Admission No. {{admissionNo}}, is a bonafide student of {{school}} since {{from}} and is at present studying in <b>{{cls}}</b>.",
+        "textWas": "This is to certify that <b>{{name}}</b>{{rel}}, Admission No. {{admissionNo}}, was a bonafide student of {{school}} from {{from}} to {{to}}.",
+        "conduct": "During this period {{his}} conduct and character have been found to be <b>{{conduct}}</b>. To the best of our knowledge {{he}} bears a good moral character and has not taken part in any activity against the discipline of the institution.",
+        "wish": "We wish {{him}} every success in life."
       },
       "study": {
-        "textIs": "This is to certify that <b>{{name}}</b>{{parent}}, Admission No. {{admissionNo}}, has been studying in this institution since {{from}} (admitted to {{fromClass}}) and is now in <b>{{toClass}}</b>.",
-        "textWas": "This is to certify that <b>{{name}}</b>{{parent}}, Admission No. {{admissionNo}}, studied in this institution from <b>{{fromClass}}</b> ({{from}}) to <b>{{toClass}}</b> ({{to}})."
+        "textIs": "This is to certify that <b>{{name}}</b>{{rel}}, Admission No. {{admissionNo}}, has been studying in {{school}} since {{from}} and is at present in <b>{{toClass}}</b>.",
+        "textWas": "This is to certify that <b>{{name}}</b>{{rel}}, Admission No. {{admissionNo}}, studied in {{school}} from <b>{{fromClass}}</b> to <b>{{toClass}}</b> ({{from}} to {{to}}).",
+        "tableIntro": "The classes {{he}} studied in this institution are:",
+        "year": "Academic year",
+        "class": "Class studied",
+        "school": "Name of the school"
       },
       "fee": {
-        "text": "This is to certify that the following fees were paid to this institution for <b>{{name}}</b> ({{cls}}, Admission No. {{admissionNo}}) during the financial year <b>{{fy}}</b>:",
+        "text": "This is to certify that <b>{{name}}</b>{{rel}}, Admission No. {{admissionNo}}, studying in <b>{{cls}}</b> of {{school}}, has paid the following fees during the financial year <b>{{fy}}</b> ({{from}} to {{to}}):",
         "refunded": "Less: refunded",
         "total": "Total paid",
-        "tuition": "Of this, the tuition fee is <b>{{amount}}</b> ({{words}})."
+        "tuition": "Of the above, the <b>tuition fee</b> paid is <b>{{amount}}</b> ({{words}}).",
+        "head": "Fee head",
+        "amount": "Amount (₹)",
+        "totalWords": "Total amount paid: <b>{{amount}}</b> ({{words}}).",
+        "note": "Certified that the amount shown as tuition fee is the tuition fee only. It does not include development fee, donation, capitation fee, transport, hostel or any other charges. Issued for claiming deduction under section 80C of the Income-tax Act, 1961."
       },
       "merit": {
-        "intro": "This certificate is proudly presented to",
+        "intro": "This is to certify that",
         "ofClass": "of {{cls}}",
         "for": "for",
         "in": "in",
-        "participation": "for taking part in",
-        "on": "held on {{date}}"
+        "participation": "has taken part in",
+        "on": "held on {{date}}",
+        "title": "Certificate",
+        "ofMerit": "of merit",
+        "ofParticipation": "of participation",
+        "admNo": "Admission No. {{no}}",
+        "has": "has secured",
+        "wish": "We congratulate {{him}} and wish {{him}} every success."
       },
-      "purpose": "This certificate is issued on request for the purpose of {{purpose}}.",
+      "purpose": "This certificate is issued on {{his}} request for the purpose of {{purpose}}.",
       "scan": "Scan to verify",
       "coordinator": "Teacher in charge",
       "signature": "Principal",
-      "cancelledNote": "Cancelled: {{reason}}"
+      "cancelledNote": "Cancelled: {{reason}}",
+      "words": {
+        "he": {
+          "m": "he",
+          "f": "she",
+          "x": "he/she"
+        },
+        "He": {
+          "m": "He",
+          "f": "She",
+          "x": "He/She"
+        },
+        "his": {
+          "m": "his",
+          "f": "her",
+          "x": "his/her"
+        },
+        "His": {
+          "m": "His",
+          "f": "Her",
+          "x": "His/Her"
+        },
+        "him": {
+          "m": "him",
+          "f": "her",
+          "x": "him/her"
+        },
+        "title": {
+          "m": "Master",
+          "f": "Kumari"
+        },
+        "rel": {
+          "m": "S/o",
+          "f": "D/o",
+          "x": "S/o / D/o"
+        },
+        "child": {
+          "m": "son",
+          "f": "daughter",
+          "x": "ward"
+        }
+      },
+      "seal": "School seal",
+      "sl": "Sl. No.",
+      "place": "Place"
     }
   }
 }

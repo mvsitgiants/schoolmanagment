@@ -55,11 +55,11 @@ export default {
         mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace']
       },
       borderRadius: {
-        sm: '6px',
-        md: '8px',
-        lg: '10px',
-        xl: '12px',
-        '2xl': '14px'
+        sm: '8px',
+        md: '12px',
+        lg: '16px',
+        xl: '20px',
+        '2xl': '24px'
       },
       boxShadow: {
         card: '0 1px 3px 0 rgba(16, 24, 40, 0.05), 0 1px 2px -1px rgba(16, 24, 40, 0.04)',

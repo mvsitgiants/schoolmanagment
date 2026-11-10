@@ -86,28 +86,116 @@ export const LEAVE_STATUSES = {
   CANCELLED: { label: 'Cancelled', tone: 'neutral' },
 }
 
+/**
+ * How a leave type's days are given. Older types say YEARLY — read as ANNUAL_UPFRONT (normalizeAccrual).
+ * ON_CONFIRMATION: nothing while on probation; from the confirmation date the rest of that leave year, then every year in full.
+ */
 export const LEAVE_ACCRUALS = [
-  { value: 'YEARLY', label: 'All at the start of the leave year' },
+  { value: 'ANNUAL_UPFRONT', label: 'All at the start of the leave year' },
   { value: 'MONTHLY', label: 'A share every month' },
-  { value: 'NONE', label: 'Given by HR when needed' },
+  { value: 'ON_CONFIRMATION', label: 'After probation, then every year' },
+  { value: 'NONE', label: 'Not credited (given by HR, or no balance needed)' },
 ]
+export const normalizeAccrual = (a) => (a === 'YEARLY' ? 'ANNUAL_UPFRONT' : a || 'NONE')
 
-/** CREDIT (yearly/given), ACCRUAL (monthly), TAKEN (−), REVERSAL (+, a cancelled leave), ADJUST (±), LAPSE (−), CARRY (+). */
-export const LEAVE_LEDGER_KINDS = ['CREDIT', 'ACCRUAL', 'TAKEN', 'REVERSAL', 'ADJUST', 'LAPSE', 'CARRY']
+/**
+ * The leave ledger (balance = Σ days). The automatic postings keep their kind and period (CREDIT '2026-27',
+ * ACCRUAL '2026-10', LAPSE '2026-27'), so running them again adds nothing twice. ADJUST is the older name of ADJUSTMENT.
+ */
+export const LEAVE_LEDGER_KINDS = {
+  OPENING: 'Opening balance',
+  CREDIT: 'Credited for the year',
+  ACCRUAL: 'Monthly credit',
+  TAKEN: 'Leave taken',
+  REVERSAL: 'Leave cancelled — days given back',
+  ADJUSTMENT: 'Corrected by HR',
+  ADJUST: 'Corrected by HR',
+  COMP_OFF: 'Compensatory off for a day worked',
+  LAPSE: 'Lapsed at the year end',
+  CARRY: 'Carried forward',
+}
 
-/** The leave types a school starts with (Staff & HR › Leave › Types can change them). */
+/**
+ * The leave types a school starts with (Leave › Setup › Leave policies changes them). An institution that already
+ * has leave types keeps them; codes it doesn't have yet are added once (merge by code, nothing overwritten).
+ *   categoryQuota   a different number of days a year for some staff categories
+ *   pauseInVacation monthly credit stops in a month that is mostly school vacation (Setup › No-leave days)
+ *   blackoutExempt  the no-leave days (exams, annual day) don't apply — sickness and maternity can't wait
+ *   noticeDays      ask this many days ahead (a warning for the approver, not a block)
+ *   compOff         the type HR credits for a day worked on a holiday
+ */
 export const STARTER_LEAVE_TYPES = [
-  { code: 'CL', name: 'Casual leave', paid: true, accrual: 'YEARLY', perYear: 12, carryForwardMax: 0, allowHalfDay: true, maxPerRequest: 3, tone: 'brand', order: 1 },
-  { code: 'SL', name: 'Sick leave', paid: true, accrual: 'YEARLY', perYear: 10, carryForwardMax: 30, allowHalfDay: true, tone: 'warning', order: 2 },
-  { code: 'EL', name: 'Earned leave', paid: true, accrual: 'MONTHLY', perYear: 15, carryForwardMax: 45, allowHalfDay: false, sandwich: true, categories: ['ADMIN', 'SUPPORT', 'TRANSPORT', 'SECURITY', 'OTHER'], tone: 'success', order: 3 },
-  { code: 'ML', name: 'Maternity leave', paid: true, accrual: 'NONE', perYear: 0, allowHalfDay: false, genders: ['FEMALE'], tone: 'info', order: 4 },
-  { code: 'DL', name: 'Duty leave (exam duty, training)', paid: true, accrual: 'NONE', perYear: 0, allowHalfDay: true, allowNegative: true, tone: 'neutral', order: 5 },
-  { code: 'LOP', name: 'Leave without pay', paid: false, accrual: 'NONE', perYear: 0, allowHalfDay: true, allowNegative: true, tone: 'danger', order: 9 },
+  { code: 'CL', name: 'Casual leave', paid: true, accrual: 'ANNUAL_UPFRONT', perYear: 12, carryForwardMax: 0, allowHalfDay: true, maxPerRequest: 3, tone: 'brand', order: 1,
+    description: 'For personal work and short absences. Unused days lapse at the year end.' },
+  { code: 'SL', name: 'Sick / medical leave', paid: true, accrual: 'ANNUAL_UPFRONT', perYear: 10, carryForwardMax: 30, allowHalfDay: true, blackoutExempt: true, tone: 'warning', order: 2,
+    description: 'When unwell. A medical certificate may be asked for longer absences.' },
+  { code: 'EL', name: 'Earned leave', paid: true, accrual: 'MONTHLY', perYear: 15, carryForwardMax: 45, allowHalfDay: false, sandwich: true, noticeDays: 7, pauseInVacation: true,
+    categories: ['ADMIN', 'SUPPORT', 'TRANSPORT', 'SECURITY', 'OTHER'], tone: 'success', order: 3,
+    description: 'Earned month by month by staff who work through the school vacations.' },
+  { code: 'ML', name: 'Maternity leave', paid: true, accrual: 'NONE', perYear: 0, allowHalfDay: false, allowNegative: true, sandwich: true, maxPerRequest: 182, blackoutExempt: true, genders: ['FEMALE'], tone: 'info', order: 4,
+    description: 'Up to 26 weeks around childbirth.' },
+  { code: 'PL', name: 'Paternity leave', paid: true, accrual: 'NONE', perYear: 0, allowHalfDay: false, allowNegative: true, sandwich: true, maxPerRequest: 15, blackoutExempt: true, genders: ['MALE'], tone: 'info', order: 5,
+    description: 'Up to 15 days around the birth or adoption of a child.' },
+  { code: 'CCL', name: 'Child-care leave', paid: true, accrual: 'NONE', perYear: 0, allowHalfDay: false, sandwich: false, tone: 'info', order: 6,
+    description: 'To look after a child (illness, exams). HR gives the days when it is granted.' },
+  { code: 'DL', name: 'Duty leave', paid: true, accrual: 'NONE', perYear: 0, allowHalfDay: true, allowNegative: true, blackoutExempt: true, tone: 'neutral', order: 7,
+    description: 'Exam invigilation, evaluation, training or other official duty away from school. Doesn’t use up any balance.' },
+  { code: 'CO', name: 'Compensatory off', paid: true, accrual: 'NONE', perYear: 0, allowHalfDay: true, compOff: true, tone: 'neutral', order: 8,
+    description: 'A day off in return for working on a holiday or at a school event. HR credits it.' },
+  { code: 'LOP', name: 'Leave without pay', paid: false, accrual: 'NONE', perYear: 0, allowHalfDay: true, allowNegative: true, tone: 'danger', order: 9,
+    description: 'When no other leave is left. The days are cut from the salary.' },
 ]
+export const DEFAULT_LEAVE_TYPES = STARTER_LEAVE_TYPES
 
 /** Does a leave type apply to this person (by gender and staff category)? */
 export const leaveTypeFits = (type, emp) =>
   (!type.genders?.length || type.genders.includes(emp.gender)) && (!type.categories?.length || type.categories.includes(emp.category))
+
+/** Days a year of a type for this person: their category's own number when the policy sets one. */
+export function quotaFor(type, emp) {
+  const own = (type?.categoryQuota ?? []).find((q) => q.category === emp?.category)
+  return Number(own ? own.perYear : type?.perYear) || 0
+}
+
+/** Round to the nearest half day (balances and pro-rated credits move in halves). */
+export const toHalfDays = (n) => Math.round(Number(n || 0) * 2) / 2
+
+/**
+ * Count leave days. `days` is [{ date, working }] for every date in the range (working = the person would otherwise be
+ * at work: not a weekly off, holiday or their school vacation). Non-working dates are free, except under the sandwich
+ * rule, where offs and holidays between two leave days count too. A half day is 0.5.
+ *   → { days, dates: [{ date, portion, working, sandwiched }] }
+ */
+export function countLeaveDays(days, { halfDay = false, sandwich = false } = {}) {
+  const first = days.findIndex((d) => d.working)
+  const last = days.length - 1 - [...days].reverse().findIndex((d) => d.working)
+  const out = days.map((d, i) => {
+    let portion = d.working ? 1 : 0
+    if (!d.working && sandwich && first !== -1 && i > first && i < last) portion = 1
+    return { date: d.date, portion, working: d.working, sandwiched: !d.working && portion > 0 }
+  })
+  if (halfDay) for (const d of out) if (d.portion) d.portion = 0.5
+  return { days: out.reduce((s, d) => s + d.portion, 0), dates: out }
+}
+
+/**
+ * Days in the institution's leave calendar (Leave › Setup › No-leave days):
+ *   NO_LEAVE  exams, annual day, parent–teacher meetings — leave asked for on them is warned about, needs the
+ *             principal / HR, or is refused (the day's `mode`)
+ *   VACATION  school vacation — not a working day for the staff it covers, so leave isn't counted on it, and
+ *             monthly credit pauses in a month that is mostly vacation (types with pauseInVacation)
+ */
+export const LEAVE_CALENDAR_KINDS = {
+  NO_LEAVE: { label: 'No-leave days' },
+  VACATION: { label: 'School vacation' },
+}
+export const NO_LEAVE_MODES = [
+  { value: 'WARN', label: 'Allow, with a warning to the approver' },
+  { value: 'HR', label: 'Allow only with the principal’s or HR’s approval' },
+  { value: 'BLOCK', label: 'Don’t allow — only HR can enter leave on these days' },
+]
+/** A month with at least this many vacation days for a person earns no monthly credit (pauseInVacation). */
+export const VACATION_MONTH_DAYS = 15
 
 const isoDays = (from, to) => {
   const out = []

@@ -10,13 +10,13 @@
  */
 export const PRINT_DOCS = [
   { value: 'FEE_RECEIPT', label: 'Fee receipt', module: 'fees', paper: 'A5', ready: true, server: true },
-  { value: 'FEE_INVOICE', label: 'Fee invoice / challan', module: 'fees', paper: 'A4', ready: false, server: false },
+  { value: 'FEE_INVOICE', label: 'Fee invoice / challan', module: 'fees', paper: 'A4', ready: true, server: true },
   { value: 'REPORT_CARD', label: 'Report card', module: 'exams', paper: 'A4', ready: true, server: true },
   { value: 'YEAR_REPORT_CARD', label: 'Annual report card', module: 'exams', paper: 'A4', ready: true, server: true },
-  { value: 'HALL_TICKET', label: 'Hall ticket', module: 'exams', paper: 'A5', ready: true, server: true },
+  { value: 'HALL_TICKET', label: 'Hall ticket', module: 'exams', paper: 'A4', ready: true, server: true }, // a full A4 admit card: timetable, invigilator column, instructions
   { value: 'TRANSFER_CERTIFICATE', label: 'Transfer certificate', module: 'students', paper: 'A4', ready: true, server: true },
   { value: 'CERTIFICATE', label: 'Certificates (bonafide, character, study, fee, merit)', module: 'certificates', paper: 'A4', ready: true, server: true },
-  { value: 'ADMISSION_FORM', label: 'Admission form', module: 'students', paper: 'A4', ready: false, server: false },
+  { value: 'ADMISSION_FORM', label: 'Admission form', module: 'students', paper: 'A4', ready: true, server: true },
   { value: 'STUDENT_ID_CARD', label: 'Student ID card', module: 'students', paper: 'CARD_PORTRAIT', ready: true, server: true, many: true },
   { value: 'PAYSLIP', label: 'Payslip', module: 'payroll', paper: 'A4', ready: true, server: true },
   { value: 'LIBRARY_LABEL', label: 'Library book labels', module: 'library', paper: 'A4', ready: true, server: true, many: true },
@@ -33,8 +33,8 @@ export const PRINT_DOCS = [
   { value: 'ATTAINMENT_REPORT', label: 'CO–PO attainment report', module: 'programs', paper: 'A4', ready: true, server: true },
   { value: 'DONATION_RECEIPT', label: 'Donation receipt (80G)', module: 'alumni', paper: 'A5', ready: true, server: true },
   { value: 'ACCREDITATION_SSR', label: 'Accreditation report summary (NAAC SSR / NIRF / AISHE)', module: 'accreditation', paper: 'A4', ready: true, server: true },
-  { value: 'HR_OFFER_LETTER', label: 'Offer letter', module: 'hrms', paper: 'A4', ready: false, server: false },
-  { value: 'STAFF_ID_CARD', label: 'Staff ID card', module: 'hrms', paper: 'CARD_PORTRAIT', ready: false, server: false, many: true },
+  { value: 'HR_OFFER_LETTER', label: 'Offer letter', module: 'hrms', paper: 'A4', ready: true, server: true },
+  { value: 'STAFF_ID_CARD', label: 'Staff ID card', module: 'hrms', paper: 'CARD_PORTRAIT', ready: true, server: true, many: true },
   { value: 'PURCHASE_ORDER', label: 'Purchase order', module: 'inventory', paper: 'A4', ready: true, server: true },
   { value: 'STORE_SALE_RECEIPT', label: 'Store receipt (uniform & book sale)', module: 'inventory', paper: 'A5', ready: true, server: true },
 ]
@@ -64,17 +64,18 @@ export const LETTERHEAD_MODES = [
 
 /** Registration numbers the letterhead can show, from the institution profile. */
 export const LETTERHEAD_IDS = [
-  { value: 'registrationNo', label: 'Registration no.' },
-  { value: 'affiliationNo', label: 'Board affiliation no.' },
-  { value: 'gstin', label: 'GSTIN' },
-  { value: 'udiseCode', label: 'UDISE code' },
+  { value: 'affiliationNo', label: 'Board affiliation no.', short: 'Affiliation No.' },
+  { value: 'schoolCode', label: 'School code (board)', short: 'School No.' },
+  { value: 'udiseCode', label: 'UDISE code', short: 'UDISE' },
+  { value: 'registrationNo', label: 'Registration no.', short: 'Reg. No.' },
+  { value: 'gstin', label: 'GSTIN', short: 'GSTIN' },
 ]
 
 export const LETTERHEAD_DEFAULTS = {
-  align: 'LEFT', // LEFT · CENTER
+  align: 'CENTER', // CENTER: the classic Indian letterhead (crest, name in capitals, board line) · LEFT: a compact modern one
   showLogo: true,
   showContacts: true,
-  ids: ['registrationNo', 'affiliationNo'],
+  ids: ['affiliationNo', 'schoolCode', 'udiseCode'],
   tagline: '',
   accentColor: '', // '' = the institution's brand colour
   footerText: '',

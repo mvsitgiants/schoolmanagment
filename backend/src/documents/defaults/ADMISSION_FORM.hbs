@@ -1,0 +1,130 @@
+{{!-- Admission form (A4), the usual Indian school form, printed from a student's record.
+      form.classSought, form.year, form.admissionNo · student.name, dob, dobWords, gender, bloodGroup, nationality, religion, category,
+      motherTongue, aadhaar (masked), apaarId, pen, photo · father / mother / guardian {name, occupation, mobile, email} ·
+      address {line, city, state, pincode} · previousSchool {name, board, lastClass, tcNo} · siblings[] {name, class, admissionNo}.
+      Empty boxes are left for the family to write in (qualification and annual income are never stored).
+      Ends with the documents checklist, the parent's declaration and the "for office use" box. --}}
+<style>
+  .af-head { display: grid; grid-template-columns: 1fr 30mm; gap: 5mm; align-items: start; margin-top: 2mm }
+  .af-meta { display: grid; grid-template-columns: auto 1fr; gap: 1.6mm 3mm; font-size: 9.5pt; align-items: end; margin-top: 1mm }
+  .af-meta .fill { min-height: 5mm; display: block }
+  .af-head .photo { width: 30mm; height: 36mm }
+  .sec { margin-top: 4mm; break-inside: avoid }
+  .sec h3 { margin: 0 0 1.5mm; font-size: 9.5pt; text-transform: uppercase; letter-spacing: .05em; font-weight: 700; border-bottom: 0.3mm solid #333; padding-bottom: .8mm }
+  table.grid { font-size: 9pt } table.grid td { height: 7mm; vertical-align: middle } table.grid td.k { width: 34mm; color: #3B3F47; background: #FAFAFB }
+  table.grid td.v { font-weight: 600 } table.grid .w { font-weight: 400; color: #3B3F47 }
+  table.par th:first-child { width: 40mm }
+  .checks { display: grid; grid-template-columns: 1fr 1fr; gap: 1.6mm 6mm; font-size: 9pt }
+  .checks span::before { content: ''; display: inline-block; width: 3.4mm; height: 3.4mm; border: 0.3mm solid #333; margin-right: 2mm; vertical-align: -0.6mm }
+  .decl { font-size: 9pt; line-height: 1.55; text-align: justify }
+  .decl-signs { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 12mm; font-size: 9pt }
+  .decl-signs .line { min-width: 62mm; text-align: center; border-top: 0.3mm solid #333; padding-top: 1.2mm }
+  .office { border: 0.4mm solid #333; padding: 2.5mm 3.5mm; margin-top: 5mm; break-inside: avoid }
+  .office h3 { margin: 0 0 2mm; font-size: 9pt; text-transform: uppercase; letter-spacing: .08em; text-align: center }
+  .office .grid2 { display: grid; grid-template-columns: auto 1fr auto 1fr; gap: 2.4mm 3mm; font-size: 9pt; align-items: end }
+  .office .fill { display: block; min-height: 5mm }
+  .office .signs { margin-top: 12mm } .office .signs .seal { width: 18mm; height: 18mm; font-size: 6pt }
+</style>
+{{#> letterhead}}{{/letterhead}}
+<div class="doc-title">{{t "students.print.admission.title" "Application for admission"}}</div>
+<div class="af-head">
+  <div class="af-meta">
+    <span>{{t "students.print.admission.classSought" "Class to which admission is sought"}}</span><span class="fill">{{form.classSought}}</span>
+    <span>{{t "students.print.admission.year" "Academic year"}}</span><span class="fill">{{form.year}}</span>
+    <span>{{t "students.print.admission.admissionNo" "Admission No."}}</span><span class="fill">{{form.admissionNo}}</span>
+    <span>{{t "students.print.admission.admissionDate" "Date of admission"}}</span><span class="fill">{{date form.admissionDate}}</span>
+  </div>
+  <div class="photo">{{#if student.photo}}<img src="{{student.photo}}" alt="">{{else}}{{t "students.print.admission.photo" "Affix a recent passport-size photograph"}}{{/if}}</div>
+</div>
+
+<div class="sec">
+  <h3>{{t "students.print.admission.secStudent" "1. Particulars of the student"}}</h3>
+  <table class="grid">
+    <tr><td class="k">{{t "students.print.admission.name" "Name (in capitals)"}}</td><td class="v" colspan="3">{{upper student.name}}</td></tr>
+    <tr><td class="k">{{t "students.print.admission.dob" "Date of birth"}}</td><td class="v" colspan="3">{{#if student.dob}}{{date student.dob}} <span class="w">({{t "students.print.admission.inWords" "in words"}}: {{student.dobWords}})</span>{{/if}}</td></tr>
+    <tr><td class="k">{{t "students.print.admission.gender" "Gender"}}</td><td class="v">{{student.gender}}</td><td class="k">{{t "students.print.admission.bloodGroup" "Blood group"}}</td><td class="v">{{student.bloodGroup}}</td></tr>
+    <tr><td class="k">{{t "students.print.admission.nationality" "Nationality"}}</td><td class="v">{{student.nationality}}</td><td class="k">{{t "students.print.admission.religion" "Religion"}}</td><td class="v">{{student.religion}}</td></tr>
+    <tr><td class="k">{{t "students.print.admission.category" "Category (General / SC / ST / OBC / EWS)"}}</td><td class="v">{{student.category}}</td><td class="k">{{t "students.print.admission.motherTongue" "Mother tongue"}}</td><td class="v">{{student.motherTongue}}</td></tr>
+    <tr><td class="k">{{t "students.print.admission.aadhaar" "Aadhaar No."}}</td><td class="v">{{student.aadhaar}}</td><td class="k">{{t "students.print.admission.apaar" "APAAR ID / PEN"}}</td><td class="v">{{join (array student.apaarId student.pen) " / "}}</td></tr>
+  </table>
+</div>
+
+<div class="sec">
+  <h3>{{t "students.print.admission.secParents" "2. Particulars of the parents / guardian"}}</h3>
+  <table class="grid par">
+    <thead><tr><th></th><th>{{t "students.print.admission.father" "Father"}}</th><th>{{t "students.print.admission.mother" "Mother"}}</th><th>{{t "students.print.admission.guardian" "Guardian (if any)"}}</th></tr></thead>
+    <tbody>
+      <tr><td class="k">{{t "students.print.admission.pName" "Name"}}</td><td class="v">{{father.name}}</td><td class="v">{{mother.name}}</td><td class="v">{{guardian.name}}</td></tr>
+      <tr><td class="k">{{t "students.print.admission.qualification" "Educational qualification"}}</td><td></td><td></td><td></td></tr>
+      <tr><td class="k">{{t "students.print.admission.occupation" "Occupation"}}</td><td class="v">{{father.occupation}}</td><td class="v">{{mother.occupation}}</td><td class="v">{{guardian.occupation}}</td></tr>
+      <tr><td class="k">{{t "students.print.admission.mobile" "Mobile No."}}</td><td class="v">{{father.mobile}}</td><td class="v">{{mother.mobile}}</td><td class="v">{{guardian.mobile}}</td></tr>
+      <tr><td class="k">{{t "students.print.admission.email" "Email"}}</td><td class="v">{{father.email}}</td><td class="v">{{mother.email}}</td><td class="v">{{guardian.email}}</td></tr>
+      <tr><td class="k">{{t "students.print.admission.income" "Annual income (₹)"}}</td><td></td><td></td><td></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="sec">
+  <h3>{{t "students.print.admission.secAddress" "3. Address for correspondence"}}</h3>
+  <table class="grid">
+    <tr><td class="k">{{t "students.print.admission.address" "Address"}}</td><td class="v" colspan="3">{{address.line}}</td></tr>
+    <tr><td class="k">{{t "students.print.admission.city" "City / town"}}</td><td class="v">{{address.city}}</td><td class="k">{{t "students.print.admission.state" "State"}}</td><td class="v">{{address.state}}</td></tr>
+    <tr><td class="k">{{t "students.print.admission.pincode" "PIN code"}}</td><td class="v">{{address.pincode}}</td><td class="k">{{t "students.print.admission.studentMobile" "Student’s mobile / email"}}</td><td class="v">{{join (array student.mobile student.email) " · "}}</td></tr>
+  </table>
+</div>
+
+<div class="sec">
+  <h3>{{t "students.print.admission.secPrevious" "4. Previous school (if any)"}}</h3>
+  <table class="grid">
+    <tr><td class="k">{{t "students.print.admission.prevName" "Name of the school"}}</td><td class="v" colspan="3">{{previousSchool.name}}</td></tr>
+    <tr><td class="k">{{t "students.print.admission.prevBoard" "Board"}}</td><td class="v">{{previousSchool.board}}</td><td class="k">{{t "students.print.admission.prevClass" "Class last attended"}}</td><td class="v">{{previousSchool.lastClass}}</td></tr>
+    <tr><td class="k">{{t "students.print.admission.prevTc" "TC No. and date"}}</td><td class="v" colspan="3">{{previousSchool.tcNo}}</td></tr>
+  </table>
+</div>
+
+<div class="sec">
+  <h3>{{t "students.print.admission.secSiblings" "5. Brother / sister studying in this school"}}</h3>
+  <table class="grid">
+    <thead><tr><th style="width:12mm">{{t "students.print.admission.sl" "Sl."}}</th><th>{{t "students.print.admission.sibName" "Name"}}</th><th>{{t "students.print.admission.sibClass" "Class & section"}}</th><th>{{t "students.print.admission.sibAdmNo" "Admission No."}}</th></tr></thead>
+    <tbody>
+      {{#each siblings}}<tr><td>{{inc @index}}</td><td class="v">{{name}}</td><td class="v">{{class}}</td><td class="v">{{admissionNo}}</td></tr>{{/each}}
+      {{#unless hasSiblings}}<tr><td>1</td><td></td><td></td><td></td></tr><tr><td>2</td><td></td><td></td><td></td></tr>{{/unless}}
+    </tbody>
+  </table>
+</div>
+
+<div class="sec">
+  <h3>{{t "students.print.admission.secDocs" "6. Documents enclosed (please tick)"}}</h3>
+  <div class="checks">
+    <span>{{t "students.print.admission.docBirth" "Birth certificate (copy)"}}</span>
+    <span>{{t "students.print.admission.docTc" "Transfer certificate (original)"}}</span>
+    <span>{{t "students.print.admission.docReport" "Report card of the last class"}}</span>
+    <span>{{t "students.print.admission.docAadhaar" "Aadhaar card of the student (copy)"}}</span>
+    <span>{{t "students.print.admission.docPhotos" "Passport-size photographs (4)"}}</span>
+    <span>{{t "students.print.admission.docCaste" "Caste / category certificate (if applicable)"}}</span>
+  </div>
+</div>
+
+<div class="sec">
+  <h3>{{t "students.print.admission.secDeclaration" "7. Declaration by the parent / guardian"}}</h3>
+  <div class="decl">{{t "students.print.admission.declaration" "I hereby declare that the information given above is true and correct to the best of my knowledge. I understand that the admission is liable to be cancelled if any of it is found to be false. I agree to abide by the rules and regulations of {{school}} and to pay the fees on time." school=institution.name}}</div>
+  <div class="decl-signs">
+    <div>{{t "students.print.admission.place" "Place"}}: <span class="fill" style="display:inline-block;min-width:40mm">{{institution.city}}</span><br/><br/>{{t "students.print.admission.date" "Date"}}: <span class="fill" style="display:inline-block;min-width:40mm"></span></div>
+    <div class="line">{{t "students.print.admission.parentSign" "Signature of the parent / guardian"}}</div>
+  </div>
+</div>
+
+<div class="office">
+  <h3>{{t "students.print.admission.office" "For office use only"}}</h3>
+  <div class="grid2">
+    <span>{{t "students.print.admission.admissionNo" "Admission No."}}</span><span class="fill">{{form.admissionNo}}</span>
+    <span>{{t "students.print.admission.allotted" "Class & section allotted"}}</span><span class="fill">{{form.section}}</span>
+    <span>{{t "students.print.admission.admissionDate" "Date of admission"}}</span><span class="fill">{{date form.admissionDate}}</span>
+    <span>{{t "students.print.admission.receiptNo" "Fee receipt No."}}</span><span class="fill"></span>
+  </div>
+  <div class="signs">
+    <div>{{t "students.print.admission.checkedBy" "Checked by (office)"}}</div>
+    <div style="border-top:0;padding-top:0"><div class="seal">{{t "students.print.admission.seal" "School seal"}}</div><div style="border-top:0.3mm solid #333;padding-top:1.2mm">{{t "students.print.admission.principal" "Principal"}}</div></div>
+  </div>
+</div>
+{{> footer}}

@@ -343,14 +343,20 @@
       "end": "— END OF PAPER —",
       "confidential": "CONFIDENTIAL",
       "answerKey": "Answer key and marking scheme",
-      "q": "Q.",
-      "answer": "Answer",
-      "scheme": "Marking scheme",
+      "q": "Q. No.",
+      "answer": "Expected answer / value points",
+      "scheme": "Distribution of marks",
       "marks": "Marks",
       "total": "Total",
       "setter": "Paper setter",
-      "approver": "Approved by",
-      "hour": "1 hour"
+      "approver": "Approved by (Exam in-charge)",
+      "hour": "1 hour",
+      "codeNo": "Code No.",
+      "writeCode": "Candidates must write the Code No. on the title page of the answer book.",
+      "class": "Class",
+      "subject": "Subject",
+      "forExaminers": "for examiners only",
+      "markingScheme": "Marking scheme"
     }
   }
 }

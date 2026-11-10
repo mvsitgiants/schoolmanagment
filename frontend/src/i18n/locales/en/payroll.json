@@ -406,7 +406,18 @@
       "fnf": "Full and final settlement",
       "lastDay": "last working day",
       "service": "service {{years}} year(s)",
-      "computer": "This is a computer-generated payslip and needs no signature."
+      "computer": "This is a computer-generated payslip and needs no signature.",
+      "slipFor": "Pay slip for the month of {{month}}",
+      "esi": "ESI No.",
+      "bank": "Bank",
+      "account": "A/c No.",
+      "daysInMonth": "Days in month",
+      "daysPaid": "Days paid",
+      "lopDays": "LOP days",
+      "branch": "Campus",
+      "amountRs": "Amount (₹)",
+      "inWords": "Net pay in words:",
+      "computerGenerated": "This is a computer-generated payslip and does not require a signature."
     }
   }
 }

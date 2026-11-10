@@ -64,12 +64,12 @@
       "UNSUPPORTED": "This browser cannot share its location here (it needs a secure https page). Try another browser."
     },
     "self": {
-      "title": "My attendance today",
+      "title": "Punch in & punch out",
       "studentTitle": "Check in at school",
       "checkIn": "Check in",
       "checkOut": "Check out",
-      "doneIn": "Checked in at {{time}}.",
-      "doneOut": "Checked out at {{time}}.",
+      "doneIn": "Punched in at {{time}}.",
+      "doneOut": "Punched out at {{time}}.",
       "onCampus": "Works only on the campus — your location is checked once, when you press the button. Nothing is tracked.",
       "anywhere": "You can mark from anywhere.",
       "noSites": "The campus location isn't set up yet — ask the office.",
@@ -78,8 +78,44 @@
         "OUT": "Out"
       },
       "phone": "phone",
-      "flagged": "Outside — flagged",
-      "parentLogin": "Students check in from their own login on the student app — not from a parent's phone."
+      "flagged": "Outside the campus — the office will check it",
+      "parentLogin": "Students check in from their own login on the student app — not from a parent's phone.",
+      "subtitle": "Mark the time you arrive and leave.",
+      "subtitleGeo": "Mark the time you arrive and leave — from the campus.",
+      "punchIn": "Punch in",
+      "punchInHint": "Mark the time you arrive",
+      "punchOut": "Punch out",
+      "punchOutHint": "Mark the time you leave",
+      "punchedIn": "Punched in",
+      "punchedOut": "Punched out",
+      "timeNow": "Time now",
+      "site": "Campus",
+      "sitesN": "{{count}} campuses",
+      "checkMe": "Show where I am",
+      "recheck": "Check again",
+      "radius": "Area: {{distance}} around the campus",
+      "accuracy": "your location ±{{distance}}",
+      "daySummary": "Today: in {{in}} · out {{out}}",
+      "todayTitle": "Today",
+      "nothingYet": "No punches yet today.",
+      "viaDevice": "{{device}}",
+      "privacy": "Your location is read only when you punch or tap “Show where I am”. Nothing is tracked.",
+      "where": {
+        "anywhere": "You can punch from anywhere",
+        "anywhereSub": "No campus check for you",
+        "noSites": "Campus location not set up",
+        "noSitesSub": "Ask the office to add it",
+        "checking": "Finding you…",
+        "checkingSub": "This takes a few seconds",
+        "off": "Location is off",
+        "offSub": "Allow location to punch in",
+        "inside": "Inside the campus",
+        "insideSub": "At {{site}}",
+        "outside": "Outside the campus",
+        "outsideSub": "{{distance}} from {{site}}",
+        "unknown": "Location not checked yet",
+        "unknownSub": "It is checked when you punch"
+      }
     }
   }
 }

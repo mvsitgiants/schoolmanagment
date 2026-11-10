@@ -1,60 +1,70 @@
-{{!-- Question paper (A4): one set as the students get it — the exam, class, subject, date and time, roll number boxes,
-      general instructions, then each section with its questions numbered through the paper, marks on the right, MCQ
-      options a)–d) and "OR" for an internal choice. Data from services/questionPapers.js (questionPaperPrint). --}}
+{{!-- Question paper (A4), CBSE layout: one set as the students get it.
+      Top row: Roll No. boxes (rollBoxes[]) and the paper's Code No. (paper.subjectCode) / Set (paper.set, paper.showSet).
+      exam.name, exam.year · paper.class, paper.subject, paper.date, startTime, endTime, durationMin, hours, maxMarks,
+      paper.instructions[] (general instructions), paper.draft · sections[] {title, instructions, count, attempt,
+      attemptAny, marks, total, questions[] {no, marks, text, hasOptions, options[] {letter, text}, trueFalse, multi,
+      or {…}}} numbered through the paper, marks on the right, "OR" for an internal choice.
+      Data from services/questionPapers.js (questionPaperPrint). --}}
 <style>
-  .qp-set { text-align: right; font-size: 9pt; color: #5B616E }
-  .qp-set b { display: block; font-size: 20pt; line-height: 1; color: #12141C; border: 1.5px solid #12141C; border-radius: 2mm; padding: 1mm 3mm; margin-top: 1mm }
-  .qp-draft { margin: 2mm 0; padding: 1.5mm 3mm; border: 1px dashed #C2410C; color: #C2410C; font-size: 8.5pt; text-align: center; font-weight: 600; letter-spacing: .04em }
-  h1.qp-title { font-size: 13pt; text-align: center; margin: 3mm 0 .5mm; text-transform: uppercase; letter-spacing: .06em }
-  .qp-sub { text-align: center; font-size: 10.5pt; font-weight: 600; margin-bottom: 3mm }
-  .qp-facts { display: flex; justify-content: space-between; gap: 4mm; font-size: 9.5pt; border-top: 1px solid #12141C; border-bottom: 1px solid #12141C; padding: 1.5mm 0; margin-bottom: 3mm }
-  .qp-roll { display: flex; align-items: center; gap: 2mm; justify-content: flex-end; font-size: 9pt; margin-bottom: 3mm }
-  .qp-roll span.box { width: 6mm; height: 7mm; border: 1px solid #12141C; display: inline-block }
-  .qp-ins { font-size: 9pt; margin-bottom: 4mm }
-  .qp-ins ol { margin: 1mm 0 0 5mm; padding: 0 }
-  .qp-ins li { margin: .4mm 0 }
+  .qp-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 6mm; margin-bottom: 3mm }
+  .qp-roll { display: flex; align-items: center; gap: 1.2mm; font-size: 9pt; font-weight: 600 }
+  .qp-roll span.box { width: 6.5mm; height: 7.5mm; border: .3mm solid #12141C; display: inline-block }
+  .qp-roll .lab { margin-right: 1.5mm }
+  .qp-code { text-align: right; font-size: 9pt; line-height: 1.5 } .qp-code b { display: inline-block; min-width: 14mm; border: .3mm solid #12141C; padding: .4mm 2mm; text-align: center; font-size: 10.5pt }
+  .qp-cand { font-size: 7.8pt; font-style: italic; text-align: right; margin-top: .6mm }
+  .qp-draft { margin: 2mm 0; padding: 1.5mm 3mm; border: .3mm dashed #333; font-size: 8.5pt; text-align: center; font-weight: 700; letter-spacing: .04em }
+  .qp-facts { width: 100%; font-size: 10pt; border-top: .35mm solid #12141C; border-bottom: .35mm solid #12141C; margin-bottom: 3mm }
+  .qp-facts td { padding: 1.1mm 0 } .qp-facts td.r { text-align: right }
+  .qp-ins { font-size: 9.2pt; margin-bottom: 4mm }
+  .qp-ins ol { margin: 1mm 0 0 5mm; padding: 0 } .qp-ins li { margin: .4mm 0 }
   .qp-sec { margin-top: 4mm }
-  .qp-sec h2 { font-size: 10.5pt; text-align: center; margin: 0 0 1mm; text-transform: uppercase; letter-spacing: .05em }
-  .qp-sec .note { font-size: 9pt; font-style: italic; text-align: center; color: #3A3F4B; margin-bottom: 2mm }
-  .qp-q { display: grid; grid-template-columns: 8mm 1fr 10mm; gap: 1mm; font-size: 10pt; margin: 1.6mm 0; break-inside: avoid }
-  .qp-q .no { font-weight: 600 }
-  .qp-q .mk { text-align: right; white-space: nowrap; font-size: 9pt }
-  .qp-q .txt { white-space: normal }
+  .qp-sec h2 { font-size: 10.5pt; text-align: center; margin: 0 0 1mm; text-transform: uppercase; letter-spacing: .08em }
+  .qp-sec .sn { font-size: 9pt; font-style: italic; text-align: center; color: #3A3F4B; margin-bottom: 2mm }
+  .qp-q { display: grid; grid-template-columns: 8mm 1fr 10mm; gap: 1mm; font-size: 10.2pt; margin: 1.8mm 0; break-inside: avoid }
+  .qp-q .no { font-weight: 600 } .qp-q .mk { text-align: right; white-space: nowrap; font-size: 9.4pt; font-weight: 600 }
   .qp-opts { display: grid; grid-template-columns: 1fr 1fr; gap: .6mm 6mm; margin-top: 1mm }
   .qp-or { text-align: center; font-weight: 700; font-size: 9.5pt; margin: 1mm 0; letter-spacing: .08em }
-  .qp-end { text-align: center; margin-top: 8mm; font-size: 9pt; letter-spacing: .2em; color: #5B616E }
+  .qp-end { text-align: center; margin-top: 8mm; font-size: 9pt; letter-spacing: .2em; color: #3B3F47 }
 </style>
-{{#> letterhead}}{{#if paper.showSet}}<div class="qp-set">{{t "questionPapers.print.set" "Set"}}<b>{{paper.set}}</b></div>{{/if}}{{/letterhead}}
-{{#if paper.draft}}<div class="qp-draft">{{t "questionPapers.print.draft" "DRAFT — this paper has not been approved yet"}}</div>{{/if}}
-<h1 class="qp-title">{{exam.name}}{{#if exam.year}} · {{exam.year}}{{/if}}</h1>
-<div class="qp-sub">{{paper.class}} · {{paper.subject}}{{#if paper.subjectCode}} ({{paper.subjectCode}}){{/if}}</div>
-<div class="qp-facts">
-  <span>{{#if paper.date}}{{t "questionPapers.print.date" "Date"}}: {{date paper.date}}{{#if paper.startTime}} · {{paper.startTime}}{{#if paper.endTime}} – {{paper.endTime}}{{/if}}{{/if}}{{/if}}</span>
-  <span>{{#if paper.durationMin}}{{t "questionPapers.print.time" "Time allowed"}}: {{#if (eq paper.hours 1)}}{{t "questionPapers.print.hour" "1 hour"}}{{else if paper.hours}}{{t "questionPapers.print.hours" "{{n}} hours" n=paper.hours}}{{else}}{{t "questionPapers.print.minutes" "{{n}} minutes" n=paper.durationMin}}{{/if}}{{/if}}</span>
-  <span>{{t "questionPapers.print.maxMarks" "Maximum marks"}}: <b>{{paper.maxMarks}}</b></span>
+<div class="qp-top">
+  <div class="qp-roll"><span class="lab">{{t "questionPapers.print.rollNo" "Roll No."}}</span>{{#each rollBoxes}}<span class="box"></span>{{/each}}</div>
+  {{#if (or paper.subjectCode paper.showSet)}}
+  <div>
+    <div class="qp-code">{{#if paper.subjectCode}}{{t "questionPapers.print.codeNo" "Code No."}} <b>{{paper.subjectCode}}</b>{{/if}}{{#if paper.showSet}} &nbsp;{{t "questionPapers.print.set" "Set"}} <b>{{paper.set}}</b>{{/if}}</div>
+    {{#if paper.subjectCode}}<div class="qp-cand">{{t "questionPapers.print.writeCode" "Candidates must write the Code No. on the title page of the answer book."}}</div>{{/if}}
+  </div>
+  {{/if}}
 </div>
-<div class="qp-roll">{{t "questionPapers.print.rollNo" "Roll No."}} {{#each rollBoxes}}<span class="box"></span>{{/each}}</div>
+{{#> letterhead}}{{/letterhead}}
+{{#if paper.draft}}<div class="qp-draft">{{t "questionPapers.print.draft" "DRAFT — this paper has not been approved yet"}}</div>{{/if}}
+<div class="doc-title">{{exam.name}}{{#if exam.year}} ({{exam.year}}){{/if}}</div>
+<table class="qp-facts">
+  <tr><td>{{t "questionPapers.print.class" "Class"}}: <b>{{paper.class}}</b></td><td class="r">{{t "questionPapers.print.subject" "Subject"}}: <b>{{paper.subject}}</b></td></tr>
+  <tr><td>{{#if paper.durationMin}}{{t "questionPapers.print.time" "Time allowed"}}: <b>{{#if (eq paper.hours 1)}}{{t "questionPapers.print.hour" "1 hour"}}{{else if paper.hours}}{{t "questionPapers.print.hours" "{{n}} hours" n=paper.hours}}{{else}}{{t "questionPapers.print.minutes" "{{n}} minutes" n=paper.durationMin}}{{/if}}</b>{{/if}}</td>
+      <td class="r">{{t "questionPapers.print.maxMarks" "Maximum marks"}}: <b>{{paper.maxMarks}}</b></td></tr>
+  {{#if paper.date}}<tr><td colspan="2">{{t "questionPapers.print.date" "Date"}}: {{date paper.date}}{{#if paper.startTime}} · {{paper.startTime}}{{#if paper.endTime}} – {{paper.endTime}}{{/if}}{{/if}}</td></tr>{{/if}}
+</table>
 {{#if paper.instructions.length}}
-<div class="qp-ins"><b>{{t "questionPapers.print.instructions" "General instructions"}}</b>
-  <ol>{{#each paper.instructions}}<li>{{this}}</li>{{/each}}</ol>
+<div class="qp-ins"><b>{{t "questionPapers.print.instructions" "General instructions"}}:</b>
+  <ol type="i">{{#each paper.instructions}}<li>{{this}}</li>{{/each}}</ol>
 </div>
 {{/if}}
 {{#each sections}}
 <div class="qp-sec">
   <h2>{{title}}</h2>
-  <div class="note">{{#if instructions}}{{instructions}} {{/if}}{{#if attemptAny}}{{t "questionPapers.print.attemptAny" "Attempt any {{n}} of the {{of}} questions." n=attempt of=count}} {{/if}}({{attempt}} × {{num marks}} = {{num total}})</div>
+  <div class="sn">{{#if instructions}}{{instructions}} {{/if}}{{#if attemptAny}}{{t "questionPapers.print.attemptAny" "Attempt any {{n}} of the {{of}} questions." n=attempt of=count}} {{/if}}({{attempt}} × {{num marks}} = {{num total}})</div>
   {{#each questions}}
   <div class="qp-q">
     <span class="no">{{no}}.</span>
     <div class="txt">{{lines text}}{{#if trueFalse}} <i>({{t "questionPapers.print.trueFalse" "True / False"}})</i>{{/if}}{{#if multi}} <i>({{t "questionPapers.print.multi" "more than one may be correct"}})</i>{{/if}}
-      {{#if hasOptions}}<div class="qp-opts">{{#each options}}<span>{{letter}}) {{text}}</span>{{/each}}</div>{{/if}}
+      {{#if hasOptions}}<div class="qp-opts">{{#each options}}<span>({{letter}}) {{text}}</span>{{/each}}</div>{{/if}}
       {{#if or}}
         <div class="qp-or">{{t "questionPapers.print.or" "OR"}}</div>
         {{lines or.text}}{{#if or.trueFalse}} <i>({{t "questionPapers.print.trueFalse" "True / False"}})</i>{{/if}}
-        {{#if or.hasOptions}}<div class="qp-opts">{{#each or.options}}<span>{{letter}}) {{text}}</span>{{/each}}</div>{{/if}}
+        {{#if or.hasOptions}}<div class="qp-opts">{{#each or.options}}<span>({{letter}}) {{text}}</span>{{/each}}</div>{{/if}}
       {{/if}}
     </div>
-    <span class="mk">[{{num marks}}]</span>
+    <span class="mk">{{num marks}}</span>
   </div>
   {{/each}}
 </div>

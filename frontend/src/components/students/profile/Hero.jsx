@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { ArrowLeftRight, CalendarDays, Droplet, IdCard, MessageCircle, Pencil, Phone, Star, UserCheck, UserMinus } from 'lucide-react'
+import { ArrowLeftRight, CalendarDays, Droplet, FileText, IdCard, MessageCircle, Pencil, Phone, Star, UserCheck, UserMinus } from 'lucide-react'
 import { STUDENT_STATUS } from '@schoolgiant/shared'
 import { Avatar, CodeBadge, ColorChip, GenderTag, StatusPill, Tag } from '../../system'
 import Button from '../../ui/Button'
@@ -80,12 +80,13 @@ export default function Hero({ s, actions, onPhoto }) {
 }
 
 /** The record's actions, as the hero shows them. */
-export function HeroActions({ s, can, onEdit, onIdCard, onTc, onInactive, onActive, busy }) {
+export function HeroActions({ s, can, onEdit, onIdCard, onAdmissionForm, onTc, onInactive, onActive, busy }) {
   const { t } = useTranslation('students')
   return (
     <>
       {can.edit && <Button size="sm" variant="secondary" icon={Pencil} onClick={onEdit}>{t('actions.edit')}</Button>}
       {can.idCard && s.status === 'ACTIVE' && <Button size="sm" variant="secondary" icon={IdCard} onClick={onIdCard}>{t('students.profile.hero.idCard')}</Button>}
+      {can.admissionForm && <Button size="sm" variant="secondary" icon={FileText} onClick={onAdmissionForm}>{t('students.profile.hero.admissionForm')}</Button>}
       {can.tc && s.status === 'ACTIVE' && <Button size="sm" variant="secondary" icon={ArrowLeftRight} onClick={onTc}>{t('students.profile.requestTc')}</Button>}
       {can.edit && s.status === 'ACTIVE' && <Button size="sm" variant="ghost" icon={UserMinus} onClick={onInactive} loading={busy}>{t('students.profile.markInactive')}</Button>}
       {can.edit && s.status !== 'ACTIVE' && <Button size="sm" variant="secondary" icon={UserCheck} onClick={onActive} loading={busy}>{t('students.profile.markActive')}</Button>}

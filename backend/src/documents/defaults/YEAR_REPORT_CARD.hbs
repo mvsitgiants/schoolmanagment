@@ -1,80 +1,116 @@
-{{!-- Year-end report card (A4): every subject's % in each exam type that counts (with its share of the year), the
-      weighted final % and grade, the overall result, the year's attendance and the class teacher's remark. --}}
+{{!-- Annual report card (A4), CBSE style: the whole academic session on one card.
+      Student block: student.name, admissionNo, class, rollNo, dob, father, mother.
+      Part 1 Scholastic areas: one column group per exam type that counts (columns[] {name, share, exams}), each with
+      the subject's % and grade (subjects[] {subject, parts[] {pct, grade}}), then the weighted overall % and grade.
+      Part 2 Co-scholastic areas / Part 3 Discipline: coScholastic[] / discipline[] {subject, grades[] {grade}} for
+      each exam in coExams[]. attendance.present / attendance.working · remark · result.label, result.pass,
+      result.promotedTo, result.date, result.failed[] · classTeacher · bands[] {grade, range, remark}. --}}
 <style>
-  h1 { font-size: 13pt; text-align: center; letter-spacing: .08em; text-transform: uppercase; margin: 4mm 0 1mm }
-  .sub { text-align: center; font-size: 10.5pt; font-weight: 600; margin-bottom: 5mm }
-  .who { display: grid; grid-template-columns: 1fr 1fr; gap: 1mm 8mm; font-size: 9.5pt; margin-bottom: 5mm }
-  .who span { color: #5B616E }
-  table.m { width: 100%; border-collapse: collapse; font-size: 9.5pt }
-  table.m th { font-weight: 600; color: #5B616E; border-bottom: 1px solid #C8CCD4; padding: 1.6mm 1.5mm; background: #F6F7F9; text-align: center }
-  table.m th:first-child, table.m td:first-child { text-align: left }
-  table.m th small { display: block; font-weight: 400; font-size: 7.5pt }
-  table.m td { padding: 1.5mm; border-bottom: 1px solid #EEF0F3; text-align: center; white-space: nowrap }
-  table.m td.fin, table.m th.fin { background: #F1F7F7; font-weight: 700 }
-  .low { color: #C0392B; font-weight: 600 }
-  .summary { display: flex; gap: 4mm; margin-top: 5mm }
-  .summary div { flex: 1; border: 1px solid #E3E5EA; border-radius: 2mm; padding: 2mm 3mm; font-size: 9pt }
-  .summary b { display: block; font-size: 12pt; margin-top: .5mm }
-  .note { margin-top: 3mm; font-size: 8.5pt; color: #5B616E }
-  .remark { margin-top: 4mm; border: 1px solid #E3E5EA; border-radius: 2mm; padding: 2.5mm 3mm; font-size: 9.5pt; min-height: 12mm }
-  .scale { margin-top: 4mm; font-size: 8pt; color: #5B616E }
-  .scale span { display: inline-block; margin-right: 4mm }
-  .sign { margin-top: 16mm; display: flex; justify-content: space-between; gap: 10mm; font-size: 9.5pt }
-  .sign div { flex: 1; text-align: center; border-top: 1px solid #8B90A0; padding-top: 2mm }
-  .draft { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 50pt; font-weight: 800; color: rgba(185,130,31,.16); transform: rotate(-20deg); pointer-events: none }
+  .part { font-weight: 700; font-size: 9.4pt; margin: 3.2mm 0 1mm; text-transform: uppercase; letter-spacing: .03em }
+  .part small { font-weight: 400; text-transform: none; letter-spacing: 0; color: #3B3F47; font-size: 8pt }
+  table.grid { font-size: 8.8pt } table.grid th, table.grid td { padding: .8mm 1.6mm } table.grid th { text-align: center; vertical-align: middle } table.grid th.l { text-align: left }
+  table.grid th small { display: block; font-weight: 400; font-size: 7pt }
+  table.grid td.c { text-align: center } table.grid td.sn { text-align: center; width: 9mm }
+  table.grid .fin { background: #F6F7F9; font-weight: 700 }
+  table.kv.who td { padding: .7mm 1.5mm .7mm 0 } table.kv.who td.k { padding-right: 3mm }
+  .low { font-weight: 700; text-decoration: underline }
+  .two { display: grid; grid-template-columns: 3fr 2fr; gap: 5mm; align-items: start }
+  .facts { margin-top: 3mm; font-size: 9.2pt } .facts div { margin-top: 1.5mm; display: flex; gap: 2mm; align-items: baseline }
+  .facts .k { white-space: nowrap; font-weight: 600 } .facts .fill { flex: 1; min-height: 4.6mm; font-weight: 500 }
+  .scale { margin-top: 3mm } .scale .cap { font-size: 7.6pt; font-weight: 600; margin-bottom: .8mm }
+  .scale table.grid { font-size: 7.2pt; table-layout: fixed } .scale table.grid th:first-child { width: 20mm } .scale table.grid th, .scale table.grid td { padding: .5mm .8mm; text-align: center }
+  .signs { margin-top: 21mm } .signs .sealed { position: relative } .signs .sealed .seal { position: absolute; left: 50%; bottom: 100%; transform: translate(-50%, -1mm); margin: 0; width: 18mm; height: 18mm }
+  .draft { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 50pt; font-weight: 800; color: rgba(0,0,0,.07); transform: rotate(-20deg); pointer-events: none }
 </style>
 {{#unless published}}<div class="draft">{{t "exams.print.yearCard.stampProvisional" "PROVISIONAL"}}</div>{{/unless}}
 {{#> letterhead}}{{/letterhead}}
-<h1>{{t "exams.print.yearCard.title" "Annual report card"}}</h1>
-<div class="sub">{{t "exams.print.yearCard.session" "Academic year"}} {{year}}</div>
-<div class="who">
-  <div><span>{{t "exams.print.reportCard.name" "Name"}}:</span> <b>{{student.name}}</b></div>
-  <div><span>{{t "exams.print.reportCard.class" "Class"}}:</span> {{student.class}}</div>
-  <div><span>{{t "exams.print.reportCard.admissionNo" "Admission No."}}:</span> <span class="mono">{{student.admissionNo}}</span></div>
-  <div><span>{{t "exams.print.reportCard.rollNo" "Roll No."}}:</span> {{default student.rollNo "—"}}</div>
-  {{#if student.father}}<div><span>{{t "exams.print.reportCard.father" "Father’s name"}}:</span> {{student.father}}</div>{{/if}}
-  {{#if student.mother}}<div><span>{{t "exams.print.reportCard.mother" "Mother’s name"}}:</span> {{student.mother}}</div>{{/if}}
-</div>
+<div class="doc-title">{{t "exams.print.yearCard.title" "Annual report card"}}</div>
+<div class="doc-sub">{{t "exams.print.reportCard.session" "Academic session {{year}}" year=year}}</div>
 
-<table class="m">
-  <thead><tr>
-    <th>{{t "exams.print.reportCard.subject" "Subject"}}</th>
-    {{#each columns}}<th>{{name}}<small>{{num share}}%</small></th>{{/each}}
-    <th class="fin">{{t "exams.print.yearCard.final" "Final %"}}</th>
-    <th>{{t "exams.print.reportCard.grade" "Grade"}}</th>
-  </tr></thead>
+<table class="kv who">
+  <tr><td class="k">{{t "exams.print.reportCard.studentName" "Student’s name"}}</td><td class="v" colspan="3">{{upper student.name}}</td></tr>
+  <tr><td class="k">{{t "exams.print.reportCard.admissionNo" "Admission No."}}</td><td class="v mono">{{student.admissionNo}}</td>
+      <td class="k">{{t "exams.print.reportCard.rollNo" "Roll No."}}</td><td class="v">{{student.rollNo}}</td></tr>
+  <tr><td class="k">{{t "exams.print.reportCard.classSection" "Class & section"}}</td><td class="v">{{student.class}}</td>
+      <td class="k">{{t "exams.print.reportCard.dob" "Date of birth"}}</td><td class="v">{{#if student.dob}}{{date student.dob}}{{/if}}</td></tr>
+  {{#if (or student.father student.mother)}}
+  <tr><td class="k">{{t "exams.print.reportCard.father" "Father’s name"}}</td><td class="v">{{student.father}}</td>
+      <td class="k">{{t "exams.print.reportCard.mother" "Mother’s name"}}</td><td class="v">{{student.mother}}</td></tr>
+  {{/if}}
+</table>
+
+<div class="part">{{t "exams.print.reportCard.part1" "Part 1 · Scholastic areas"}}</div>
+<table class="grid">
+  <thead>
+    <tr><th rowspan="2">{{t "exams.print.reportCard.sno" "S. No."}}</th><th rowspan="2" class="l">{{t "exams.print.reportCard.subject" "Subject"}}</th>
+      {{#each columns}}<th colspan="2">{{name}}<small>{{t "exams.print.yearCard.weightage" "weightage {{share}}%" share=share}}</small></th>{{/each}}
+      <th colspan="2" class="fin">{{t "exams.print.yearCard.overall" "Overall"}}<small>{{t "exams.print.yearCard.outOf100" "out of 100"}}</small></th></tr>
+    <tr>{{#each columns}}<th>{{t "exams.print.reportCard.pct" "%"}}</th><th>{{t "exams.print.reportCard.grade" "Grade"}}</th>{{/each}}
+      <th class="fin">{{t "exams.print.reportCard.pct" "%"}}</th><th class="fin">{{t "exams.print.reportCard.grade" "Grade"}}</th></tr>
+  </thead>
   <tbody>
     {{#each subjects}}
       <tr>
+        <td class="sn">{{inc @index}}</td>
         <td>{{subject}}</td>
-        {{#each parts}}<td>{{default (num pct) "—"}}</td>{{/each}}
-        <td class="fin{{#if below}} low{{/if}}">{{default (num pct) "—"}}</td>
-        <td>{{default grade "—"}}</td>
+        {{#each parts}}<td class="c">{{num pct}}</td><td class="c">{{grade}}</td>{{/each}}
+        <td class="c fin{{#if below}} low{{/if}}">{{num pct}}</td><td class="c fin">{{grade}}</td>
       </tr>
+    {{else}}
+      <tr><td colspan="{{span}}" class="c note">{{t "exams.print.yearCard.noMarks" "No published marks for this session yet."}}</td></tr>
     {{/each}}
+    {{#if subjects.length}}<tr class="total"><td></td><td>{{t "exams.print.yearCard.overallResult" "Overall"}}</td>{{#each columns}}<td></td><td></td>{{/each}}<td class="c">{{num result.pct}}</td><td class="c">{{result.grade}}</td></tr>{{/if}}
   </tbody>
 </table>
-<div class="note">{{t "exams.print.yearCard.how" "Each column is the % in that kind of exam; the final % weighs them by the share shown under each heading."}}</div>
+<div class="note" style="margin-top:1mm">{{t "exams.print.yearCard.how2" "Overall % = each examination’s % weighed by its weightage."}}{{#if result.rank}} · {{t "exams.print.reportCard.rank" "Rank in class"}}: <b>{{result.rank}}{{#if result.of}} / {{result.of}}{{/if}}</b>{{/if}}</div>
 
-<div class="summary">
-  <div>{{t "exams.print.yearCard.overall" "Overall"}}<b>{{#if result.pct}}{{num result.pct}}%{{#if result.grade}} · {{result.grade}}{{/if}}{{else}}—{{/if}}</b></div>
-  <div>{{t "exams.print.reportCard.result" "Result"}}<b class="{{#unless result.pass}}low{{/unless}}">{{result.label}}</b></div>
-  {{#if result.rank}}<div>{{t "exams.print.reportCard.rank" "Rank in class"}}<b>{{result.rank}} / {{result.of}}</b></div>{{/if}}
-  <div>{{t "exams.print.reportCard.attendance" "Attendance"}}<b>{{#if attendance.working}}{{num attendance.present}} / {{attendance.working}}{{#if attendance.pct}} ({{num attendance.pct}}%){{/if}}{{else}}—{{/if}}</b></div>
+<div class="two">
+  {{#if coScholastic.length}}
+  <div>
+    <div class="part">{{t "exams.print.reportCard.part2" "Part 2 · Co-scholastic areas"}} <small>{{t "exams.print.reportCard.threePoint" "(3-point scale, A–C)"}}</small></div>
+    <table class="grid">
+      <thead><tr><th class="l">{{t "exams.print.reportCard.area" "Activity"}}</th>{{#each coExams}}<th>{{this}}</th>{{/each}}</tr></thead>
+      <tbody>{{#each coScholastic}}<tr><td>{{subject}}</td>{{#each grades}}<td class="c"><b>{{grade}}</b></td>{{/each}}</tr>{{/each}}</tbody>
+    </table>
+  </div>
+  {{/if}}
+  <div>
+    <div class="part">{{#if coScholastic.length}}{{t "exams.print.reportCard.part3" "Part 3 · Discipline"}}{{else}}{{t "exams.print.reportCard.part2Discipline" "Part 2 · Discipline"}}{{/if}} <small>{{t "exams.print.reportCard.threePoint" "(3-point scale, A–C)"}}</small></div>
+    <table class="grid">
+      {{#if discipline.length}}
+      <thead><tr><th class="l">{{t "exams.print.reportCard.element" "Element"}}</th>{{#each coExams}}<th>{{this}}</th>{{/each}}</tr></thead>
+      <tbody>{{#each discipline}}<tr><td>{{subject}}</td>{{#each grades}}<td class="c"><b>{{grade}}</b></td>{{/each}}</tr>{{/each}}</tbody>
+      {{else}}
+      <thead><tr><th class="l">{{t "exams.print.reportCard.element" "Element"}}</th><th style="width:20mm">{{t "exams.print.reportCard.grade" "Grade"}}</th></tr></thead>
+      <tbody><tr><td>{{t "exams.print.reportCard.discipline" "Discipline (regularity, punctuality, behaviour)"}}</td><td></td></tr></tbody>
+      {{/if}}
+    </table>
+  </div>
 </div>
-{{#if result.failed.length}}<div class="note">{{t "exams.print.yearCard.below" "Below the pass mark"}} ({{rules.passPct}}%): {{#each result.failed}}{{this}}{{#unless @last}}, {{/unless}}{{/each}}</div>{{/if}}
 
-<div class="remark"><b>{{t "exams.print.reportCard.remark" "Class teacher’s remark"}}:</b> {{remark}}</div>
+<div class="facts">
+  <div><span class="k">{{t "exams.print.reportCard.attendance" "Attendance"}}:</span>
+    <span class="fill">{{#if attendance.working}}{{num attendance.present}} / {{attendance.working}} {{t "exams.print.reportCard.workingDays" "working days"}}{{#if attendance.pct}} ({{num attendance.pct}}%){{/if}}{{/if}}</span></div>
+  <div><span class="k">{{t "exams.print.reportCard.remark" "Class teacher’s remarks"}}:</span> <span class="fill">{{remark}}</span></div>
+  <div><span class="k">{{t "exams.print.reportCard.result" "Result"}}:</span>
+    <span class="fill">{{#if result.pass}}{{#if result.promotedTo}}{{t "exams.print.yearCard.promoted" "Passed and promoted to {{cls}}" cls=result.promotedTo}}{{else}}{{t "exams.print.reportCard.passed" "Passed"}}{{/if}}{{else}}{{result.label}}{{#if result.failed.length}} ({{join result.failed ", "}}){{/if}}{{/if}}</span>
+    <span class="k">{{t "exams.print.reportCard.resultDate" "Date of result"}}:</span> <span class="fill" style="flex:0 0 32mm">{{date result.date}}</span></div>
+</div>
 
 {{#if bands.length}}
-<div class="scale"><b>{{t "exams.print.reportCard.scale" "Grading scale"}}:</b>
-  {{#each bands}}<span>{{grade}} {{num min}}–{{num max}}%</span>{{/each}}
+<div class="scale no-break">
+  <div class="cap">{{t "exams.print.reportCard.scale" "Grading scale for scholastic areas"}}</div>
+  <table class="grid">
+    <tr><th>{{t "exams.print.reportCard.marksRange" "Marks range"}}</th>{{#each bands}}<td>{{range}}</td>{{/each}}</tr>
+    <tr><th>{{t "exams.print.reportCard.grade" "Grade"}}</th>{{#each bands}}<td><b>{{grade}}</b></td>{{/each}}</tr>
+    <tr><th>{{t "exams.print.reportCard.meaning" "Remark"}}</th>{{#each bands}}<td>{{remark}}</td>{{/each}}</tr>
+  </table>
 </div>
 {{/if}}
 
-<div class="sign">
-  <div>{{t "exams.print.reportCard.teacherSign" "Class teacher"}}</div>
-  <div>{{t "exams.print.reportCard.principalSign" "Principal"}}</div>
-  <div>{{t "exams.print.reportCard.parentSign" "Parent / guardian"}}</div>
+<div class="signs no-break">
+  <div>{{t "exams.print.reportCard.teacherSign" "Class Teacher"}}{{#if classTeacher}}<br><span class="note">{{classTeacher}}</span>{{/if}}</div>
+  <div class="sealed"><div class="seal">{{t "exams.print.reportCard.seal" "School seal"}}</div>{{t "exams.print.reportCard.principalSign" "Principal"}}{{#if classTeacher}}<br><span class="note">&nbsp;</span>{{/if}}</div>
+  <div>{{t "exams.print.reportCard.parentSign" "Parent / Guardian"}}{{#if classTeacher}}<br><span class="note">&nbsp;</span>{{/if}}</div>
 </div>
 {{> footer}}

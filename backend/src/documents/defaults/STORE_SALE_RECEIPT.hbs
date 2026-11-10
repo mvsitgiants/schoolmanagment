@@ -1,46 +1,85 @@
-{{!-- Store receipt (A5, or the 80 mm receipt roll): uniforms and books sold to a student at the counter.
+{{!-- Store bill (A5): uniforms and books sold to a student at the counter. With the institution's GSTIN (Institution
+      profile) it is a TAX INVOICE — HSN, taxable value, CGST and SGST — or a BILL OF SUPPLY when every item is
+      GST-exempt (books); without a GSTIN it is a CASH MEMO. Sale prices include GST.
+      Main fields: sale.no, sale.date, sale.mode, sale.reference, sale.total, sale.by, student.name, student.admissionNo,
+      student.class, rows[] {sl, name, size, qty, rate, amount, hsn, gstRate, taxable}, gst {taxInvoice, billOfSupply,
+      cashMemo, taxable, cgst, sgst, rate, placeOfSupply}, institution.gstin, {{words sale.total}}.
       Data from services/inventorySales.js (salePrintData). --}}
 <style>
-  h1 { font-size: 12pt; text-align: center; letter-spacing: .08em; text-transform: uppercase; margin: 4mm 0 2mm }
-  .meta { display: flex; justify-content: space-between; gap: 6mm; font-size: 9pt; margin-bottom: 3mm }
-  .meta b { font-weight: 600 }
-  table.r { width: 100%; border-collapse: collapse; font-size: 9pt }
-  table.r th { text-align: left; font-weight: 600; color: #5B616E; border-bottom: 1px solid #C8CCD4; padding: 1.5mm 1mm }
-  table.r td { padding: 1.2mm 1mm; border-bottom: 1px solid #EEF0F3; vertical-align: top }
-  table.r .n { text-align: right; white-space: nowrap }
-  .tot { margin-top: 3mm; display: flex; justify-content: space-between; font-size: 10.5pt; font-weight: 700 }
-  .words { font-size: 9pt; color: #3A3F4B; margin-top: 1mm }
-  .foot { margin-top: 8mm; display: flex; justify-content: space-between; font-size: 9pt }
+  .lh-classic { grid-template-columns: 14mm 1fr 14mm; gap: 2mm } .crest { max-width: 14mm; max-height: 14mm }
+  .hn-classic { font-size: 14pt } .lh-trust, .lh-board, .lh-line { font-size: 7pt }
+  .bill { font-size: 8.6pt }
+  .gstline { display: flex; justify-content: space-between; gap: 3mm; font-size: 8pt; margin-top: 1.5mm }
+  .bill .doc-title { margin: 2.5mm 0 1mm; font-size: 12pt }
+  .bill .doc-sub { margin: 0 0 2mm; font-size: 7.6pt; font-weight: 400; color: #3B3F47 }
+  .bill table.kv { border: 0.25mm solid #555; margin-bottom: 2mm }
+  .bill table.kv td { padding: .6mm 1.4mm; border-bottom: 0.2mm dotted #B5BAC3 }
+  .bill table.kv tr:last-child td { border-bottom: 0 }
+  .bill table.grid th, .bill table.grid td { padding: .7mm 1.3mm }
+  .bill table.grid th { font-size: 7.8pt }
+  .bill table.grid .sl { width: 7mm; text-align: center }
+  .bill table.grid tfoot td { background: transparent; font-weight: 400 }
+  .bill table.grid tfoot tr.total td { font-weight: 700; background: #F1F3F6 }
+  .bill .words { margin-top: 1.5mm }
+  .bill .pay { margin-top: .6mm }
+  .bill .terms { margin-top: 1.5mm }
+  .bill .signs { margin-top: 13mm; gap: 6mm } .bill .signs > div { font-size: 8.2pt; position: relative }
+  .bill .by { position: absolute; left: 0; right: 0; top: 100%; font-size: 7pt; color: #5B616E }
+  .bill .for { position: absolute; left: 0; right: 0; bottom: 100%; margin-bottom: 9mm; font-size: 7.8pt }
   .void { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 46pt; font-weight: 800; color: rgba(214,69,69,.16); transform: rotate(-20deg); pointer-events: none }
 </style>
 {{#if sale.cancelled}}<div class="void">{{t "inventory.print.sale.stampCancelled" "CANCELLED"}}</div>{{/if}}
 {{#> letterhead}}{{/letterhead}}
-<h1>{{t "inventory.print.sale.title" "Store receipt"}}</h1>
-<div class="meta">
-  <div>
-    <div>{{t "inventory.print.sale.no" "Receipt No."}} <b class="mono">{{sale.no}}</b></div>
-    <div>{{t "inventory.print.sale.date" "Date"}} <b>{{date sale.date}}</b></div>
+<div class="bill">
+  {{#if gst.registered}}<div class="gstline"><span>{{t "inventory.print.sale.gstin" "GSTIN"}}: <b class="mono">{{institution.gstin}}</b></span>{{#if institution.state}}<span>{{t "inventory.print.sale.state" "State: {{state}}" state=institution.state}}</span>{{/if}}</div>{{/if}}
+  <div class="doc-title">{{#if gst.taxInvoice}}{{t "inventory.print.sale.taxInvoice" "Tax invoice"}}{{else}}{{#if gst.billOfSupply}}{{t "inventory.print.sale.billOfSupply" "Bill of supply"}}{{else}}{{t "inventory.print.sale.cashMemo" "Cash memo"}}{{/if}}{{/if}}</div>
+  {{#if gst.taxInvoice}}<div class="doc-sub">{{t "inventory.print.sale.original" "Original for recipient"}}</div>{{/if}}
+  {{#if gst.billOfSupply}}<div class="doc-sub">{{t "inventory.print.sale.exempt" "Exempt supply — no GST charged"}}</div>{{/if}}
+  <table class="kv">
+    <tr><td class="k">{{t "inventory.print.sale.no" "Bill No."}}</td><td class="v mono">{{sale.no}}</td><td class="k">{{t "inventory.print.sale.date" "Date"}}</td><td class="v">{{date sale.date}}</td></tr>
+    <tr><td class="k">{{t "inventory.print.sale.studentName" "Student's name"}}</td><td class="v upper" colspan="3">{{student.name}}</td></tr>
+    <tr><td class="k">{{t "inventory.print.sale.admissionNo" "Admission No."}}</td><td class="v mono">{{student.admissionNo}}</td><td class="k">{{t "inventory.print.sale.class" "Class"}}</td><td class="v">{{default student.class "—"}}</td></tr>
+    {{#if gst.taxInvoice}}{{#if gst.placeOfSupply}}<tr><td class="k">{{t "inventory.print.sale.placeOfSupply" "Place of supply"}}</td><td class="v" colspan="3">{{gst.placeOfSupply}}</td></tr>{{/if}}{{/if}}
+  </table>
+  <table class="grid">
+    <thead><tr>
+      <th class="sl">{{t "inventory.print.sale.sl" "Sl."}}</th><th>{{t "inventory.print.sale.item" "Particulars"}}</th>
+      {{#if gst.registered}}<th>{{t "inventory.print.sale.hsn" "HSN"}}</th>{{/if}}
+      <th class="r">{{t "inventory.print.sale.qty" "Qty"}}</th><th class="r">{{t "inventory.print.sale.rate" "Rate"}}</th>
+      {{#if gst.taxInvoice}}<th class="r">{{t "inventory.print.sale.taxable" "Taxable value"}}</th><th class="r">{{t "inventory.print.sale.gstPct" "GST %"}}</th>{{/if}}
+      <th class="r">{{t "inventory.print.sale.amount" "Amount (₹)"}}</th>
+    </tr></thead>
+    <tbody>
+      {{#each rows}}
+      <tr>
+        <td class="sl">{{sl}}</td><td>{{name}}{{#if size}} <span class="muted">({{t "inventory.print.sale.size" "size {{size}}" size=size}})</span>{{/if}}</td>
+        {{#if @root.gst.registered}}<td>{{hsn}}</td>{{/if}}
+        <td class="r">{{num qty}}</td><td class="r">{{amount rate}}</td>
+        {{#if @root.gst.taxInvoice}}<td class="r">{{amount taxable}}</td><td class="r">{{#if gstRate}}{{num gstRate}}%{{else}}{{t "inventory.print.sale.nil" "Nil"}}{{/if}}</td>{{/if}}
+        <td class="r">{{amount amount}}</td>
+      </tr>
+      {{/each}}
+    </tbody>
+    <tfoot>
+      {{#if gst.taxInvoice}}
+      <tr><td colspan="7" class="r">{{t "inventory.print.sale.taxableTotal" "Taxable value"}}</td><td class="r">{{amount gst.taxable}}</td></tr>
+      {{#each gst.byRate}}
+      <tr><td colspan="7" class="r">{{t "inventory.print.sale.cgstOn" "CGST @ {{rate}}% on {{taxable}}" rate=(num half) taxable=(amount taxable)}}</td><td class="r">{{amount cgst}}</td></tr>
+      <tr><td colspan="7" class="r">{{t "inventory.print.sale.sgstOn" "SGST @ {{rate}}% on {{taxable}}" rate=(num half) taxable=(amount taxable)}}</td><td class="r">{{amount sgst}}</td></tr>
+      {{/each}}
+      <tr class="total"><td colspan="7" class="r">{{t "inventory.print.sale.totalInclGst" "Total (incl. GST)"}}</td><td class="r">{{money sale.total}}</td></tr>
+      {{else}}
+      <tr class="total"><td colspan="{{#if gst.registered}}5{{else}}4{{/if}}" class="r">{{t "inventory.print.sale.grandTotal" "Total"}}</td><td class="r">{{money sale.total}}</td></tr>
+      {{/if}}
+    </tfoot>
+  </table>
+  <div class="words">{{t "inventory.print.sale.inWords" "In words:"}} <b>{{words sale.total}}</b></div>
+  <div class="pay">{{t "inventory.print.sale.paidBy" "Paid by {{mode}}" mode=sale.mode}}{{#if sale.reference}} · {{t "inventory.print.sale.ref" "Ref. {{ref}}" ref=sale.reference}}{{/if}}</div>
+  {{#if sale.cancelled}}<div class="pay"><b>{{t "inventory.print.sale.cancelledNote" "Cancelled: {{reason}}" reason=sale.cancelReason}}</b></div>{{/if}}
+  <div class="note terms">{{t "inventory.print.sale.noReturn" "Goods once sold will not be taken back."}}{{#if gst.taxInvoice}} {{t "inventory.print.sale.reverseCharge" "Tax payable on reverse charge: No."}}{{/if}}</div>
+  <div class="signs">
+    <div>{{t "inventory.print.sale.customerSign" "Received by (parent / student)"}}</div>
+    <div><span class="for">{{t "inventory.print.sale.forName" "For {{name}}" name=institution.name}}</span>{{t "inventory.print.sale.signature" "Authorised signatory"}}{{#if sale.by}}<span class="by">{{t "inventory.print.sale.by" "Received by {{name}}" name=sale.by}}</span>{{/if}}</div>
   </div>
-  <div style="text-align:right">
-    <div><b>{{student.name}}</b></div>
-    <div>{{student.class}}</div>
-    <div class="muted">{{t "inventory.print.sale.admissionNo" "Adm. No."}} <span class="mono">{{student.admissionNo}}</span></div>
-  </div>
-</div>
-<table class="r">
-  <thead><tr><th>{{t "inventory.print.sale.item" "Item"}}</th><th class="n">{{t "inventory.print.sale.qty" "Qty"}}</th><th class="n">{{t "inventory.print.sale.rate" "Rate"}}</th><th class="n">{{t "inventory.print.sale.amount" "Amount"}}</th></tr></thead>
-  <tbody>
-    {{#each lines}}
-      <tr><td>{{name}}{{#if size}} <span class="muted">({{t "inventory.print.sale.size" "size {{size}}" size=size}})</span>{{/if}}</td><td class="n">{{num qty}}</td><td class="n">{{money rate}}</td><td class="n">{{money amount}}</td></tr>
-    {{/each}}
-  </tbody>
-</table>
-<div class="tot"><span>{{t "inventory.print.sale.total" "Amount received"}}</span><span>{{money sale.total}}</span></div>
-<div class="words">{{words sale.total}}</div>
-<div class="words">{{t "inventory.print.sale.paidBy" "Paid by {{mode}}" mode=sale.mode}}{{#if sale.reference}} · {{t "inventory.print.sale.ref" "Ref. {{ref}}" ref=sale.reference}}{{/if}}</div>
-{{#if sale.cancelled}}<div class="words">{{t "inventory.print.sale.cancelledNote" "Cancelled: {{reason}}" reason=sale.cancelReason}}</div>{{/if}}
-<div class="foot">
-  <span class="muted">{{t "inventory.print.sale.by" "Received by {{name}}" name=sale.by}}</span>
-  <span>{{t "inventory.print.sale.signature" "Authorised signatory"}}</span>
 </div>
 {{> footer}}

@@ -37,6 +37,9 @@ async function sitesFor(branchId) {
     .map((x) => ({ id: x._id, branchId: b._id, name: x.name || b.name, shape: x.shape === 'POLYGON' ? 'POLYGON' : 'CIRCLE', lat: x.lat, lng: x.lng, radiusM: x.radiusM || GEOFENCE_DEFAULT_RADIUS_M, polygon: x.shape === 'POLYGON' ? x.polygon : undefined })))
 }
 
+/** A site as the check-in card draws it on the map. */
+const siteOut = (x) => ({ id: String(x.id), name: x.name, shape: x.shape, lat: x.lat, lng: x.lng, radiusM: x.radiusM, polygon: x.polygon })
+
 /**
  * The geofence verdict for one check-in. OFF: nothing checked or kept. REQUIRED: refuse without a fix, with a rough fix,
  * or outside every site. WARN: accept, but flag it (outsideGeofence) for review.
@@ -100,7 +103,7 @@ async function punch(d, asAuth, { code, personId, direction, fence }) {
   const out = await receive(d, asAuth, { punches: [{ code, direction, at: at.toISOString() }] })
   if (!out.accepted) throw conflict(out.errors[0]?.message ?? 'That could not be recorded.')
   if (fence) await DevicePunch.updateOne({ deviceId: d._id, code, at }, { $set: { geo: fence.geo, ...(fence.outside && { outsideGeofence: true }), note: fence.message } })
-  return { direction, time: hhmmIn(at, await timeZoneOf()), outcome: out.results[0]?.outcome ?? null, note: out.results[0]?.note ?? null, geofence: fence ? { message: fence.message, outside: fence.outside, status: fence.geo.status } : null }
+  return { direction, at, time: hhmmIn(at, await timeZoneOf()), outcome: out.results[0]?.outcome ?? null, note: out.results[0]?.note ?? null, geofence: fence ? { message: fence.message, outside: fence.outside, status: fence.geo.status } : null }
 }
 
 const deviceAuth = (tenantId, enabledModules, name, branchId) => ({ tenantId: String(tenantId), userId: undefined, fullAccess: true, permissions: ['*'], dataScopes: { default: 'ALL' }, enabledModules, user: { name, branchId } })
@@ -120,7 +123,8 @@ export async function staffSelfStatus(auth) {
   const e = await myEmployee(auth)
   const today = await punchesToday(e._id)
   const mode = e.geofenceExempt ? 'OFF' : (cfg.geofence ?? 'REQUIRED')
-  return { enabled: true, mode, exempt: !!e.geofenceExempt, sites: mode === 'OFF' ? 0 : (await sitesFor(e.branchId)).length, today, next: nextDirection(today) }
+  const sites = mode === 'OFF' ? [] : await sitesFor(e.branchId)
+  return { enabled: true, mode, exempt: !!e.geofenceExempt, sites: sites.length, siteList: sites.map(siteOut), today, next: nextDirection(today) }
 }
 
 /** My workspace › Check in / Check out. `location` { lat, lng, accuracy } is read by the browser at this moment only. */
@@ -144,7 +148,8 @@ export async function studentSelfStatus(f, studentId) {
   const mode = cfg.studentSelfCheckIn ?? 'OFF'
   if (mode === 'OFF' || !f.enabledModules?.includes('attendance')) return { enabled: false }
   const today = await punchesToday(s._id)
-  return { enabled: true, mode, ownLogin: f.session.kind === 'STUDENT', sites: (await sitesFor(s.branchId)).length, today, next: nextDirection(today) }
+  const sites = await sitesFor(s.branchId)
+  return { enabled: true, mode, ownLogin: f.session.kind === 'STUDENT', sites: sites.length, siteList: sites.map(siteOut), today, next: nextDirection(today) }
 }
 
 /** The student app › Check in / Check out — the student's own login, inside an attendance site of their campus. */

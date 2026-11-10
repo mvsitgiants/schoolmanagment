@@ -133,7 +133,7 @@ export function StudentCheckInCard() {
   if (!data?.enabled || !data.ownLogin) return null
   return (
     <FCard title={t('geo.self.studentTitle')}>
-      <SelfCheckIn status={data} punch={(body) => familySelfCheckIn(slug, studentId, body)}
+      <SelfCheckIn framed={false} status={data} punch={(body) => familySelfCheckIn(slug, studentId, body)}
         onDone={(r) => qc.setQueryData(['family', slug, studentId, 'self-attendance'], (d) => ({ ...d, today: r.today, next: r.direction === 'IN' ? 'OUT' : 'IN' }))} />
     </FCard>
   )

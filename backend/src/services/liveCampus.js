@@ -391,7 +391,7 @@ async function prioritiesBlock(ctx, { board, teachers, syllabus, sectionIds, fla
   if (syllabus) add('syllabus', 'medium', syllabus.behindRows, '/homework/syllabus', { topics: syllabus.behindTopics })
   tasks.push(safe('approvals', async () => {
     const list = await pendingFor(ctx.auth)
-    if (on(ctx.auth, 'hrms', 'hrms.leave.approve')) { const n = await Leave.countDocuments({ status: 'PENDING', userId: { $ne: ctx.auth.userId } }); if (n) list.push({ key: 'staffLeave', count: n, link: '/hrms/leave' }) }
+    if (on(ctx.auth, 'hrms', 'hrms.leave.approve')) { const n = await (await import('./hrmsLeaveApprovals.js')).countWaitingOnMe(ctx.auth); if (n) list.push({ key: 'staffLeave', count: n, link: '/hrms/leave' }) }
     const requests = await waitingCount(ctx.auth)
     if (requests) list.push({ key: 'requests', count: requests, link: '/approvals' })
     const total = list.reduce((n, x) => n + x.count, 0)

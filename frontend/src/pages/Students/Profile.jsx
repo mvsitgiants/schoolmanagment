@@ -84,7 +84,7 @@ export default function Profile() {
 
   const o = ov.data
   const canEdit = hasPermission('students.profile.edit')
-  const can = { edit: canEdit, idCard: hasPermission('students.id-cards.print'), tc: hasPermission('students.transfer.create') }
+  const can = { edit: canEdit, idCard: hasPermission('students.id-cards.print'), tc: hasPermission('students.transfer.create'), admissionForm: hasPermission('students.profile.print') }
   const completeness = completenessOf(s, !!photo.data?.photo, t)
 
   // a tab only when there is something in it for this student and this role
@@ -115,7 +115,7 @@ export default function Profile() {
       </div>
 
       <Hero s={s} onPhoto={() => goto('documents')}
-        actions={<HeroActions s={s} can={can} busy={status.isPending} onEdit={() => setEditing(true)} onIdCard={() => printDocument('STUDENT_ID_CARD', [s.id])}
+        actions={<HeroActions s={s} can={can} busy={status.isPending} onEdit={() => setEditing(true)} onIdCard={() => printDocument('STUDENT_ID_CARD', [s.id])} onAdmissionForm={() => printDocument('ADMISSION_FORM', s.id)}
           onTc={() => navigate(`/students/transfer?student=${s.id}`)} onInactive={makeInactive} onActive={() => status.mutate('ACTIVE')} />} />
 
       {s.leaving?.tcNo && <Note tone="warning">{t('students.profile.leftNote', { date: date(s.leaving.date), tc: s.leaving.tcNo })}</Note>}

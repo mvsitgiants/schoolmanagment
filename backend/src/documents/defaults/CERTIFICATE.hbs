@@ -1,71 +1,132 @@
-{{!-- Certificates (A4): bonafide, character, study, fee paid and merit. One layout; the wording follows the kind.
-      An institution can rewrite any of it in Administration › Print templates. The QR opens the public
-      verify page, so whoever receives the certificate can check it is genuine and not cancelled. --}}
+{{!-- Certificates (A4) in the usual Indian school wording, one per kind: bonafide, character, study (with the
+      year-by-year classes table), fee paid (tuition fee for income-tax section 80C) and merit (a decorated certificate).
+      Main fields: certificate.no, certificate.issueDate, certificate.purpose, certificate.remarks · student.titleName
+      ("Master / Kumari …"), student.relPhrase (", S/o …"), student.p.he / His / his / him, student.class, student.yearName,
+      student.dob, student.dobWords, student.from / to, student.years[] {year, class} · fees.fy, fees.from, fees.to,
+      fees.heads[] {sl, name, amount}, fees.total, fees.tuition · verify.url (the QR: anyone can check it is genuine).
+      Signed by the Principal over the school seal. --}}
 <style>
-  h1 { font-size: 15pt; text-align: center; letter-spacing: .12em; text-transform: uppercase; margin: 8mm 0 2mm }
-  .no { display: flex; justify-content: space-between; font-size: 9pt; color: #5B616E; margin: 4mm 0 8mm }
-  .body { font-size: 11.5pt; line-height: 1.85; text-align: justify; margin: 0 4mm }
-  .body p { margin: 0 0 4mm }
-  table.fees { width: 80%; margin: 2mm auto 5mm; border-collapse: collapse; font-size: 10.5pt }
-  table.fees td { padding: 1.6mm 2mm; border-bottom: 1px solid #E3E5EA }
-  table.fees td.n { text-align: right; white-space: nowrap }
-  table.fees tr.tot td { font-weight: 700; border-top: 1px solid #8B90A0 }
-  .merit { text-align: center; font-size: 12.5pt; line-height: 1.9; margin: 6mm 6mm }
-  .merit .who { font-size: 19pt; font-weight: 700; margin: 3mm 0 }
-  .merit .what { font-size: 13.5pt; font-weight: 600 }
-  .foot { margin-top: 20mm; display: flex; justify-content: space-between; align-items: flex-end; gap: 8mm; font-size: 9.5pt }
-  .sign { text-align: center; min-width: 55mm; border-top: 1px solid #8B90A0; padding-top: 2mm }
-  .qr { text-align: center; font-size: 7.5pt; color: #5B616E }
-  .void { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 56pt; font-weight: 800; color: rgba(214,69,69,.16); transform: rotate(-20deg); pointer-events: none }
+  .frame { position: relative; display: flex; flex-direction: column }
+  .c-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 4mm; margin-top: 3mm; font-size: 9.5pt }
+  .c-top b { font-family: "JetBrains Mono", ui-monospace, monospace; font-weight: 600 }
+  .c-qr { text-align: center; font-size: 6.4pt; color: #5B616E; line-height: 1.2 }
+  .doc-title { font-size: 15pt; margin: 6mm 0 6mm }
+  .body { font-family: "Noto Serif", Georgia, "Times New Roman", serif; font-size: 11.5pt; line-height: 1.85; text-align: justify; margin: 0 3mm }
+  .body p { margin: 0 0 4mm; text-indent: 12mm }
+  .body p.plain { text-indent: 0 }
+  .body b { font-weight: 700 }
+  table.grid { font-family: Inter, "Noto Sans", system-ui, sans-serif; font-size: 9.6pt; line-height: 1.3; margin: 1mm 0 4mm }
+  table.grid td.sl, table.grid th.sl { width: 15mm; text-align: center; white-space: nowrap }
+  .amount-words { font-style: italic }
+  .tuition { border: 0.3mm solid #444; padding: 2.5mm 4mm; margin: 3mm 0 4mm; font-family: Inter, "Noto Sans", system-ui, sans-serif; font-size: 10pt; line-height: 1.5; text-align: left }
+  .c-foot { margin-top: auto; padding-top: 8mm; display: flex; justify-content: space-between; align-items: flex-end; gap: 8mm; font-size: 9.5pt }
+  .c-foot .place { line-height: 1.8 }
+  .c-sign { text-align: center; min-width: 58mm }
+  .c-sign .line { border-top: 0.3mm solid #333; padding-top: 1.2mm }
+  .c-sign .sub { display: block; font-size: 7.6pt; color: #5B616E }
+  .stamp { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 56pt; font-weight: 800; color: rgba(214,69,69,.16); transform: rotate(-20deg); pointer-events: none }
+  /* merit: a decorated certificate */
+  .frame.merit { border-width: 2.2mm; padding: 2.5mm }
+  .merit .inner { flex: 1; display: flex; flex-direction: column; border: 0.5mm solid {{$accent}}; outline: 0.2mm solid {{$accent}}; outline-offset: -1.6mm; padding: 5mm 5mm }
+  .merit .m-title { text-align: center; font-family: "Noto Serif", Georgia, "Times New Roman", serif; color: {{$accent}}; margin-top: 10mm }
+  .merit .m-title .big { font-size: 30pt; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; line-height: 1.1 }
+  .merit .m-title .of { font-size: 13pt; font-style: italic; letter-spacing: .2em; text-transform: uppercase; margin-top: 1mm }
+  .merit .m-rule { width: 60mm; margin: 5mm auto 0; border-top: 0.6mm double {{$accent}} }
+  .merit .m-body { text-align: center; font-family: "Noto Serif", Georgia, "Times New Roman", serif; font-size: 13pt; line-height: 2.1; margin: 12mm 4mm 0 }
+  .merit .m-name { display: inline-block; min-width: 110mm; font-size: 21pt; font-style: italic; font-weight: 700; border-bottom: 0.3mm solid #333; line-height: 1.5; margin: 2mm 0 }
+  .merit .m-what { font-weight: 700 }
+  .merit .c-top { margin-top: 2mm; padding: 0 3mm }
+  .merit .m-body, .merit .c-foot { padding-left: 3mm; padding-right: 3mm }
 </style>
-{{#if certificate.cancelled}}<div class="void">{{t "certificates.print.stampCancelled" "CANCELLED"}}</div>{{/if}}
-{{#> letterhead}}{{/letterhead}}
-<h1>{{tc "certificates.print.title" certificate.kind certificate.kindLabel}}</h1>
-<div class="no">
-  <span>{{t "certificates.print.no" "Certificate No."}} <b class="mono">{{certificate.no}}</b></span>
-  <span>{{t "certificates.print.date" "Date"}} <b>{{date certificate.issueDate}}</b></span>
-</div>
-
 {{#if certificate.merit}}
-  <div class="merit">
-    <div>{{t "certificates.print.merit.intro" "This certificate is proudly presented to"}}</div>
-    <div class="who">{{student.name}}</div>
-    <div>{{#if student.class}}{{t "certificates.print.merit.ofClass" "of {{cls}}" cls=student.class}}{{/if}}</div>
-    <div>{{#if student.achievement}}{{t "certificates.print.merit.for" "for"}} <span class="what">{{student.achievement}}</span> {{t "certificates.print.merit.in" "in"}}{{else}}{{t "certificates.print.merit.participation" "for taking part in"}}{{/if}}</div>
-    <div class="what">{{student.event}}</div>
-    {{#if student.eventDate}}<div>{{t "certificates.print.merit.on" "held on {{date}}" date=(date student.eventDate)}}</div>{{/if}}
+<div class="frame merit"><div class="inner">
+  {{#if certificate.cancelled}}<div class="stamp">{{t "certificates.print.stampCancelled" "CANCELLED"}}</div>{{/if}}
+  {{#> letterhead}}{{/letterhead}}
+  <div class="c-top">
+    <span>{{t "certificates.print.no" "Certificate No."}} <b>{{certificate.no}}</b></span>
+    <span>{{t "certificates.print.date" "Date"}}: <b>{{date certificate.issueDate}}</b></span>
   </div>
+  <div class="m-title"><div class="big">{{t "certificates.print.merit.title" "Certificate"}}</div><div class="of">{{#if student.achievement}}{{t "certificates.print.merit.ofMerit" "of merit"}}{{else}}{{t "certificates.print.merit.ofParticipation" "of participation"}}{{/if}}</div><div class="m-rule"></div></div>
+  <div class="m-body">
+    <div>{{t "certificates.print.merit.intro" "This is to certify that"}}</div>
+    <div class="m-name">{{student.titleName}}</div>
+    <div>{{#if student.class}}{{t "certificates.print.merit.ofClass" "of {{cls}}" cls=student.class}}{{/if}}{{#if student.admissionNo}} ({{t "certificates.print.merit.admNo" "Admission No. {{no}}" no=student.admissionNo}}){{/if}}</div>
+    <div>{{#if student.achievement}}{{t "certificates.print.merit.has" "has secured"}} <span class="m-what">{{student.achievement}}</span> {{t "certificates.print.merit.in" "in"}}{{else}}{{t "certificates.print.merit.participation" "has taken part in"}}{{/if}} <span class="m-what">{{student.event}}</span></div>
+    {{#if student.eventDate}}<div>{{t "certificates.print.merit.on" "held on {{date}}" date=(date student.eventDate)}}</div>{{/if}}
+    {{#if certificate.remarks}}<div>{{certificate.remarks}}</div>{{/if}}
+    <div style="margin-top:3mm;font-style:italic">{{t "certificates.print.merit.wish" "We congratulate {{him}} and wish {{him}} every success." him=student.p.him}}</div>
+  </div>
+  <div class="c-foot">
+    <div class="c-sign"><div class="line">{{t "certificates.print.coordinator" "Teacher in charge"}}</div></div>
+    {{#if (and @root.$layout.showQr verify.url)}}<div class="c-qr">{{qr verify.url 15}}<div>{{t "certificates.print.scan" "Scan to verify"}}</div></div>{{/if}}
+    <div class="c-sign"><div class="seal">{{t "certificates.print.seal" "School seal"}}</div><div class="line">{{t "certificates.print.signature" "Principal"}}</div></div>
+  </div>
+</div></div>
 {{else}}
-<div class="body">
+<div class="frame">
+  {{#if certificate.cancelled}}<div class="stamp">{{t "certificates.print.stampCancelled" "CANCELLED"}}</div>{{/if}}
+  {{#> letterhead}}{{/letterhead}}
+  <div class="c-top">
+    <div>
+      <div>{{t "certificates.print.no" "Certificate No."}} <b>{{certificate.no}}</b></div>
+      <div>{{t "certificates.print.date" "Date"}}: <b>{{date certificate.issueDate}}</b></div>
+    </div>
+    {{#if (and @root.$layout.showQr verify.url)}}<div class="c-qr">{{qr verify.url 16}}<div>{{t "certificates.print.scan" "Scan to verify"}}</div><div class="mono">{{verify.code}}</div></div>{{/if}}
+  </div>
+  <div class="doc-title">{{tc "certificates.print.title" certificate.kind certificate.kindLabel}}</div>
+  <div class="body">
   {{#if certificate.bonafide}}
-    <p>{{t "certificates.print.bonafide.text" "This is to certify that <b>{{name}}</b>{{parent}}, Admission No. {{admissionNo}}, is a bonafide student of this institution, studying in <b>{{cls}}</b> in the academic year {{year}}." name=student.name parent=student.parentPhrase admissionNo=student.admissionNo cls=student.class year=student.yearName}}</p>
-    {{#if student.dob}}<p>{{t "certificates.print.dobLine" "{{his}} date of birth, as per our records, is {{dob}}." his=(tc "certificates.print.His" student.kid) dob=(date student.dob)}}</p>{{/if}}
+    <p>{{t "certificates.print.bonafide.text" "This is to certify that <b>{{name}}</b>{{rel}}, Admission No. {{admissionNo}}, is a bonafide student of {{school}}, studying in <b>{{cls}}</b> during the academic year <b>{{year}}</b>." name=student.titleName rel=student.relPhrase admissionNo=student.admissionNo school=institution.name cls=student.class year=student.yearName}}</p>
+    {{#if student.dob}}<p>{{t "certificates.print.dobLine" "{{His}} date of birth as per the school records is <b>{{dob}}</b> ({{words}})." His=student.p.His dob=(date student.dob) words=student.dobWords}}</p>{{/if}}
   {{/if}}
   {{#if certificate.character}}
-    <p>{{#if student.studying}}{{t "certificates.print.character.textIs" "This is to certify that <b>{{name}}</b>{{parent}}, Admission No. {{admissionNo}}, is a student of this institution since {{from}}." name=student.name parent=student.parentPhrase admissionNo=student.admissionNo from=(default (date student.from) "—")}}{{else}}{{t "certificates.print.character.textWas" "This is to certify that <b>{{name}}</b>{{parent}}, Admission No. {{admissionNo}}, was a student of this institution from {{from}} to {{to}}." name=student.name parent=student.parentPhrase admissionNo=student.admissionNo from=(default (date student.from) "—") to=(default (date student.to) "—")}}{{/if}}</p>
-    <p>{{t "certificates.print.character.conduct" "To the best of our knowledge {{he}} bears a good moral character. {{his}} conduct has been <b>{{conduct}}</b>." he=(tc "certificates.print.he" student.kid) his=(tc "certificates.print.His" student.kid) conduct=student.conduct}}</p>
+    {{#if student.studying}}
+    <p>{{t "certificates.print.character.textIs" "This is to certify that <b>{{name}}</b>{{rel}}, Admission No. {{admissionNo}}, is a bonafide student of {{school}} since {{from}} and is at present studying in <b>{{cls}}</b>." name=student.titleName rel=student.relPhrase admissionNo=student.admissionNo school=institution.name from=(default (date student.from) "—") cls=student.class}}</p>
+    {{else}}
+    <p>{{t "certificates.print.character.textWas" "This is to certify that <b>{{name}}</b>{{rel}}, Admission No. {{admissionNo}}, was a bonafide student of {{school}} from {{from}} to {{to}}." name=student.titleName rel=student.relPhrase admissionNo=student.admissionNo school=institution.name from=(default (date student.from) "—") to=(default (date student.to) "—")}}</p>
+    {{/if}}
+    <p>{{t "certificates.print.character.conduct" "During this period {{his}} conduct and character have been found to be <b>{{conduct}}</b>. To the best of our knowledge {{he}} bears a good moral character and has not taken part in any activity against the discipline of the institution." his=student.p.his he=student.p.he conduct=student.conduct}}</p>
+    <p>{{t "certificates.print.character.wish" "We wish {{him}} every success in life." him=student.p.him}}</p>
   {{/if}}
   {{#if certificate.study}}
-    <p>{{#if student.studying}}{{t "certificates.print.study.textIs" "This is to certify that <b>{{name}}</b>{{parent}}, Admission No. {{admissionNo}}, has been studying in this institution since {{from}} (admitted to {{fromClass}}) and is now in <b>{{toClass}}</b>." name=student.name parent=student.parentPhrase admissionNo=student.admissionNo from=(default (date student.from) "—") fromClass=(default student.fromClass "—") toClass=(default student.toClass "—")}}{{else}}{{t "certificates.print.study.textWas" "This is to certify that <b>{{name}}</b>{{parent}}, Admission No. {{admissionNo}}, studied in this institution from <b>{{fromClass}}</b> ({{from}}) to <b>{{toClass}}</b> ({{to}})." name=student.name parent=student.parentPhrase admissionNo=student.admissionNo fromClass=(default student.fromClass "—") from=(default (date student.from) "—") toClass=(default student.toClass "—") to=(default (date student.to) "—")}}{{/if}}</p>
+    {{#if student.studying}}
+    <p>{{t "certificates.print.study.textIs" "This is to certify that <b>{{name}}</b>{{rel}}, Admission No. {{admissionNo}}, has been studying in {{school}} since {{from}} and is at present in <b>{{toClass}}</b>." name=student.titleName rel=student.relPhrase admissionNo=student.admissionNo school=institution.name from=(default (date student.from) "—") toClass=(default student.toClass "—")}}</p>
+    {{else}}
+    <p>{{t "certificates.print.study.textWas" "This is to certify that <b>{{name}}</b>{{rel}}, Admission No. {{admissionNo}}, studied in {{school}} from <b>{{fromClass}}</b> to <b>{{toClass}}</b> ({{from}} to {{to}})." name=student.titleName rel=student.relPhrase admissionNo=student.admissionNo school=institution.name fromClass=(default student.fromClass "—") toClass=(default student.toClass "—") from=(default (date student.from) "—") to=(default (date student.to) "—")}}</p>
+    {{/if}}
+    {{#if student.hasYears}}
+    <p class="plain">{{t "certificates.print.study.tableIntro" "The classes {{he}} studied in this institution are:" he=student.p.he}}</p>
+    <table class="grid">
+      <thead><tr><th class="sl">{{t "certificates.print.sl" "Sl. No."}}</th><th>{{t "certificates.print.study.year" "Academic year"}}</th><th>{{t "certificates.print.study.class" "Class studied"}}</th><th>{{t "certificates.print.study.school" "Name of the school"}}</th></tr></thead>
+      <tbody>{{#each student.years}}<tr><td class="sl">{{inc @index}}</td><td>{{year}}</td><td>{{class}}</td><td>{{@root.institution.name}}</td></tr>{{/each}}</tbody>
+    </table>
+    {{/if}}
+    {{#if student.dob}}<p>{{t "certificates.print.dobLine" "{{His}} date of birth as per the school records is <b>{{dob}}</b> ({{words}})." His=student.p.His dob=(date student.dob) words=student.dobWords}}</p>{{/if}}
   {{/if}}
   {{#if certificate.fee}}
-    <p>{{t "certificates.print.fee.text" "This is to certify that the following fees were paid to this institution for <b>{{name}}</b> ({{cls}}, Admission No. {{admissionNo}}) during the financial year <b>{{fy}}</b>:" name=student.name cls=(default student.class "—") admissionNo=student.admissionNo fy=fees.fy}}</p>
-    <table class="fees">
-      {{#each fees.heads}}<tr><td>{{name}}</td><td class="n">{{money amount}}</td></tr>{{/each}}
-      {{#if fees.refunded}}<tr><td>{{t "certificates.print.fee.refunded" "Less: refunded"}}</td><td class="n">− {{money fees.refunded}}</td></tr>{{/if}}
-      <tr class="tot"><td>{{t "certificates.print.fee.total" "Total paid"}}</td><td class="n">{{money fees.total}}</td></tr>
+    <p>{{t "certificates.print.fee.text" "This is to certify that <b>{{name}}</b>{{rel}}, Admission No. {{admissionNo}}, studying in <b>{{cls}}</b> of {{school}}, has paid the following fees during the financial year <b>{{fy}}</b> ({{from}} to {{to}}):" name=student.titleName rel=student.relPhrase admissionNo=student.admissionNo cls=(default student.class "—") school=institution.name fy=fees.fy from=(date fees.from) to=(date fees.to)}}</p>
+    <table class="grid">
+      <thead><tr><th class="sl">{{t "certificates.print.sl" "Sl. No."}}</th><th>{{t "certificates.print.fee.head" "Fee head"}}</th><th class="r">{{t "certificates.print.fee.amount" "Amount (₹)"}}</th></tr></thead>
+      <tbody>
+        {{#each fees.heads}}<tr><td class="sl">{{sl}}</td><td>{{name}}</td><td class="r">{{amount amount}}</td></tr>{{/each}}
+        {{#if fees.refunded}}<tr><td class="sl"></td><td>{{t "certificates.print.fee.refunded" "Less: refunded"}}</td><td class="r">− {{amount fees.refunded}}</td></tr>{{/if}}
+        <tr class="total"><td class="sl"></td><td>{{t "certificates.print.fee.total" "Total paid"}}</td><td class="r">{{amount fees.total}}</td></tr>
+      </tbody>
     </table>
-    <p>{{t "certificates.print.fee.tuition" "Of this, the tuition fee is <b>{{amount}}</b> ({{words}})." amount=(money fees.tuition) words=(words fees.tuition)}}</p>
+    <p class="plain">{{t "certificates.print.fee.totalWords" "Total amount paid: <b>{{amount}}</b> ({{words}})." amount=(money fees.total) words=(words fees.total)}}</p>
+    <div class="tuition">{{t "certificates.print.fee.tuition" "Of the above, the <b>tuition fee</b> paid is <b>{{amount}}</b> ({{words}})." amount=(money fees.tuition) words=(words fees.tuition)}}<br/><span class="note">{{t "certificates.print.fee.note" "Certified that the amount shown as tuition fee is the tuition fee only. It does not include development fee, donation, capitation fee, transport, hostel or any other charges. Issued for claiming deduction under section 80C of the Income-tax Act, 1961."}}</span></div>
   {{/if}}
-  {{#if certificate.purpose}}<p>{{t "certificates.print.purpose" "This certificate is issued on request for the purpose of {{purpose}}." purpose=certificate.purpose}}</p>{{/if}}
+  {{#if certificate.purpose}}<p>{{t "certificates.print.purpose" "This certificate is issued on {{his}} request for the purpose of {{purpose}}." his=student.p.his purpose=certificate.purpose}}</p>{{/if}}
   {{#if certificate.remarks}}<p>{{certificate.remarks}}</p>{{/if}}
+  </div>
+  <div class="c-foot">
+    <div class="place">
+      {{#if institution.city}}<div>{{t "certificates.print.place" "Place"}}: <b>{{institution.city}}</b></div>{{/if}}
+      <div>{{t "certificates.print.date" "Date"}}: <b>{{date certificate.issueDate}}</b></div>
+    </div>
+    <div class="c-sign"><div class="seal">{{t "certificates.print.seal" "School seal"}}</div><div class="line">{{t "certificates.print.signature" "Principal"}}<span class="sub">{{institution.name}}</span></div></div>
+  </div>
+  {{#if certificate.cancelled}}<p class="note" style="margin-top:3mm">{{t "certificates.print.cancelledNote" "Cancelled: {{reason}}" reason=certificate.cancelReason}}</p>{{/if}}
 </div>
 {{/if}}
-
-<div class="foot">
-  {{#if @root.$layout.showQr}}<div class="qr">{{qr verify.url 22}}<div>{{t "certificates.print.scan" "Scan to verify"}}</div><div class="mono">{{verify.code}}</div></div>{{else}}<div></div>{{/if}}
-  {{#if certificate.merit}}<div class="sign">{{t "certificates.print.coordinator" "Teacher in charge"}}</div>{{/if}}
-  <div class="sign">{{t "certificates.print.signature" "Principal"}}</div>
-</div>
-{{#if certificate.cancelled}}<p class="muted">{{t "certificates.print.cancelledNote" "Cancelled: {{reason}}" reason=certificate.cancelReason}}</p>{{/if}}
 {{> footer}}

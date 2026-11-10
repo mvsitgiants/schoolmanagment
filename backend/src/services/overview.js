@@ -8,7 +8,7 @@ import { Exam } from '../models/exams.js'
 import { FeeInvoice, FeePayment, FeeRefund } from '../models/fees.js'
 import { Expense } from '../models/finance.js'
 import { Homework } from '../models/homework.js'
-import { Employee, Holiday, Leave, StaffAttendance } from '../models/hrms.js'
+import { Employee, Holiday, StaffAttendance } from '../models/hrms.js'
 import { LibraryCopy, LibraryLoan } from '../models/library.js'
 import { LiveClass } from '../models/lms.js'
 import { Notice } from '../models/communication.js'
@@ -17,7 +17,7 @@ import { PayrollRun } from '../models/payroll.js'
 import { Student } from '../models/students.js'
 import { AuditLog } from '../models/tenant.js'
 import { TransportAssignment, Vehicle } from '../models/transport.js'
-import { can } from '../platform/access.js'
+import { can, moduleEnabled } from '../platform/access.js'
 import { institutionNow, timeZoneOf } from '../platform/time.js'
 import { currentYear } from './academics.js'
 import { waitingCount } from './approvals.js'
@@ -235,8 +235,8 @@ async function agenda(auth, year, ctx) {
 async function approvals(auth) {
   const out = await pendingFor(auth)
   const add = async (key, link, fn) => { const n = await fn(); if (n) out.push({ key, count: n, link }) }
-  if (on(auth, 'hrms', 'hrms.leave.approve')) await add('staffLeave', '/hrms/leave', () => Leave.countDocuments({ status: 'PENDING', userId: { $ne: auth.userId } }))
-  else if (on(auth, 'hrms', 'hrms.leave.view')) await add('staffLeave', '/me?tab=approvals', () => Leave.countDocuments({ status: 'PENDING', pendingWith: auth.userId }))
+  // staff leave waiting on the caller's step of its approval chain (a named approver needs no Staff & HR permission)
+  if (moduleEnabled(auth, 'hrms')) await add('staffLeave', can(auth, 'hrms.leave.view') ? '/hrms/leave' : '/me?tab=approvals', async () => (await import('./hrmsLeaveApprovals.js')).countWaitingOnMe(auth))
   if (on(auth, 'finance', 'finance.expenses.approve')) await add('expenses', '/finance/expenses', () => Expense.countDocuments({ status: 'SUBMITTED' }))
   await add('requests', '/approvals', () => waitingCount(auth))
   return out

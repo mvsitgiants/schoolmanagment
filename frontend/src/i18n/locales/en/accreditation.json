@@ -200,14 +200,21 @@
     },
     "print": {
       "year": "Assessment year",
-      "complete": "Complete",
+      "complete": "Metrics complete",
       "weight": "Weightage",
       "metric": "Metric",
-      "title": "Title",
+      "title": "Description",
       "value": "Value",
       "status": "Status",
       "words": "words",
-      "noNarrative": "Not written yet."
+      "noNarrative": "Not written yet.",
+      "institution": "Name of the institution",
+      "ids": "Affiliation / registration",
+      "criterion": "Criterion {{code}}",
+      "done": "complete",
+      "iqac": "IQAC Coordinator",
+      "seal": "Seal",
+      "head": "Principal / Head of the Institution"
     },
     "fw": {
       "NAAC": {

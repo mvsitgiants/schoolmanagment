@@ -1,203 +1,164 @@
-import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { Ban, Check, Palmtree, Pencil, Plus, X } from 'lucide-react'
-import { EMPLOYEE_CATEGORIES, GENDERS, LEAVE_ACCRUALS, LEAVE_STATUSES } from '@schoolgiant/shared'
-import { ColorChip, DataTable, FormField, Input, LevelBar, Modal, PageContainer, PageHeader, PersonCell, SearchInput, SegmentedControl, Select, StatusPill, Tabs, usePrompt } from '../../components/system'
-import Button from '../../components/ui/Button'
-import { applyLeaveFor, cancelLeave, createLeaveType, decideLeave, fetchLeaveBalances, fetchLeaveTypes, fetchLeaves, updateLeaveType } from '../../api/hrms'
+import { Building2, CalendarOff, CalendarRange, CheckCircle2, Clock3, GitPullRequestArrow, Inbox, ListFilter, Palmtree, Plus, ShieldCheck, UserRoundX, X } from 'lucide-react'
+import {
+  ControlChip, DataTable, FilterBar, HeaderButton, PageContainer, PageHeader, PersonCell, SearchInput, SegmentedControl, SideNav, SideNavLayout, StatCardRow, Tabs, ViewControls,
+} from '../../components/system'
+import { fetchLeaveSummary, fetchLeaveTypes, fetchLeaves } from '../../api/hrms'
 import { hasPermission } from '../../api/auth'
 import { useSnackbar } from '../../context/SnackbarContext'
-import { useFormat } from '../../context/SettingsContext'
-import { LeaveApplyForm, useHrLabels, useHrMeta, useLeaveSpan } from '../../components/hrms/HrKit'
 import useDebouncedValue from '../../hooks/useDebouncedValue'
+import { useHrMeta } from '../../components/hrms/HrKit'
+import { LeaveTypeName, invalidateLeave, useDaysText, useLeaveDates } from '../../components/hrms/leave/LeaveBits'
+import { LeaveChainInline, LeaveDecisionButtons, useLeaveDecision } from '../../components/hrms/leave/LeaveChain'
+import LeaveApplyModal from '../../components/hrms/leave/LeaveApplyModal'
+import LeaveDrawer from '../../components/hrms/leave/LeaveDrawer'
+import LeaveBalances from '../../components/hrms/leave/LeaveBalances'
+import TeamCalendar from '../../components/hrms/leave/TeamCalendar'
+import LeavePolicies from '../../components/hrms/leave/LeavePolicies'
+import LeaveApprovalChains from '../../components/hrms/leave/LeaveApprovalChains'
+import LeaveNoLeaveDays from '../../components/hrms/leave/LeaveNoLeaveDays'
+import LeaveYearEnd from '../../components/hrms/leave/LeaveYearEnd'
+
+// Staff & HR › Leave: requests (what waits on me first, then everything), everyone's balances, the team calendar
+// (who is away which day), and the setup — leave policies, approval chains, no-leave days and vacations, the year end.
 
 const PAGE = 50
+const STATUSES = ['', 'PENDING', 'UPCOMING', 'APPROVED', 'REJECTED', 'CANCELLED']
 
-// a leave type's chip colour: the tone set on the type, else one picked from its code
-const typeTone = (tone) => (tone && tone !== 'neutral' ? tone : undefined)
-
-function TypeForm({ type, onClose, onSaved }) {
-  const { t } = useTranslation('hrms')
-  const L = useHrLabels()
-  const { showError } = useSnackbar()
-  const x = type ?? {}
-  const [form, setForm] = useState({
-    code: x.code ?? '', name: x.name ?? '', paid: x.paid ?? true, accrual: x.accrual ?? 'YEARLY', perYear: String(x.perYear ?? 0), carryForwardMax: String(x.carryForwardMax ?? 0),
-    allowHalfDay: x.allowHalfDay ?? true, sandwich: x.sandwich ?? false, allowNegative: x.allowNegative ?? false, maxPerRequest: x.maxPerRequest ? String(x.maxPerRequest) : '',
-    genders: x.genders ?? [], categories: x.categories ?? [], active: x.active ?? true, order: x.order ?? 0, tone: x.tone ?? 'neutral',
-  })
-  const [errors, setErrors] = useState({})
-  const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.type === 'checkbox' ? e.target.checked : k === 'code' ? e.target.value.toUpperCase() : e.target.value }))
-  const toggle = (k, v) => setForm((f) => ({ ...f, [k]: f[k].includes(v) ? f[k].filter((y) => y !== v) : [...f[k], v] }))
-  const save = useMutation({
-    mutationFn: () => {
-      const body = { ...form, perYear: Number(form.perYear) || 0, carryForwardMax: Number(form.carryForwardMax) || 0, maxPerRequest: form.maxPerRequest ? Number(form.maxPerRequest) : null }
-      return type ? updateLeaveType(type.id, body) : createLeaveType(body)
-    },
-    onSuccess: onSaved, onError: (e) => { setErrors(e.response?.data?.details?.fields ?? {}); showError(e.message) },
-  })
-  const check = (k) => (
-    <label key={k} className="inline-flex items-center gap-2 text-sm text-ink">
-      <input type="checkbox" checked={form[k]} onChange={set(k)} className="rounded border-border text-brand-500 focus:ring-brand-500" />{t(`hrms.leave.typeForm.${k}`)}
-    </label>
-  )
-  return (
-    <Modal open onClose={onClose} size="lg" title={type ? t('hrms.leave.typeForm.editTitle') : t('hrms.leave.typeForm.newTitle')} footer={<>
-      <Button variant="secondary" onClick={onClose}>{t('actions.cancel')}</Button>
-      <Button loading={save.isPending} disabled={!form.code || form.name.trim().length < 2} onClick={() => save.mutate()}>{t('hrms.leave.typeForm.save')}</Button>
-    </>}>
-      <div className="grid grid-cols-2 gap-4">
-        <FormField label={t('hrms.leave.typeForm.code')} required error={errors.code}><Input value={form.code} onChange={set('code')} maxLength={8} /></FormField>
-        <FormField label={t('hrms.leave.typeForm.name')} required error={errors.name}><Input value={form.name} onChange={set('name')} /></FormField>
-        <FormField label={t('hrms.leave.typeForm.accrual')}>
-          <Select value={form.accrual} onChange={set('accrual')}>{LEAVE_ACCRUALS.map((a) => <option key={a.value} value={a.value}>{t(`hrms.leave.accruals.${a.value}`)}</option>)}</Select>
-        </FormField>
-        <FormField label={t('hrms.leave.typeForm.perYear')}><Input type="number" min="0" step="0.5" disabled={form.accrual === 'NONE'} value={form.perYear} onChange={set('perYear')} /></FormField>
-        <FormField label={t('hrms.leave.typeForm.carry')} hint={t('hrms.leave.typeForm.carryHint')}><Input type="number" min="0" value={form.carryForwardMax} onChange={set('carryForwardMax')} /></FormField>
-        <FormField label={t('hrms.leave.typeForm.maxPerRequest')}><Input type="number" min="1" value={form.maxPerRequest} onChange={set('maxPerRequest')} /></FormField>
-        <div className="col-span-2 flex flex-wrap gap-x-5 gap-y-2">{['paid', 'allowHalfDay', 'sandwich', 'allowNegative', 'active'].map(check)}</div>
-        <div className="col-span-2">
-          <p className="text-xs font-medium text-ink-muted mb-1.5">{t('hrms.leave.typeForm.forWhom')}</p>
-          <div className="flex flex-wrap gap-2">
-            {GENDERS.map((g) => <label key={g.value} className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-xs"><input type="checkbox" checked={form.genders.includes(g.value)} onChange={() => toggle('genders', g.value)} className="rounded border-border text-brand-500" />{t(`hrms.genders.${g.value}`)}</label>)}
-            {EMPLOYEE_CATEGORIES.map((c) => <label key={c.value} className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-xs"><input type="checkbox" checked={form.categories.includes(c.value)} onChange={() => toggle('categories', c.value)} className="rounded border-border text-brand-500" />{L.category(c.value)}</label>)}
-          </div>
-          <p className="text-xs text-ink-faint mt-1">{t('hrms.leave.typeForm.forWhomHint')}</p>
-        </div>
-      </div>
-    </Modal>
-  )
-}
-
-function Requests() {
-  const { t } = useTranslation('hrms')
-  const L = useHrLabels()
-  const navigate = useNavigate()
+function Requests({ summary, types, departments, onOpen }) {
+  const { t } = useTranslation('hrmsLeave')
   const qc = useQueryClient()
-  const prompt = usePrompt()
-  const { date } = useFormat()
-  const span = useLeaveSpan()
-  const { showSuccess, showError } = useSnackbar()
-  const [status, setStatus] = useState('PENDING')
+  const days = useDaysText()
+  const dates = useLeaveDates()
+  const decides = hasPermission('hrms.leave.approve')
+  const [boxPick, setBoxPick] = useState(null)
+  const box = boxPick ?? (decides || summary?.waitingOnMe ? 'mine' : 'all')
+  const mine = box === 'mine'
+  const [status, setStatus] = useState('')
+  const [type, setType] = useState('')
+  const [dept, setDept] = useState('')
   const [search, setSearch] = useState('')
   const q = useDebouncedValue(search.trim(), 300)
   const [page, setPage] = useState(1)
-  const [applying, setApplying] = useState(false)
-  const params = { status: status || undefined, search: q || undefined, page, pageSize: PAGE }
+  useEffect(() => setPage(1), [box, status, type, dept, q])
+  const params = { box, status: mine ? undefined : status || undefined, leaveTypeId: type || undefined, departmentId: dept || undefined, search: q || undefined, page, pageSize: PAGE }
   const { data, isLoading, error, refetch } = useQuery({ queryKey: ['leaves', params], queryFn: () => fetchLeaves(params), placeholderData: (p) => p })
   // deciding the last request on a later page empties it: step back to the last page there is
   useEffect(() => { if (data && page > 1 && !data.rows.length && data.total) setPage(Math.ceil(data.total / PAGE)) }, [data, page])
-  const { data: meta } = useHrMeta(hasPermission('hrms.leave.apply_on_behalf'))
-  const { data: types = [] } = useQuery({ queryKey: ['leave-types'], queryFn: fetchLeaveTypes })
-  const refresh = () => ['leaves', 'leave-balances', 'staff-day', 'staff-month'].forEach((k) => qc.invalidateQueries({ queryKey: [k] }))
-  const act = useMutation({ mutationFn: ({ fn }) => fn(), onSuccess: (_, v) => { refresh(); showSuccess(v.done) }, onError: (e) => showError(e.message) })
-  const canApprove = hasPermission('hrms.leave.approve')
-  const canCancel = hasPermission('hrms.leave.cancel')
-  const decide = async (r, approve) => {
-    const note = approve ? '' : await prompt({ title: t('hrms.leave.rejectTitle', { name: r.employeeName }), label: t('hrms.leave.rejectWhy'), confirmLabel: t('hrms.leave.reject') })
-    if (!approve && note === null) return
-    act.mutate({ fn: () => decideLeave(r.id, { approve, note: note || undefined }), done: approve ? t('hrms.leave.approved') : t('hrms.leave.rejected') })
-  }
-  const cancel = async (r) => {
-    const reason = await prompt({ title: t('hrms.leave.cancelTitle', { name: r.employeeName }), label: t('hrms.leave.cancelWhy'), confirmLabel: t('hrms.leave.cancel'), tone: 'danger' })
-    if (reason === null) return
-    act.mutate({ fn: () => cancelLeave(r.id, reason || undefined), done: t('hrms.leave.cancelled') })
-  }
-  return (
-    <>
-      <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-        <SegmentedControl value={status} onChange={(v) => { setStatus(v); setPage(1) }} options={[
-          { value: 'PENDING', label: t('hrms.leave.waitingCount', { count: data?.pending ?? 0 }) },
-          { value: 'APPROVED', label: L.leaveStatus('APPROVED') }, { value: 'REJECTED', label: L.leaveStatus('REJECTED') }, { value: 'CANCELLED', label: L.leaveStatus('CANCELLED') }, { value: '', label: t('hrms.all') },
-        ]} />
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="w-64"><SearchInput value={search} onChange={(v) => { setSearch(v); setPage(1) }} placeholder={t('hrms.leave.search')} /></div>
-          {hasPermission('hrms.leave.apply_on_behalf') && <Button icon={Plus} onClick={() => setApplying(true)}>{t('hrms.leave.applyFor')}</Button>}
-        </div>
+  const { decide, busy } = useLeaveDecision(() => invalidateLeave(qc))
+  const waitingN = data?.waitingOnMe ?? summary?.waitingOnMe ?? 0
+  const statusLabel = (s) => (s ? t(`hrmsLeave.requests.status.${s}`) : t('hrmsLeave.filters.all'))
+  const filtersOn = search || (!mine && status) || type || dept
+  const columns = [
+    { key: 'employeeName', header: t('hrmsLeave.requests.person'), mobilePrimary: true, render: (v, l) => <PersonCell name={v} sub={l.applied?.onBehalf ? t('hrmsLeave.requests.enteredBy', { name: l.applied.by }) : undefined} /> },
+    { key: 'leaveName', header: t('hrmsLeave.requests.leave'), mobilePrimary: true, render: (v, l) => <LeaveTypeName name={v} paid={l.paid} /> },
+    { key: 'from', header: t('hrmsLeave.requests.when'), mobilePrimary: true, render: (_, l) => (
+      <div className="leading-tight"><p className="text-ink whitespace-nowrap">{dates(l)}</p><p className="text-[11px] text-ink-muted">{days(l.days)}</p></div>
+    ) },
+    { key: 'reason', header: t('hrmsLeave.requests.reason'), mobileHidden: true, render: (v, l) => (
+      <div className="max-w-[220px]">
+        <p className="text-sm text-ink-muted line-clamp-2" title={v}>{v}</p>
+        {l.warnings?.length > 0 && l.status === 'PENDING' && <p className="text-[11px] text-amber-700 line-clamp-1" title={l.warnings.join(' ')}>{l.warnings[0]}</p>}
       </div>
-      <DataTable rows={data?.rows ?? []} loading={isLoading} error={error} onRetry={refetch} columns={[
-        { key: 'employeeName', header: t('hrms.leave.person'), mobilePrimary: true, render: (v, r) => <PersonCell name={v} sub={r.employeeCode} onClick={() => navigate(`/hrms/employees/${r.employeeId}`)} /> },
-        { key: 'leaveName', header: t('hrms.leave.type'), render: (v, r) => <span className="inline-flex flex-col items-start gap-0.5"><ColorChip label={v} seed={r.leaveCode} tone={typeTone(types.find((x) => x.id === String(r.leaveTypeId))?.tone)} dot />{r.paid === false && <span className="text-[11px] font-medium text-danger-600">{t('hrms.leave.unpaid')}</span>}</span> },
-        { key: 'from', header: t('hrms.leave.when'), nowrap: true, render: (_, r) => span(r, date) },
-        { key: 'days', header: t('hrms.leave.days'), align: 'right', render: (v) => <span className="font-display text-base font-bold tabular-nums text-ink">{v}</span> },
-        { key: 'reason', header: t('hrms.leave.reason'), mobileHidden: true, render: (v, r) => <span className="text-sm text-ink-muted">{v}{r.arrangement && <span className="block text-xs text-ink-faint">{t('hrms.leave.arrangementShort', { text: r.arrangement })}</span>}</span> },
-        { key: 'status', header: t('hrms.leave.status'), render: (v, r) => <span><StatusPill tone={LEAVE_STATUSES[v]?.tone}>{L.leaveStatus(v)}</StatusPill>{r.decided?.by && <span className="block text-[11px] text-ink-faint mt-0.5">{r.decided.by}</span>}</span> },
-        { key: 'id', header: '', align: 'right', width: 150, render: (_, r) => (
-          <div className="flex justify-end gap-1">
-            {r.status === 'PENDING' && canApprove && <>
-              <Button size="sm" variant="ghost" icon={Check} aria-label={t('hrms.leave.approve')} title={t('hrms.leave.approve')} onClick={() => decide(r, true)} />
-              <Button size="sm" variant="ghost" icon={X} aria-label={t('hrms.leave.reject')} title={t('hrms.leave.reject')} onClick={() => decide(r, false)} />
-            </>}
-            {['PENDING', 'APPROVED'].includes(r.status) && canCancel && <Button size="sm" variant="ghost" icon={Ban} aria-label={t('hrms.leave.cancel')} title={t('hrms.leave.cancel')} onClick={() => cancel(r)} />}
-          </div>
-        ) },
-      ]} emptyIcon={Palmtree} emptyTitle={status === 'PENDING' ? t('hrms.leave.noneWaiting') : t('hrms.leave.none')}
-        pagination={data && data.total > PAGE ? { page: page - 1, size: PAGE, totalElements: data.total, totalPages: Math.ceil(data.total / PAGE), onPageChange: (p) => setPage(p + 1) } : undefined} />
-      {applying && <LeaveApplyForm types={types} employees={(meta?.staff ?? [])} canApproveNow={canApprove} submit={applyLeaveFor}
-        onClose={() => setApplying(false)} onSaved={() => { setApplying(false); refresh(); showSuccess(t('hrms.leave.appliedFor')) }} />}
-    </>
-  )
-}
-
-function Balances() {
-  const { t } = useTranslation('hrms')
-  const navigate = useNavigate()
-  const { data, isLoading, error } = useQuery({ queryKey: ['leave-balances'], queryFn: fetchLeaveBalances })
-  const types = (data?.types ?? []).filter((x) => x.active)
+    ) },
+    { key: 'status', header: t('hrmsLeave.requests.where'), mobilePrimary: true, render: (_, l) => <LeaveChainInline chain={l.chain} /> },
+    { key: 'id', header: '', align: 'right', mobilePrimary: true, render: (_, l) => <LeaveDecisionButtons leave={l} decide={decide} busy={busy} /> },
+  ]
   return (
-    <DataTable rows={data?.rows ?? []} loading={isLoading} error={error} rowKey="employeeId" columns={[
-      { key: 'name', header: t('hrms.leave.person'), mobilePrimary: true, render: (v, r) => <PersonCell name={v} sub={[r.code, r.designation].filter(Boolean).join(' · ')} /> },
-      ...types.map((ty) => ({
-        key: ty.code, header: ty.code, align: 'right', render: (_, r) => {
-          const b = r.balances.find((x) => x.leaveTypeId === ty.id)
-          if (!b) return <span className="text-ink-faint">—</span>
-          // the bar is what is left of what was credited (left + taken)
-          const credited = Math.max(0, b.balance + b.taken)
-          return (
-            <span className="inline-flex flex-col items-end gap-0.5" title={t('hrms.leave.takenPending', { taken: b.taken, pending: b.pending })}>
-              <LevelBar value={b.balance} max={credited} warnAt={credited * 0.25} dangerAt={0} width="w-20" />
-              {b.pending > 0 && <span className="text-amber-600 text-[11px] tabular-nums">−{b.pending}</span>}
-            </span>
-          )
-        },
-      })),
-    ]} onRowClick={(r) => navigate(`/hrms/employees/${r.employeeId}`)} emptyTitle={t('hrms.leave.noStaff')} />
+    <div className="flex flex-col gap-4">
+      <FilterBar search={<SearchInput value={search} onChange={setSearch} placeholder={t('hrmsLeave.requests.search')} />}>
+        <ViewControls>
+          <SegmentedControl value={box} onChange={setBoxPick} options={[
+            { value: 'mine', label: waitingN ? t('hrmsLeave.requests.mineN', { count: waitingN }) : t('hrmsLeave.requests.mine') },
+            { value: 'all', label: t('hrmsLeave.requests.all') },
+          ]} />
+          {!mine && <ControlChip icon={ListFilter} label={t('hrmsLeave.filters.status')} value={statusLabel(status)} active={!!status} options={STATUSES.map((s) => ({ value: s, label: statusLabel(s) }))} onChange={setStatus} />}
+          <ControlChip icon={Palmtree} label={t('hrmsLeave.filters.type')} value={types.find((x) => x.id === type)?.name ?? t('hrmsLeave.filters.all')} active={!!type}
+            options={[{ value: '', label: t('hrmsLeave.filters.all') }, ...types.map((x) => ({ value: x.id, label: x.name }))]} onChange={setType} />
+          <ControlChip icon={Building2} label={t('hrmsLeave.filters.department')} value={departments.find((d) => d.id === dept)?.name ?? t('hrmsLeave.filters.all')} active={!!dept}
+            options={[{ value: '', label: t('hrmsLeave.filters.all') }, ...departments.map((d) => ({ value: d.id, label: d.name }))]} onChange={setDept} />
+          {filtersOn && <ControlChip icon={X} label={t('hrmsLeave.filters.clear')} caret={false} onClick={() => { setSearch(''); setStatus(''); setType(''); setDept('') }} />}
+        </ViewControls>
+      </FilterBar>
+      <DataTable rows={data?.rows ?? []} loading={isLoading} error={error} onRetry={refetch} columns={columns} onRowClick={(l) => onOpen(l.id)}
+        emptyIcon={mine ? Inbox : CalendarOff}
+        emptyTitle={filtersOn ? t('hrmsLeave.requests.emptyFiltered') : mine ? t('hrmsLeave.requests.emptyMine') : t('hrmsLeave.requests.emptyAll')}
+        emptyHint={filtersOn ? undefined : mine ? (data?.pending ? t('hrmsLeave.requests.emptyMineOthers', { count: data.pending }) : t('hrmsLeave.requests.emptyMineHint')) : undefined}
+        emptyAction={mine && !filtersOn && data?.pending ? <button type="button" onClick={() => setBoxPick('all')} className="text-sm font-medium text-brand-700 hover:underline">{t('hrmsLeave.requests.seeAll')}</button> : undefined}
+        pagination={data && data.total > PAGE ? { page: page - 1, size: PAGE, totalElements: data.total, totalPages: Math.ceil(data.total / PAGE), onPageChange: (p) => setPage(p + 1) } : undefined} />
+    </div>
   )
 }
 
-function Types() {
-  const { t } = useTranslation('hrms')
+const SETUP = [
+  { id: 'policies', icon: ShieldCheck },
+  { id: 'chains', icon: GitPullRequestArrow },
+  { id: 'noLeave', icon: CalendarOff },
+  { id: 'yearEnd', icon: CalendarRange },
+]
+
+function Setup({ types, typesLoading, departments, leaveYear }) {
+  const { t } = useTranslation('hrmsLeave')
+  const [section, setSection] = useState('policies')
+  return (
+    <SideNavLayout nav={<SideNav title={t('hrmsLeave.setup.title')} value={section} onChange={setSection}
+      items={SETUP.map((s) => ({ id: s.id, icon: s.icon, label: t(`hrmsLeave.setup.${s.id}`), hint: t(`hrmsLeave.setup.${s.id}Hint`) }))} />}>
+      {section === 'policies' && <LeavePolicies types={types} loading={typesLoading} leaveYear={leaveYear} />}
+      {section === 'chains' && <LeaveApprovalChains types={types.filter((x) => x.active)} departments={departments} />}
+      {section === 'noLeave' && <LeaveNoLeaveDays />}
+      {section === 'yearEnd' && <LeaveYearEnd />}
+    </SideNavLayout>
+  )
+}
+
+const TABS = ['requests', 'balances', 'calendar', 'setup']
+
+/** Staff & HR › Leave. */
+export default function Leave() {
+  const { t } = useTranslation('hrmsLeave')
   const qc = useQueryClient()
   const { showSuccess } = useSnackbar()
-  const [editing, setEditing] = useState(null)
-  const { data: rows = [], isLoading } = useQuery({ queryKey: ['leave-types'], queryFn: fetchLeaveTypes })
-  const canEdit = hasPermission('hrms.leave.edit')
-  return (
-    <>
-      {canEdit && <div className="flex justify-end mb-3"><Button icon={Plus} onClick={() => setEditing('new')}>{t('hrms.leave.typeForm.new')}</Button></div>}
-      <DataTable rows={rows} loading={isLoading} columns={[
-        { key: 'name', header: t('hrms.leave.typeForm.name'), mobilePrimary: true, render: (v, r) => (r.active ? <ColorChip label={v} seed={r.code} tone={typeTone(r.tone)} dot sub={r.code} /> : <span className="text-ink-faint line-through">{v} <span className="text-xs font-mono-num">{r.code}</span></span>) },
-        { key: 'accrual', header: t('hrms.leave.typeForm.accrual'), render: (v, r) => (v === 'NONE' ? t('hrms.leave.accruals.NONE') : t('hrms.leave.perYear', { n: r.perYear, how: t(`hrms.leave.accrualShort.${v}`) })) },
-        { key: 'carryForwardMax', header: t('hrms.leave.typeForm.carry'), align: 'right', render: (v) => <span className="font-semibold tabular-nums text-ink">{v}</span> },
-        { key: 'paid', header: t('hrms.leave.typeForm.paid'), render: (v) => <StatusPill tone={v ? 'success' : 'danger'}>{v ? t('hrms.yes') : t('hrms.no')}</StatusPill> },
-        { key: 'id', header: '', align: 'right', width: 60, render: (_, r) => canEdit && <Button size="sm" variant="ghost" icon={Pencil} aria-label={t('hrms.edit')} onClick={() => setEditing(r)} /> },
-      ]} onRowClick={canEdit ? (r) => setEditing(r) : undefined} />
-      {editing && <TypeForm type={editing === 'new' ? null : editing} onClose={() => setEditing(null)} onSaved={() => { setEditing(null); qc.invalidateQueries({ queryKey: ['leave-types'] }); qc.invalidateQueries({ queryKey: ['leave-balances'] }); showSuccess(t('hrms.leave.typeForm.saved')) }} />}
-    </>
-  )
-}
-
-/** Staff & HR › Leave: requests to decide, everyone's balances, and the leave types. */
-export default function Leave() {
-  const { t } = useTranslation('hrms')
-  const [tab, setTab] = useState('requests')
+  const [params, setParams] = useSearchParams()
+  const [applying, setApplying] = useState(null) // { employeeId? }
+  const showSetup = ['hrms.leave.edit', 'hrms.leave.approve'].some(hasPermission)
+  const tabs = TABS.filter((x) => x !== 'setup' || showSetup).map((x) => ({ value: x, label: t(`hrmsLeave.tabs.${x}`) }))
+  const asked = params.get('tab')
+  const tab = tabs.some((x) => x.value === asked) ? asked : 'requests'
+  const openId = params.get('open')
+  const setParam = (k, v) => setParams((p) => { const n = new URLSearchParams(p); if (v) n.set(k, v); else n.delete(k); return n }, { replace: true })
+  const setTab = (x) => setParam('tab', x === 'requests' ? null : x)
+  const canApply = hasPermission('hrms.leave.apply_on_behalf')
+  const { data: meta } = useHrMeta()
+  const { data: summary } = useQuery({ queryKey: ['leave-summary'], queryFn: fetchLeaveSummary })
+  const { data: types = [], isLoading: typesLoading } = useQuery({ queryKey: ['leave-types'], queryFn: fetchLeaveTypes })
+  const activeTypes = useMemo(() => types.filter((x) => x.active), [types])
+  const departments = meta?.departments ?? []
+  const c = summary?.counts
+  const days = useDaysText()
+  const leaveYear = summary ? { today: summary.today, startMonth: summary.year.startMonth } : null
   return (
     <PageContainer>
-      <PageHeader icon={Palmtree} title={t('hrms.leave.title')} subtitle={t('hrms.leave.subtitle')} />
-      <Tabs className="mb-4" value={tab} onChange={setTab} tabs={[{ value: 'requests', label: t('hrms.leave.tabs.requests') }, { value: 'balances', label: t('hrms.leave.tabs.balances') }, { value: 'types', label: t('hrms.leave.tabs.types') }]} />
-      {tab === 'requests' ? <Requests /> : tab === 'balances' ? <Balances /> : <Types />}
+      <PageHeader icon={Palmtree} title={t('hrmsLeave.title')} subtitle={t('hrmsLeave.subtitle')}
+        actions={canApply && <HeaderButton icon={Plus} variant="primary" onClick={() => setApplying({})}>{t('hrmsLeave.applyFor')}</HeaderButton>} />
+      <StatCardRow className="mb-4" items={[
+        { icon: Clock3, tone: summary?.waitingOnMe ? 'warning' : 'neutral', label: t('hrmsLeave.tiles.waitingOnYou'), value: summary?.waitingOnMe ?? '—', sub: t('hrmsLeave.tiles.waitingAll', { count: c?.PENDING ?? 0 }), onClick: () => setTab('requests') },
+        { icon: UserRoundX, tone: 'neutral', label: t('hrmsLeave.tiles.awayToday'), value: summary?.onLeaveToday ?? '—', sub: t('hrmsLeave.tiles.awayTodaySub'), onClick: () => setTab('calendar') },
+        { icon: CheckCircle2, tone: 'brand', label: t('hrmsLeave.tiles.approved', { year: summary?.year?.label ?? '' }), value: c?.APPROVED ?? '—', sub: t('hrmsLeave.tiles.approvedSub', { days: days(summary?.daysOff ?? 0) }) },
+      ]} />
+      <Tabs className="mb-4" value={tab} onChange={setTab} tabs={tabs} />
+      {tab === 'requests' && <Requests summary={summary} types={activeTypes} departments={departments} onOpen={(id) => setParam('open', id)} />}
+      {tab === 'balances' && <LeaveBalances departments={departments} onApply={canApply ? (r) => setApplying({ employeeId: r.employeeId }) : undefined} />}
+      {tab === 'calendar' && <TeamCalendar departments={departments} onOpen={(id) => setParam('open', id)} />}
+      {tab === 'setup' && showSetup && <Setup types={types} typesLoading={typesLoading} departments={departments} leaveYear={leaveYear} />}
+      {openId && <LeaveDrawer key={openId} id={openId} mode="hr" onClose={() => setParam('open', null)} />}
+      {applying && (
+        <LeaveApplyModal employees={meta?.staff ?? []} defaultEmployeeId={applying.employeeId} canApproveNow={hasPermission('hrms.leave.approve')}
+          onClose={() => setApplying(null)}
+          onDone={(l) => { setApplying(null); invalidateLeave(qc); showSuccess(l.status === 'APPROVED' ? t('hrmsLeave.apply.doneApproved', { name: l.employeeName }) : t('hrmsLeave.apply.doneFor', { name: l.employeeName, who: l.chain?.waitingOn ?? '' })) }} />
+      )}
     </PageContainer>
   )
 }
