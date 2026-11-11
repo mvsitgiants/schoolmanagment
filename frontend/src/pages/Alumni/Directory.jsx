@@ -75,7 +75,7 @@ export default function AlumniDirectory() {
           ]}
           pagination={data && data.total > PAGE ? { page: page - 1, size: PAGE, totalElements: data.total, totalPages: Math.ceil(data.total / PAGE), onPageChange: (p) => setPage(p + 1) } : undefined} />
       </SideNavLayout>
-      {editing && <AlumnusForm alumnus={editing === 'new' ? null : editing} onClose={() => setEditing(null)} onSaved={() => { setEditing(null); refresh(); showSuccess(t('alumni.form.saved')) }} />}
+      {editing && <AlumnusForm alumnus={editing === 'new' ? null : editing} onClose={() => setEditing(null)} onSaved={() => { setEditing(null); refresh(); showSuccess(t('alumni.form.saved')) }} onDeleted={() => { setEditing(null); refresh(); showSuccess(t('alumni.form.deleted')) }} />}
       {importing && <ImportLeaversModal onClose={() => setImporting(false)} onDone={(r) => { setImporting(false); refresh(); showSuccess(t('alumni.import.done', { count: r.added })) }} />}
     </PageContainer>
   )

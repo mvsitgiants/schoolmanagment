@@ -2,7 +2,7 @@ import { Router } from 'express'
 import { authenticate, requireModule, requirePermission, subscriptionGate, tenantOnly } from '../platform/middleware.js'
 import { objectId, optionalText, z } from '../platform/validate.js'
 import {
-  deleteExam, getExam, getMarkSheet, listCandidates, listExams, listResults, listTypes, lockMarkSheet, marksBoard, publishResults, saveExam,
+  deleteExam, deleteType, getExam, getMarkSheet, listCandidates, listExams, listResults, listTypes, lockMarkSheet, marksBoard, publishResults, saveExam,
   saveMarkSheet, savePapers, saveRemarks, saveType, scheduleExam, sendReportCards, suggestPapers, unlockMarkSheet, unpublishResults, unscheduleExam,
 } from '../services/exams.js'
 
@@ -32,6 +32,9 @@ router.post('/types', requirePermission('exams.setup.create'), async (req, res) 
 })
 router.patch('/types/:id', requirePermission('exams.setup.edit'), async (req, res) => {
   res.json({ data: await saveType(id(req), typeSchema.partial().parse(req.body), req) })
+})
+router.delete('/types/:id', requirePermission('exams.setup.delete'), async (req, res) => {
+  res.json({ data: await deleteType(id(req), req) })
 })
 
 // ───────────────────────────────────────────────────────── exams and their papers

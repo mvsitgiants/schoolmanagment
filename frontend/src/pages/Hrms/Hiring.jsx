@@ -2,12 +2,12 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { Briefcase, Bus, ChevronLeft, Pencil, Plus, Presentation, Printer, ShieldCheck, Star, UserCheck, UsersRound, Wrench } from 'lucide-react'
+import { Briefcase, Bus, ChevronLeft, Pencil, Plus, Presentation, Printer, ShieldCheck, Star, Trash2, UserCheck, UsersRound, Wrench } from 'lucide-react'
 import { CANDIDATE_SOURCES, CANDIDATE_STAGES, EMPLOYEE_CATEGORIES, EMPLOYMENT_TYPES, OPEN_CANDIDATE_STAGES, REQUISITION_STATUSES, toPaise, toRupees } from '@schoolgiant/shared'
-import { DateInput, Attachments, ColorChip, ContactCell, DataTable, DateCell, Drawer, FormField, HeaderButton, Input, LevelBar, Modal, Money, Note, PageContainer, PageHeader, Panel, PersonCell, SearchInput, SegmentedControl, Select, SideNav, SideNavLayout, StatusPill, Textarea, Timeline } from '../../components/system'
+import { DateInput, Attachments, ColorChip, ContactCell, DataTable, DateCell, Drawer, FormField, HeaderButton, Input, LevelBar, Modal, Money, Note, PageContainer, PageHeader, Panel, PersonCell, SearchInput, SegmentedControl, Select, SideNav, SideNavLayout, StatusPill, Textarea, Timeline, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
 import {
-  createCandidate, createRequisition, evaluateCandidate, fetchCandidate, fetchCandidates, fetchRequisitions, hireCandidate, moveCandidate, offerCandidate,
+  createCandidate, createRequisition, deleteCandidate, deleteRequisition, evaluateCandidate, fetchCandidate, fetchCandidates, fetchRequisitions, hireCandidate, moveCandidate, offerCandidate,
   setRequisitionStatus, updateCandidate, updateRequisition,
 } from '../../api/hrms'
 import { hasPermission } from '../../api/auth'
@@ -42,10 +42,14 @@ function Stars({ value }) {
   )
 }
 
-function VacancyForm({ vacancy, onClose, onSaved }) {
+function VacancyForm({ vacancy, onClose, onSaved, onDeleted }) {
   const { t } = useTranslation('hrms')
   const L = useHrLabels()
   const { showError } = useSnackbar()
+  const confirm = useConfirm()
+  // a vacancy opened by mistake: only while nobody has applied
+  const canDelete = !!vacancy && !!onDeleted && !vacancy.candidates && hasPermission('hrms.hiring.delete')
+  const remove = useMutation({ mutationFn: () => deleteRequisition(vacancy.id), onSuccess: onDeleted, onError: (e) => showError(e.message) })
   const { data: meta } = useHrMeta()
   const v = vacancy ?? {}
   const [form, setForm] = useState({ title: v.title ?? '', category: v.category ?? 'TEACHING', employmentType: v.employmentType ?? 'PERMANENT', count: String(v.count ?? 1), departmentId: v.departmentId ?? '', subjects: (v.subjects ?? []).join(', '), description: v.description ?? '', min: v.salaryRange?.min ? String(toRupees(v.salaryRange.min)) : '', max: v.salaryRange?.max ? String(toRupees(v.salaryRange.max)) : '', targetDate: v.targetDate ?? '' })
@@ -59,6 +63,8 @@ function VacancyForm({ vacancy, onClose, onSaved }) {
   })
   return (
     <Modal open onClose={onClose} size="lg" title={vacancy ? t('hrms.hiring.editVacancy') : t('hrms.hiring.newVacancy')} footer={<>
+      {canDelete && <Button variant="ghost" icon={Trash2} className="me-auto text-danger-600" loading={remove.isPending}
+        onClick={async () => { if (await confirm({ title: t('hrms.hiring.deleteVacancyTitle', { name: vacancy.title }), message: t('hrms.hiring.deleteVacancyHint'), tone: 'danger', confirmLabel: t('actions.delete') })) remove.mutate() }}>{t('actions.delete')}</Button>}
       <Button variant="secondary" onClick={onClose}>{t('actions.cancel')}</Button>
       <Button loading={save.isPending} disabled={form.title.trim().length < 2} onClick={() => save.mutate()}>{t('hrms.hiring.save')}</Button>
     </>}>
@@ -80,9 +86,13 @@ function VacancyForm({ vacancy, onClose, onSaved }) {
   )
 }
 
-function CandidateForm({ candidate, requisitionId, onClose, onSaved }) {
+function CandidateForm({ candidate, requisitionId, onClose, onSaved, onDeleted }) {
   const { t } = useTranslation('hrms')
   const { showError } = useSnackbar()
+  const confirm = useConfirm()
+  // a candidate added by mistake: not once an offer is made or they have joined
+  const canDelete = !!candidate && !!onDeleted && candidate.stage !== 'HIRED' && !candidate.employeeId && !candidate.offer?.at && hasPermission('hrms.hiring.delete')
+  const remove = useMutation({ mutationFn: () => deleteCandidate(candidate.id), onSuccess: onDeleted, onError: (e) => showError(e.message) })
   const c = candidate ?? {}
   const [form, setForm] = useState({ name: c.name ?? '', mobile: c.mobile ?? '', email: c.email ?? '', qualifications: c.qualifications ?? '', experienceYears: c.experienceYears ?? '', currentEmployer: c.currentEmployer ?? '', address: c.address ?? '', expected: c.expectedSalary ? String(toRupees(c.expectedSalary)) : '', source: c.source ?? 'OTHER' })
   const [errors, setErrors] = useState({})
@@ -96,6 +106,8 @@ function CandidateForm({ candidate, requisitionId, onClose, onSaved }) {
   })
   return (
     <Modal open onClose={onClose} title={candidate ? t('hrms.hiring.editCandidate') : t('hrms.hiring.newCandidate')} footer={<>
+      {canDelete && <Button variant="ghost" icon={Trash2} className="me-auto text-danger-600" loading={remove.isPending}
+        onClick={async () => { if (await confirm({ title: t('hrms.hiring.deleteCandidateTitle', { name: candidate.name }), message: t('hrms.hiring.deleteCandidateHint'), tone: 'danger', confirmLabel: t('actions.delete') })) remove.mutate() }}>{t('actions.delete')}</Button>}
       <Button variant="secondary" onClick={onClose}>{t('actions.cancel')}</Button>
       <Button loading={save.isPending} disabled={form.name.trim().length < 2} onClick={() => save.mutate()}>{t('hrms.hiring.save')}</Button>
     </>}>
@@ -214,7 +226,8 @@ function CandidateDrawer({ id, onClose, onChanged }) {
           <Timeline dense items={[...(c.history ?? [])].reverse().map((h, i) => ({ id: String(i), title: L.stage(h.stage), time: dateTime(h.at), meta: h.by, body: h.note }))} />
         </Panel>
       </div>
-      {editing && <CandidateForm candidate={c} onClose={() => setEditing(false)} onSaved={() => { setEditing(false); done(t('hrms.hiring.saved'))() }} />}
+      {editing && <CandidateForm candidate={c} onClose={() => setEditing(false)} onSaved={() => { setEditing(false); done(t('hrms.hiring.saved'))() }}
+        onDeleted={() => { setEditing(false); onChanged(); showSuccess(t('hrms.hiring.candidateDeleted')); onClose() }} />}
     </Drawer>
   )
 }
@@ -337,7 +350,8 @@ export default function Hiring() {
           <p className="text-xs text-ink-faint mt-3">{t('hrms.hiring.joinHint')} <button type="button" className="underline" onClick={() => navigate('/hrms/employees')}>{t('hrms.employees.title')}</button></p>
         </>
       )}
-      {editing && <VacancyForm vacancy={editing === 'new' ? null : editing} onClose={() => setEditing(null)} onSaved={(v) => { setEditing(null); qc.invalidateQueries({ queryKey: ['requisitions'] }); if (!openId) setOpenId(v.id); showSuccess(t('hrms.hiring.saved')) }} />}
+      {editing && <VacancyForm vacancy={editing === 'new' ? null : editing} onClose={() => setEditing(null)} onSaved={(v) => { setEditing(null); qc.invalidateQueries({ queryKey: ['requisitions'] }); if (!openId) setOpenId(v.id); showSuccess(t('hrms.hiring.saved')) }}
+        onDeleted={() => { setEditing(null); setOpenId(null); qc.invalidateQueries({ queryKey: ['requisitions'] }); showSuccess(t('hrms.hiring.vacancyDeleted')) }} />}
     </PageContainer>
   )
 }

@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { Award, ChevronLeft, Pencil, Play, Plus, Square, X } from 'lucide-react'
+import { Award, ChevronLeft, Pencil, Play, Plus, Square, Trash2, X } from 'lucide-react'
 import { APPRAISAL_CYCLE_STATUS, APPRAISAL_STATUS, EMPLOYEE_CATEGORIES, TEACHER_CRITERIA } from '@schoolgiant/shared'
 import { DateInput, ColorChip, DataTable, DateCell, FormField, HeaderButton, Input, LevelBar, localIso, Modal, Note, PageContainer, PageHeader, PersonCell, PillRow, Select, SideNav, SideNavLayout, StatusPill, pillClass, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
-import { closeCycle, createCycle, fetchCycleReviews, fetchCycles, launchCycle, rateAsHr, setReviewer, updateCycle } from '../../api/hrms'
+import { closeCycle, createCycle, deleteCycle, fetchCycleReviews, fetchCycles, launchCycle, rateAsHr, setReviewer, updateCycle } from '../../api/hrms'
 import { fetchUsers } from '../../api/core'
 import { hasPermission } from '../../api/auth'
 import { useSnackbar } from '../../context/SnackbarContext'
@@ -20,11 +20,15 @@ function Score({ value, strong = false }) {
   return <LevelBar value={n} max={5} warnAt={3.49} dangerAt={2.49} width={strong ? 'w-24' : 'w-20'} className={strong ? 'font-bold' : undefined} />
 }
 
-function CycleForm({ cycle, onClose, onSaved }) {
+function CycleForm({ cycle, onClose, onSaved, onDeleted }) {
   const { t } = useTranslation('hrms')
   const L = useHrLabels()
   const { showError } = useSnackbar()
+  const confirm = useConfirm()
   const draft = !cycle || cycle.status === 'DRAFT'
+  // a round not started yet can be deleted; once launched the reviews stay (close it instead)
+  const canDelete = !!cycle && !!onDeleted && cycle.status === 'DRAFT' && !cycle.total && hasPermission('hrms.performance.delete')
+  const remove = useMutation({ mutationFn: () => deleteCycle(cycle.id), onSuccess: onDeleted, onError: (e) => showError(e.message) })
   const [form, setForm] = useState({ name: cycle?.name ?? '', from: cycle?.from ?? '', to: cycle?.to ?? '', dueDate: cycle?.dueDate ?? '', selfReview: cycle?.selfReview ?? true, categories: cycle?.categories ?? ['TEACHING'] })
   const [criteria, setCriteria] = useState(() => (cycle?.criteria ?? TEACHER_CRITERIA).map((c) => ({ ...c, weight: String(c.weight ?? 1) })))
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.type === 'checkbox' ? e.target.checked : e.target.value }))
@@ -39,6 +43,8 @@ function CycleForm({ cycle, onClose, onSaved }) {
   })
   return (
     <Modal open onClose={onClose} size="lg" title={cycle ? t('hrms.performance.editCycle') : t('hrms.performance.newCycle')} footer={<>
+      {canDelete && <Button variant="ghost" icon={Trash2} className="me-auto text-danger-600" loading={remove.isPending}
+        onClick={async () => { if (await confirm({ title: t('hrms.performance.deleteTitle', { name: cycle.name }), message: t('hrms.performance.deleteHint'), tone: 'danger', confirmLabel: t('actions.delete') })) remove.mutate() }}>{t('actions.delete')}</Button>}
       <Button variant="secondary" onClick={onClose}>{t('actions.cancel')}</Button>
       <Button loading={save.isPending} disabled={form.name.trim().length < 2} onClick={() => save.mutate()}>{t('hrms.performance.save')}</Button>
     </>}>
@@ -190,7 +196,8 @@ export default function Performance() {
           { key: 'status', header: t('hrms.performance.status'), mobilePrimary: true, render: (v) => <StatusPill tone={APPRAISAL_CYCLE_STATUS[v]?.tone}>{L.cycle(v)}</StatusPill> },
         ]} onRowClick={(r) => setOpenId(r.id)} emptyIcon={Award} emptyTitle={t('hrms.performance.noCycles')} emptyHint={t('hrms.performance.noCyclesHint')} />
       )}
-      {editing && <CycleForm cycle={editing === 'new' ? null : editing} onClose={() => setEditing(null)} onSaved={(c) => { setEditing(null); qc.invalidateQueries({ queryKey: ['appraisal-cycles'] }); qc.invalidateQueries({ queryKey: ['cycle-reviews'] }); setOpenId(c.id); showSuccess(t('hrms.performance.saved')) }} />}
+      {editing && <CycleForm cycle={editing === 'new' ? null : editing} onClose={() => setEditing(null)} onSaved={(c) => { setEditing(null); qc.invalidateQueries({ queryKey: ['appraisal-cycles'] }); qc.invalidateQueries({ queryKey: ['cycle-reviews'] }); setOpenId(c.id); showSuccess(t('hrms.performance.saved')) }}
+        onDeleted={() => { setEditing(null); setOpenId(null); qc.invalidateQueries({ queryKey: ['appraisal-cycles'] }); showSuccess(t('hrms.performance.deleted')) }} />}
     </PageContainer>
   )
 }

@@ -142,7 +142,10 @@
       "markedLost": "Marked lost.",
       "makeApplication": "Make application",
       "history": "Follow-ups",
-      "noHistory": "No follow-ups yet."
+      "noHistory": "No follow-ups yet.",
+      "deleteTitle": "Delete the enquiry for {{name}}?",
+      "deleteHint": "Use this for a duplicate or an entry made by mistake. Its follow-up notes go with it. An enquiry that has become an application can't be deleted.",
+      "deleted": "Enquiry deleted"
     },
     "applications": {
       "title": "Applications",
@@ -215,6 +218,9 @@
       "editTitle": "Edit test",
       "save": "Save",
       "saved": "Test saved.",
+      "deleteTitle": "Delete {{name}}?",
+      "deleteHint": "Use this for a test scheduled by mistake. Once applicants are put down for it, it can’t be deleted — change its date or details instead.",
+      "deleted": "Test deleted.",
       "name": "Test",
       "namePlaceholder": "e.g. Entrance test / Parent–child interaction",
       "classes": "For classes",

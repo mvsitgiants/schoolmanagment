@@ -12,6 +12,7 @@ const BASE = '/v1/exams'
 export const fetchExamTypes = () => get(`${BASE}/types`)
 export const createExamType = (body) => post(`${BASE}/types`, body)
 export const updateExamType = (id, body) => patch(`${BASE}/types/${id}`, body)
+export const deleteExamType = (id) => del(`${BASE}/types/${id}`)
 
 export const fetchExams = (yearId) => get(BASE, { yearId: yearId || undefined })
 export const fetchExam = (id) => get(`${BASE}/${id}`)

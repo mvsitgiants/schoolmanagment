@@ -5,11 +5,11 @@ import { Activity, AlertTriangle, ClipboardList, HeartPulse, Lock, Pencil, Phone
 import { HEALTH_BLOOD_GROUPS, VACCINES, bmiBand, BMI_BANDS } from '@schoolgiant/shared'
 import {
   DateInput, BreakdownDonut, CHART, DataTable, Drawer, FormField, Input, Modal, Note, PageContainer, PageHeader, PersonCell, PhoneLink, PillRow, RecordHero, SearchInput, Select,
-  SideNavLayout, SkeletonLines, StatCardRow, Tabs, Tag, Textarea, Timeline, localIso, pillClass,
+  SideNavLayout, SkeletonLines, StatCardRow, Tabs, Tag, Textarea, Timeline, localIso, pillClass, useConfirm,
 } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { BloodBadge, ChipsInput, OutcomePill, SeverityTag, TempTag, useHealthLabels } from '../../components/health/HealthKit'
-import { fetchHealthRecord, fetchHealthRecords, saveHealthRecord } from '../../api/health'
+import { deleteMeasurement, fetchHealthRecord, fetchHealthRecords, saveHealthRecord } from '../../api/health'
 import { hasPermission } from '../../api/auth'
 import useDebouncedValue from '../../hooks/useDebouncedValue'
 import { useFormat } from '../../context/SettingsContext'
@@ -103,7 +103,7 @@ function RecordForm({ data, onClose, onSaved }) {
 }
 
 /** Small growth chart: height bars with the weight and BMI under each check. */
-function Growth({ rows }) {
+function Growth({ rows, onDelete }) {
   const { t } = useTranslation('health')
   const { date } = useFormat()
   if (!rows.length) return <p className="text-sm text-ink-faint">{t('health.records.noGrowth')}</p>
@@ -117,6 +117,8 @@ function Growth({ rows }) {
           <span className="text-[10.5px] tabular-nums text-ink-muted">{r.weightKg ? t('health.records.kg', { n: r.weightKg }) : '—'}</span>
           {r.bmi && <Tag size="xs" tone={BMI_BANDS[bmiBand(r.bmi)]?.tone}>{r.bmi}</Tag>}
           <span className="text-[10px] text-ink-faint">{date(r.date)}</span>
+          {onDelete && <button type="button" onClick={() => onDelete(r)} title={t('health.records.deleteMeasurement')} aria-label={t('health.records.deleteMeasurement')}
+            className="rounded p-0.5 text-ink-faint hover:bg-danger-50 hover:text-danger-600"><Trash2 className="h-3 w-3" /></button>}
         </div>
       ))}
     </div>
@@ -128,10 +130,20 @@ function RecordDrawer({ studentId, onClose }) {
   const L = useHealthLabels()
   const qc = useQueryClient()
   const { date } = useFormat()
-  const { showSuccess } = useSnackbar()
+  const { showSuccess, showError } = useSnackbar()
+  const confirm = useConfirm()
   const [tab, setTab] = useState('overview')
   const [editing, setEditing] = useState(false)
   const { data, isLoading } = useQuery({ queryKey: ['health', 'record', studentId], queryFn: () => fetchHealthRecord(studentId), enabled: !!studentId })
+  // a height / weight entered by mistake
+  const removeMeasure = useMutation({
+    mutationFn: (m) => deleteMeasurement(studentId, m.date),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['health'] }); showSuccess(t('health.records.measurementDeleted')) },
+    onError: (e) => showError(e.message),
+  })
+  const delMeasure = async (m) => {
+    if (await confirm({ title: t('health.records.deleteMeasurementTitle', { date: date(m.date) }), message: t('health.records.deleteMeasurementHint'), tone: 'danger', confirmLabel: t('actions.delete') })) removeMeasure.mutate(m)
+  }
   if (!studentId) return null
   const r = data?.record
   return (
@@ -154,7 +166,7 @@ function RecordDrawer({ studentId, onClose }) {
           ]} />
           {tab === 'overview' && (
             <div className="space-y-4">
-              <div><p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-faint">{t('health.records.growth')}</p><Growth rows={r.measurements} /></div>
+              <div><p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-faint">{t('health.records.growth')}</p><Growth rows={r.measurements} onDelete={hasPermission('health.records.edit') ? delMeasure : undefined} /></div>
               {r.doctor && <PersonCell name={r.doctor.name ?? '—'} sub={[r.doctor.hospital, r.doctor.phone].filter(Boolean).join(' · ')} />}
               {r.updatedAt && <p className="text-xs text-ink-faint">{t('health.records.updated', { name: r.updatedBy ?? '', date: date(r.updatedAt) })}</p>}
             </div>

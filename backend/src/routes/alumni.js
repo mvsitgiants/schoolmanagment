@@ -2,7 +2,7 @@ import { Router } from 'express'
 import { DONATION_STATUS, DONOR_KINDS, PAYMENT_MODES } from '@schoolgiant/shared'
 import { authenticate, requireModule, requirePermission, subscriptionGate, tenantOnly } from '../platform/middleware.js'
 import { email, mobile, objectId, optionalText, z } from '../platform/validate.js'
-import { alumniMeta, exportAlumni, getAlumnus, importLeavers, leaverYears, leaversPreview, listAlumni, saveAlumnus } from '../services/alumni.js'
+import { alumniMeta, deleteAlumnus, exportAlumni, getAlumnus, importLeavers, leaverYears, leaversPreview, listAlumni, saveAlumnus } from '../services/alumni.js'
 import { createDonation, donationSummary, exportDonations, getDonation, listDonations } from '../services/alumniDonations.js'
 
 // alumni: /api/v1/alumni/* — the directory (import a year's leavers, add by hand, search by batch, export) and donations
@@ -57,6 +57,7 @@ router.patch('/directory/:id', requirePermission(`${DIR}.edit`), async (req, res
   for (const k of ['consent', 'active']) if (req.body?.[k] === undefined) delete body[k]
   res.json({ data: await saveAlumnus(id(req), body, req.auth, req) })
 })
+router.delete('/directory/:id', requirePermission(`${DIR}.delete`), async (req, res) => { res.json({ data: await deleteAlumnus(id(req), req) }) })
 
 // ── donations
 const donQuery = (req) => z.object({

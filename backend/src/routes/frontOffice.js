@@ -6,7 +6,7 @@ import {
 import { authenticate, requireModule, requirePermission, subscriptionGate, tenantOnly } from '../platform/middleware.js'
 import { email, objectId, optionalText, z } from '../platform/validate.js'
 import {
-  cancelPass, checkInVisitor, checkOutVisitor, createPass, decidePass, enquiryFromVisit, findStudents, getPass, getVisitor, listPasses, listVisitors,
+  cancelPass, checkInVisitor, checkOutVisitor, createPass, decidePass, deleteVisitor, enquiryFromVisit, findStudents, getPass, getVisitor, listPasses, listVisitors,
   markLeft, markReturned, staffOptions, studentPassHistory, visitorByMobile, visitorDesk,
 } from '../services/frontOffice.js'
 import {
@@ -81,6 +81,9 @@ router.post('/visitors', requirePermission('frontoffice.visitors.create'), async
 })
 router.post('/visitors/:id/checkout', requirePermission('frontoffice.visitors.checkout'), async (req, res) => {
   res.json({ data: await checkOutVisitor(id(req), req.auth, req) })
+})
+router.delete('/visitors/:id', requirePermission('frontoffice.visitors.delete'), async (req, res) => {
+  res.json({ data: await deleteVisitor(id(req), req.auth, req) })
 })
 router.post('/visitors/:id/enquiry', requirePermission('frontoffice.visitors.create'), async (req, res) => {
   const input = z.object({ childName: z.string().trim().min(2, 'Enter the child’s name').max(100), classId: optId, dob: ymd.optional().or(z.literal('').transform(() => undefined)), note: optionalText(500) }).parse(req.body)

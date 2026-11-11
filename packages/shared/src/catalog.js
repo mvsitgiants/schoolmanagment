@@ -124,9 +124,9 @@ export const MODULES = [
   { id: 'admissions', name: 'Admissions', category: 'students', icon: 'UserPlus', deps: ['students'], phase: 2, scopes: SITE_SCOPES,
     desc: 'Enquiry CRM, online application, entrance test, merit list and seat allotment.',
     pages: [
-      pg('enquiries', 'Enquiries', 'V C E X I'),
+      pg('enquiries', 'Enquiries', 'V C E D X I'),
       pg('applications', 'Applications', 'V C E Ap'),
-      pg('tests', 'Entrance tests', 'V C E'),
+      pg('tests', 'Entrance tests', 'V C E D'),
       pg('merit', 'Merit lists', 'V publish allot'),
       pg('settings', 'Admission settings', 'V E', { setup: true }),
     ] },
@@ -139,7 +139,7 @@ export const MODULES = [
   { id: 'frontoffice', name: 'Front office', category: 'students', icon: 'ConciergeBell', deps: [], phase: 3, scopes: SITE_SCOPES,
     desc: 'Visitor log, gate passes, call log and complaints.',
     pages: [
-      pg('visitors', 'Visitor log', 'V C checkout'),
+      pg('visitors', 'Visitor log', 'V C D checkout'),
       pg('gate-pass', 'Gate passes', 'V C Ap'),
       pg('complaints', 'Complaints', 'V C assign resolve'),
     ] },
@@ -214,7 +214,7 @@ export const MODULES = [
   { id: 'registration', name: 'Semester registration', category: 'higher', icon: 'ListChecks', deps: ['programs', 'students'], phase: 2, scopes: ORG_SCOPES,
     desc: 'Course and elective registration, prerequisites, credit limits and add/drop.',
     pages: [
-      pg('windows', 'Registration windows', 'V C E', { setup: true }),
+      pg('windows', 'Registration windows', 'V C E D', { setup: true }),
       pg('requests', 'Registrations', 'V Ap X'),
     ] },
   { id: 'coe', name: 'Exam controller', category: 'higher', icon: 'ScrollText', deps: ['exams', 'programs'], phase: 2, scopes: ORG_SCOPES,
@@ -246,7 +246,7 @@ export const MODULES = [
   { id: 'alumni', name: 'Alumni', category: 'higher', icon: 'HandHeart', deps: ['students'], phase: 4,
     desc: 'Alumni directory, events, donations and job board.',
     pages: [
-      pg('directory', 'Alumni directory', 'V C E X'),
+      pg('directory', 'Alumni directory', 'V C E D X'),
       pg('donations', 'Donations', 'V C X'),
     ] },
 
@@ -279,7 +279,7 @@ export const MODULES = [
     pages: [
       pg('employees', 'Staff', 'V C E D I X terminate! view_salary! view_sensitive!'),
       pg('attendance', 'Staff attendance', 'V E I X'),
-      pg('leave', 'Leave', 'V E Ap Ca apply_on_behalf'),
+      pg('leave', 'Leave', 'V E D Ap Ca apply_on_behalf'),
       pg('holidays', 'Holidays', 'V C E D', { setup: true }),
       pg('hiring', 'Recruitment', 'V C E D'),
       pg('performance', 'Appraisal', 'V C E D'),
@@ -332,7 +332,7 @@ export const MODULES = [
     desc: 'Health records, vaccinations, sick-room visits and incident reports.',
     pages: [
       pg('records', 'Health records', 'V E view_sensitive!'),
-      pg('visits', 'Sick-room visits', 'V C'),
+      pg('visits', 'Sick-room visits', 'V C D'),
       pg('incidents', 'Incidents', 'V C resolve'),
     ] },
   { id: 'canteen', name: 'Canteen & wallet', category: 'campus', icon: 'Utensils', deps: ['students'], phase: 4,

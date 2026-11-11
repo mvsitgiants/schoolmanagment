@@ -14,7 +14,7 @@ import {
   respond, respondSchema, saveCode,
 } from '../services/paging.js'
 import {
-  addMembers, assertStaff, channelFiles, chatSources, createAutoChannel, createGroup, deleteMessage, editMessage, findDirect, getChannel, getChatSettings, openDirect,
+  addMembers, assertStaff, channelFiles, chatSources, createAutoChannel, createGroup, deleteGroup, deleteMessage, editMessage, findDirect, getChannel, getChatSettings, openDirect,
   listChannels, listMembers, listMessages, markRead, people, pinMessage, reactToMessage, removeMember, saveChatSettings, searchMessages,
   sendMessage, sendSchema, setMemberRole, updateChannel, updateMyPrefs, uploadAttachment,
 } from '../services/chat.js'
@@ -179,6 +179,9 @@ chat.post('/channels/:id/members', requirePermission(CHAT_VIEW), async (req, res
 chat.patch('/channels/:id/members/:userId', requirePermission(CHAT_VIEW), async (req, res) => {
   const { role } = z.object({ role: z.enum(['ADMIN', 'MEMBER']) }).strict().parse(req.body)
   res.json({ data: await setMemberRole(idParam(req.params.id), idParam(req.params.userId), role, req.auth) })
+})
+chat.delete('/channels/:id', requirePermission(CHAT_CREATE, CHAT_MANAGE), async (req, res) => {
+  res.json({ data: await deleteGroup(idParam(req.params.id), req.auth, req) })
 })
 chat.delete('/channels/:id/members/:userId', requirePermission(CHAT_VIEW), async (req, res) => {
   res.json({ data: await removeMember(idParam(req.params.id), idParam(req.params.userId), req.auth, req) })

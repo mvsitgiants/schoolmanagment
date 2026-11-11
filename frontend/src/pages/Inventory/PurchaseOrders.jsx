@@ -1,14 +1,14 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { Ban, CheckCircle2, ClipboardList, Download, PackageCheck, Pencil, Plus, Printer, Send, ShoppingBag, Truck, Undo2, Users } from 'lucide-react'
+import { Ban, CheckCircle2, ClipboardList, Download, PackageCheck, Pencil, Plus, Printer, Send, ShoppingBag, Trash2, Truck, Undo2, Users } from 'lucide-react'
 import { PO_STATUS, STORE_CATEGORIES, formatINR } from '@schoolgiant/shared'
 import {
   DateInput, CodeBadge, ColorChip, DataTable, DateCell, Drawer, Fact, FactGrid, FormField, HeaderButton, Input, LevelBar, Modal, Money, Note, PageContainer, PageHeader, Panel,
-  PersonCell, SearchInput, Select, SideNav, SideNavLayout, Tabs, Textarea, Timeline, usePrompt,
+  PersonCell, SearchInput, Select, SideNav, SideNavLayout, Tabs, Textarea, Timeline, useConfirm, usePrompt,
 } from '../../components/system'
 import Button from '../../components/ui/Button'
-import { approvePo, cancelPo, exportPos, fetchPo, fetchPos, fetchVendors, receivePo, savePo, saveVendor, sendBackPo, submitPo } from '../../api/inventory'
+import { approvePo, cancelPo, deleteVendor, exportPos, fetchPo, fetchPos, fetchVendors, receivePo, savePo, saveVendor, sendBackPo, submitPo } from '../../api/inventory'
 import { hasPermission } from '../../api/auth'
 import { printDocument } from '../../components/print/printDocument'
 import useDebouncedValue from '../../hooks/useDebouncedValue'
@@ -18,8 +18,9 @@ import { CampusSelect, ItemLines, PoPill, paiseOf, rupeesOf, useInventoryLabels,
 
 const STATUS_ORDER = ['DRAFT', 'SUBMITTED', 'APPROVED', 'PARTIAL', 'RECEIVED', 'CANCELLED']
 
-function VendorForm({ vendor, onClose, onSaved }) {
+function VendorForm({ vendor, onClose, onSaved, onDeleted }) {
   const { t } = useTranslation('inventory')
+  const confirm = useConfirm()
   const L = useInventoryLabels()
   const { showError } = useSnackbar()
   const [form, setForm] = useState({
@@ -29,9 +30,12 @@ function VendorForm({ vendor, onClose, onSaved }) {
   const [errors, setErrors] = useState({})
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.type === 'checkbox' ? e.target.checked : e.target.value }))
   const save = useMutation({ mutationFn: () => saveVendor(vendor?.id, form), onSuccess: onSaved, onError: (e) => { setErrors(e.details?.fields ?? {}); showError(e.message) } })
+  const remove = useMutation({ mutationFn: () => deleteVendor(vendor.id), onSuccess: onDeleted, onError: (e) => showError(e.message) })
   const toggle = (c) => setForm((f) => ({ ...f, categories: f.categories.includes(c) ? f.categories.filter((x) => x !== c) : [...f.categories, c] }))
   return (
     <Modal open onClose={onClose} title={vendor ? t('inventory.vendors.editTitle') : t('inventory.vendors.newTitle')} footer={<>
+      {vendor && (hasPermission('inventory.items.delete') || hasPermission('inventory.assets.delete')) && <Button variant="ghost" icon={Trash2} className="me-auto text-danger-600" loading={remove.isPending}
+        onClick={async () => { if (await confirm({ title: t('inventory.vendors.deleteTitle', { name: vendor.name }), message: t('inventory.vendors.deleteHint'), tone: 'danger', confirmLabel: t('actions.delete') })) remove.mutate() }}>{t('actions.delete')}</Button>}
       <Button variant="secondary" onClick={onClose}>{t('actions.cancel')}</Button>
       <Button loading={save.isPending} disabled={!form.name.trim()} onClick={() => save.mutate()}>{t('actions.save')}</Button>
     </>}>
@@ -85,7 +89,7 @@ function Vendors() {
         { key: 'lastOrderOn', header: t('inventory.vendors.lastOrder'), mobileHidden: true, render: (v) => (v ? <DateCell value={v} /> : '—') },
         { key: 'active', header: '', render: (v) => (!v ? <ColorChip label={t('inventory.vendors.inactive')} tone="neutral" /> : null) },
       ]} emptyTitle={t('inventory.vendors.empty')} />
-      {editing && <VendorForm vendor={editing === 'new' ? null : editing} onClose={() => setEditing(null)} onSaved={() => { setEditing(null); qc.invalidateQueries({ queryKey: ['inventory'] }); showSuccess(t('inventory.vendors.saved')) }} />}
+      {editing && <VendorForm vendor={editing === 'new' ? null : editing} onClose={() => setEditing(null)} onSaved={() => { setEditing(null); qc.invalidateQueries({ queryKey: ['inventory'] }); showSuccess(t('inventory.vendors.saved')) }} onDeleted={() => { setEditing(null); qc.invalidateQueries({ queryKey: ['inventory'] }); showSuccess(t('inventory.vendors.deleted')) }} />}
     </div>
   )
 }

@@ -50,7 +50,10 @@
       "saved": "Exam type saved.",
       "weightNot100": "The exam types in use add up to {{total}}% of the year’s result, not 100%.",
       "gradingHint": "Grading scales (A1, A2 … or your own) are set in Academic setup › Grading schemes; each class uses its own, and an exam can override it.",
-      "empty": "No exam types yet"
+      "empty": "No exam types yet",
+      "deleteTitle": "Delete {{name}}?",
+      "deleteHint": "Only a type that no exam uses yet can be deleted. If exams already use it, switch it off instead.",
+      "deleted": "Exam type deleted"
     },
     "schedule": {
       "title": "Exam schedule",

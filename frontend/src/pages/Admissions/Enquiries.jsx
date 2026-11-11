@@ -3,13 +3,13 @@ import { useNavigate } from 'react-router-dom'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import clsx from 'clsx'
-import { CalendarDays, ClipboardList, Footprints, Globe, Megaphone, MoreHorizontal, Newspaper, Phone, PhoneCall, Plus, Share2, UserPlus, Users } from 'lucide-react'
+import { CalendarDays, ClipboardList, Footprints, Globe, Megaphone, MoreHorizontal, Newspaper, Phone, PhoneCall, Plus, Share2, Trash2, UserPlus, Users } from 'lucide-react'
 import { ENQUIRY_SOURCES, ENQUIRY_STAGES, FOLLOWUP_TYPES, GENDERS, LOST_REASONS, addDaysYmd } from '@schoolgiant/shared'
-import { DateInput, ColorChip, ContactCell, ControlChip, DataTable, DateCell, Drawer, FormField, HeaderButton, Input, Modal, PageContainer, PageHeader, PersonCell, PhoneLink, Select, StatusPill, Textarea, Timeline, Toolbar, localIso } from '../../components/system'
+import { DateInput, ColorChip, ContactCell, ControlChip, DataTable, DateCell, Drawer, FormField, HeaderButton, Input, Modal, PageContainer, PageHeader, PersonCell, PhoneLink, Select, StatusPill, Textarea, Timeline, Toolbar, localIso, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
 import useDebouncedValue from '../../hooks/useDebouncedValue'
 import { fetchAcademicLookup } from '../../api/academics'
-import { addFollowUp, createEnquiry, fetchEnquiries, fetchEnquiry, updateEnquiry } from '../../api/admissions'
+import { addFollowUp, createEnquiry, deleteEnquiry, fetchEnquiries, fetchEnquiry, updateEnquiry } from '../../api/admissions'
 import { hasPermission } from '../../api/auth'
 import { useSnackbar } from '../../context/SnackbarContext'
 import { useFormat } from '../../context/SettingsContext'
@@ -64,10 +64,15 @@ function EnquiryDrawer({ id, onClose }) {
   const after = (d) => { qc.setQueryData(['enquiry', id], d); qc.invalidateQueries({ queryKey: ['enquiries'] }) }
   const log = useMutation({ mutationFn: () => addFollowUp(id, { ...fu, stage: fu.stage || undefined, nextOn: fu.nextOn || undefined }), onSuccess: (d) => { after(d); setFu((x) => ({ ...x, note: '' })); showSuccess(t('admissions.enquiries.logged')) }, onError: (er) => showError(er.message) })
   const markLost = useMutation({ mutationFn: () => updateEnquiry(id, { stage: 'LOST', lostReason: lost }), onSuccess: (d) => { after(d); showSuccess(t('admissions.enquiries.markedLost')) }, onError: (er) => showError(er.message) })
+  const confirm = useConfirm()
+  const remove = useMutation({ mutationFn: () => deleteEnquiry(id), onSuccess: () => { qc.invalidateQueries({ queryKey: ['enquiries'] }); showSuccess(t('admissions.enquiries.deleted')); onClose() }, onError: (er) => showError(er.message) })
   const canEdit = hasPermission('admissions.enquiries.edit')
   const open = e && !['APPLIED', 'ADMITTED', 'LOST'].includes(e.stage)
+  const canDelete = e && !e.applicationId && !['APPLIED', 'ADMITTED'].includes(e.stage) && hasPermission('admissions.enquiries.delete')
   return (
-    <Drawer open onClose={onClose} size="xl" title={e ? e.childName : t('admissions.loading')} subtitle={e ? `${e.enquiryNo} · ${e.sourceLabel}` : undefined}>
+    <Drawer open onClose={onClose} size="xl" title={e ? e.childName : t('admissions.loading')} subtitle={e ? `${e.enquiryNo} · ${e.sourceLabel}` : undefined}
+      footer={canDelete ? <Button variant="ghost" icon={Trash2} className="me-auto text-danger-600" loading={remove.isPending}
+        onClick={async () => { if (await confirm({ title: t('admissions.enquiries.deleteTitle', { name: e.childName }), message: t('admissions.enquiries.deleteHint'), tone: 'danger', confirmLabel: t('actions.delete') })) remove.mutate() }}>{t('actions.delete')}</Button> : undefined}>
       {!e ? <p className="text-sm text-ink-faint">{t('admissions.loading')}</p> : (
         <div className="space-y-5">
           <div className="flex flex-wrap items-center gap-2">

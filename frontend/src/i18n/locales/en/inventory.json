@@ -404,7 +404,10 @@
       "ordered": "Ordered value",
       "lastOrder": "Last order",
       "empty": "No vendors yet",
-      "saved": "Vendor saved"
+      "saved": "Vendor saved",
+      "deleteTitle": "Delete {{name}}?",
+      "deleteHint": "Only a vendor with no purchase orders or assets on record can be deleted. Otherwise, untick Active to switch them off.",
+      "deleted": "Vendor deleted"
     },
     "po": {
       "pageTitle": "Purchase orders",

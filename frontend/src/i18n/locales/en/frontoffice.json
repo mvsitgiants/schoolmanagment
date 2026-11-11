@@ -145,7 +145,10 @@
       "badgeFrom": "From number",
       "badgeTo": "To number",
       "printBadges_one": "Print {{count}} card",
-      "printBadges_other": "Print {{count}} cards"
+      "printBadges_other": "Print {{count}} cards",
+      "deleteTitle": "Delete the visit of {{name}}?",
+      "deleteHint": "Use this only for an entry made by mistake. Only today's entries can be deleted; older visits stay in the log.",
+      "deleted": "Visit deleted"
     },
     "passes": {
       "title": "Gate passes",

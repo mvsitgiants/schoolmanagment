@@ -4,7 +4,7 @@ import { authenticate, requireModule, requirePermission, subscriptionGate, tenan
 import { objectId, optionalText, z } from '../platform/validate.js'
 import {
   createIncident, createVisit, deleteMeasurement, getRecord, healthBrief, listIncidents, listRecords, listVisits, resolveIncident, saveRecord, staffLogins,
-  updateIncident, updateVisit, visitBoard,
+  deleteVisit, updateIncident, updateVisit, visitBoard,
 } from '../services/health.js'
 
 // health: /api/v1/health — health records, sick-room visits and incident reports.
@@ -85,6 +85,7 @@ router.get('/visits', requirePermission('health.visits.view'), async (req, res) 
 })
 router.post('/visits', requirePermission('health.visits.create'), async (req, res) => { res.status(201).json({ data: await createVisit(visitBody.parse(req.body), req.auth, req) }) })
 router.patch('/visits/:id', requirePermission('health.visits.create'), async (req, res) => { res.json({ data: await updateVisit(id(req), visitPatch.parse(req.body), req.auth, req) }) })
+router.delete('/visits/:id', requirePermission('health.visits.delete'), async (req, res) => { res.json({ data: await deleteVisit(id(req), req.auth, req) }) })
 
 // ── incidents
 router.get('/incidents', requirePermission('health.incidents.view'), async (req, res) => {

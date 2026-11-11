@@ -3,6 +3,7 @@ import api from './client'
 // Front office API (/api/v1/frontoffice): visitor log, gate passes, complaints. Functions return the unwrapped `data`.
 const get = async (url, params) => (await api.get(url, { params })).data.data
 const post = async (url, body) => (await api.post(url, body)).data.data
+const del = async (url) => (await api.delete(url)).data.data
 
 const BASE = '/v1/frontoffice'
 const clean = (p = {}) => Object.fromEntries(Object.entries(p).filter(([, v]) => v !== '' && v !== undefined && v !== null && v !== false))
@@ -32,6 +33,7 @@ export const fetchVisitor = (id) => get(`${BASE}/visitors/${id}`)
 export const lookupVisitor = (mobile) => get(`${BASE}/visitors/lookup`, { mobile })
 export const checkInVisitor = (body) => post(`${BASE}/visitors`, body)
 export const checkOutVisitor = (id) => post(`${BASE}/visitors/${id}/checkout`)
+export const deleteVisitor = (id) => del(`${BASE}/visitors/${id}`)
 export const enquiryFromVisit = (id, body) => post(`${BASE}/visitors/${id}/enquiry`, body)
 
 // gate passes

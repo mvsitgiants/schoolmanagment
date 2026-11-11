@@ -54,7 +54,10 @@
       "deactivate": "Stop using",
       "saved": "Fee head saved.",
       "close": "Done",
-      "empty": "No fee heads yet."
+      "empty": "No fee heads yet.",
+      "deleteTitle": "Delete {{name}}?",
+      "deleteHint": "Only a fee head that is not in any fee structure, bill or concession yet can be deleted. Once it has been used, switch it off instead.",
+      "deleted": "Fee head deleted."
     },
     "structures": {
       "title": "Fee structures",

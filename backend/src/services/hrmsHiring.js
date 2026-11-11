@@ -53,6 +53,17 @@ export async function setRequisitionStatus(id, { status, note }, auth, req) {
   return clean(r.toObject())
 }
 
+/** Delete a vacancy opened by mistake. Once anyone has applied, it stays — close or cancel it instead. */
+export async function deleteRequisition(id, req) {
+  const r = isOid(id) ? await Requisition.findById(id) : null
+  if (!r) throw notFound('Vacancy')
+  const n = await Candidate.countDocuments({ requisitionId: r._id })
+  if (n) throw conflict(`${n} candidate${n === 1 ? ' has' : 's have'} applied for ${r.title}. Close the vacancy instead.`)
+  await r.deleteOne()
+  await audit({ action: 'DELETE', module: 'hrms', entityType: 'requisition', entityId: String(r._id), entityName: r.title, summary: `Deleted vacancy ${r.requisitionNo} — ${r.title}` }, req)
+  return { deleted: true }
+}
+
 // ───────────────────────────────────────────────────────── candidates
 
 const cdto = (c) => ({ ...clean(c), requisitionId: String(c.requisitionId), employeeId: idStr(c.employeeId), stageLabel: stageLabel(c.stage), rating: avgRating(c) })
@@ -99,6 +110,17 @@ export async function saveCandidate(id, input, auth, req) {
   await c.save()
   await audit({ action: id ? 'UPDATE' : 'CREATE', module: 'hrms', entityType: 'candidate', entityId: String(c._id), entityName: c.name, summary: `${id ? 'Updated' : 'Added'} candidate ${c.name} for ${req0.title}` }, req)
   return getCandidate(String(c._id))
+}
+
+/** Delete a candidate added by mistake (a duplicate, the wrong vacancy). Someone made an offer or who joined stays on record. */
+export async function deleteCandidate(id, req) {
+  const c = isOid(id) ? await Candidate.findById(id) : null
+  if (!c) throw notFound('Candidate')
+  if (c.stage === 'HIRED' || c.employeeId) throw conflict(`${c.name} has joined; their staff record is in Staff, so this stays on record.`)
+  if (c.offer?.at) throw conflict(`An offer was made to ${c.name}, so this stays on record. Mark them as “Withdrew” instead.`)
+  await c.deleteOne()
+  await audit({ action: 'DELETE', module: 'hrms', entityType: 'candidate', entityId: String(c._id), entityName: c.name, summary: `Deleted candidate ${c.name} (added by mistake)` }, req)
+  return { deleted: true }
 }
 
 /** Move a candidate to a step (not to "joined" — that is hire()). Booking a demo class or interview goes with it. */

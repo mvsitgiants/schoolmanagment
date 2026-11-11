@@ -182,7 +182,7 @@ export default function TeachingTab({ action, onActionDone }) {
         ) : <QuietEmpty icon={ListChecks} title={t('homework.mine.noClassesTitle')} hint={t('homework.mine.noClasses')} />}
       </SectionCard>
 
-      {viewing && <LessonView plan={viewing} onClose={() => setViewing(null)}
+      {viewing && <LessonView plan={viewing} onClose={() => setViewing(null)} onDeleted={() => { setViewing(null); refresh() }}
         onEdit={viewing.canChange && hasPermission('homework.lesson-plans.edit') ? () => { setEditingPlan(viewing); setViewing(null) } : undefined} />}
       {editingPlan && lookup && <PlanForm lookup={lookup} plan={editingPlan} defaultDate={editingPlan.date}
         onClose={() => setEditingPlan(null)} onSaved={() => { setEditingPlan(null); refresh(); showSuccess(t('homework.lessons.saved')) }} />}

@@ -240,7 +240,7 @@ export default function LessonPlans() {
         emptyIcon={ClipboardList} emptyTitle={t('homework.lessons.empty')} emptyHint={t('homework.lessons.emptyHint')}
         pagination={total > PAGE ? { page: page - 1, size: PAGE, totalElements: total, totalPages: Math.ceil(total / PAGE), onPageChange: (p) => setPaged({ key: filterKey, page: p + 1 }) } : undefined}
       />}
-      {viewing && <LessonView plan={viewing} onClose={() => setViewing(null)} onEdit={viewing.canChange && canEdit ? () => { setEditing(viewing); setViewing(null) } : undefined} />}
+      {viewing && <LessonView plan={viewing} onClose={() => setViewing(null)} onDeleted={() => { setViewing(null); refresh() }} onEdit={viewing.canChange && canEdit ? () => { setEditing(viewing); setViewing(null) } : undefined} />}
       {editing && <PlanForm lookup={lookup} plan={editing === 'new' ? null : editing} defaultDate={newOn ?? (anchor < range.from || anchor > range.to ? range.from : anchor)}
         onClose={() => { setEditing(null); setNewOn(null) }} onSaved={() => { refresh(); setEditing(null); showSuccess(t('homework.lessons.saved')) }} />}
     </PageContainer>

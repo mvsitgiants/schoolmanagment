@@ -130,7 +130,8 @@ export default function Windows() {
       />
       <WindowDrawer id={selected} onClose={() => setSelected(null)} onEdit={(w) => { setSelected(null); setEditing(w) }} />
       {editing && <WindowForm window={editing === 'new' ? null : editing} onClose={() => setEditing(null)}
-        onSaved={(w) => { setEditing(null); refresh(); showSuccess(t('registration.windows.saved')); if (!editing?.id) setSelected(w.id) }} />}
+        onSaved={(w) => { setEditing(null); refresh(); showSuccess(t('registration.windows.saved')); if (!editing?.id) setSelected(w.id) }}
+        onDeleted={() => { setEditing(null); setSelected(null); refresh(); showSuccess(t('registration.windows.deleted')) }} />}
       {rows.length > 0 && <p className="text-xs text-ink-faint flex items-center gap-1.5"><DoorClosed className="h-3.5 w-3.5" />{t('registration.windows.footnote')}</p>}
     </PageContainer>
   )

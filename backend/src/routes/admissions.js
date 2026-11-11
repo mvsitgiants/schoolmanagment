@@ -3,7 +3,7 @@ import { APPLICATION_STATUS, ENQUIRY_SOURCES, ENQUIRY_STAGES, FOLLOWUP_TYPES, GE
 import { authenticate, requireModule, requirePermission, subscriptionGate, tenantOnly } from '../platform/middleware.js'
 import { email, objectId, optionalText, pageParams, z } from '../platform/validate.js'
 import {
-  addFollowUp, admitApplicant, allotSeats, assignTest, createApplication, createEnquiry, getApplication, getEnquiry, listApplications, listCycles, listEnquiries,
+  addFollowUp, admitApplicant, allotSeats, assignTest, createApplication, createEnquiry, deleteEnquiry, deleteTest, getApplication, getEnquiry, listApplications, listCycles, listEnquiries,
   listTests, meritList, publishMerit, saveCycle, saveTest, saveTestMarks, setApplicationStatus, setCycleStatus, testSheet, updateApplication, updateEnquiry,
 } from '../services/admissions.js'
 
@@ -68,6 +68,9 @@ router.patch('/enquiries/:id', requirePermission('admissions.enquiries.edit'), a
   const input = enquirySchema.partial().extend({ stage: z.enum(Object.keys(ENQUIRY_STAGES)).optional(), lostReason: optionalText(120), nextFollowUpOn: optYmd }).parse(req.body)
   res.json({ data: await updateEnquiry(id(req), input, req.auth, req) })
 })
+router.delete('/enquiries/:id', requirePermission('admissions.enquiries.delete'), async (req, res) => {
+  res.json({ data: await deleteEnquiry(id(req), req.auth, req) })
+})
 router.post('/enquiries/:id/follow-ups', requirePermission('admissions.enquiries.edit'), async (req, res) => {
   const input = z.object({ type: z.enum(values(FOLLOWUP_TYPES)), note: z.string().trim().min(1, 'Say what happened').max(1000), nextOn: optYmd, stage: z.enum(['NEW', 'CONTACTED', 'VISIT', 'VISITED', 'LOST']).optional() }).parse(req.body)
   res.json({ data: await addFollowUp(id(req), input, req.auth, req) })
@@ -129,6 +132,9 @@ router.post('/tests', requirePermission('admissions.tests.create'), async (req, 
 })
 router.patch('/tests/:id', requirePermission('admissions.tests.edit'), async (req, res) => {
   res.json({ data: await saveTest(id(req), testSchema.parse(req.body), req.auth, req) })
+})
+router.delete('/tests/:id', requirePermission('admissions.tests.delete'), async (req, res) => {
+  res.json({ data: await deleteTest(id(req), req) })
 })
 router.post('/tests/:id/assign', requirePermission('admissions.tests.edit', 'admissions.tests.create'), async (req, res) => {
   const { applicationIds } = z.object({ applicationIds: z.array(objectId).max(2000).optional() }).parse(req.body ?? {})

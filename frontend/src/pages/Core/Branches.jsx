@@ -2,11 +2,11 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Trans, useTranslation } from 'react-i18next'
-import { Building2, MapPin, Pencil, Plus, Star } from 'lucide-react'
-import { CodeBadge, ColorChip, DataTable, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, StatusPill, TONE, hueTone } from '../../components/system'
+import { Building2, MapPin, Pencil, Plus, Star, Trash2 } from 'lucide-react'
+import { CodeBadge, ColorChip, DataTable, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, StatusPill, TONE, hueTone, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { Switch, UsageMeter } from '../../components/app/Controls'
-import { createBranch, fetchBranches, updateBranch } from '../../api/core'
+import { createBranch, deleteBranch, fetchBranches, updateBranch } from '../../api/core'
 import { hasPermission } from '../../api/auth'
 import useAuthUser from '../../hooks/useAuthUser'
 import { useSnackbar } from '../../context/SnackbarContext'
@@ -17,8 +17,9 @@ import { metresText } from '@schoolgiant/shared'
 // signatories a campus can have its own of (the principal has its own fields above)
 const CAMPUS_SIGNERS = ['ACCOUNTANT', 'CONTROLLER', 'SECRETARY']
 
-function BranchForm({ branch, onClose, onSaved }) {
+function BranchForm({ branch, onClose, onSaved, onDeleted }) {
   const { t } = useTranslation('admin')
+  const confirm = useConfirm()
   const [form, setForm] = useState(() => ({ name: '', code: '', addressLine: '', city: '', state: '', pincode: '', phone: '', gstin: '', active: true, ...branch, attendanceSites: (branch?.attendanceSites ?? []).map(siteIn), identity: { printName: '', board: '', affiliationNo: '', schoolCode: '', udiseCode: '', email: '', principalName: '', logoUrl: '', sealUrl: '', principalSignUrl: '', ...branch?.identity, signatures: CAMPUS_SIGNERS.map((role) => ({ role, name: '', imageUrl: '', ...(branch?.identity?.signatures ?? []).find((x) => x.role === role) })) } }))
   const [ownPrint, setOwnPrint] = useState(() => Object.values(branch?.identity ?? {}).some(Boolean))
   const setId = (k) => (v) => setForm((f) => ({ ...f, identity: { ...f.identity, [k]: v?.target ? v.target.value : v } }))
@@ -37,8 +38,11 @@ function BranchForm({ branch, onClose, onSaved }) {
     onSuccess: onSaved,
     onError: (e) => { setErrors(e.response?.data?.details?.fields ?? {}); showError(e.message) },
   })
+  const remove = useMutation({ mutationFn: () => deleteBranch(branch.id), onSuccess: onDeleted, onError: (e) => showError(e.message) })
   return (
     <Modal open onClose={onClose} size="lg" title={branch ? t('admin.branches.editTitle', { name: branch.name }) : t('admin.branches.newBranch')} footer={<>
+      {branch && !branch.isDefault && hasPermission('core.branches.delete') && <Button variant="ghost" icon={Trash2} className="me-auto text-danger-600" loading={remove.isPending}
+        onClick={async () => { if (await confirm({ title: t('admin.branches.deleteConfirm.title', { name: branch.name }), message: t('admin.branches.deleteConfirm.message'), tone: 'danger', confirmLabel: t('actions.delete') })) remove.mutate() }}>{t('actions.delete')}</Button>}
       <Button variant="secondary" onClick={onClose}>{t('actions.cancel')}</Button>
       <Button loading={save.isPending} disabled={!form.name || !form.code || !sitesOk} onClick={() => save.mutate()}>{branch ? t('actions.save') : t('admin.branches.addBranch')}</Button>
     </>}>
@@ -141,7 +145,7 @@ export default function Branches() {
           )}
         </div>
       </div>
-      {editing && <BranchForm branch={editing === 'new' ? null : editing} onClose={() => setEditing(null)} onSaved={() => { qc.invalidateQueries({ queryKey: ['branches'] }); showSuccess(t('admin.branches.saved')); setEditing(null) }} />}
+      {editing && <BranchForm branch={editing === 'new' ? null : editing} onClose={() => setEditing(null)} onSaved={() => { qc.invalidateQueries({ queryKey: ['branches'] }); showSuccess(t('admin.branches.saved')); setEditing(null) }} onDeleted={() => { qc.invalidateQueries({ queryKey: ['branches'] }); showSuccess(t('admin.branches.deleted')); setEditing(null) }} />}
     </PageContainer>
   )
 }

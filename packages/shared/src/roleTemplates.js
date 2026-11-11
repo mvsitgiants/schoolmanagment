@@ -94,6 +94,7 @@ const DEFS = [
     dataScopes: { default: 'BRANCH' }, limits: {},
     grants: [
       ['admissions', ['enquiries', 'applications', 'tests', 'merit'], 'A'],
+      ['admissions', ['enquiries', 'tests'], '+delete'], // an enquiry entered twice, a test set up by mistake (refused once used)
       ['students', ['admit', 'directory'], 'W'],
       ['fees', ['collect'], '+view create'],
       ['communication', ['messages'], '+view create send'],
@@ -103,6 +104,7 @@ const DEFS = [
     dataScopes: { default: 'BRANCH' }, limits: {},
     grants: [
       ['frontoffice', '*', 'A'],
+      ['frontoffice', ['visitors'], '+delete'], // today's mistaken visitor entry
       ['students', ['directory'], 'V'],
       ['certificates', ['issue'], 'W'],
       ['admissions', ['enquiries'], 'W'],

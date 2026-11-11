@@ -2,12 +2,12 @@ import { useEffect, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import clsx from 'clsx'
 import { useTranslation } from 'react-i18next'
-import { FileText, Image as ImageIcon, LogOut, PinOff, ShieldCheck, UserMinus, UserPlus } from 'lucide-react'
+import { FileText, Image as ImageIcon, LogOut, PinOff, ShieldCheck, Trash2, UserMinus, UserPlus } from 'lucide-react'
 import { CHAT_GROUP_NAME_MAX, CHAT_NOTIFY_LEVELS } from '@schoolgiant/shared'
 import { Avatar, Drawer, FormField, Input, Select, StatusPill, Tabs, Textarea, openDocumentViewer, useConfirm } from '../../system'
 import Button from '../../ui/Button'
 import {
-  addChatMembers, fetchChatFiles, fetchChatMembers, removeChatMember, setChatMemberRole, updateChatChannel, updateChatPrefs,
+  addChatMembers, deleteChatGroup, fetchChatFiles, fetchChatMembers, removeChatMember, setChatMemberRole, updateChatChannel, updateChatPrefs,
 } from '../../../api/comms'
 import { downloadFile } from '../../../api/files'
 import { hasPermission } from '../../../api/auth'
@@ -161,6 +161,12 @@ function Settings({ channel, me, onLeft }) {
     if (!(await confirm({ title: t('chatChannelInfoLeaveTitle', { name: channel.name }), message: t('chatChannelInfoLeaveMessage'), tone: 'danger', confirmLabel: t('leaveGroup') }))) return
     try { await removeChatMember(channel.id, me); qc.invalidateQueries({ queryKey: CHANNELS_KEY }); onLeft() } catch (e) { showError(errText(e)) }
   }
+  // the group's owner (or a chat manager) may delete it; everyone is taken out
+  const canDelete = channel.type === 'GROUP' && (channel.me?.role === 'OWNER' || hasPermission('comms.chat.moderate'))
+  const removeGroup = async () => {
+    if (!(await confirm({ title: t('chatDeleteGroupTitle', { name: channel.name }), message: t('chatDeleteGroupMessage'), tone: 'danger', confirmLabel: t('common:actions.delete') }))) return
+    try { await deleteChatGroup(channel.id); qc.invalidateQueries({ queryKey: CHANNELS_KEY }); showSuccess(t('chatGroupDeleted')); onLeft() } catch (e) { showError(errText(e)) }
+  }
   const editable = channel.canModerate && channel.type !== 'DIRECT'
 
   return (
@@ -187,8 +193,9 @@ function Settings({ channel, me, onLeft }) {
         </div>
       )}
       {channel.type === 'GROUP' && (
-        <div className="pt-2 border-t border-border">
+        <div className="pt-2 border-t border-border flex flex-wrap gap-2">
           <Button variant="secondary" icon={LogOut} onClick={leave} className="text-danger-600">{t('leaveGroup')}</Button>
+          {canDelete && <Button variant="ghost" icon={Trash2} onClick={removeGroup} className="text-danger-600">{t('chatDeleteGroup')}</Button>}
         </div>
       )}
     </div>

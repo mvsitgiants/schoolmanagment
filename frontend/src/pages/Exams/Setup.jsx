@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { Pencil, Plus, Settings2 } from 'lucide-react'
-import { CodeBadge, ColorChip, DataTable, FormField, HeaderButton, Input, LevelBar, Modal, Note, PageContainer, PageHeader, StatusPill } from '../../components/system'
+import { Pencil, Plus, Settings2, Trash2 } from 'lucide-react'
+import { CodeBadge, ColorChip, DataTable, FormField, HeaderButton, Input, LevelBar, Modal, Note, PageContainer, PageHeader, StatusPill, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
-import { createExamType, fetchExamTypes, updateExamType } from '../../api/exams'
+import { createExamType, deleteExamType, fetchExamTypes, updateExamType } from '../../api/exams'
 import { hasPermission } from '../../api/auth'
 import { useSnackbar } from '../../context/SnackbarContext'
 
@@ -43,7 +43,10 @@ export default function Setup() {
   const [editing, setEditing] = useState(null)
   const { data: rows = [], isLoading, error, refetch } = useQuery({ queryKey: ['exam-types'], queryFn: fetchExamTypes })
   const toggle = useMutation({ mutationFn: (r) => updateExamType(r.id, { active: !r.active }), onSuccess: () => { qc.invalidateQueries({ queryKey: ['exam-types'] }); showSuccess(t('exams.setup.saved')) }, onError: (e) => showError(e.message) })
+  const confirm = useConfirm()
+  const remove = useMutation({ mutationFn: (r) => deleteExamType(r.id), onSuccess: () => { qc.invalidateQueries({ queryKey: ['exam-types'] }); showSuccess(t('exams.setup.deleted')) }, onError: (e) => showError(e.message) })
   const canEdit = hasPermission('exams.setup.edit')
+  const canDelete = hasPermission('exams.setup.delete')
   const weight = rows.filter((r) => r.active).reduce((n, r) => n + (Number(r.weightage) || 0), 0)
 
   return (
@@ -67,10 +70,12 @@ export default function Setup() {
             </div>
           ) },
           { key: 'active', header: t('exams.setup.status'), mobilePrimary: true, render: (v) => <StatusPill tone={v ? 'success' : 'neutral'}>{v ? t('exams.setup.inUse') : t('exams.setup.notInUse')}</StatusPill> },
-          { key: 'id', header: '', align: 'right', width: 150, render: (_, r) => canEdit && (
+          { key: 'id', header: '', align: 'right', width: 190, render: (_, r) => (canEdit || canDelete) && (
             <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>
-              <Button size="sm" variant="ghost" icon={Pencil} aria-label={t('exams.setup.edit')} title={t('exams.setup.edit')} onClick={() => setEditing(r)} />
-              <Button size="sm" variant="ghost" onClick={() => toggle.mutate(r)}>{r.active ? t('exams.setup.deactivate') : t('exams.setup.activate')}</Button>
+              {canEdit && <Button size="sm" variant="ghost" icon={Pencil} aria-label={t('exams.setup.edit')} title={t('exams.setup.edit')} onClick={() => setEditing(r)} />}
+              {canEdit && <Button size="sm" variant="ghost" onClick={() => toggle.mutate(r)}>{r.active ? t('exams.setup.deactivate') : t('exams.setup.activate')}</Button>}
+              {canDelete && <Button size="sm" variant="ghost" icon={Trash2} className="text-danger-600" aria-label={t('actions.delete')} title={t('actions.delete')}
+                onClick={async () => { if (await confirm({ title: t('exams.setup.deleteTitle', { name: r.name }), message: t('exams.setup.deleteHint'), tone: 'danger', confirmLabel: t('actions.delete') })) remove.mutate(r) }} />}
             </div>
           ) },
         ]}

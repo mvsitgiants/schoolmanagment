@@ -1479,7 +1479,12 @@
       "logo": "Logo",
       "seal": "School seal",
       "principalSign": "Principal’s signature",
-      "otherSignsHint": "Other signatures — only if this campus has its own. Leave one empty to use the institution’s (Print templates › Letterhead)."
+      "otherSignsHint": "Other signatures — only if this campus has its own. Leave one empty to use the institution’s (Print templates › Letterhead).",
+      "deleted": "Campus deleted",
+      "deleteConfirm": {
+        "title": "Delete {{name}}?",
+        "message": "Only a campus with nothing filed under it can be deleted. If it already has students, classes or other records, make it inactive instead."
+      }
     },
     "customFields": {
       "title": "Custom fields",

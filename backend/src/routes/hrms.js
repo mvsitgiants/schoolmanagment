@@ -11,15 +11,15 @@ import {
 } from '../services/hrms.js'
 import { dayRegister, exportMonth, importAttendance, monthRegister, myMonth, saveDay } from '../services/hrmsAttendance.js'
 import {
-  adjustBalance, applyFor, applyMine, balanceBoard, calendarSuggestions, cancelLeave, creditCompOff, decideLeave, deleteCalendarDay, employeeBalances, getLeave,
+  adjustBalance, applyFor, applyMine, balanceBoard, calendarSuggestions, cancelLeave, creditCompOff, decideLeave, deleteCalendarDay, deleteLeaveType, employeeBalances, getLeave,
   leaveSummary, ledgerFor, listCalendarDays, listLeaveTypes, listLeaves, myLeave, previewFor, runYearEnd, saveCalendarDay, saveLeaveType, teamCalendar,
   waitingForMe, yearEndPreview,
 } from '../services/hrmsLeave.js'
 import { deleteLeaveApprovalRule, leaveApprovalOptions, listLeaveApprovalRules, saveLeaveApprovalRule } from '../services/hrmsLeaveApprovals.js'
 import {
-  evaluateCandidate, getCandidate, hireCandidate, listCandidates, listRequisitions, moveCandidate, offerCandidate, saveCandidate, saveRequisition, setRequisitionStatus,
+  deleteCandidate, deleteRequisition, evaluateCandidate, getCandidate, hireCandidate, listCandidates, listRequisitions, moveCandidate, offerCandidate, saveCandidate, saveRequisition, setRequisitionStatus,
 } from '../services/hrmsHiring.js'
-import { closeCycle, cycleReviews, getReview, launchCycle, listCycles, myReviews, saveCycle, setReviewer, submitManager, submitSelf } from '../services/hrmsPerformance.js'
+import { closeCycle, cycleReviews, deleteCycle, getReview, launchCycle, listCycles, myReviews, saveCycle, setReviewer, submitManager, submitSelf } from '../services/hrmsPerformance.js'
 
 // Staff & HR: /api/v1/hrms/*  (self-service under /me needs no HR permission — only a linked staff record)
 const router = Router()
@@ -216,6 +216,9 @@ router.put('/leave/types/:id', requirePermission('hrms.leave.edit'), async (req,
   // the short name (code) stays as it was made: payroll and the ledger read it
   res.json({ data: await saveLeaveType(id(req), leaveTypeSchema.omit({ code: true }).parse(req.body), req) })
 })
+router.delete('/leave/types/:id', requirePermission('hrms.leave.delete'), async (req, res) => {
+  res.json({ data: await deleteLeaveType(id(req), req) })
+})
 router.get('/leave', requirePermission('hrms.leave.view'), async (req, res) => {
   res.json({ data: await listLeaves(listQ(req.query), req.auth) })
 })
@@ -341,6 +344,9 @@ router.post('/requisitions/:id/status', requirePermission('hrms.hiring.edit'), a
   const input = z.object({ status: z.enum(Object.keys(REQUISITION_STATUSES)), note: optionalText(300) }).parse(req.body)
   res.json({ data: await setRequisitionStatus(id(req), input, req.auth, req) })
 })
+router.delete('/requisitions/:id', requirePermission('hrms.hiring.delete'), async (req, res) => {
+  res.json({ data: await deleteRequisition(id(req), req) })
+})
 router.get('/candidates', requirePermission('hrms.hiring.view'), async (req, res) => {
   const q = z.object({ requisitionId: objectId.optional(), stage: optionalText(20), search: optionalText(80), ...paging }).parse(req.query)
   res.json({ data: await listCandidates(q) })
@@ -353,6 +359,9 @@ router.get('/candidates/:id', requirePermission('hrms.hiring.view'), async (req,
 })
 router.put('/candidates/:id', requirePermission('hrms.hiring.edit'), async (req, res) => {
   res.json({ data: await saveCandidate(id(req), candidateSchema.omit({ requisitionId: true }).parse(req.body), req.auth, req) })
+})
+router.delete('/candidates/:id', requirePermission('hrms.hiring.delete'), async (req, res) => {
+  res.json({ data: await deleteCandidate(id(req), req) })
 })
 router.post('/candidates/:id/move', requirePermission('hrms.hiring.edit'), async (req, res) => {
   const input = z.object({
@@ -391,6 +400,9 @@ router.post('/appraisals/cycles', requirePermission('hrms.performance.create'), 
 })
 router.put('/appraisals/cycles/:id', requirePermission('hrms.performance.edit'), async (req, res) => {
   res.json({ data: await saveCycle(id(req), cycleSchema.parse(req.body), req.auth, req) })
+})
+router.delete('/appraisals/cycles/:id', requirePermission('hrms.performance.delete'), async (req, res) => {
+  res.json({ data: await deleteCycle(id(req), req) })
 })
 router.post('/appraisals/cycles/:id/launch', requirePermission('hrms.performance.edit'), async (req, res) => {
   res.json({ data: await launchCycle(id(req), req.auth, req) })

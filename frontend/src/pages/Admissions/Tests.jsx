@@ -2,25 +2,31 @@ import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { CheckCheck, ChevronLeft, NotebookPen, Plus, Save, UserPlus, UsersRound } from 'lucide-react'
+import { CheckCheck, ChevronLeft, NotebookPen, Plus, Save, Trash2, UserPlus, UsersRound } from 'lucide-react'
 import clsx from 'clsx'
 import { DateInput, CodeBadge, ColorChip, DataTable, DateCell, FormField, HeaderButton, Input, LevelBar, Modal, Note, PANEL, PageContainer, PageHeader, PersonCell, SideNav, SideNavLayout, StatCardRow, Textarea, localIso, pillClass, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
 import useCycle from '../../components/admissions/useCycle'
-import { assignTest, createTest, fetchTestMarks, fetchTests, saveTestMarks, updateTest } from '../../api/admissions'
+import { assignTest, createTest, deleteTest, fetchTestMarks, fetchTests, saveTestMarks, updateTest } from '../../api/admissions'
 import { hasPermission } from '../../api/auth'
 import { useSnackbar } from '../../context/SnackbarContext'
 import { useFormat } from '../../context/SettingsContext'
 import { useIsMobile } from '../../hooks/useMediaQuery'
 
-function TestForm({ cycle, test, onClose, onSaved }) {
+function TestForm({ cycle, test, onClose, onSaved, onDeleted }) {
   const { t } = useTranslation('admissions')
   const { showError } = useSnackbar()
+  const confirm = useConfirm()
+  // a test scheduled by mistake: only while no applicant is down for it
+  const canDelete = !!test && !!onDeleted && !test.applicants && hasPermission('admissions.tests.delete')
+  const remove = useMutation({ mutationFn: () => deleteTest(test.id), onSuccess: onDeleted, onError: (e) => showError(e.message) })
   const [form, setForm] = useState({ name: test?.name ?? '', classIds: test?.classIds ?? [], date: test?.date ?? '', time: test?.time ?? '10:00', venue: test?.venue ?? '', maxMarks: String(test?.maxMarks ?? 50), instructions: test?.instructions ?? '' })
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }))
   const save = useMutation({ mutationFn: () => (test ? updateTest(test.id, { ...form, cycleId: cycle.id }) : createTest({ ...form, cycleId: cycle.id })), onSuccess: onSaved, onError: (e) => showError(e.message) })
   return (
     <Modal open onClose={onClose} size="lg" title={test ? t('admissions.tests.editTitle') : t('admissions.tests.newTitle')} footer={<>
+      {canDelete && <Button variant="ghost" icon={Trash2} className="me-auto text-danger-600" loading={remove.isPending}
+        onClick={async () => { if (await confirm({ title: t('admissions.tests.deleteTitle', { name: test.name }), message: t('admissions.tests.deleteHint'), tone: 'danger', confirmLabel: t('actions.delete') })) remove.mutate() }}>{t('actions.delete')}</Button>}
       <Button variant="secondary" onClick={onClose}>{t('actions.cancel')}</Button>
       <Button loading={save.isPending} disabled={form.name.trim().length < 2 || !form.date || !form.classIds.length} onClick={() => save.mutate()}>{t('admissions.tests.save')}</Button>
     </>}>
@@ -185,7 +191,8 @@ export default function Tests() {
           emptyIcon={NotebookPen} emptyTitle={t('admissions.tests.empty')}
         />
       )}
-      {editing && cycle && <TestForm cycle={cycle} test={editing === 'new' ? null : editing} onClose={() => setEditing(null)} onSaved={() => { qc.invalidateQueries({ queryKey: ['admission-tests'] }); setEditing(null); showSuccess(t('admissions.tests.saved')) }} />}
+      {editing && cycle && <TestForm cycle={cycle} test={editing === 'new' ? null : editing} onClose={() => setEditing(null)} onSaved={() => { qc.invalidateQueries({ queryKey: ['admission-tests'] }); setEditing(null); showSuccess(t('admissions.tests.saved')) }}
+        onDeleted={() => { qc.invalidateQueries({ queryKey: ['admission-tests'] }); setEditing(null); showSuccess(t('admissions.tests.deleted')) }} />}
     </PageContainer>
   )
 }

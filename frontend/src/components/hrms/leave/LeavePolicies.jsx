@@ -2,11 +2,11 @@ import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { Plus, ShieldCheck, Trash2 } from 'lucide-react'
-import { EMPLOYEE_CATEGORIES, GENDERS, LEAVE_ACCRUALS } from '@schoolgiant/shared'
-import { DataTable, FormField, Input, Modal, Select, StatusPill, Textarea } from '../../system'
+import { EMPLOYEE_CATEGORIES, GENDERS, LEAVE_ACCRUALS, STARTER_LEAVE_TYPES } from '@schoolgiant/shared'
+import { DataTable, FormField, Input, Modal, Select, StatusPill, Textarea, useConfirm } from '../../system'
 import Button from '../../ui/Button'
 import { Switch } from '../../app/Controls'
-import { createLeaveType, updateLeaveType } from '../../../api/hrms'
+import { createLeaveType, deleteLeaveType, updateLeaveType } from '../../../api/hrms'
 import { hasPermission } from '../../../api/auth'
 import { useSnackbar } from '../../../context/SnackbarContext'
 import { useHrLabels } from '../HrKit'
@@ -73,10 +73,14 @@ function CreditExample({ f, leaveYear }) {
   return text ? <p className="text-xs rounded-md bg-brand-50/60 border border-brand-500/20 px-3 py-2 text-ink">{text}</p> : null
 }
 
-export function LeaveTypeModal({ type, leaveYear, onClose, onDone }) {
+export function LeaveTypeModal({ type, leaveYear, onClose, onDone, onDeleted }) {
   const { t } = useTranslation('hrmsLeave')
   const L = useHrLabels()
   const { showError } = useSnackbar()
+  const confirm = useConfirm()
+  // a standard kind of leave comes back on its own, so only one made here can be deleted (the server also checks it is unused)
+  const canDelete = !!type && !!onDeleted && hasPermission('hrms.leave.delete') && !STARTER_LEAVE_TYPES.some((x) => x.code === type.code)
+  const remove = useMutation({ mutationFn: () => deleteLeaveType(type.id), onSuccess: () => onDeleted(type), onError: (e) => showError(e.message) })
   const [f, setF] = useState(() => (type ? {
     ...blank, ...type, description: type.description ?? '',
     perYear: String(type.perYear ?? 0), keepAll: type.carryForwardMax === null, carryForwardMax: type.carryForwardMax == null ? '0' : String(type.carryForwardMax),
@@ -108,7 +112,11 @@ export function LeaveTypeModal({ type, leaveYear, onClose, onDone }) {
   const usedCats = new Set(f.categoryQuota.map((q) => q.category))
   return (
     <Modal open onClose={onClose} size="lg" title={type ? t('hrmsLeave.policies.editTitle', { name: type.name }) : t('hrmsLeave.policies.newTitle')}
-      footer={<><Button variant="secondary" onClick={onClose}>{t('actions.cancel')}</Button><Button loading={save.isPending} disabled={!ok} onClick={() => save.mutate()}>{t('actions.save')}</Button></>}>
+      footer={<>
+        {canDelete && <Button variant="ghost" icon={Trash2} className="me-auto text-danger-600" loading={remove.isPending}
+          onClick={async () => { if (await confirm({ title: t('hrmsLeave.policies.deleteTitle', { name: type.name }), message: t('hrmsLeave.policies.deleteHint'), tone: 'danger', confirmLabel: t('actions.delete') })) remove.mutate() }}>{t('actions.delete')}</Button>}
+        <Button variant="secondary" onClick={onClose}>{t('actions.cancel')}</Button><Button loading={save.isPending} disabled={!ok} onClick={() => save.mutate()}>{t('actions.save')}</Button>
+      </>}>
       <div className="space-y-4">
         <div className="grid grid-cols-1 sm:grid-cols-[1fr_11rem] gap-3">
           <FormField label={t('hrmsLeave.policies.name')} required error={errors.name}><Input value={f.name} onChange={set('name')} maxLength={60} placeholder={t('hrmsLeave.policies.namePlaceholder')} autoFocus={!type} /></FormField>
@@ -260,7 +268,8 @@ export default function LeavePolicies({ types, loading, leaveYear }) {
         emptyIcon={ShieldCheck} emptyTitle={t('hrmsLeave.policies.empty')} />
       {editing && (
         <LeaveTypeModal type={editing === 'new' ? null : editing} leaveYear={leaveYear} onClose={() => setEditing(null)}
-          onDone={(lt) => { setEditing(null); showSuccess(t('hrmsLeave.policies.saved', { name: lt?.name })); invalidateLeave(qc) }} />
+          onDone={(lt) => { setEditing(null); showSuccess(t('hrmsLeave.policies.saved', { name: lt?.name })); invalidateLeave(qc) }}
+          onDeleted={(lt) => { setEditing(null); showSuccess(t('hrmsLeave.policies.deleted', { name: lt?.name })); invalidateLeave(qc) }} />
       )}
     </div>
   )

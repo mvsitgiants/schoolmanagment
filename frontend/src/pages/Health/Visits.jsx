@@ -1,14 +1,14 @@
 import { useState } from 'react'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { Ambulance, BedSingle, Clock, Home, LogOut, Plus, Stethoscope, Users } from 'lucide-react'
+import { Ambulance, BedSingle, Clock, Home, LogOut, Plus, Stethoscope, Trash2, Users } from 'lucide-react'
 import {
-  Avatar, ColumnBars, DataTable, DateInput, EmptyState, HeaderButton, PageContainer, PageHeader, PersonCell, RankBars, Skeleton, StatCardRow, Tag, localIso,
+  Avatar, ColumnBars, DataTable, DateInput, EmptyState, HeaderButton, PageContainer, PageHeader, PersonCell, RankBars, Skeleton, StatCardRow, Tag, localIso, useConfirm,
 } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { OutcomePill, TempTag, useHealthLabels } from '../../components/health/HealthKit'
 import { CloseVisitModal, VisitModal } from '../../components/health/VisitForms'
-import { fetchAllVisits, fetchVisitBoard, fetchVisits } from '../../api/health'
+import { deleteVisit, fetchAllVisits, fetchVisitBoard, fetchVisits } from '../../api/health'
 import { hasPermission } from '../../api/auth'
 import { useFormat } from '../../context/SettingsContext'
 import { useSnackbar } from '../../context/SnackbarContext'
@@ -48,7 +48,8 @@ export default function HealthVisits() {
   const L = useHealthLabels()
   const qc = useQueryClient()
   const { time } = useFormat()
-  const { showSuccess } = useSnackbar()
+  const { showSuccess, showError } = useSnackbar()
+  const confirm = useConfirm()
   const [adding, setAdding] = useState(false)
   const [closing, setClosing] = useState(null)
   const [day, setDay] = useState('')
@@ -58,6 +59,12 @@ export default function HealthVisits() {
   const { data: past, isLoading: loadingPast } = useQuery({ queryKey: ['health', 'visits', day, page], queryFn: () => fetchVisits({ date: day, page, pageSize: PAGE }), enabled: !!day })
   const refresh = () => qc.invalidateQueries({ queryKey: ['health'] })
   const canCreate = hasPermission('health.visits.create')
+  // a visit entered by mistake: today's only, and not once the parent has been told
+  const canDelete = !day && hasPermission('health.visits.delete')
+  const remove = useMutation({ mutationFn: (v) => deleteVisit(v.id), onSuccess: () => { refresh(); showSuccess(t('health.visits.deleted')) }, onError: (e) => showError(e.message) })
+  const del = async (v) => {
+    if (await confirm({ title: t('health.visits.deleteTitle', { name: v.person?.name }), message: t('health.visits.deleteHint'), tone: 'danger', confirmLabel: t('actions.delete') })) remove.mutate(v)
+  }
   const log = day ? past?.rows ?? [] : b?.today ?? []
   const o = b?.outcomes ?? {}
 
@@ -114,6 +121,10 @@ export default function HealthVisits() {
           { key: 'complaint', header: t('health.visits.complaint'), render: (v, r) => <span className="flex flex-wrap items-center gap-1"><Tag size="xs" tone="info">{L.complaint(v)}</Tag><TempTag tempC={r.vitals?.tempC} /></span> },
           { key: 'treatment', header: t('health.visits.treatment'), mobileHidden: true, render: (v) => <span className="line-clamp-2 text-xs text-ink-muted">{v ?? '—'}</span> },
           { key: 'outcome', header: t('health.visits.outcome'), render: (v, r) => <span className="flex flex-col items-start gap-0.5"><OutcomePill outcome={v} />{r.outAt && <span className="text-[10.5px] text-ink-faint tabular-nums">{time(r.outAt)} · {t('health.visits.minutes', { count: r.minutes })}</span>}</span> },
+          ...(canDelete ? [{ key: 'id', header: '', align: 'right', width: 56, render: (_, r) => !r.guardianNotified && (
+            <Button size="sm" variant="ghost" icon={Trash2} className="text-danger-600" aria-label={t('actions.delete')} title={t('actions.delete')}
+              onClick={(e) => { e.stopPropagation(); del(r) }} />
+          ) }] : []),
         ]} onRowClick={(v) => (canCreate && ['IN_ROOM', 'REST'].includes(v.outcome) ? setClosing(v) : undefined)} />
       {adding && <VisitModal onClose={() => setAdding(false)} onSaved={() => { setAdding(false); refresh(); showSuccess(t('health.visits.saved')) }} />}
       {closing && <CloseVisitModal visit={closing} onClose={() => setClosing(null)} onSaved={(v) => { setClosing(null); refresh(); showSuccess(v.guardianNotified && v.outcome === 'SENT_HOME' ? t('health.visits.closedTold') : t('health.visits.closed')) }} />}

@@ -5,6 +5,7 @@ import { config } from '../config.js'
 import { AcademicYear, ClassLevel } from '../models/academics.js'
 import { AdmissionCycle, Application, Enquiry, EntranceTest } from '../models/admissions.js'
 import { FormTemplate } from '../models/forms.js'
+import { Visitor } from '../models/frontOffice.js'
 import { Tenant } from '../models/platform.js'
 import { Branch } from '../models/tenant.js'
 import { scopeOf } from '../platform/access.js'
@@ -205,6 +206,18 @@ export async function updateEnquiry(id, input, auth, req) {
   return getEnquiry(id, auth)
 }
 
+/** Delete an enquiry made by mistake (a duplicate, a test entry). One that became an application stays — mark it lost instead. */
+export async function deleteEnquiry(id, auth, req) {
+  const e = await enquiryById(id, auth)
+  if (e.applicationId || ['APPLIED', 'ADMITTED'].includes(e.stage) || await Application.exists({ enquiryId: e._id })) {
+    throw conflict(`Enquiry ${e.enquiryNo} has become an application, so it stays on record. Mark it lost instead if it is no longer going ahead.`)
+  }
+  await Visitor.updateMany({ enquiryId: e._id }, { $unset: { enquiryId: 1, enquiryNo: 1 } })
+  await e.deleteOne()
+  await audit({ action: 'DELETE', module: 'admissions', entityType: 'enquiry', entityId: String(e._id), entityName: e.enquiryNo, summary: `Deleted enquiry ${e.enquiryNo} (${e.childName})` }, req)
+  return { deleted: true }
+}
+
 /** Log a call / visit / note, move the stage on, and set the next follow-up day. */
 export async function addFollowUp(id, { type, note, nextOn, stage }, auth, req) {
   const e = await enquiryById(id, auth)
@@ -384,6 +397,17 @@ export async function saveTest(id, input, auth, req) {
   await t.save()
   await audit({ action: id ? 'UPDATE' : 'CREATE', module: 'admissions', entityType: 'entrance_test', entityId: String(t._id), entityName: t.name, summary: `${id ? 'Updated' : 'Scheduled'} ${t.name} on ${t.date}` }, req)
   return (await listTests(String(cycle._id))).find((x) => x.id === String(t._id))
+}
+
+/** Delete a test scheduled by mistake. Once applicants are put down for it (their families are told), it stays — change the date instead. */
+export async function deleteTest(id, req) {
+  const t = isOid(id) ? await EntranceTest.findById(id) : null
+  if (!t) throw notFound('Entrance test')
+  const n = await Application.countDocuments({ testId: t._id })
+  if (n) throw conflict(`${n} applicant${n === 1 ? ' is' : 's are'} down for ${t.name} and their families have been told. Change the date or details instead.`)
+  await t.deleteOne()
+  await audit({ action: 'DELETE', module: 'admissions', entityType: 'entrance_test', entityId: String(t._id), entityName: t.name, summary: `Deleted the entrance test ${t.name} (${t.date})` }, req)
+  return { deleted: true }
 }
 
 /** Put applicants down for a test (all live applicants of its classes when none are named) and tell their families. */

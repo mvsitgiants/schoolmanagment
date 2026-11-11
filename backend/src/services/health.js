@@ -306,6 +306,18 @@ export async function updateVisit(id, input, auth, req) {
   return visitOut(v.toObject(), people)
 }
 
+/** Delete a visit entered by mistake: today's only, and not once the parent has been told or an incident points to it. */
+export async function deleteVisit(id, auth, req) {
+  const v = isOid(id) ? await SickVisit.findOne({ _id: id, ...siteFilter(auth) }) : null
+  if (!v) throw notFound('Visit')
+  if (v.date !== await today()) throw conflict('Only today’s visits can be deleted. Older visits stay on the health record.')
+  if (v.guardianNotified) throw conflict('The parent has already been told about this visit, so it stays on record.')
+  if (await HealthIncident.exists({ visitId: v._id })) throw conflict('An incident report points to this visit. It stays on record.')
+  await v.deleteOne()
+  await audit({ action: 'DELETE', module: 'health', entityType: 'sick_visit', entityId: String(v._id), entityName: v.staffName ?? '', ...(v.studentId && { studentId: v.studentId }), summary: `Deleted a sick-room visit of ${v.date} (entered by mistake)` }, req)
+  return { deleted: true }
+}
+
 /** Staff logins, for a staff member's visit or incident. */
 export async function staffLogins() {
   const rows = await User.find({ active: true }).select('name designation').sort({ name: 1 }).limit(1000).lean()

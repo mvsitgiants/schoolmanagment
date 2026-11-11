@@ -92,6 +92,19 @@ export async function saveLeaveType(id, input, req) {
   return typeDto(t.toObject())
 }
 
+/** Delete a leave type made by mistake. A standard type, or one already applied for or credited, stays — retire it instead. */
+export async function deleteLeaveType(id, req) {
+  const t = isOid(id) ? await LeaveType.findById(id) : null
+  if (!t) throw notFound('Leave type')
+  if (STARTER_LEAVE_TYPES.some((x) => x.code === t.code)) throw conflict(`${t.name} is a standard leave type. Retire it instead (untick Active) if it is not used here.`)
+  const [leaves, ledger] = await Promise.all([Leave.countDocuments({ leaveTypeId: t._id }), LeaveLedger.exists({ leaveTypeId: t._id })])
+  if (leaves) throw conflict(`${leaves} leave application${leaves === 1 ? ' is' : 's are'} for ${t.name}. Retire it instead so it can't be picked again.`)
+  if (ledger) throw conflict(`Staff already have ${t.name} balances on record. Retire it instead so it can't be picked again.`)
+  await t.deleteOne()
+  await audit({ action: 'DELETE', module: 'hrms', entityType: 'leave_type', entityId: String(t._id), entityName: t.name, summary: `Deleted the ${t.name} leave type (${t.code})` }, req)
+  return { deleted: true }
+}
+
 // ───────────────────────────────────────────────────────── the leave calendar (no-leave days, vacations)
 
 const covers = (c, e) => (!c.categories?.length || c.categories.includes(e.category)) && (!c.branchIds?.length || c.branchIds.some((b) => sid(b) === sid(e.branchId)))

@@ -36,6 +36,7 @@ export const fetchVisits = (params) => get(`${BASE}/visits`, params)
 export const fetchAllVisits = (params) => allRows(fetchVisits, params)
 export const createVisit = (body) => post(`${BASE}/visits`, body)
 export const updateVisit = (id, body) => patch(`${BASE}/visits/${id}`, body)
+export const deleteVisit = (id) => del(`${BASE}/visits/${id}`)
 
 // incidents
 export const fetchIncidents = (params) => get(`${BASE}/incidents`, params)

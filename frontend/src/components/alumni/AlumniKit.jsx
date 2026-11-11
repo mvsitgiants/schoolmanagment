@@ -2,10 +2,11 @@ import { useState } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import clsx from 'clsx'
-import { CalendarClock, Download } from 'lucide-react'
-import { Avatar, Drawer, EmptyState, FormField, Input, Modal, Note, Select, SkeletonRows, Textarea } from '../system'
+import { CalendarClock, Download, Trash2 } from 'lucide-react'
+import { Avatar, Drawer, EmptyState, FormField, Input, Modal, Note, Select, SkeletonRows, Textarea, useConfirm } from '../system'
 import Button from '../ui/Button'
-import { fetchAlumni, fetchAlumniMeta, fetchLeaverYears, fetchLeavers, importLeavers, saveAlumnus } from '../../api/alumni'
+import { deleteAlumnus, fetchAlumni, fetchAlumniMeta, fetchLeaverYears, fetchLeavers, importLeavers, saveAlumnus } from '../../api/alumni'
+import { hasPermission } from '../../api/auth'
 import useDebouncedValue from '../../hooks/useDebouncedValue'
 import { useSnackbar } from '../../context/SnackbarContext'
 
@@ -14,9 +15,11 @@ export const useAlumniMeta = () => useQuery({ queryKey: ['alumni', 'meta'], quer
 const EMPTY = { name: '', batch: '', programId: '', program: '', admissionNo: '', organisation: '', designation: '', city: '', country: '', email: '', mobile: '', linkedIn: '', consent: false, notes: '', active: true }
 
 /** Add or edit an alumnus. */
-export function AlumnusForm({ alumnus, onClose, onSaved }) {
+export function AlumnusForm({ alumnus, onClose, onSaved, onDeleted }) {
   const { t } = useTranslation('alumni')
   const { showError } = useSnackbar()
+  const confirm = useConfirm()
+  const remove = useMutation({ mutationFn: () => deleteAlumnus(alumnus.id), onSuccess: onDeleted, onError: (e) => showError(e.message) })
   const { data: meta } = useAlumniMeta()
   const [f, setF] = useState(() => (alumnus ? { ...EMPTY, ...Object.fromEntries(Object.entries(alumnus).map(([k, v]) => [k, v ?? EMPTY[k] ?? ''])), batch: String(alumnus.batch) } : { ...EMPTY, batch: String(new Date().getFullYear()) }))
   const [errors, setErrors] = useState({})
@@ -30,7 +33,11 @@ export function AlumnusForm({ alumnus, onClose, onSaved }) {
   })
   return (
     <Drawer open onClose={onClose} size="lg" title={alumnus ? t('alumni.form.editTitle') : t('alumni.form.newTitle')} subtitle={alumnus?.name}
-      footer={<><Button variant="secondary" onClick={onClose}>{t('actions.cancel')}</Button><Button loading={save.isPending} disabled={f.name.trim().length < 2 || !f.batch} onClick={() => save.mutate()}>{t('actions.save')}</Button></>}>
+      footer={<>
+        {alumnus && onDeleted && hasPermission('alumni.directory.delete') && <Button variant="ghost" icon={Trash2} className="me-auto text-danger-600" loading={remove.isPending}
+          onClick={async () => { if (await confirm({ title: t('alumni.form.deleteTitle', { name: alumnus.name }), message: t('alumni.form.deleteHint'), tone: 'danger', confirmLabel: t('actions.delete') })) remove.mutate() }}>{t('actions.delete')}</Button>}
+        <Button variant="secondary" onClick={onClose}>{t('actions.cancel')}</Button><Button loading={save.isPending} disabled={f.name.trim().length < 2 || !f.batch} onClick={() => save.mutate()}>{t('actions.save')}</Button>
+      </>}>
       <div className="space-y-3">
         <div className="flex items-center gap-3">
           <Avatar name={f.name || '?'} size={48} />

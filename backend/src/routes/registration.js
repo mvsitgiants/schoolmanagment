@@ -4,7 +4,7 @@ import { authenticate, requireModule, requirePermission, subscriptionGate, tenan
 import { objectId, optionalText, z } from '../platform/validate.js'
 import { programLookup } from '../services/programs.js'
 import {
-  courseRoster, decideRegistrations, getWindow, listRegistrations, listWindows, registrationForm, saveRegistration, saveWindow, windowRosters,
+  courseRoster, decideRegistrations, getWindow, listRegistrations, listWindows, registrationForm, saveRegistration, deleteWindow, saveWindow, windowRosters,
 } from '../services/registration.js'
 
 // Semester registration: /api/v1/registration/*
@@ -59,6 +59,9 @@ router.post('/windows', requirePermission('registration.windows.create'), async 
 })
 router.get('/windows/:id', requirePermission(...VIEW_ANY), async (req, res) => {
   res.json({ data: await getWindow(id(req), req.auth) })
+})
+router.delete('/windows/:id', requirePermission('registration.windows.delete'), async (req, res) => {
+  res.json({ data: await deleteWindow(id(req), req.auth, req) })
 })
 router.patch('/windows/:id', requirePermission('registration.windows.edit'), async (req, res) => {
   res.json({ data: await saveWindow(id(req), windowSchema.omit({ programId: true, academicYearId: true }).partial().parse(req.body), req.auth, req) })

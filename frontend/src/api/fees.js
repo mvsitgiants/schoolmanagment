@@ -25,6 +25,7 @@ async function allRows(fetchPage, params, max = 5000) {
 export const fetchFeeHeads = () => get(`${BASE}/heads`)
 export const createFeeHead = (body) => post(`${BASE}/heads`, body)
 export const updateFeeHead = (id, body) => patch(`${BASE}/heads/${id}`, body)
+export const deleteFeeHead = (id) => del(`${BASE}/heads/${id}`)
 
 export const fetchStructures = (yearId) => get(`${BASE}/structures`, { yearId: yearId || undefined })
 export const createStructure = (body) => post(`${BASE}/structures`, body)

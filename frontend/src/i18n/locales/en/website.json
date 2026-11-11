@@ -98,7 +98,11 @@
       "libraryTitle": "Pictures on the website",
       "none": "No pictures uploaded yet.",
       "remove": "Remove",
-      "tooLarge": "This picture is too large even after shrinking it. Try a smaller photo."
+      "tooLarge": "This picture is too large even after shrinking it. Try a smaller photo.",
+      "delete": "Delete picture",
+      "deleteTitle": "Delete {{name}}?",
+      "deleteHint": "The picture is removed from the website's picture library. A picture still used on a page can't be deleted — take it off that page first.",
+      "deleted": "Picture deleted"
     },
     "settings": {
       "button": "Site settings",

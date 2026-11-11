@@ -604,6 +604,22 @@ export async function addMembers(channelId, userIds, auth, req) {
   return listMembers(channelId, {}, auth)
 }
 
+/**
+ * Delete a group (its owner, or a chat manager). Everyone is taken out and the group is closed; its messages are kept
+ * (not shown to anyone) so a moderator's record stays. Department, campus and whole-staff chats can't be deleted.
+ */
+export async function deleteGroup(channelId, auth, req) {
+  const { channel, member } = await membership(channelId, auth)
+  if (channel.type !== 'GROUP') throw badRequest('Only groups made by staff can be deleted. Department, campus and whole-staff chats come and go on their own.')
+  if (member.role !== 'OWNER' && !can(auth, MANAGE)) throw forbidden('Only the group’s owner can delete it.')
+  const now = new Date()
+  await ChatMember.updateMany({ channelId: channel._id, active: true }, { $set: { active: false, leftAt: now } })
+  await ChatChannel.updateOne({ _id: channel._id }, { $set: { archived: true, memberCount: 0 } })
+  await audit({ action: 'DELETE', module: 'comms', entityType: 'chat_channel', entityId: String(channel._id), entityName: channel.name, summary: `Deleted the group “${channel.name}”` }, req)
+  emitToRoom(auth.tenantId, room(String(channel._id)), 'chat:channel', { action: 'deleted', channelId: String(channel._id) })
+  return { deleted: true }
+}
+
 /** Take someone out of a group, or (yourself) leave it. The owner leaving hands the group on. */
 export async function removeMember(channelId, userId, auth, req) {
   const { channel, member } = await membership(channelId, auth)

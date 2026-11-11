@@ -1,13 +1,14 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { useQueries } from '@tanstack/react-query'
+import { useMutation, useQueries } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { BookOpen, CalendarDays, ChevronDown, ClipboardList, Goal, MessageSquareQuote, NotebookPen, Package, Pencil, Presentation } from 'lucide-react'
+import { BookOpen, CalendarDays, ChevronDown, ClipboardList, Goal, MessageSquareQuote, NotebookPen, Package, Pencil, Presentation, Trash2 } from 'lucide-react'
 import { LESSON_STATUS } from '@schoolgiant/shared'
-import { Avatar, ColorChip, Drawer, Skeleton, StatusPill } from '../system'
+import { Avatar, ColorChip, Drawer, Skeleton, StatusPill, useConfirm } from '../system'
 import Button from '../ui/Button'
 import { TopicMaterial } from './TopicKit'
-import { fetchSyllabusTopic } from '../../api/homework'
+import { deleteLessonPlan, fetchSyllabusTopic } from '../../api/homework'
+import { useSnackbar } from '../../context/SnackbarContext'
 import { hasPermission } from '../../api/auth'
 import { useFormat } from '../../context/SettingsContext'
 import { MaterialView } from './LessonMaterial'
@@ -62,8 +63,13 @@ function TopicCard({ name, q, open, onToggle }) {
  * A lesson plan, read only: a summary (class, subject, when, teacher, status), how it went, the lesson's own plan, and
  * every syllabus topic it covers opened to its teaching material. `onEdit` (when the person may change it) opens the form.
  */
-export default function LessonView({ plan, onClose, onEdit }) {
+export default function LessonView({ plan, onClose, onEdit, onDeleted }) {
   const { t } = useTranslation('homework')
+  const confirm = useConfirm()
+  const { showSuccess, showError } = useSnackbar()
+  // delete: the person may change this lesson and has the delete right (same rule as the list's bin button)
+  const canDelete = !!onDeleted && plan.canChange && hasPermission('homework.lesson-plans.delete')
+  const remove = useMutation({ mutationFn: () => deleteLessonPlan(plan.id), onSuccess: () => { showSuccess(t('homework.lessons.deleted')); onDeleted() }, onError: (e) => showError(e.message) })
   const { date } = useFormat()
   const ids = plan.topicIds ?? []
   const topics = useQueries({ queries: ids.map((id) => ({ queryKey: ['syllabus-topic', id], queryFn: () => fetchSyllabusTopic(id), staleTime: 60_000 })) })
@@ -73,7 +79,13 @@ export default function LessonView({ plan, onClose, onEdit }) {
   const hasPlan = plan.objectives || plan.method || plan.resources || plan.homeworkNote
   return (
     <Drawer open onClose={onClose} size="xl" title={plan.title} subtitle={t('homework.lessons.view.subtitle')}
-      footer={onEdit && <div className="flex justify-end"><Button icon={Pencil} onClick={onEdit}>{t('homework.lessons.edit')}</Button></div>}>
+      footer={(onEdit || canDelete) && (
+        <div className="flex items-center justify-between gap-2">
+          {canDelete ? <Button variant="ghost" icon={Trash2} className="text-danger-600 hover:bg-danger-50" loading={remove.isPending}
+            onClick={async () => { if (await confirm({ title: t('homework.lessons.deleteConfirm', { title: plan.title }), tone: 'danger', confirmLabel: t('homework.lessons.delete') })) remove.mutate() }}>{t('homework.lessons.delete')}</Button> : <span />}
+          {onEdit && <Button icon={Pencil} onClick={onEdit}>{t('homework.lessons.edit')}</Button>}
+        </div>
+      )}>
       <div className="space-y-5">
         {/* summary */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-px rounded-xl border border-border bg-border overflow-hidden">

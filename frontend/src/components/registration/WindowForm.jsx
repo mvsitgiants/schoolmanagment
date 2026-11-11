@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { Plus, X } from 'lucide-react'
-import { DateInput, DataTable, FormField, Input, Modal, Select, Textarea } from '../system'
+import { Plus, Trash2, X } from 'lucide-react'
+import { DateInput, DataTable, FormField, Input, Modal, Select, Textarea, useConfirm } from '../system'
 import Button from '../ui/Button'
 import { Switch } from '../app/Controls'
 import { fetchAcademicLookup } from '../../api/academics'
-import { createWindow, fetchRegistrationLookup, updateWindow } from '../../api/registration'
+import { createWindow, deleteWindow, fetchRegistrationLookup, updateWindow } from '../../api/registration'
+import { hasPermission } from '../../api/auth'
 import { useSnackbar } from '../../context/SnackbarContext'
 
 const numOrNull = (v) => (v === '' || v === null || v === undefined ? null : Number(v))
@@ -15,9 +16,13 @@ const numOrNull = (v) => (v === '' || v === null || v === undefined ? null : Num
  * Create a registration window (program, semester, year, dates, credit limits — the offerings start from the
  * curriculum) or edit one, including its offerings (compulsory, elective group, seats) and elective groups.
  */
-export default function WindowForm({ window: w, onClose, onSaved }) {
+export default function WindowForm({ window: w, onClose, onSaved, onDeleted }) {
   const { t } = useTranslation('registration')
   const { showError } = useSnackbar()
+  const confirm = useConfirm()
+  // a window opened by mistake; the server refuses once any student has registered in it
+  const canDelete = !!w && !!onDeleted && hasPermission('registration.windows.delete')
+  const remove = useMutation({ mutationFn: () => deleteWindow(w.id), onSuccess: onDeleted, onError: (e) => showError(e.message) })
   const { data: lookup } = useQuery({ queryKey: ['registration-lookup'], queryFn: fetchRegistrationLookup })
   const { data: acad } = useQuery({ queryKey: ['academic-lookup'], queryFn: fetchAcademicLookup })
   const programs = lookup?.programs ?? []
@@ -53,6 +58,8 @@ export default function WindowForm({ window: w, onClose, onSaved }) {
   })
   return (
     <Modal open onClose={onClose} size={w ? 'xl' : 'lg'} title={w ? t('registration.windows.editTitle', { program: w.programCode, semester: w.semester }) : t('registration.windows.new')} footer={<>
+      {canDelete && <Button variant="ghost" icon={Trash2} className="me-auto text-danger-600" loading={remove.isPending}
+        onClick={async () => { if (await confirm({ title: t('registration.windows.deleteTitle', { program: w.programCode, semester: w.semester }), message: t('registration.windows.deleteHint'), tone: 'danger', confirmLabel: t('actions.delete') })) remove.mutate() }}>{t('actions.delete')}</Button>}
       <Button variant="secondary" onClick={onClose}>{t('actions.cancel')}</Button>
       <Button loading={save.isPending} disabled={!programId || !form.opensOn || !form.closesOn} onClick={() => save.mutate()}>{t('actions.save')}</Button>
     </>}>

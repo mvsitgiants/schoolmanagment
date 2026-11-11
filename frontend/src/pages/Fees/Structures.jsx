@@ -6,7 +6,7 @@ import { formatINR, formatINRCompact, splitEqually, toPaise, toRupees } from '@s
 import { DateInput, CodeBadge, ColorChip, ControlChip, DataTable, DateCell, FormField, Fraction, HeaderButton, Input, LevelBar, Modal, Money, Note, PageContainer, PageHeader, Select, StackCell, StatCardRow, StatusPill, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { fetchAcademicLookup } from '../../api/academics'
-import { createFeeHead, createStructure, deleteStructure, fetchFeeHeads, fetchStructures, generateInvoices, updateFeeHead, updateStructure } from '../../api/fees'
+import { createFeeHead, createStructure, deleteFeeHead, deleteStructure, fetchFeeHeads, fetchStructures, generateInvoices, updateFeeHead, updateStructure } from '../../api/fees'
 import { hasPermission } from '../../api/auth'
 import { useSnackbar } from '../../context/SnackbarContext'
 import { useFormat } from '../../context/SettingsContext'
@@ -150,6 +150,9 @@ function HeadsModal({ heads, onClose }) {
     onError: (e) => { setErrors(e.response?.data?.details?.fields ?? {}); showError(e.message) },
   })
   const toggle = useMutation({ mutationFn: (h) => updateFeeHead(h.id, { active: !h.active }), onSuccess: () => done(t('fees.heads.saved')), onError: (e) => showError(e.message) })
+  const confirm = useConfirm()
+  const canDelete = hasPermission('fees.structures.delete')
+  const remove = useMutation({ mutationFn: (h) => deleteFeeHead(h.id), onSuccess: () => done(t('fees.heads.deleted')), onError: (e) => showError(e.message) })
   return (
     <Modal open onClose={onClose} size="lg" title={t('fees.heads.title')} footer={<Button variant="secondary" onClick={onClose}>{t('fees.heads.close')}</Button>}>
       <div className="space-y-4">
@@ -174,10 +177,12 @@ function HeadsModal({ heads, onClose }) {
             { key: 'name', header: t('fees.heads.name'), mobilePrimary: true, render: (v, r) => (r.active ? <ColorChip label={v} seed={r.id} dot /> : <span className="text-ink-faint line-through">{v}</span>) },
             { key: 'code', header: t('fees.heads.code'), render: (v) => <CodeBadge>{v}</CodeBadge> },
             { key: 'refundable', header: t('fees.heads.refundable'), render: (v) => <StatusPill tone={v ? 'success' : 'neutral'}>{v ? t('fees.yes') : t('fees.no')}</StatusPill> },
-            { key: 'id', header: '', align: 'right', width: 150, render: (_, r) => canEdit && (
+            { key: 'id', header: '', align: 'right', width: 190, render: (_, r) => (canEdit || canDelete) && (
               <div className="flex justify-end gap-1">
-                <Button size="sm" variant="ghost" icon={Pencil} aria-label={t('fees.heads.edit')} onClick={() => setForm({ id: r.id, name: r.name, code: r.code, refundable: !!r.refundable })} />
-                <Button size="sm" variant="ghost" onClick={() => toggle.mutate(r)}>{r.active ? t('fees.heads.deactivate') : t('fees.heads.activate')}</Button>
+                {canEdit && <Button size="sm" variant="ghost" icon={Pencil} aria-label={t('fees.heads.edit')} onClick={() => setForm({ id: r.id, name: r.name, code: r.code, refundable: !!r.refundable })} />}
+                {canEdit && <Button size="sm" variant="ghost" onClick={() => toggle.mutate(r)}>{r.active ? t('fees.heads.deactivate') : t('fees.heads.activate')}</Button>}
+                {canDelete && <Button size="sm" variant="ghost" icon={Trash2} className="text-danger-600" aria-label={t('actions.delete')} title={t('actions.delete')}
+                  onClick={async () => { if (await confirm({ title: t('fees.heads.deleteTitle', { name: r.name }), message: t('fees.heads.deleteHint'), tone: 'danger', confirmLabel: t('actions.delete') })) remove.mutate(r) }} />}
               </div>
             ) },
           ]}

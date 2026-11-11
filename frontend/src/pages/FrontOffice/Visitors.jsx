@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { BadgeCheck, CalendarRange, QrCode, Clock, ConciergeBell, DoorOpen, LogOut, Phone, Search, UserPlus, Users } from 'lucide-react'
+import { BadgeCheck, CalendarRange, QrCode, Clock, ConciergeBell, DoorOpen, LogOut, Phone, Search, Trash2, UserPlus, Users } from 'lucide-react'
 import { FO_ID_TYPES, FO_VISIT_PURPOSES, foDurationLabel } from '@schoolgiant/shared'
 import {
   DateInput, CodeBadge, ColumnBars, DataTable, Drawer, EmptyState, FactGrid, FormField, Input, Modal, Note, PageContainer, PageHeader, Panel, PersonCell,
@@ -9,7 +9,7 @@ import {
 } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { ChipPicker, Face, PhotoCapture, PurposeChip, StaffSelect, StudentFinder, useFoLabels } from '../../components/frontoffice/FoKit'
-import { checkInVisitor, checkOutVisitor, enquiryFromVisit, fetchAllVisitors, fetchVisitor, fetchVisitorDesk, fetchVisitors, lookupVisitor } from '../../api/frontOffice'
+import { checkInVisitor, checkOutVisitor, deleteVisitor, enquiryFromVisit, fetchAllVisitors, fetchVisitor, fetchVisitorDesk, fetchVisitors, lookupVisitor } from '../../api/frontOffice'
 import { fetchAcademicLookup } from '../../api/academics'
 import { hasPermission } from '../../api/auth'
 import useDebouncedValue from '../../hooks/useDebouncedValue'
@@ -113,7 +113,7 @@ function EnquiryModal({ visitor, onClose }) {
   )
 }
 
-function VisitorDrawer({ id, onClose, onCheckOut }) {
+function VisitorDrawer({ id, today, onClose, onCheckOut, onDelete }) {
   const { t } = useTranslation('frontoffice')
   const L = useFoLabels()
   const { dateTime } = useFormat()
@@ -121,7 +121,10 @@ function VisitorDrawer({ id, onClose, onCheckOut }) {
   const { data: v } = useQuery({ queryKey: ['frontoffice', 'visitors', 'one', id], queryFn: () => fetchVisitor(id), enabled: !!id })
   return (
     <Drawer open={!!id} onClose={onClose} title={v?.name ?? ''} subtitle={v ? L.purpose(v.purpose) : ''}
-      footer={v?.inside && hasPermission('frontoffice.visitors.checkout') && <Button icon={LogOut} onClick={() => onCheckOut(v)}>{t('frontoffice.visitors.checkOut')}</Button>}>
+      footer={v && <>
+        {v.date === today && !v.enquiryId && hasPermission('frontoffice.visitors.delete') && <Button variant="ghost" icon={Trash2} className="me-auto text-danger-600" onClick={() => onDelete(v)}>{t('actions.delete')}</Button>}
+        {v.inside && hasPermission('frontoffice.visitors.checkout') && <Button icon={LogOut} onClick={() => onCheckOut(v)}>{t('frontoffice.visitors.checkOut')}</Button>}
+      </>}>
       {v && (
         <div className="space-y-4">
           <div className="flex items-center gap-4">
@@ -262,6 +265,14 @@ export default function FrontOfficeVisitors() {
   const checkOut = async (v) => {
     if (await confirm({ title: t('frontoffice.visitors.checkOutConfirm', { name: v.name }), message: v.badgeNo ? t('frontoffice.visitors.collectBadge', { badge: v.badgeNo }) : undefined, confirmLabel: t('frontoffice.visitors.checkOut') })) out.mutate(v)
   }
+  const remove = useMutation({
+    mutationFn: (v) => deleteVisitor(v.id),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['frontoffice', 'visitors'] }); setOpen(null); showSuccess(t('frontoffice.visitors.deleted')) },
+    onError: (e) => showError(e.message),
+  })
+  const del = async (v) => {
+    if (await confirm({ title: t('frontoffice.visitors.deleteTitle', { name: v.name }), message: t('frontoffice.visitors.deleteHint'), tone: 'danger', confirmLabel: t('actions.delete') })) remove.mutate(v)
+  }
   const s = desk?.stats
   const purposeBars = useMemo(() => FO_VISIT_PURPOSES.map((p) => ({ id: p.value, label: L.purpose(p.value), value: s?.byPurpose?.[p.value] ?? 0, tone: p.tone })), [s, L])
   return (
@@ -303,7 +314,7 @@ export default function FrontOfficeVisitors() {
         )}
       </div>
       <CheckInDrawer open={adding} onClose={() => setAdding(false)} />
-      <VisitorDrawer id={open} onClose={() => setOpen(null)} onCheckOut={async (v) => { await checkOut(v); setOpen(null) }} />
+      <VisitorDrawer id={open} today={desk?.date} onClose={() => setOpen(null)} onCheckOut={async (v) => { await checkOut(v); setOpen(null) }} onDelete={del} />
     </PageContainer>
   )
 }

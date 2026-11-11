@@ -5,6 +5,7 @@ const get = async (url, params) => (await api.get(url, { params })).data.data
 const post = async (url, body) => (await api.post(url, body)).data.data
 const put = async (url, body) => (await api.put(url, body)).data.data
 const patch = async (url, body) => (await api.patch(url, body)).data.data
+const del = async (url) => (await api.delete(url)).data.data
 
 const BASE = '/v1/registration'
 
@@ -13,6 +14,7 @@ export const fetchWindows = (params) => get(`${BASE}/windows`, params)
 export const fetchWindow = (id) => get(`${BASE}/windows/${id}`)
 export const createWindow = (body) => post(`${BASE}/windows`, body)
 export const updateWindow = (id, body) => patch(`${BASE}/windows/${id}`, body)
+export const deleteWindow = (id) => del(`${BASE}/windows/${id}`)
 export const fetchRosters = (id) => get(`${BASE}/windows/${id}/rosters`)
 export const fetchRoster = (id, courseId) => get(`${BASE}/windows/${id}/rosters/${courseId}`)
 

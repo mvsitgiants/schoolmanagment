@@ -1,5 +1,5 @@
 import { PO_STATUS, formatINR, poTotals } from '@schoolgiant/shared'
-import { StoreItem, StorePurchaseOrder, StoreVendor } from '../models/inventory.js'
+import { StoreAsset, StoreItem, StorePurchaseOrder, StoreVendor } from '../models/inventory.js'
 import { Branch } from '../models/tenant.js'
 import { audit } from '../platform/audit.js'
 import { csvCell } from '../platform/csv.js'
@@ -36,6 +36,18 @@ export async function listVendors({ search, active = 'ACTIVE' } = {}) {
   ])
   const by = new Map(stats.map((s) => [String(s._id), s]))
   return rows.map((v) => ({ ...vendorOut(v), orders: by.get(String(v._id))?.orders ?? 0, ordered: by.get(String(v._id))?.value ?? 0, lastOrderOn: by.get(String(v._id))?.last ?? null }))
+}
+
+/** Delete a vendor added by mistake. One with purchase orders or assets on record stays — switch it off instead. */
+export async function deleteVendor(id, req) {
+  const v = isOid(id) ? await StoreVendor.findById(id) : null
+  if (!v) throw notFound('Vendor')
+  const [orders, assets] = await Promise.all([StorePurchaseOrder.countDocuments({ vendorId: v._id }), StoreAsset.countDocuments({ vendorId: v._id })])
+  if (orders) throw conflict(`${v.name} has ${orders} purchase order${orders === 1 ? '' : 's'} on record. Switch the vendor off instead.`)
+  if (assets) throw conflict(`${assets} asset${assets === 1 ? ' was' : 's were'} bought from ${v.name}. Switch the vendor off instead.`)
+  await v.deleteOne()
+  await audit({ action: 'DELETE', module: 'inventory', entityType: 'store_vendor', entityId: String(v._id), entityName: v.name, summary: `Deleted vendor ${v.name}` }, req)
+  return { deleted: true }
 }
 
 export async function saveVendor(id, input, auth, req) {

@@ -96,6 +96,9 @@
       "closedNow": "Registration closed.",
       "reopened": "Registration reopened.",
       "saved": "Registration window saved.",
+      "deleteTitle": "Delete the registration window for {{program}} semester {{semester}}?",
+      "deleteHint": "Use this for a window opened by mistake. Once any student has registered in it, it can’t be deleted — close it instead.",
+      "deleted": "Registration window deleted.",
       "footnote": "A window closes by itself after its last day; closing it early stops add / drop at once."
     },
     "requests": {

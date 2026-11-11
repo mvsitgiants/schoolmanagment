@@ -89,6 +89,26 @@ export async function saveAlumnus(id, input, auth, req) {
   return getAlumnus(a._id)
 }
 
+/**
+ * Take someone out of the directory. A hand-made entry with no donations is deleted; one that came from a
+ * student record, or that has donations on record, is only hidden (active: false) so receipts keep their donor
+ * and the leaver isn't imported again.
+ */
+export async function deleteAlumnus(id, req) {
+  const a = isOid(id) ? await Alumnus.findById(id) : null
+  if (!a) throw notFound('Alumnus')
+  const keep = a.studentId || await AlumniDonation.exists({ 'donor.alumnusId': a._id })
+  if (keep) {
+    a.active = false
+    await a.save()
+    await audit({ action: 'UPDATE', module: 'alumni', entityType: 'alumnus', entityId: String(a._id), entityName: a.name, ...(a.studentId && { studentId: a.studentId }), summary: `Removed ${a.name} from the alumni directory (kept on record)` }, req)
+    return { deleted: false, deactivated: true }
+  }
+  await a.deleteOne()
+  await audit({ action: 'DELETE', module: 'alumni', entityType: 'alumnus', entityId: String(a._id), entityName: a.name, summary: `Deleted ${a.name} from the alumni directory` }, req)
+  return { deleted: true }
+}
+
 // ───────────────────────────────────────────────────────── leavers → alumni
 
 async function leavers() {

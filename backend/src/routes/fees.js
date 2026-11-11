@@ -4,7 +4,7 @@ import { authenticate, requireModule, requirePermission, subscriptionGate, tenan
 import { objectId, optionalText, pageParams, z } from '../platform/validate.js'
 import {
   approveVariance, cancelReceipt, closeDay, collect, daySummary, decideConcession, deleteStructure, generateInvoices, listConcessions,
-  dueStudentIds, listDayEnds, listDues, listHeads, listInvoices, listReceipts, listRefunds, listStructures, refundReceipt, requestConcession, saveHead,
+  deleteHead, dueStudentIds, listDayEnds, listDues, listHeads, listInvoices, listReceipts, listRefunds, listStructures, refundReceipt, requestConcession, saveHead,
   saveStructure, sendReminders, studentLedger, withdrawConcession,
 } from '../services/fees.js'
 
@@ -35,6 +35,9 @@ router.post('/heads', requirePermission('fees.structures.create'), async (req, r
 })
 router.patch('/heads/:id', requirePermission('fees.structures.edit'), async (req, res) => {
   res.json({ data: await saveHead(objectId.parse(req.params.id), headSchema.partial().parse(req.body), req) })
+})
+router.delete('/heads/:id', requirePermission('fees.structures.delete'), async (req, res) => {
+  res.json({ data: await deleteHead(objectId.parse(req.params.id), req) })
 })
 
 const structureSchema = z.object({

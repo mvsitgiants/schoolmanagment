@@ -132,6 +132,23 @@ export async function saveHead(id, input, req) {
   return clean(head.toObject())
 }
 
+/** Delete a fee head that nothing uses yet. Once a structure, bill or concession names it, it stays (switch it off). */
+export async function deleteHead(id, req) {
+  const head = await FeeHead.findById(id)
+  if (!head) throw notFound('Fee head')
+  const [structures, billed, concessions] = await Promise.all([
+    FeeStructure.countDocuments({ 'lines.feeHeadId': head._id }),
+    FeeInvoice.exists({ 'lines.feeHeadId': head._id }),
+    Concession.exists({ feeHeadIds: head._id }),
+  ])
+  if (structures) throw conflict(`"${head.name}" is used in ${structures} fee structure${structures === 1 ? '' : 's'}. Remove it there first, or switch it off.`)
+  if (billed) throw conflict(`"${head.name}" is already on students' fee bills. Switch it off instead so it can't be picked again.`)
+  if (concessions) throw conflict(`A concession is given on "${head.name}". Switch it off instead.`)
+  await head.deleteOne()
+  await audit({ action: 'DELETE', module: 'fees', entityType: 'fee_head', entityId: String(head._id), entityName: head.name, summary: `Deleted fee head ${head.name}` }, req)
+  return { deleted: true }
+}
+
 // ───────────────────────────────────────────────────────── structures
 
 export async function listStructures(yearId) {

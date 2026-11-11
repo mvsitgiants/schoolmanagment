@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import mongoose from 'mongoose'
 import { Branch, DEPARTMENT_TYPES, Department, User } from '../../models/tenant.js'
 import { audit, diffFields } from '../../platform/audit.js'
 import { clean } from '../../platform/db.js'
@@ -70,6 +71,13 @@ router.delete('/branches/:id', requirePermission('core.branches.delete'), async 
   if (branch.isDefault) throw badRequest("The main branch can't be deleted.")
   const users = await User.countDocuments({ branchId: branch._id })
   if (users) throw conflict(`${users} user(s) belong to this branch. Move them or deactivate the branch instead.`)
+  // anything else filed under this campus (students, classes, fees, books, …) keeps it — switch it off instead
+  for (const m of Object.values(mongoose.models)) {
+    if (m.modelName === 'Branch' || m.modelName === 'User' || !m.schema.path('tenantId') || !m.schema.path('branchId')) continue
+    if (await m.exists({ branchId: branch._id })) {
+      throw conflict(`This campus still has records (${m.modelName.replace(/([a-z])([A-Z])/g, '$1 $2').toLowerCase()} and maybe more). Make it inactive instead.`)
+    }
+  }
   await branch.deleteOne()
   await audit({ action: 'DELETE', module: 'core', entityType: 'branch', entityId: String(branch._id), entityName: branch.name, summary: `Deleted branch ${branch.name}` }, req)
   res.json({ data: { deleted: true } })

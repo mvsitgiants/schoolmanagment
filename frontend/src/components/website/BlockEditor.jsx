@@ -3,9 +3,10 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { CalendarDays, Hash, Image as ImageIcon, ImagePlus, Images, LayoutGrid, Megaphone, MousePointerClick, PanelTop, Phone, Plus, Trash2, Type, Upload, X } from 'lucide-react'
 import { SITE_BLOCK_BY, SITE_LIMITS } from '@schoolgiant/shared'
-import { FormField, Input, Modal, Note, Select, Textarea } from '../system'
+import { FormField, Input, Modal, Note, Select, Textarea, useConfirm } from '../system'
 import Button from '../ui/Button'
-import { fetchSiteImages, staffImageUrl, uploadSiteImage } from '../../api/website'
+import { deleteSiteImage, fetchSiteImages, staffImageUrl, uploadSiteImage } from '../../api/website'
+import { hasPermission } from '../../api/auth'
 import { resizeImage } from '../../utils/resizeImage'
 import { useSnackbar } from '../../context/SnackbarContext'
 
@@ -26,11 +27,18 @@ async function pictureDataUrl(file) {
 /** A picture slot: shows the picture, uploads a new one (resized here), or picks one already uploaded. */
 export function ImagePicker({ value, onChange, label }) {
   const { t } = useTranslation('website')
-  const { showError } = useSnackbar()
+  const { showError, showSuccess } = useSnackbar()
+  const confirm = useConfirm()
   const qc = useQueryClient()
   const fileRef = useRef(null)
   const [busy, setBusy] = useState(false)
   const [library, setLibrary] = useState(false)
+  const canDelete = hasPermission('website.pages.edit') || hasPermission('website.pages.delete')
+  const removeImage = useMutation({
+    mutationFn: (img) => deleteSiteImage(img.id),
+    onSuccess: (_, img) => { qc.invalidateQueries({ queryKey: ['website', 'images'] }); if (img.id === value) onChange(null); showSuccess(t('website.images.deleted')) },
+    onError: (e) => showError(e.message),
+  })
   const { data: images = [] } = useQuery({ queryKey: ['website', 'images'], queryFn: fetchSiteImages, enabled: library })
   const upload = async (file) => {
     if (!file) return
@@ -67,9 +75,14 @@ export function ImagePicker({ value, onChange, label }) {
           {!images.length ? <p className="py-8 text-center text-sm text-ink-muted">{t('website.images.none')}</p> : (
             <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
               {images.map((img) => (
-                <button key={img.id} type="button" onClick={() => { onChange(img.id); setLibrary(false) }} className={`aspect-[4/3] overflow-hidden rounded-lg border-2 ${img.id === value ? 'border-brand-500' : 'border-transparent hover:border-brand-200'}`}>
-                  <img src={staffImageUrl(img.id)} alt={img.name} loading="lazy" className="h-full w-full object-cover" />
-                </button>
+                <div key={img.id} className="relative">
+                  <button type="button" onClick={() => { onChange(img.id); setLibrary(false) }} className={`block w-full aspect-[4/3] overflow-hidden rounded-lg border-2 ${img.id === value ? 'border-brand-500' : 'border-transparent hover:border-brand-200'}`}>
+                    <img src={staffImageUrl(img.id)} alt={img.name} loading="lazy" className="h-full w-full object-cover" />
+                  </button>
+                  {canDelete && <button type="button" title={t('website.images.delete')} aria-label={t('website.images.delete')} disabled={removeImage.isPending}
+                    onClick={async () => { if (await confirm({ title: t('website.images.deleteTitle', { name: img.name }), message: t('website.images.deleteHint'), tone: 'danger', confirmLabel: t('actions.delete') })) removeImage.mutate(img) }}
+                    className="absolute top-1.5 end-1.5 rounded-md bg-surface/90 p-1 text-danger-600 shadow-sm hover:bg-surface"><Trash2 className="w-3.5 h-3.5" /></button>}
+                </div>
               ))}
             </div>
           )}

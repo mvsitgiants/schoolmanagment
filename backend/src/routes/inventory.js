@@ -9,7 +9,7 @@ import {
   adjustStock, cancelCount, deleteItem, exportItems, exportStock, getCount, getItem, importItems, importOpeningStock, inventoryMeta, issueOrReturn,
   listCounts, listItems, listMoves, postCount, saveCountLines, saveItem, startCount, stockBoard,
 } from '../services/inventory.js'
-import { approvePo, cancelPo, exportPos, getPo, listPos, listVendors, receivePo, savePo, saveVendor, sendBackPo, submitPo } from '../services/inventoryPurchase.js'
+import { approvePo, cancelPo, deleteVendor, exportPos, getPo, listPos, listVendors, receivePo, savePo, saveVendor, sendBackPo, submitPo } from '../services/inventoryPurchase.js'
 import { cancelSale, createSale, exportSales, getSale, listSales, searchStudents } from '../services/inventorySales.js'
 import { addMaintenance, deleteAsset, disposeAsset, getAsset, listAssets, removeMaintenance, saveAsset } from '../services/inventoryAssets.js'
 
@@ -142,6 +142,7 @@ router.patch('/vendors/:id', requirePermission(`${PO}.edit`, `${ITEMS}.edit`), a
   const body = vendorBody.partial().parse(req.body)
   for (const k of ['categories', 'active']) if (req.body?.[k] === undefined) delete body[k]
   res.json({ data: await saveVendor(id(req), body, req.auth, req) })
+router.delete('/vendors/:id', requirePermission(`${ITEMS}.delete`, `${ASSETS}.delete`), async (req, res) => { res.json({ data: await deleteVendor(id(req), req) }) })
 })
 
 // ── purchase orders

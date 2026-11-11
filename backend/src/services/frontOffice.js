@@ -196,6 +196,18 @@ export async function checkOutVisitor(id, auth, req) {
   return visitorDto(v.toObject())
 }
 
+/** Delete a visit logged by mistake — only on the day it was logged, and not one an admission enquiry was made from. */
+export async function deleteVisitor(id, auth, req) {
+  const v = isOid(id) ? await Visitor.findOne({ _id: id, ...(await campusFilter(auth)) }) : null
+  if (!v) throw notFound('Visitor')
+  const { date } = await foNow()
+  if (v.date !== date) throw conflict('Only today’s entries can be deleted. Older visits stay in the visitor log.')
+  if (v.enquiryId) throw conflict(`An admission enquiry (${v.enquiryNo}) was made from this visit, so it stays in the log.`)
+  await v.deleteOne()
+  await audit({ action: 'DELETE', module: 'frontoffice', entityType: 'visitor', entityId: String(v._id), entityName: v.name, summary: `Deleted the visit of ${v.name} on ${v.date} (logged by mistake)` }, req)
+  return { deleted: true }
+}
+
 /**
  * A walk-in admission enquiry: make an enquiry in Admissions from the visit (the visitor is the parent). Needs the
  * Admissions module and the right to add enquiries.

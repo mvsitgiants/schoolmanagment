@@ -75,7 +75,10 @@
       "consentHint": "For alumni events, mentoring and appeals. Ask them before ticking this.",
       "notes": "Notes",
       "active": "Show in the directory",
-      "saved": "Alumnus saved"
+      "saved": "Alumnus saved",
+      "deleteTitle": "Delete {{name}}?",
+      "deleteHint": "They are taken out of the alumni directory. If they came from a student record or have given donations, the record is kept for the receipts but no longer shown.",
+      "deleted": "Removed from the alumni directory"
     },
     "import": {
       "title": "Import leavers into the directory",

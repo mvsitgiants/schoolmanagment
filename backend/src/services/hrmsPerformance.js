@@ -36,6 +36,16 @@ export async function saveCycle(id, input, auth, req) {
   return cycleDto(c.toObject())
 }
 
+/** Delete a review round that has not been started yet. Once launched, the reviews stay — close it instead. */
+export async function deleteCycle(id, req) {
+  const c = isOid(id) ? await AppraisalCycle.findById(id) : null
+  if (!c) throw notFound('Review round')
+  if (c.status !== 'DRAFT' || await Appraisal.exists({ cycleId: c._id })) throw conflict(`${c.name} has started and has reviews on record. Close it instead.`)
+  await c.deleteOne()
+  await audit({ action: 'DELETE', module: 'hrms', entityType: 'appraisal_cycle', entityId: String(c._id), entityName: c.name, summary: `Deleted review round ${c.name} (not started)` }, req)
+  return { deleted: true }
+}
+
 /** Start the round: a review for each person on the staff it covers. People who join later can be added by launching again. */
 export async function launchCycle(id, auth, req) {
   const c = isOid(id) ? await AppraisalCycle.findById(id) : null

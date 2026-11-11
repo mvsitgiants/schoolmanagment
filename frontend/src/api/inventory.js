@@ -46,6 +46,7 @@ export const cancelCount = (id) => post(`${BASE}/counts/${id}/cancel`)
 // vendors & purchase orders
 export const fetchVendors = (params) => get(`${BASE}/vendors`, params)
 export const saveVendor = (id, body) => (id ? patch(`${BASE}/vendors/${id}`, body) : post(`${BASE}/vendors`, body))
+export const deleteVendor = (id) => del(`${BASE}/vendors/${id}`)
 export const fetchPos = (params) => list(`${BASE}/purchase-orders`, params)
 export const exportPos = (params) => download(`${BASE}/purchase-orders/export`, params, 'purchase-orders.csv')
 export const fetchPo = (id) => get(`${BASE}/purchase-orders/${id}`)

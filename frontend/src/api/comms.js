@@ -50,6 +50,7 @@ export const updateChatPrefs = (id, body) => patch(`${C}/channels/${id}/me`, bod
 export const addChatMembers = (id, userIds) => post(`${C}/channels/${id}/members`, { userIds })
 export const setChatMemberRole = (id, userId, role) => patch(`${C}/channels/${id}/members/${userId}`, { role })
 export const removeChatMember = (id, userId) => del(`${C}/channels/${id}/members/${userId}`)
+export const deleteChatGroup = (id) => del(`${C}/channels/${id}`)
 
 export const sendChatMessageRest = (id, body) => post(`${C}/channels/${id}/messages`, body)
 export const sendDirectMessageRest = (userId, body) => post(`${C}/direct/${userId}/messages`, body)

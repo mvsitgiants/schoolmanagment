@@ -170,6 +170,17 @@ export async function saveWindow(id, input, auth, req) {
   return getWindow(before._id)
 }
 
+/** Delete a window opened by mistake (wrong semester or program). Once any student has registered in it, it stays — close it instead. */
+export async function deleteWindow(id, auth, req) {
+  const w = await windowDoc(id, auth)
+  await assertProgramInScope(w.programId, auth, 'registration')
+  const n = await CourseRegistration.countDocuments({ windowId: w._id })
+  if (n) throw conflict(`${n} student${n === 1 ? ' has' : 's have'} registered in this window. Close it instead.`)
+  await w.deleteOne()
+  await audit(AUDIT('registration_window', w, `Deleted the registration window for semester ${w.semester} (opened by mistake)`, { action: 'DELETE', entityName: `S${w.semester}` }), req)
+  return { deleted: true }
+}
+
 // ───────────────────────────────────────────────────────── a student's selection
 
 /** Courses a student has passed (latest attempt passed, in published results). */

@@ -93,6 +93,10 @@
       "tabHistory": "Visits & incidents ({{count}})",
       "growth": "Growth",
       "noGrowth": "No height or weight yet.",
+      "deleteMeasurement": "Delete this height and weight",
+      "deleteMeasurementTitle": "Delete the height and weight of {{date}}?",
+      "deleteMeasurementHint": "Use this for a reading entered by mistake. The growth chart is worked out again without it.",
+      "measurementDeleted": "Height and weight deleted",
       "kg": "{{n}} kg",
       "updated": "Updated by {{name}}, {{date}}",
       "noVaccines": "No vaccinations recorded.",
@@ -173,7 +177,10 @@
       "saved": "Visit saved",
       "closeTitle": "End the visit — {{name}}",
       "closed": "Visit updated",
-      "closedTold": "Sent home — the guardian is told"
+      "closedTold": "Sent home — the guardian is told",
+      "deleteTitle": "Delete the visit of {{name}}?",
+      "deleteHint": "Use this only for a visit entered by mistake. Only today’s visits can be deleted, and not once the parent has been told.",
+      "deleted": "Visit deleted"
     },
     "incidents": {
       "title": "Incidents",

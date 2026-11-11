@@ -119,6 +119,17 @@ export async function saveType(id, input, req) {
   return clean(t.toObject())
 }
 
+/** Delete an exam type that no exam uses yet; one already used stays (switch it off instead). */
+export async function deleteType(id, req) {
+  const t = isOid(id) ? await ExamType.findById(id) : null
+  if (!t) throw notFound('Exam type')
+  const used = await Exam.countDocuments({ examTypeId: t._id })
+  if (used) throw conflict(`${used} exam${used === 1 ? ' uses' : 's use'} the type "${t.name}". Switch it off instead so it can't be picked again.`)
+  await t.deleteOne()
+  await audit({ action: 'DELETE', module: 'exams', entityType: 'exam_type', entityId: String(t._id), entityName: t.name, summary: `Deleted exam type ${t.name}` }, req)
+  return { deleted: true }
+}
+
 // ───────────────────────────────────────────────────────── exams
 
 /** A year's exams with how far each has got: papers set, mark sheets locked. */

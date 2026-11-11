@@ -5,6 +5,7 @@ const get = async (url, params) => (await api.get(url, { params })).data.data
 const list = async (url, params) => (await api.get(url, { params })).data
 const post = async (url, body) => (await api.post(url, body)).data.data
 const patch = async (url, body) => (await api.patch(url, body)).data.data
+const del = async (url) => (await api.delete(url)).data.data
 async function download(url, params, name) {
   const res = await api.get(url, { params, responseType: 'blob' })
   const href = URL.createObjectURL(res.data)
@@ -21,6 +22,7 @@ export const fetchAlumniMeta = () => get(`${BASE}/meta`)
 export const fetchAlumni = (params) => list(`${BASE}/directory`, params)
 export const fetchAlumnus = (id) => get(`${BASE}/directory/${id}`)
 export const saveAlumnus = (id, body) => (id ? patch(`${BASE}/directory/${id}`, body) : post(`${BASE}/directory`, body))
+export const deleteAlumnus = (id) => del(`${BASE}/directory/${id}`)
 export const exportAlumni = (params) => download(`${BASE}/directory/export`, params, 'alumni.csv')
 export const fetchLeaverYears = () => get(`${BASE}/directory/leavers`)
 export const fetchLeavers = (year) => get(`${BASE}/directory/leavers`, { year })
