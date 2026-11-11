@@ -125,6 +125,7 @@ export async function buildMe(auth) {
     homePage: auth.homePage,
     idleMinutes: auth.idleMinutes,
     enabledModules: auth.enabledModules,
+    hiddenPages: auth.hiddenPages ?? [],
     tenant: {
       id: String(t._id), name: t.name, slug: t.slug,
       profile: {

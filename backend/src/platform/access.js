@@ -1,5 +1,5 @@
 import {
-  FULL_ACCESS, MODULES, MODULE_BY_ID, STAFF_BASELINE_PERMISSIONS, hasPermissionIn,
+  FULL_ACCESS, MODULES, MODULE_BY_ID, STAFF_BASELINE_PERMISSIONS, hasPermissionIn, pageKeyOf,
 } from '@schoolgiant/shared'
 import { Tenant } from '../models/platform.js'
 import { Role, TenantModule, User } from '../models/tenant.js'
@@ -61,7 +61,9 @@ export async function loadAccess(tenantId, userId) {
   if (!tenant) return null
   const key = `${tenantId}:${userId}`
   const hit = cache.get(key)
-  if (hit && hit.version === tenant.accessVersion) return { ...hit.access, tenant }
+  // screens the platform hid for this institution (Super admin › Modules & screens): closed to every role, admin included
+  const hiddenPages = (tenant.hiddenPages ?? []).map((h) => h.key)
+  if (hit && hit.version === tenant.accessVersion) return { ...hit.access, tenant, hiddenPages }
 
   const access = await runAsTenant(tenantId, async () => {
     const user = await User.findById(userId).lean()
@@ -87,7 +89,7 @@ export async function loadAccess(tenantId, userId) {
   })
   if (!access) return null
   cache.set(key, { version: tenant.accessVersion, access })
-  return { ...access, tenant }
+  return { ...access, tenant, hiddenPages }
 }
 
 export const forgetAccess = () => cache.clear()
@@ -96,7 +98,8 @@ export const forgetAccess = () => cache.clear()
 export const moduleEnabled = (auth, moduleId) =>
   !!MODULE_BY_ID[moduleId]?.mandatory || auth.enabledModules?.includes(moduleId)
 
-export const can = (auth, key) => !!auth?.superadmin || hasPermissionIn(auth?.permissions, key)
+export const can = (auth, key) => !!auth?.superadmin
+  || (!auth?.hiddenPages?.includes(pageKeyOf(key)) && hasPermissionIn(auth?.permissions, key))
 
 /** The caller's data scope for a module: OWN · CLASS · DEPARTMENT · BRANCH (campus) · ALL. */
 export function scopeOf(auth, moduleId) {

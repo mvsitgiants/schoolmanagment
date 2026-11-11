@@ -4,6 +4,7 @@ import { connectDb } from './platform/db.js'
 import { runAsSystem } from './platform/context.js'
 import { logger } from './platform/logger.js'
 import { schedule, stopJobs } from './platform/jobs.js'
+import { expireModuleAddOns } from './services/modules.js'
 import { runDueSchedules } from './services/reports.js'
 import { settleStuckPayments } from './services/feePayments.js'
 import { sweepAllExits } from './services/hrms.js'
@@ -122,6 +123,12 @@ const staffChat = () => runChatJobs()
   .then((r) => (r.joined || r.left || r.removed) && logger.info(r, 'chat jobs'))
   .catch((err) => logger.error({ err }, 'chat jobs failed'))
 schedule('staff-chat', staffChat, { firstMs: 50_000, everyMs: 60 * 60_000 })
+
+// Extra modules the platform gave an institution until a date: switched off once the date has passed. Hourly.
+const moduleAddOns = () => expireModuleAddOns()
+  .then((n) => n && logger.info({ switchedOff: n }, 'module add-ons ended'))
+  .catch((err) => logger.error({ err }, 'module add-on expiry failed'))
+schedule('module-addons', moduleAddOns, { firstMs: 70_000, everyMs: 60 * 60_000 })
 
 // ───────────────────────────────────────────────────────── graceful shutdown
 // A deploy or restart sends SIGTERM. Stop taking new work, let requests in flight finish (their

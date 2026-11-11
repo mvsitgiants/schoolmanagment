@@ -13,11 +13,11 @@ import { KeyModules } from '../../components/auth/LoginShowcase'
 // Demo sign-ins, shown only in development (npm run seed creates them).
 const DEMO = [
   { label: 'Platform owner', email: 'owner@schoolgiant.test', password: 'Owner@123', hint: 'SaaS console' },
-  { label: 'Green Valley · Admin', email: 'admin@greenvalley.test', password: 'Admin@123', hint: 'school, Growth plan' },
-  { label: 'Principal', email: 'principal@greenvalley.test', password: 'Demo@123', hint: 'sees everything' },
-  { label: 'Class teacher', email: 'teacher@greenvalley.test', password: 'Demo@123', hint: 'one class' },
-  { label: 'Accountant', email: 'accounts@greenvalley.test', password: 'Demo@123', hint: 'fees and accounts' },
-  { label: 'Sunrise College · Admin', email: 'admin@sunrise.test', password: 'Admin@123', hint: 'college, Higher Ed trial' },
+  { label: 'St. Thomas · Admin', email: 'admin@stthomas.test', password: 'Admin@123', hint: 'school, Enterprise plan' },
+  { label: 'Principal (CBSE)', email: 'principal.cbse@stthomas.test', password: 'Demo@123', hint: 'CBSE campus' },
+  { label: 'Principal (UP Board)', email: 'principal.up@stthomas.test', password: 'Demo@123', hint: 'UP Board campus' },
+  { label: 'Class teacher', email: 'teacher@stthomas.test', password: 'Demo@123', hint: 'Class 5 (CBSE)' },
+  { label: 'Accountant', email: 'accounts@stthomas.test', password: 'Demo@123', hint: 'fees and accounts' },
 ]
 
 export default function LoginPage() {

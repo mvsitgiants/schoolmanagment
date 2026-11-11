@@ -94,8 +94,8 @@ export function situationOf(now) {
   return 'PAST'
 }
 
-/** A section as people say it: "Class 8 – A", "Nursery – B" (from the class name and the section letter). */
-export const sectionName = (className, short) => `${className} – ${String(short ?? '').split('-').pop()}`
+/** A section as people say it: "Class 8 – A", "Nursery – B" (from the class name and the section letter); a class without sections ("5 CBSE") is just its name. */
+export const sectionName = (className, short) => (String(short ?? '').includes('-') ? `${className} – ${String(short).split('-').pop()}` : className)
 
 /** A short name for a teacher: "Meenakshi R." */
 export function shortName(name = '') {

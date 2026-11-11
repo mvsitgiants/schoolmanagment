@@ -85,6 +85,26 @@ export function closeOverDependencies(moduleIds = []) {
   return MODULES.map((m) => m.id).filter((id) => out.has(id))
 }
 
+/** Today as 'YYYY-MM-DD' (UTC) — add-on end dates are whole days. */
+const todayYmd = () => new Date().toISOString().slice(0, 10)
+
+/** Is a per-institution module add-on still running? (no end date, or the end date is today or later) */
+export const addOnActive = (a, today = todayYmd()) => !a?.until || String(a.until) >= today
+
+/**
+ * The modules an institution may use: its plan's, plus modules the platform added for it (until their end
+ * date), minus modules the platform took away from it — with hard dependencies of what is left. Mandatory
+ * modules always stay. `o` = the tenant (moduleAdds, moduleRemovals).
+ */
+export function effectiveModules(planModules = [], o = {}, today = todayYmd()) {
+  const added = (o.moduleAdds ?? []).filter((a) => addOnActive(a, today)).map((a) => a.moduleId)
+  const removed = new Set((o.moduleRemovals ?? []).map((r) => r.moduleId))
+  return closeOverDependencies([...planModules, ...added]).filter((id) => !removed.has(id) || MODULE_BY_ID[id]?.mandatory)
+}
+
+/** "fees.online" — the page part of a permission key "fees.online.view". */
+export const pageKeyOf = (permissionKey) => String(permissionKey).split('.').slice(0, 2).join('.')
+
 /** Enabled modules that hard-depend on `moduleId` (these block disabling it). */
 export function dependentsOf(moduleId, enabledIds) {
   const enabled = new Set(enabledIds)

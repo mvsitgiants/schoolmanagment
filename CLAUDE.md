@@ -34,5 +34,5 @@ Product plan: https://claude.ai/artifact/7pWLPDqtDcypPDESqt8fNy. Reference codeb
 ## Commands
 
 `npm run dev` (db + seed + api + web) · `npm test` · `npm run build` · `npm run lint:i18n` · `npm run lint:pages` ·
-`npm run dev:db` / `dev:api` / `dev:web` · `npm run seed -- --reset` · `npm run seed:demo` (fills Green Valley with data in every module through the API; re-runnable, skips what's there — extend `backend/src/seed/demoGreenValley.js` when a module is added)
+`npm run dev:db` / `dev:api` / `dev:web` · `npm run seed -- --reset` · `npm run seed:demo` (fills St. Thomas School — CBSE and UP Board campuses — with data in every module through the API; re-runnable, skips what's there — extend `backend/src/seed/demoStThomas.js` when a module is added)
 Dev ports: MongoDB 27018, API 4100, web 5190.

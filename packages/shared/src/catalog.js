@@ -419,6 +419,8 @@ export const MODULES = [
 
 export const MODULE_BY_ID = Object.fromEntries(MODULES.map((m) => [m.id, m]))
 export const CATEGORY_BY_ID = Object.fromEntries(CATEGORIES.map((c) => [c.id, c]))
+/** Every page by its key 'module.page' (e.g. 'fees.online'). */
+export const PAGE_BY_KEY = Object.fromEntries(MODULES.flatMap((m) => m.pages.map((p) => [`${m.id}.${p.id}`, { ...p, moduleId: m.id }])))
 
 /** URL of a page. Pages of a module live under `/<module>/<page>`. */
 export const pagePath = (moduleId, pageId) => `/${moduleId}/${pageId}`

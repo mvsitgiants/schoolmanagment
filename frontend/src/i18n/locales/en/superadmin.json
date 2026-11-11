@@ -289,7 +289,8 @@
         "INVOICE_ISSUED": "Invoice issued",
         "INVOICE_VOIDED": "Invoice voided",
         "PAYMENT_RECORDED": "Payment recorded",
-        "LIMITS_CHANGED": "Limits changed"
+        "LIMITS_CHANGED": "Limits changed",
+        "MODULES_CHANGED": "Modules and screens changed"
       },
       "planChanged": "Plan changed.",
       "limitsSaved": "Limits saved.",
@@ -480,6 +481,51 @@
       "done": "Done",
       "refused": "Refused ({{code}})",
       "empty": "Nothing recorded yet"
+    },
+    "modulesEditor": {
+      "tab": "Modules & screens",
+      "intro": "Change what this school gets, on top of its {{plan}} plan: give it extra modules (for a trial or a special deal), take modules away, or hide single screens. Nothing changes for the school until you press \"Save changes\". Changing the school’s plan later keeps these choices.",
+      "summary": "{{plan}} plan · {{inPlan}} modules from the plan · {{added}} extra · {{removed}} taken away · {{hidden}} screens hidden",
+      "filter": {
+        "all": "All",
+        "plan": "From the plan",
+        "added": "Extra",
+        "removed": "Taken away",
+        "none": "Not included",
+        "hidden": "With hidden screens"
+      },
+      "search": "Find a module or screen",
+      "state": {
+        "ALWAYS": "Always on — part of every plan",
+        "PLAN": "Included in the plan",
+        "ADDED": "Extra for this school",
+        "ENDED": "Extra — ended on {{date}}",
+        "REMOVED": "Taken away from this school",
+        "NONE": "Not in this school’s plan"
+      },
+      "noEnd": "no end date",
+      "screensHidden_one": "{{count}} screen hidden",
+      "screensHidden_other": "{{count}} screens hidden",
+      "onNow": "switched on at the school",
+      "add": "Add for this school",
+      "editAdd": "End date and note",
+      "removeAdd": "Remove extra",
+      "takeAway": "Take away",
+      "giveBack": "Give back",
+      "until": "Until (optional)",
+      "untilHint": "Leave empty to keep it. After this date the module switches off by itself.",
+      "note": "Note (optional)",
+      "noteHint": "For your team, e.g. \"Hostel trial — agreed on the call with the principal\".",
+      "screensHint": "Untick a screen to hide it from everyone at this school, their admin included. The school keeps its data; the screen just isn’t shown or usable.",
+      "hidden": "hidden",
+      "unsaved": "You have changes that aren’t saved yet.",
+      "undo": "Undo changes",
+      "save": "Save changes",
+      "confirm": {
+        "title": "Save these changes for the school?",
+        "message": "Modules you added switch on now and modules you took away switch off now for everyone at the school. Their data is kept, so giving a module back brings everything back."
+      },
+      "saved": "Saved — {{on}} module(s) switched on, {{off}} switched off."
     }
   }
 }

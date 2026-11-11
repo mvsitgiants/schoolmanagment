@@ -71,9 +71,9 @@ Demo sign-ins (also listed on the login page in development):
 | Who | Email | Password |
 | --- | --- | --- |
 | Platform owner (SaaS console) | owner@schoolgiant.test | Owner@123 |
-| Green Valley Public School — admin | admin@greenvalley.test | Admin@123 |
-| Principal / class teacher / accountant | principal@ / teacher@ / accounts@greenvalley.test | Demo@123 |
-| Sunrise College of Engineering — admin (trial) | admin@sunrise.test | Admin@123 |
+| St. Thomas School, Lucknow — admin (CBSE + UP Board campuses) | admin@stthomas.test | Admin@123 |
+| Principals / class teacher / accountant / admissions / front desk | principal.cbse@ / principal.up@ / teacher@ / accounts@ / admissions@ / frontdesk@stthomas.test | Demo@123 |
+| Subject teachers (after `npm run seed:demo`) | neha@ / ritu@ / kavita@ / amit@ / seema@ / pradeep@ … stthomas.test | Demo@123 |
 
 ## Checks
 

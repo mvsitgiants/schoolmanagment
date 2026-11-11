@@ -113,10 +113,22 @@ export function checkYearDates({ startDate, endDate, terms = [] }) {
   return errors
 }
 
-/** "Class 8 – A"; `short` gives "8-A" from the class code. */
-export const sectionLabel = (cls, section, { short = false } = {}) => (short
-  ? `${cls?.code ?? ''}-${section?.name ?? ''}`
-  : `${cls?.name ?? ''} – ${section?.name ?? ''}`)
+/**
+ * A class taught as one group, without sections: its only section carries the class code as its name
+ * (class "Class 5 (CBSE)", code C5 → section C5). Its labels then show just the class.
+ */
+export const isWholeClass = (cls, section) => !!cls?.code && !!section?.name && String(section.name).toUpperCase() === String(cls.code).toUpperCase()
+
+/** The class name made short for tight spaces: "Class 5 (CBSE)" → "5 CBSE", "Nursery (UP)" → "Nursery UP". */
+export const classShortName = (cls) => (cls?.name
+  ? String(cls.name).replace(/^class\s+/i, '').replace(/\s*\(([^)]+)\)\s*$/, ' $1').trim()
+  : cls?.code ?? '')
+
+/** "Class 8 – A"; `short` gives "8-A" from the class code. A class without sections is just "Class 5 (CBSE)" / "5 CBSE". */
+export const sectionLabel = (cls, section, { short = false } = {}) => {
+  if (isWholeClass(cls, section)) return short ? classShortName(cls) : cls.name ?? cls.code
+  return short ? `${cls?.code ?? ''}-${section?.name ?? ''}` : `${cls?.name ?? ''} – ${section?.name ?? ''}`
+}
 
 // ───────────────────────────────────────────────────────── quick setup presets
 

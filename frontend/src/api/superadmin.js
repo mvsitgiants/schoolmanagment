@@ -6,12 +6,14 @@ const get = async (url, params) => (await api.get(url, { params })).data.data
 const list = async (url, params) => (await api.get(url, { params })).data
 const post = async (url, body) => (await api.post(url, body)).data.data
 const patch = async (url, body) => (await api.patch(url, body)).data.data
+const put = async (url, body) => (await api.put(url, body)).data.data
 
 export const fetchDashboard = () => get('/v1/superadmin/dashboard')
 export const fetchTenants = (params) => list('/v1/superadmin/tenants', params)
 export const fetchTenant = (id) => get(`/v1/superadmin/tenants/${id}`)
 export const provisionTenant = (body) => post('/v1/superadmin/tenants', body)
 export const updateTenant = (id, body) => patch(`/v1/superadmin/tenants/${id}`, body)
+export const saveTenantModules = (id, body) => put(`/v1/superadmin/tenants/${id}/modules`, body)
 export const changeTenantPlan = (id, body) => post(`/v1/superadmin/tenants/${id}/change-plan`, body)
 export const recordInvoicePayment = (tenantId, invoiceId, body) => post(`/v1/superadmin/tenants/${tenantId}/invoices/${invoiceId}/pay`, body)
 export const voidInvoice = (tenantId, invoiceId, reason) => post(`/v1/superadmin/tenants/${tenantId}/invoices/${invoiceId}/void`, { reason })

@@ -21,6 +21,11 @@ const tenantSchema = new Schema({
   currentPeriodEnd: Date,
   graceDays: { type: Number, default: 7 },
   limitsOverride: { type: limitsShape, default: undefined },
+  // Per-institution changes to the plan, made by the platform (Super admin › Institution › Modules & screens):
+  // extra modules (optionally until a date), plan modules taken away, and single screens hidden.
+  moduleAdds: { type: [{ _id: false, moduleId: String, until: String, note: String, by: String, at: Date }], default: undefined },
+  moduleRemovals: { type: [{ _id: false, moduleId: String, note: String, by: String, at: Date }], default: undefined },
+  hiddenPages: { type: [{ _id: false, key: String, note: String, by: String, at: Date }], default: undefined },
   profile: {
     legalName: String, email: String, phone: String, website: String,
     addressLine: String, city: String, state: String, pincode: String, country: { type: String, default: 'India' },

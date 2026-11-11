@@ -15,7 +15,7 @@ import { clearFailedLogins } from '../platform/auth/lockout.js'
 import { tempPassword } from '../services/users.js'
 import { platformAudit } from '../services/platformAudit.js'
 import { email, escapeRegex, mobile, optionalText, pageParams, listResponse, searchFilter, z } from '../platform/validate.js'
-import { applyPlanModuleChange, listTenantModules } from '../services/modules.js'
+import { applyPlanModuleChange, listTenantModules, saveModuleOverrides } from '../services/modules.js'
 import { provisionTenant } from '../services/provisioning.js'
 import { getPlatformSettings, platformSettingsView, savePlatformSettings } from '../services/platformSettings.js'
 import { sendPlatformTestSms } from '../services/codeDelivery.js'
@@ -214,6 +214,29 @@ router.patch('/tenants/:id', async (req, res) => {
   await tenant.save()
   await bumpAccessVersion(tenant._id)
   res.json({ data: clean(tenant.toObject()) })
+})
+
+// Modules & screens for one institution: extra modules (optionally until a date), plan modules taken away,
+// single screens hidden. Saving switches modules on/off at once and is recorded in the institution's activity.
+const ymdOrEmpty = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Use YYYY-MM-DD').optional().or(z.literal('').transform(() => undefined))
+const overridesBody = z.object({
+  moduleAdds: z.array(z.object({ moduleId: z.string().max(40), until: ymdOrEmpty, note: optionalText(200) })).max(60).default([]),
+  moduleRemovals: z.array(z.object({ moduleId: z.string().max(40), note: optionalText(200) })).max(60).default([]),
+  hiddenPages: z.array(z.object({ key: z.string().max(80), note: optionalText(200) })).max(400).default([]),
+})
+router.put('/tenants/:id/modules', requirePlatform('tenants.edit'), async (req, res) => {
+  const input = overridesBody.parse(req.body)
+  const tenant = await Tenant.findById(req.params.id).lean()
+  if (!tenant) throw notFound('Institution')
+  const { changes, summary } = await saveModuleOverrides(tenant._id, input, req.auth.user?.name)
+  const note = [
+    summary.added.length && `Extra: ${summary.added.join(', ')}`,
+    summary.removed.length && `Taken away: ${summary.removed.join(', ')}`,
+    summary.hidden.length && `Hidden screens: ${summary.hidden.length}`,
+  ].filter(Boolean).join(' · ') || 'Back to the plan as it is'
+  await recordEvent(tenant._id, 'MODULES_CHANGED', { note })
+  await runAsTenant(tenant._id, () => audit({ action: 'UPDATE', module: 'core', entityType: 'tenant', entityId: String(tenant._id), entityName: tenant.name, summary: `Modules and screens changed by the platform — ${note}`, added: changes.enabled, removed: changes.disabled }))
+  res.json({ data: { modules: await listTenantModules(tenant._id), changes } })
 })
 
 router.post('/tenants/:id/change-plan', requirePlatform('billing'), async (req, res) => {

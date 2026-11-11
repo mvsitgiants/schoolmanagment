@@ -14,7 +14,8 @@ const ROUTE_ALIASES = [
 /** Routes open to every signed-in user. */
 export const OPEN_ROUTES = ['/', '/me', '/approvals']
 
-const can = (user, key) => !!user && (user.superadmin || hasPermissionIn(user.permissions, key))
+const hiddenPage = (user, key) => !!user?.hiddenPages?.includes(String(key).split('.').slice(0, 2).join('.'))
+const can = (user, key) => !!user && (user.superadmin || (!hiddenPage(user, key) && hasPermissionIn(user.permissions, key)))
 const enabledSet = (user) => new Set(user?.enabledModules ?? [])
 const isOn = (user, m) => m.mandatory || enabledSet(user).has(m.id)
 

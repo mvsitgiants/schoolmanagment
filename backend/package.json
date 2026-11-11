@@ -8,7 +8,7 @@
     "start": "node --env-file-if-exists=.env src/server.js",
     "db": "node src/dev/devdb.js",
     "seed": "node --env-file-if-exists=.env src/seed/seed.js",
-    "seed:demo": "node --env-file-if-exists=.env src/seed/demoGreenValley.js",
+    "seed:demo": "node --env-file-if-exists=.env src/seed/demoStThomas.js",
     "test": "vitest run",
     "dev:db": "node src/dev/devdb.js"
   },

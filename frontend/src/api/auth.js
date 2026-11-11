@@ -214,6 +214,8 @@ export function hasPermission(key) {
   const u = getCurrentUser()
   if (!u) return false
   if (u.superadmin) return true
+  // a screen the platform hid for this institution is closed to everyone there (the API refuses it too)
+  if (u.hiddenPages?.includes(String(key).split('.').slice(0, 2).join('.'))) return false
   return hasPermissionIn(u.permissions, key)
 }
 

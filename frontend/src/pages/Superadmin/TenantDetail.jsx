@@ -18,12 +18,13 @@ import { iconFor } from '../../catalog/icons'
 import { useCatalogLabel } from '../../hooks/useCatalogLabel'
 import { TENANT_STATUS, planLook, tenantStatusLabel } from './Dashboard'
 import { bannerText } from '../../utils/subscriptionBanner'
+import ModulesEditor from '../../components/superadmin/ModulesEditor'
 
 const INV_TONE = { DUE: 'warning', PAID: 'success', VOID: 'neutral' }
 const KINDS = ['NEW', 'RENEWAL', 'PLAN_CHANGE']
 const METHODS = ['BANK_TRANSFER', 'UPI', 'CHEQUE', 'CARD', 'CASH', 'OTHER']
 const SOURCES = ['SIGNUP', 'SUPERADMIN', 'SEED']
-const EVENTS = ['TRIAL_STARTED', 'TRIAL_EXTENDED', 'PLAN_CHANGED', 'STATUS_CHANGED', 'INVOICE_ISSUED', 'INVOICE_VOIDED', 'PAYMENT_RECORDED', 'LIMITS_CHANGED', 'VERIFIED', 'VERIFICATION_REMOVED']
+const EVENTS = ['TRIAL_STARTED', 'TRIAL_EXTENDED', 'PLAN_CHANGED', 'STATUS_CHANGED', 'INVOICE_ISSUED', 'INVOICE_VOIDED', 'PAYMENT_RECORDED', 'LIMITS_CHANGED', 'MODULES_CHANGED', 'VERIFIED', 'VERIFICATION_REMOVED']
 const limitLabel = (t, l) => t(`superadmin.limits.${l.key}`, { defaultValue: l.label })
 
 function PlanModal({ tenant, plans, onClose, onDone }) {
@@ -181,7 +182,7 @@ export default function TenantDetail() {
       <div className="rounded-xl border border-border bg-surface shadow-card">
         <Tabs className="px-3" value={tab} onChange={setTab} tabs={[
           { value: 'overview', label: t('superadmin.tenantDetail.tabs.overview') }, { value: 'invoices', label: t('superadmin.tenantDetail.tabs.invoices', { count: tn.invoices.length }) },
-          { value: 'users', label: t('superadmin.tenantDetail.tabs.users', { count: tn.users.length }) }, { value: 'modules', label: t('superadmin.common.modules') }, { value: 'activity', label: t('superadmin.tenantDetail.tabs.activity') },
+          { value: 'users', label: t('superadmin.tenantDetail.tabs.users', { count: tn.users.length }) }, { value: 'modules', label: t('superadmin.modulesEditor.tab') }, { value: 'activity', label: t('superadmin.tenantDetail.tabs.activity') },
         ]} />
         <div className="p-5">
           {tab === 'overview' && (
@@ -267,18 +268,8 @@ export default function TenantDetail() {
           )}
 
           {tab === 'modules' && (
-            <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-2">
-              {tn.modules.map((m) => {
-                const Icon = iconFor(m.icon)
-                return (
-                  <div key={m.id} className={clsx('flex items-center gap-2.5 rounded-lg border px-3 py-2', m.enabled ? 'border-border' : 'border-dashed border-border opacity-60')}>
-                    <Icon className="w-4 h-4" style={{ color: CATEGORY_BY_ID[m.category]?.color }} />
-                    <span className="flex-1 text-sm text-ink">{cl.module(m.id)}</span>
-                    <StatusPill tone={m.enabled ? 'success' : m.inPlan ? 'neutral' : 'warning'}>{m.enabled ? t('ui.common.on') : m.inPlan ? t('ui.common.off') : t('superadmin.tenantDetail.notInPlan')}</StatusPill>
-                  </div>
-                )
-              })}
-            </div>
+            <ModulesEditor tenantId={tn.id} planName={plans.find((p) => p.code === tn.planCode)?.name ?? tn.planCode} modules={tn.modules}
+              canEdit={canPlatform('tenants.edit')} onSaved={() => qc.invalidateQueries({ queryKey: ['sa-tenant', id] })} key={JSON.stringify(tn.modules.map((m) => [m.id, m.source, m.addOn?.until, m.pages?.filter((p) => p.hidden).length]))} />
           )}
 
           {tab === 'activity' && (

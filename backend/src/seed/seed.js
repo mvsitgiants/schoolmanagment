@@ -1,11 +1,11 @@
-// Seed platform data (plans, role templates, platform owner) and demo institutions.
+// Seed platform data (plans, role templates, platform owner) and the demo institution, St. Thomas School.
 //   npm run seed            add anything missing
 //   npm run seed -- --reset wipe the database first
 import mongoose from 'mongoose'
-import { DEFAULT_PLANS, ROLE_TEMPLATES } from '@schoolgiant/shared'
+import { DEFAULT_PLANS, DOC_TYPES, ROLE_TEMPLATES } from '@schoolgiant/shared'
 import { config } from '../config.js'
 import { Plan, PlatformSetting, PlatformUser, RoleTemplate, Tenant } from '../models/platform.js'
-import { Branch, Department, Role } from '../models/tenant.js'
+import { Branch, Department, NumberSeries, Role } from '../models/tenant.js'
 import { MessagingConfig } from '../models/engines.js'
 import { enabledModuleIds } from '../platform/access.js'
 import { hashPassword } from '../platform/auth/tokens.js'
@@ -15,9 +15,9 @@ import { provisionTenant } from '../services/provisioning.js'
 import { createFromTemplates } from '../services/roles.js'
 import { addCycle, issueInvoice, recordPayment, runBillingCycle } from '../services/subscription.js'
 import { createUser } from '../services/users.js'
-import { quickSetup, saveSection, setAllocation } from '../services/academics.js'
-import { AcademicYear, ClassLevel, Section, Subject } from '../models/academics.js'
-import { admitStudent } from '../services/students.js'
+import { saveClass, saveSection, saveSubject, setAllocation } from '../services/academics.js'
+import { AcademicYear, ClassLevel, Section } from '../models/academics.js'
+import { setModuleEnabled } from '../services/modules.js'
 import { User } from '../models/tenant.js'
 
 const DAY = 864e5
@@ -62,95 +62,109 @@ async function makePaid(tenant, { cycle = 'YEARLY', startedDaysAgo = 40, history
 }
 
 const DEPARTMENTS = [
-  ['Pre-primary', 'PREP', 'ACADEMIC'], ['Primary', 'PRIM', 'ACADEMIC'], ['Middle school', 'MIDS', 'ACADEMIC'], ['Senior secondary', 'SENR', 'ACADEMIC'],
-  ['Mathematics', 'MATHS', 'ACADEMIC'], ['Science', 'SCI', 'ACADEMIC'], ['Languages', 'LANG', 'ACADEMIC'],
-  ['Accounts', 'ACCT', 'ADMINISTRATIVE'], ['Administration', 'ADMN', 'ADMINISTRATIVE'], ['Transport', 'TRAN', 'SUPPORT'],
+  ['Pre-primary', 'PREP', 'ACADEMIC'], ['Primary', 'PRIM', 'ACADEMIC'], ['Middle school', 'MIDS', 'ACADEMIC'], ['Secondary', 'SECN', 'ACADEMIC'],
+  ['Senior secondary', 'SENR', 'ACADEMIC'], ['Mathematics', 'MATHS', 'ACADEMIC'], ['Science', 'SCI', 'ACADEMIC'], ['Languages', 'LANG', 'ACADEMIC'],
+  ['Social Science', 'SOCS', 'ACADEMIC'], ['Accounts', 'ACCT', 'ADMINISTRATIVE'], ['Administration', 'ADMN', 'ADMINISTRATIVE'], ['Transport', 'TRAN', 'SUPPORT'],
 ]
 
+// [name, email, designation, role template, department, campus (CBSE | UP)]
 const STAFF = [
-  ['Dr. Kavita Menon', 'principal@greenvalley.test', 'Principal', 'PRINCIPAL', 'ADMN'],
-  ['Neha Sinha', 'teacher@greenvalley.test', 'Class teacher, 8-A (Mathematics)', 'CLASS_TEACHER', 'MATHS'],
-  ['Rahul Verma', 'rahul.science@greenvalley.test', 'Science teacher', 'SUBJECT_TEACHER', 'SCI'],
-  ['Suresh Iyer', 'accounts@greenvalley.test', 'Accountant', 'ACCOUNTANT', 'ACCT'],
-  ['Pooja Nair', 'admissions@greenvalley.test', 'Admission counsellor', 'ADMISSION_COUNSELLOR', 'ADMN'],
-  ['Farhan Ali', 'frontdesk@greenvalley.test', 'Receptionist', 'FRONT_DESK', 'ADMN'],
+  ['Fr. Thomas Mathew', 'principal.cbse@stthomas.test', 'Principal (CBSE)', 'PRINCIPAL', 'ADMN', 'CBSE'],
+  ['Dr. Rajendra Prasad Tiwari', 'principal.up@stthomas.test', 'Principal (UP Board)', 'PRINCIPAL', 'ADMN', 'UP'],
+  ['Sunita Srivastava', 'teacher@stthomas.test', 'Class teacher, Class 5 (CBSE) — Mathematics', 'CLASS_TEACHER', 'MATHS', 'CBSE'],
+  ['Alok Agarwal', 'accounts@stthomas.test', 'Accountant', 'ACCOUNTANT', 'ACCT', 'CBSE'],
+  ['Shalini Saxena', 'admissions@stthomas.test', 'Admission counsellor', 'ADMISSION_COUNSELLOR', 'ADMN', 'CBSE'],
+  ['Mohd. Arif Khan', 'frontdesk@stthomas.test', 'Receptionist', 'FRONT_DESK', 'ADMN', 'CBSE'],
 ]
 
-const FIRST = ['Aarav', 'Vivaan', 'Aditya', 'Ishaan', 'Arjun', 'Saanvi', 'Ananya', 'Diya', 'Aadhya', 'Myra', 'Kabir', 'Riya', 'Reyansh', 'Anika', 'Vihaan', 'Kiara']
-const LAST = ['Sharma', 'Verma', 'Reddy', 'Nair', 'Iyer', 'Gupta', 'Khan', 'Das', 'Patel', 'Rao']
+const SUBJECTS = [
+  ['English', 'ENG', 'LANGUAGE', 'LANG'], ['Hindi', 'HIN', 'LANGUAGE', 'LANG'], ['Sanskrit', 'SKT', 'LANGUAGE', 'LANG'],
+  ['Mathematics', 'MATH', 'THEORY', 'MATHS'], ['Science', 'SCI', 'THEORY', 'SCI'], ['Social Science', 'SST', 'THEORY', 'SOCS'],
+  ['Environmental Studies', 'EVS', 'THEORY', 'SCI'], ['Computer Science', 'CS', 'PRACTICAL', 'SCI'],
+  ['Physics', 'PHY', 'THEORY', 'SCI'], ['Chemistry', 'CHEM', 'THEORY', 'SCI'], ['Biology', 'BIO', 'THEORY', 'SCI'],
+  ['Physical Education', 'PE', 'ACTIVITY', null], ['Art & Craft', 'ART', 'ACTIVITY', null], ['Music', 'MUS', 'ACTIVITY', null],
+]
+const subjectsFor = (board, grade) => {
+  if (grade <= 0) return ['ENG', 'HIN', 'MATH', 'EVS', 'ART', 'MUS']
+  if (grade <= 5) return ['ENG', 'HIN', 'MATH', 'EVS', 'CS', 'PE', 'ART']
+  if (grade <= 8) return ['ENG', 'HIN', 'SKT', 'MATH', 'SCI', 'SST', 'CS', 'PE', 'ART']
+  if (grade <= 10) return ['HIN', 'ENG', 'MATH', 'SCI', 'SST', 'SKT', 'CS', 'PE'] // UP Board high school
+  return ['HIN', 'ENG', 'PHY', 'CHEM', 'MATH', 'BIO', 'PE'] // UP Board intermediate, science stream
+}
+const deptFor = (grade) => (grade <= 0 ? 'PREP' : grade <= 5 ? 'PRIM' : grade <= 8 ? 'MIDS' : grade <= 10 ? 'SECN' : 'SENR')
 
-async function seedGreenValley() {
-  if (await Tenant.exists({ slug: 'green-valley-public-school' })) return
-  const { tenant, user: admin } = await provisionTenant({
-    institutionName: 'Green Valley Public School', planCode: 'GROWTH', trialDays: 30, createdVia: 'SEED',
-    admin: { name: 'Anita Sharma', email: 'admin@greenvalley.test', mobile: '+91 98450 11223', password: 'Admin@123' },
-    profile: { city: 'Bengaluru', state: 'Karnataka' },
+/**
+ * The classes of both boards, kept apart: Nursery (CBSE) … Class 8 (CBSE) and Nursery (UP) … Class 12 (UP).
+ * grade: -2 Nursery, -1 LKG, 0 UKG, 1–12. Each class is taught as one group: its only section is named after
+ * the class code, which makes every label show just the class ("Class 5 (CBSE)", short "5 CBSE").
+ */
+export const ST_THOMAS_CLASSES = [['CBSE', 'C', 8], ['UP', 'U', 12]].flatMap(([board, prefix, top]) => [
+  ['Nursery', 'N', -2], ['LKG', 'LKG', -1], ['UKG', 'UKG', 0], ...Array.from({ length: top }, (_, i) => [`Class ${i + 1}`, String(i + 1), i + 1]),
+].map(([name, code, grade]) => ({ board, grade, name: `${name} (${board})`, code: `${prefix}${code}` })))
+
+const ST_THOMAS = {
+  slug: 'st-thomas-school',
+  name: 'St. Thomas School',
+  city: 'Lucknow', state: 'Uttar Pradesh',
+}
+
+async function seedStThomas() {
+  if (await Tenant.exists({ slug: ST_THOMAS.slug })) return
+  const { tenant, user: admin, branch: main } = await provisionTenant({
+    institutionName: ST_THOMAS.name, planCode: 'ENTERPRISE', billingCycle: 'YEARLY', trialDays: 30, createdVia: 'SEED',
+    admin: { name: 'Rohit Chandra', email: 'admin@stthomas.test', mobile: '+91 94150 12345', password: 'Admin@123' },
+    profile: { city: ST_THOMAS.city, state: ST_THOMAS.state },
   })
-  await makePaid(tenant, { cycle: 'YEARLY', startedDaysAgo: 40 })
+  await makePaid(tenant, { cycle: 'YEARLY', startedDaysAgo: 220 })
   // Raw collection update: Mongoose treats createdAt as immutable, but demo data needs history.
   await Tenant.collection.updateOne({ _id: tenant._id }, {
     $set: {
-      'profile.addressLine': '12, Outer Ring Road, Marathahalli', 'profile.pincode': '560037', 'profile.phone': '+91 80 4123 4567',
-      'profile.email': 'office@greenvalley.test', 'profile.website': 'https://greenvalley.example', 'profile.legalName': 'Green Valley Educational Trust',
-      createdAt: new Date(Date.now() - 60 * DAY),
+      'profile.addressLine': 'Sector 12, Kursi Road, Vikas Nagar', 'profile.pincode': '226022', 'profile.phone': '+91 522 4012 345',
+      'profile.email': 'office@stthomas.test', 'profile.website': 'https://stthomas.example', 'profile.legalName': 'St. Thomas School',
+      'profile.trustName': 'St. Thomas Educational Society (Regd.)', 'profile.pan': 'AAATS4521K', 'profile.registrationNo': 'LKO/1987/0452',
+      'profile.board': 'Affiliated to CBSE, New Delhi', 'profile.affiliationNo': '2130417', 'profile.schoolCode': '71417', 'profile.udiseCode': '09221100417',
+      createdAt: new Date(Date.now() - 240 * DAY),
     },
   })
 
   await runAsTenant(tenant._id, async () => {
     await MessagingConfig.updateOne({}, { $setOnInsert: { sms: { provider: 'TEST' }, whatsapp: { provider: 'TEST' } } }, { upsert: true })
+    // college-only modules off (dependents first); everything else the Enterprise plan has stays on
+    for (const id of ['coe', 'registration', 'accreditation', 'placements', 'research', 'programs']) await setModuleEnabled(tenant._id, id, false)
     const auth = await adminAuth(tenant._id, admin)
-    await Branch.create({ name: 'Green Valley – Whitefield', code: 'WFD', city: 'Bengaluru', state: 'Karnataka', addressLine: 'ITPL Main Road, Whitefield', phone: '+91 80 4123 9900' })
+    // two campuses, each its own school on paper: the CBSE school (default) and the UP Board school
+    await Branch.updateOne({ _id: main._id }, { $set: {
+      name: 'St. Thomas School', code: 'CBSE', addressLine: 'Sector 12, Kursi Road, Vikas Nagar', city: 'Lucknow', state: 'Uttar Pradesh', pincode: '226022', phone: '+91 522 4012 345',
+      identity: { printName: 'St. Thomas School', board: 'Affiliated to CBSE, New Delhi', affiliationNo: '2130417', schoolCode: '71417', udiseCode: '09221100417', email: 'cbse@stthomas.test', principalName: 'Fr. Thomas Mathew' },
+    } })
+    const up = await Branch.create({
+      name: 'St. Thomas School – UP Board', code: 'UPB', addressLine: 'Sector 12, Kursi Road, Vikas Nagar (Block B)', city: 'Lucknow', state: 'Uttar Pradesh', pincode: '226022', phone: '+91 522 4012 346',
+      identity: { printName: 'St. Thomas School', board: 'Board of High School & Intermediate Education, Uttar Pradesh (UP Board), Prayagraj', affiliationNo: 'Recognition No. 2468/UPB/1996', schoolCode: '1071', udiseCode: '09221100418', email: 'upboard@stthomas.test', principalName: 'Dr. Rajendra Prasad Tiwari' },
+    })
+    const campus = { CBSE: main._id, UP: up._id }
+    // numbers counted per campus carry the campus code (CBSE/FI2627000001, UPB/FI2627000001), so the two campuses never clash
+    for (const d of DOC_TYPES.filter((x) => x.perBranch)) await NumberSeries.updateOne({ docType: d.code }, { $set: { pattern: `{BR}/${d.pattern}`, reset: d.reset, updatedBy: 'Demo data' } }, { upsert: true }) // as Settings › Number series saves it
     const depts = {}
     for (const [name, code, type] of DEPARTMENTS) depts[code] = await Department.create({ name, code, type })
-    await createFromTemplates([...new Set(STAFF.map((s) => s[3]))], auth)
+    await createFromTemplates([...new Set(STAFF.map((s) => s[3])), 'SUBJECT_TEACHER', 'LIBRARIAN', 'TRANSPORT_MANAGER', 'HOSTEL_WARDEN', 'STORE_KEEPER', 'CANTEEN_MANAGER', 'NURSE', 'HR_MANAGER'], auth)
     const roles = Object.fromEntries((await Role.find().lean()).map((r) => [r.templateCode, r._id]))
-    for (const [name, email, designation, roleCode, dept] of STAFF) {
-      await createUser({ name, email, designation, roleIds: [roles[roleCode]], departmentIds: [depts[dept]._id], password: 'Demo@123' }, auth)
+    for (const [name, email, designation, roleCode, dept, board] of STAFF) {
+      await createUser({ name, email, designation, roleIds: [roles[roleCode]], departmentIds: [depts[dept]._id], branchId: campus[board], password: 'Demo@123' }, auth)
     }
-    // Classes Nursery–12 with sections A and B (and the common subjects), the default year.
-    await quickSetup({ preset: 'K12', sectionsPerClass: 2, addSubjects: true })
-    const userId = async (email) => (await User.findOne({ email }).select('_id').lean())._id
-    const neha = await userId('teacher@greenvalley.test')
-    const rahul = await userId('rahul.science@greenvalley.test')
-    const c8 = await ClassLevel.findOne({ code: '8' }).lean()
-    const [s8a, s8b] = await Section.find({ classId: c8._id }).sort({ name: 1 }).lean()
-    await saveSection(s8a._id, { classTeacherId: neha, room: '204', capacity: 40 })
-    await saveSection(s8b._id, { classTeacherId: rahul, room: '205', capacity: 40 })
-    const subj = async (code) => (await Subject.findOne({ code }).select('_id').lean())._id
-    for (const sec of [s8a, s8b]) {
-      await setAllocation({ sectionId: sec._id, subjectId: await subj('MATH'), teacherId: neha })
-      await setAllocation({ sectionId: sec._id, subjectId: await subj('SCI'), teacherId: rahul })
+    // subjects, the classes of both boards and one section a class (named after the class code)
+    const subj = {}
+    for (const [name, code, type, dept] of SUBJECTS) subj[code] = (await saveSubject(null, { name, code, type, ...(dept && { departmentId: depts[dept]._id }) })).id
+    const year = await AcademicYear.findOne({ isCurrent: true }).lean()
+    for (const [i, c] of ST_THOMAS_CLASSES.entries()) {
+      const cls = await saveClass(null, { name: c.name, code: c.code, order: i + 1, departmentId: depts[deptFor(c.grade)]._id, subjectIds: subjectsFor(c.board, c.grade).map((x) => subj[x]) })
+      await saveSection(null, { classId: cls.id, academicYearId: year._id, name: c.code, branchId: campus[c.board], capacity: 40, room: c.board === 'CBSE' ? `A-${100 + i + 1}` : `B-${100 + i - 10}` })
     }
-    // A handful of students in Class 8 so plan usage, sections and family messages have
-    // something to point at. (The Students module brings the admission flow.)
-    // Students go through the same admission service a school uses (numbers, history, limits).
-    const FATHERS = ['Rohit', 'Amit', 'Suresh', 'Vikram', 'Anil', 'Rajesh', 'Manoj', 'Sanjay']
-    const MOTHERS = ['Neha', 'Priya', 'Kavita', 'Sunita', 'Anjali', 'Pooja', 'Meena', 'Ritu']
-    const year = (await AcademicYear.findOne({ isCurrent: true }).lean())
-    for (let i = 0; i < 24; i++) {
-      const firstName = FIRST[i % FIRST.length]
-      const lastName = LAST[(i * 7) % LAST.length]
-      const sec = i % 2 ? s8b : s8a
-      await admitStudent({
-        firstName, lastName, gender: [0, 1, 2, 3, 4, 10, 12, 14].includes(i % 16) ? 'MALE' : 'FEMALE',
-        dob: `2013-0${1 + (i % 9)}-1${i % 9}`, sectionId: sec._id, rollNo: String(Math.floor(i / 2) + 1),
-        admissionDate: year.startDate, category: ['GENERAL', 'OBC', 'GENERAL', 'SC'][i % 4], nationality: 'Indian',
-        address: { line: `${12 + i}, ${['MG Road', 'Outer Ring Road', 'HSR Layout', 'Whitefield Main Road'][i % 4]}`, city: 'Bengaluru', state: 'Karnataka', pincode: `5600${String(30 + (i % 9))}` },
-        guardians: [
-          { name: `${FATHERS[i % 8]} ${lastName}`, relation: 'FATHER', mobile: `98450${String(20000 + i).padStart(5, '0')}`, occupation: ['Engineer', 'Business', 'Teacher', 'Doctor'][i % 4], isPrimary: i % 3 !== 0 },
-          { name: `${MOTHERS[i % 8]} ${lastName}`, relation: 'MOTHER', mobile: `98860${String(30000 + i).padStart(5, '0')}`, email: `${MOTHERS[i % 8].toLowerCase()}.${lastName.toLowerCase()}${i}@example.com`, isPrimary: i % 3 === 0 },
-        ],
-      }, auth, null)
-    }
-  })
-}
-
-async function seedSunrise() {
-  if (await Tenant.exists({ slug: 'sunrise-college-of-engineering' })) return
-  await provisionTenant({
-    institutionName: 'Sunrise College of Engineering', planCode: 'HIGHER_ED', trialDays: 30, createdVia: 'SEED',
-    admin: { name: 'Prof. Ramesh Kulkarni', email: 'admin@sunrise.test', mobile: '+91 99000 22334', password: 'Admin@123' },
-    profile: { city: 'Pune', state: 'Maharashtra' },
+    // the class teacher login: Class 5 (CBSE), Mathematics
+    const sunita = (await User.findOne({ email: 'teacher@stthomas.test' }).select('_id').lean())._id
+    const c5 = await ClassLevel.findOne({ code: 'C5' }).lean()
+    const s5 = await Section.findOne({ classId: c5._id }).lean()
+    await saveSection(s5._id, { classTeacherId: sunita })
+    await setAllocation({ sectionId: s5._id, subjectId: subj.MATH, teacherId: sunita, periodsPerWeek: 6 })
   })
 }
 
@@ -174,17 +188,16 @@ async function main() {
   }
   await runWithContext({ system: true, userName: 'Demo data', tenantId: null }, async () => {
     await seedPlatform()
-    await seedGreenValley()
-    await seedSunrise()
+    await seedStThomas()
     const billing = await runBillingCycle()
     console.log('Billing cycle:', billing)
   })
   console.log(`
 Seed complete.
   Platform owner      ${config.superadmin.email} / ${config.superadmin.password}
-  Green Valley (paid) admin@greenvalley.test / Admin@123 — school on the Growth plan, 2 campuses, classes Nursery–12, 24 students in Class 8
-  Staff               principal@, teacher@, rahul.science@, accounts@, admissions@, frontdesk@greenvalley.test / Demo@123
-  Sunrise (trial)     admin@sunrise.test / Admin@123 — college on a Higher Ed trial, only the Institution Admin role
+  St. Thomas School   admin@stthomas.test / Admin@123 — Lucknow, Enterprise plan; CBSE campus (Nursery–Class 8) and UP Board campus (Nursery–Class 12)
+  Staff               principal.cbse@, principal.up@, teacher@ (Class 5 CBSE), accounts@, admissions@, frontdesk@stthomas.test / Demo@123
+  Fill it with data   npm run seed:demo — students, staff, fees, exams … in every module
 `)
   await mongoose.disconnect()
 }
