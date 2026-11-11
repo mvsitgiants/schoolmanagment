@@ -1478,7 +1478,8 @@
       "principalName": "Principal’s name",
       "logo": "Logo",
       "seal": "School seal",
-      "principalSign": "Principal’s signature"
+      "principalSign": "Principal’s signature",
+      "otherSignsHint": "Other signatures — only if this campus has its own. Leave one empty to use the institution’s (Print templates › Letterhead)."
     },
     "customFields": {
       "title": "Custom fields",

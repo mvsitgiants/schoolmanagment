@@ -14,9 +14,12 @@ import AttendanceSites, { siteIn, siteOut, sitesValid } from '../../components/g
 import PrintImageField from '../../components/print/PrintImageField'
 import { metresText } from '@schoolgiant/shared'
 
+// signatories a campus can have its own of (the principal has its own fields above)
+const CAMPUS_SIGNERS = ['ACCOUNTANT', 'CONTROLLER', 'SECRETARY']
+
 function BranchForm({ branch, onClose, onSaved }) {
   const { t } = useTranslation('admin')
-  const [form, setForm] = useState(() => ({ name: '', code: '', addressLine: '', city: '', state: '', pincode: '', phone: '', gstin: '', active: true, ...branch, attendanceSites: (branch?.attendanceSites ?? []).map(siteIn), identity: { printName: '', board: '', affiliationNo: '', schoolCode: '', udiseCode: '', email: '', principalName: '', logoUrl: '', sealUrl: '', principalSignUrl: '', ...branch?.identity } }))
+  const [form, setForm] = useState(() => ({ name: '', code: '', addressLine: '', city: '', state: '', pincode: '', phone: '', gstin: '', active: true, ...branch, attendanceSites: (branch?.attendanceSites ?? []).map(siteIn), identity: { printName: '', board: '', affiliationNo: '', schoolCode: '', udiseCode: '', email: '', principalName: '', logoUrl: '', sealUrl: '', principalSignUrl: '', ...branch?.identity, signatures: CAMPUS_SIGNERS.map((role) => ({ role, name: '', imageUrl: '', ...(branch?.identity?.signatures ?? []).find((x) => x.role === role) })) } }))
   const [ownPrint, setOwnPrint] = useState(() => Object.values(branch?.identity ?? {}).some(Boolean))
   const setId = (k) => (v) => setForm((f) => ({ ...f, identity: { ...f.identity, [k]: v?.target ? v.target.value : v } }))
   const sitesOk = sitesValid(form.attendanceSites)
@@ -26,7 +29,9 @@ function BranchForm({ branch, onClose, onSaved }) {
   const save = useMutation({
     mutationFn: () => {
       const { name, code, addressLine, city, state, pincode, phone, gstin, active } = form
-      const body = { name, code, addressLine, city, state, pincode, phone, gstin, attendanceSites: form.attendanceSites.map(siteOut), identity: ownPrint ? form.identity : Object.fromEntries(Object.keys(form.identity).map((k) => [k, ''])) }
+      const body = { name, code, addressLine, city, state, pincode, phone, gstin, attendanceSites: form.attendanceSites.map(siteOut), identity: ownPrint
+        ? { ...form.identity, signatures: form.identity.signatures.filter((x) => x.name?.trim() || x.imageUrl).map(({ role, name, imageUrl }) => ({ role, name, imageUrl })) }
+        : { ...Object.fromEntries(Object.keys(form.identity).filter((k) => k !== 'signatures').map((k) => [k, ''])), signatures: [] } }
       return branch ? updateBranch(branch.id, { ...body, active }) : createBranch(body)
     },
     onSuccess: onSaved,
@@ -69,6 +74,16 @@ function BranchForm({ branch, onClose, onSaved }) {
             <PrintImageField label={t('admin.branches.logo')} value={form.identity.logoUrl} onChange={setId('logoUrl')} error={errors['identity.logoUrl']} />
             <PrintImageField label={t('admin.branches.seal')} value={form.identity.sealUrl} onChange={setId('sealUrl')} error={errors['identity.sealUrl']} />
             <PrintImageField wide label={t('admin.branches.principalSign')} value={form.identity.principalSignUrl} onChange={setId('principalSignUrl')} error={errors['identity.principalSignUrl']} />
+            <p className="sm:col-span-2 text-xs text-ink-muted">{t('admin.branches.otherSignsHint')}</p>
+            {form.identity.signatures.map((sg, i) => {
+              const put = (patch) => setForm((f) => ({ ...f, identity: { ...f.identity, signatures: f.identity.signatures.map((y, j) => (j === i ? { ...y, ...patch } : y)) } }))
+              return (
+                <div key={sg.role} className="sm:col-span-2 grid sm:grid-cols-2 gap-3 rounded-lg border border-border p-3">
+                  <PrintImageField wide label={t(`admin.printTemplates.letterhead.signatories.${sg.role}`)} value={sg.imageUrl} onChange={(v) => put({ imageUrl: v })} />
+                  <FormField label={t('admin.printTemplates.letterhead.signName')}><Input value={sg.name} maxLength={120} onChange={(e) => put({ name: e.target.value })} /></FormField>
+                </div>
+              )
+            })}
           </div>
         )}
       </div>

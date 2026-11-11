@@ -17,6 +17,8 @@ const branchSchema = new Schema({
   identity: {
     printName: String, board: String, affiliationNo: String, schoolCode: String, udiseCode: String, email: String,
     principalName: String, logoUrl: String, sealUrl: String, principalSignUrl: String,
+    // the campus's own accountant / controller / secretary signatures (SIGNATORIES); a role left out uses the institution's
+    signatures: { type: [new Schema({ role: String, name: String, imageUrl: String }, { _id: false })], default: undefined },
   },
   // Where staff and students may mark their own attendance (Settings › Staff & HR / Attendance › self attendance).
   // A site is a circle (centre + radius) or a drawn outline (polygon corners); services/attendanceSites.js.

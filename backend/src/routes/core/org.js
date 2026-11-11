@@ -25,6 +25,7 @@ const branchSchema = z.object({
   identity: z.object({
     printName: optionalText(160), board: optionalText(120), affiliationNo: optionalText(60), schoolCode: optionalText(30), udiseCode: optionalText(60),
     email: optionalText(120), principalName: optionalText(120), logoUrl: printImage, sealUrl: printImage, principalSignUrl: printImage,
+    signatures: z.array(z.object({ role: z.enum(['ACCOUNTANT', 'CONTROLLER', 'SECRETARY']), name: optionalText(120), imageUrl: printImage })).max(3).optional(),
   }).optional(),
 })
 

@@ -36,6 +36,7 @@ function campusInstitution(inst, b) {
     ...(id.printName ? { name: id.printName } : {}),
     ...pick('board'), ...pick('affiliationNo'), ...pick('schoolCode'), ...pick('udiseCode'), ...pick('email'), ...pick('logoUrl'),
     ...pick('sealUrl'), ...pick('principalSignUrl'), ...pick('principalName'),
+    ...(id.signatures?.length ? { campusSignatures: id.signatures } : {}),
     ...(b.addressLine ? { addressLine: b.addressLine, city: b.city, state: b.state, pincode: b.pincode } : {}),
     ...pick('phone', b), ...pick('gstin', b),
     campus: b.name,

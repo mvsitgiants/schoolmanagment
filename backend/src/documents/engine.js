@@ -316,6 +316,8 @@ export function layoutFor(template, letterhead, institution) {
 function signLayout(template, letterhead, h) {
   const people = {}
   for (const x of letterhead?.signatures ?? []) if (x?.role) people[x.role] = { img: x.imageUrl || '', name: x.name || '', title: x.title || '' }
+  // the campus's own accountant / controller / secretary, role by role
+  for (const x of h.campusSignatures ?? []) if (x?.role && (x.imageUrl || x.name)) people[x.role] = { img: x.imageUrl || people[x.role]?.img || '', name: x.name || people[x.role]?.name || '', title: people[x.role]?.title || '' }
   if (h.principalSignUrl || h.principalName) people.PRINCIPAL = { ...people.PRINCIPAL, img: h.principalSignUrl || people.PRINCIPAL?.img || '', name: h.principalName || people.PRINCIPAL?.name || '', title: people.PRINCIPAL?.title || '' }
   return { mode: template.signMode || defaultSignMode(template.docType), seal: h.sealUrl || letterhead?.sealUrl || '', people }
 }
