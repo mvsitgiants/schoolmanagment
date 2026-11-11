@@ -11,6 +11,7 @@ import { AppError, badRequest, conflict, notFound } from '../platform/errors.js'
 import { logger } from '../platform/logger.js'
 import { escapeRegex, listResponse } from '../platform/validate.js'
 import { amountDueNow, collect } from './fees.js'
+import { canteenRazorpayEvent } from './canteenFamily.js'
 import {
   asHookOwner, callProvider, getConfig, hookUrl, logInbound, maskConfig, providerFailed, requireConfig, safeEqual, saveConfig, secretOf, setHealth, sha256,
 } from './integrationsCommon.js'
@@ -332,13 +333,15 @@ async function onEvent(cfg, body) {
   switch (body.event) {
     case 'payment.captured': case 'payment.authorized': case 'order.paid': case 'payment_link.paid': {
       const order = await find()
-      if (!order) return { note: 'not one of ours' }
+      // not a fee order: a canteen wallet top-up from the parent app goes through the same Razorpay account and hook —
+      // it is credited here when the parent closed the app before Checkout's reply came back
+      if (!order) return (await canteenRazorpayEvent(cfg, body)) ?? { note: 'not one of ours' }
       const done = await applyCapture(gw, order, payment)
       return { studentId: String(order.studentId), note: done?.status }
     }
     case 'payment.failed': {
       const order = await find()
-      if (!order) return { note: 'not one of ours' }
+      if (!order) return (await canteenRazorpayEvent(cfg, body)) ?? { note: 'not one of ours' }
       await GatewayOrder.updateOne({ _id: order._id, status: 'CREATED' }, { $set: { error: String(payment?.error_description ?? 'Payment failed').slice(0, 300) } })
       return { studentId: String(order.studentId), note: 'attempt failed' }
     }

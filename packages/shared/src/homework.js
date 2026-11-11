@@ -2,6 +2,7 @@
 // A class's syllabus for a subject is a list of units, each with topics; each section ticks topics
 // off as they are taught (from a lesson plan or directly). Homework is set per section and subject;
 // the teacher records who submitted it.
+import { addDaysYmd } from './dates.js'
 
 export const SUBMISSION_STATUS = {
   PENDING: { label: 'Not yet', tone: 'neutral' },
@@ -126,4 +127,119 @@ export function parseSyllabusText(text = '') {
     units.at(-1).topics.push({ name: topic })
   }
   return units
+}
+
+// ── Topics per section: content, planned dates, how far each section has got.
+// A topic carries the teacher's material (book reference, how to teach it, questions and answers,
+// a homework suggestion), shared by every section of the class. Each section has its own planned
+// date for a topic, worked out from the unit's months and the subject's periods in the timetable.
+
+export const TOPIC_STATUS = {
+  NOT_STARTED: { label: 'Not started', tone: 'neutral' },
+  PARTLY: { label: 'Partly taught', tone: 'warning' },
+  TAUGHT: { label: 'Taught', tone: 'success' },
+}
+export const TOPIC_STATUSES = Object.keys(TOPIC_STATUS)
+export const QUESTION_KINDS = ['SHORT', 'LONG', 'MCQ']
+export const QUESTION_USES = ['CLASS', 'HOMEWORK']
+
+const DAY_CODES = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
+const codeOf = (ymd) => DAY_CODES[new Date(`${ymd}T12:00:00Z`).getUTCDay()]
+const lastOfMonth = (ym) => {
+  const [y, m] = ym.split('-').map(Number)
+  return new Date(Date.UTC(y, m, 0)).toISOString().slice(0, 10)
+}
+
+/**
+ * The days a subject is taught between two dates, each date once per period that day.
+ *   weekly       { MON: 2, WED: 1 } from the timetable; empty or null = one a day on the working days.
+ *                weekly._adjust { 'YYYY-MM-DD': ±n }: periods gained or lost that day to substitutions (another subject
+ *                taught in this subject's period, or this subject taught in another's)
+ *   workingDays  ['MON', …] (settings), holidays: Set or array of YYYY-MM-DD
+ */
+export function teachingSlots(from, to, { weekly, workingDays = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'], holidays = [] } = {}) {
+  const off = holidays instanceof Set ? holidays : new Set(holidays)
+  const perWeek = weekly && Object.values(weekly).some((n) => n > 0) ? weekly : null
+  const slots = []
+  if (!from || !to) return slots
+  for (let d = from; d <= to; d = addDaysYmd(d, 1)) {
+    if (off.has(d)) continue
+    const code = codeOf(d)
+    const n = perWeek ? Math.max(0, (perWeek[code] ?? 0) + (weekly._adjust?.[d] ?? 0)) : workingDays.includes(code) ? 1 : 0
+    for (let i = 0; i < n; i++) slots.push(d)
+  }
+  return slots
+}
+
+/** The next day after `date` the subject is taught (within six weeks), or the next day. */
+export function nextTeachingDay(date, opts = {}) {
+  return teachingSlots(addDaysYmd(date, 1), addDaysYmd(date, 42), opts)[0] ?? addDaysYmd(date, 1)
+}
+
+/**
+ * When each topic is planned for one section: { [topicId]: { start, end, override } }.
+ * A unit's topics are spread evenly over the subject's periods in the unit's months (a topic
+ * takes `periods`, default 1); a topic with its own month starts on its first teaching day in it.
+ * `overrides` { topicId: YYYY-MM-DD } are the teacher's own dates. Topics with no month at all
+ * are left out. opts: { weekly, workingDays, holidays, from, to (the year), overrides }.
+ */
+export function topicSchedule(units = [], opts = {}) {
+  const out = {}
+  const clip = (from, to) => [opts.from && from < opts.from ? opts.from : from, opts.to && to > opts.to ? opts.to : to]
+  for (const u of units) {
+    const topics = u.topics ?? []
+    if (!topics.length) continue
+    const fromM = u.fromMonth || u.toMonth
+    const toM = u.toMonth || u.fromMonth
+    let slots = []
+    if (fromM) {
+      const [from, to] = clip(`${fromM}-01`, lastOfMonth(toM))
+      slots = teachingSlots(from, to, opts)
+      if (!slots.length) slots = teachingSlots(from, to, { ...opts, weekly: null })
+    }
+    const need = topics.map((t) => Math.max(1, Number(t.periods) || 1))
+    const total = need.reduce((a, b) => a + b, 0)
+    const f = slots.length / total
+    let before = 0
+    topics.forEach((t, i) => {
+      const id = String(t.id ?? t._id)
+      let start = null
+      let end = null
+      if (slots.length) {
+        const a = Math.min(slots.length - 1, Math.floor(before * f))
+        const b = Math.max(a, Math.min(slots.length - 1, a + need[i] - 1, Math.ceil((before + need[i]) * f) - 1))
+        start = slots[a]
+        end = slots[b]
+      }
+      before += need[i]
+      if (t.month && !(start && start.startsWith(t.month))) {
+        const [from, to] = clip(`${t.month}-01`, lastOfMonth(t.month))
+        const own = teachingSlots(from, to, opts)
+        start = own[0] ?? `${t.month}-01`
+        end = own[Math.min(own.length - 1, need[i] - 1)] ?? start
+      }
+      const o = opts.overrides?.[id]
+      if (o) { start = o; end = o }
+      if (start) out[id] = { start, end: end && end >= start ? end : start, override: !!o }
+    })
+  }
+  return out
+}
+
+/**
+ * How a section stands on a subject as of `date`, from its topic rows
+ * ({ status, end, needsRevision, extraClasses }): taught / total, behind (planned date over, not
+ * taught), revisions pending, extra classes taken and still to take.
+ */
+export function topicProgress(rows = [], date) {
+  const out = { total: rows.length, taught: 0, partly: 0, behind: 0, revision: 0, extraDone: 0, extraDue: 0, pct: 0 }
+  for (const r of rows) {
+    if (r.status === 'TAUGHT') out.taught++
+    else if (r.status === 'PARTLY') out.partly++
+    if (r.status !== 'TAUGHT' && r.end && date && r.end < date) out.behind++
+    if (r.needsRevision) out.revision++
+    for (const x of r.extraClasses ?? []) { if (x.done) out.extraDone++; else out.extraDue++ }
+  }
+  out.pct = out.total ? Math.round((out.taught / out.total) * 100) : 0
+  return out
 }

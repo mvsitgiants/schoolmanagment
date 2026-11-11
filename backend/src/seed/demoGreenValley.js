@@ -939,6 +939,46 @@ async function fillPrimarySyllabus(admin) {
   return made ? `${made} year plans for Nursery – Class 5` : 'already there'
 }
 
+// teaching material on a few upcoming topics (book, how to teach, questions) and how one class stands on them:
+// partly taught, an extra class tomorrow, a taught topic due for revision. Skips topics that already have material.
+async function fillTeachingPlanner(admin) {
+  const classes = (await admin.get('/academics/classes')).classes
+  const picks = [classes.find((c) => c.code === '8'), classes.find((c) => !['6', '7', '8', '9', '10', '11', '12'].includes(c.code))].filter(Boolean)
+  let topicsFilled = 0
+  let marks = 0
+  for (const c of picks) {
+    const subj = c.subjects.find((x) => /math/i.test(x.name)) ?? c.subjects[0]
+    const sec = c.sections[0]
+    if (!subj || !sec) continue
+    const syl = await admin.get('/homework/syllabus', { classId: c.id, subjectId: subj.id }).catch(() => null)
+    const topics = (syl?.units ?? []).flatMap((u) => u.topics.map((t) => ({ ...t, unit: u.name })))
+    if (!topics.length) continue
+    const status = (t) => (syl.sections ?? []).find((x) => x.id === sec.id)?.topicPlan?.[t.id]?.status ?? 'NOT_STARTED'
+    const upcoming = topics.filter((t) => status(t) !== 'TAUGHT').slice(0, 3)
+    const taught = topics.filter((t) => status(t) === 'TAUGHT').slice(-1)
+    for (const [i, t] of upcoming.entries()) {
+      if (t.hasContent) continue
+      await admin.put(`/homework/syllabus/topics/${t.id}`, {
+        book: { name: `${subj.name} textbook (NCERT), Class ${c.name.replace(/^Class\s*/i, '')}`, chapter: t.unit, pages: `p. ${40 + i * 8}–${46 + i * 8}` },
+        howTo: `Start with a quick question from daily life about “${t.name}”. Show one worked example on the board, then let pairs try two problems from the book while you go round the class. Close with the three key points and the exit question.`,
+        keyPoints: [`What “${t.name}” means, in the pupils’ own words`, 'One worked example, step by step', 'The common mistake to watch for'],
+        questions: [
+          { question: `Explain “${t.name}” with an example of your own.`, answer: 'Any correct example that uses the idea properly.', kind: 'SHORT', use: 'CLASS' },
+          { question: `Which of these best describes “${t.name}”?`, answer: 'B', kind: 'MCQ', options: ['A', 'B', 'C', 'D'], use: 'CLASS' },
+          { question: `Solve exercise ${i + 1}.${i + 2} (questions 1–5) from the book.`, answer: 'Answers at the back of the book.', kind: 'LONG', use: 'HOMEWORK' },
+        ],
+        homeworkHint: `Exercise ${i + 1}.${i + 2}, questions 1–5, in the homework notebook.`,
+      })
+      topicsFilled++
+    }
+    const plan = (topic, body) => admin.post('/homework/topic-plan', { sectionId: sec.id, subjectId: subj.id, topicId: topic.id, ...body }, { ok: [200], quiet: [400, 403] }).then(() => { marks++ })
+    if (upcoming[0] && status(upcoming[0]) === 'NOT_STARTED') await plan(upcoming[0], { status: 'PARTLY', date: today })
+    if (upcoming[1]) await plan(upcoming[1], { addExtra: { date: addDaysYmd(today, 1), note: 'Extra class before the unit test' } })
+    if (taught[0]) await plan(taught[0], { needsRevision: true, revisionBy: addDaysYmd(today, 3) })
+  }
+  return topicsFilled || marks ? `${topicsFilled} topics with material, ${marks} class records` : 'already there'
+}
+
 async function fillLessonPlans(admin) {
   const existing = await admin.get('/homework/lesson-plans', { from: addDaysYmd(today, -20), to: addDaysYmd(today, 20) }).catch(() => [])
   if (existing.total ?? (existing.rows ?? existing.data ?? existing).length) return 'already there'
@@ -1108,6 +1148,7 @@ async function main() {
   await step('Homework', () => fillHomework(admin))
   await step('Syllabus and lesson plans', () => fillLessonPlans(admin))
   await step('Syllabus for the junior classes', () => fillPrimarySyllabus(admin))
+  await step('Teaching planner (topic material, revision, extra class)', () => fillTeachingPlanner(admin))
   await step('Admissions', () => fillAdmissions(admin))
   await step('Notices', () => fillNotices(admin))
   await mongoose.disconnect()

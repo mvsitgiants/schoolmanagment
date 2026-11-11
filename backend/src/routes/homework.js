@@ -1,11 +1,12 @@
 import { Router } from 'express'
-import { SUBMISSION_STATUSES } from '@schoolgiant/shared'
+import { QUESTION_KINDS, QUESTION_USES, SUBMISSION_STATUSES, TOPIC_STATUSES } from '@schoolgiant/shared'
 import { authenticate, requireModule, requirePermission, subscriptionGate, tenantOnly } from '../platform/middleware.js'
 import { objectId, optionalText, pageParams, z } from '../platform/validate.js'
 import {
   createHomework, deleteHomework, deletePlan, getHomework, getSyllabus, homeworkLookup, listHomework, listPlans, markTopics, myTeaching, planCalendar, savePlan,
   saveSubmissions, saveSyllabus, setPlanStatus, syllabusOverview, updateHomework,
 } from '../services/homework.js'
+import { getTopic, saveTopic, teachDay, updateTopicPlan } from '../services/homeworkTopics.js'
 
 // Homework & lessons: /api/v1/homework/*
 const router = Router()
@@ -50,6 +51,43 @@ router.put('/syllabus', requirePermission('homework.syllabus.edit'), async (req,
 router.post('/syllabus/progress', requirePermission('homework.syllabus.edit', 'homework.lesson-plans.edit'), async (req, res) => {
   const input = z.object({ sectionId: objectId, subjectId: objectId, topicIds: z.array(objectId).min(1).max(300), done: z.boolean().default(true), date: ymd.optional() }).parse(req.body)
   res.json({ data: await markTopics(input, req.auth, req) })
+})
+
+// a topic's teaching material: book reference, how to teach it, questions and answers, homework suggestion
+router.get('/syllabus/topics/:id', requirePermission('homework.syllabus.view', 'homework.lesson-plans.view'), async (req, res) => {
+  res.json({ data: await getTopic(id(req), req.auth) })
+})
+const shortText = (n) => z.string().trim().max(n).optional().default('')
+router.put('/syllabus/topics/:id', requirePermission('homework.syllabus.edit'), async (req, res) => {
+  const input = z.object({
+    book: z.object({ name: shortText(160), chapter: shortText(160), pages: shortText(120) }).optional(),
+    howTo: optionalText(8000),
+    keyPoints: z.array(z.string().trim().max(400)).max(40).default([]),
+    questions: z.array(z.object({
+      id: z.string().optional(), question: z.string().trim().max(2000), answer: z.string().max(4000).optional(),
+      kind: z.enum(QUESTION_KINDS).default('SHORT'), options: z.array(z.string().trim().max(300)).max(8).optional(), use: z.enum(QUESTION_USES).default('CLASS'),
+    })).max(80).default([]),
+    homeworkHint: optionalText(2000),
+  }).parse(req.body)
+  res.json({ data: await saveTopic(id(req), input, req.auth, req) })
+})
+
+// a section's own record of a topic: taught / partly / not taught on its day, needs revision, its date, extra classes
+router.post('/topic-plan', requirePermission('homework.syllabus.edit', 'homework.lesson-plans.edit'), async (req, res) => {
+  const input = z.object({
+    sectionId: objectId, subjectId: objectId, topicId: objectId,
+    status: z.enum(TOPIC_STATUSES).optional(), date: ymd.optional(), notTaughtOn: ymd.optional(),
+    needsRevision: z.boolean().optional(), revisionBy: ymd.nullish(), plannedDate: ymd.nullish(), notes: z.string().max(2000).optional(),
+    addExtra: z.object({ date: ymd, period: z.coerce.number().int().min(1).max(15).optional(), note: optionalText(300) }).optional(),
+    extraId: objectId.optional(), extraDone: z.boolean().optional(), removeExtra: z.boolean().optional(),
+  }).parse(req.body)
+  res.json({ data: await updateTopicPlan(input, req.auth, req) })
+})
+
+// the teacher's day: one class on one date, per subject what to teach, carried over, extra classes, revision
+router.get('/teach', requirePermission('homework.syllabus.view', 'homework.lesson-plans.view'), async (req, res) => {
+  const q = z.object({ sectionId: objectId.optional(), date: ymd.optional() }).parse(req.query)
+  res.json({ data: await teachDay(q, req.auth) })
 })
 
 // ───────────────────────────────────────────────────────── lesson plans

@@ -99,6 +99,7 @@ const ExamSetup = lazy(() => import('./pages/Exams/Setup'))
 const HomeworkPage = lazy(() => import('./pages/Homework/Homework'))
 const LessonPlans = lazy(() => import('./pages/Homework/LessonPlans'))
 const SyllabusTracker = lazy(() => import('./pages/Homework/Syllabus'))
+const TeachDay = lazy(() => import('./pages/Homework/TeachDay'))
 // Certificates
 const CertificateIssue = lazy(() => import('./pages/Certificates/Issue'))
 const CertificateRegister = lazy(() => import('./pages/Certificates/Register'))
@@ -417,6 +418,7 @@ export default function App() {
           <Route path="homework/homework" element={<HomeworkPage />} />
           <Route path="homework/lesson-plans" element={<LessonPlans />} />
           <Route path="homework/syllabus" element={<SyllabusTracker />} />
+          <Route path="homework/teach" element={<TeachDay />} />
           <Route path="certificates" element={<Navigate to="/certificates/issue" replace />} />
           <Route path="certificates/issue" element={<CertificateIssue />} />
           <Route path="certificates/register" element={<CertificateRegister />} />

@@ -43,6 +43,7 @@ export const RECORD_TYPES = {
   accreditation_evidence: 'Accreditation evidence',
   placement_offer: 'Placement offer',
   expense: 'Expense',
+  syllabus_topic: 'Syllabus topic',
   lms_item: 'Study material',
   chat_message: 'Staff chat message',
 }

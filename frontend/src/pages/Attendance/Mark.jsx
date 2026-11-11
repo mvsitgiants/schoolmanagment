@@ -154,7 +154,7 @@ function SheetView({ sectionId, date, period, onBack }) {
         ))}
       </ul>
       {!readOnly && sheet.students.length > 0 && (
-        <div className="sticky bottom-0 z-10 mt-4 -mx-1 flex items-center justify-end gap-3 rounded-xl bg-bg/90 px-1 py-3 backdrop-blur">
+        <div className="action-bar mt-4 lg:-mx-1 flex items-center justify-end gap-3 lg:rounded-xl bg-bg/95 border-t border-border lg:border-0 lg:!px-1 py-3 backdrop-blur">
           <span className="me-auto flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs font-semibold tabular-nums sm:hidden">
             {ATTENDANCE_MARKS.filter((m) => counts[m.value]).map((m) => <span key={m.value} className={TONE[m.tone]?.text}>{t(`attendance.short.${m.value}`, m.short)} {counts[m.value]}</span>)}
           </span>

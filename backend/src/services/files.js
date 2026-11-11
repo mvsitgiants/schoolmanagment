@@ -3,6 +3,7 @@ import { COMMENT_MAX, FILE_CATEGORY_LABEL, FILE_MAX_MB, FILE_TYPES, RECORD_TYPES
 import { Attachment, Comment } from '../models/engines.js'
 import { Student, studentName } from '../models/students.js'
 import { homeworkRecord } from './homework.js'
+import { syllabusTopicRecord } from './homeworkTopics.js'
 import { noticeRecord } from './communication.js'
 import { Application } from '../models/admissions.js'
 import { Candidate, Employee } from '../models/hrms.js'
@@ -39,6 +40,11 @@ const RECORDS = {
   homework: {
     module: 'homework', view: ['homework.homework.view'], add: ['homework.homework.create', 'homework.homework.edit'],
     load: (id, auth) => homeworkRecord(id, auth).catch(() => null),
+  },
+  // A syllabus topic's book pages, worksheets and pictures — shared by every section of the class and subject.
+  syllabus_topic: {
+    module: 'homework', view: ['homework.syllabus.view', 'homework.lesson-plans.view'], add: ['homework.syllabus.edit'],
+    load: (id, auth) => syllabusTopicRecord(id, auth).catch(() => null),
   },
   // An applicant's papers: birth certificate, last report card, transfer certificate, photo — seen in the application.
   application: {

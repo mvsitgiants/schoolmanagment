@@ -286,7 +286,7 @@ function Generator() {
                 onRestore={() => setDraft(d.id, (x) => ({ ...x, state: 'PENDING' }))}
                 onEdit={() => setEditing(d)} />
             ))}
-            <div className="sticky bottom-0 -mx-5 -mb-5 px-5 py-3 bg-surface/95 backdrop-blur border-t border-border flex flex-wrap items-center justify-end gap-3">
+            <div className="action-bar lg:-mx-5 lg:-mb-5 lg:!px-5 py-3 bg-surface/95 backdrop-blur border-t border-border flex flex-wrap items-center justify-end gap-3">
               {ctx.data?.paper?.status === 'DRAFT' && (
                 <label className="me-auto inline-flex items-center gap-2 text-sm text-ink-muted">
                   <input type="checkbox" checked={sendToPaper} onChange={(e) => setSendToPaper(e.target.checked)} className="rounded border-border text-brand-500 focus:ring-brand-500" />

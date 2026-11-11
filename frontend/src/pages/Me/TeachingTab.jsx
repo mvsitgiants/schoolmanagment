@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { BookOpenCheck, CalendarClock, CalendarDays, Check, CircleAlert, ClipboardList, ListChecks, NotebookPen, Plus, SkipForward } from 'lucide-react'
+import { BookOpenCheck, CalendarClock, CalendarDays, Check, ChevronRight, CircleAlert, ClipboardList, ListChecks, NotebookPen, Plus, Presentation, SkipForward } from 'lucide-react'
 import { LESSON_STATUS, addDaysYmd } from '@schoolgiant/shared'
 import { ColorChip, EmptyState, ListRow, ListRows, Note, ProgressBar, SectionCard, StatusPill, usePrompt } from '../../components/system'
 import Button from '../../components/ui/Button'
@@ -107,6 +107,15 @@ export default function TeachingTab({ action, onActionDone }) {
 
   return (
     <div className="flex flex-col gap-6">
+      {/* the day screen: what to teach in each class today, with the material and buttons to mark it */}
+      <Link to="/homework/teach" className="flex items-center gap-3 rounded-xl border border-brand-200 bg-brand-50/40 px-3 py-3 min-h-14 hover:bg-brand-50">
+        <Presentation className="w-5 h-5 text-brand-600 shrink-0" aria-hidden />
+        <span className="min-w-0 flex-1">
+          <span className="block text-sm font-semibold text-ink">{t('homework.mine.teachToday')}</span>
+          <span className="block text-xs text-ink-muted">{t('homework.mine.teachTodayHint')}</span>
+        </span>
+        <ChevronRight className="w-5 h-5 text-ink-faint shrink-0" aria-hidden />
+      </Link>
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
         <Tile icon={CalendarClock} label={t('homework.mine.stats.today')} value={todays.length} sub={t('homework.mine.stats.todaySub', { done: todays.filter((p) => p.status === 'DONE').length })} />
         <Tile icon={ClipboardList} label={t('homework.mine.stats.week')} value={data.plans.length} sub={t('homework.mine.stats.weekSub', { done: weekDone })} />
@@ -147,6 +156,7 @@ export default function TeachingTab({ action, onActionDone }) {
                   <ColorChip label={c.section} seed={c.classId} /><ColorChip label={c.subject} seed={c.subjectId} dot />
                   {c.classTeacher && <StatusPill tone="neutral">{t('homework.mine.classTeacher')}</StatusPill>}
                   {c.behind > 0 && <StatusPill tone="danger">{t('homework.syllabus.plan.behindN', { count: c.behind })}</StatusPill>}
+                  {c.revision > 0 && <StatusPill tone="warning">{t('homework.mine.revisionN', { count: c.revision })}</StatusPill>}
                 </div>
                 {c.topics ? (
                   <>
@@ -160,6 +170,7 @@ export default function TeachingTab({ action, onActionDone }) {
                   {canPlan && <Button size="sm" variant="ghost" icon={NotebookPen}
                     onClick={() => setPlanning({ date: data.today, sectionId: c.sectionId, subjectId: c.subjectId, topicIds: [...c.behindTopics, ...c.dueTopics].slice(0, 3).map((x) => x.id) })}>{t('homework.mine.planLesson')}</Button>}
                   {canSet && <Button size="sm" variant="ghost" icon={BookOpenCheck} onClick={() => setSetting({ sectionIds: [c.sectionId], subjectId: c.subjectId })}>{t('homework.new')}</Button>}
+                  <Link to={`/homework/teach?section=${c.sectionId}`} className="inline-flex items-center px-2 text-xs font-medium text-brand-600 hover:underline">{t('homework.mine.openDay')}</Link>
                   {hasPermission('homework.syllabus.view') && <Link to={syllabusLink(c)} className="inline-flex items-center px-2 text-xs font-medium text-brand-600 hover:underline">{t('homework.mine.openSyllabus')}</Link>}
                 </div>
               </div>

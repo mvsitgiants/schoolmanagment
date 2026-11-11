@@ -1,6 +1,6 @@
 import { LESSON_STATUS, SUBMISSION_STATUS, monthsInRange, sectionLabel, submissionCounts, syllabusProgress, weekOf, yearPlan } from '@schoolgiant/shared'
 import { ClassLevel, Section, Subject, TeacherAllocation } from '../models/academics.js'
-import { Homework, LessonPlan, Syllabus, SyllabusDone } from '../models/homework.js'
+import { Homework, LessonPlan, SectionTopicPlan, Syllabus, SyllabusDone } from '../models/homework.js'
 import { Student, studentName } from '../models/students.js'
 import { User } from '../models/tenant.js'
 import { scopeOf } from '../platform/access.js'
@@ -12,6 +12,7 @@ import { institutionNow } from '../platform/time.js'
 import { escapeRegex, listResponse } from '../platform/validate.js'
 import { currentYear, sectionsInScope } from './academics.js'
 import { humanDate } from './notify.js'
+import { progressMany, sectionPlans } from './homeworkTopics.js'
 
 // Homework & lessons (module `homework`). Which sections someone sees follows the role's data scope
 // for `homework` (services/academics.js sectionsInScope). With a narrow scope (CLASS, DEPARTMENT,
@@ -23,17 +24,17 @@ const idStr = (v) => (v ? String(v) : null)
 const fieldsError = (fields, message = 'Some details need fixing.') => badRequest(message, { fields })
 const today = async () => (await institutionNow()).date
 const NARROW = ['CLASS', 'DEPARTMENT', 'OWN']
-const wide = (auth, moduleId = 'homework') => !NARROW.includes(scopeOf(auth, moduleId))
+export const wide = (auth, moduleId = 'homework') => !NARROW.includes(scopeOf(auth, moduleId))
 const byRoll = { locale: 'en', numericOrdering: true }
 
-async function requireYear() {
+export async function requireYear() {
   const y = await currentYear()
   if (!y) throw conflict('Add an academic year first (Academic setup › Academic years & terms).')
   return y
 }
 
 /** A section the caller may see, with its class and labels. */
-async function sectionFor(sectionId, auth) {
+export async function sectionFor(sectionId, auth) {
   if (!isOid(sectionId)) throw notFound('Section')
   const section = await Section.findById(sectionId).lean()
   if (!section) throw notFound('Section')
@@ -44,7 +45,7 @@ async function sectionFor(sectionId, auth) {
 }
 
 /** May the caller teach (set homework, plan, tick the syllabus for) this subject in this section? */
-async function mayTeach(auth, section, subjectId) {
+export async function mayTeach(auth, section, subjectId) {
   if (wide(auth)) return true
   if (String(section.classTeacherId) === String(auth.userId)) return true
   const [alloc, user] = await Promise.all([
@@ -57,7 +58,7 @@ async function mayTeach(auth, section, subjectId) {
 /** May the caller change a plan / homework someone made? Its author, the class teacher, or a wider scope. */
 const mayChange = (auth, doc, section) => wide(auth) || String(doc.teacherId) === String(auth.userId) || String(section.classTeacherId) === String(auth.userId)
 
-async function subjectNames(ids) {
+export async function subjectNames(ids) {
   return new Map((await Subject.find({ _id: { $in: ids } }).select('name code').lean()).map((s) => [String(s._id), s.name]))
 }
 
@@ -109,10 +110,15 @@ export async function homeworkLookup(auth, moduleId = 'homework') {
 
 // ───────────────────────────────────────────────────────── syllabus
 
-const unitsDto = (units = []) => units.map((u) => ({
+export const unitsDto = (units = []) => units.map((u) => ({
   id: String(u._id), name: u.name, fromMonth: u.fromMonth ?? null, toMonth: u.toMonth ?? null,
-  topics: (u.topics ?? []).map((t) => ({ id: String(t._id), name: t.name, periods: t.periods ?? null, month: t.month ?? null })),
+  topics: (u.topics ?? []).map((t) => ({
+    id: String(t._id), name: t.name, periods: t.periods ?? null, month: t.month ?? null,
+    hasContent: !!(t.howTo || t.book?.name || t.book?.pages || t.keyPoints?.length || t.questions?.length || t.homeworkHint),
+  })),
 }))
+// a topic's teaching material — kept when the syllabus structure is saved (the editor doesn't send it)
+const CONTENT_FIELDS = ['book', 'howTo', 'keyPoints', 'questions', 'homeworkHint', 'contentBy', 'contentAt']
 const thisMonth = async () => (await today()).slice(0, 7)
 
 /** Every class × subject the caller works with, and how far each section has got. */
@@ -127,6 +133,9 @@ export async function syllabusOverview(auth) {
   ])
   const doneOf = new Map(done.map((d) => [`${d._id.sectionId}:${d._id.subjectId}`, d.topics.map(String)]))
   const month = await thisMonth()
+  const date = await today()
+  const pairs = look.classes.flatMap((c) => c.subjects.flatMap((sub) => look.sections.filter((s) => s.classId === c.id && s.subjects.some((x) => x.id === sub.id)).map((s) => ({ sectionId: s.id, classId: c.id, subjectId: sub.id }))))
+  const dated = await progressMany({ year: { ...look.year, _id: oid(look.year.id) }, syllabi, pairs, date })
   const rows = []
   for (const c of look.classes) {
     for (const sub of c.subjects) {
@@ -140,7 +149,8 @@ export async function syllabusOverview(auth) {
           const ticked = doneOf.get(`${s.id}:${sub.id}`) ?? []
           const { topics, done: n, pct } = syllabusProgress(units, ticked)
           const plan = yearPlan(units, ticked, month)
-          return { id: s.id, short: s.short, topics, done: n, pct, behind: plan.behind.length, due: plan.due.length }
+          const p = dated.get(`${s.id}:${sub.id}`)
+          return { id: s.id, short: s.short, topics, done: n, pct, behind: p?.behind ?? plan.behind.length, due: plan.due.length, revision: p?.revision ?? 0, extraDone: p?.extraDone ?? 0 }
         }),
         planned: yearPlan(units, [], month).planned,
       })
@@ -161,8 +171,10 @@ export async function getSyllabus({ classId, subjectId }, auth) {
   const sections = look.sections.filter((s) => s.classId === String(classId) && s.subjects.some((x) => x.id === String(subjectId)))
   const done = await SyllabusDone.find({ sectionId: { $in: sections.map((s) => s.id) }, subjectId }).lean()
   const month = await thisMonth()
+  const date = await today()
+  const plans = await sectionPlans({ year, subjectId, units, sections, date })
   return {
-    year: look.year, months: monthsInRange(look.year.startDate, look.year.endDate), month,
+    year: look.year, months: monthsInRange(look.year.startDate, look.year.endDate), month, today: date,
     classId: String(classId), className: cls.name, subjectId: String(subjectId), subject: subject?.name ?? '?',
     units, updatedBy: syl?.updatedBy ?? null, updatedAt: syl?.updatedAt ?? null,
     canEditStructure: wide(auth) || sections.length > 0,
@@ -170,10 +182,14 @@ export async function getSyllabus({ classId, subjectId }, auth) {
       const mine = done.filter((d) => String(d.sectionId) === s.id)
       const ticked = mine.map((d) => String(d.topicId))
       const plan = yearPlan(units, ticked, month)
+      const sp = plans.get(s.id)
       return {
         id: s.id, label: s.label, short: s.short,
         ticks: Object.fromEntries(mine.map((d) => [String(d.topicId), { date: d.date, by: d.by, fromPlan: !!d.lessonPlanId }])),
-        ...syllabusProgress(units, ticked), behind: plan.behind.length, due: plan.due.length,
+        ...syllabusProgress(units, ticked), behind: sp.progress.behind, due: plan.due.length,
+        progress: sp.progress,
+        // each topic's planned dates and how it stands in this section
+        topicPlan: Object.fromEntries(sp.rows.map((r) => [r.id, { start: r.start, end: r.end, override: r.override, status: r.status, needsRevision: r.needsRevision, carried: r.carried, notes: r.notes, extraClasses: r.extraClasses }])),
       }
     }),
   }
@@ -202,11 +218,13 @@ export async function saveSyllabus({ classId, subjectId, units }, auth, req) {
   })
   if (Object.keys(errors).length) throw fieldsError(errors)
   const known = new Set(current.units.flatMap((u) => [u.id, ...u.topics.map((t) => t.id)]))
+  const stored = await Syllabus.findOne({ academicYearId: year._id, classId, subjectId }).lean()
+  const contentOf = new Map((stored?.units ?? []).flatMap((u) => u.topics.map((t) => [String(t._id), Object.fromEntries(CONTENT_FIELDS.filter((k) => t[k] !== undefined).map((k) => [k, t[k]]))])))
   const keepId = (id) => (id && known.has(String(id)) ? id : undefined)
   const next = units.map((u) => ({
     ...(keepId(u.id) && { _id: u.id }), name: u.name.trim(),
     fromMonth: u.fromMonth || u.toMonth || undefined, toMonth: u.toMonth || u.fromMonth || undefined,
-    topics: (u.topics ?? []).map((t) => ({ ...(keepId(t.id) && { _id: t.id }), name: t.name.trim(), periods: t.periods || undefined, month: t.month || undefined })),
+    topics: (u.topics ?? []).map((t) => ({ ...(keepId(t.id) && { ...contentOf.get(String(t.id)), _id: t.id }), name: t.name.trim(), periods: t.periods || undefined, month: t.month || undefined })),
   }))
   const kept = new Set(next.flatMap((u) => u.topics.map((t) => String(t._id ?? ''))).filter(Boolean))
   const removed = current.units.flatMap((u) => u.topics.map((t) => t.id)).filter((id) => !kept.has(id))
@@ -214,6 +232,7 @@ export async function saveSyllabus({ classId, subjectId, units }, auth, req) {
     await Syllabus.updateOne({ academicYearId: year._id, classId, subjectId }, { $set: { units: next, updatedBy: auth.user?.name } }, { upsert: true })
     if (removed.length) {
       await SyllabusDone.deleteMany({ subjectId, topicId: { $in: removed } })
+      await SectionTopicPlan.deleteMany({ subjectId, topicId: { $in: removed } })
       await LessonPlan.updateMany({ subjectId, topicIds: { $in: removed } }, { $pull: { topicIds: { $in: removed } } })
     }
   })
@@ -223,12 +242,12 @@ export async function saveSyllabus({ classId, subjectId, units }, auth, req) {
   return getSyllabus({ classId, subjectId }, auth)
 }
 
-async function topicIdsOf(classId, subjectId, academicYearId) {
+export async function topicIdsOf(classId, subjectId, academicYearId) {
   const syl = await Syllabus.findOne({ academicYearId, classId, subjectId }).lean()
   return new Set((syl?.units ?? []).flatMap((u) => u.topics.map((t) => String(t._id))))
 }
 
-async function tick({ year, section, subjectId, topicIds, date, lessonPlanId }, auth) {
+export async function tick({ year, section, subjectId, topicIds, date, lessonPlanId }, auth) {
   if (!topicIds.length) return
   await SyllabusDone.bulkWrite(topicIds.map((topicId) => ({
     updateOne: {
@@ -523,7 +542,7 @@ export async function homeworkRecord(id, auth) {
  * Unlike the lookup this is "mine" even on a wide scope — an administrator who also teaches sees
  * their own classes here, not the whole institution.
  */
-async function myPairs(auth, year) {
+export async function myPairs(auth, year) {
   const [own, allocs, user, allowed] = await Promise.all([
     Section.find({ academicYearId: year._id, classTeacherId: auth.userId, active: { $ne: false } }).lean(),
     TeacherAllocation.find({ academicYearId: year._id, teacherId: auth.userId }).select('sectionId subjectId').lean(),
@@ -588,8 +607,11 @@ export async function myTeaching(auth) {
     if (!doneOf.has(k)) doneOf.set(k, [])
     doneOf.get(k).push(String(d.topicId))
   }
+  // behind = planned date passed and not taught (per section, from the timetable), as the syllabus page counts it
+  const dated = await progressMany({ year, syllabi, pairs: pairs.map(({ section, subjectId }) => ({ sectionId: String(section._id), classId: String(section.classId), subjectId })), date: t })
   const rows = pairs.map(({ section, subjectId, allocated }) => {
     const cls = classes.get(String(section.classId))
+    const p = dated.get(`${section._id}:${subjectId}`)
     const syl = syllabi.find((x) => String(x.classId) === String(section.classId) && String(x.subjectId) === subjectId)
     const units = unitsDto(syl?.units)
     const ticked = doneOf.get(`${section._id}:${subjectId}`) ?? []
@@ -600,7 +622,8 @@ export async function myTeaching(auth) {
       section: sectionLabel(cls, section, { short: true }), subject: subjects.get(subjectId) ?? '?', order: cls?.order ?? 0,
       classTeacher: String(section.classTeacherId) === String(auth.userId), allocated, // allocated: they teach it (not only oversee it as class teacher)
       topics: progress.topics, done: progress.done, pct: progress.pct, planned: plan.planned,
-      behind: plan.behind.length, behindTopics: plan.behind.slice(0, 8).map((x) => ({ id: x.topicId, name: x.name })),
+      behind: p?.behind ?? plan.behind.length, behindTopics: (p?.behindTopics ?? plan.behind.map((x) => ({ id: x.topicId, name: x.name }))).slice(0, 8),
+      revision: p?.revision ?? 0, extraDone: p?.extraDone ?? 0,
       due: plan.due.length, dueTopics: plan.due.slice(0, 8).map((x) => ({ id: x.topicId, name: x.name })),
     }
   }).filter((r) => r.subject !== '?')

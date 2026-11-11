@@ -230,3 +230,8 @@ h1, h2, h3, h4, .font-display {
 
 /* The punch-in card's map: muted streets so the campus area and "you are here" stand out (components/geo/PunchMap.jsx). */
 .punch-map .leaflet-tile-pane { filter: grayscale(0.85) brightness(1.06) contrast(0.92); }
+
+/* A page's save / action bar. On a phone it rests just on the bottom tab bar (the page's own bottom padding keeps its
+   last rows clear); from lg up it sticks to the bottom of the scrolling page as before. */
+.action-bar { position: fixed; left: 0; right: 0; bottom: calc(4rem + env(safe-area-inset-bottom)); z-index: 30; padding-left: 1rem; padding-right: 1rem; box-shadow: 0 -4px 12px rgba(16, 24, 40, .06) }
+@media (min-width: 1024px) { .action-bar { position: sticky; left: auto; right: auto; bottom: 0; z-index: 10; box-shadow: none } }

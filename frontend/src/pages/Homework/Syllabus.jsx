@@ -2,10 +2,11 @@ import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { CalendarRange, CheckCircle2, ChevronLeft, CircleAlert, CircleDashed, ClipboardPaste, ListChecks, Pencil, Plus, Save, X } from 'lucide-react'
+import { BookOpen, CalendarRange, CheckCircle2, ChevronLeft, CircleAlert, CircleDashed, ClipboardPaste, ListChecks, Pencil, Plus, Save, X } from 'lucide-react'
 import { parseSyllabusText, spreadUnits, topicMonth, yearPlan } from '@schoolgiant/shared'
 import { ColorChip, DataTable, Input, Modal, Note, PageContainer, PageHeader, Panel, PillRow, ProgressBar, SegmentedControl, SideNav, SideNavLayout, StatusPill, Textarea, pillClass, useConfirm } from '../../components/system'
 import { MonthSelect, useMonthLabel } from '../../components/homework/HomeworkKit'
+import { TopicDrawer, TopicStatusPill } from '../../components/homework/TopicKit'
 import Button from '../../components/ui/Button'
 import { fetchSyllabus, fetchSyllabusOverview, markSyllabusTopics, saveSyllabus } from '../../api/homework'
 import { hasPermission } from '../../api/auth'
@@ -166,6 +167,7 @@ function Detail({ classId, subjectId, initialSection, onBack }) {
   const [sectionId, setSectionId] = useState(initialSection ?? '')
   const [editing, setEditing] = useState(false)
   const [view, setView] = useState('TOPICS')
+  const [openTopic, setOpenTopic] = useState(null)
   const monthLabel = useMonthLabel()
   useEffect(() => { if (syl && !syl.sections.some((s) => s.id === sectionId)) setSectionId(syl.sections[0]?.id ?? '') }, [syl, sectionId])
   const tick = useMutation({
@@ -209,6 +211,9 @@ function Detail({ classId, subjectId, initialSection, onBack }) {
               <div className="flex-1 min-w-[8rem] sm:max-w-xs"><ProgressBar value={sec.pct} /></div>
               {sec.behind > 0 && <StatusPill tone="danger">{t('homework.syllabus.plan.behindN', { count: sec.behind })}</StatusPill>}
               {sec.due > 0 && <StatusPill tone="info">{t('homework.syllabus.plan.dueN', { count: sec.due })}</StatusPill>}
+              {!sec.behind && sec.topics > 0 && sec.done < sec.topics && <StatusPill tone="neutral">{t('homework.teach.onTrack')}</StatusPill>}
+              {sec.progress?.revision > 0 && <StatusPill tone="warning">{t('homework.teach.revisionN', { count: sec.progress.revision })}</StatusPill>}
+              {sec.progress?.extraDone > 0 && <span className="text-xs text-ink-muted">{t('homework.teach.extraTaken', { count: sec.progress.extraDone })}</span>}
               <SegmentedControl className="w-full sm:w-auto sm:ms-auto" value={view} onChange={setView} options={[
                 { value: 'TOPICS', label: t('homework.syllabus.plan.viewTopics'), icon: ListChecks },
                 { value: 'PLAN', label: t('homework.syllabus.plan.viewPlan'), icon: CalendarRange },
@@ -221,16 +226,27 @@ function Detail({ classId, subjectId, initialSection, onBack }) {
                   <div className="divide-y divide-border">
                     {u.topics.map((tp) => {
                       const d = sec.ticks[tp.id]
+                      const pl = sec.topicPlan?.[tp.id]
                       return (
-                        <label key={tp.id} className="flex items-start sm:items-center gap-3 py-2.5 sm:py-2 text-sm cursor-pointer">
-                          <input type="checkbox" checked={!!d} disabled={!canTick || tick.isPending} onChange={(e) => tick.mutate({ topicId: tp.id, done: e.target.checked })} className="mt-0.5 sm:mt-0 h-5 w-5 sm:h-4 sm:w-4 shrink-0 rounded border-border text-brand-500 focus:ring-brand-500" />
-                          {/* phones: when / who sits under the topic instead of squeezing it */}
-                          <span className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center sm:gap-3">
-                            <span className={`flex-1 ${d ? 'text-ink-muted line-through' : 'text-ink'}`}>{tp.name}</span>
-                            {!d && tp.month && <span className={`text-xs ${tp.month < syl.month ? 'text-danger-600' : 'text-ink-faint'}`}>{monthLabel(tp.month)}</span>}
+                        <div key={tp.id} className="flex items-start sm:items-center gap-3 py-2.5 sm:py-2 text-sm">
+                          <input type="checkbox" checked={!!d} aria-label={tp.name} disabled={!canTick || tick.isPending} onChange={(e) => tick.mutate({ topicId: tp.id, done: e.target.checked })} className="mt-0.5 sm:mt-0 h-5 w-5 sm:h-4 sm:w-4 shrink-0 rounded border-border text-brand-500 focus:ring-brand-500" />
+                          {/* tap the topic for its material and this section's record; phones: when / who sits under it */}
+                          <button type="button" onClick={() => setOpenTopic(tp.id)} className="flex-1 min-w-0 text-start flex flex-col sm:flex-row sm:items-center gap-x-3 gap-y-1">
+                            <span className={`flex-1 ${d ? 'text-ink-muted line-through' : 'text-ink'} hover:text-brand-700`}>
+                              {tp.name}{tp.hasContent && <BookOpen className="inline w-3.5 h-3.5 ms-1.5 text-ink-faint" aria-label={t('homework.topic.hasMaterial')} />}
+                            </span>
+                            {(pl?.status === 'PARTLY' || pl?.needsRevision || pl?.extraClasses?.length > 0) && (
+                              <span className="flex flex-wrap items-center gap-1">
+                                {!d && pl.status === 'PARTLY' && <TopicStatusPill status="PARTLY" />}
+                                {pl.needsRevision && <StatusPill tone="warning">{t('homework.topic.needsRevision')}</StatusPill>}
+                                {pl.extraClasses?.length > 0 && <span className="text-xs text-ink-faint">{t('homework.topic.extraN', { count: pl.extraClasses.length })}</span>}
+                              </span>
+                            )}
+                            {!d && pl?.start && <span className={`text-xs ${pl.end < syl.today ? 'text-danger-600' : 'text-ink-faint'}`}>{date(pl.start)}</span>}
+                            {!d && !pl?.start && tp.month && <span className={`text-xs ${tp.month < syl.month ? 'text-danger-600' : 'text-ink-faint'}`}>{monthLabel(tp.month)}</span>}
                             {d && <span className="text-xs text-ink-faint">{date(d.date)}{d.by ? ` · ${d.by}` : ''}{d.fromPlan ? ` · ${t('homework.syllabus.fromPlan')}` : ''}</span>}
-                          </span>
-                        </label>
+                          </button>
+                        </div>
                       )
                     })}
                     {!u.topics.length && <p className="py-2 text-sm text-ink-faint">{t('homework.syllabus.noTopics', { n: i + 1 })}</p>}
@@ -242,6 +258,9 @@ function Detail({ classId, subjectId, initialSection, onBack }) {
           {!syl.sections.length && <Note tone="warning">{t('homework.syllabus.noSections')}</Note>}
         </>
       )}
+      {openTopic && <TopicDrawer topicId={openTopic} subjectId={subjectId} onClose={() => setOpenTopic(null)}
+        section={sec && { id: sec.id, label: sec.label, date: syl.today, row: { id: openTopic, ...sec.topicPlan?.[openTopic] } }}
+        onChanged={() => { qc.invalidateQueries({ queryKey: key }); qc.invalidateQueries({ queryKey: ['syllabus-overview'] }); qc.invalidateQueries({ queryKey: ['teach-day'] }) }} />}
     </div>
   )
 }
@@ -332,7 +351,7 @@ export default function Syllabus() {
               } },
               { key: 'sections', header: t('homework.syllabus.progress'), clamp: false, mobileHidden: true, render: (v, r) => (r.topics ? (
                 <div className="flex flex-wrap gap-3">
-                  {v.map((s) => <div key={s.id} className="w-28"><p className="text-xs text-ink-muted mb-0.5">{s.short} · {s.done}/{s.topics}</p><ProgressBar value={s.pct} showValue={false} />{s.behind > 0 && <p className="text-[11px] text-danger-600 mt-0.5">{t('homework.syllabus.plan.behindN', { count: s.behind })}</p>}</div>)}
+                  {v.map((s) => <div key={s.id} className="w-28"><p className="text-xs text-ink-muted mb-0.5">{s.short} · {s.done}/{s.topics}</p><ProgressBar value={s.pct} showValue={false} />{s.behind > 0 && <p className="text-[11px] text-danger-600 mt-0.5">{t('homework.syllabus.plan.behindN', { count: s.behind })}</p>}{s.revision > 0 && <p className="text-[11px] text-amber-600 mt-0.5">{t('homework.teach.revisionN', { count: s.revision })}</p>}</div>)}
                 </div>
               ) : <span className="text-xs text-ink-faint">—</span>) },
               { key: 'pct', header: t('homework.syllabus.overall'), align: 'right', mobileTrail: true, render: (_, r) => (r.topics ? <span className="text-sm font-semibold tabular-nums text-ink">{overall(r).pct}%</span> : <span className="text-ink-faint">—</span>) },

@@ -32,7 +32,7 @@ export function HomeworkForm({ lookup, homework, defaults, onClose, onSaved }) {
   }, [sections])
   const [form, setForm] = useState(() => ({
     subjectId: homework?.subjectId ?? defaults?.subjectId ?? subjects[0]?.id ?? '', sectionIds: homework ? [homework.sectionId] : defaults?.sectionIds ?? [],
-    title: homework?.title ?? '', details: homework?.details ?? '', setDate: homework?.setDate ?? todayIso(), dueDate: homework?.dueDate ?? addDaysYmd(todayIso(), 1),
+    title: homework?.title ?? defaults?.title ?? '', details: homework?.details ?? defaults?.details ?? '', setDate: homework?.setDate ?? todayIso(), dueDate: homework?.dueDate ?? addDaysYmd(todayIso(), 1),
     needsSubmission: homework?.needsSubmission ?? true, notify: true,
   }))
   const [errors, setErrors] = useState({})

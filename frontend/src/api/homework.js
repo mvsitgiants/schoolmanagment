@@ -34,3 +34,11 @@ export const createHomework = (body) => post(BASE, body)
 export const updateHomework = (id, body) => patch(`${BASE}/${id}`, body)
 export const deleteHomework = (id) => del(`${BASE}/${id}`)
 export const saveHomeworkSubmissions = (id, entries) => put(`${BASE}/${id}/submissions`, { entries })
+
+/** A syllabus topic's teaching material: book, how to teach it, questions and answers, homework suggestion. */
+export const fetchSyllabusTopic = (id) => get(`${BASE}/syllabus/topics/${id}`)
+export const saveSyllabusTopic = (id, body) => put(`${BASE}/syllabus/topics/${id}`, body)
+/** A section's record of a topic: status, not taught on its day, needs revision, its date, extra classes. */
+export const updateTopicPlan = (body) => post(`${BASE}/topic-plan`, body)
+/** The teacher's day: one class on one date, per subject what to teach. */
+export const fetchTeachDay = (params) => get(`${BASE}/teach`, params)

@@ -17,7 +17,7 @@ import {
 // Razorpay account (the one Fees › Online payments sets up), the parent's controls (a daily limit; food ruled out by
 // kind or by item) and pre-orders for the coming days.
 //
-// Online top-up, exactly once: Checkout's signed reply (or the Razorpay webhook, once wired — see the wiring note) finds
+// Online top-up, exactly once: Checkout's signed reply (or the Razorpay webhook — handed over by feePayments.js onEvent; see the wiring note) finds
 // the CanteenTopup row by its Razorpay order id; ONE transaction flips it CREATED/FAILED → APPLIED and writes the wallet
 // credit. A second reply for the same payment finds nothing to claim, and the ledger's unique gatewayPaymentId would
 // refuse a second credit anyway. A payment that doesn't match the row (amount, currency) waits as NEEDS_REVIEW.
