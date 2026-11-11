@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Download, Eye, FileText, Image as ImageIcon, Loader2, Paperclip, Trash2, Upload } from 'lucide-react'
-import { FILE_ACCEPT, FILE_CATEGORIES, FILE_MAX_MB, RECORD_TYPES } from '@schoolgiant/shared'
+import { DOCUMENT_RECORD_TYPES, FILE_ACCEPT, FILE_CATEGORIES, FILE_MAX_MB, RECORD_TYPES } from '@schoolgiant/shared'
 import { deleteFile, downloadFile, fetchFiles, fetchStudentFiles, uploadFile } from '../../api/files'
 import { useSnackbar } from '../../context/SnackbarContext'
 import { useFormat } from '../../context/SettingsContext'
@@ -25,7 +25,7 @@ const isImage = (row) => /^image\//i.test(row?.contentType || '')
  *   <Attachments entityType="invoice" entityId={bill.id} canAdd={…} />
  *   <Attachments entityType="student" entityId={p.id} studentScope />   // everything about the student
  */
-export default function Attachments({ entityType, entityId, studentScope = false, category: defaultCategory = 'OTHER', label: labelProp, canAdd = true, compact = false, onChange }) {
+export default function Attachments({ entityType, entityId, studentScope = false, category: defaultCategory = 'OTHER', label: labelProp, canAdd = true, compact = false, hideEmpty = false, onChange }) {
   const { t } = useTranslation('ui')
   const label = labelProp ?? t('ui.attachments.files')
   const { showError, showSuccess } = useSnackbar()
@@ -36,6 +36,8 @@ export default function Attachments({ entityType, entityId, studentScope = false
   const [busy, setBusy] = useState(false)
   const [dragging, setDragging] = useState(false)
   const [category, setCategory] = useState(defaultCategory)
+  // "kind of file" only means something for personal documents (a student's birth certificate, a staff ID proof)
+  const withKind = DOCUMENT_RECORD_TYPES.includes(entityType)
   const inputRef = useRef(null)
 
   const load = useCallback(() => {
@@ -97,6 +99,8 @@ export default function Attachments({ entityType, entityId, studentScope = false
     try { await deleteFile(row.id, reason); showSuccess(t('ui.attachments.removed')); load(); onChange?.() } catch (err) { showError(err.message || t('ui.attachments.removeFailed')) }
   }
 
+  // read-only and nothing attached: say nothing (hideEmpty)
+  if (hideEmpty && (loading || !items.length)) return null
   return (
     <div
       className={`relative rounded-lg border bg-surface outline-none transition-colors ${dragging ? 'border-brand-400 ring-2 ring-brand-500/50' : 'border-border'}`}
@@ -107,7 +111,7 @@ export default function Attachments({ entityType, entityId, studentScope = false
         <span className="text-xs font-semibold text-ink-muted flex items-center gap-1.5"><Paperclip size={13} /> {label}{items.length ? ` (${items.length})` : ''}</span>
         {canAdd && (
           <div className="flex items-center gap-2">
-            <div className="w-48"><Select aria-label={t('ui.attachments.kindOfFile')} value={category} onChange={(e) => setCategory(e.target.value)} className="!h-8 text-xs">{FILE_CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}</Select></div>
+            {withKind && <div className="w-48"><Select aria-label={t('ui.attachments.kindOfFile')} value={category} onChange={(e) => setCategory(e.target.value)} className="!h-8 text-xs">{FILE_CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}</Select></div>}
             <button type="button" onClick={() => inputRef.current?.click()} disabled={!entityId || busy} className="inline-flex items-center gap-1.5 text-xs font-medium text-brand-600 hover:text-brand-700 disabled:opacity-50">
               {busy ? <Loader2 size={13} className="animate-spin" /> : <Upload size={13} />} {t('ui.attachments.upload')}
             </button>
@@ -132,7 +136,7 @@ export default function Attachments({ entityType, entityId, studentScope = false
                 <button type="button" onClick={() => view(row)} className="flex-1 min-w-0 text-start group" title={t('ui.attachments.viewName', { name: row.fileName })}>
                   <span className="block truncate text-ink group-hover:text-brand-700 group-hover:underline">{row.title || row.fileName}</span>
                   <span className="block text-[11px] text-ink-faint truncate">
-                    {row.categoryLabel}{studentScope && row.entityType !== 'student' ? ` · ${t('ui.attachments.onRecord', { type: RECORD_TYPES[row.entityType]?.toLowerCase() })}` : ''} · {row.uploadedBy} · {dateTime(row.uploadedAt)}
+                    {[DOCUMENT_RECORD_TYPES.includes(row.entityType) ? row.categoryLabel : null, studentScope && row.entityType !== 'student' ? t('ui.attachments.onRecord', { type: RECORD_TYPES[row.entityType]?.toLowerCase() }) : null, row.uploadedBy, dateTime(row.uploadedAt)].filter(Boolean).join(' · ')}
                   </span>
                 </button>
                 <span className="text-xs text-ink-faint shrink-0 hidden sm:inline">{fmtSize(row.size)}</span>

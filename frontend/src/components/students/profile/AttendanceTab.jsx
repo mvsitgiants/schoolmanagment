@@ -1,12 +1,12 @@
-import { Fragment } from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import clsx from 'clsx'
-import { CalendarCheck2, CalendarDays, CalendarOff, Grid3x3 } from 'lucide-react'
-import { ColumnBars, SectionCard, StatusPill, Tag } from '../../system'
+import { CalendarCheck2, CalendarDays, CalendarOff } from 'lucide-react'
+import { Calendar, ColumnBars, SectionCard, StatusPill, Tag } from '../../system'
 import Button from '../../ui/Button'
 import { hasPermission } from '../../../api/auth'
 import { useFormat } from '../../../context/SettingsContext'
-import { Figure, Legend, MARK_FILL, Quiet, SectionError, addDays, broken, list, pctTone, useLabels, useMonthShort, useWeekdayShort } from './kit'
+import { Figure, MARK_FILL, Quiet, SectionError, broken, list, pctTone, useLabels, useMonthShort } from './kit'
 
 const MARKS = ['P', 'L', 'HD', 'A', 'LV']
 
@@ -69,48 +69,22 @@ function Summary({ a }) {
 }
 
 /** The last ~13 weeks as a calendar: a column per week (Monday first), a square per day coloured by the mark. */
+/** The last three months as a proper month calendar: each school day shows its mark. */
+const MARK_TONE = { P: 'accent', A: 'danger', L: 'warning', HD: 'warning', LV: 'neutral' }
 function Heatmap({ a }) {
   const { t } = useTranslation('students')
   const L = useLabels()
-  const { date } = useFormat()
-  const month = useMonthShort()
-  const weekday = useWeekdayShort()
-  const marks = new Map(list(a.days).map((d) => [d.date, d.status]))
   const today = a.to
-  // start on the Monday on or before the first day shown
-  const first = a.heatmapFrom
-  const dow = (new Date(`${first}T12:00:00Z`).getUTCDay() + 6) % 7
-  const start = addDays(first, -dow)
-  const weeks = []
-  for (let w = start; w <= today; w = addDays(w, 7)) weeks.push(w)
+  const [month, setMonth] = useState(today.slice(0, 7))
+  const days = list(a.days)
   const counts = Object.fromEntries(MARKS.map((m) => [m, 0]))
-  for (const s of marks.values()) if (counts[s] != null) counts[s]++
+  for (const d of days) if (counts[d.status] != null) counts[d.status]++
+  const items = days.map((d) => ({ id: d.date, date: d.date, title: L.mark(d.status), tone: MARK_TONE[d.status] ?? 'neutral' }))
   return (
-    <SectionCard icon={Grid3x3} title={t('students.profile.attendance.calendar')} hint={t('students.profile.attendance.calendarHint')}>
-      <div className="grid gap-[3px] sm:gap-1" style={{ gridTemplateColumns: `auto repeat(${weeks.length}, minmax(0, 1fr))` }}>
-        <span />
-        {weeks.map((w, i) => {
-          const m = w.slice(0, 7)
-          // a month's name over its first week — not over a lone first column (no room before the next name)
-          const firstOfMonth = i === 0 ? weeks[1]?.slice(0, 7) === m && weeks[2]?.slice(0, 7) === m : weeks[i - 1].slice(0, 7) !== m
-          return <span key={w} className="truncate text-[10px] font-medium text-ink-faint">{firstOfMonth ? month(m) : ''}</span>
-        })}
-        {[0, 1, 2, 3, 4, 5, 6].map((d) => (
-          <Fragment key={d}>
-            <span className="pe-1.5 text-end text-[10px] leading-none text-ink-faint self-center">{d % 2 === 0 ? weekday(addDays(start, d)) : ''}</span>
-            {weeks.map((w) => {
-              const day = addDays(w, d)
-              const out = day < first || day > today
-              const s = marks.get(day)
-              return (
-                <span key={day} title={out ? undefined : `${date(day)} · ${s ? L.mark(s) : t('students.profile.attendance.noMark')}`}
-                  className={clsx('aspect-square w-full max-w-[2.25rem] justify-self-center rounded-[4px]', out ? 'bg-transparent' : s ? MARK_FILL[s] : 'bg-black/[0.05]', day === today && 'ring-2 ring-brand-400 ring-offset-1 ring-offset-surface')} />
-              )
-            })}
-          </Fragment>
-        ))}
-      </div>
-      <Legend className="mt-4" items={[...MARKS.map((m) => ({ label: L.mark(m), fill: MARK_FILL[m], count: counts[m] })), { label: t('students.profile.attendance.noMark'), fill: 'bg-black/[0.08]' }]} />
+    <SectionCard icon={CalendarDays} title={t('students.profile.attendance.calendar')} hint={t('students.profile.attendance.calendarHint')}>
+      <Calendar items={items} views={['month']} month={month} onMonthChange={setMonth}
+        minMonth={a.heatmapFrom.slice(0, 7)} maxMonth={today.slice(0, 7)} dayPanel={false}
+        legend={MARKS.map((m) => ({ tone: MARK_TONE[m], label: `${L.mark(m)} ${counts[m]}` }))} />
     </SectionCard>
   )
 }

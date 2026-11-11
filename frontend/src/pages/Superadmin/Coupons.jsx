@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Check, Percent, Plus, Tag, TicketPercent } from 'lucide-react'
-import { ColorChip, DataTable, DateCell, Drawer, ExpiryBadge, FormField, Input, LevelBar, PageContainer, PageHeader, StatusPill } from '../../components/system'
+import { DateInput, ColorChip, DataTable, DateCell, Drawer, ExpiryBadge, FormField, Input, LevelBar, PageContainer, PageHeader, StatusPill } from '../../components/system'
 import { canPlatform } from '../../api/auth'
 import Button from '../../components/ui/Button'
 import { Switch } from '../../components/app/Controls'
@@ -39,7 +39,7 @@ function CouponEditor({ coupon, plans, onClose, onSaved }) {
         </div>
         <FormField label={t('superadmin.coupons.description')} error={errors.description}><Input value={form.description ?? ''} onChange={set('description')} maxLength={200} /></FormField>
         <div className="grid grid-cols-2 gap-4">
-          <FormField label={t('superadmin.coupons.validUntil')} hint={t('superadmin.coupons.validUntilHint')}><Input type="date" value={form.validUntil} onChange={set('validUntil')} /></FormField>
+          <FormField label={t('superadmin.coupons.validUntil')} hint={t('superadmin.coupons.validUntilHint')}><DateInput value={form.validUntil} onChange={set('validUntil')} /></FormField>
           <FormField label={t('superadmin.coupons.maxUses')} hint={t('superadmin.coupons.maxUsesHint')}><Input type="number" min="1" value={form.maxUses} onChange={set('maxUses')} /></FormField>
         </div>
         <FormField label={t('superadmin.coupons.plans')} hint={t('superadmin.coupons.plansHint')}>

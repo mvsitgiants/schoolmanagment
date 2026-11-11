@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { Award, ChevronLeft, Pencil, Play, Plus, Square, X } from 'lucide-react'
 import { APPRAISAL_CYCLE_STATUS, APPRAISAL_STATUS, EMPLOYEE_CATEGORIES, TEACHER_CRITERIA } from '@schoolgiant/shared'
-import { ColorChip, DataTable, DateCell, FormField, HeaderButton, Input, LevelBar, localIso, Modal, Note, PageContainer, PageHeader, PersonCell, PillRow, Select, SideNav, SideNavLayout, StatusPill, pillClass, useConfirm } from '../../components/system'
+import { DateInput, ColorChip, DataTable, DateCell, FormField, HeaderButton, Input, LevelBar, localIso, Modal, Note, PageContainer, PageHeader, PersonCell, PillRow, Select, SideNav, SideNavLayout, StatusPill, pillClass, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { closeCycle, createCycle, fetchCycleReviews, fetchCycles, launchCycle, rateAsHr, setReviewer, updateCycle } from '../../api/hrms'
 import { fetchUsers } from '../../api/core'
@@ -45,9 +45,9 @@ function CycleForm({ cycle, onClose, onSaved }) {
       <div className="space-y-4">
         <div className="grid sm:grid-cols-2 gap-4">
           <div className="sm:col-span-2"><FormField label={t('hrms.performance.name')} required><Input value={form.name} onChange={set('name')} placeholder={t('hrms.performance.namePlaceholder')} /></FormField></div>
-          <FormField label={t('hrms.performance.from')}><Input type="date" value={form.from} onChange={set('from')} /></FormField>
-          <FormField label={t('hrms.performance.to')}><Input type="date" value={form.to} onChange={set('to')} /></FormField>
-          <FormField label={t('hrms.performance.due')}><Input type="date" value={form.dueDate} onChange={set('dueDate')} /></FormField>
+          <FormField label={t('hrms.performance.from')}><DateInput value={form.from} onChange={set('from')} /></FormField>
+          <FormField label={t('hrms.performance.to')}><DateInput value={form.to} onChange={set('to')} /></FormField>
+          <FormField label={t('hrms.performance.due')}><DateInput value={form.dueDate} onChange={set('dueDate')} /></FormField>
           <label className="inline-flex items-center gap-2 text-sm text-ink sm:mt-6"><input type="checkbox" checked={form.selfReview} onChange={set('selfReview')} className="rounded border-border text-brand-500" />{t('hrms.performance.selfReview')}</label>
         </div>
         <div>

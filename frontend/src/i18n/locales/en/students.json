@@ -367,7 +367,7 @@
         "none": "No attendance marked yet",
         "noneHint": "Days show here as the class teacher marks the register.",
         "calendar": "Last three months",
-        "calendarHint": "Each square is a day — colour shows the mark",
+        "calendarHint": "Each school day shows its mark — use the arrows to see the earlier months",
         "noMark": "Not marked / holiday",
         "byMonth": "Attendance by month",
         "absentN_one": "{{count}} day absent",

@@ -4,7 +4,7 @@ import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-quer
 import { useTranslation } from 'react-i18next'
 import { BookOpen, CalendarClock, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, CircleAlert, History, Paperclip, Presentation, RotateCcw } from 'lucide-react'
 import { addDaysYmd } from '@schoolgiant/shared'
-import { EmptyState, Input, Note, PageContainer, PageHeader, Select, StatusPill } from '../../components/system'
+import { DateInput, EmptyState, Note, PageContainer, PageHeader, Select, SideNav, SideNavLayout, StatusPill } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { fetchHomeworkLookup, fetchTeachDay } from '../../api/homework'
 import { useSnackbar } from '../../context/SnackbarContext'
@@ -82,6 +82,11 @@ export default function TeachDay() {
   const { data, isLoading, error, refetch } = useQuery({ queryKey: key, queryFn: () => fetchTeachDay({ sectionId: sectionParam, date: dateParam }), placeholderData: keepPreviousData })
   const { data: lookup } = useQuery({ queryKey: ['homework-lookup'], queryFn: fetchHomeworkLookup })
   const [setting, setSetting] = useState(null)
+  // large screens show one subject at a time beside the list: the one picked, else the first with something to do today
+  const [picked, setPicked] = useState(null)
+  const subjects = data?.subjects ?? []
+  const shownSubject = subjects.some((x) => x.subjectId === picked) ? picked
+    : (subjects.find((x) => x.today.length || x.overdue.length) ?? subjects[0])?.subjectId ?? null
   const go = (patch) => setParams((p) => {
     const n = new URLSearchParams(p)
     for (const [k, v] of Object.entries(patch)) if (v) n.set(k, v); else n.delete(k)
@@ -110,7 +115,7 @@ export default function TeachDay() {
             </Select>
             <div className="flex items-center gap-1.5">
               <Button size="sm" variant="secondary" icon={ChevronLeft} className="min-h-10 sm:min-h-0" aria-label={t('homework.teach.prevDay')} title={t('homework.teach.prevDay')} onClick={() => go({ date: addDaysYmd(day, -1) })} />
-              <Input type="date" className="w-40" value={day} onChange={(e) => go({ date: e.target.value })} aria-label={t('homework.teach.date')} />
+              <DateInput className="w-40" value={day} onChange={(e) => go({ date: e.target.value })} aria-label={t('homework.teach.date')} />
               <Button size="sm" variant="secondary" icon={ChevronRight} className="min-h-10 sm:min-h-0" aria-label={t('homework.teach.nextDay')} title={t('homework.teach.nextDay')} onClick={() => go({ date: addDaysYmd(day, 1) })} />
               {day !== data.today && <Button size="sm" variant="ghost" onClick={() => go({ date: null })}>{t('homework.mine.today')}</Button>}
             </div>
@@ -120,11 +125,24 @@ export default function TeachDay() {
           {!data.sections.length && <Note>{t('homework.noSections')}</Note>}
           {data.sectionId && !data.subjects.length && <Note>{t('homework.teach.noSubjects')}</Note>}
 
+          {data.subjects.length > 0 && (
+          <SideNavLayout nav={
+            // large screens: the subjects of the day as a side list (one shown at a time); phones keep every subject stacked
+            <div className="hidden lg:block">
+              <SideNav title={t('homework.teach.subjectsToday')} value={shownSubject} onChange={setPicked} items={data.subjects.map((s) => ({
+                id: s.subjectId, label: s.subject, icon: BookOpen,
+                hint: s.periods.length ? t('homework.teach.periods', { list: s.periods.join(', '), count: s.periods.length }) : t('homework.teach.noPeriod'),
+                count: s.today.length + s.overdue.length + s.extra.length + s.revision.length || undefined,
+                countTone: s.overdue.length ? 'danger' : undefined,
+              }))} />
+            </div>
+          }>
+          <div className="space-y-4 min-w-0">
           {data.subjects.map((s) => {
             const nothing = !s.today.length && !s.overdue.length && !s.extra.length && !s.revision.length
             const rest = { subject: s, sectionId: data.sectionId, date: day, onHomework, onChanged: refresh }
             return (
-              <section key={s.subjectId} className="rounded-xl border border-border bg-surface p-3 space-y-3">
+              <section key={s.subjectId} className={`rounded-xl border border-border bg-surface p-3 space-y-3 ${s.subjectId === shownSubject ? '' : 'lg:hidden'}`}>
                 <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                   <BookOpen className="w-4 h-4 text-ink-muted" aria-hidden />
                   <h2 className="text-base font-semibold text-ink">{s.subject}</h2>
@@ -145,6 +163,9 @@ export default function TeachDay() {
               </section>
             )
           })}
+          </div>
+          </SideNavLayout>
+          )}
         </div>
       )}
       {setting && lookup && <HomeworkForm lookup={lookup} defaults={setting} onClose={() => setSetting(null)} onSaved={(r) => {

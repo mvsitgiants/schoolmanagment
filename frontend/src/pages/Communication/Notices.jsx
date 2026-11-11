@@ -3,7 +3,7 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tansta
 import { useTranslation } from 'react-i18next'
 import { Eye, Megaphone, Pin, Plus, Send, Trash2, Undo2 } from 'lucide-react'
 import { NOTICE_CATEGORIES, NOTICE_STATUS, SEND_CHANNELS } from '@schoolgiant/shared'
-import { Attachments, ColorChip, ControlChip, DataTable, DateCell, Drawer, FormField, HeaderButton, Input, Modal, LevelBar, Note, PageContainer, PageHeader, Select, StatusPill, Textarea, Toolbar, useConfirm } from '../../components/system'
+import { DateInput, Attachments, ColorChip, ControlChip, DataTable, DateCell, Drawer, FormField, HeaderButton, Input, Modal, LevelBar, Note, PageContainer, PageHeader, Select, StatusPill, Textarea, Toolbar, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
 import AudiencePicker, { emptyAudience } from '../../components/communication/AudiencePicker'
 import useDebouncedValue from '../../hooks/useDebouncedValue'
@@ -62,7 +62,7 @@ function NoticeDrawer({ notice, onClose, onSaved }) {
         <FormField label={t('communication.notices.titleLabel')} required error={errors.title}><Input value={form.title} disabled={!canEdit} onChange={set('title')} maxLength={160} /></FormField>
         <div className="grid sm:grid-cols-3 gap-4">
           <FormField label={t('communication.notices.category')}><Select value={form.category} disabled={!canEdit} onChange={set('category')}>{NOTICE_CATEGORIES.map((c) => <option key={c} value={c}>{t(`communication.categories.${catKey(c)}`, c)}</option>)}</Select></FormField>
-          <FormField label={t('communication.notices.expiresOn')} hint={t('communication.notices.expiresHint')}><Input type="date" value={form.expiresOn} disabled={!canEdit} onChange={set('expiresOn')} /></FormField>
+          <FormField label={t('communication.notices.expiresOn')} hint={t('communication.notices.expiresHint')}><DateInput value={form.expiresOn} disabled={!canEdit} onChange={set('expiresOn')} /></FormField>
           <label className="flex items-center gap-2 text-sm sm:mt-6"><input type="checkbox" checked={form.pinned} disabled={!canEdit} onChange={(e) => setForm((f) => ({ ...f, pinned: e.target.checked }))} className="rounded border-border text-brand-500 focus:ring-brand-500" />{t('communication.notices.pinned')}</label>
         </div>
         <FormField label={t('communication.notices.body')}><Textarea rows={8} value={form.body} disabled={!canEdit} onChange={set('body')} maxLength={8000} /></FormField>

@@ -8,7 +8,7 @@ import { ChevronDown } from 'lucide-react'
 // would apply and `w-full` wins, squeezing whatever sits beside it in a row to nothing.
 const ownWidth = /(^|\s)w-/
 // on a touch screen a field is 44px tall — a fingertip, not a mouse pointer (index.css sets its 16px text)
-const fieldBase =
+export const fieldBase =
   'h-9 [@media(pointer:coarse)]:h-[44px] px-3 text-sm rounded-md border border-border bg-white text-ink placeholder:text-ink-faint ' +
   'focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 disabled:bg-bg disabled:text-ink-faint'
 
@@ -218,7 +218,7 @@ const LINKABLE = new Set(['input', 'select', 'textarea'])
 export function FormField({ label, htmlFor, required, error, hint, className, children }) {
   const auto = useId()
   const only = Children.count(children) === 1 && isValidElement(children) ? children : null
-  const linkable = !!only && (LINKABLE.has(only.type) || only.type === Input || only.type === Select || only.type === Textarea)
+  const linkable = !!only && (LINKABLE.has(only.type) || only.type === Input || only.type === Select || only.type === Textarea || !!only.type?.formField)
   const id = htmlFor ?? (linkable ? only.props.id ?? `fld${auto.replace(/:/g, '')}` : undefined)
   const message = error || hint
   const msgId = message ? `${id ?? `fld${auto.replace(/:/g, '')}`}-msg` : undefined

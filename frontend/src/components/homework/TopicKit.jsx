@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { BookOpen, Check, CheckCheck, ChevronDown, ChevronUp, CircleDashed, Lightbulb, MessageCircleQuestion, NotebookPen, Pencil, Plus, RotateCcw, Save, SkipForward, Trash2, X } from 'lucide-react'
+import { BookOpen, Check, CheckCheck, ChevronDown, ChevronUp, CircleDashed, Lightbulb, MessageCircleQuestion, NotebookPen, Pencil, Plus, Presentation, RotateCcw, Save, SkipForward, Trash2, X } from 'lucide-react'
 import { QUESTION_KINDS, QUESTION_USES, TOPIC_STATUS } from '@schoolgiant/shared'
-import { Attachments, Drawer, FormField, Input, Modal, Note, ProgressBar, Select, StatusPill, Textarea } from '../system'
+import { DateInput, Attachments, Drawer, FormField, Input, Modal, Note, ProgressBar, Select, StatusPill, Textarea } from '../system'
 import Button from '../ui/Button'
 import { fetchSyllabusTopic, saveSyllabusTopic, updateTopicPlan } from '../../api/homework'
 import { hasPermission } from '../../api/auth'
@@ -41,7 +41,7 @@ function QuestionRow({ q, n }) {
   const { t } = useTranslation('homework')
   const [open, setOpen] = useState(false)
   return (
-    <li className="rounded-lg border border-border p-2.5">
+    <li className="rounded-lg bg-black/[0.025] px-3 py-2.5">
       <div className="flex items-start gap-2">
         <span className="text-xs font-semibold text-ink-faint mt-0.5 shrink-0">{n}.</span>
         <div className="min-w-0 flex-1">
@@ -72,35 +72,47 @@ export function TopicMaterial({ topic, files = true }) {
   const { t } = useTranslation('homework')
   const book = bookLine(topic.book)
   const empty = !book && !topic.howTo && !topic.keyPoints?.length && !topic.questions?.length && !topic.homeworkHint
+  if (empty) return <p className="text-sm text-ink-faint">{t('homework.topic.noMaterial')}</p>
+  const Head = ({ icon: Icon, children }) => <p className="flex items-center gap-1.5 text-[13px] font-semibold text-ink mb-1.5"><Icon className="w-4 h-4 text-brand-600" aria-hidden />{children}</p>
   return (
-    <div className="space-y-3">
-      {book && <p className="flex items-start gap-2 text-sm text-ink"><BookOpen className="w-4 h-4 mt-0.5 shrink-0 text-ink-muted" aria-hidden />{book}</p>}
-      {files && <Attachments entityType="syllabus_topic" entityId={topic.id} canAdd={false} compact label={t('homework.topic.files')} />}
-      {topic.howTo && (
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-ink-muted mb-1">{t('homework.topic.howTo')}</p>
-          <p className="text-sm text-ink whitespace-pre-line">{topic.howTo}</p>
+    <div className="space-y-4">
+      <div className="grid gap-3 md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+        <div className="space-y-3 min-w-0">
+          {topic.howTo && (
+            <div className="rounded-lg bg-brand-50/50 border border-brand-100 px-3 py-2.5">
+              <Head icon={Presentation}>{t('homework.topic.howTo')}</Head>
+              <p className="text-sm leading-relaxed text-ink whitespace-pre-line">{topic.howTo}</p>
+            </div>
+          )}
+          {topic.keyPoints?.length > 0 && (
+            <div>
+              <Head icon={Lightbulb}>{t('homework.topic.keyPoints')}</Head>
+              <ul className="space-y-1">{topic.keyPoints.map((k, i) => <li key={i} className="flex items-start gap-2 text-sm text-ink"><Check className="w-4 h-4 mt-0.5 shrink-0 text-success-600" aria-hidden /><span>{k}</span></li>)}</ul>
+            </div>
+          )}
         </div>
-      )}
-      {topic.keyPoints?.length > 0 && (
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-ink-muted mb-1">{t('homework.topic.keyPoints')}</p>
-          <ul className="space-y-1">{topic.keyPoints.map((k, i) => <li key={i} className="flex items-start gap-2 text-sm text-ink"><Lightbulb className="w-4 h-4 mt-0.5 shrink-0 text-amber-500" aria-hidden />{k}</li>)}</ul>
+        <div className="space-y-3 min-w-0">
+          {book && (
+            <div className="flex items-start gap-2.5 rounded-lg border border-border px-3 py-2.5">
+              <span className="grid place-items-center w-8 h-8 rounded-md bg-amber-50 text-amber-600 shrink-0"><BookOpen className="w-4 h-4" aria-hidden /></span>
+              <span className="min-w-0"><span className="block text-xs text-ink-muted">{t('homework.topic.bookRef')}</span><span className="block text-sm font-medium text-ink">{book}</span></span>
+            </div>
+          )}
+          {files && <Attachments entityType="syllabus_topic" entityId={topic.id} canAdd={false} compact hideEmpty label={t('homework.topic.files')} />}
+          {topic.homeworkHint && (
+            <div className="flex items-start gap-2.5 rounded-lg border border-border px-3 py-2.5">
+              <span className="grid place-items-center w-8 h-8 rounded-md bg-sky-50 text-sky-600 shrink-0"><NotebookPen className="w-4 h-4" aria-hidden /></span>
+              <span className="min-w-0"><span className="block text-xs text-ink-muted">{t('homework.topic.homeworkHint')}</span><span className="block text-sm text-ink whitespace-pre-line">{topic.homeworkHint}</span></span>
+            </div>
+          )}
         </div>
-      )}
+      </div>
       {topic.questions?.length > 0 && (
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-ink-muted mb-1">{t('homework.topic.questions', { count: topic.questions.length })}</p>
-          <ul className="space-y-1.5">{topic.questions.map((q, i) => <QuestionRow key={q.id ?? i} q={q} n={i + 1} />)}</ul>
+          <Head icon={MessageCircleQuestion}>{t('homework.topic.questions', { count: topic.questions.length })}</Head>
+          <ul className="grid gap-2 md:grid-cols-2">{topic.questions.map((q, i) => <QuestionRow key={q.id ?? i} q={q} n={i + 1} />)}</ul>
         </div>
       )}
-      {topic.homeworkHint && (
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-ink-muted mb-1">{t('homework.topic.homeworkHint')}</p>
-          <p className="text-sm text-ink whitespace-pre-line">{topic.homeworkHint}</p>
-        </div>
-      )}
-      {empty && <p className="text-sm text-ink-faint">{t('homework.topic.noMaterial')}</p>}
     </div>
   )
 }
@@ -205,7 +217,7 @@ function ExtraClassModal({ defaultDate, onClose, onSave, saving }) {
       <Button loading={saving} disabled={!form.date} onClick={() => onSave({ date: form.date, period: form.period ? Number(form.period) : undefined, note: form.note || undefined })}>{t('homework.topic.extra.add')}</Button>
     </>}>
       <div className="grid grid-cols-2 gap-3">
-        <FormField label={t('homework.topic.extra.date')} required><Input type="date" value={form.date} onChange={(e) => setForm((f) => ({ ...f, date: e.target.value }))} /></FormField>
+        <FormField label={t('homework.topic.extra.date')} required><DateInput value={form.date} onChange={(e) => setForm((f) => ({ ...f, date: e.target.value }))} /></FormField>
         <FormField label={t('homework.topic.extra.period')}><Input type="number" min="1" max="15" value={form.period} onChange={(e) => setForm((f) => ({ ...f, period: e.target.value }))} /></FormField>
         <FormField label={t('homework.topic.extra.note')} className="col-span-2"><Input value={form.note} onChange={(e) => setForm((f) => ({ ...f, note: e.target.value }))} /></FormField>
       </div>
@@ -250,7 +262,7 @@ export function TopicActions({ sectionId, subjectId, row, date, canMark = true, 
           {row.needsRevision && (
             <label className="inline-flex items-center gap-1.5 text-xs text-ink-muted">
               {t('homework.topic.reviseBy')}
-              <Input type="date" className="!h-8 !w-auto" value={row.revisionBy ?? ''} disabled={busy} onChange={(e) => send({ revisionBy: e.target.value || null }, t('homework.topic.done.reviseBy'))} />
+              <DateInput className="!h-8 !w-auto" value={row.revisionBy ?? ''} disabled={busy} onChange={(e) => send({ revisionBy: e.target.value || null }, t('homework.topic.done.reviseBy'))} />
             </label>
           )}
           <Button size="sm" className={big} variant="ghost" icon={Plus} disabled={busy} onClick={() => setAdding(true)}>{t('homework.topic.act.extra')}</Button>
@@ -260,7 +272,7 @@ export function TopicActions({ sectionId, subjectId, row, date, canMark = true, 
       {showDate && canMark && (
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-xs text-ink-muted">{t('homework.topic.plannedFor')}</span>
-          <Input type="date" className="w-40" value={row.start ?? ''} aria-label={t('homework.topic.plannedFor')} disabled={busy}
+          <DateInput className="w-40" value={row.start ?? ''} aria-label={t('homework.topic.plannedFor')} disabled={busy}
             onChange={(e) => send({ plannedDate: e.target.value || null }, t('homework.topic.done.moved'))} />
           {row.override && <Button size="sm" variant="ghost" icon={RotateCcw} disabled={busy} onClick={() => send({ plannedDate: null }, t('homework.topic.done.moved'))}>{t('homework.topic.resetDate')}</Button>}
         </div>

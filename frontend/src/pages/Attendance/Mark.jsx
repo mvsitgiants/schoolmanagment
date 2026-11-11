@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next'
 import clsx from 'clsx'
 import { BookOpen, CalendarCheck, Check, CheckCheck, ChevronLeft, Clock, LayoutGrid, ScanQrCode, UserCheck, UserX } from 'lucide-react'
 import { ATTENDANCE_MARKS, countMarks, takesDaily, takesPeriods } from '@schoolgiant/shared'
-import { Avatar, ColorChip, Input, Note, PageContainer, PageHeader, PersonCell, PillRow, SideNav, SideNavLayout, StatCardRow, StatusPill, TONE, Tabs, pillClass } from '../../components/system'
+import { DateInput, Avatar, ColorChip, Note, PageContainer, PageHeader, PersonCell, PillRow, SideNav, SideNavLayout, StatCardRow, StatusPill, TONE, Tabs, pillClass } from '../../components/system'
 import groupByClass, { classKeyOf } from '../../components/attendance/groupByClass'
 import Button from '../../components/ui/Button'
 import { fetchAttendanceBoard, fetchSheet, saveSheet } from '../../api/attendance'
@@ -226,7 +226,7 @@ export default function Mark() {
     <PageContainer>
       <PageHeader icon={CalendarCheck} title={t('attendance.mark.title')} subtitle={day ? t('attendance.mark.subtitle', { date: fmt(day) }) : undefined} />
       <div className="flex flex-wrap items-center gap-3 mt-4 mb-4">
-        <Input type="date" className="w-44" value={day ?? ''} max={board?.today} onChange={(e) => { setDate(e.target.value); setOpen(null) }} aria-label={t('attendance.mark.date')} />
+        <DateInput className="w-44" value={day ?? ''} max={board?.today} onChange={(e) => { setDate(e.target.value); setOpen(null) }} aria-label={t('attendance.mark.date')} />
         {board && periodsOn && !open && <Note icon={Clock} className="flex-1 min-w-[16rem]">{t(`attendance.mark.modeNote.${board.mode}`, { rule: t(`attendance.mark.dayFrom.${board.dayFrom ?? 'FIRST'}`) })}</Note>}
       </div>
       {open && day ? (

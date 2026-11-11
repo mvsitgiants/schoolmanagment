@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { BadgeIndianRupee, CalendarRange, Download, HandHeart, Landmark, Plus, Printer, Receipt, Trophy } from 'lucide-react'
 import { DONATION_FUNDS, MODES_WITH_REFERENCE, PAYMENT_MODES, donationFundLabel, formatINR, toPaise } from '@schoolgiant/shared'
 import {
-  BreakdownDonut, CHART, CodeBadge, ColorChip, ColumnBars, DataTable, DateCell, FormField, HeaderButton, Input, Modal, Money, Note, PageContainer, PageHeader, PersonCell, RankBars,
+  DateInput, BreakdownDonut, CHART, CodeBadge, ColorChip, ColumnBars, DataTable, DateCell, FormField, HeaderButton, Input, Modal, Money, Note, PageContainer, PageHeader, PersonCell, RankBars,
   SearchInput, SegmentedControl, Select, StatCardRow, Tag, Textarea,
 } from '../../components/system'
 import Button from '../../components/ui/Button'
@@ -47,7 +47,7 @@ function DonationForm({ onClose, onSaved }) {
         )}
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <FormField label={t('alumni.donations.amountRs')} required error={errors.amount}><Input type="number" min="1" value={f.amount} onChange={set('amount')} /></FormField>
-          <FormField label={t('alumni.donations.date')} error={errors.date}><Input type="date" value={f.date} onChange={set('date')} /></FormField>
+          <FormField label={t('alumni.donations.date')} error={errors.date}><DateInput value={f.date} onChange={set('date')} /></FormField>
           <FormField label={t('alumni.donations.mode')}><Select value={f.mode} onChange={set('mode')}>{PAYMENT_MODES.map((m) => <option key={m.value} value={m.value}>{t(`alumni.modes.${m.value}`)}</option>)}</Select></FormField>
           {MODES_WITH_REFERENCE.includes(f.mode) && <FormField label={t('alumni.donations.reference')}><Input value={f.reference} onChange={set('reference')} /></FormField>}
           <FormField label={t('alumni.donations.fund')}>

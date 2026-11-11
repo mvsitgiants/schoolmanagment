@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { BadgeCheck, Ban, Briefcase, Download, Gauge as GaugeIcon, Medal, Plus, TrendingUp, Trophy, Undo2, Users, XCircle } from 'lucide-react'
 import { OFFER_STATUS, formatLpa } from '@schoolgiant/shared'
 import {
-  Attachments, ColorChip, ColumnBars, DataTable, DateCell, Drawer, FactGrid, Fact, FormField, HeaderButton, Input, Modal, PageContainer, PageHeader, PersonCell, RankBars,
+  DateInput, Attachments, ColorChip, ColumnBars, DataTable, DateCell, Drawer, FactGrid, Fact, FormField, HeaderButton, Input, Modal, PageContainer, PageHeader, PersonCell, RankBars,
   SearchInput, SegmentedControl, Select, StatCardRow, Textarea, usePrompt,
 } from '../../components/system'
 import Button from '../../components/ui/Button'
@@ -42,8 +42,8 @@ function NewOffer({ onClose, onSaved }) {
         <div className="grid grid-cols-2 gap-3">
           <FormField label={t('placements.select.ctc')} required error={errors.ctc}><Input type="number" min="0" step="0.1" value={f.ctc} onChange={set('ctc')} /></FormField>
           <FormField label={t('placements.select.role')}><Input value={f.role} onChange={set('role')} /></FormField>
-          <FormField label={t('placements.offers.offeredOn')}><Input type="date" value={f.offeredOn} onChange={set('offeredOn')} /></FormField>
-          <FormField label={t('placements.select.joining')}><Input type="date" value={f.joiningDate} onChange={set('joiningDate')} /></FormField>
+          <FormField label={t('placements.offers.offeredOn')}><DateInput value={f.offeredOn} onChange={set('offeredOn')} /></FormField>
+          <FormField label={t('placements.select.joining')}><DateInput value={f.joiningDate} onChange={set('joiningDate')} /></FormField>
         </div>
         <FormField label={t('placements.select.location')}><Input value={f.location} onChange={set('location')} /></FormField>
         <FormField label={t('placements.offers.note')}><Textarea rows={2} value={f.note} onChange={set('note')} /></FormField>

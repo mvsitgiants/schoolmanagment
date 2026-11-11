@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { ChevronLeft, Eye, EyeOff, History, KeyRound, LogOut, Palmtree, Pencil, Printer, Undo2, Wallet } from 'lucide-react'
 import { printDocument } from '../../components/print/printDocument'
 import { EXIT_TYPES, SALARY_MODES, toPaise, toRupees } from '@schoolgiant/shared'
-import { Attachments, ColorChip, DataTable, DateCell, FactGrid, FormField, Input, Modal, Money, Note, PageContainer, Panel, Select, StatCard, Tabs, Textarea, Timeline, hueTone, useConfirm } from '../../components/system'
+import { DateInput, Attachments, ColorChip, DataTable, DateCell, FactGrid, FormField, Input, Modal, Money, Note, PageContainer, Panel, Select, StatCard, Tabs, Textarea, Timeline, hueTone, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
 import {
   adjustEmployeeLeave, cancelEmployeeExit, createEmployeeLogin, exitEmployee, fetchEmployee, fetchEmployeeLeave, fetchEmployeeLedger, fetchEmployeeSensitive, fetchLeaveTypes,
@@ -49,7 +49,7 @@ function SalaryForm({ emp, onClose, onSaved }) {
             </label>
           ))}
         </div>
-        <FormField label={t('hrms.profile.effectiveFrom')}><Input type="date" value={form.effectiveFrom} onChange={set('effectiveFrom')} /></FormField>
+        <FormField label={t('hrms.profile.effectiveFrom')}><DateInput value={form.effectiveFrom} onChange={set('effectiveFrom')} /></FormField>
         <p className="col-span-2 text-xs text-ink-faint">{t('hrms.profile.salaryHint')}</p>
       </div>
     </Modal>
@@ -98,8 +98,8 @@ function ExitForm({ emp, onClose, onSaved }) {
     </>}>
       <div className="grid grid-cols-2 gap-4">
         <FormField label={t('hrms.profile.exitType')}><Select value={form.type} onChange={set('type')}>{EXIT_TYPES.map((x) => <option key={x.value} value={x.value}>{L.exit(x.value)}</option>)}</Select></FormField>
-        <FormField label={t('hrms.profile.noticeDate')}><Input type="date" value={form.noticeDate} onChange={set('noticeDate')} /></FormField>
-        <FormField label={t('hrms.profile.lastDay')} required error={errors.lastWorkingDate}><Input type="date" value={form.lastWorkingDate} onChange={set('lastWorkingDate')} /></FormField>
+        <FormField label={t('hrms.profile.noticeDate')}><DateInput value={form.noticeDate} onChange={set('noticeDate')} /></FormField>
+        <FormField label={t('hrms.profile.lastDay')} required error={errors.lastWorkingDate}><DateInput value={form.lastWorkingDate} onChange={set('lastWorkingDate')} /></FormField>
         <div className="col-span-2"><FormField label={t('hrms.profile.exitReason')}><Textarea rows={2} value={form.reason} onChange={set('reason')} /></FormField></div>
         {emp.login && (
           <label className="col-span-2 inline-flex items-center gap-2 text-sm text-ink">

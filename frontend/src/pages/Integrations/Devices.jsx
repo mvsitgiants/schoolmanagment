@@ -6,7 +6,7 @@ import {
 } from 'lucide-react'
 import { DEVICE_KINDS, DEVICE_STATUSES, DEVICE_TYPE_LABEL, DEVICE_USED_FOR, PUNCH_OUTCOMES } from '@schoolgiant/shared'
 import {
-  CodeBadge, ColorChip, ControlChip, DataTable, DateCell, Drawer, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, PersonCell, PillRow, Select,
+  DateInput, CodeBadge, ColorChip, ControlChip, DataTable, DateCell, Drawer, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, PersonCell, PillRow, Select,
   StackCell, StatCardRow, StatusPill, Tabs, Textarea, Toolbar, ViewControls, pillClass, useConfirm,
 } from '../../components/system'
 import Button from '../../components/ui/Button'
@@ -239,7 +239,7 @@ function PunchLog({ devices, today }) {
         exportName="device-punches"
         toolbar={<Toolbar search={search} onSearch={setSearch} searchPlaceholder={t('integrations.devices.searchPunches')} right={(
           <ViewControls>
-            <Input type="date" aria-label={t('integrations.devices.date')} className="!h-8 !w-40" value={date} onChange={(e) => setDate(e.target.value)} />
+            <DateInput aria-label={t('integrations.devices.date')} className="!h-8 !w-40" value={date} onChange={(e) => setDate(e.target.value)} />
             <ControlChip label={t('integrations.devices.who')} value={whoOptions.find(([k]) => k === who)?.[1] ?? all} active={!!who} options={[all, ...whoOptions.map(([, l]) => l)]} onChange={(v) => setWho(whoOptions.find(([, l]) => l === v)?.[0] ?? '')} />
             <ControlChip label={t('integrations.devices.device')} value={named.find((d) => d.id === deviceId)?.name ?? all} active={!!deviceId} options={[all, ...named.map((d) => d.name)]} onChange={(v) => setDeviceId(named.find((d) => d.name === v)?.id ?? '')} />
             <ControlChip label={t('integrations.devices.outcomeCol')} value={outcome ? outcomeLabel(t, outcome) : all} active={!!outcome} options={[all, ...OUTCOME_KEYS.map((k) => outcomeLabel(t, k))]} onChange={(v) => setOutcome(OUTCOME_KEYS.find((k) => outcomeLabel(t, k) === v) ?? '')} />

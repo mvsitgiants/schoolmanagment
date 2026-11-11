@@ -131,7 +131,7 @@
       "dropToAdd": "Drop to add",
       "kindOfFile": "Kind of file",
       "upload": "Upload",
-      "hint": "PDF, photos or Word files up to {{max}} MB. Drag them in or paste a screenshot.",
+      "hint": "PDF, photos, Word, Excel, PowerPoint or short videos (MP4) up to {{max}} MB. Drag them in or paste a screenshot.",
       "empty": "No files yet.",
       "viewName": "View {{name}}",
       "onRecord": "on {{type}}"
@@ -430,6 +430,56 @@
       "off": "Off — turn on to get approvals and alerts as phone / desktop notifications.",
       "blocked": "Blocked in this browser’s site settings. Allow notifications there to turn them on.",
       "unsupported": ""
+    },
+    "datePicker": {
+      "open": "Open calendar",
+      "calendar": "Calendar",
+      "close": "Close",
+      "today": "Today",
+      "clear": "Clear",
+      "clearDate": "Clear date",
+      "prevMonth": "Previous month",
+      "nextMonth": "Next month",
+      "prevYear": "Previous year",
+      "nextYear": "Next year",
+      "prevYears": "Earlier years",
+      "nextYears": "Later years",
+      "chooseMonth": "Choose month and year",
+      "chooseYear": "Choose year",
+      "backToDays": "Back to days",
+      "placeholder": {
+        "dmy": "dd/mm/yyyy",
+        "mdy": "mm/dd/yyyy",
+        "ymd": "yyyy-mm-dd",
+        "dmmmy": "dd mmm yyyy"
+      },
+      "rangePlaceholder": "Choose dates",
+      "pickStart": "Choose the first day",
+      "pickEnd": "Now choose the last day"
+    },
+    "calendar": {
+      "today": "Today",
+      "prev": "Previous month",
+      "next": "Next month",
+      "prevWeek": "Previous week",
+      "nextWeek": "Next week",
+      "weekTitle": "{{from}} – {{to}}",
+      "views": {
+        "month": "Month",
+        "week": "Week",
+        "agenda": "Day by day"
+      },
+      "more": "+{{count}} more",
+      "moreThanShown_one": "1 more on this day is not shown here.",
+      "moreThanShown_other": "{{count}} more on this day are not shown here.",
+      "dayCount_one": "1 thing on",
+      "dayCount_other": "{{count}} things on",
+      "allDay": "All day",
+      "holiday": "Holiday",
+      "nothing": "Nothing on this day.",
+      "pickDay": "Pick a day to see what is on it.",
+      "empty": "Nothing this month.",
+      "add": "Add on this day"
     }
   }
 }

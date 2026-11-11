@@ -4,7 +4,7 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tansta
 import { useTranslation } from 'react-i18next'
 import { AlarmClock, CircleCheckBig, FileText, Hourglass, Printer, Receipt, XCircle } from 'lucide-react'
 import { INVOICE_STATUS, PAYMENT_MODES, formatINR, formatINRCompact } from '@schoolgiant/shared'
-import { ColorChip, ControlChip, DataTable, DateCell, Money, PaidBar, PersonCell, SideNavLayout, StackCell, StatCardRow, Input, PageContainer, PageHeader, StatusPill, Tabs, Toolbar, usePrompt } from '../../components/system'
+import { DateInput, ColorChip, ControlChip, DataTable, DateCell, Money, PaidBar, PersonCell, SideNavLayout, StackCell, StatCardRow, PageContainer, PageHeader, StatusPill, Tabs, Toolbar, usePrompt } from '../../components/system'
 import { ClassNav, SectionPills, useClassSections } from '../../components/students/ClassNav'
 import Button from '../../components/ui/Button'
 import useDebouncedValue from '../../hooks/useDebouncedValue'
@@ -135,8 +135,8 @@ function ReceiptList() {
       onRetry={refetch}
       exportable exportName="fee-receipts"
       toolbar={<Toolbar search={search} onSearch={(v) => { setSearch(v); setPage(1) }} searchPlaceholder={t('fees.receipts.search')} right={<>
-        <Input type="date" className="w-36" value={from} max={to || undefined} onChange={(e) => { setFrom(e.target.value); setPage(1) }} aria-label={t('fees.receipts.from')} />
-        <Input type="date" className="w-36" value={to} min={from || undefined} onChange={(e) => { setTo(e.target.value); setPage(1) }} aria-label={t('fees.receipts.to')} />
+        <DateInput className="w-36" value={from} max={to || undefined} onChange={(e) => { setFrom(e.target.value); setPage(1) }} aria-label={t('fees.receipts.from')} />
+        <DateInput className="w-36" value={to} min={from || undefined} onChange={(e) => { setTo(e.target.value); setPage(1) }} aria-label={t('fees.receipts.to')} />
         <ControlChip label={t('fees.receipts.mode')} value={modeLabel(mode)} active={!!mode} options={MODES.map(modeLabel)} onChange={(v) => { setMode(MODES.find((m) => modeLabel(m) === v) ?? ''); setPage(1) }} />
         <ControlChip label={t('fees.receipts.status')} value={statusLabel(status)} active={!!status} options={STATUSES.map(statusLabel)} onChange={(v) => { setStatus(STATUSES.find((s) => statusLabel(s) === v) ?? ''); setPage(1) }} />
       </>} />}

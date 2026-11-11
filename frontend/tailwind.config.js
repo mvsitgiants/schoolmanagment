@@ -54,12 +54,13 @@ export default {
         body: ['"Inter"', 'var(--font-script, system-ui)', 'system-ui', 'sans-serif'],
         mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace']
       },
+      // calm, tighter corners (user asked for less rounding): cards/panels 10–12px, controls 6–8px
       borderRadius: {
-        sm: '8px',
-        md: '12px',
-        lg: '16px',
-        xl: '20px',
-        '2xl': '24px'
+        sm: '4px',
+        md: '6px',
+        lg: '8px',
+        xl: '10px',
+        '2xl': '12px'
       },
       boxShadow: {
         card: '0 1px 3px 0 rgba(16, 24, 40, 0.05), 0 1px 2px -1px rgba(16, 24, 40, 0.04)',

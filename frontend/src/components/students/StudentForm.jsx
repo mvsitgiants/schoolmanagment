@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { Plus, Star, X } from 'lucide-react'
 import { BLOOD_GROUPS, GENDERS, GUARDIAN_RELATIONS, STUDENT_CATEGORIES } from '@schoolgiant/shared'
-import { FormField, Input, Panel, Select } from '../system'
+import { DateInput, FormField, Input, Panel, Select } from '../system'
 import Button from '../ui/Button'
 import { fetchAcademicLookup } from '../../api/academics'
 
@@ -74,7 +74,7 @@ export default function StudentForm({ value: f, onChange, errors = {}, editing =
           </div>
           <FormField label={t('students.form.rollNo')} error={errors.rollNo}><Input value={f.rollNo} onChange={set('rollNo')} maxLength={10} /></FormField>
           {!editing && <FormField label={t('students.form.admissionNo')} error={errors.admissionNo} hint={t('students.form.admissionNoHint')}><Input value={f.admissionNo} onChange={set('admissionNo')} maxLength={30} /></FormField>}
-          <FormField label={t('students.form.admissionDate')} error={errors.admissionDate} hint={editing ? undefined : t('students.form.admissionDateHint')}><Input type="date" value={f.admissionDate} onChange={set('admissionDate')} /></FormField>
+          <FormField label={t('students.form.admissionDate')} error={errors.admissionDate} hint={editing ? undefined : t('students.form.admissionDateHint')}><DateInput value={f.admissionDate} onChange={set('admissionDate')} /></FormField>
         </div>
       </Panel>
 
@@ -87,7 +87,7 @@ export default function StudentForm({ value: f, onChange, errors = {}, editing =
           <FormField label={t('students.form.gender')} error={errors.gender}>
             <Select value={f.gender} onChange={set('gender')}><option value="">{t('students.notSet')}</option>{GENDERS.map((g) => <option key={g.value} value={g.value}>{t(`students.genders.${g.value}`, g.label)}</option>)}</Select>
           </FormField>
-          <FormField label={t('students.form.dob')} error={errors.dob}><Input type="date" value={f.dob} onChange={set('dob')} /></FormField>
+          <FormField label={t('students.form.dob')} error={errors.dob}><DateInput value={f.dob} onChange={set('dob')} /></FormField>
           <FormField label={t('students.form.bloodGroup')} error={errors.bloodGroup}>
             <Select value={f.bloodGroup} onChange={set('bloodGroup')}><option value="">{t('students.notSet')}</option>{BLOOD_GROUPS.map((b) => <option key={b} value={b}>{b}</option>)}</Select>
           </FormField>

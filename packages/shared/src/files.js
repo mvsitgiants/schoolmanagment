@@ -10,10 +10,14 @@ export const FILE_TYPES = [
   { mime: 'image/png', ext: 'png', label: 'PNG image' },
   { mime: 'image/webp', ext: 'webp', label: 'WebP image' },
   { mime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', ext: 'docx', label: 'Word document' },
+  { mime: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', ext: 'xlsx', label: 'Excel sheet' },
+  { mime: 'application/vnd.openxmlformats-officedocument.presentationml.presentation', ext: 'pptx', label: 'PowerPoint slides' },
+  { mime: 'video/mp4', ext: 'mp4', label: 'MP4 video' },
+  { mime: 'video/webm', ext: 'webm', label: 'WebM video' },
 ]
 
 /** For <input type="file" accept=…>. */
-export const FILE_ACCEPT = '.pdf,.jpg,.jpeg,.png,.webp,.docx'
+export const FILE_ACCEPT = '.pdf,.jpg,.jpeg,.png,.webp,.docx,.xlsx,.pptx,.mp4,.webm'
 
 export const FILE_CATEGORIES = [
   { value: 'BIRTH_CERTIFICATE', label: 'Birth certificate' },
@@ -28,6 +32,9 @@ export const FILE_CATEGORIES = [
   { value: 'OTHER', label: 'Other' },
 ]
 export const FILE_CATEGORY_LABEL = Object.fromEntries(FILE_CATEGORIES.map((c) => [c.value, c.label]))
+
+/** Records whose files are personal documents, so each file says what kind it is (certificate, ID, mark sheet…). Other records' files (lesson plans, homework, notices…) have no kind. */
+export const DOCUMENT_RECORD_TYPES = ['student', 'employee', 'candidate', 'application']
 
 /** Records that can carry files and comments. */
 export const RECORD_TYPES = {
@@ -44,6 +51,7 @@ export const RECORD_TYPES = {
   placement_offer: 'Placement offer',
   expense: 'Expense',
   syllabus_topic: 'Syllabus topic',
+  lesson_plan: 'Lesson plan',
   lms_item: 'Study material',
   chat_message: 'Staff chat message',
 }

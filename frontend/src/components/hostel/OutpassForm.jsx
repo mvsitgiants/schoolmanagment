@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { ESCORT_RELATIONS, OUTPASS_KINDS } from '@schoolgiant/shared'
-import { FormField, Input, Modal, Select, Textarea, localIso } from '../system'
+import { DateInput, FormField, Input, Modal, Select, Textarea, localIso } from '../system'
 import Button from '../ui/Button'
 import { createOutpass, fetchAllotments } from '../../api/hostel'
 import { hasPermission } from '../../api/auth'
@@ -51,10 +51,10 @@ export default function OutpassForm({ studentId, onClose, onSaved }) {
           <FormField label={t('hostel.outpass.kind')}><Select value={form.kind} onChange={set('kind')}>{OUTPASS_KINDS.map((k) => <option key={k.value} value={k.value}>{L.outpassKind(k.value)}</option>)}</Select></FormField>
           <FormField label={t('hostel.outpass.destination')}><Input value={form.destination} onChange={set('destination')} /></FormField>
           <FormField label={t('hostel.outpass.leave')} required error={errors.leaveDate}>
-            <div className="flex gap-2"><Input type="date" value={form.leaveDate} onChange={set('leaveDate')} /><Input type="time" value={form.leaveTime} onChange={set('leaveTime')} className="w-32" /></div>
+            <div className="flex gap-2"><DateInput value={form.leaveDate} onChange={set('leaveDate')} /><Input type="time" value={form.leaveTime} onChange={set('leaveTime')} className="w-32" /></div>
           </FormField>
           <FormField label={t('hostel.outpass.return')} required error={errors.returnDate || errors.returnTime}>
-            <div className="flex gap-2"><Input type="date" value={form.returnDate} min={form.leaveDate} onChange={set('returnDate')} /><Input type="time" value={form.returnTime} onChange={set('returnTime')} className="w-32" /></div>
+            <div className="flex gap-2"><DateInput value={form.returnDate} min={form.leaveDate} onChange={set('returnDate')} /><Input type="time" value={form.returnTime} onChange={set('returnTime')} className="w-32" /></div>
           </FormField>
         </div>
         <FormField label={t('hostel.outpass.reason')} required error={errors.reason}><Textarea rows={2} value={form.reason} maxLength={300} onChange={set('reason')} /></FormField>

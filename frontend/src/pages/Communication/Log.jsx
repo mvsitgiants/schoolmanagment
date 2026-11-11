@@ -3,7 +3,7 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tansta
 import { useTranslation } from 'react-i18next'
 import { Ban, CheckCheck, Clock, Mail, MessageCircle, RotateCcw, ScrollText, Smartphone, TriangleAlert } from 'lucide-react'
 import { MESSAGE_STATUSES, NOTIFY_EVENT_BY, SEND_CHANNELS } from '@schoolgiant/shared'
-import { ColorChip, ControlChip, DataTable, DateCell, Input, PageContainer, PageHeader, PersonCell, StatCardRow, StatusPill, Toolbar } from '../../components/system'
+import { DateInput, ColorChip, ControlChip, DataTable, DateCell, PageContainer, PageHeader, PersonCell, StatCardRow, StatusPill, Toolbar } from '../../components/system'
 import Button from '../../components/ui/Button'
 import useDebouncedValue from '../../hooks/useDebouncedValue'
 import { fetchMessageLog, retryLoggedMessage } from '../../api/communication'
@@ -51,8 +51,8 @@ export default function Log() {
         onRetry={refetch}
         exportable={hasPermission('communication.log.export')} exportName="message-log"
         toolbar={<Toolbar search={search} onSearch={(v) => { setSearch(v); setPage(1) }} searchPlaceholder={t('communication.log.search')} right={<>
-          <Input type="date" className="w-36" value={from} max={to || undefined} onChange={(e) => { setFrom(e.target.value); setPage(1) }} aria-label={t('communication.log.from')} />
-          <Input type="date" className="w-36" value={to} min={from || undefined} onChange={(e) => { setTo(e.target.value); setPage(1) }} aria-label={t('communication.log.to')} />
+          <DateInput className="w-36" value={from} max={to || undefined} onChange={(e) => { setFrom(e.target.value); setPage(1) }} aria-label={t('communication.log.from')} />
+          <DateInput className="w-36" value={to} min={from || undefined} onChange={(e) => { setTo(e.target.value); setPage(1) }} aria-label={t('communication.log.to')} />
           <ControlChip label={t('communication.log.channel')} value={channelLabel(channel)} active={!!channel} options={CHANNELS.map(channelLabel)} onChange={(v) => { setChannel(CHANNELS.find((c) => channelLabel(c) === v) ?? ''); setPage(1) }} />
           <ControlChip label={t('communication.statusLabel')} value={statusLabel(status)} active={!!status} options={STATUSES.map(statusLabel)} onChange={(v) => { setStatus(STATUSES.find((s) => statusLabel(s) === v) ?? ''); setPage(1) }} />
         </>} />}

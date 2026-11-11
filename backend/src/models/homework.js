@@ -91,6 +91,9 @@ const lessonPlanSchema = new Schema({
   method: String, // activities, teaching method
   resources: String,
   homeworkNote: String,
+  // teaching material besides files (files hang off the plan in Files: entityType lesson_plan)
+  links: { type: [{ title: String, url: String }], default: undefined }, // videos (YouTube…), websites, Drive / Docs
+  materialNotes: String, // reading notes, questions to ask, board work
   status: { type: String, default: 'PLANNED' }, // LESSON_STATUS
   reflection: String, // how it went
   doneAt: Date,

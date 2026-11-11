@@ -364,6 +364,8 @@ export async function savePlan(id, input, auth, req) {
   Object.assign(plan, {
     sectionId: section._id, subjectId: input.subjectId, date: input.date, period: input.period || undefined, title: input.title, topicIds: input.topicIds ?? [],
     objectives: input.objectives || undefined, method: input.method || undefined, resources: input.resources || undefined, homeworkNote: input.homeworkNote || undefined,
+    ...(input.links !== undefined && { links: input.links.length ? input.links : undefined }),
+    ...(input.materialNotes !== undefined && { materialNotes: input.materialNotes || undefined }),
   })
   await plan.save()
   await audit({ action: id ? 'UPDATE' : 'CREATE', module: 'homework', entityType: 'lesson_plan', entityId: String(plan._id), entityName: plan.title, summary: `${id ? 'Updated' : 'Planned'} “${plan.title}” for ${section.short} on ${plan.date}` }, req)
@@ -525,6 +527,12 @@ export async function saveSubmissions(id, entries, auth, req) {
   const counts = submissionCounts(h.entries, roster.size)
   await audit({ action: 'UPDATE', module: 'homework', entityType: 'homework', entityId: String(h._id), entityName: h.title, summary: `Checked homework “${h.title}” (${section.short}): ${counts.handedIn} of ${roster.size} handed in` }, req)
   return getHomework(id, auth)
+}
+
+/** For Files: a lesson plan's name, access-checked by the caller's sections; its teacher (or the class teacher) may add. */
+export async function lessonPlanRecord(id, auth) {
+  const { p, section } = await planFor(id, auth)
+  return { name: `${p.title} (${section.short}, ${p.date})`, canAdd: mayChange(auth, p, section) }
 }
 
 /** For Files: a homework's name, access-checked by the caller's sections. */

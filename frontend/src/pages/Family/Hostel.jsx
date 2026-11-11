@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { BedDouble, Phone, Plus, Snowflake, Ticket, Utensils } from 'lucide-react'
 import { OUTPASS_KINDS, OUTPASS_STATUS } from '@schoolgiant/shared'
-import { FormField, Input, Select, StatusPill, Textarea, localIso } from '../../components/system'
+import { DateInput, FormField, Input, Select, StatusPill, Textarea, localIso } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { FCard, FEmpty, FError, FSkeleton, useFamily, useFamilyQuery } from '../../components/family/FamilyKit'
 import { familyCancelOutpass, familyHostel, familyRequestOutpass } from '../../api/family'
@@ -26,9 +26,9 @@ function OutpassRequest({ onDone }) {
     <div className="space-y-3">
       <FormField label={t('hostel.family.kind')}><Select value={form.kind} onChange={set('kind')}>{OUTPASS_KINDS.map((k) => <option key={k.value} value={k.value}>{t(`hostel.outpassKinds.${k.value}`)}</option>)}</Select></FormField>
       <div className="grid grid-cols-2 gap-3">
-        <FormField label={t('hostel.family.leaveOn')}><Input type="date" value={form.leaveDate} min={today} onChange={set('leaveDate')} /></FormField>
+        <FormField label={t('hostel.family.leaveOn')}><DateInput value={form.leaveDate} min={today} onChange={set('leaveDate')} /></FormField>
         <FormField label={t('hostel.family.at')}><Input type="time" value={form.leaveTime} onChange={set('leaveTime')} /></FormField>
-        <FormField label={t('hostel.family.backOn')}><Input type="date" value={form.returnDate} min={form.leaveDate} onChange={set('returnDate')} /></FormField>
+        <FormField label={t('hostel.family.backOn')}><DateInput value={form.returnDate} min={form.leaveDate} onChange={set('returnDate')} /></FormField>
         <FormField label={t('hostel.family.at')}><Input type="time" value={form.returnTime} onChange={set('returnTime')} /></FormField>
       </div>
       <FormField label={t('hostel.family.destination')}><Input value={form.destination} maxLength={200} onChange={set('destination')} /></FormField>

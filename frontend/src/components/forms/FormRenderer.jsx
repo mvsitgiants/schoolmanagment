@@ -2,7 +2,7 @@ import clsx from 'clsx'
 import { Info } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { COMPUTED_TYPES, computeForm, isVisible, scoreBand } from '@schoolgiant/shared'
-import { FormField, Input, Select, Textarea } from '../system'
+import { DateInput, FormField, Input, Select, Textarea } from '../system'
 
 const GRID = { 1: 'grid-cols-1', 2: 'sm:grid-cols-2', 3: 'sm:grid-cols-2 lg:grid-cols-3' }
 const Chip = ({ on, children, onClick, disabled }) => (
@@ -27,7 +27,7 @@ function Field({ f, values, set, readOnly, error }) {
     control = <p className="text-sm text-ink whitespace-pre-wrap min-h-[1.5rem]">{text || <span className="text-ink-faint">—</span>}</p>
   } else if (f.type === 'TEXTAREA') control = <Textarea rows={2} value={v ?? ''} onChange={(e) => set(f.key, e.target.value)} />
   else if (f.type === 'NUMBER') control = <Input inputMode="decimal" value={v ?? ''} onChange={(e) => set(f.key, e.target.value.replace(/[^\d.-]/g, ''))} />
-  else if (f.type === 'DATE') control = <Input type="date" value={v ?? ''} onChange={(e) => set(f.key, e.target.value)} />
+  else if (f.type === 'DATE') control = <DateInput value={v ?? ''} onChange={(e) => set(f.key, e.target.value)} />
   else if (f.type === 'SELECT') control = <Select value={v ?? ''} onChange={(e) => set(f.key, e.target.value)}><option value="">—</option>{(f.options ?? []).map((o) => <option key={o} value={o}>{o}</option>)}</Select>
   else if (f.type === 'MULTI') {
     const arr = [].concat(v ?? [])

@@ -8,7 +8,7 @@ import {
 } from 'lucide-react'
 import { SURVEY_AUDIENCES } from '@schoolgiant/shared'
 import {
-  ColorChip, Drawer, EmptyState, FormField, Input, Modal, Note, PageContainer, PageHeader, Panel, Select, SideNav, SideNavLayout, StatCardRow, Textarea, useConfirm,
+  DateInput, ColorChip, Drawer, EmptyState, FormField, Input, Modal, Note, PageContainer, PageHeader, Panel, Select, SideNav, SideNavLayout, StatCardRow, Textarea, useConfirm,
 } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { Switch } from '../../components/app/Controls'
@@ -96,8 +96,8 @@ function SurveyEditor({ survey, open, onClose }) {
           </>
         )}
         <div className="grid gap-3 sm:grid-cols-2">
-          <FormField label={t('surveys.editor.opensOn')} hint={t('surveys.editor.opensHint')}><Input type="date" disabled={locked} value={f.opensOn} onChange={(e) => set('opensOn', e.target.value)} /></FormField>
-          <FormField label={t('surveys.editor.closesOn')} error={errors.closesOn}><Input type="date" value={f.closesOn} onChange={(e) => set('closesOn', e.target.value)} /></FormField>
+          <FormField label={t('surveys.editor.opensOn')} hint={t('surveys.editor.opensHint')}><DateInput disabled={locked} value={f.opensOn} onChange={(e) => set('opensOn', e.target.value)} /></FormField>
+          <FormField label={t('surveys.editor.closesOn')} error={errors.closesOn}><DateInput value={f.closesOn} onChange={(e) => set('closesOn', e.target.value)} /></FormField>
         </div>
         <div className="flex items-start justify-between gap-3 rounded-xl border border-border p-3">
           <div><p className="text-sm font-semibold text-ink">{t('surveys.editor.anonymous')}</p><p className="text-xs text-ink-muted">{t('surveys.editor.anonymousHint')}</p></div>

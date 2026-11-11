@@ -4,7 +4,7 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { CheckCircle2, School, ShieldCheck } from 'lucide-react'
 import { APPLICATION_STATUS } from '@schoolgiant/shared'
-import { FormField, Input, Note, Select, SegmentedControl, StatusPill, Textarea } from '../../components/system'
+import { DateInput, FormField, Input, Note, Select, SegmentedControl, StatusPill, Textarea } from '../../components/system'
 import Button from '../../components/ui/Button'
 import ApplicationForm, { applicationBody, emptyApplication } from '../../components/admissions/ApplicationForm'
 import { publicAcceptOffer, publicAdmissions, publicApply, publicEnquiry, publicMyApplications, publicSendCode, publicVerify } from '../../api/admissions'
@@ -118,7 +118,7 @@ function EnquireTab({ slug, info }) {
         <FormField label={t('admissions.form.parentName')} required><Input value={form.parentName} onChange={set('parentName')} /></FormField>
         <FormField label={t('admissions.form.mobile')} required><Input inputMode="numeric" value={form.mobile} onChange={set('mobile')} /></FormField>
         <FormField label={t('admissions.form.email')}><Input type="email" value={form.email} onChange={set('email')} /></FormField>
-        <FormField label={t('admissions.form.dob')}><Input type="date" value={form.dob} onChange={set('dob')} /></FormField>
+        <FormField label={t('admissions.form.dob')}><DateInput value={form.dob} onChange={set('dob')} /></FormField>
         <div className="sm:col-span-2"><FormField label={t('admissions.public.question')}><Textarea rows={2} value={form.note} onChange={set('note')} /></FormField></div>
         {/* hidden from people; bots fill it in */}
         <div className="hidden" aria-hidden="true"><Input tabIndex={-1} autoComplete="off" value={form.website} onChange={set('website')} /></div>

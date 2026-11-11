@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { Plus, Send, Trash2, Undo2, X } from 'lucide-react'
 import { JOURNAL_STATUSES, toPaise, toRupees } from '@schoolgiant/shared'
-import { Drawer, FormField, Input, Modal, Money, Note, Select, StatusPill, localIso, usePrompt } from '../system'
+import { DateInput, Drawer, FormField, Input, Modal, Money, Note, Select, StatusPill, localIso, usePrompt } from '../system'
 import Button from '../ui/Button'
 import { createJournal, discardJournal, fetchFinanceMeta, fetchJournal, postJournal, reverseJournal, updateJournal } from '../../api/finance'
 import { hasPermission } from '../../api/auth'
@@ -68,7 +68,7 @@ export function VoucherForm({ journal, onClose, onSaved }) {
               {(meta?.voucherTypes ?? []).filter((v) => v.manual).map((v) => <option key={v.value} value={v.value}>{t(`finance.voucherTypes.${v.value}`)}</option>)}
             </Select>
           </FormField>
-          <FormField label={t('finance.voucher.date')}><Input type="date" value={head.date} onChange={(e) => setHead((h) => ({ ...h, date: e.target.value }))} /></FormField>
+          <FormField label={t('finance.voucher.date')}><DateInput value={head.date} onChange={(e) => setHead((h) => ({ ...h, date: e.target.value }))} /></FormField>
           <div className="sm:col-span-2"><FormField label={t('finance.voucher.reference')}><Input value={head.reference} onChange={(e) => setHead((h) => ({ ...h, reference: e.target.value }))} /></FormField></div>
         </div>
         <p className="text-xs text-ink-muted">{t(`finance.voucherHints.${head.type}`)}</p>

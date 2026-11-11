@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { AlarmClock, BookCopy, ClipboardCheck, BookMarked, BookOpen, BookUp, Disc3, Download, GraduationCap, Library, Newspaper, Pencil, Plus, Printer, ScanSearch, ScrollText, TabletSmartphone, Trash2 } from 'lucide-react'
 import { COPY_SOURCES, COPY_STATUS, ITEM_TYPES, hasCopies, toPaise, toRupees } from '@schoolgiant/shared'
-import { Attachments, CodeBadge, ColorChip, DataTable, Drawer, FormField, HeaderButton, ImportExportButtons, Input, LevelBar, Modal, Money, Note, PageContainer, PageHeader, Panel, PersonCell, SearchInput, Select, StatCardRow, Textarea, useConfirm, usePrompt } from '../../components/system'
+import { DateInput, Attachments, CodeBadge, ColorChip, DataTable, Drawer, FormField, HeaderButton, ImportExportButtons, Input, LevelBar, Modal, Money, Note, PageContainer, PageHeader, Panel, PersonCell, SearchInput, Select, StatCardRow, Textarea, useConfirm, usePrompt } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { addCopies, deleteCopy, deleteTitle, exportCatalogue, fetchTitle, fetchTitles, importCatalogue, lookupIsbn, saveTitle, updateCopy } from '../../api/library'
 import { fetchAcademicLookup } from '../../api/academics'
@@ -152,7 +152,7 @@ function CopiesForm({ title, onClose, onSaved }) {
           <FormField label={t('library.copies.price')}><Input type="number" min="0" value={form.price} onChange={set('price')} /></FormField>
           <FormField label={t('library.copies.shelf')}><Input value={form.shelf} onChange={set('shelf')} /></FormField>
           <FormField label={t('library.copies.source')}><Select value={form.source} onChange={set('source')}>{COPY_SOURCES.map((s) => <option key={s.value} value={s.value}>{L.source(s.value)}</option>)}</Select></FormField>
-          <FormField label={t('library.copies.acquiredOn')}><Input type="date" value={form.acquiredOn} onChange={set('acquiredOn')} /></FormField>
+          <FormField label={t('library.copies.acquiredOn')}><DateInput value={form.acquiredOn} onChange={set('acquiredOn')} /></FormField>
           <FormField label={t('library.copies.vendor')}><Input value={form.vendor} onChange={set('vendor')} /></FormField>
           <FormField label={t('library.copies.billNo')}><Input value={form.billNo} onChange={set('billNo')} /></FormField>
           {(meta?.branches ?? []).length > 1 && (

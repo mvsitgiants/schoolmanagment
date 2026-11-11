@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { CalendarDays, Leaf, Pencil, Plus, Sparkles, Trash2, Utensils, UtensilsCrossed, X } from 'lucide-react'
 import { CANTEEN_CATEGORIES, CANTEEN_DAYS, CANTEEN_MARKS, CANTEEN_TAGS, formatINR, toPaise, toRupees } from '@schoolgiant/shared'
-import { FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, Panel, SearchInput, SegmentedControl, Select, SideNav, SideNavLayout, StatCardRow, Textarea, useConfirm } from '../../components/system'
+import { DateInput, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, Panel, SearchInput, SegmentedControl, Select, SideNav, SideNavLayout, StatCardRow, Textarea, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { deleteMenuItem, deleteSpecial, fetchMenu, fetchSpecials, saveMenuItem, saveSpecial, setSoldOut } from '../../api/canteen'
 import { hasPermission } from '../../api/auth'
@@ -79,7 +79,7 @@ function SpecialForm({ items, date, onClose, onSaved }) {
       <Button loading={save.isPending} disabled={!form.itemId || !form.date} onClick={() => save.mutate()}>{t('actions.save')}</Button>
     </>}>
       <div className="space-y-3">
-        <FormField label={t('canteen.specials.date')} required><Input type="date" value={form.date} onChange={set('date')} /></FormField>
+        <FormField label={t('canteen.specials.date')} required><DateInput value={form.date} onChange={set('date')} /></FormField>
         <FormField label={t('canteen.specials.item')} required>
           <Select value={form.itemId} onChange={set('itemId')}>
             <option value="">{t('canteen.specials.pick')}</option>

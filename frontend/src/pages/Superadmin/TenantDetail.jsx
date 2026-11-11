@@ -6,7 +6,7 @@ import clsx from 'clsx'
 import { ArrowLeft, BadgeCheck, Ban, Boxes, Building2, CalendarPlus, CreditCard, Gauge, Layers, Percent, Receipt, Shield, Users } from 'lucide-react'
 import { CATEGORY_BY_ID, formatINR } from '@schoolgiant/shared'
 import {
-  CodeBadge, ColorChip, DataTable, DateCell, FormField, Input, Modal, Money, Note, PageContainer, PageHeader, Panel, PersonCell, Select, StatCardRow, StatusPill, Tabs, Textarea, VerifiedBadge, useConfirm,
+  DateInput, CodeBadge, ColorChip, DataTable, DateCell, FormField, Input, Modal, Money, Note, PageContainer, PageHeader, Panel, PersonCell, Select, StatCardRow, StatusPill, Tabs, Textarea, VerifiedBadge, useConfirm,
 } from '../../components/system'
 import { canPlatform } from '../../api/auth'
 import Button from '../../components/ui/Button'
@@ -108,7 +108,7 @@ function DealModal({ tenant, onClose, onDone }) {
       <p className="text-sm text-ink-muted mb-4">{t('superadmin.tenantDetail.dealIntro')}</p>
       <div className="grid grid-cols-2 gap-4">
         <FormField label={t('superadmin.tenantDetail.dealPct')}><Input type="number" min="1" max="100" value={form.pct} onChange={(e) => setForm((f) => ({ ...f, pct: e.target.value }))} /></FormField>
-        <FormField label={t('superadmin.tenantDetail.dealUntil')} hint={t('superadmin.tenantDetail.dealUntilHint')}><Input type="date" value={form.until} onChange={(e) => setForm((f) => ({ ...f, until: e.target.value }))} /></FormField>
+        <FormField label={t('superadmin.tenantDetail.dealUntil')} hint={t('superadmin.tenantDetail.dealUntilHint')}><DateInput value={form.until} onChange={(e) => setForm((f) => ({ ...f, until: e.target.value }))} /></FormField>
         <div className="col-span-2"><FormField label={t('superadmin.tenantDetail.dealNote')}><Input value={form.note} maxLength={80} placeholder={t('superadmin.tenantDetail.dealNotePlaceholder')} onChange={(e) => setForm((f) => ({ ...f, note: e.target.value }))} /></FormField></div>
       </div>
     </Modal>

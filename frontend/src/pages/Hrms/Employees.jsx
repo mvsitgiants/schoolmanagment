@@ -4,7 +4,7 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tansta
 import { useTranslation } from 'react-i18next'
 import { Briefcase, Bus, CreditCard, Download, Presentation, ShieldCheck, UserPlus, Users, UsersRound, Wrench } from 'lucide-react'
 import { EMPLOYEE_CATEGORIES, EMPLOYEE_STATUSES, EMPLOYMENT_TYPES, GENDERS } from '@schoolgiant/shared'
-import { ColorChip, ContactCell, ControlChip, DataTable, DateCell, FormField, PersonCell, StackCell, HeaderButton, ImportExportButtons, Input, Modal, PageContainer, PageHeader, Select, StatCardRow, StatusPill, Textarea, Toolbar, useConfirm } from '../../components/system'
+import { DateInput, ColorChip, ContactCell, ControlChip, DataTable, DateCell, FormField, PersonCell, StackCell, HeaderButton, ImportExportButtons, Input, Modal, PageContainer, PageHeader, Select, StatCardRow, StatusPill, Textarea, Toolbar, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
 import useDebouncedValue from '../../hooks/useDebouncedValue'
 import { createEmployee, exportEmployees, fetchEmployees, importEmployees, recordsFromLogins, updateEmployee } from '../../api/hrms'
@@ -103,8 +103,8 @@ export function EmployeeForm({ employee, onClose, onSaved }) {
               {managers.map((m) => <option key={m.id} value={m.id}>{m.designation ? `${m.name} · ${m.designation}` : m.name}</option>)}
             </Select>
           </FormField>
-          <FormField label={t('hrms.employees.joiningDate')} required error={errors.joiningDate}><Input type="date" value={form.joiningDate} onChange={set('joiningDate')} /></FormField>
-          <FormField label={t('hrms.employees.confirmationDate')} error={errors.confirmationDate}><Input type="date" value={form.confirmationDate} onChange={set('confirmationDate')} /></FormField>
+          <FormField label={t('hrms.employees.joiningDate')} required error={errors.joiningDate}><DateInput value={form.joiningDate} onChange={set('joiningDate')} /></FormField>
+          <FormField label={t('hrms.employees.confirmationDate')} error={errors.confirmationDate}><DateInput value={form.confirmationDate} onChange={set('confirmationDate')} /></FormField>
         </section>
 
         <section className="grid sm:grid-cols-3 gap-4">
@@ -116,7 +116,7 @@ export function EmployeeForm({ employee, onClose, onSaved }) {
               {GENDERS.map((g) => <option key={g.value} value={g.value}>{t(`hrms.genders.${g.value}`)}</option>)}
             </Select>
           </FormField>
-          <FormField label={t('hrms.employees.dob')} error={errors.dob}><Input type="date" value={form.dob} onChange={set('dob')} /></FormField>
+          <FormField label={t('hrms.employees.dob')} error={errors.dob}><DateInput value={form.dob} onChange={set('dob')} /></FormField>
           <FormField label={t('hrms.employees.qualifications')}><Input value={form.qualifications} onChange={set('qualifications')} placeholder={t('hrms.employees.qualificationsPlaceholder')} /></FormField>
           <FormField label={t('hrms.employees.experience')}><Input type="number" min="0" value={form.experienceYears} onChange={set('experienceYears')} /></FormField>
           {form.category === 'TEACHING' && <div className="sm:col-span-3"><FormField label={t('hrms.employees.subjects')} hint={t('hrms.employees.subjectsHint')}><Input value={form.subjects} onChange={set('subjects')} /></FormField></div>}

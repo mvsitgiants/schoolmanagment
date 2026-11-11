@@ -3,7 +3,7 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tansta
 import { useTranslation } from 'react-i18next'
 import { HandCoins, Landmark, Plus, Zap } from 'lucide-react'
 import { LOAN_STATUSES, LOAN_TYPES, toPaise, toRupees } from '@schoolgiant/shared'
-import { ColorChip, DataTable, FormField, HeaderButton, Input, Modal, Money, PageContainer, PageHeader, PaidBar, PersonCell, SegmentedControl, Select, StatusPill, localIso, usePrompt } from '../../components/system'
+import { DateInput, ColorChip, DataTable, FormField, HeaderButton, Input, Modal, Money, PageContainer, PageHeader, PaidBar, PersonCell, SegmentedControl, Select, StatusPill, localIso, usePrompt } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { closeLoan, createLoan, fetchLoans, fetchPayrollStaff, updateLoan } from '../../api/payroll'
 import { hasPermission } from '../../api/auth'
@@ -44,7 +44,7 @@ function LoanForm({ loan, onClose, onSaved }) {
         {!loan && <FormField label={t('payroll.loans.amount')} required error={errors.amount}><Input type="number" min="1" value={f.amount} onChange={set('amount')} /></FormField>}
         <FormField label={t('payroll.loans.instalment')} required error={errors.instalment} hint={months ? t('payroll.loans.months', { count: months }) : undefined}><Input type="number" min="1" value={f.instalment} onChange={set('instalment')} /></FormField>
         <FormField label={t('payroll.loans.from')}><Input type="month" value={f.startMonth} onChange={set('startMonth')} /></FormField>
-        {!loan && <FormField label={t('payroll.loans.disbursed')}><Input type="date" value={f.disbursedOn} onChange={set('disbursedOn')} /></FormField>}
+        {!loan && <FormField label={t('payroll.loans.disbursed')}><DateInput value={f.disbursedOn} onChange={set('disbursedOn')} /></FormField>}
         <div className="sm:col-span-2"><FormField label={t('payroll.loans.reason')} required><Input value={f.reason} onChange={set('reason')} /></FormField></div>
       </div>
     </Modal>

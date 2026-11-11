@@ -41,6 +41,7 @@ export { default as MetricCard } from './MetricCard'
 // Forms — the canonical modal + field set. (ui/Modal and ui/Input now re-export these.)
 export { default as Modal, useOverlayLayer } from './Modal'
 export { Label, Input, Select, Textarea, FormField } from './Form'
+export { default as DateInput, DateRangeInput } from './DateInput'
 
 export { PANEL, PAGE, TONE, CHART, ACCENTS, statusTone, foldSeries, hueTone } from './tokens'
 export { default as ChartCard, ChartTable } from './ChartCard'
@@ -74,3 +75,4 @@ export { SideNav, SideNavLayout } from './SideNav'
 export { pillClass, PillRow } from './FilterPills'
 export { default as ErrorBoundary, isChunkError, reloadForNewBuild } from './ErrorBoundary'
 export { default as ListWithRail } from './ListWithRail'
+export { default as Calendar, CalendarNav } from './Calendar'

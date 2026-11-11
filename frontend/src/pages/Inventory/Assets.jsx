@@ -5,7 +5,7 @@ import clsx from 'clsx'
 import { Archive, DoorOpen, IndianRupee, LayoutGrid, List, Package, Pencil, Plus, ShieldCheck, Trash2, Wrench, Printer } from 'lucide-react'
 import { ASSET_CATEGORIES, ASSET_CONDITIONS, ASSET_DISPOSAL_METHODS, ASSET_MAINTENANCE_KINDS, ASSET_STATUS, formatINR } from '@schoolgiant/shared'
 import {
-  CodeBadge, ColorChip, DataTable, DateCell, Drawer, EmptyState, Fact, FactGrid, FormField, HeaderButton, Input, LevelBar, Modal, Money, Note, PageContainer, PageHeader, Panel,
+  DateInput, CodeBadge, ColorChip, DataTable, DateCell, Drawer, EmptyState, Fact, FactGrid, FormField, HeaderButton, Input, LevelBar, Modal, Money, Note, PageContainer, PageHeader, Panel,
   PersonCell, SearchInput, SegmentedControl, Select, SideNav, SideNavLayout, Skeleton, StatCardRow, TONE, Textarea, Timeline, hueTone, useConfirm,
 } from '../../components/system'
 import Button from '../../components/ui/Button'
@@ -79,11 +79,11 @@ function AssetForm({ asset, onClose, onSaved }) {
           <FormField label={t('inventory.assets.assignedTo')} error={errors.assignedToId}><Select value={form.assignedToId} onChange={set('assignedToId')}><option value="">{t('inventory.assets.nobody')}</option>{(meta?.staff ?? []).map((u) => <option key={u.id} value={u.id}>{u.designation ? `${u.name} · ${u.designation}` : u.name}</option>)}</Select></FormField>
         </div>
         <div className="grid gap-3 sm:grid-cols-4">
-          <FormField label={t('inventory.assets.purchaseDate')}><Input type="date" value={form.purchaseDate} onChange={set('purchaseDate')} /></FormField>
+          <FormField label={t('inventory.assets.purchaseDate')}><DateInput value={form.purchaseDate} onChange={set('purchaseDate')} /></FormField>
           <FormField label={t('inventory.assets.cost')}><Input type="number" min="0" step="0.01" value={form.cost} onChange={set('cost')} /></FormField>
           <FormField label={t('inventory.assets.vendor')}><Select value={form.vendorId} onChange={set('vendorId')}><option value="">—</option>{(meta?.vendors ?? []).map((v) => <option key={v.id} value={v.id}>{v.name}</option>)}</Select></FormField>
           <FormField label={t('inventory.assets.invoiceNo')}><Input value={form.invoiceNo} onChange={set('invoiceNo')} /></FormField>
-          <FormField label={t('inventory.assets.warrantyEnd')}><Input type="date" value={form.warrantyEnd} onChange={set('warrantyEnd')} /></FormField>
+          <FormField label={t('inventory.assets.warrantyEnd')}><DateInput value={form.warrantyEnd} onChange={set('warrantyEnd')} /></FormField>
           <FormField label={t('inventory.assets.lifeYears')} hint={t('inventory.assets.lifeHint', { n: life })}><Input type="number" min="1" max="60" value={form.lifeYears} onChange={set('lifeYears')} placeholder={String(life ?? '')} /></FormField>
           <FormField label={t('inventory.assets.salvagePct')}><Input type="number" min="0" max="100" value={form.salvagePct} onChange={set('salvagePct')} placeholder="0" /></FormField>
           <FormField label={t('inventory.assets.condition')}><Select value={form.condition} onChange={set('condition')}>{Object.keys(ASSET_CONDITIONS).map((c) => <option key={c} value={c}>{L.cond(c)}</option>)}</Select></FormField>
@@ -117,10 +117,10 @@ function MaintenanceForm({ asset, onClose, onDone }) {
         <SegmentedControl value={form.kind} onChange={(v) => setForm((f) => ({ ...f, kind: v }))} options={ASSET_MAINTENANCE_KINDS.map((k) => ({ value: k, label: L.maint(k) }))} />
         <FormField label={t('inventory.assets.whatDone')} required><Textarea rows={2} value={form.description} onChange={set('description')} /></FormField>
         <div className="grid gap-3 sm:grid-cols-2">
-          <FormField label={t('inventory.assets.date')}><Input type="date" value={form.date} onChange={set('date')} /></FormField>
+          <FormField label={t('inventory.assets.date')}><DateInput value={form.date} onChange={set('date')} /></FormField>
           <FormField label={t('inventory.assets.maintCost')}><Input type="number" min="0" step="0.01" value={form.cost} onChange={set('cost')} /></FormField>
           <FormField label={t('inventory.assets.byVendor')}><Input value={form.vendor} onChange={set('vendor')} /></FormField>
-          <FormField label={t('inventory.assets.nextDue')}><Input type="date" value={form.nextDue} onChange={set('nextDue')} /></FormField>
+          <FormField label={t('inventory.assets.nextDue')}><DateInput value={form.nextDue} onChange={set('nextDue')} /></FormField>
         </div>
         <FormField label={t('inventory.assets.setStatus')}>
           <Select value={form.status} onChange={set('status')}><option value="">{t('inventory.assets.keepStatus', { status: L.assetStatus(asset.status) })}</option>{['IN_USE', 'UNDER_REPAIR', 'IN_STORE'].map((s) => <option key={s} value={s}>{L.assetStatus(s)}</option>)}</Select>
@@ -146,7 +146,7 @@ function DisposeForm({ asset, onClose, onDone }) {
         <Note tone="warning">{t('inventory.assets.disposeHint', { value: formatINR(asset.bookValue) })}</Note>
         <div className="grid gap-3 sm:grid-cols-2">
           <FormField label={t('inventory.assets.method')}><Select value={form.method} onChange={set('method')}>{ASSET_DISPOSAL_METHODS.map((m) => <option key={m} value={m}>{L.disposal(m)}</option>)}</Select></FormField>
-          <FormField label={t('inventory.assets.date')}><Input type="date" value={form.date} onChange={set('date')} /></FormField>
+          <FormField label={t('inventory.assets.date')}><DateInput value={form.date} onChange={set('date')} /></FormField>
           {form.method === 'SOLD' && <FormField label={t('inventory.assets.soldFor')}><Input type="number" min="0" step="0.01" value={form.amount} onChange={set('amount')} /></FormField>}
         </div>
         <FormField label={t('inventory.po.reason')} required><Textarea rows={2} value={form.reason} onChange={set('reason')} /></FormField>

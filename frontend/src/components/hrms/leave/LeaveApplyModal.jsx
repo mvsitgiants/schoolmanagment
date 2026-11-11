@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { FormField, Input, Modal, SegmentedControl, Select, Textarea } from '../../system'
+import { DateInput, FormField, Modal, SegmentedControl, Select, Textarea } from '../../system'
 import Button from '../../ui/Button'
 import { Switch } from '../../app/Controls'
 import { applyLeaveFor, applyMyLeave, fetchEmployeeLeave, previewLeaveFor, previewMyLeave } from '../../../api/hrms'
@@ -67,9 +67,9 @@ export default function LeaveApplyModal({ balances: myBalances, employees, defau
         {type?.description && <p className="-mt-1.5 text-xs text-ink-muted">{type.description}</p>}
         <div className="grid grid-cols-2 gap-3">
           <FormField label={t('hrmsLeave.apply.from')} required error={errors.from}>
-            <Input type="date" value={f.from} onChange={(e) => { const from = e.target.value; setF((x) => ({ ...x, from, to: !x.to || x.to < from ? from : x.to })) }} />
+            <DateInput value={f.from} onChange={(e) => { const from = e.target.value; setF((x) => ({ ...x, from, to: !x.to || x.to < from ? from : x.to })) }} />
           </FormField>
-          <FormField label={t('hrmsLeave.apply.to')} error={errors.to}><Input type="date" value={f.to} min={f.from || undefined} onChange={set('to')} /></FormField>
+          <FormField label={t('hrmsLeave.apply.to')} error={errors.to}><DateInput value={f.to} min={f.from || undefined} onChange={set('to')} /></FormField>
         </div>
         {halfAllowed && (
           <div className="flex flex-wrap items-center gap-3">

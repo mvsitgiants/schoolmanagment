@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { CheckCheck, ChevronLeft, NotebookPen, Plus, Save, UserPlus, UsersRound } from 'lucide-react'
 import clsx from 'clsx'
-import { CodeBadge, ColorChip, DataTable, DateCell, FormField, HeaderButton, Input, LevelBar, Modal, Note, PANEL, PageContainer, PageHeader, PersonCell, SideNav, SideNavLayout, StatCardRow, Textarea, localIso, pillClass, useConfirm } from '../../components/system'
+import { DateInput, CodeBadge, ColorChip, DataTable, DateCell, FormField, HeaderButton, Input, LevelBar, Modal, Note, PANEL, PageContainer, PageHeader, PersonCell, SideNav, SideNavLayout, StatCardRow, Textarea, localIso, pillClass, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
 import useCycle from '../../components/admissions/useCycle'
 import { assignTest, createTest, fetchTestMarks, fetchTests, saveTestMarks, updateTest } from '../../api/admissions'
@@ -36,7 +36,7 @@ function TestForm({ cycle, test, onClose, onSaved }) {
             ))}
           </div>
         </div>
-        <FormField label={t('admissions.tests.date')} required><Input type="date" value={form.date} onChange={set('date')} /></FormField>
+        <FormField label={t('admissions.tests.date')} required><DateInput value={form.date} onChange={set('date')} /></FormField>
         <FormField label={t('admissions.tests.time')}><Input type="time" value={form.time} onChange={set('time')} /></FormField>
         <FormField label={t('admissions.tests.venue')}><Input value={form.venue} onChange={set('venue')} /></FormField>
         <FormField label={t('admissions.tests.maxMarks')}><Input type="number" min="1" value={form.maxMarks} onChange={set('maxMarks')} /></FormField>

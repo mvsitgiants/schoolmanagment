@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { Ambulance, BedSingle, Clock, Home, LogOut, Plus, Stethoscope, Users } from 'lucide-react'
 import {
-  Avatar, ColumnBars, DataTable, EmptyState, HeaderButton, Input, PageContainer, PageHeader, PersonCell, RankBars, Skeleton, StatCardRow, Tag, localIso,
+  Avatar, ColumnBars, DataTable, DateInput, EmptyState, HeaderButton, PageContainer, PageHeader, PersonCell, RankBars, Skeleton, StatCardRow, Tag, localIso,
 } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { OutcomePill, TempTag, useHealthLabels } from '../../components/health/HealthKit'
@@ -105,7 +105,7 @@ export default function HealthVisits() {
       <DataTable rows={log} loading={day ? loadingPast : isLoading} exportable exportName="sick-room-visits" exportAll={day ? () => fetchAllVisits({ date: day }) : undefined}
         pagination={day && past && past.total > PAGE ? { page: page - 1, size: PAGE, totalElements: past.total, totalPages: Math.ceil(past.total / PAGE), onPageChange: (p) => setPage(p + 1) } : undefined}
         title={day ? t('health.visits.logOn') : t('health.visits.logToday')}
-        toolbar={<Input type="date" value={day || b?.date || localIso(new Date())} max={localIso(new Date())} onChange={(e) => { setDay(e.target.value === b?.date ? '' : e.target.value); setPage(1) }} className="w-40" aria-label={t('health.visits.pickDay')} />}
+        toolbar={<DateInput value={day || b?.date || localIso(new Date())} max={localIso(new Date())} onChange={(e) => { setDay(e.target.value === b?.date ? '' : e.target.value); setPage(1) }} className="w-40" aria-label={t('health.visits.pickDay')} />}
         emptyIcon={Stethoscope} emptyTitle={t('health.visits.emptyLog')}
         rowTone={(v) => (v.outcome === 'REFERRED' ? 'danger' : undefined)}
         columns={[

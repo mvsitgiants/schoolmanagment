@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { CalendarCheck, CalendarClock, CalendarHeart, ClipboardPaste, MapPin, Pencil, Plus, Sun, Trash2 } from 'lucide-react'
-import { ColorChip, ControlChip, DataTable, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, StatCardRow, Textarea, localIso, useConfirm, useTimeAgo } from '../../components/system'
+import { CalendarCheck, CalendarClock, CalendarDays, CalendarHeart, ClipboardPaste, List, MapPin, Pencil, Plus, Sun, Trash2 } from 'lucide-react'
+import { Calendar, ColorChip, ControlChip, DataTable, DateInput, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, SegmentedControl, StatCardRow, Textarea, localIso, useConfirm, useTimeAgo } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { addHolidays, createHoliday, deleteHoliday, fetchHolidays, updateHoliday } from '../../api/hrms'
 import { hasPermission } from '../../api/auth'
@@ -12,11 +12,11 @@ import { useHrLabels, useHrMeta } from '../../components/hrms/HrKit'
 
 const DOW = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
 
-function HolidayForm({ holiday, onClose, onSaved }) {
+function HolidayForm({ holiday, defaultDate, onClose, onSaved }) {
   const { t } = useTranslation('hrms')
   const { showError } = useSnackbar()
   const { data: meta } = useHrMeta()
-  const [form, setForm] = useState({ date: holiday?.date ?? '', name: holiday?.name ?? '', optional: holiday?.optional ?? false, forStudents: holiday?.forStudents ?? true, branchIds: holiday?.branchIds ?? [] })
+  const [form, setForm] = useState({ date: holiday?.date ?? defaultDate ?? '', name: holiday?.name ?? '', optional: holiday?.optional ?? false, forStudents: holiday?.forStudents ?? true, branchIds: holiday?.branchIds ?? [] })
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.type === 'checkbox' ? e.target.checked : e.target.value }))
   const save = useMutation({ mutationFn: () => (holiday ? updateHoliday(holiday.id, form) : createHoliday(form)), onSuccess: onSaved, onError: (e) => showError(e.message) })
   const branches = meta?.branches ?? []
@@ -26,7 +26,7 @@ function HolidayForm({ holiday, onClose, onSaved }) {
       <Button loading={save.isPending} disabled={!form.date || form.name.trim().length < 2} onClick={() => save.mutate()}>{t('hrms.holidays.save')}</Button>
     </>}>
       <div className="grid grid-cols-2 gap-4">
-        <FormField label={t('hrms.holidays.date')} required><Input type="date" value={form.date} onChange={set('date')} /></FormField>
+        <FormField label={t('hrms.holidays.date')} required><DateInput value={form.date} onChange={set('date')} /></FormField>
         <FormField label={t('hrms.holidays.name')} required><Input value={form.name} onChange={set('name')} placeholder={t('hrms.holidays.namePlaceholder')} /></FormField>
         <label className="col-span-2 inline-flex items-center gap-2 text-sm text-ink"><input type="checkbox" checked={form.forStudents} onChange={set('forStudents')} className="rounded border-border text-brand-500" />{t('hrms.holidays.forStudents')}</label>
         <label className="col-span-2 inline-flex items-center gap-2 text-sm text-ink"><input type="checkbox" checked={form.optional} onChange={set('optional')} className="rounded border-border text-brand-500" />{t('hrms.holidays.optional')}</label>
@@ -78,6 +78,10 @@ export default function Holidays() {
   const [year, setYear] = useState(thisYear)
   const [editing, setEditing] = useState(null)
   const [pasting, setPasting] = useState(false)
+  const [view, setView] = useState('LIST')
+  const [newOn, setNewOn] = useState(null)
+  const [monthState, setMonthState] = useState(() => localIso(new Date()).slice(0, 7))
+  const calMonth = monthState.startsWith(`${year}-`) ? monthState : `${year}-01`
   const { data: rows = [], isLoading } = useQuery({ queryKey: ['holidays', year], queryFn: () => fetchHolidays(year) })
   const refresh = () => qc.invalidateQueries({ queryKey: ['holidays'] })
   const remove = useMutation({ mutationFn: deleteHoliday, onSuccess: () => { refresh(); showSuccess(t('hrms.holidays.deleted')) }, onError: (e) => showError(e.message) })
@@ -91,9 +95,12 @@ export default function Holidays() {
       <PageHeader icon={CalendarHeart} title={t('hrms.holidays.title')} subtitle={t('hrms.holidays.subtitle')}
         actions={<>
           <HeaderButton icon={ClipboardPaste} requires="hrms.holidays.create" onClick={() => setPasting(true)}>{t('hrms.holidays.paste')}</HeaderButton>
-          <HeaderButton icon={Plus} variant="primary" requires="hrms.holidays.create" onClick={() => setEditing('new')}>{t('hrms.holidays.new')}</HeaderButton>
+          <HeaderButton icon={Plus} variant="primary" requires="hrms.holidays.create" onClick={() => { setNewOn(null); setEditing('new') }}>{t('hrms.holidays.new')}</HeaderButton>
         </>} />
-      <div className="mb-3"><ControlChip label={t('hrms.holidays.year')} value={String(year)} active={year !== thisYear} options={years.map(String)} onChange={(v) => setYear(Number(v))} /></div>
+      <div className="mb-3 flex flex-wrap items-center gap-2">
+        <SegmentedControl value={view} onChange={setView} options={[{ value: 'LIST', label: t('hrms.holidays.viewList'), icon: List }, { value: 'MONTH', label: t('hrms.holidays.viewMonth'), icon: CalendarDays }]} />
+        <ControlChip label={t('hrms.holidays.year')} value={String(year)} active={year !== thisYear} options={years.map(String)} onChange={(v) => setYear(Number(v))} />
+      </div>
       {!isLoading && !rows.length && <Note className="mb-3">{t('hrms.holidays.emptyHint')}</Note>}
       {rows.length > 0 && (
         <StatCardRow className="mb-4" items={[
@@ -103,7 +110,15 @@ export default function Holidays() {
           { icon: CalendarClock, tone: 'orange', label: t('hrms.holidays.stats.upcoming'), value: upcoming.length, sub: upcoming[0] ? t('hrms.holidays.stats.next', { name: upcoming[0].name, when: ago(upcoming[0].date) }) : undefined },
         ]} />
       )}
-      <DataTable rows={rows} loading={isLoading} columns={[
+      {view === 'MONTH' ? (
+        // closed days shade the calendar; optional holidays sit on it as items; a day's panel adds one on that day
+        <Calendar month={calMonth} minMonth={`${years[0]}-01`} maxMonth={`${years.at(-1)}-12`} loading={isLoading}
+          onMonthChange={(ym) => { setMonthState(ym); if (Number(ym.slice(0, 4)) !== year) setYear(Number(ym.slice(0, 4))) }}
+          holidays={rows.filter((r) => !r.optional).map((r) => ({ date: r.date, name: r.forStudents ? r.name : `${r.name} · ${t('hrms.holidays.staffOnly')}`, onClick: hasPermission('hrms.holidays.edit') ? () => setEditing(r) : undefined }))}
+          items={rows.filter((r) => r.optional).map((r) => ({ id: r.id, date: r.date, title: r.name, kind: t('hrms.holidays.optionalShort'), icon: CalendarCheck, sub: r.branches?.length ? r.branches.join(', ') : undefined, onClick: hasPermission('hrms.holidays.edit') ? () => setEditing(r) : undefined }))}
+          legend={[{ tone: 'neutral', label: t('hrms.holidays.optionalShort') }]}
+          onAdd={hasPermission('hrms.holidays.create') ? (d) => { setNewOn(d); setEditing('new') } : undefined} addLabel={t('hrms.holidays.new')} />
+      ) : <DataTable rows={rows} loading={isLoading} columns={[
         { key: 'date', header: t('hrms.holidays.date'), nowrap: true, render: (v) => {
           const past = v < today
           return (
@@ -129,8 +144,8 @@ export default function Holidays() {
               onClick={async () => { if (await confirm({ title: t('hrms.holidays.deleteConfirm', { name: r.name }), confirmLabel: t('hrms.holidays.delete'), tone: 'danger' })) remove.mutate(r.id) }} />}
           </div>
         ) },
-      ]} emptyIcon={CalendarHeart} emptyTitle={t('hrms.holidays.empty', { year })} />
-      {editing && <HolidayForm holiday={editing === 'new' ? null : editing} onClose={() => setEditing(null)} onSaved={() => { setEditing(null); refresh(); showSuccess(t('hrms.holidays.saved')) }} />}
+      ]} emptyIcon={CalendarHeart} emptyTitle={t('hrms.holidays.empty', { year })} />}
+      {editing && <HolidayForm holiday={editing === 'new' ? null : editing} defaultDate={newOn} onClose={() => { setEditing(null); setNewOn(null) }} onSaved={() => { setEditing(null); setNewOn(null); refresh(); showSuccess(t('hrms.holidays.saved')) }} />}
       {pasting && <PasteForm onClose={() => setPasting(false)} onSaved={(r) => { setPasting(false); refresh(); showSuccess(t('hrms.holidays.added', { count: r.added })) }} />}
     </PageContainer>
   )

@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { Ban, CheckCircle2, ClipboardList, Download, PackageCheck, Pencil, Plus, Printer, Send, ShoppingBag, Truck, Undo2, Users } from 'lucide-react'
 import { PO_STATUS, STORE_CATEGORIES, formatINR } from '@schoolgiant/shared'
 import {
-  CodeBadge, ColorChip, DataTable, DateCell, Drawer, Fact, FactGrid, FormField, HeaderButton, Input, LevelBar, Modal, Money, Note, PageContainer, PageHeader, Panel,
+  DateInput, CodeBadge, ColorChip, DataTable, DateCell, Drawer, Fact, FactGrid, FormField, HeaderButton, Input, LevelBar, Modal, Money, Note, PageContainer, PageHeader, Panel,
   PersonCell, SearchInput, Select, SideNav, SideNavLayout, Tabs, Textarea, Timeline, usePrompt,
 } from '../../components/system'
 import Button from '../../components/ui/Button'
@@ -123,8 +123,8 @@ function PoForm({ po, onClose, onSaved }) {
           <FormField label={t('inventory.po.vendor')} required error={errors.vendorId} className="sm:col-span-2">
             <Select value={form.vendorId} onChange={set('vendorId')}><option value="">{t('inventory.po.pickVendor')}</option>{(meta?.vendors ?? []).map((v) => <option key={v.id} value={v.id}>{v.name}</option>)}</Select>
           </FormField>
-          <FormField label={t('inventory.po.date')}><Input type="date" value={form.date} onChange={set('date')} /></FormField>
-          <FormField label={t('inventory.po.expectedOn')}><Input type="date" value={form.expectedOn} onChange={set('expectedOn')} /></FormField>
+          <FormField label={t('inventory.po.date')}><DateInput value={form.date} onChange={set('date')} /></FormField>
+          <FormField label={t('inventory.po.expectedOn')}><DateInput value={form.expectedOn} onChange={set('expectedOn')} /></FormField>
           {(meta?.branches ?? []).length > 1 && !meta?.branchLocked && (
             <FormField label={t('inventory.po.deliverTo')} className="sm:col-span-2"><Select value={form.branchId} onChange={set('branchId')}>{meta.branches.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}</Select></FormField>
           )}
@@ -163,7 +163,7 @@ function ReceiveForm({ po, onClose, onDone }) {
       <div className="space-y-4">
         <div className="grid gap-3 sm:grid-cols-3">
           <FormField label={t('inventory.po.invoiceNo')}><Input value={form.invoiceNo} onChange={(e) => setForm((f) => ({ ...f, invoiceNo: e.target.value }))} /></FormField>
-          <FormField label={t('inventory.po.receivedOn')}><Input type="date" value={form.date} onChange={(e) => setForm((f) => ({ ...f, date: e.target.value }))} /></FormField>
+          <FormField label={t('inventory.po.receivedOn')}><DateInput value={form.date} onChange={(e) => setForm((f) => ({ ...f, date: e.target.value }))} /></FormField>
           <FormField label={t('inventory.po.note')}><Input value={form.note} onChange={(e) => setForm((f) => ({ ...f, note: e.target.value }))} /></FormField>
         </div>
         <div className="divide-y divide-border rounded-xl border border-border">
@@ -171,7 +171,7 @@ function ReceiveForm({ po, onClose, onDone }) {
             <div key={l.id} className="flex flex-wrap items-center gap-3 px-3 py-2.5">
               <span className="min-w-0 flex-1"><span className="block text-sm font-medium">{l.name}{l.size ? <CodeBadge className="ms-1.5">{l.size}</CodeBadge> : null}</span>
                 <span className="block text-xs text-ink-faint">{t('inventory.po.pendingOf', { pending: l.pending, qty: l.qty })}</span></span>
-              {expiryOf.get(l.itemId) && <FormField label={t('inventory.items.expiry')} className="w-40"><Input type="date" value={expiry[l.id] ?? ''} onChange={(e) => setExpiry((m) => ({ ...m, [l.id]: e.target.value }))} /></FormField>}
+              {expiryOf.get(l.itemId) && <FormField label={t('inventory.items.expiry')} className="w-40"><DateInput value={expiry[l.id] ?? ''} onChange={(e) => setExpiry((m) => ({ ...m, [l.id]: e.target.value }))} /></FormField>}
               <FormField label={t('inventory.po.came')} className="w-24"><Input type="number" min="0" max={l.pending} value={qty[l.id]} onChange={(e) => setQty((m) => ({ ...m, [l.id]: e.target.value }))} /></FormField>
             </div>
           ))}

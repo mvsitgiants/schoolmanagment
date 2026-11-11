@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { Plus, X } from 'lucide-react'
-import { DataTable, FormField, Input, Modal, Select, Textarea } from '../system'
+import { DateInput, DataTable, FormField, Input, Modal, Select, Textarea } from '../system'
 import Button from '../ui/Button'
 import { Switch } from '../app/Controls'
 import { fetchAcademicLookup } from '../../api/academics'
@@ -72,8 +72,8 @@ export default function WindowForm({ window: w, onClose, onSaved }) {
             {(acad?.years ?? []).map((y) => <option key={y.id} value={y.id}>{y.name}</option>)}
           </Select>
         </FormField>
-        <FormField label={t('registration.windows.opensOn')} required error={errors.opensOn}><Input type="date" value={form.opensOn} onChange={set('opensOn')} /></FormField>
-        <FormField label={t('registration.windows.closesOn')} required error={errors.closesOn} hint={t('registration.windows.closesOnHint')}><Input type="date" value={form.closesOn} onChange={set('closesOn')} /></FormField>
+        <FormField label={t('registration.windows.opensOn')} required error={errors.opensOn}><DateInput value={form.opensOn} onChange={set('opensOn')} /></FormField>
+        <FormField label={t('registration.windows.closesOn')} required error={errors.closesOn} hint={t('registration.windows.closesOnHint')}><DateInput value={form.closesOn} onChange={set('closesOn')} /></FormField>
         <FormField label={t('registration.windows.minCredits')} hint={!w ? t('registration.windows.creditsHint') : undefined} error={errors.minCredits}><Input type="number" value={form.minCredits} onChange={set('minCredits')} /></FormField>
         <FormField label={t('registration.windows.maxCredits')} error={errors.maxCredits}><Input type="number" value={form.maxCredits} onChange={set('maxCredits')} /></FormField>
         <div className="flex items-end gap-2 pb-2 text-sm text-ink-muted"><Switch checked={!!form.requireApproval} onChange={set('requireApproval')} label={t('registration.windows.requireApproval')} />{t('registration.windows.requireApproval')}</div>

@@ -3,7 +3,7 @@ import { useMutation } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import clsx from 'clsx'
 import { ROUND_RESULTS, inRunningFor } from '@schoolgiant/shared'
-import { Avatar, FormField, Input, Modal, Note, SegmentedControl, TONE } from '../system'
+import { DateInput, Avatar, FormField, Input, Modal, Note, SegmentedControl, TONE } from '../system'
 import Button from '../ui/Button'
 import { registerForDrive, saveRoundResults, selectCandidates } from '../../api/placements'
 import { useSnackbar } from '../../context/SnackbarContext'
@@ -121,7 +121,7 @@ export function SelectModal({ drive, candidates, onClose, onDone }) {
         <div className="grid grid-cols-2 gap-3">
           <FormField label={t('placements.select.ctc')} required><Input type="number" min="0" step="0.1" value={f.ctc} onChange={set('ctc')} /></FormField>
           <FormField label={t('placements.select.role')}><Input value={f.role} onChange={set('role')} /></FormField>
-          <FormField label={t('placements.select.joining')}><Input type="date" value={f.joiningDate} onChange={set('joiningDate')} /></FormField>
+          <FormField label={t('placements.select.joining')}><DateInput value={f.joiningDate} onChange={set('joiningDate')} /></FormField>
           <FormField label={t('placements.select.location')}><Input value={f.location} onChange={set('location')} /></FormField>
         </div>
         <Note tone="info">{t('placements.select.note')}</Note>

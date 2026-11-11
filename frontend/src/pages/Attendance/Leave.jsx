@@ -3,7 +3,7 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tansta
 import { useTranslation } from 'react-i18next'
 import { CalendarOff, Check, CheckCircle2, Hourglass, Plus, X, XCircle } from 'lucide-react'
 import { LEAVE_STATUS, daysBetween } from '@schoolgiant/shared'
-import { ColorChip, ControlChip, DataTable, FormField, HeaderButton, Input, Modal, PageContainer, PageHeader, PersonCell, Select, StackCell, StatCardRow, StatusPill, TONE, Textarea, Toolbar, localIso, useConfirm } from '../../components/system'
+import { DateInput, ColorChip, ControlChip, DataTable, FormField, HeaderButton, Input, Modal, PageContainer, PageHeader, PersonCell, Select, StackCell, StatCardRow, StatusPill, TONE, Textarea, Toolbar, localIso, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
 import useDebouncedValue from '../../hooks/useDebouncedValue'
 import { applyStudentLeave, cancelStudentLeave, decideStudentLeave, fetchStudentLeave } from '../../api/attendance'
@@ -38,8 +38,8 @@ function ApplyLeave({ onClose, onSaved }) {
             {(found?.data ?? []).map((s) => <option key={s.id} value={s.id}>{s.name} · {s.classShort ?? '—'}</option>)}
           </Select>
         </FormField>
-        <FormField label={t('attendance.leave.from')} required error={errors.from}><Input type="date" value={form.from} onChange={set('from')} /></FormField>
-        <FormField label={t('attendance.leave.to')} required error={errors.to}><Input type="date" value={form.to} min={form.from} onChange={set('to')} /></FormField>
+        <FormField label={t('attendance.leave.from')} required error={errors.from}><DateInput value={form.from} onChange={set('from')} /></FormField>
+        <FormField label={t('attendance.leave.to')} required error={errors.to}><DateInput value={form.to} min={form.from} onChange={set('to')} /></FormField>
         <div className="col-span-2"><FormField label={t('attendance.leave.reason')} required error={errors.reason}><Textarea rows={2} value={form.reason} onChange={set('reason')} /></FormField></div>
       </div>
     </Modal>

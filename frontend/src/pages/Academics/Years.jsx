@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { CalendarRange, CheckCircle2, Pencil, Plus, Trash2, X } from 'lucide-react'
 import { academicYearFor, defaultTerms } from '@schoolgiant/shared'
-import { DataTable, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, StatusPill, useConfirm } from '../../components/system'
+import { DateInput, DataTable, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, StatusPill, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { Switch } from '../../components/app/Controls'
 import { createYear, deleteYear, fetchYears, makeYearCurrent, updateYear } from '../../api/academics'
@@ -43,8 +43,8 @@ function YearForm({ year, years, onClose, onSaved }) {
     </>}>
       <div className="grid sm:grid-cols-3 gap-4">
         <FormField label={t('academics.years.name')} required error={errors.name} hint={t('academics.years.nameHint')}><Input value={form.name} onChange={set('name')} placeholder="2027-28" /></FormField>
-        <FormField label={t('academics.years.startDate')} required error={errors.startDate}><Input type="date" value={form.startDate} onChange={set('startDate')} /></FormField>
-        <FormField label={t('academics.years.endDate')} required error={errors.endDate}><Input type="date" value={form.endDate} onChange={set('endDate')} /></FormField>
+        <FormField label={t('academics.years.startDate')} required error={errors.startDate}><DateInput value={form.startDate} onChange={set('startDate')} /></FormField>
+        <FormField label={t('academics.years.endDate')} required error={errors.endDate}><DateInput value={form.endDate} onChange={set('endDate')} /></FormField>
       </div>
 
       <div className="mt-6">
@@ -57,8 +57,8 @@ function YearForm({ year, years, onClose, onSaved }) {
           {form.terms.map((term, i) => (
             <div key={i} className="grid grid-cols-[1fr_1fr_1fr_auto] gap-3 items-start">
               <FormField label={i === 0 ? t('academics.years.termName') : undefined} error={errors[`terms.${i}.name`]}><Input value={term.name} onChange={setTerm(i, 'name')} /></FormField>
-              <FormField label={i === 0 ? t('academics.years.from') : undefined} error={errors[`terms.${i}.startDate`]}><Input type="date" value={term.startDate} onChange={setTerm(i, 'startDate')} /></FormField>
-              <FormField label={i === 0 ? t('academics.years.to') : undefined} error={errors[`terms.${i}.endDate`]}><Input type="date" value={term.endDate} onChange={setTerm(i, 'endDate')} /></FormField>
+              <FormField label={i === 0 ? t('academics.years.from') : undefined} error={errors[`terms.${i}.startDate`]}><DateInput value={term.startDate} onChange={setTerm(i, 'startDate')} /></FormField>
+              <FormField label={i === 0 ? t('academics.years.to') : undefined} error={errors[`terms.${i}.endDate`]}><DateInput value={term.endDate} onChange={setTerm(i, 'endDate')} /></FormField>
               <Button size="sm" variant="ghost" icon={X} aria-label={t('academics.years.removeTerm')} title={t('academics.years.removeTerm')} className={i === 0 ? 'mt-6' : ''}
                 onClick={() => setForm((f) => ({ ...f, terms: f.terms.filter((_, j) => j !== i) }))} />
             </div>

@@ -3,7 +3,7 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tansta
 import { useTranslation } from 'react-i18next'
 import { BadgeCheck, Check, CircleCheckBig, Hourglass, Plus, Receipt, Wallet, X, XCircle } from 'lucide-react'
 import { EXPENSE_PAY_MODES, EXPENSE_STATUSES, TDS_SECTIONS, formatINRCompact, toPaise, toRupees } from '@schoolgiant/shared'
-import { Attachments, ColorChip, DataTable, DateCell, Drawer, FormField, HeaderButton, Input, Modal, Money, Note, PageContainer, PageHeader, PersonCell, Select, SegmentedControl, StatCardRow, StatusPill, Textarea, Toolbar, localIso, usePrompt } from '../../components/system'
+import { DateInput, Attachments, ColorChip, DataTable, DateCell, Drawer, FormField, HeaderButton, Input, Modal, Money, Note, PageContainer, PageHeader, PersonCell, Select, SegmentedControl, StatCardRow, StatusPill, Textarea, Toolbar, localIso, usePrompt } from '../../components/system'
 import Button from '../../components/ui/Button'
 import useDebouncedValue from '../../hooks/useDebouncedValue'
 import { cancelExpense, createExpense, decideExpense, fetchExpense, fetchExpenseHeads, fetchExpenses, payExpense } from '../../api/finance'
@@ -34,7 +34,7 @@ function ExpenseForm({ onClose, onSaved }) {
         <FormField label={t('finance.expenses.head')} required error={errors.accountId}>
           <Select value={f.accountId} onChange={set('accountId')}><option value="">{t('finance.expenses.pickHead')}</option>{headsSorted.map((h) => <option key={h.id} value={h.id}>{`${h.code} · ${h.name}`}</option>)}</Select>
         </FormField>
-        <FormField label={t('finance.expenses.billDate')} required error={errors.date}><Input type="date" value={f.date} onChange={set('date')} /></FormField>
+        <FormField label={t('finance.expenses.billDate')} required error={errors.date}><DateInput value={f.date} onChange={set('date')} /></FormField>
         <FormField label={t('finance.expenses.payee')} required><Input value={f.payee} onChange={set('payee')} placeholder={t('finance.expenses.payeePlaceholder')} /></FormField>
         <FormField label={t('finance.expenses.billNo')}><Input value={f.billNo} onChange={set('billNo')} /></FormField>
         <div className="sm:col-span-2"><FormField label={t('finance.expenses.description')} required><Textarea rows={2} value={f.description} onChange={set('description')} /></FormField></div>
@@ -65,7 +65,7 @@ function PayForm({ x, onClose, onSaved }) {
     </>}>
       <div className="grid sm:grid-cols-2 gap-4">
         <Note className="sm:col-span-2">{t('finance.expenses.payNote', { n: toRupees(x.payable), name: x.payee.name })}</Note>
-        <FormField label={t('finance.expenses.paidOn')} error={errors.date}><Input type="date" value={f.date} onChange={set('date')} /></FormField>
+        <FormField label={t('finance.expenses.paidOn')} error={errors.date}><DateInput value={f.date} onChange={set('date')} /></FormField>
         <FormField label={t('finance.expenses.mode')}><Select value={f.mode} onChange={set('mode')}>{EXPENSE_PAY_MODES.map((m) => <option key={m.value} value={m.value}>{t(`finance.payModes.${m.value}`)}</option>)}</Select></FormField>
         {f.mode !== 'CASH' && (meta?.banks ?? []).length > 1 && <FormField label={t('finance.expenses.fromBank')}><Select value={f.bankAccountId} onChange={set('bankAccountId')}><option value="">{t('finance.expenses.defaultBank')}</option>{meta.banks.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}</Select></FormField>}
         {f.mode !== 'CASH' && <FormField label={t('finance.expenses.reference')} required error={errors.reference}><Input value={f.reference} onChange={set('reference')} /></FormField>}

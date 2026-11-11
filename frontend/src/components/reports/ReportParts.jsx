@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import clsx from 'clsx'
 import { BarChart3, Table2, TrendingUp, Layers } from 'lucide-react'
 import { RANGE_PRESETS, formatINR, formatINRCompact } from '@schoolgiant/shared'
-import { DataTable, FormField, Input, Select, MiniBarChart, TrendArea, BreakdownDonut } from '../system'
+import { DateInput, DataTable, FormField, Input, Select, MiniBarChart, TrendArea, BreakdownDonut } from '../system'
 import { fetchAcademicLookup } from '../../api/academics'
 import { fetchExams } from '../../api/exams'
 import { getCurrentUser } from '../../api/auth'
@@ -40,8 +40,8 @@ export function ParamsForm({ report, value, onChange, errors = {} }) {
                 </Select>
               </FormField>
               {custom && <>
-                <FormField label={t('reports.from')}><Input type="date" value={v.from} max={v.to || undefined} onChange={(e) => set(p.key, { ...v, from: e.target.value })} /></FormField>
-                <FormField label={t('reports.to')}><Input type="date" value={v.to} min={v.from || undefined} onChange={(e) => set(p.key, { ...v, to: e.target.value })} /></FormField>
+                <FormField label={t('reports.from')}><DateInput value={v.from} max={v.to || undefined} onChange={(e) => set(p.key, { ...v, from: e.target.value })} /></FormField>
+                <FormField label={t('reports.to')}><DateInput value={v.to} min={v.from || undefined} onChange={(e) => set(p.key, { ...v, to: e.target.value })} /></FormField>
               </>}
             </div>
           )
@@ -49,7 +49,7 @@ export function ParamsForm({ report, value, onChange, errors = {} }) {
         if (p.type === 'date') {
           return (
             <FormField key={p.key} label={label(p)} required={p.required} error={errors[p.key]} hint={v === 'today' ? t('reports.alwaysToday') : undefined}>
-              <Input type="date" value={v === 'today' ? '' : v ?? ''} onChange={(e) => set(p.key, e.target.value || 'today')} />
+              <DateInput value={v === 'today' ? '' : v ?? ''} onChange={(e) => set(p.key, e.target.value || 'today')} />
             </FormField>
           )
         }

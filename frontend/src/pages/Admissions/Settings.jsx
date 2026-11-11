@@ -6,7 +6,7 @@ import { Copy, DoorOpen, ExternalLink, Plus, Printer, Settings2, X } from 'lucid
 import QrCode from '../../components/scan/QrCode'
 import { printQrPoster } from '../../components/scan/printPoster'
 import { CYCLE_STATUS, MERIT_BASES } from '@schoolgiant/shared'
-import { ColorChip, DataTable, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, Panel, Select, StatusPill, Textarea, useConfirm } from '../../components/system'
+import { DateInput, ColorChip, DataTable, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, Panel, Select, StatusPill, Textarea, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { fetchAcademicLookup } from '../../api/academics'
 import { fetchForms } from '../../api/forms'
@@ -43,8 +43,8 @@ function CycleForm({ cycle, onClose, onSaved }) {
           <FormField label={t('admissions.settings.year')} hint={t('admissions.settings.yearHint')}>
             <Select value={form.academicYearId} onChange={set('academicYearId')}><option value="">—</option>{(lookup?.years ?? []).map((y) => <option key={y.id} value={y.id}>{y.name}</option>)}</Select>
           </FormField>
-          <FormField label={t('admissions.settings.opensOn')}><Input type="date" value={form.opensOn} onChange={set('opensOn')} /></FormField>
-          <FormField label={t('admissions.settings.closesOn')} error={errors.closesOn}><Input type="date" value={form.closesOn} min={form.opensOn || undefined} onChange={set('closesOn')} /></FormField>
+          <FormField label={t('admissions.settings.opensOn')}><DateInput value={form.opensOn} onChange={set('opensOn')} /></FormField>
+          <FormField label={t('admissions.settings.closesOn')} error={errors.closesOn}><DateInput value={form.closesOn} min={form.opensOn || undefined} onChange={set('closesOn')} /></FormField>
           <FormField label={t('admissions.settings.extraForm')} hint={t('admissions.settings.extraFormHint')} error={errors.formId}>
             <Select value={form.formId} onChange={set('formId')}><option value="">{t('admissions.settings.noForm')}</option>{formList.map((f) => <option key={f.id} value={f.id}>{f.name}</option>)}</Select>
           </FormField>

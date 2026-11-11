@@ -6,7 +6,7 @@ import { Trans, useTranslation } from 'react-i18next'
 import { Ban, FlaskConical, KeyRound, ListChecks, Pencil, Plus, Power, Radio, RotateCcw, Send, Trash2, Webhook } from 'lucide-react'
 import { INTEGRATION_MODES, WEBHOOK_DELIVERY_STATUSES } from '@schoolgiant/shared'
 import {
-  CodeBadge, ColorChip, DataTable, DateCell, Drawer, ExpiryBadge, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, SegmentedControl, StatusPill, Tabs, Textarea, useConfirm,
+  DateInput, CodeBadge, ColorChip, DataTable, DateCell, Drawer, ExpiryBadge, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, SegmentedControl, StatusPill, Tabs, Textarea, useConfirm,
 } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { DefinitionGrid } from '../../components/app/Controls'
@@ -87,7 +87,7 @@ function KeyModal({ meta, apiKey, preset, onClose, onSaved }) {
       <div className="space-y-3">
         <div className="grid sm:grid-cols-[minmax(0,1fr)_180px] gap-3">
           <FormField label={t('common.name')} required error={errors.name}><Input value={f.name} maxLength={80} onChange={(e) => setF({ ...f, name: e.target.value })} placeholder={t('admin.apiKeys.namePlaceholder')} /></FormField>
-          <FormField label={t('admin.apiKeys.expiresOn')} hint={t('admin.apiKeys.expiresHint')} error={errors.expiresAt}><Input type="date" value={f.expiresOn} onChange={(e) => setF({ ...f, expiresOn: e.target.value })} /></FormField>
+          <FormField label={t('admin.apiKeys.expiresOn')} hint={t('admin.apiKeys.expiresHint')} error={errors.expiresAt}><DateInput value={f.expiresOn} onChange={(e) => setF({ ...f, expiresOn: e.target.value })} /></FormField>
         </div>
         <FormField label={t('admin.apiKeys.scopesLabel', { count: f.scopes.length })} error={errors.scopes}>
           <ScopePicker groups={meta.scopes} value={f.scopes} onChange={(scopes) => setF({ ...f, scopes })} />

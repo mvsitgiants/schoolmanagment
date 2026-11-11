@@ -2,7 +2,7 @@ import { createHash, randomUUID } from 'node:crypto'
 import { COMMENT_MAX, FILE_CATEGORY_LABEL, FILE_MAX_MB, FILE_TYPES, RECORD_TYPES } from '@schoolgiant/shared'
 import { Attachment, Comment } from '../models/engines.js'
 import { Student, studentName } from '../models/students.js'
-import { homeworkRecord } from './homework.js'
+import { homeworkRecord, lessonPlanRecord } from './homework.js'
 import { syllabusTopicRecord } from './homeworkTopics.js'
 import { noticeRecord } from './communication.js'
 import { Application } from '../models/admissions.js'
@@ -40,6 +40,11 @@ const RECORDS = {
   homework: {
     module: 'homework', view: ['homework.homework.view'], add: ['homework.homework.create', 'homework.homework.edit'],
     load: (id, auth) => homeworkRecord(id, auth).catch(() => null),
+  },
+  // A lesson plan's teaching material: slides, worksheets, an Excel sheet, a short video, pictures.
+  lesson_plan: {
+    module: 'homework', view: ['homework.lesson-plans.view'], add: ['homework.lesson-plans.create', 'homework.lesson-plans.edit'],
+    load: (id, auth) => lessonPlanRecord(id, auth).catch(() => null),
   },
   // A syllabus topic's book pages, worksheets and pictures — shared by every section of the class and subject.
   syllabus_topic: {
@@ -166,7 +171,13 @@ export function sniffType(buf, fileName = '') {
   if (buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff) return 'image/jpeg'
   if (sig(buf, 0, '\x89PNG\r\n\x1a\n')) return 'image/png'
   if (sig(buf, 0, 'RIFF') && sig(buf, 8, 'WEBP')) return 'image/webp'
-  if (sig(buf, 0, 'PK\x03\x04') && /\.docx$/i.test(fileName) && buf.includes('word/')) return FILE_TYPES.find((t) => t.ext === 'docx').mime
+  if (sig(buf, 0, 'PK\x03\x04')) {
+    // Office files are zip packages: the name says which, the package's own folder confirms it
+    const office = (ext, folder) => new RegExp(`\\.${ext}$`, 'i').test(fileName) && buf.includes(folder) ? FILE_TYPES.find((t) => t.ext === ext).mime : null
+    return office('docx', 'word/') || office('xlsx', 'xl/') || office('pptx', 'ppt/') || null
+  }
+  if (sig(buf, 4, 'ftyp')) return 'video/mp4' // MP4 / M4V / QuickTime-compatible MP4
+  if (buf[0] === 0x1a && buf[1] === 0x45 && buf[2] === 0xdf && buf[3] === 0xa3 && /\.webm$/i.test(fileName)) return 'video/webm'
   return null
 }
 
@@ -187,7 +198,7 @@ export async function uploadFile({ entityType, entityId, category, title, fileNa
   if (buffer.length > FILE_MAX_MB * 1024 * 1024) throw badRequest(`Files can be up to ${FILE_MAX_MB} MB.`)
   const name = cleanName(fileName)
   const mime = sniffType(buffer, name)
-  if (!mime) throw badRequest('Only PDF, JPEG, PNG, WebP and Word (.docx) files can be added.')
+  if (!mime) throw badRequest('Only PDF, pictures (JPEG, PNG, WebP), Word, Excel, PowerPoint and MP4 / WebM video files can be added.')
   await assertWithinLimit(auth.tenantId, 'storageGb', buffer.length / 1e9)
   const ext = FILE_TYPES.find((t) => t.mime === mime).ext
   const now = new Date()

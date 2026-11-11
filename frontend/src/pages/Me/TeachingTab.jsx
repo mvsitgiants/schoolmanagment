@@ -12,13 +12,14 @@ import { useSnackbar } from '../../context/SnackbarContext'
 import { useFormat } from '../../context/SettingsContext'
 import { useWeekdayLabel } from '../../components/homework/HomeworkKit'
 import { PlanForm } from '../Homework/LessonPlans'
+import LessonView from '../../components/homework/LessonView'
 import { HomeworkDrawer, HomeworkForm } from '../Homework/Homework'
 import { QuietEmpty, Tile } from './shared'
 
 export const MY_TEACHING = ['my-teaching']
 
 /** Lesson plans of the week, one block per day; today's open. */
-function WeekPlans({ data, onPlan, onAct }) {
+function WeekPlans({ data, onPlan, onAct, onOpen }) {
   const { t } = useTranslation('homework')
   const prompt = usePrompt()
   const weekday = useWeekdayLabel()
@@ -43,7 +44,7 @@ function WeekPlans({ data, onPlan, onAct }) {
             {plans.length ? (
               <ListRows>
                 {plans.map((p) => (
-                  <ListRow key={p.id} icon={NotebookPen} tone={LESSON_STATUS[p.status]?.tone ?? 'info'}
+                  <ListRow key={p.id} icon={NotebookPen} tone={LESSON_STATUS[p.status]?.tone ?? 'info'} onClick={() => onOpen(p)}
                     title={p.title}
                     subtitle={[p.period && t('homework.lessons.periodN', { n: p.period }), p.topics.join(', ')].filter(Boolean).join(' · ')}
                     meta={<><ColorChip label={p.section} seed={p.classId ?? p.section} /><ColorChip label={p.subject} seed={p.subjectId} dot /><StatusPill tone={LESSON_STATUS[p.status]?.tone}>{statusLabel(p.status)}</StatusPill></>}
@@ -82,6 +83,8 @@ export default function TeachingTab({ action, onActionDone }) {
   const { data, isLoading, error, refetch } = useQuery({ queryKey: MY_TEACHING, queryFn: fetchMyTeaching })
   const { data: lookup } = useQuery({ queryKey: ['homework-lookup'], queryFn: fetchHomeworkLookup })
   const [planning, setPlanning] = useState(null) // { date, sectionId, subjectId, topicIds }
+  const [viewing, setViewing] = useState(null) // a lesson opened read-only
+  const [editingPlan, setEditingPlan] = useState(null)
   const [setting, setSetting] = useState(null) // { sectionIds, subjectId }
   const [openId, setOpenId] = useState(null)
   const refresh = () => { qc.invalidateQueries({ queryKey: MY_TEACHING }); qc.invalidateQueries({ queryKey: ['lesson-plans'] }); qc.invalidateQueries({ queryKey: ['syllabus'] }); qc.invalidateQueries({ queryKey: ['syllabus-overview'] }) }
@@ -129,7 +132,7 @@ export default function TeachingTab({ action, onActionDone }) {
             {canPlan && <Button size="sm" variant="secondary" icon={Plus} onClick={() => setPlanning({ date: data.today })}>{t('homework.mine.planLesson')}</Button>}
             <Link to="/homework/lesson-plans" className="text-xs font-medium text-brand-600 hover:underline px-1">{t('homework.mine.allPlans')}</Link>
           </>}>
-          <WeekPlans data={data} onPlan={setPlanning} onAct={onAct} />
+          <WeekPlans data={data} onPlan={setPlanning} onAct={onAct} onOpen={setViewing} />
         </SectionCard>
 
         <SectionCard icon={BookOpenCheck} title={t('homework.mine.toCheck')} count={data.toCheck.length || null} hint={t('homework.mine.toCheckHint')} flush
@@ -179,6 +182,10 @@ export default function TeachingTab({ action, onActionDone }) {
         ) : <QuietEmpty icon={ListChecks} title={t('homework.mine.noClassesTitle')} hint={t('homework.mine.noClasses')} />}
       </SectionCard>
 
+      {viewing && <LessonView plan={viewing} onClose={() => setViewing(null)}
+        onEdit={viewing.canChange && hasPermission('homework.lesson-plans.edit') ? () => { setEditingPlan(viewing); setViewing(null) } : undefined} />}
+      {editingPlan && lookup && <PlanForm lookup={lookup} plan={editingPlan} defaultDate={editingPlan.date}
+        onClose={() => setEditingPlan(null)} onSaved={() => { setEditingPlan(null); refresh(); showSuccess(t('homework.lessons.saved')) }} />}
       {planning && lookup && <PlanForm lookup={lookup} plan={null} defaultDate={planning.date} defaults={planning}
         onClose={() => setPlanning(null)} onSaved={() => { setPlanning(null); refresh(); showSuccess(t('homework.lessons.saved')) }} />}
       {setting && lookup && <HomeworkForm lookup={lookup} defaults={setting} onClose={() => setSetting(null)} onSaved={(r) => {

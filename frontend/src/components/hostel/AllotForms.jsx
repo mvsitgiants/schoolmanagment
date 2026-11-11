@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { CHECKOUT_REASONS } from '@schoolgiant/shared'
-import { FormField, Input, Modal, Note, Select, Textarea, localIso } from '../system'
+import { DateInput, FormField, Modal, Note, Select, Textarea, localIso } from '../system'
 import Button from '../ui/Button'
 import StudentPicker from '../fees/StudentPicker'
 import { allotBed, checkoutAllotment, moveAllotment } from '../../api/hostel'
@@ -25,7 +25,7 @@ export function AllotModal({ blocks, bed, onClose, onSaved }) {
         <StudentPicker value={form.studentId} onChange={(id) => setForm((f) => ({ ...f, studentId: id }))} error={errors.studentId} />
         {!bed && <BedPicker blocks={blocks} value={form.bedId} onChange={(id) => setForm((f) => ({ ...f, bedId: id }))} error={errors.bedId} />}
         {bed?.state === 'RESERVED' && <Note tone="info">{t('hostel.allot.reservedNote', { note: bed.note ?? '' })}</Note>}
-        <FormField label={t('hostel.allot.from')} error={errors.from}><Input type="date" value={form.from} onChange={(e) => setForm((f) => ({ ...f, from: e.target.value }))} /></FormField>
+        <FormField label={t('hostel.allot.from')} error={errors.from}><DateInput value={form.from} onChange={(e) => setForm((f) => ({ ...f, from: e.target.value }))} /></FormField>
         <FormField label={t('hostel.allot.note')}><Textarea rows={2} value={form.note} onChange={(e) => setForm((f) => ({ ...f, note: e.target.value }))} /></FormField>
       </div>
     </Modal>
@@ -47,7 +47,7 @@ export function MoveModal({ allotment, blocks, onClose, onSaved }) {
       <div className="space-y-3">
         <p className="text-sm text-ink-muted">{t('hostel.move.now', { code: allotment.bedCode })}</p>
         <BedPicker blocks={blocks} value={form.bedId} onChange={(id) => setForm((f) => ({ ...f, bedId: id }))} error={errors.bedId} exclude={allotment.bedId} />
-        <FormField label={t('hostel.move.from')} hint={t('hostel.move.fromHint')} error={errors.from}><Input type="date" value={form.from} onChange={(e) => setForm((f) => ({ ...f, from: e.target.value }))} /></FormField>
+        <FormField label={t('hostel.move.from')} hint={t('hostel.move.fromHint')} error={errors.from}><DateInput value={form.from} onChange={(e) => setForm((f) => ({ ...f, from: e.target.value }))} /></FormField>
         <FormField label={t('hostel.allot.note')}><Textarea rows={2} value={form.note} onChange={(e) => setForm((f) => ({ ...f, note: e.target.value }))} /></FormField>
       </div>
     </Modal>
@@ -70,7 +70,7 @@ export function CheckoutModal({ allotment, onClose, onSaved }) {
       <div className="space-y-3">
         <p className="text-sm text-ink-muted">{t('hostel.checkout.bed', { code: allotment.bedCode })}</p>
         <div className="grid gap-3 sm:grid-cols-2">
-          <FormField label={t('hostel.checkout.to')} error={errors.to}><Input type="date" value={form.to} onChange={(e) => setForm((f) => ({ ...f, to: e.target.value }))} /></FormField>
+          <FormField label={t('hostel.checkout.to')} error={errors.to}><DateInput value={form.to} onChange={(e) => setForm((f) => ({ ...f, to: e.target.value }))} /></FormField>
           <FormField label={t('hostel.checkout.reason')}><Select value={form.reason} onChange={(e) => setForm((f) => ({ ...f, reason: e.target.value }))}>{CHECKOUT_REASONS.map((r) => <option key={r.value} value={r.value}>{L.reason(r.value)}</option>)}</Select></FormField>
         </div>
         <FormField label={t('hostel.checkout.note')}><Textarea rows={2} value={form.note} onChange={(e) => setForm((f) => ({ ...f, note: e.target.value }))} /></FormField>

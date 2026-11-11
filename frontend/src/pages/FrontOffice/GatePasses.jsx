@@ -6,7 +6,7 @@ import clsx from 'clsx'
 import { Ban, Check, CheckCircle2, Clock, DoorOpen, Hourglass, LogIn, LogOut, Plus, ShieldCheck, Ticket, X } from 'lucide-react'
 import { FO_GATE_PASS_REASONS } from '@schoolgiant/shared'
 import {
-  CodeBadge, ColorChip, Drawer, EmptyState, FactGrid, FormField, Input, KanbanBoard, Note, PageContainer, PageHeader, SearchInput, SegmentedControl,
+  DateInput, CodeBadge, ColorChip, Drawer, EmptyState, FactGrid, FormField, Input, KanbanBoard, Note, PageContainer, PageHeader, SearchInput, SegmentedControl,
   StatCardRow, useConfirm, usePrompt,
 } from '../../components/system'
 import Button from '../../components/ui/Button'
@@ -258,7 +258,7 @@ export default function FrontOfficeGatePasses() {
             { icon: Ban, tone: 'neutral', label: t('frontoffice.passes.statStopped'), value: (c.REJECTED ?? 0) + (c.CANCELLED ?? 0) },
           ]} />
           <div className="flex flex-wrap items-end gap-2">
-            <FormField label={t('frontoffice.passes.date')}><Input type="date" value={day || data?.date || ''} onChange={(e) => setDay(e.target.value)} /></FormField>
+            <FormField label={t('frontoffice.passes.date')}><DateInput value={day || data?.date || ''} onChange={(e) => setDay(e.target.value)} /></FormField>
             <SegmentedControl value={kind} onChange={setKind} options={[{ value: '', label: t('frontoffice.common.all') }, { value: 'STUDENT', label: t('frontoffice.passes.kinds.STUDENT') }, { value: 'STAFF', label: t('frontoffice.passes.kinds.STAFF') }]} />
             <div className="w-64"><SearchInput value={search} onChange={setSearch} placeholder={t('frontoffice.passes.search')} /></div>
           </div>

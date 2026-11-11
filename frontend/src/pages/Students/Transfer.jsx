@@ -4,7 +4,7 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tansta
 import { useTranslation } from 'react-i18next'
 import { ArrowLeftRight, CheckCircle2, Hourglass, Pencil, Plus, Printer, XCircle } from 'lucide-react'
 import { CONDUCT_OPTIONS, LEAVING_REASONS, TC_FAILED, TC_STATUS } from '@schoolgiant/shared'
-import { CodeBadge, ColorChip, ControlChip, DataTable, DateCell, FormField, HeaderButton, Input, Modal, PageContainer, PageHeader, PersonCell, Select, StackCell, StatCardRow, StatusPill, Textarea, Toolbar, presetRange, useConfirm, usePrompt } from '../../components/system'
+import { DateInput, CodeBadge, ColorChip, ControlChip, DataTable, DateCell, FormField, HeaderButton, Input, Modal, PageContainer, PageHeader, PersonCell, Select, StackCell, StatCardRow, StatusPill, Textarea, Toolbar, presetRange, useConfirm, usePrompt } from '../../components/system'
 import Button from '../../components/ui/Button'
 import useDebouncedValue from '../../hooks/useDebouncedValue'
 import { cancelTc, fetchStudent, fetchStudents, fetchTcPrefill, fetchTcs, issueTc, requestTc, updateTc } from '../../api/students'
@@ -78,8 +78,8 @@ function TcForm({ studentId: presetId, tc, onClose, onSaved }) {
           </FormField>
         </>}
         <Heading>{t('students.transfer.sections.leaving')}</Heading>
-        <FormField label={t('students.transfer.leavingDate')} required error={errors.leavingDate}><Input type="date" value={form.leavingDate} onChange={set('leavingDate')} /></FormField>
-        <FormField label={t('students.transfer.applicationDate')} error={errors.applicationDate}><Input type="date" value={form.applicationDate} onChange={set('applicationDate')} /></FormField>
+        <FormField label={t('students.transfer.leavingDate')} required error={errors.leavingDate}><DateInput value={form.leavingDate} onChange={set('leavingDate')} /></FormField>
+        <FormField label={t('students.transfer.applicationDate')} error={errors.applicationDate}><DateInput value={form.applicationDate} onChange={set('applicationDate')} /></FormField>
         <FormField label={t('students.transfer.reason')} required>
           <Select value={form.reason} onChange={set('reason')}>{LEAVING_REASONS.map((r) => <option key={r.value} value={r.value}>{t(`students.transfer.reasons.${r.value}`, r.label)}</option>)}</Select>
         </FormField>

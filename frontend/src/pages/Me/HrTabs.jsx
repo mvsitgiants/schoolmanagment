@@ -2,8 +2,8 @@ import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { CalendarHeart, CalendarOff, CircleCheck, CircleDashed, CircleX, Clock, Palmtree, Plus, X } from 'lucide-react'
-import { APPRAISAL_STATUS, STAFF_ATTENDANCE } from '@schoolgiant/shared'
-import { Avatar, DataTable, Fact, FactGrid, FormField, Input, LevelBar, Note, Panel, PersonCell, StatCardRow, StatusPill, localIso, useTimeAgo } from '../../components/system'
+import { APPRAISAL_STATUS } from '@schoolgiant/shared'
+import { Avatar, Calendar, DataTable, Fact, FactGrid, FormField, Input, LevelBar, Note, Panel, PersonCell, StatCardRow, StatusPill, localIso, useTimeAgo } from '../../components/system'
 import Button from '../../components/ui/Button'
 import {
   fetchMyApprovals, fetchMyAttendance, fetchMyLeave, fetchMyRecord, fetchMyReview, fetchMyReviews, submitManagerReview, submitSelfReview, updateMyRecord,
@@ -90,35 +90,29 @@ export function MyAttendanceTab() {
   const [month, setMonth] = useState(localIso(new Date()).slice(0, 7))
   const { data, isLoading } = useQuery({ queryKey: [...ME_HR, 'attendance', month], queryFn: () => fetchMyAttendance(month) })
   const tot = data?.totals ?? {}
-  const first = data?.days?.[0]?.date
-  const pad = first ? (new Date(`${first}T12:00:00Z`).getUTCDay() + 6) % 7 : 0
-  const tone = { success: 'bg-success-50 text-success-700', warning: 'bg-amber-50 text-amber-700', danger: 'bg-danger-50 text-danger-700', info: 'bg-sky-50 text-sky-700', brand: 'bg-brand-50 text-brand-700', neutral: 'bg-bg text-ink-muted' }
+  // the month on the shared calendar: each day's mark inside its cell — present teal, absent red, half day / late amber;
+  // holidays and weekly offs shade the day
+  const off = (s) => s === 'HOLIDAY' || s === 'WEEKLY_OFF'
+  const markTone = (d) => (d.status === 'ABSENT' ? 'danger' : d.status === 'HALF_DAY' || d.late ? 'warning' : d.status === 'PRESENT' ? 'accent' : 'neutral')
+  const items = (data?.days ?? []).filter((d) => d.status && !off(d.status)).map((d) => ({
+    id: d.date, date: d.date, title: d.late ? `${L.att(d.status)} · ${t('hrms.attendance.tot.late')}` : L.att(d.status), tone: markTone(d),
+    time: d.inTime || undefined, endTime: d.outTime || undefined, kind: d.leave || undefined,
+  }))
+  const holidays = (data?.days ?? []).filter((d) => off(d.status)).map((d) => ({ date: d.date, name: d.holiday || L.att(d.status) }))
   return (
     <div className="space-y-4">
-      <div className="w-44"><FormField label={t('hrms.attendance.month')}><Input type="month" value={month} onChange={(e) => setMonth(e.target.value)} /></FormField></div>
-      {isLoading ? <p className="text-sm text-ink-faint">{t('hrms.loading')}</p> : (
-        <>
-          <StatCardRow items={[
-            { icon: CircleCheck, tone: 'success', label: L.att('PRESENT'), value: tot.PRESENT ?? 0 },
-            { icon: CircleDashed, tone: 'warning', label: L.att('HALF_DAY'), value: tot.HALF_DAY ?? 0 },
-            { icon: CircleX, tone: 'danger', label: L.att('ABSENT'), value: tot.ABSENT ?? 0 },
-            { icon: Palmtree, tone: 'brand', label: L.att('LEAVE'), value: tot.LEAVE ?? 0 },
-            { icon: Clock, tone: 'orange', label: t('hrms.attendance.tot.late'), value: tot.late ?? 0 },
-          ]} />
-          <div className="grid grid-cols-7 gap-1.5 max-w-xl">
-            {['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'].map((d) => <div key={d} className="text-center text-[11px] text-ink-faint">{L.day(d)}</div>)}
-            {Array.from({ length: pad }, (_, i) => <div key={`p${i}`} />)}
-            {(data?.days ?? []).map((d) => (
-              <div key={d.date} title={[d.holiday, d.leave, d.inTime && `${d.inTime}–${d.outTime ?? ''}`].filter(Boolean).join(' · ')}
-                className={clsx('rounded-lg p-1.5 text-center min-h-[48px]', d.status ? tone[STAFF_ATTENDANCE[d.status]?.tone ?? 'neutral'] : 'border border-dashed border-border text-ink-faint')}>
-                <p className="text-xs font-semibold">{Number(d.date.slice(8))}</p>
-                <p className="text-[10px]">{d.status ? L.attCode(d.status) : ''}{d.late ? ' ·' : ''}</p>
-              </div>
-            ))}
-          </div>
-          <p className="text-xs text-ink-faint">{t('hrms.me.attendanceHint')}</p>
-        </>
+      {!isLoading && (
+        <StatCardRow items={[
+          { icon: CircleCheck, tone: 'success', label: L.att('PRESENT'), value: tot.PRESENT ?? 0 },
+          { icon: CircleDashed, tone: 'warning', label: L.att('HALF_DAY'), value: tot.HALF_DAY ?? 0 },
+          { icon: CircleX, tone: 'danger', label: L.att('ABSENT'), value: tot.ABSENT ?? 0 },
+          { icon: Palmtree, tone: 'brand', label: L.att('LEAVE'), value: tot.LEAVE ?? 0 },
+          { icon: Clock, tone: 'orange', label: t('hrms.attendance.tot.late'), value: tot.late ?? 0 },
+        ]} />
       )}
+      <Calendar month={month} onMonthChange={setMonth} loading={isLoading} items={items} holidays={holidays}
+        legend={[{ tone: 'accent', label: L.att('PRESENT') }, { tone: 'warning', label: `${L.att('HALF_DAY')} / ${t('hrms.attendance.tot.late')}` }, { tone: 'danger', label: L.att('ABSENT') }, { tone: 'neutral', label: L.att('LEAVE') }]} />
+      <p className="text-xs text-ink-faint">{t('hrms.me.attendanceHint')}</p>
     </div>
   )
 }

@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { BadgeCheck, CalendarRange, QrCode, Clock, ConciergeBell, DoorOpen, LogOut, Phone, Search, UserPlus, Users } from 'lucide-react'
 import { FO_ID_TYPES, FO_VISIT_PURPOSES, foDurationLabel } from '@schoolgiant/shared'
 import {
-  CodeBadge, ColumnBars, DataTable, Drawer, EmptyState, FactGrid, FormField, Input, Modal, Note, PageContainer, PageHeader, Panel, PersonCell,
+  DateInput, CodeBadge, ColumnBars, DataTable, Drawer, EmptyState, FactGrid, FormField, Input, Modal, Note, PageContainer, PageHeader, Panel, PersonCell,
   SearchInput, SegmentedControl, Select, StatCardRow, StatusPill, Tabs, Textarea, useConfirm,
 } from '../../components/system'
 import Button from '../../components/ui/Button'
@@ -293,8 +293,8 @@ export default function FrontOfficeVisitors() {
         {tab === 'TODAY' ? <LogTable rows={log.data?.rows ?? []} loading={isLoading || log.isLoading} onOpen={setOpen} pagination={logPages} exportAll={() => fetchAllVisitors(params)} /> : (
           <>
             <div className="flex flex-wrap items-end gap-2">
-              <FormField label={t('frontoffice.common.from')}><Input type="date" value={range.from || desk?.weekStart || ''} onChange={(e) => { setRange({ ...range, from: e.target.value }); setPage(1) }} /></FormField>
-              <FormField label={t('frontoffice.common.to')}><Input type="date" value={range.to || desk?.date || ''} onChange={(e) => { setRange({ ...range, to: e.target.value }); setPage(1) }} /></FormField>
+              <FormField label={t('frontoffice.common.from')}><DateInput value={range.from || desk?.weekStart || ''} onChange={(e) => { setRange({ ...range, from: e.target.value }); setPage(1) }} /></FormField>
+              <FormField label={t('frontoffice.common.to')}><DateInput value={range.to || desk?.date || ''} onChange={(e) => { setRange({ ...range, to: e.target.value }); setPage(1) }} /></FormField>
               <SegmentedControl value={purpose} onChange={paged(setPurpose)} options={[{ value: '', label: t('frontoffice.common.all') }, ...FO_VISIT_PURPOSES.map((p) => ({ value: p.value, label: L.purpose(p.value) }))]} />
               <div className="w-64"><SearchInput value={search} onChange={paged(setSearch)} placeholder={t('frontoffice.visitors.search')} /></div>
             </div>

@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { CalendarClock, Check, Download, DoorOpen, Lock, MessageSquareText, Pencil, Plus, Trash2, UserPlus, UserX, Users, Video, X } from 'lucide-react'
 import { BOOKING_STATUS, PTM_MODES, PTM_STATUS, ptmSlots } from '@schoolgiant/shared'
-import { Drawer, FormField, HeaderButton, Input, LevelBar, Modal, Note, PageContainer, PageHeader, Panel, PhoneLink, SegmentedControl, Select, StatusPill, Tabs, Textarea, localIso, useConfirm, usePrompt } from '../../components/system'
+import { DateInput, Drawer, FormField, HeaderButton, Input, LevelBar, Modal, Note, PageContainer, PageHeader, Panel, PhoneLink, SegmentedControl, Select, StatusPill, Tabs, Textarea, localIso, useConfirm, usePrompt } from '../../components/system'
 import Button from '../../components/ui/Button'
 import StudentPicker from '../../components/fees/StudentPicker'
 import { bookSlot, deleteSession, exportSession, fetchClassTeachers, fetchMyMeetings, fetchSession, fetchSessions, openBooking, saveSession, setSessionStatus, updateBooking } from '../../api/events'
@@ -59,7 +59,7 @@ function SessionForm({ session, onClose, onSaved }) {
       <div className="space-y-4">
         <div className="grid sm:grid-cols-[1fr_170px] gap-3">
           <FormField label={t('events.ptm.form.title')} required error={errors.title}><Input value={form.title} onChange={set('title')} placeholder={t('events.ptm.form.titlePlaceholder')} /></FormField>
-          <FormField label={t('events.ptm.form.date')} required error={errors.date}><Input type="date" value={form.date} onChange={set('date')} /></FormField>
+          <FormField label={t('events.ptm.form.date')} required error={errors.date}><DateInput value={form.date} onChange={set('date')} /></FormField>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
           <FormField label={t('events.ptm.form.from')}><Input type="time" value={form.startTime} onChange={set('startTime')} /></FormField>
@@ -70,7 +70,7 @@ function SessionForm({ session, onClose, onSaved }) {
         </div>
         <p className="text-xs text-ink-faint">{slots.length ? t('events.ptm.form.slotsLine', { count: slots.length, first: slots[0], last: slots[slots.length - 1] }) : t('events.ptm.form.noSlots')}</p>
         <div className="grid sm:grid-cols-[170px_1fr] gap-3">
-          <FormField label={t('events.ptm.form.bookBy')} hint={t('events.ptm.form.bookByHint')} error={errors.bookingCloses}><Input type="date" value={form.bookingCloses} max={form.date} onChange={set('bookingCloses')} /></FormField>
+          <FormField label={t('events.ptm.form.bookBy')} hint={t('events.ptm.form.bookByHint')} error={errors.bookingCloses}><DateInput value={form.bookingCloses} max={form.date} onChange={set('bookingCloses')} /></FormField>
           <FormField label={t('events.ptm.form.instructions')}><Textarea rows={2} value={form.instructions} onChange={set('instructions')} /></FormField>
         </div>
         <div className="rounded-xl border border-border p-3">

@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { AlarmClock, ArrowLeftRight, BookCheck, BookPlus, BookX, CalendarClock, IndianRupee, RefreshCw, ScanBarcode, ScanQrCode, UserSearch, X } from 'lucide-react'
 import { formatINR, toPaise } from '@schoolgiant/shared'
-import { DataTable, DateCell, FormField, Input, Money, Note, PageContainer, PageHeader, Panel, PersonCell, SearchInput, StackCell, SegmentedControl, StatCardRow, Tabs, useConfirm, usePrompt } from '../../components/system'
+import { DateInput, DataTable, DateCell, FormField, Input, Money, Note, PageContainer, PageHeader, Panel, PersonCell, SearchInput, StackCell, SegmentedControl, StatCardRow, Tabs, useConfirm, usePrompt } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { fetchBorrower, fetchCopyByCode, fetchDesk, fetchLoans, issueBooks, markLost, renewLoan, returnBook, searchBorrowers } from '../../api/library'
 import { hasPermission } from '../../api/auth'
@@ -127,7 +127,7 @@ function IssuePanel({ initialCard }) {
               </div>
             )}
             <div className="grid grid-cols-2 gap-3 items-end">
-              <FormField label={t('library.desk.due')} hint={card ? t('library.desk.dueHint', { date: date(card.dueOn), days: card.days }) : undefined}><Input type="date" value={dueOn} onChange={(e) => setDueOn(e.target.value)} /></FormField>
+              <FormField label={t('library.desk.due')} hint={card ? t('library.desk.dueHint', { date: date(card.dueOn), days: card.days }) : undefined}><DateInput value={dueOn} onChange={(e) => setDueOn(e.target.value)} /></FormField>
               {(wouldBlock || books.some((b) => b.title.type === 'REFERENCE')) && <label className="inline-flex items-center gap-2 text-sm text-ink pb-2"><input type="checkbox" checked={override} onChange={(e) => setOverride(e.target.checked)} className="rounded border-border text-brand-500" />{t('library.desk.override')}</label>}
             </div>
             <Button icon={BookCheck} loading={issue.isPending} disabled={!books.length || !hasPermission('library.circulation.issue')} onClick={() => issue.mutate()}>{t('library.desk.issue', { count: books.length })}</Button>

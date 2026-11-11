@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { BLOOD_GROUPS, GENDERS, GUARDIAN_RELATIONS } from '@schoolgiant/shared'
-import { FormField, Input, Select } from '../system'
+import { DateInput, FormField, Input, Select } from '../system'
 import FormRenderer from '../forms/FormRenderer'
 
 export const emptyApplication = (cycle) => ({
@@ -61,7 +61,7 @@ export default function ApplicationForm({ cycles = [], value, onChange, errors =
           <FormField label={t('admissions.form.firstName')} required error={err('child.firstName')}><Input {...field('child.firstName')} /></FormField>
           <FormField label={t('admissions.form.middleName')}><Input {...field('child.middleName')} /></FormField>
           <FormField label={t('admissions.form.lastName')}><Input {...field('child.lastName')} /></FormField>
-          <FormField label={t('admissions.form.dob')} required error={err('child.dob')}><Input type="date" {...field('child.dob')} /></FormField>
+          <FormField label={t('admissions.form.dob')} required error={err('child.dob')}><DateInput {...field('child.dob')} /></FormField>
           <FormField label={t('admissions.form.gender')} required error={err('child.gender')}>
             <Select {...field('child.gender')}><option value="">{t('admissions.form.pick')}</option>{GENDERS.map((g) => <option key={g.value} value={g.value}>{t(`admissions.genders.${g.value}`, g.label)}</option>)}</Select>
           </FormField>

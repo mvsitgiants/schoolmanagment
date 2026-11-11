@@ -395,7 +395,11 @@
       "notGoing": "Not going",
       "youReplied": "You replied: {{answer}}",
       "notePlaceholder": "A note for the school (optional)",
-      "replyBy": "Reply by {{date}}. You can change your reply until then."
+      "replyBy": "Reply by {{date}}. You can change your reply until then.",
+      "emptyMonth": "Nothing on the calendar this month.",
+      "legendEvents": "School events",
+      "legendAction": "Needs your reply or a last date",
+      "legendOther": "Exams and parent–teacher meetings"
     },
     "meetings": {
       "none": "No parent–teacher meetings",

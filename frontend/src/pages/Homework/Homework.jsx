@@ -3,7 +3,7 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tansta
 import { useTranslation } from 'react-i18next'
 import { BookOpenCheck, CheckCheck, Pencil, Plus, Trash2 } from 'lucide-react'
 import { SUBMISSION_STATUS, addDaysYmd } from '@schoolgiant/shared'
-import { Attachments, ColorChip, ControlChip, DataTable, DateCell, Drawer, localIso, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, PersonCell, ProgressBar, Select, StatusPill, Textarea, Toolbar, useConfirm } from '../../components/system'
+import { DateInput, Attachments, ColorChip, ControlChip, DataTable, DateCell, Drawer, localIso, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, PersonCell, ProgressBar, Select, StatusPill, Textarea, Toolbar, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
 import useDebouncedValue from '../../hooks/useDebouncedValue'
 import { createHomework, deleteHomework, fetchHomework, fetchHomeworkList, fetchHomeworkLookup, saveHomeworkSubmissions, updateHomework } from '../../api/homework'
@@ -77,8 +77,8 @@ export function HomeworkForm({ lookup, homework, defaults, onClose, onSaved }) {
         </>}
         <div className="sm:col-span-2"><FormField label={t('homework.form.title')} required error={errors.title}><Input value={form.title} onChange={set('title')} placeholder={t('homework.form.titlePlaceholder')} /></FormField></div>
         <div className="sm:col-span-2"><FormField label={t('homework.form.details')}><Textarea rows={4} value={form.details} onChange={set('details')} placeholder={t('homework.form.detailsPlaceholder')} /></FormField></div>
-        {!homework && <FormField label={t('homework.form.setDate')} error={errors.setDate}><Input type="date" value={form.setDate} onChange={set('setDate')} /></FormField>}
-        <FormField label={t('homework.form.dueDate')} required error={errors.dueDate}><Input type="date" value={form.dueDate} min={form.setDate} onChange={set('dueDate')} /></FormField>
+        {!homework && <FormField label={t('homework.form.setDate')} error={errors.setDate}><DateInput value={form.setDate} onChange={set('setDate')} /></FormField>}
+        <FormField label={t('homework.form.dueDate')} required error={errors.dueDate}><DateInput value={form.dueDate} min={form.setDate} onChange={set('dueDate')} /></FormField>
         <label className="flex items-center gap-2 text-sm sm:col-span-2">
           <input type="checkbox" checked={form.needsSubmission} onChange={(e) => setForm((f) => ({ ...f, needsSubmission: e.target.checked }))} className="rounded border-border text-brand-500 focus:ring-brand-500" />
           {t('homework.form.needsSubmission')}

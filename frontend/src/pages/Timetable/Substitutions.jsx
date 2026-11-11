@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { Search, Trash2, UserCheck, UserRoundX } from 'lucide-react'
-import { ColorChip, DataTable, FormField, Input, Note, PageContainer, PageHeader, Panel, PersonCell, Select, localIso } from '../../components/system'
+import { DateInput, ColorChip, DataTable, FormField, Note, PageContainer, PageHeader, Panel, PersonCell, Select, localIso } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { createSubstitution, deleteSubstitution, fetchAwayTeachers, fetchSubstitutionNeeds, fetchSubstitutions, fetchTimetableTeachers } from '../../api/timetable'
 import { hasPermission } from '../../api/auth'
@@ -71,7 +71,7 @@ export default function Substitutions() {
       <div className="space-y-4">
         <Panel title={t('timetable.subs.who')}>
           <div className="space-y-3">
-            <div className="w-full sm:w-56"><FormField label={t('timetable.subs.date')}><Input type="date" value={date} onChange={(e) => { setDate(e.target.value); setAsked(null); setAbsent([]) }} /></FormField></div>
+            <div className="w-full sm:w-56"><FormField label={t('timetable.subs.date')}><DateInput value={date} onChange={(e) => { setDate(e.target.value); setAsked(null); setAbsent([]) }} /></FormField></div>
             <div className="flex flex-wrap gap-2">
               {teachers.map((x) => (
                 <label key={x.id} className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm cursor-pointer ${absent.includes(x.id) ? 'border-danger-300 bg-danger-50 text-danger-700' : 'border-border hover:bg-bg'}`}>

@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next'
 import clsx from 'clsx'
 import { CalendarDays, ClipboardList, Footprints, Globe, Megaphone, MoreHorizontal, Newspaper, Phone, PhoneCall, Plus, Share2, UserPlus, Users } from 'lucide-react'
 import { ENQUIRY_SOURCES, ENQUIRY_STAGES, FOLLOWUP_TYPES, GENDERS, LOST_REASONS, addDaysYmd } from '@schoolgiant/shared'
-import { ColorChip, ContactCell, ControlChip, DataTable, DateCell, Drawer, FormField, HeaderButton, Input, Modal, PageContainer, PageHeader, PersonCell, PhoneLink, Select, StatusPill, Textarea, Timeline, Toolbar, localIso } from '../../components/system'
+import { DateInput, ColorChip, ContactCell, ControlChip, DataTable, DateCell, Drawer, FormField, HeaderButton, Input, Modal, PageContainer, PageHeader, PersonCell, PhoneLink, Select, StatusPill, Textarea, Timeline, Toolbar, localIso } from '../../components/system'
 import Button from '../../components/ui/Button'
 import useDebouncedValue from '../../hooks/useDebouncedValue'
 import { fetchAcademicLookup } from '../../api/academics'
@@ -38,7 +38,7 @@ function NewEnquiry({ onClose, onSaved }) {
         <FormField label={t('admissions.form.class')}>
           <Select value={form.classId} onChange={set('classId')}><option value="">{t('admissions.form.pick')}</option>{(lookup?.classes ?? []).map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</Select>
         </FormField>
-        <FormField label={t('admissions.form.dob')}><Input type="date" value={form.dob} onChange={set('dob')} /></FormField>
+        <FormField label={t('admissions.form.dob')}><DateInput value={form.dob} onChange={set('dob')} /></FormField>
         <FormField label={t('admissions.form.gender')}><Select value={form.gender} onChange={set('gender')}><option value="">—</option>{GENDERS.map((g) => <option key={g.value} value={g.value}>{t(`admissions.genders.${g.value}`, g.label)}</option>)}</Select></FormField>
         <FormField label={t('admissions.form.parentName')}><Input value={form.parentName} onChange={set('parentName')} /></FormField>
         <FormField label={t('admissions.form.mobile')} required error={errors.mobile}><Input inputMode="numeric" value={form.mobile} onChange={set('mobile')} /></FormField>
@@ -90,7 +90,7 @@ function EnquiryDrawer({ id, onClose }) {
               <div className="grid sm:grid-cols-3 gap-3">
                 <FormField label={t('admissions.enquiries.type')}><Select value={fu.type} onChange={(x) => setFu((f) => ({ ...f, type: x.target.value }))}>{FOLLOWUP_TYPES.map((f) => <option key={f.value} value={f.value}>{t(`admissions.followUps.${f.value}`, f.label)}</option>)}</Select></FormField>
                 <FormField label={t('admissions.enquiries.moveTo')}><Select value={fu.stage} onChange={(x) => setFu((f) => ({ ...f, stage: x.target.value }))}><option value="">{t('admissions.enquiries.sameStage')}</option>{['CONTACTED', 'VISIT', 'VISITED'].map((s) => <option key={s} value={s}>{t(`admissions.stages.${s}`)}</option>)}</Select></FormField>
-                <FormField label={t('admissions.enquiries.nextFollowUp')}><Input type="date" value={fu.nextOn} onChange={(x) => setFu((f) => ({ ...f, nextOn: x.target.value }))} /></FormField>
+                <FormField label={t('admissions.enquiries.nextFollowUp')}><DateInput value={fu.nextOn} onChange={(x) => setFu((f) => ({ ...f, nextOn: x.target.value }))} /></FormField>
               </div>
               <Textarea rows={2} value={fu.note} onChange={(x) => setFu((f) => ({ ...f, note: x.target.value }))} placeholder={t('admissions.enquiries.notePlaceholder')} />
               <div className="flex flex-wrap gap-2 justify-between">

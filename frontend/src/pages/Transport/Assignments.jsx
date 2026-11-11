@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { AlertTriangle, Armchair, ArrowLeftRight, Download, LogOut, MapPin, Plus, Route as RouteIcon, Users } from 'lucide-react'
 import { RIDE_MODES } from '@schoolgiant/shared'
-import { ColorChip, DataTable, DateCell, FormField, HeaderButton, Input, Modal, Money, Note, PageContainer, PageHeader, PersonCell, PhoneLink, PillRow, SearchInput, Select, SideNavLayout, StatCardRow, Textarea, localIso, pillClass, useConfirm } from '../../components/system'
+import { DateInput, ColorChip, DataTable, DateCell, FormField, HeaderButton, Modal, Money, Note, PageContainer, PageHeader, PersonCell, PhoneLink, PillRow, SearchInput, Select, SideNavLayout, StatCardRow, Textarea, localIso, pillClass, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
 import StudentPicker from '../../components/fees/StudentPicker'
 import { assignStudent, downloadAssignments, endAssignment, fetchAssignments, fetchRoutes } from '../../api/transport'
@@ -38,7 +38,7 @@ function AssignForm({ routes, preset, onClose, onSaved }) {
             </Select>
           </FormField>
           <FormField label={t('transport.assign.mode')}><Select value={form.mode} onChange={set('mode')}>{RIDE_MODES.map((m) => <option key={m.value} value={m.value}>{L.mode(m.value)}</option>)}</Select></FormField>
-          <FormField label={t('transport.assign.from')} hint={preset ? t('transport.assign.fromMoveHint') : undefined}><Input type="date" value={form.from} onChange={set('from')} /></FormField>
+          <FormField label={t('transport.assign.from')} hint={preset ? t('transport.assign.fromMoveHint') : undefined}><DateInput value={form.from} onChange={set('from')} /></FormField>
         </div>
         <FormField label={t('transport.assign.note')}><Textarea rows={2} value={form.note} onChange={set('note')} /></FormField>
       </div>

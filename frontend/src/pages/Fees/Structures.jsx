@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { CircleCheckBig, FilePlus2, FileText, Hourglass, Layers, Pencil, Plus, Tags, Trash2, X } from 'lucide-react'
 import { formatINR, formatINRCompact, splitEqually, toPaise, toRupees } from '@schoolgiant/shared'
-import { CodeBadge, ColorChip, ControlChip, DataTable, DateCell, FormField, Fraction, HeaderButton, Input, LevelBar, Modal, Money, Note, PageContainer, PageHeader, Select, StackCell, StatCardRow, StatusPill, useConfirm } from '../../components/system'
+import { DateInput, CodeBadge, ColorChip, ControlChip, DataTable, DateCell, FormField, Fraction, HeaderButton, Input, LevelBar, Modal, Money, Note, PageContainer, PageHeader, Select, StackCell, StatCardRow, StatusPill, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { fetchAcademicLookup } from '../../api/academics'
 import { createFeeHead, createStructure, deleteStructure, fetchFeeHeads, fetchStructures, generateInvoices, updateFeeHead, updateStructure } from '../../api/fees'
@@ -119,7 +119,7 @@ function StructureEditor({ structure, year, classes, heads, onClose, onSaved }) 
             {form.installments.map((ins, i) => (
               <div key={i} className="flex items-center gap-2">
                 <Input className="flex-1" value={ins.name} onChange={(e) => setInst(i, 'name', e.target.value)} placeholder={t('fees.structures.installmentName')} />
-                <Input className="w-40" type="date" value={ins.dueDate} min={year.startDate} max={year.endDate} onChange={(e) => setInst(i, 'dueDate', e.target.value)} aria-label={t('fees.structures.dueDate')} />
+                <DateInput className="w-40" value={ins.dueDate} min={year.startDate} max={year.endDate} onChange={(e) => setInst(i, 'dueDate', e.target.value)} aria-label={t('fees.structures.dueDate')} />
                 <Input className="w-36 text-right" type="number" min="0" step="1" value={ins.amount} onChange={(e) => setInst(i, 'amount', e.target.value)} placeholder={t('fees.structures.amountPlaceholder')} />
                 <Button size="sm" variant="ghost" icon={X} aria-label={t('fees.structures.remove')} onClick={() => setForm((f) => ({ ...f, installments: f.installments.filter((_, j) => j !== i) }))} />
               </div>

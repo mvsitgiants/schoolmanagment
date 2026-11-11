@@ -2,7 +2,7 @@ import { useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { Eye, EyeOff, ImagePlus, Images, Pencil, Plus, Star, Trash2 } from 'lucide-react'
-import { Drawer, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, ProgressBar, Select, StatusPill, Textarea, localIso, useConfirm } from '../../components/system'
+import { DateInput, Drawer, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, ProgressBar, Select, StatusPill, Textarea, localIso, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { deleteAlbum, fetchAlbum, fetchAlbums, fetchEvents, saveAlbum } from '../../api/events'
 import { deleteFile, uploadFile } from '../../api/files'
@@ -46,7 +46,7 @@ function AlbumForm({ album, onClose, onSaved }) {
         </FormField>
         <div className="grid sm:grid-cols-[1fr_170px] gap-3">
           <FormField label={t('events.gallery.albumTitle')} required error={errors.title}><Input value={form.title} onChange={set('title')} /></FormField>
-          <FormField label={t('events.gallery.date')}><Input type="date" value={form.date} onChange={set('date')} /></FormField>
+          <FormField label={t('events.gallery.date')}><DateInput value={form.date} onChange={set('date')} /></FormField>
         </div>
         <FormField label={t('events.gallery.description')}><Textarea rows={2} value={form.description} onChange={set('description')} /></FormField>
         <AudienceFields value={aud} onChange={setAud} errors={errors} />

@@ -5,7 +5,7 @@ import clsx from 'clsx'
 import { Ban, Banknote, CreditCard, Download, Minus, Plus, Printer, Receipt, ShoppingBag, Smartphone, Store, Trash2 } from 'lucide-react'
 import { STORE_SALE_MODES, formatINR, salePriceOf } from '@schoolgiant/shared'
 import {
-  CodeBadge, DataTable, DateCell, EmptyState, FormField, Input, Money, Note, PageContainer, PageHeader, Panel, PersonCell, RankBars, SearchInput, SegmentedControl,
+  DateInput, CodeBadge, DataTable, DateCell, EmptyState, FormField, Input, Money, Note, PageContainer, PageHeader, Panel, PersonCell, RankBars, SearchInput, SegmentedControl,
   Skeleton, StatCardRow, TONE, hueTone, usePrompt,
 } from '../../components/system'
 import Button from '../../components/ui/Button'
@@ -175,7 +175,7 @@ export default function Sales() {
           ]} />}
           <div className="flex flex-wrap items-center gap-2">
             <div className="w-64"><SearchInput value={search} onChange={setSearch} placeholder={t('inventory.sales.search')} /></div>
-            <FormField className="w-44"><Input type="date" value={date} onChange={(e) => setDate(e.target.value)} aria-label={t('inventory.sales.date')} /></FormField>
+            <FormField className="w-44"><DateInput value={date} onChange={(e) => setDate(e.target.value)} aria-label={t('inventory.sales.date')} /></FormField>
             {day?.cancelled > 0 && <span className="text-xs text-ink-faint">{t('inventory.sales.cancelledN', { n: day.cancelled })}</span>}
           </div>
           <DataTable rows={data?.data ?? []} loading={isLoading} rowTone={(r) => (r.status === 'CANCELLED' ? 'danger' : undefined)} columns={[

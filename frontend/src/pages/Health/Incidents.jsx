@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { AlertTriangle, CalendarClock, CheckCheck, ClipboardList, Clock, MapPin, MessageSquare, Plus, ShieldCheck, Siren, UserRound } from 'lucide-react'
 import { INCIDENT_KINDS, INCIDENT_SEVERITY, INFORMED_HOW } from '@schoolgiant/shared'
 import {
-  DataTable, DateRangeChip, Drawer, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, PersonCell, RecordHero, SearchInput, SegmentedControl, Select,
+  DateInput, DataTable, DateRangeChip, Drawer, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, PersonCell, RecordHero, SearchInput, SegmentedControl, Select,
   StatCardRow, Tag, Textarea, localIso, presetRange, usePrompt,
 } from '../../components/system'
 import Button from '../../components/ui/Button'
@@ -44,7 +44,7 @@ function IncidentModal({ onClose, onSaved }) {
         <PersonPicker value={person} onChange={setPerson} errors={errors} />
         <div className="grid gap-3 sm:grid-cols-4">
           <FormField label={t('health.incidents.kind')}><Select value={form.kind} onChange={(e) => set('kind', e.target.value)}>{INCIDENT_KINDS.map((k) => <option key={k} value={k}>{L.kind(k)}</option>)}</Select></FormField>
-          <FormField label={t('health.incidents.date')}><Input type="date" value={form.date} max={localIso(new Date())} onChange={(e) => set('date', e.target.value)} /></FormField>
+          <FormField label={t('health.incidents.date')}><DateInput value={form.date} max={localIso(new Date())} onChange={(e) => set('date', e.target.value)} /></FormField>
           <FormField label={t('health.incidents.time')}><Input type="time" value={form.time} onChange={(e) => set('time', e.target.value)} /></FormField>
           <FormField label={t('health.incidents.place')}><Input value={form.place} onChange={(e) => set('place', e.target.value)} placeholder={t('health.incidents.placePlaceholder')} /></FormField>
         </div>
@@ -62,7 +62,7 @@ function IncidentModal({ onClose, onSaved }) {
           <FormField label={t('health.incidents.informed')} hint={t('health.incidents.informedHint')}>
             <Select value={form.informed} onChange={(e) => set('informed', e.target.value)}><option value="">{t('health.incidents.notYet')}</option>{INFORMED_HOW.map((h) => <option key={h} value={h}>{L.how(h)}</option>)}</Select>
           </FormField>
-          <FormField label={t('health.incidents.followUpDate')}><Input type="date" value={form.followUpDate} onChange={(e) => set('followUpDate', e.target.value)} /></FormField>
+          <FormField label={t('health.incidents.followUpDate')}><DateInput value={form.followUpDate} onChange={(e) => set('followUpDate', e.target.value)} /></FormField>
           <FormField label={t('health.incidents.followUp')} className="sm:col-span-2"><Input value={form.followUp} onChange={(e) => set('followUp', e.target.value)} /></FormField>
         </div>
         {person.personType === 'STUDENT' && (
@@ -113,7 +113,7 @@ function IncidentDrawer({ incident, onClose, onChanged }) {
             <p className="text-xs font-semibold uppercase tracking-wide text-ink-faint">{t('health.incidents.followUpTitle')}</p>
             <FormField label={t('health.incidents.followUp')}><Textarea rows={2} value={follow.followUp} onChange={(e) => setFollow((f) => ({ ...f, followUp: e.target.value }))} disabled={!hasPermission('health.incidents.create')} /></FormField>
             <div className="grid gap-3 sm:grid-cols-2">
-              <FormField label={t('health.incidents.followUpDate')}><Input type="date" value={follow.followUpDate} onChange={(e) => setFollow((f) => ({ ...f, followUpDate: e.target.value }))} /></FormField>
+              <FormField label={t('health.incidents.followUpDate')}><DateInput value={follow.followUpDate} onChange={(e) => setFollow((f) => ({ ...f, followUpDate: e.target.value }))} /></FormField>
               {!i.guardianInformed?.at && (
                 <FormField label={t('health.incidents.informed')}>
                   <Select value={follow.informed} onChange={(e) => setFollow((f) => ({ ...f, informed: e.target.value }))}><option value="">{t('health.incidents.notYet')}</option>{INFORMED_HOW.map((h) => <option key={h} value={h}>{L.how(h)}</option>)}</Select>

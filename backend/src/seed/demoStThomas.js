@@ -114,6 +114,7 @@ async function fillLetterhead(admin) {
 /** Every class gets 5–10 students (one section a class), the right age for the class; older UP students carry APAAR and PEN. */
 async function fillStudents(admin) {
   await loadStudents(admin)
+  if (students.length) return 'already there' // (a class may be one short after the TC step: that student left)
   let added = 0
   let n = students.length
   for (const sec of lookup.sections) {
@@ -572,6 +573,7 @@ async function fillTeachers(admin) {
   const roleOf = (code) => (roles.data ?? roles).find((r) => r.templateCode === code)?.id
   const users = await admin.get('/core/users', { pageSize: 100 })
   const have = new Set((users.data ?? users).map((u) => u.email))
+  if (TEACHER_LOGINS.every(([, email]) => have.has(email))) return 'already there'
   await loadEmployees(admin)
   await loadBranches(admin)
   let made = 0
@@ -1069,6 +1071,72 @@ async function fillPrimarySyllabus(admin) {
 
 // teaching material on a few upcoming topics (book, how to teach, questions) and how one class stands on them:
 // partly taught, an extra class tomorrow, a taught topic due for revision. Skips topics that already have material.
+// Teaching material on every syllabus topic: the board's book with chapter and pages, how to teach it (in the way that
+// subject is taught), key points, three questions and a homework idea. Topics that already have material are left alone.
+function materialFor({ topic, unit, subject, className, board, n }) {
+  const junior = /nursery|lkg|ukg/i.test(className)
+  const kind = junior ? 'JUNIOR' : /math/i.test(subject) ? 'MATHS' : /science|physics|chemistry|biology|evs|environment/i.test(subject) ? 'SCIENCE'
+    : /hindi|english|sanskrit|urdu/i.test(subject) ? 'LANGUAGE' : /social|history|geography|civics|economics/i.test(subject) ? 'SOCIAL' : /computer/i.test(subject) ? 'COMPUTER' : 'GENERAL'
+  const book = board === 'CBSE'
+    ? `NCERT ${subject}${junior ? ' activity book' : ''} — ${className.replace(/\s*\(CBSE\)/, '')}`
+    : `${subject} (UP Board, NCERT-based) — ${className.replace(/\s*\(UP\)/, '')}`
+  const from = 6 + n * 7
+  const how = {
+    JUNIOR: `Begin with a rhyme or a short story about “${topic}”. Show picture cards, let each child name or point to one, then play a quick game (matching, sorting or colouring) on it. Keep each activity to 5–7 minutes and end with the rhyme again.`,
+    MATHS: `Recap the last class with two quick oral questions. Introduce “${topic}” with an everyday example, work two examples on the board step by step, then let pairs solve the first three textbook questions while you go round. Close with one exit question on a slip.`,
+    SCIENCE: `Start with a question from daily life on “${topic}”. Do the textbook activity as a demonstration (or in groups if material is there), ask pupils to predict before each step, and write the observation and conclusion on the board. End with the three key points.`,
+    LANGUAGE: `Read “${topic}” aloud with expression, then let pupils read paragraph by paragraph. Explain difficult words on the board, discuss the central idea, and do one grammar point from the lesson with three examples. Pupils write two sentences of their own.`,
+    SOCIAL: `Show the map / timeline for “${topic}” first. Tell the main story in 10 minutes, then let groups answer one question each from the text and report back. Link it to something in Uttar Pradesh or the pupils’ own town.`,
+    COMPUTER: `Explain “${topic}” on the board with a labelled diagram, then show it on the lab computer / projector. Pupils try it in pairs for 10 minutes; check each pair and end with two quick questions.`,
+    GENERAL: `Introduce “${topic}” with a question to the class, explain the main idea with one example, let pupils try one task in pairs, and close with a two-line summary in their notebooks.`,
+  }[kind]
+  const points = {
+    JUNIOR: [`Name and recognise: ${topic}`, 'Say it, show it, colour it', 'Praise every try'],
+    MATHS: [`Meaning of “${topic}” in simple words`, 'Step-by-step method for the worked example', 'Common mistake: skipping a step or a sign'],
+    SCIENCE: [`What “${topic}” is and where we see it`, 'Observation and conclusion of the activity', 'One safety point / one real-life use'],
+    LANGUAGE: ['Central idea of the lesson', 'New words and their meanings', 'Grammar point with examples'],
+    SOCIAL: ['Main events / places in order', 'Why it matters today', 'Map / timeline work'],
+    COMPUTER: [`What “${topic}” does`, 'Steps to do it on the computer', 'One shortcut or tip'],
+    GENERAL: [`Main idea of “${topic}”`, 'One example', 'Summary in two lines'],
+  }[kind]
+  const questions = junior
+    ? [
+      { question: `Show and tell: what do you see in the picture of “${topic}”?`, answer: 'Any correct naming or description.', kind: 'SHORT', use: 'CLASS' },
+      { question: `Colour the pictures that belong to “${topic}”.`, answer: 'Correct pictures coloured.', kind: 'SHORT', use: 'HOMEWORK' },
+    ]
+    : [
+      { question: `Explain “${topic}” in your own words with one example.`, answer: 'Correct meaning with a suitable example.', kind: 'SHORT', use: 'CLASS' },
+      { question: `Which statement about “${topic}” is correct?`, answer: 'B', kind: 'MCQ', options: ['A', 'B', 'C', 'D'], use: 'CLASS' },
+      { question: kind === 'LANGUAGE' ? `Write the answers to the textbook questions of “${topic}” and learn the new words.` : `Do the textbook exercise on “${topic}” (questions 1–5).`, answer: 'As in the textbook / teacher’s key.', kind: 'LONG', use: 'HOMEWORK' },
+    ]
+  return {
+    book: { name: book, chapter: unit, pages: `p. ${from}–${from + 6}` },
+    howTo: how, keyPoints: points, questions,
+    homeworkHint: junior ? `Colour and paste one picture of “${topic}” in the activity book.` : questions[2].question,
+  }
+}
+
+async function fillAllTopicMaterial(admin) {
+  const classes = (await admin.get('/academics/classes')).classes
+  let filled = 0
+  for (const c of classes) {
+    const board = String(c.code).startsWith('C') ? 'CBSE' : 'UP'
+    for (const subj of c.subjects ?? []) {
+      const syl = await admin.get('/homework/syllabus', { classId: c.id, subjectId: subj.id }).catch(() => null)
+      let n = 0
+      for (const u of syl?.units ?? []) {
+        for (const t of u.topics ?? []) {
+          n++
+          if (t.hasContent) continue
+          await admin.put(`/homework/syllabus/topics/${t.id}`, materialFor({ topic: t.name, unit: u.name, subject: subj.name, className: c.name, board, n }))
+          filled++
+        }
+      }
+    }
+  }
+  return filled ? `${filled} topics given teaching material` : 'already there'
+}
+
 async function fillTeachingPlanner(admin) {
   const classes = (await admin.get('/academics/classes')).classes
   const picks = [classes.find((c) => c.code === 'C8'), classes.find((c) => c.code === 'C5')].filter(Boolean)
@@ -1084,6 +1152,7 @@ async function fillTeachingPlanner(admin) {
     const status = (t) => (syl.sections ?? []).find((x) => x.id === sec.id)?.topicPlan?.[t.id]?.status ?? 'NOT_STARTED'
     const upcoming = topics.filter((t) => status(t) !== 'TAUGHT').slice(0, 3)
     const taught = topics.filter((t) => status(t) === 'TAUGHT').slice(-1)
+    if (upcoming.some((t) => t.hasContent)) continue // done on an earlier run
     for (const [i, t] of upcoming.entries()) {
       if (t.hasContent) continue
       await admin.put(`/homework/syllabus/topics/${t.id}`, {
@@ -1550,7 +1619,8 @@ const as = (email) => signIn(email, email === ADMIN.email ? ADMIN.password : 'De
 async function fillStaffChat(admin) {
   const { channels } = await admin.get('/comms/chat/channels')
   const whole = channels.find((c) => c.type === 'INSTITUTION')
-  if (whole?.lastMessage) return 'already there'
+  const seen = whole ? await admin.get(`/comms/chat/channels/${whole.id}/messages`, { limit: 5 }).catch(() => null) : null
+  if (whole?.lastMessageAt || whole?.lastMessage || (seen?.messages ?? seen?.rows ?? seen ?? []).length) return 'already there'
   const users = (await admin.get('/core/users', { pageSize: 100 }))
   const idOf = (email) => (users.data ?? users).find((u) => u.email === email)?.id
   const posted = [] // [message id, minutes ago]
@@ -1718,6 +1788,7 @@ async function main() {
   await step('Syllabus and lesson plans', () => fillLessonPlans(admin))
   await step('Syllabus for the junior classes', () => fillPrimarySyllabus(admin))
   await step('Teaching planner (topic material, revision, extra class)', () => fillTeachingPlanner(admin))
+  await step('Teaching material on every syllabus topic', () => fillAllTopicMaterial(admin))
   await step('Admissions 2027-28', () => fillAdmissions(admin))
   await step('Notices', () => fillNotices(admin))
   await step('Events, meetings, gallery', () => fillEvents(admin))

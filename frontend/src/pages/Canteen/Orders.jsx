@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { Banknote, ChefHat, ClipboardList, HandPlatter, IndianRupee, Receipt, ShoppingCart, Wallet } from 'lucide-react'
 import { CANTEEN_ORDER_STATUS, formatINR } from '@schoolgiant/shared'
-import { ColorChip, ColumnBars, DataTable, Input, KanbanBoard, KanbanCard, PageContainer, PageHeader, RankBars, StatCardRow, Tabs } from '../../components/system'
+import { DateInput, ColorChip, ColumnBars, DataTable, KanbanBoard, KanbanCard, PageContainer, PageHeader, RankBars, StatCardRow, Tabs } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { fetchAllOrders, fetchDaySummary, fetchOrders, fetchPreorders, orderCollected, orderReady } from '../../api/canteen'
 import { hasPermission } from '../../api/auth'
@@ -87,7 +87,7 @@ export default function CanteenOrders() {
   return (
     <PageContainer>
       <PageHeader icon={Receipt} title={t('canteen.orders.title')} subtitle={t('canteen.orders.subtitle')}
-        actions={tab !== 'COUNTER' && <div className="flex items-center gap-2"><Input type="date" value={day ?? ''} onChange={(e) => setDate(e.target.value)} aria-label={t('canteen.orders.day')} />{day && <span className="hidden sm:inline text-xs text-ink-muted">{fmt(day)}</span>}</div>} />
+        actions={tab !== 'COUNTER' && <div className="flex items-center gap-2"><DateInput value={day ?? ''} onChange={(e) => setDate(e.target.value)} aria-label={t('canteen.orders.day')} />{day && <span className="hidden sm:inline text-xs text-ink-muted">{fmt(day)}</span>}</div>} />
       <Tabs value={tab} onChange={setTab} tabs={[
         { value: 'COUNTER', label: t('canteen.orders.tabs.counter') },
         { value: 'PREORDERS', label: t('canteen.orders.tabs.preorders') },

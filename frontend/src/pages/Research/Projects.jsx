@@ -6,7 +6,7 @@ import {
   RESEARCH_AGENCIES, RESEARCH_PROJECT_STATUS, RESEARCH_SCHOLAR_MODES, RESEARCH_SCHOLAR_STATUS, projectUtilisation,
 } from '@schoolgiant/shared'
 import {
-  ColorChip, DataTable, FormField, HeaderButton, Input, KanbanBoard, KanbanCard, Modal, Money, Note, PageContainer, PageHeader, PersonCell, PillRow, RankBars,
+  DateInput, ColorChip, DataTable, FormField, HeaderButton, Input, KanbanBoard, KanbanCard, Modal, Money, Note, PageContainer, PageHeader, PersonCell, PillRow, RankBars,
   SearchInput, Select, StackedBar, StatCardRow, Tabs, Textarea, pillClass, useConfirm,
 } from '../../components/system'
 import Button from '../../components/ui/Button'
@@ -104,10 +104,10 @@ function ProjectForm({ project, onClose, onSaved }) {
           {money.sanctioned > 0 && <UtilisationBar p={{ ...money, ...u }} />}
         </div>
         <div className="grid gap-3 sm:grid-cols-4">
-          <FormField label={t('research.projects.appliedOn')}><Input type="date" value={form.appliedOn} onChange={set('appliedOn')} /></FormField>
-          <FormField label={t('research.projects.sanctionedOn')}><Input type="date" value={form.sanctionedOn} onChange={set('sanctionedOn')} /></FormField>
-          <FormField label={t('research.projects.startDate')}><Input type="date" value={form.startDate} onChange={set('startDate')} /></FormField>
-          <FormField label={t('research.projects.endDate')} error={errors.endDate}><Input type="date" value={form.endDate} onChange={set('endDate')} /></FormField>
+          <FormField label={t('research.projects.appliedOn')}><DateInput value={form.appliedOn} onChange={set('appliedOn')} /></FormField>
+          <FormField label={t('research.projects.sanctionedOn')}><DateInput value={form.sanctionedOn} onChange={set('sanctionedOn')} /></FormField>
+          <FormField label={t('research.projects.startDate')}><DateInput value={form.startDate} onChange={set('startDate')} /></FormField>
+          <FormField label={t('research.projects.endDate')} error={errors.endDate}><DateInput value={form.endDate} onChange={set('endDate')} /></FormField>
         </div>
         <FormField label={t('research.projects.notes')}><Textarea rows={2} value={form.notes} onChange={set('notes')} /></FormField>
       </div>
@@ -236,14 +236,14 @@ function ScholarForm({ scholar, onClose, onSaved }) {
             <StaffSelect value={form.coGuideId} staff={staff} exclude={form.guideId ? [form.guideId] : []} placeholder={t('research.scholars.noCoGuide')} onChange={(v) => setForm((f) => ({ ...f, coGuideId: v ?? '' }))} />
           </FormField>
           <FormField label={t('research.scholars.topic')} className="sm:col-span-2"><Input value={form.topic} onChange={set('topic')} /></FormField>
-          <FormField label={t('research.scholars.registrationDate')} required error={errors.registrationDate}><Input type="date" value={form.registrationDate} onChange={set('registrationDate')} /></FormField>
+          <FormField label={t('research.scholars.registrationDate')} required error={errors.registrationDate}><DateInput value={form.registrationDate} onChange={set('registrationDate')} /></FormField>
           <FormField label={t('research.scholars.mode')}>
             <Select value={form.mode} onChange={set('mode')}>{RESEARCH_SCHOLAR_MODES.map((m) => <option key={m.value} value={m.value}>{L.mode(m.value)}</option>)}</Select>
           </FormField>
           <FormField label={t('research.scholars.status')}>
             <Select value={form.status} onChange={set('status')}>{Object.keys(RESEARCH_SCHOLAR_STATUS).map((s) => <option key={s} value={s}>{L.scholar(s)}</option>)}</Select>
           </FormField>
-          {form.status === 'AWARDED' && <FormField label={t('research.scholars.awardedOn')} required error={errors.awardedOn}><Input type="date" value={form.awardedOn} onChange={set('awardedOn')} /></FormField>}
+          {form.status === 'AWARDED' && <FormField label={t('research.scholars.awardedOn')} required error={errors.awardedOn}><DateInput value={form.awardedOn} onChange={set('awardedOn')} /></FormField>}
           <FormField label={t('research.scholars.department')} error={errors.departmentId}>
             <Select value={form.departmentId} onChange={set('departmentId')}>
               <option value="">{t('research.scholars.guideDepartment')}</option>

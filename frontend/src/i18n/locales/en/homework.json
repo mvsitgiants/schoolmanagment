@@ -150,7 +150,22 @@
       "nextMonth": "Next month",
       "thisMonth": "This month",
       "addOn": "Plan a lesson on {{date}}",
-      "more": "+{{count}} more"
+      "more": "+{{count}} more",
+      "seeWeek": "See the whole week as a list",
+      "view": {
+        "topics_one": "What to teach",
+        "topics_other": "What to teach ({{count}} topics)",
+        "noTopics": "No syllabus topic linked to this lesson.",
+        "noMaterial": "No material yet",
+        "addMaterial": "Add the book pages, how to teach and questions in Syllabus →",
+        "topicGone": "This topic is no longer in the syllabus.",
+        "howItWent": "How it went",
+        "subtitle": "Lesson plan",
+        "when": "When",
+        "plan": "The lesson plan",
+        "periods_one": "{{count}} period",
+        "periods_other": "{{count}} periods"
+      }
     },
     "syllabus": {
       "title": "Syllabus tracker",
@@ -353,7 +368,8 @@
         "on": "Extra class on {{date}}",
         "markTaken": "Mark as taken"
       },
-      "reviseBy": "Revise on"
+      "reviseBy": "Revise on",
+      "bookRef": "Book"
     },
     "teach": {
       "title": "My teaching day",
@@ -384,7 +400,26 @@
       "revisionN_other": "{{count}} to revise",
       "extraN": "{{done}} of {{total}} extra classes taken",
       "extraTaken_one": "{{count}} extra class taken",
-      "extraTaken_other": "{{count}} extra classes taken"
+      "extraTaken_other": "{{count}} extra classes taken",
+      "subjectsToday": "Subjects",
+      "noPeriod": "No period today"
+    },
+    "material": {
+      "title": "Teaching material",
+      "hint": "Everything you’ll use in this lesson: videos, websites, slides, worksheets and notes. It opens with one tap from the lesson plan.",
+      "links": "Links",
+      "linkTitle": "Name, e.g. “Rational numbers explained”",
+      "linkUrl": "Link",
+      "addLink": "Add a link",
+      "removeLink": "Remove this link",
+      "linksHint": "YouTube and other video links play inside the app; websites, Google Drive and Docs links open in a new tab.",
+      "notes": "Notes for the lesson",
+      "notesHint": "Reading notes, questions to ask the class, what to write on the board.",
+      "files": "Files",
+      "saveFirst": "Save the lesson plan first, then open it again to add files — PDF, Word, Excel, PowerPoint, pictures or short videos (up to {{max}} MB each).",
+      "play": "Play",
+      "hide": "Hide video",
+      "open": "Open"
     }
   }
 }

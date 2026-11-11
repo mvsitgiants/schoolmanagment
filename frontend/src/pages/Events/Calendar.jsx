@@ -1,9 +1,9 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { Bus, CalendarDays, CheckCircle2, ChevronLeft, ChevronRight, Download, Eye, EyeOff, Flag, Hourglass, ListChecks, Music, NotebookPen, PartyPopper, Pencil, Plus, Send, Shapes, Sparkles, Trash2, Trophy, UsersRound, XCircle } from 'lucide-react'
-import { EVENT_KINDS, REPLY_KINDS, addDaysYmd, monthGrid } from '@schoolgiant/shared'
-import { Attachments, ColorChip, DataTable, Drawer, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, Panel, PersonCell, PhoneLink, SegmentedControl, Select, StatCardRow, StatusPill, Textarea, localIso, useConfirm } from '../../components/system'
+import { Bus, CalendarDays, CheckCircle2, Download, Eye, EyeOff, Flag, Hourglass, ListChecks, Music, NotebookPen, PartyPopper, Pencil, Plus, Send, Shapes, Sparkles, Trash2, Trophy, UsersRound, XCircle } from 'lucide-react'
+import { EVENT_KINDS, REPLY_KINDS, addDaysYmd } from '@schoolgiant/shared'
+import { Attachments, Calendar as CalendarView, ColorChip, DataTable, DateInput, Drawer, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, Panel, PersonCell, PhoneLink, SegmentedControl, Select, StatCardRow, StatusPill, Textarea, localIso, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { deleteEvent, downloadIcs, exportReplies, fetchCalendar, fetchEvent, fetchEvents, fetchReplies, publishEvent, saveEvent, saveReply, unpublishEvent } from '../../api/events'
 import { hasPermission } from '../../api/auth'
@@ -13,7 +13,6 @@ import { AudienceFields, chipClass, toneOf, useEventLabels } from '../../compone
 
 // each event kind's icon in the events list
 const KIND_ICON = { EVENT: Sparkles, CELEBRATION: PartyPopper, CULTURAL: Music, SPORTS: Trophy, TRIP: Bus, EXAM: NotebookPen, DEADLINE: Flag, MEETING: UsersRound, OTHER: Shapes }
-const DOW = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN']
 
 function EventForm({ event, day, onClose, onSaved }) {
   const { t } = useTranslation('events')
@@ -47,8 +46,8 @@ function EventForm({ event, day, onClose, onSaved }) {
           <FormField label={t('events.form.kind')}><Select value={form.kind} onChange={set('kind')}>{EVENT_KINDS.map((k) => <option key={k.value} value={k.value}>{L.kind(k.value)}</option>)}</Select></FormField>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 items-end">
-          <FormField label={t('events.form.from')} required><Input type="date" value={form.startDate} onChange={set('startDate')} /></FormField>
-          <FormField label={t('events.form.to')} error={errors.endDate}><Input type="date" value={form.endDate} min={form.startDate} onChange={set('endDate')} /></FormField>
+          <FormField label={t('events.form.from')} required><DateInput value={form.startDate} onChange={set('startDate')} /></FormField>
+          <FormField label={t('events.form.to')} error={errors.endDate}><DateInput value={form.endDate} min={form.startDate} onChange={set('endDate')} /></FormField>
           {!form.allDay && <FormField label={t('events.form.startTime')}><Input type="time" value={form.startTime} onChange={set('startTime')} /></FormField>}
           {!form.allDay && <FormField label={t('events.form.endTime')} error={errors.endTime}><Input type="time" value={form.endTime} onChange={set('endTime')} /></FormField>}
         </div>
@@ -62,7 +61,7 @@ function EventForm({ event, day, onClose, onSaved }) {
             {form.replyKind !== 'NONE' && (
               <div className="grid sm:grid-cols-[1fr_170px] gap-3">
                 <FormField label={t('events.form.question')} hint={t('events.form.questionHint')}><Input value={form.question} onChange={set('question')} placeholder={form.replyKind === 'CONSENT' ? t('events.form.consentPlaceholder') : t('events.form.rsvpPlaceholder')} /></FormField>
-                <FormField label={t('events.form.replyBy')}><Input type="date" value={form.replyBy} max={form.startDate} onChange={set('replyBy')} /></FormField>
+                <FormField label={t('events.form.replyBy')}><DateInput value={form.replyBy} max={form.startDate} onChange={set('replyBy')} /></FormField>
               </div>
             )}
             <label className="inline-flex items-center gap-2 text-sm text-ink"><input type="checkbox" checked={form.remind} onChange={set('remind')} className="rounded border-border text-brand-500" />{t('events.form.remind')}</label>
@@ -158,54 +157,27 @@ function EventDrawer({ id, onClose, onEdit }) {
 function MonthView({ month, setMonth, onOpen, onAdd }) {
   const { t } = useTranslation('events')
   const L = useEventLabels()
-  const [y, m] = month.split('-').map(Number)
-  const { data } = useQuery({ queryKey: ['events', 'calendar', month], queryFn: async () => { const g = monthGrid(y, m); return fetchCalendar(g[0][0], g[g.length - 1][6]) } })
-  const weeks = useMemo(() => monthGrid(y, m, { sundayFirst: data?.weekStartsSunday }), [y, m, data?.weekStartsSunday])
-  const days = data?.weekStartsSunday ? ['SUN', ...DOW.slice(0, 6)] : DOW
-  const todayIso = localIso(new Date())
-  const shift = (n) => { const d = new Date(Date.UTC(y, m - 1 + n, 1)); setMonth(`${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`) }
-  const itemsOn = (d) => (data?.items ?? []).filter((i) => i.startDate <= d && i.endDate >= d)
+  const [range, setRange] = useState(null)
+  const { data, isFetching } = useQuery({ queryKey: ['events', 'calendar', range?.from, range?.to], queryFn: () => fetchCalendar(range.from, range.to), enabled: !!range, placeholderData: (p) => p })
   const canAdd = hasPermission('events.calendar.create')
+  const raw = data?.items ?? []
+  // holidays shade their days; everything else is an item — events in the teal accent, last dates in amber, exams and meetings grey
+  const holidays = raw.filter((i) => i.source === 'HOLIDAY').map((i) => ({ date: i.startDate, endDate: i.endDate, name: i.title, onClick: () => onOpen(i) }))
+  const items = raw.filter((i) => i.source !== 'HOLIDAY').map((i) => ({
+    id: `${i.source}:${i.id}`, date: i.startDate, endDate: i.endDate, title: i.title, time: i.startTime || undefined, endTime: i.endTime || undefined,
+    kind: i.source === 'EVENT' ? L.kind(i.kind) : L.source(i.source), icon: i.source === 'EVENT' ? KIND_ICON[i.kind] ?? Sparkles : i.source === 'EXAM' ? NotebookPen : UsersRound,
+    tone: i.source === 'EVENT' && i.kind === 'DEADLINE' ? 'warning' : i.source === 'EVENT' ? 'accent' : 'neutral', muted: i.published === false, sub: i.venue || undefined, onClick: () => onOpen(i),
+  }))
   return (
-    <div className="space-y-3">
-      <div className="flex items-center gap-2">
-        <Button size="sm" variant="ghost" icon={ChevronLeft} aria-label={t('events.cal.prev')} onClick={() => shift(-1)} />
-        <p className="min-w-[10rem] text-center text-sm font-semibold text-ink">{t(`events.months.${m}`)} {y}</p>
-        <Button size="sm" variant="ghost" icon={ChevronRight} aria-label={t('events.cal.next')} onClick={() => shift(1)} />
-        <Button size="sm" variant="secondary" onClick={() => setMonth(todayIso.slice(0, 7))}>{t('events.cal.today')}</Button>
-      </div>
-      <div className="overflow-hidden rounded-xl border border-border">
-        <div className="grid grid-cols-7 bg-black/[0.02] text-center text-[11px] font-semibold uppercase tracking-wide text-ink-muted">
-          {days.map((d) => <div key={d} className="py-1.5">{t(`events.dow.${d}`)}</div>)}
-        </div>
-        {weeks.map((w) => (
-          <div key={w[0]} className="grid grid-cols-7 border-t border-border">
-            {w.map((d) => {
-              const items = itemsOn(d)
-              const other = d.slice(0, 7) !== month
-              return (
-                <div key={d} className={`min-h-[92px] border-l border-border first:border-l-0 p-1 ${other ? 'bg-black/[0.015]' : ''}`}>
-                  <button type="button" disabled={!canAdd} onClick={() => onAdd(d)} className={`mb-0.5 flex h-6 w-6 items-center justify-center rounded-full text-xs ${d === todayIso ? 'bg-brand-500 text-white' : other ? 'text-ink-faint' : 'text-ink'} enabled:hover:ring-1 enabled:hover:ring-brand-300`} aria-label={t('events.cal.addOn', { date: d })}>{Number(d.slice(8))}</button>
-                  <div className="space-y-0.5">
-                    {items.slice(0, 3).map((i) => (
-                      <button key={i.id} type="button" onClick={() => onOpen(i)} title={i.title}
-                        className={`block w-full truncate rounded px-1 py-0.5 text-left text-[11px] ${chipClass(toneOf(i))} ${i.published === false ? 'opacity-60 italic' : ''}`}>
-                        {i.startTime && i.startDate === d ? `${i.startTime} ` : ''}{i.title}
-                      </button>
-                    ))}
-                    {items.length > 3 && <p className="px-1 text-[10px] text-ink-faint">{t('events.cal.more', { count: items.length - 3 })}</p>}
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        ))}
-      </div>
-      <div className="flex flex-wrap gap-2 text-[11px]">
-        {['HOLIDAY', 'EXAM', 'PTM'].map((s) => <span key={s} className={`rounded px-1.5 py-0.5 ${chipClass(toneOf({ source: s }))}`}>{L.source(s)}</span>)}
-        <span className="rounded px-1.5 py-0.5 bg-black/5 text-ink-muted italic opacity-60">{t('events.cal.draftLegend')}</span>
-      </div>
-    </div>
+    <CalendarView views={['month', 'week', 'agenda']} month={month} onMonthChange={setMonth} onRangeChange={setRange} loading={isFetching}
+      weekStartsOn={data?.weekStartsSunday ? 'SUNDAY' : 'MONDAY'} items={items} holidays={holidays}
+      onAdd={canAdd ? onAdd : undefined} addLabel={t('events.cal.new')} emptyText={t('events.cal.emptyMonth')}
+      legend={[
+        { tone: 'accent', label: t('events.cal.legendEvents') },
+        { tone: 'warning', label: L.kind('DEADLINE') },
+        { tone: 'neutral', label: t('events.cal.legendOther') },
+        { tone: 'neutral', label: t('events.cal.draftLegend'), muted: true },
+      ]} />
   )
 }
 
@@ -259,7 +231,7 @@ export default function Calendar() {
           <HeaderButton icon={Plus} variant="primary" requires="events.calendar.create" onClick={() => setEditing({ day: null })}>{t('events.cal.new')}</HeaderButton>
         </>} />
       <div className="space-y-4">
-        <SegmentedControl value={view} onChange={setView} options={[{ value: 'MONTH', label: t('events.cal.month') }, { value: 'LIST', label: t('events.cal.list') }]} />
+        <SegmentedControl value={view} onChange={setView} options={[{ value: 'MONTH', label: t('events.cal.calendar') }, { value: 'LIST', label: t('events.cal.list') }]} />
         {view === 'MONTH' ? <MonthView month={month} setMonth={setMonth} onOpen={openItem} onAdd={(d) => setEditing({ day: d })} /> : <ListView onOpen={openItem} />}
       </div>
       {open && <EventDrawer id={open} onClose={() => setOpen(null)} onEdit={(e) => { setOpen(null); setEditing({ event: e }) }} />}

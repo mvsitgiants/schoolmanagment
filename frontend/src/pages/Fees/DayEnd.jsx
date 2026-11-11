@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { Banknote, CheckCircle2, Lock, Receipt, Scale } from 'lucide-react'
 import { DAY_END_STATUS, PAYMENT_MODES, formatINR, toPaise } from '@schoolgiant/shared'
-import { ColorChip, DataTable, DateCell, FormField, Input, Money, Note, PageContainer, PageHeader, Panel, PersonCell, StatCardRow, StatusPill, Tabs, Textarea, useConfirm } from '../../components/system'
+import { DateInput, ColorChip, DataTable, DateCell, FormField, Input, Money, Note, PageContainer, PageHeader, Panel, PersonCell, StatCardRow, StatusPill, Tabs, Textarea, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { approveDayVariance, closeFeeDay, fetchDayClosings, fetchDaySummary } from '../../api/fees'
 import { hasPermission } from '../../api/auth'
@@ -39,7 +39,7 @@ function MyDay() {
   return (
     <div className="space-y-4">
       <div className="flex items-end gap-3">
-        <FormField label={t('fees.dayEnd.date')}><Input type="date" className="w-44" value={day || sum?.date || ''} onChange={(e) => setDay(e.target.value)} /></FormField>
+        <FormField label={t('fees.dayEnd.date')}><DateInput className="w-44" value={day || sum?.date || ''} onChange={(e) => setDay(e.target.value)} /></FormField>
       </div>
       {isLoading && <p className="text-sm text-ink-faint">{t('fees.loading')}</p>}
       {error && <Note tone="warning" actions={<Button size="sm" variant="secondary" onClick={() => refetch()}>{t('fees.retry')}</Button>}>{error.message}</Note>}

@@ -7,7 +7,7 @@ import {
 } from 'lucide-react'
 import { STORE_ADJUST_REASONS, STORE_CATEGORIES, STORE_ISSUE_TO, STORE_MOVE_TYPES } from '@schoolgiant/shared'
 import {
-  CodeBadge, ColorChip, DataTable, DateCell, Drawer, EmptyState, FormField, HeaderButton, ImportExportButtons, Input, LevelBar, Modal, Money, Note, PageContainer, PageHeader,
+  DateInput, CodeBadge, ColorChip, DataTable, DateCell, Drawer, EmptyState, FormField, HeaderButton, ImportExportButtons, Input, LevelBar, Modal, Money, Note, PageContainer, PageHeader,
   SearchInput, SegmentedControl, Select, SideNav, SideNavLayout, Skeleton, StatCardRow, TONE, Tabs, Textarea, hueTone, useConfirm,
 } from '../../components/system'
 import Button from '../../components/ui/Button'
@@ -65,7 +65,7 @@ function SlipForm({ kind, branchId, onClose, onDone }) {
           </FormField>}
         <ItemLines lines={lines} onChange={setLines} items={items} showStock={kind === 'ISSUE'} errors={errors} />
         <div className="grid gap-3 sm:grid-cols-[10rem_1fr]">
-          <FormField label={t('inventory.slip.date')} error={errors.date}><Input type="date" value={form.date} onChange={set('date')} /></FormField>
+          <FormField label={t('inventory.slip.date')} error={errors.date}><DateInput value={form.date} onChange={set('date')} /></FormField>
           <FormField label={t('inventory.slip.note')}><Input value={form.note} onChange={set('note')} /></FormField>
         </div>
       </div>

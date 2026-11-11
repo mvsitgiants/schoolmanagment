@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { Briefcase, CalendarCheck2, CalendarHeart, CheckCheck, CircleCheck, CircleDashed, CircleHelp, CircleX, Coffee, Download, Palmtree, Upload } from 'lucide-react'
 import { EMPLOYEE_CATEGORIES, MARKABLE, STAFF_ATTENDANCE } from '@schoolgiant/shared'
-import { Avatar, ControlChip, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, PersonCell, SegmentedControl, StatCardRow, Textarea, localIso } from '../../components/system'
+import { DateInput, Avatar, ControlChip, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, PersonCell, SegmentedControl, StatCardRow, Textarea, localIso } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { exportStaffMonth, fetchStaffDay, fetchStaffMonth, importStaffAttendance, saveStaffDay } from '../../api/hrms'
 import { hasPermission } from '../../api/auth'
@@ -85,7 +85,7 @@ function DayView({ category }) {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-end gap-3">
-        <div className="w-44"><FormField label={t('hrms.attendance.date')}><Input type="date" value={date} max={localIso(new Date())} onChange={(e) => setDate(e.target.value)} /></FormField></div>
+        <div className="w-44"><FormField label={t('hrms.attendance.date')}><DateInput value={date} max={localIso(new Date())} onChange={(e) => setDate(e.target.value)} /></FormField></div>
         {canEdit && <Button variant="secondary" icon={CheckCheck} onClick={allPresent}>{t('hrms.attendance.allPresent')}</Button>}
         {canEdit && <Button loading={save.isPending} disabled={!changed} onClick={() => save.mutate()}>{t('hrms.attendance.save', { count: changed })}</Button>}
       </div>

@@ -7,7 +7,7 @@ import {
 } from 'lucide-react'
 import { VEHICLE_DOCS, VEHICLE_STATUS, VEHICLE_TYPES } from '@schoolgiant/shared'
 import {
-  CodeBadge, ColorChip, DataTable, DateCell, Drawer, EmptyState, FormField, HeaderButton, Input, Modal, Note, PANEL, PageContainer, PageHeader, Panel, PersonCell, PhoneLink, PillRow,
+  DateInput, CodeBadge, ColorChip, DataTable, DateCell, Drawer, EmptyState, FormField, HeaderButton, Input, Modal, Note, PANEL, PageContainer, PageHeader, Panel, PersonCell, PhoneLink, PillRow,
   SegmentedControl, Select, SideNavLayout, Skeleton, StatCardRow, StatusPill, TONE, Tag, Textarea, pillClass, useConfirm,
 } from '../../components/system'
 import Button from '../../components/ui/Button'
@@ -31,7 +31,7 @@ function PersonFields({ value, onChange, logins, licence }) {
       <FormField label={t('transport.vehicles.personName')}><Input value={value.name} onChange={set('name')} /></FormField>
       <FormField label={t('transport.vehicles.mobile')}><Input type="tel" value={value.mobile} onChange={set('mobile')} /></FormField>
       {licence && <FormField label={t('transport.vehicles.licenceNo')}><Input value={value.licenceNo} onChange={set('licenceNo')} /></FormField>}
-      {licence && <FormField label={t('transport.vehicles.licenceExpiry')}><Input type="date" value={value.licenceExpiry} onChange={set('licenceExpiry')} /></FormField>}
+      {licence && <FormField label={t('transport.vehicles.licenceExpiry')}><DateInput value={value.licenceExpiry} onChange={set('licenceExpiry')} /></FormField>}
       <FormField label={t('transport.vehicles.login')} hint={t('transport.vehicles.loginHint')} className="sm:col-span-2">
         <Select value={value.userId} onChange={set('userId')}>
           <option value="">{t('transport.vehicles.noLogin')}</option>
@@ -85,7 +85,7 @@ function VehicleForm({ vehicle, onClose, onSaved }) {
               <div key={d.value} className="grid sm:grid-cols-[1fr_180px_160px] gap-2 items-center px-3 py-2">
                 <span className="text-sm text-ink">{L.doc(d.value)}</span>
                 <Input value={form.docs[d.value].number} onChange={setDoc(d.value, 'number')} placeholder={t('transport.vehicles.docNumber')} aria-label={t('transport.vehicles.docNumber')} />
-                <Input type="date" value={form.docs[d.value].expiry} onChange={setDoc(d.value, 'expiry')} aria-label={t('transport.vehicles.docExpiry')} />
+                <DateInput value={form.docs[d.value].expiry} onChange={setDoc(d.value, 'expiry')} aria-label={t('transport.vehicles.docExpiry')} />
               </div>
             ))}
           </div>

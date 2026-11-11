@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { CalendarClock, CalendarRange, ChevronLeft, ClipboardList, Pencil, Plus, Send, Trash2, Undo2, Wand2, X } from 'lucide-react'
 import { EXAM_STATUS, addMinutes, clashes } from '@schoolgiant/shared'
-import { ColorChip, ControlChip, DataTable, DateCell, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, Panel, PillRow, ProgressBar, Select, SideNav, SideNavLayout, StatusPill, Textarea, pillClass, useConfirm } from '../../components/system'
+import { DateInput, ColorChip, ControlChip, DataTable, DateCell, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, Panel, PillRow, ProgressBar, Select, SideNav, SideNavLayout, StatusPill, Textarea, pillClass, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { fetchAcademicLookup, fetchGrading } from '../../api/academics'
 import { createExam, deleteExam, fetchExam, fetchExamTypes, fetchExams, savePapers, scheduleExam, suggestPapers, unscheduleExam, updateExam } from '../../api/exams'
@@ -128,7 +128,7 @@ function PapersEditor({ exam, cls, onClose, onSaved }) {
                 {subjects.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
               </Select>
             </FormField>
-            <FormField label={i === 0 ? t('exams.papers.date') : undefined} error={err(i, 'date')}><Input type="date" value={r.date} onChange={(e) => setRow(i, 'date', e.target.value)} /></FormField>
+            <FormField label={i === 0 ? t('exams.papers.date') : undefined} error={err(i, 'date')}><DateInput value={r.date} onChange={(e) => setRow(i, 'date', e.target.value)} /></FormField>
             <FormField label={i === 0 ? t('exams.papers.start') : undefined} error={err(i, 'startTime')}><Input type="time" value={r.startTime} onChange={(e) => setRow(i, 'startTime', e.target.value)} onBlur={() => !r.endTime && r.startTime && setRow(i, 'endTime', addMinutes(r.startTime, 180))} /></FormField>
             <FormField label={i === 0 ? t('exams.papers.end') : undefined} error={err(i, 'endTime')}><Input type="time" value={r.endTime} onChange={(e) => setRow(i, 'endTime', e.target.value)} /></FormField>
             <FormField label={i === 0 ? t('exams.papers.max') : undefined} error={err(i, 'maxMarks')}><Input type="number" min="0" disabled={r.gradeOnly} value={r.gradeOnly ? '' : r.maxMarks} onChange={(e) => setRow(i, 'maxMarks', e.target.value)} /></FormField>

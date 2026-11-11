@@ -4,7 +4,7 @@ import { useMutation } from '@tanstack/react-query'
 import clsx from 'clsx'
 import { ChevronDown, ChevronRight, Search } from 'lucide-react'
 import { CATEGORIES } from '@schoolgiant/shared'
-import { FormField, Input, Note, Panel, SegmentedControl, useConfirm } from '../system'
+import { DateInput, FormField, Input, Note, Panel, SegmentedControl, useConfirm } from '../system'
 import Button from '../ui/Button'
 import { iconFor } from '../../catalog/icons'
 import { useCatalogLabel } from '../../hooks/useCatalogLabel'
@@ -158,7 +158,7 @@ export default function ModulesEditor({ tenantId, planName, modules, canEdit, on
                     {canEdit && editing === m.id && add && (
                       <div className="mt-2 ms-10 grid gap-3 rounded-lg border border-border bg-bg p-3 sm:grid-cols-[12rem_1fr]">
                         <FormField label={t('superadmin.modulesEditor.until')} hint={t('superadmin.modulesEditor.untilHint')}>
-                          <Input type="date" value={add.until} min={today()} onChange={(e) => set((n) => { n.adds[m.id] = { ...n.adds[m.id], until: e.target.value } })} />
+                          <DateInput value={add.until} min={today()} onChange={(e) => set((n) => { n.adds[m.id] = { ...n.adds[m.id], until: e.target.value } })} />
                         </FormField>
                         <FormField label={t('superadmin.modulesEditor.note')} hint={t('superadmin.modulesEditor.noteHint')}>
                           <Input value={add.note} maxLength={200} onChange={(e) => set((n) => { n.adds[m.id] = { ...n.adds[m.id], note: e.target.value } })} />

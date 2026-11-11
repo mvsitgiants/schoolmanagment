@@ -3,7 +3,7 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { BookOpen, BookText, Download, FileSpreadsheet, LineChart, ListChecks, PiggyBank, RefreshCw, Scale, TrendingDown, TrendingUp } from 'lucide-react'
 import { formatINR, formatINRCompact, fyRange } from '@schoolgiant/shared'
-import { CodeBadge, ColorChip, DataTable, DateCell, FormField, Input, Money, Note, PageContainer, PageHeader, Panel, Select, SideNav, SideNavLayout, StatCardRow, useConfirm } from '../../components/system'
+import { DateInput, CodeBadge, ColorChip, DataTable, DateCell, FormField, Money, Note, PageContainer, PageHeader, Panel, Select, SideNav, SideNavLayout, StatCardRow, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { downloadReport, fetchReport, rebuildPostings } from '../../api/finance'
 import { hasPermission } from '../../api/auth'
@@ -71,8 +71,8 @@ export default function Reports() {
             </Select>
           </FormField>
         </div>
-        {range && <div className={tab === 'balance-sheet' ? 'col-span-2 sm:w-40' : 'min-w-0 sm:w-40'}><FormField label={t('finance.reports.from')}><Input type="date" value={range.from} onChange={(e) => setCustom({ ...range, from: e.target.value })} /></FormField></div>}
-        {range && tab !== 'balance-sheet' && <div className="min-w-0 sm:w-40"><FormField label={t('finance.reports.to')}><Input type="date" value={range.to} onChange={(e) => setCustom({ ...range, to: e.target.value })} /></FormField></div>}
+        {range && <div className={tab === 'balance-sheet' ? 'col-span-2 sm:w-40' : 'min-w-0 sm:w-40'}><FormField label={t('finance.reports.from')}><DateInput value={range.from} onChange={(e) => setCustom({ ...range, from: e.target.value })} /></FormField></div>}
+        {range && tab !== 'balance-sheet' && <div className="min-w-0 sm:w-40"><FormField label={t('finance.reports.to')}><DateInput value={range.to} onChange={(e) => setCustom({ ...range, to: e.target.value })} /></FormField></div>}
         <div className="col-span-2 flex flex-wrap gap-2 sm:col-span-1">
           {hasPermission('finance.reports.export') && ready && <Button variant="secondary" icon={Download} onClick={() => dl(exportKind)}>{t('finance.reports.csv')}</Button>}
           {hasPermission('finance.reports.export') && range && <Button variant="ghost" icon={FileSpreadsheet} onClick={() => dl('tally')}>{t('finance.reports.tally')}</Button>}

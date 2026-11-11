@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { Briefcase, Bus, ChevronLeft, Pencil, Plus, Presentation, Printer, ShieldCheck, Star, UserCheck, UsersRound, Wrench } from 'lucide-react'
 import { CANDIDATE_SOURCES, CANDIDATE_STAGES, EMPLOYEE_CATEGORIES, EMPLOYMENT_TYPES, OPEN_CANDIDATE_STAGES, REQUISITION_STATUSES, toPaise, toRupees } from '@schoolgiant/shared'
-import { Attachments, ColorChip, ContactCell, DataTable, DateCell, Drawer, FormField, HeaderButton, Input, LevelBar, Modal, Money, Note, PageContainer, PageHeader, Panel, PersonCell, SearchInput, SegmentedControl, Select, SideNav, SideNavLayout, StatusPill, Textarea, Timeline } from '../../components/system'
+import { DateInput, Attachments, ColorChip, ContactCell, DataTable, DateCell, Drawer, FormField, HeaderButton, Input, LevelBar, Modal, Money, Note, PageContainer, PageHeader, Panel, PersonCell, SearchInput, SegmentedControl, Select, SideNav, SideNavLayout, StatusPill, Textarea, Timeline } from '../../components/system'
 import Button from '../../components/ui/Button'
 import {
   createCandidate, createRequisition, evaluateCandidate, fetchCandidate, fetchCandidates, fetchRequisitions, hireCandidate, moveCandidate, offerCandidate,
@@ -73,7 +73,7 @@ function VacancyForm({ vacancy, onClose, onSaved }) {
         {form.category === 'TEACHING' && <div className="col-span-2"><FormField label={t('hrms.employees.subjects')}><Input value={form.subjects} onChange={set('subjects')} /></FormField></div>}
         <FormField label={t('hrms.hiring.salaryMin')}><Input type="number" min="0" value={form.min} onChange={set('min')} /></FormField>
         <FormField label={t('hrms.hiring.salaryMax')}><Input type="number" min="0" value={form.max} onChange={set('max')} /></FormField>
-        <FormField label={t('hrms.hiring.targetDate')}><Input type="date" value={form.targetDate} onChange={set('targetDate')} /></FormField>
+        <FormField label={t('hrms.hiring.targetDate')}><DateInput value={form.targetDate} onChange={set('targetDate')} /></FormField>
         <div className="col-span-2"><FormField label={t('hrms.hiring.description')}><Textarea rows={4} value={form.description} onChange={set('description')} /></FormField></div>
       </div>
     </Modal>
@@ -155,7 +155,7 @@ function CandidateDrawer({ id, onClose, onChanged }) {
                 <option value="">{t('hrms.hiring.pickStage')}</option>
                 {Object.keys(CANDIDATE_STAGES).filter((s) => s !== 'HIRED' && s !== 'OFFERED' && s !== c.stage).map((s) => <option key={s} value={s}>{L.stage(s)}</option>)}
               </Select>
-              {booking && <Input type="date" value={move.date} onChange={(e) => setMove((m) => ({ ...m, date: e.target.value }))} aria-label={t('hrms.hiring.date')} />}
+              {booking && <DateInput value={move.date} onChange={(e) => setMove((m) => ({ ...m, date: e.target.value }))} aria-label={t('hrms.hiring.date')} />}
               {booking && <Input type="time" value={move.time} onChange={(e) => setMove((m) => ({ ...m, time: e.target.value }))} aria-label={t('hrms.hiring.time')} />}
               {booking && <Input value={move.panel} onChange={(e) => setMove((m) => ({ ...m, panel: e.target.value }))} placeholder={t('hrms.hiring.panel')} />}
               <div className="sm:col-span-2"><Input value={move.note} onChange={(e) => setMove((m) => ({ ...m, note: e.target.value }))} placeholder={t('hrms.hiring.note')} /></div>
@@ -178,7 +178,7 @@ function CandidateDrawer({ id, onClose, onChanged }) {
         {canEdit && !closed && c.stage !== 'OFFERED' && (
           <Panel title={t('hrms.hiring.offerTitle')}>
             <div className="grid sm:grid-cols-3 gap-3">
-              <FormField label={t('hrms.hiring.joining')} required><Input type="date" value={offer.joiningDate} onChange={(e) => setOffer((o) => ({ ...o, joiningDate: e.target.value }))} /></FormField>
+              <FormField label={t('hrms.hiring.joining')} required><DateInput value={offer.joiningDate} onChange={(e) => setOffer((o) => ({ ...o, joiningDate: e.target.value }))} /></FormField>
               <FormField label={t('hrms.hiring.offerSalary')}><Input type="number" min="0" value={offer.salary} onChange={(e) => setOffer((o) => ({ ...o, salary: e.target.value }))} /></FormField>
               <FormField label={t('hrms.employees.designation')}><Input value={offer.designation} onChange={(e) => setOffer((o) => ({ ...o, designation: e.target.value }))} placeholder={c.requisition?.title} /></FormField>
             </div>

@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { CalendarOff, Palmtree, Plus, Sparkles, Trash2 } from 'lucide-react'
 import { EMPLOYEE_CATEGORIES, NO_LEAVE_MODES } from '@schoolgiant/shared'
-import { DataTable, FormField, Input, Modal, Panel, Select, localIso, useConfirm } from '../../system'
+import { DateInput, DataTable, FormField, Input, Modal, Panel, Select, localIso, useConfirm } from '../../system'
 import Button from '../../ui/Button'
 import { createNoLeaveDay, deleteNoLeaveDay, fetchNoLeaveDays, fetchNoLeaveSuggestions, updateNoLeaveDay } from '../../../api/hrms'
 import { hasPermission } from '../../../api/auth'
@@ -43,8 +43,8 @@ function DayModal({ day, kind, onClose, onDone }) {
       <div className="space-y-3">
         <FormField label={t('hrmsLeave.noLeave.name')} required error={errors.name}><Input value={f.name} onChange={set('name')} maxLength={80} placeholder={vacation ? t('hrmsLeave.noLeave.vacationPlaceholder') : t('hrmsLeave.noLeave.namePlaceholder')} /></FormField>
         <div className="grid grid-cols-2 gap-3">
-          <FormField label={t('hrmsLeave.noLeave.from')} required error={errors.from}><Input type="date" value={f.from} onChange={(e) => { const from = e.target.value; setF((v) => ({ ...v, from, to: !v.to || v.to < from ? from : v.to })) }} /></FormField>
-          <FormField label={t('hrmsLeave.noLeave.to')} error={errors.to}><Input type="date" value={f.to} min={f.from || undefined} onChange={set('to')} /></FormField>
+          <FormField label={t('hrmsLeave.noLeave.from')} required error={errors.from}><DateInput value={f.from} onChange={(e) => { const from = e.target.value; setF((v) => ({ ...v, from, to: !v.to || v.to < from ? from : v.to })) }} /></FormField>
+          <FormField label={t('hrmsLeave.noLeave.to')} error={errors.to}><DateInput value={f.to} min={f.from || undefined} onChange={set('to')} /></FormField>
         </div>
         {!vacation && (
           <FormField label={t('hrmsLeave.noLeave.mode')} hint={t(`hrmsLeave.noLeave.modeHint.${f.mode}`)}>

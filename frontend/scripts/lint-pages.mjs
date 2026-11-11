@@ -26,6 +26,7 @@ const RULES = [
   { id: 'no-locale-date', re: /\.toLocale(?:Date|Time)?String\s*\(/, msg: 'use useFormat().date / .dateTime / .time' },
   { id: 'no-ext-images', re: /(pravatar|unsplash\.com|placehold\.(co|it)|dicebear|picsum\.photos)/, msg: 'inline/local assets only' },
   { id: 'no-raw-select', re: /<select(\s|>)/, msg: 'use <Select> from components/system' },
+  { id: 'no-native-date', re: /type="date"/, msg: 'use <DateInput> from components/system' },
   { id: 'no-raw-table', re: /<table(\s|>)/, msg: 'use <DataTable> from components/system' },
   // Every module overview used to hand-roll its own "Jump to" strip, each with a different
   // grid column count, so the tiles came out a different size on every module.

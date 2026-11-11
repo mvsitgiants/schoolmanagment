@@ -4,7 +4,7 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tansta
 import { useTranslation } from 'react-i18next'
 import { ArrowDown, ArrowUp, ChevronLeft, ClipboardCheck, Lock, Plus, Send, Shuffle, Trash2, X } from 'lucide-react'
 import { DIFFICULTY, QUESTION_TYPES, RESULT_RELEASE, TEST_STATUS } from '@schoolgiant/shared'
-import { ColorChip, DataTable, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, Panel, SearchInput, SegmentedControl, Select, SideNav, SideNavLayout, StatusPill, Textarea, localIso, useConfirm } from '../../components/system'
+import { DateInput, ColorChip, DataTable, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, Panel, SearchInput, SegmentedControl, Select, SideNav, SideNavLayout, StatusPill, Textarea, localIso, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { addTestQuestions, closeTest, createTest, deleteTest, fetchTest, fetchTests, pickTestQuestions, publishTest, setTestQuestions, updateTest } from '../../api/onlineTests'
 import { fetchQuestions } from '../../api/lms'
@@ -48,9 +48,9 @@ function TestForm({ test, onClose, onSaved }) {
         <FormField label={t('tests.form.title')} required error={errors.title}><Input value={f.title} onChange={set('title')} placeholder={t('tests.form.titlePlaceholder')} /></FormField>
         {draft && <ClassSubjectPicker value={f} onChange={(v) => setF((x2) => ({ ...x2, ...v }))} errors={errors} />}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <FormField label={t('tests.form.opensDate')} error={errors['opens.date']}><Input type="date" value={f.opens.date} disabled={!draft} onChange={setWhen('opens', 'date')} /></FormField>
+          <FormField label={t('tests.form.opensDate')} error={errors['opens.date']}><DateInput value={f.opens.date} disabled={!draft} onChange={setWhen('opens', 'date')} /></FormField>
           <FormField label={t('tests.form.opensTime')}><Input type="time" value={f.opens.time} disabled={!draft} onChange={setWhen('opens', 'time')} /></FormField>
-          <FormField label={t('tests.form.closesDate')} error={errors['closes.date']}><Input type="date" value={f.closes.date} onChange={setWhen('closes', 'date')} /></FormField>
+          <FormField label={t('tests.form.closesDate')} error={errors['closes.date']}><DateInput value={f.closes.date} onChange={setWhen('closes', 'date')} /></FormField>
           <FormField label={t('tests.form.closesTime')}><Input type="time" value={f.closes.time} onChange={setWhen('closes', 'time')} /></FormField>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">

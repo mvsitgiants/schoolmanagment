@@ -3,6 +3,7 @@ import clsx from 'clsx'
 import { useTranslation } from 'react-i18next'
 import { CalendarRange, ChevronDown, Check } from 'lucide-react'
 import { formatDate } from '../../utils/format'
+import DateInput from './DateInput'
 
 /**
  * A working period picker for dashboards — presets plus a custom from/to.
@@ -140,9 +141,9 @@ export default function DateRangeChip({ value, onChange, align = 'right' }) {
           <div className="border-t border-border mt-1 pt-2 px-1 space-y-2">
             <p className="text-xs font-medium text-ink-muted">{t('ui.dateRange.customRange')}</p>
             <div className="grid grid-cols-2 gap-2">
-              <input type="date" value={from} max={to || undefined} onChange={(e) => setFrom(e.target.value)}
+              <DateInput value={from} max={to || undefined} onChange={(e) => setFrom(e.target.value)}
                 className="w-full rounded-md border border-border bg-surface px-2 py-1 text-xs text-ink" aria-label={t('ui.dateRange.fromDate')} />
-              <input type="date" value={to} min={from || undefined} onChange={(e) => setTo(e.target.value)}
+              <DateInput value={to} min={from || undefined} onChange={(e) => setTo(e.target.value)}
                 className="w-full rounded-md border border-border bg-surface px-2 py-1 text-xs text-ink" aria-label={t('ui.dateRange.toDate')} />
             </div>
             <button

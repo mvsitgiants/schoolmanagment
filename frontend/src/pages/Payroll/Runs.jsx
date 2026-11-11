@@ -3,7 +3,7 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tansta
 import { useTranslation } from 'react-i18next'
 import { BadgeCheck, Banknote, Building2, Calculator, CalendarClock, ChevronLeft, HandCoins, MinusCircle, Plus, RotateCcw, ShieldAlert, Users, Wallet } from 'lucide-react'
 import { ELECTRONIC_PAY_MODES, PAYROLL_PAY_MODES, PAYROLL_RUN_STATUSES, formatINR, formatINRCompact } from '@schoolgiant/shared'
-import { ColorChip, DataTable, FormField, HeaderButton, Input, LevelBar, Modal, Money, Note, PageContainer, PageHeader, PersonCell, PillRow, SegmentedControl, Select, SideNav, SideNavLayout, StackCell, StatCardRow, localIso, pillClass, useConfirm, usePrompt } from '../../components/system'
+import { DateInput, ColorChip, DataTable, FormField, HeaderButton, Input, LevelBar, Modal, Money, Note, PageContainer, PageHeader, PersonCell, PillRow, SegmentedControl, Select, SideNav, SideNavLayout, StackCell, StatCardRow, localIso, pillClass, useConfirm, usePrompt } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { approveRun, calculateRun, createRun, fetchRun, fetchRuns, payRun, reopenRun } from '../../api/payroll'
 import { hasPermission } from '../../api/auth'
@@ -53,7 +53,7 @@ function PayModal({ run, onClose, onDone }) {
       <Button loading={save.isPending} disabled={!f.date || (needsRef && !f.reference.trim())} onClick={() => save.mutate()}>{t('payroll.runs.recordPay')}</Button>
     </>}>
       <div className="grid sm:grid-cols-2 gap-4">
-        <FormField label={t('payroll.runs.paidOn')} required error={errors.date}><Input type="date" value={f.date} max={localIso(new Date())} onChange={set('date')} /></FormField>
+        <FormField label={t('payroll.runs.paidOn')} required error={errors.date}><DateInput value={f.date} max={localIso(new Date())} onChange={set('date')} /></FormField>
         <FormField label={t('payroll.runs.mode')}><Select value={f.mode} onChange={set('mode')}>{PAYROLL_PAY_MODES.map((m) => <option key={m.value} value={m.value}>{t(`payroll.payModes.${m.value}`)}</option>)}</Select></FormField>
         <div className="sm:col-span-2"><FormField label={t('payroll.runs.reference')} required={needsRef} error={errors.reference}><Input value={f.reference} onChange={set('reference')} /></FormField></div>
         <div className="sm:col-span-2"><FormField label={t('payroll.runs.note')}><Input value={f.note} onChange={set('note')} /></FormField></div>

@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { Activity, AlertTriangle, ClipboardList, HeartPulse, Lock, Pencil, Phone, Pill, Plus, Ruler, Stethoscope, Syringe, Trash2, Users } from 'lucide-react'
 import { HEALTH_BLOOD_GROUPS, VACCINES, bmiBand, BMI_BANDS } from '@schoolgiant/shared'
 import {
-  BreakdownDonut, CHART, DataTable, Drawer, FormField, Input, Modal, Note, PageContainer, PageHeader, PersonCell, PhoneLink, PillRow, RecordHero, SearchInput, Select,
+  DateInput, BreakdownDonut, CHART, DataTable, Drawer, FormField, Input, Modal, Note, PageContainer, PageHeader, PersonCell, PhoneLink, PillRow, RecordHero, SearchInput, Select,
   SideNavLayout, SkeletonLines, StatCardRow, Tabs, Tag, Textarea, Timeline, localIso, pillClass,
 } from '../../components/system'
 import Button from '../../components/ui/Button'
@@ -51,7 +51,7 @@ function RecordForm({ data, onClose, onSaved }) {
           <FormField label={t('health.records.bloodGroup')}>
             <Select value={form.bloodGroup} onChange={(e) => set('bloodGroup', e.target.value)}><option value="">{t('health.records.notKnown')}</option>{HEALTH_BLOOD_GROUPS.map((g) => <option key={g} value={g}>{g}</option>)}</Select>
           </FormField>
-          <FormField label={t('health.records.measuredOn')}><Input type="date" value={form.measurement.date} onChange={(e) => set('measurement', { ...form.measurement, date: e.target.value })} /></FormField>
+          <FormField label={t('health.records.measuredOn')}><DateInput value={form.measurement.date} onChange={(e) => set('measurement', { ...form.measurement, date: e.target.value })} /></FormField>
           <FormField label={t('health.records.heightCm')}><Input type="number" min={30} max={250} step="0.1" value={form.measurement.heightCm} onChange={(e) => set('measurement', { ...form.measurement, heightCm: e.target.value })} /></FormField>
           <FormField label={t('health.records.weightKg')}><Input type="number" min={2} max={250} step="0.1" value={form.measurement.weightKg} onChange={(e) => set('measurement', { ...form.measurement, weightKg: e.target.value })} /></FormField>
         </div>
@@ -63,7 +63,7 @@ function RecordForm({ data, onClose, onSaved }) {
             {form.vaccinations.map((v, i) => (
               <div key={i} className="grid grid-cols-[1fr_auto] gap-2 sm:grid-cols-[2fr_1fr_80px_auto]">
                 <Input list="sg-vaccines" value={v.name} placeholder={t('health.records.vaccine')} onChange={setRow('vaccinations', i, 'name')} />
-                <Input type="date" value={v.date} onChange={setRow('vaccinations', i, 'date')} className="max-sm:order-3" />
+                <DateInput value={v.date} onChange={setRow('vaccinations', i, 'date')} className="max-sm:order-3" />
                 <Input value={v.dose} placeholder={t('health.records.dose')} onChange={setRow('vaccinations', i, 'dose')} className="max-sm:order-4" />
                 <Button size="sm" variant="ghost" icon={Trash2} aria-label={t('actions.remove')} onClick={() => set('vaccinations', form.vaccinations.filter((_, j) => j !== i))} />
               </div>

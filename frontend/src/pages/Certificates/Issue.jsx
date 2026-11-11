@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next'
 import clsx from 'clsx'
 import { FileBadge, Printer } from 'lucide-react'
 import { CERTIFICATE_KINDS, CERTIFICATE_PURPOSES, CERTIFICATE_STATUS, CONDUCT_OPTIONS, formatINR, recentFinancialYears } from '@schoolgiant/shared'
-import { CodeBadge, DataTable, DateCell, FormField, Input, Note, PageContainer, PageHeader, Panel, Select, StatusPill, Textarea, localIso } from '../../components/system'
+import { DateInput, CodeBadge, DataTable, DateCell, FormField, Input, Note, PageContainer, PageHeader, Panel, Select, StatusPill, Textarea, localIso } from '../../components/system'
 import Button from '../../components/ui/Button'
 import StudentPicker from '../../components/fees/StudentPicker'
 import useDebouncedValue from '../../hooks/useDebouncedValue'
@@ -175,7 +175,7 @@ export default function Issue() {
               {kind === 'MERIT' && <>
                 <div className="sm:col-span-2"><FormField label={t('certificates.issue.event')} required><Input value={form.event} onChange={set('event')} placeholder={t('certificates.issue.eventPlaceholder')} /></FormField></div>
                 <FormField label={t('certificates.issue.achievement')} hint={t('certificates.issue.achievementHint')}><Input value={form.achievement} onChange={set('achievement')} placeholder={t('certificates.issue.achievementPlaceholder')} /></FormField>
-                <FormField label={t('certificates.issue.eventDate')}><Input type="date" value={form.eventDate} onChange={set('eventDate')} /></FormField>
+                <FormField label={t('certificates.issue.eventDate')}><DateInput value={form.eventDate} onChange={set('eventDate')} /></FormField>
               </>}
               {kind !== 'MERIT' && <FormField label={t('certificates.issue.purpose')}>
                 <Select value={form.purpose} onChange={set('purpose')}>

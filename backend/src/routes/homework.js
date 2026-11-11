@@ -98,6 +98,12 @@ const planSchema = z.object({
   title: z.string().trim().min(2, 'Say what the lesson is about').max(160),
   topicIds: z.array(objectId).max(30).default([]),
   objectives: optionalText(2000), method: optionalText(4000), resources: optionalText(2000), homeworkNote: optionalText(1000),
+  // teaching material: links (video, website, Drive) and notes; files are uploaded to the plan separately
+  links: z.array(z.object({
+    title: z.string().trim().max(120).optional().default(''),
+    url: z.string().trim().max(1000).regex(/^https?:\/\/\S+$/i, 'Start the link with https://'),
+  })).max(20).optional(),
+  materialNotes: optionalText(4000),
 })
 const planQuery = z.object({
   from: ymd.optional(), to: ymd.optional(), sectionId: objectId.optional(), subjectId: objectId.optional(),

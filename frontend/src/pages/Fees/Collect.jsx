@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { AlertTriangle, CheckCircle2, Copy, IndianRupee, Link2, Printer, Receipt, ScanQrCode, Wallet } from 'lucide-react'
 import { INVOICE_STATUS, MODES_WITH_REFERENCE, PAYMENT_MODES, formatINR, toPaise, toRupees } from '@schoolgiant/shared'
-import { ColorChip, DataTable, DateCell, FormField, Input, Money, Note, PageContainer, PageHeader, PaidBar, Panel, Select, StackCell, StatCardRow, StatusPill, Textarea } from '../../components/system'
+import { DateInput, ColorChip, DataTable, DateCell, FormField, Input, Money, Note, PageContainer, PageHeader, PaidBar, Panel, Select, StackCell, StatCardRow, StatusPill, Textarea } from '../../components/system'
 import Button from '../../components/ui/Button'
 import StudentPicker from '../../components/fees/StudentPicker'
 import QrCode from '../../components/scan/QrCode'
@@ -177,7 +177,7 @@ export default function Collect() {
                           <Input value={form.chequeBank} maxLength={80} onChange={(e) => setForm((f) => ({ ...f, chequeBank: e.target.value }))} />
                         </FormField>
                         <FormField label={t('fees.collect.chequeDate')} error={errors.chequeDate}>
-                          <Input type="date" value={form.chequeDate} onChange={(e) => setForm((f) => ({ ...f, chequeDate: e.target.value }))} />
+                          <DateInput value={form.chequeDate} onChange={(e) => setForm((f) => ({ ...f, chequeDate: e.target.value }))} />
                         </FormField>
                       </div>
                     )}

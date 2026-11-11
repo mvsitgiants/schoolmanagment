@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import clsx from 'clsx'
 import { ArrowDown, ArrowUp, Plus, X } from 'lucide-react'
 import { DRIVE_MODES, ROUND_KINDS } from '@schoolgiant/shared'
-import { Drawer, FormField, Input, Select, Textarea } from '../system'
+import { DateInput, Drawer, FormField, Input, Select, Textarea } from '../system'
 import Button from '../ui/Button'
 import { saveDrive } from '../../api/placements'
 import { useSnackbar } from '../../context/SnackbarContext'
@@ -88,8 +88,8 @@ export default function DriveForm({ drive, onClose, onSaved }) {
           <FormField label={t('placements.driveForm.title')} required error={errors.title}><Input value={f.title} onChange={set('title')} placeholder={t('placements.driveForm.titleHint')} /></FormField>
           <FormField label={t('placements.driveForm.mode')}><Select value={f.mode} onChange={set('mode')}>{DRIVE_MODES.map((m) => <option key={m.value} value={m.value}>{L.mode(m.value)}</option>)}</Select></FormField>
           <FormField label={t('placements.driveForm.location')}><Input value={f.location} onChange={set('location')} /></FormField>
-          <FormField label={t('placements.driveForm.startDate')}><Input type="date" value={f.startDate} onChange={set('startDate')} /></FormField>
-          <FormField label={t('placements.driveForm.endDate')} error={errors.endDate}><Input type="date" value={f.endDate} onChange={set('endDate')} /></FormField>
+          <FormField label={t('placements.driveForm.startDate')}><DateInput value={f.startDate} onChange={set('startDate')} /></FormField>
+          <FormField label={t('placements.driveForm.endDate')} error={errors.endDate}><DateInput value={f.endDate} onChange={set('endDate')} /></FormField>
         </div>
 
         <div className={section}>
@@ -112,8 +112,8 @@ export default function DriveForm({ drive, onClose, onSaved }) {
         <div className={section}>
           <p className={h}>{t('placements.driveForm.registration')}</p>
           <div className="grid grid-cols-2 gap-3">
-            <FormField label={t('placements.driveForm.opensOn')}><Input type="date" value={f.opensOn} onChange={set('opensOn')} /></FormField>
-            <FormField label={t('placements.driveForm.closesOn')} error={errors['registration.closesOn']}><Input type="date" value={f.closesOn} onChange={set('closesOn')} /></FormField>
+            <FormField label={t('placements.driveForm.opensOn')}><DateInput value={f.opensOn} onChange={set('opensOn')} /></FormField>
+            <FormField label={t('placements.driveForm.closesOn')} error={errors['registration.closesOn']}><DateInput value={f.closesOn} onChange={set('closesOn')} /></FormField>
           </div>
         </div>
 
@@ -150,7 +150,7 @@ export default function DriveForm({ drive, onClose, onSaved }) {
               <span className="flex h-6 w-6 items-center justify-center rounded-full bg-brand-50 text-xs font-semibold text-brand-700">{i + 1}</span>
               <Input value={r.name} onChange={setRow('rounds', i, 'name')} placeholder={t('placements.driveForm.roundName')} />
               <Select value={r.kind} onChange={setRow('rounds', i, 'kind')}>{ROUND_KINDS.map((k) => <option key={k.value} value={k.value}>{L.round(k.value)}</option>)}</Select>
-              <Input type="date" value={r.date} onChange={setRow('rounds', i, 'date')} />
+              <DateInput value={r.date} onChange={setRow('rounds', i, 'date')} />
               <Input type="number" min="0" value={r.maxMarks} onChange={setRow('rounds', i, 'maxMarks')} placeholder={t('placements.driveForm.maxMarks')} />
               <span className="flex gap-0.5">
                 <Button size="sm" variant="ghost" icon={ArrowUp} disabled={i === 0} aria-label={t('placements.driveForm.up')} onClick={() => move(i, -1)} />

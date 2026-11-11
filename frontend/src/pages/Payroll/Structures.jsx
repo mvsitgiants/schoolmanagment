@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { Layers, Pencil, Plus, Trash2, UserCog, UserX, Users, WalletCards } from 'lucide-react'
-import { CodeBadge, ColorChip, DataTable, FormField, HeaderButton, Input, Modal, Money, PersonCell, Note, PageContainer, PageHeader, SegmentedControl, Select, StatCardRow, StatusPill, Tabs, Textarea, Toolbar, localIso, useConfirm } from '../../components/system'
+import { DateInput, CodeBadge, ColorChip, DataTable, FormField, HeaderButton, Input, Modal, Money, PersonCell, Note, PageContainer, PageHeader, SegmentedControl, Select, StatCardRow, StatusPill, Tabs, Textarea, Toolbar, localIso, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
 import useDebouncedValue from '../../hooks/useDebouncedValue'
 import { deleteAssignment, deleteStructure, fetchAssignmentHistory, fetchAssignments, fetchStructures, saveAssignment } from '../../api/payroll'
@@ -80,7 +80,7 @@ function AssignModal({ row, onClose, onSaved }) {
               {structures.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
             </Select>
           </FormField>
-          <FormField label={t('payroll.assign.from')} required hint={a ? t('payroll.assign.fromHint') : undefined}><Input type="date" value={form.effectiveFrom} onChange={set('effectiveFrom')} /></FormField>
+          <FormField label={t('payroll.assign.from')} required hint={a ? t('payroll.assign.fromHint') : undefined}><DateInput value={form.effectiveFrom} onChange={set('effectiveFrom')} /></FormField>
           <FormField label={t('payroll.assign.gross')} hint={t('payroll.assign.grossHint', { amount: row.salary.grossMonthly ? toRupees(row.salary.grossMonthly) : '—' })}><Input type="number" min="0" value={form.gross} onChange={set('gross')} /></FormField>
           <FormField label={t('payroll.assign.tds')} hint={t('payroll.assign.tdsHint')}><Input type="number" min="0" value={form.tds} onChange={set('tds')} /></FormField>
         </div>

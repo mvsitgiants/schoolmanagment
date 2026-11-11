@@ -87,7 +87,11 @@
         "HOLIDAY": "Holidays come from Staff & HR › Holidays. Change them there.",
         "EXAM": "Exam dates come from Exams (the papers’ dates). Change them there.",
         "PTM": "Open Events › Parent–teacher meetings to see the slots and bookings."
-      }
+      },
+      "calendar": "Calendar",
+      "legendEvents": "School events",
+      "legendOther": "Exams and parent–teacher meetings",
+      "emptyMonth": "Nothing on the calendar this month."
     },
     "list": {
       "UPCOMING": "Coming up",

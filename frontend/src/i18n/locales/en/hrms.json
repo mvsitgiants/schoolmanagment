@@ -469,7 +469,9 @@
         "optional": "Optional",
         "upcoming": "Still to come",
         "next": "Next: {{name}}, {{when}}"
-      }
+      },
+      "viewList": "List",
+      "viewMonth": "Month"
     },
     "hiring": {
       "title": "Recruitment",

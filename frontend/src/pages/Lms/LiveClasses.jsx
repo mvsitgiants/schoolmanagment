@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { Plus, Square, Users, Video, XCircle } from 'lucide-react'
 import { LIVE_PROVIDERS, LIVE_STATUS } from '@schoolgiant/shared'
-import { ColorChip, DataTable, DateCell, Drawer, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, PersonCell, SegmentedControl, Select, StatusPill, Textarea, localIso, usePrompt } from '../../components/system'
+import { DateInput, ColorChip, DataTable, DateCell, Drawer, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, PersonCell, SegmentedControl, Select, StatusPill, Textarea, localIso, usePrompt } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { cancelLiveClass, createLiveClass, endLiveClass, fetchLiveAttendance, fetchLiveClasses, startLiveClass } from '../../api/lms'
 import { hasPermission } from '../../api/auth'
@@ -27,7 +27,7 @@ function LiveForm({ onClose, onSaved }) {
         <FormField label={t('lms.live.name')} required error={errors.title}><Input value={f.title} onChange={set('title')} placeholder={t('lms.live.namePlaceholder')} /></FormField>
         <ClassSubjectPicker value={f} onChange={setF} errors={errors} />
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-          <FormField className="col-span-2 sm:col-span-1" label={t('lms.live.date')} required error={errors.date}><Input type="date" value={f.date} onChange={set('date')} /></FormField>
+          <FormField className="col-span-2 sm:col-span-1" label={t('lms.live.date')} required error={errors.date}><DateInput value={f.date} onChange={set('date')} /></FormField>
           <FormField label={t('lms.live.start')} required><Input type="time" value={f.start} onChange={set('start')} /></FormField>
           <FormField label={t('lms.live.duration')}><Input type="number" min="10" max="240" value={f.durationMin} onChange={set('durationMin')} /></FormField>
         </div>

@@ -2,10 +2,9 @@ import { useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import clsx from 'clsx'
 import { useTranslation } from 'react-i18next'
-import { Building2, CalendarDays, ChevronLeft, ChevronRight, Users } from 'lucide-react'
+import { Building2, CalendarDays, Users } from 'lucide-react'
 import { EMPLOYEE_CATEGORIES } from '@schoolgiant/shared'
-import { ControlChip, EmptyState, FilterBar, SearchInput, SkeletonRows, ViewControls, localIso } from '../../system'
-import Button from '../../ui/Button'
+import { CalendarNav, ControlChip, EmptyState, FilterBar, SearchInput, SkeletonRows, ViewControls, localIso } from '../../system'
 import { fetchLeaveCalendar } from '../../../api/hrms'
 import useDebouncedValue from '../../../hooks/useDebouncedValue'
 import { getFormatConfig } from '../../../utils/format'
@@ -51,12 +50,9 @@ export default function TeamCalendar({ departments = [], onOpen }) {
     <div className="flex flex-col gap-4">
       <FilterBar search={<SearchInput value={search} onChange={setSearch} placeholder={t('hrmsLeave.calendar.search')} />}>
         <ViewControls>
-          <div className="inline-flex items-center gap-1">
-            <Button size="sm" variant="ghost" icon={ChevronLeft} aria-label={t('hrmsLeave.calendar.prev')} onClick={() => setMonth((m) => shift(m, -1))} />
-            <span className="min-w-[8.5rem] text-center text-sm font-medium text-ink">{monthLabel}</span>
-            <Button size="sm" variant="ghost" icon={ChevronRight} aria-label={t('hrmsLeave.calendar.next')} onClick={() => setMonth((m) => shift(m, 1))} />
-            {month !== today.slice(0, 7) && <Button size="sm" variant="ghost" onClick={() => setMonth(today.slice(0, 7))}>{t('hrmsLeave.calendar.thisMonth')}</Button>}
-          </div>
+          {/* the same ‹ Today › header as every calendar */}
+          <CalendarNav title={monthLabel} onPrev={() => setMonth((m) => shift(m, -1))} onNext={() => setMonth((m) => shift(m, 1))} onToday={() => setMonth(today.slice(0, 7))}
+            prevLabel={t('hrmsLeave.calendar.prev')} nextLabel={t('hrmsLeave.calendar.next')} />
           <ControlChip icon={Building2} label={t('hrmsLeave.filters.department')} value={departments.find((d) => d.id === dept)?.name ?? t('hrmsLeave.filters.all')} active={!!dept}
             options={[{ value: '', label: t('hrmsLeave.filters.all') }, ...departments.map((d) => ({ value: d.id, label: d.name }))]} onChange={setDept} />
           <ControlChip icon={Users} label={t('hrmsLeave.filters.staff')} value={cat ? L.category(cat) : t('hrmsLeave.filters.all')} active={!!cat}
@@ -79,9 +75,10 @@ export default function TeamCalendar({ departments = [], onOpen }) {
               <div className="sticky start-0 z-[3] w-40 sm:w-52 shrink-0 bg-surface px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-ink-faint">{t('hrmsLeave.calendar.person')}</div>
               {days.map((d) => (
                 <div key={d.date} title={[d.holiday, d.vacation, ...d.noLeave].filter(Boolean).join(' · ') || undefined}
-                  className={clsx('relative flex-1 basis-0 min-w-[28px] py-1.5 text-center', shade(d), d.date === today && 'bg-brand-50')}>
+                  className={clsx('relative flex-1 basis-0 min-w-[28px] py-1.5 text-center', shade(d))}>
                   <p className="text-[10px] text-ink-faint leading-none">{dow(d.date).slice(0, 2)}</p>
-                  <p className={clsx('text-xs tabular-nums leading-tight mt-0.5', d.date === today ? 'font-bold text-brand-700' : 'text-ink')}>{Number(d.date.slice(8))}</p>
+                  <p className={clsx('mx-auto mt-0.5 flex h-5 w-5 items-center justify-center rounded-full text-xs tabular-nums', d.date === today ? 'font-semibold text-brand-700 ring-2 ring-brand-500' : 'text-ink')}
+                    aria-current={d.date === today ? 'date' : undefined}>{Number(d.date.slice(8))}</p>
                   {d.noLeave.length > 0 && <span className="absolute top-0 inset-x-1 h-0.5 rounded-full bg-amber-400" aria-label={d.noLeave.join(', ')} />}
                 </div>
               ))}

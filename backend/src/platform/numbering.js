@@ -21,6 +21,16 @@ export async function seriesFor(docType) {
   return { ...def, pattern: own?.pattern ?? def.pattern, reset: own?.reset ?? def.reset, customised: !!own }
 }
 
+/**
+ * The pattern a series prints with. A series counted per campus restarts at 1 on each campus, so with two or more
+ * campuses its default pattern (which has no campus code) would print the same number twice — there the campus code
+ * goes in front ("UPB/TC/2026/0001"). An institution's own pattern is used as saved.
+ */
+async function patternOf(series) {
+  if (!series.perBranch || series.customised || series.pattern.includes('{BR}')) return series.pattern
+  return (await Branch.countDocuments({ active: true })) > 1 ? `{BR}/${series.pattern}` : series.pattern
+}
+
 async function branchCode(branchId) {
   if (!branchId) return (await Branch.findOne({ isDefault: true }).select('code').lean())?.code ?? 'MAIN'
   return (await Branch.findById(branchId).select('code').lean())?.code ?? 'MAIN'
@@ -38,7 +48,7 @@ export async function nextNumber(docType, { branchId, date = new Date() } = {}) 
     { $inc: { seq: 1 } },
     { upsert: true, returnDocument: 'after' },
   )
-  return formatDocNumber(series.pattern, { seq: counter.seq, date, timeZone, branchCode: code })
+  return formatDocNumber(await patternOf(series), { seq: counter.seq, date, timeZone, branchCode: code })
 }
 
 /** Every doc type with its pattern, the last number used and a preview of the next one. */
@@ -52,10 +62,11 @@ export async function listSeries() {
     const scope = s.perBranch ? code : 'ALL'
     const counter = await TenantCounter.findOne({ docType: d.code, scope, period: periodKey(s.reset, now, timeZone) }).lean()
     const seq = counter?.seq ?? 0
+    const pattern = await patternOf(s)
     out.push({
       ...s,
-      lastNumber: seq ? formatDocNumber(s.pattern, { seq, date: now, timeZone, branchCode: code }) : null,
-      nextNumber: formatDocNumber(s.pattern, { seq: seq + 1, date: now, timeZone, branchCode: code }),
+      lastNumber: seq ? formatDocNumber(pattern, { seq, date: now, timeZone, branchCode: code }) : null,
+      nextNumber: formatDocNumber(pattern, { seq: seq + 1, date: now, timeZone, branchCode: code }),
       issued: seq,
     })
   }

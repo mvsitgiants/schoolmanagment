@@ -4,7 +4,7 @@ import clsx from 'clsx'
 import { useTranslation } from 'react-i18next'
 import { Building2, Gift, Plus, Scale, Users, X } from 'lucide-react'
 import { EMPLOYEE_CATEGORIES } from '@schoolgiant/shared'
-import { ControlChip, DataTable, Drawer, FilterBar, FormField, Input, Modal, Note, PersonCell, SearchInput, SegmentedControl, Select, SkeletonRows, Textarea, ViewControls, localIso } from '../../system'
+import { DateInput, ControlChip, DataTable, Drawer, FilterBar, FormField, Input, Modal, Note, PersonCell, SearchInput, SegmentedControl, Select, SkeletonRows, Textarea, ViewControls, localIso } from '../../system'
 import Button from '../../ui/Button'
 import { adjustEmployeeLeave, creditCompOff, fetchEmployeeLedger, fetchLeaveBalances } from '../../../api/hrms'
 import { hasPermission } from '../../../api/auth'
@@ -72,7 +72,7 @@ function CompOffModal({ row, onClose, onDone }) {
       footer={<><Button variant="secondary" onClick={onClose}>{t('actions.cancel')}</Button><Button loading={save.isPending} disabled={!f.workedDate} onClick={() => save.mutate()}>{t('hrmsLeave.balances.give')}</Button></>}>
       <div className="space-y-3">
         <div className="grid grid-cols-2 gap-3">
-          <FormField label={t('hrmsLeave.balances.workedOn')} required hint={t('hrmsLeave.balances.workedOnHint')} error={errors.workedDate}><Input type="date" value={f.workedDate} max={localIso(new Date())} onChange={(e) => setF((x) => ({ ...x, workedDate: e.target.value }))} /></FormField>
+          <FormField label={t('hrmsLeave.balances.workedOn')} required hint={t('hrmsLeave.balances.workedOnHint')} error={errors.workedDate}><DateInput value={f.workedDate} max={localIso(new Date())} onChange={(e) => setF((x) => ({ ...x, workedDate: e.target.value }))} /></FormField>
           <FormField label={t('hrmsLeave.balances.howMuch')}><SegmentedControl value={f.days} onChange={(v) => setF((x) => ({ ...x, days: v }))} options={[{ value: 1, label: t('hrmsLeave.bits.wholeDay') }, { value: 0.5, label: t('hrmsLeave.bits.halfADay') }]} /></FormField>
         </div>
         <FormField label={t('hrmsLeave.balances.compOffNote')}><Textarea rows={2} value={f.note} onChange={(e) => setF((x) => ({ ...x, note: e.target.value }))} maxLength={300} placeholder={t('hrmsLeave.balances.compOffPlaceholder')} /></FormField>
