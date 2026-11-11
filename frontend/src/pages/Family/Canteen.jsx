@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { CreditCard, Minus, Plus, ShieldBan, ShoppingBasket, Utensils, Wallet, X } from 'lucide-react'
+import { CreditCard, Minus, Plus, QrCode as QrIcon, ShieldBan, ShoppingBasket, Utensils, Wallet, X } from 'lucide-react'
 import { CANTEEN_TAGS, canteenBlockReason, canteenSoldOn, canteenTotal, canteenWalletCheck, formatINR, toPaise, toRupees } from '@schoolgiant/shared'
-import { Input, Note, StatusPill } from '../../components/system'
+import { Input, Modal, Note, StatusPill } from '../../components/system'
+import QrCode from '../../components/scan/QrCode'
 import Button from '../../components/ui/Button'
 import { loadCheckout } from '../../utils/razorpayCheckout'
 import { FCard, FEmpty, FError, FSkeleton, useFamily, useFamilyQuery } from '../../components/family/FamilyKit'
@@ -185,6 +186,7 @@ export default function FamilyCanteen() {
   const { data: d, isLoading, error } = useFamilyQuery(['canteen'], () => familyCanteen(slug, studentId))
   const refresh = () => qc.invalidateQueries({ queryKey: ['family', slug, studentId, 'canteen'] })
   const cancel = useMutation({ mutationFn: (orderId) => familyCancelPreorder(slug, studentId, orderId), onSuccess: refresh })
+  const [showCode, setShowCode] = useState(null) // today's pre-order whose QR the child shows at the counter
   if (isLoading) return <FSkeleton className="h-64" />
   if (error) return <FError error={error} />
   if (!d) return null
@@ -221,11 +223,21 @@ export default function FamilyCanteen() {
                 {o.token && o.date === d.date && ['PLACED', 'READY'].includes(o.status)
                   ? <StatusPill tone={o.status === 'READY' ? 'success' : 'info'}>{t(`canteen.family.tokenStatus.${o.status}`)}</StatusPill>
                   : <OrderPill status={o.status} />}
+                {o.scanCode && <Button size="sm" variant="secondary" icon={QrIcon} onClick={() => setShowCode(o)}>{t('canteen.family.showCode')}</Button>}
                 {o.canCancel && <Button size="sm" variant="ghost" icon={X} loading={cancel.isPending && cancel.variables === o.id} aria-label={t('canteen.family.cancel')} onClick={() => cancel.mutate(o.id)} />}
               </div>
             ))}
           </div>
           {cancel.error && <Note tone="danger" className="mt-2">{cancel.error.message}</Note>}
+          {showCode && (
+            <Modal open onClose={() => setShowCode(null)} size="sm" title={t('canteen.family.codeTitle', { token: showCode.token })}>
+              <div className="flex flex-col items-center gap-3 text-center">
+                <QrCode value={showCode.scanCode} size={240} label={t('canteen.family.codeTitle', { token: showCode.token })} className="rounded-xl border border-border bg-white p-2" />
+                <p className="text-sm text-ink">{showCode.lines.map((l) => `${l.qty} × ${l.name}`).join(', ')}</p>
+                <p className="text-xs text-ink-muted">{t('canteen.family.codeHint')}</p>
+              </div>
+            </Modal>
+          )}
         </FCard>
       )}
 

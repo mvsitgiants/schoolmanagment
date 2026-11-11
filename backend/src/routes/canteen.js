@@ -4,8 +4,10 @@ import { authenticate, requireModule, requirePermission, subscriptionGate, tenan
 import { objectId, optionalText, z } from '../platform/validate.js'
 import {
   adjustWallet, canteenSettings, counterSale, daySummary, deleteItem, deleteSpecial, findStudents, listMenu, listOrders, listSpecials, listWallets, menuFor, moveOrder,
-  preorderBoard, refundWallet, saveItem, saveSpecial, setControls, setSoldOut, today, tokenBoard, topUpAtCounter, walletDetail,
+  orderIdByToken, preorderBoard, refundWallet, saveItem, saveSpecial, setControls, setSoldOut, today, tokenBoard, topUpAtCounter, walletDetail,
 } from '../services/canteen.js'
+import { canteenTokenResult } from '../services/scan.js'
+import { notFound } from '../platform/errors.js'
 import { recheckTopup } from '../services/canteenFamily.js'
 
 // canteen: /api/v1/canteen/*  — menu, counter (POS) and pre-orders, wallets
@@ -91,6 +93,13 @@ router.get('/preorders', requirePermission('canteen.orders.view'), async (req, r
 router.get('/tokens', requirePermission('canteen.orders.view'), async (req, res) => {
   const q = z.object({ branchId: objectId.optional(), date: ymd.optional() }).parse(req.query)
   res.json({ data: await tokenBoard(q, req.auth) })
+})
+/** "Scan to collect": a token number typed at the counter (today, this campus) — the same answer as scanning its slip. */
+router.get('/orders/by-token', requirePermission('canteen.orders.view'), async (req, res) => {
+  const q = z.object({ token: z.coerce.number().int().min(1).max(99999), date: ymd.optional(), branchId: objectId.optional() }).parse(req.query)
+  const id = await orderIdByToken(q, req.auth)
+  if (!id) throw notFound(`Token ${q.token}`)
+  res.json({ data: await canteenTokenResult(id, req.auth) })
 })
 router.post('/orders', requirePermission('canteen.orders.create'), async (req, res) => {
   const input = z.object({ studentId: objectId.optional().nullable(), lines: linesSchema, payMode: z.enum(['WALLET', 'CASH']) }).parse(req.body)

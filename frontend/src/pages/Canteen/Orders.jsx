@@ -12,6 +12,7 @@ import { hasPermission } from '../../api/auth'
 import { useSnackbar } from '../../context/SnackbarContext'
 import { useFormat } from '../../context/SettingsContext'
 import CounterPos from '../../components/canteen/CounterPos'
+import { ScanToCollect } from '../../components/canteen/TokenScan'
 import { FoodMark, OrderPill, TokenPill, categoryTone, useCanteenLabels, useCanteenLive } from '../../components/canteen/CanteenKit'
 
 const PAGE = 50
@@ -141,6 +142,7 @@ export default function CanteenOrders() {
       <PageHeader icon={Receipt} title={t('canteen.orders.title')} subtitle={t('canteen.orders.subtitle')}
         actions={<div className="flex flex-wrap items-center gap-2">
           {tab !== 'COUNTER' && <><DateInput value={day ?? ''} onChange={(e) => setDate(e.target.value)} aria-label={t('canteen.orders.day')} />{day && <span className="hidden sm:inline text-xs text-ink-muted">{fmt(day)}</span>}</>}
+          {tokens && ['COUNTER', 'TOKENS'].includes(tab) && hasPermission('canteen.orders.create') && <ScanToCollect />}
           {tokens && <Button variant="secondary" icon={MonitorPlay} onClick={() => navigate('/canteen/token-board')}>{t('canteen.board.title')}</Button>}
         </div>} />
       <Tabs value={tab} onChange={setTab} tabs={[

@@ -33,7 +33,8 @@
       "PICKUP_PASS": "Early-pickup pass",
       "VISITOR": "Visitor",
       "ASSET": "Asset",
-      "GATE_PASS": "Gate pass"
+      "GATE_PASS": "Gate pass",
+      "CANTEEN_TOKEN": "Canteen token"
     },
     "status": {
       "CANCELLED": "Cancelled",
@@ -75,7 +76,9 @@
       "verifyAsset": "Verify — seen here",
       "assets": "Open assets",
       "outpassOut": "Mark out on the outpass",
-      "outpassIn": "Mark back in"
+      "outpassIn": "Mark back in",
+      "canteenReady": "Mark ready",
+      "canteenCollected": "Mark collected — hand it over"
     },
     "gate": {
       "title": "Gate scanner",

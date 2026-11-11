@@ -292,7 +292,10 @@
       "tokenStatus": {
         "PLACED": "Being prepared",
         "READY": "Ready to collect"
-      }
+      },
+      "showCode": "Show code",
+      "codeTitle": "Token {{token}}",
+      "codeHint": "Show this at the canteen counter to collect the order."
     },
     "tokens": {
       "token": "Token",
@@ -329,8 +332,26 @@
         "order": "Order {{no}}",
         "total": "Total",
         "paidBy": "Paid by {{mode}}",
-        "wait": "Please wait for your token to be called"
+        "wait": "Please wait for your token to be called",
+        "scan": "Show this at the counter to collect"
       }
+    },
+    "scan": {
+      "button": "Scan to collect",
+      "title": "Scan to collect",
+      "hint": "Scan the token slip, or the code in the parent app — or type today’s token number. Each scan hands the order over.",
+      "empty": "Nothing scanned yet.",
+      "collected": "Collected",
+      "notFound": "No order with this token today.",
+      "notToken": "This isn’t a canteen token.",
+      "otherDay": "This token is for {{date}}, not today.",
+      "alreadyCollected": "Already collected at {{time}} by {{by}}.",
+      "alreadyCollectedAt": "Already collected at {{time}}.",
+      "served": "Already served at the counter.",
+      "cancelled": "This pre-order was cancelled.",
+      "noPermission": "You can look at orders but not hand them over.",
+      "placedAt": "Ordered at {{time}}",
+      "total": "Total"
     }
   }
 }

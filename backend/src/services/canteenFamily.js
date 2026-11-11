@@ -10,7 +10,7 @@ import { logger } from '../platform/logger.js'
 import { callProvider, getConfig, logInbound, safeEqual, secretOf } from './integrationsCommon.js'
 import { need, studentFor } from './portal.js'
 import {
-  addDays, canteenSettings, cancelPreorder, itemView, moveWallet, orderView, placeOrder, setControls, spentOn, today, txnView, walletFor,
+  addDays, canteenSettings, cancelPreorder, itemView, moveWallet, orderView, placeOrder, setControls, spentOn, today, tokenScanCode, txnView, walletFor,
 } from './canteen.js'
 
 // The family app › Canteen: the child's wallet (balance and ledger), topping it up online through the school's own
@@ -56,7 +56,11 @@ export async function familyCanteen(f, id) {
     items: items.map((it) => itemView(it, date)),
     specials: specials.map((x) => ({ date: x.date, itemId: String(x.itemId), price: x.price ?? null, note: x.note ?? null })),
     days,
-    preorders: preorders.map((o) => ({ ...orderView(o), canCancel: o.status === 'PLACED' && (o.date > date || time < set.preorderCutoff) })),
+    preorders: preorders.map((o) => ({
+      ...orderView(o), canCancel: o.status === 'PLACED' && (o.date > date || time < set.preorderCutoff),
+      // today's pre-order with a token: the code the child shows at the counter to collect it
+      scanCode: o.token && o.date === date && ['PLACED', 'READY'].includes(o.status) ? tokenScanCode(o._id, f.tenant._id) : null,
+    })),
     tags: CANTEEN_TAGS.map((t) => t.value),
     topUp: { online: onlineOn(cfg), min: set.minTopUp, max: set.maxTopUp, presets: CANTEEN_TOPUP_PRESETS },
     canControl: f.session?.kind !== 'STUDENT',

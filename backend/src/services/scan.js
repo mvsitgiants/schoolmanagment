@@ -2,12 +2,15 @@ import crypto from 'node:crypto'
 import { sectionLabel } from '@schoolgiant/shared'
 import { config } from '../config.js'
 import { ClassLevel, Section } from '../models/academics.js'
+import { CanteenOrder } from '../models/canteen.js'
 import { Certificate } from '../models/certificates.js'
 import { FeePayment } from '../models/fees.js'
 import { Employee } from '../models/hrms.js'
 import { LibraryCopy, LibraryTitle } from '../models/library.js'
 import { Student, TransferCertificate, studentName } from '../models/students.js'
 import { badRequest, conflict, forbidden, notFound } from '../platform/errors.js'
+import { isOid } from '../platform/db.js'
+import { moveOrder, readTokenCode } from './canteen.js'
 import { on } from './dashboard.js'
 import { phonePunch } from './devices.js'
 import { candidateAtDoor } from './exams.js'
@@ -31,6 +34,7 @@ import { scopeFilter } from './students.js'
 //   hall ticket / report card  QR → <app>/verify/exam/<candidate verifyCode>
 //   library book      barcode → accession number
 //   staff punch code  SGP1.<employeeId>.<time>.<signature>      (My workspace, rotates; 90 seconds)
+//   canteen token     SGT1.<orderId>.<signature>                (token slip QR; the family app's pre-order code)
 
 const PUNCH_PREFIX = 'SGP1.'
 const PUNCH_TTL_MS = 90_000
@@ -65,6 +69,7 @@ export function readCode(raw) {
   if (!text) return { kind: 'EMPTY', code: '' }
   if (text.startsWith(PUNCH_PREFIX)) return { kind: 'PUNCH', code: text }
   if (/^SG[EMK]1\./.test(text)) return { kind: 'PASS', code: text }
+  if (text.startsWith('SGT1.')) return { kind: 'CANTEEN_TOKEN', code: text }
   let path = null
   try { path = new URL(text).pathname } catch { /* not a link */ }
   if (path) {
@@ -210,6 +215,41 @@ export async function assetByTag(code, auth) {
   }
 }
 
+/**
+ * A canteen token at the counter: who it is for, what is in it and where it stands. Ready / Collected only on the day it
+ * is for, while it is still being made or ready, for those who sell at the counter. Null when the person can't see orders.
+ */
+export async function canteenTokenResult(orderId, auth) {
+  if (!on(auth, 'canteen', 'canteen.orders.view')) return null
+  const o = orderId && isOid(String(orderId)) ? await CanteenOrder.findById(orderId).lean() : null
+  if (!o) return null
+  const [now, student] = await Promise.all([institutionNow(), o.studentId ? Student.findById(o.studentId).select('sectionId').lean() : null])
+  const place = await placeOf(student?.sectionId)
+  const otherDay = o.date !== now.date ? o.date : null
+  const may = !otherDay && ['PLACED', 'READY'].includes(o.status) && on(auth, 'canteen', 'canteen.orders.create')
+  const post = (what) => `/v1/scan/canteen/${o._id}/${what}`
+  return {
+    kind: 'CANTEEN_TOKEN', id: String(o._id), title: o.token ? `Token ${o.token}` : o.orderNo,
+    subtitle: o.studentName ? [o.studentName, place].filter(Boolean).join(' · ') : 'Walk-in',
+    canteen: {
+      token: o.token ?? null, orderNo: o.orderNo, date: o.date, otherDay, status: o.status, source: o.source, payMode: o.payMode, total: o.total,
+      studentName: o.studentName ?? null, place, lines: (o.lines ?? []).map((l) => ({ name: l.name, qty: l.qty, price: l.price, mark: l.mark })),
+      at: o.createdAt, readyAt: o.readyAt ?? null, collectedAt: o.collectedAt ?? null, collectedBy: o.collectedBy ?? null,
+      cancelledAt: o.cancelledAt ?? null, cancelReason: o.cancelReason ?? null,
+    },
+    actions: may ? [o.status === 'PLACED' && { key: 'canteenReady', post: post('ready') }, { key: 'canteenCollected', post: post('collect') }].filter(Boolean) : [],
+  }
+}
+
+/** Ready / Collected from a scan: only on the token's own day (moveOrder tells the token board). */
+export async function moveScannedToken(id, to, req) {
+  const o = await CanteenOrder.findById(id).select('date').lean()
+  if (!o) throw notFound('Order')
+  if (o.date !== (await institutionNow()).date) throw conflict(`This token is for ${o.date}, not today.`)
+  await moveOrder(id, to, req)
+  return canteenTokenResult(id, req.auth)
+}
+
 export const visitorAfterCheckout = (v) => ({ kind: 'VISITOR', id: v.id, title: v.name, subtitle: [v.purposeNote || v.purpose, v.hostName].filter(Boolean).join(' · '), inAt: v.inAt, outAt: v.outAt, badgeNo: v.badgeNo, actions: [] })
 
 function staffResult(e, auth) {
@@ -226,6 +266,7 @@ export async function resolveCode(raw, auth) {
   let hit = null
   if (kind === 'PUNCH') hit = staffResult(await employeeOfPunch(code, auth), auth)
   else if (kind === 'PASS') { const pass = readPass(code, auth.tenantId); hit = pass && await passResult(pass, auth) }
+  else if (kind === 'CANTEEN_TOKEN') hit = await canteenTokenResult(readTokenCode(code, auth.tenantId), auth)
   else if (kind === 'STUDENT_CARD') { const s = await findStudent({ cardCode: code }, auth); hit = s && await studentResult(s, auth) }
   else if (kind === 'RECEIPT') hit = await receiptResult({ verifyCode: code }, auth)
   else if (kind === 'CERTIFICATE') hit = await certificateResult({ verifyCode: code }, auth, code)
@@ -253,7 +294,7 @@ export async function gateScan(deviceId, { code, direction }, auth) {
   if (read.kind === 'EMPTY') throw badRequest('Nothing to look up.')
   let value = read.code
   if (read.kind === 'PUNCH') value = (await employeeOfPunch(read.code, auth)).employeeCode
-  if (['LINK', 'RECEIPT', 'CERTIFICATE', 'EXAM', 'TC', 'PASS'].includes(read.kind)) throw badRequest('That isn’t an ID card — scan the student’s or staff member’s card.')
+  if (['LINK', 'RECEIPT', 'CERTIFICATE', 'EXAM', 'TC', 'PASS', 'CANTEEN_TOKEN'].includes(read.kind)) throw badRequest('That isn’t an ID card — scan the student’s or staff member’s card.')
   return phonePunch(deviceId, { code: value, direction }, auth)
 }
 

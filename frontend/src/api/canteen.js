@@ -41,6 +41,8 @@ export const fetchPreorders = (date) => get(`${BASE}/preorders`, { date: date ||
 export const createOrder = (body) => post(`${BASE}/orders`, body)
 export const orderReady = (id) => post(`${BASE}/orders/${id}/ready`)
 export const orderCollected = (id) => post(`${BASE}/orders/${id}/collect`)
+/** A token number typed at the counter (today, the person's campus): the same answer as scanning its slip. */
+export const fetchOrderByToken = (token, params) => get(`${BASE}/orders/by-token`, { token, ...params })
 export const fetchTokenBoard = (branchId) => get(`${BASE}/tokens`, { branchId: branchId || undefined })
 export const fetchDaySummary = (date) => get(`${BASE}/summary`, { date: date || undefined })
 

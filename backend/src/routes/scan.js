@@ -13,7 +13,7 @@ import { verifyAsset } from '../services/inventoryAssets.js'
 import { staffSelfPunch, staffSelfStatus } from '../services/selfAttendance.js'
 import { forbidden } from '../platform/errors.js'
 import { on } from '../services/dashboard.js'
-import { assetByTag, visitorAfterCheckout } from '../services/scan.js'
+import { assetByTag, moveScannedToken, visitorAfterCheckout } from '../services/scan.js'
 
 // Scan: /api/v1/scan/* — what a scanned code is (every signed-in member of staff; what comes back follows their
 // own modules, permissions and data scope), the phone gate scanners, and a member of staff's rotating punch code.
@@ -70,6 +70,13 @@ router.post('/gate-pass/:id/left', async (req, res) => {
   if (!on(req.auth, 'frontoffice', 'frontoffice.gate-pass.create')) throw forbidden('Marking a gate pass needs “Gate pass › Create”.')
   const p = await markLeft(objectId.parse(req.params.id), req.auth, req)
   res.json({ data: await resolveCode(p.admissionNo ?? '', req.auth).catch(() => null) ?? { kind: 'GATE_PASS', id: p.id, title: p.studentName ?? p.staffName ?? p.passNo, subtitle: p.passNo, actions: [] } })
+})
+
+/** Canteen counter: a token slip (or the family app's pre-order code) scanned — ready, or handed over. Shows the token again. */
+router.post('/canteen/:id/:what', async (req, res) => {
+  const { what } = z.object({ what: z.enum(['ready', 'collect']) }).parse(req.params)
+  if (!on(req.auth, 'canteen', 'canteen.orders.create')) throw forbidden('Handing over canteen orders needs “Canteen orders › Create”.')
+  res.json({ data: await moveScannedToken(objectId.parse(req.params.id), what === 'ready' ? 'READY' : 'COLLECTED', req) })
 })
 
 /** My workspace › check in / check out from the phone, held to the campus's attendance sites (Settings › Staff & HR). */

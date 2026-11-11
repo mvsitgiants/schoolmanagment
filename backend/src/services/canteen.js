@@ -1,7 +1,9 @@
 import {
   CANTEEN_DEFAULTS, CANTEEN_PAY_MODES, CANTEEN_TAG_VALUES, CANTEEN_TOKEN_LINGER_MS, DOC_TYPE_BY_CODE, canteenBlockReason, canteenSoldOn, canteenTotal, canteenWalletCheck, formatINR, sectionLabel, weekdayCode,
 } from '@schoolgiant/shared'
+import crypto from 'node:crypto'
 import mongoose from 'mongoose'
+import { config } from '../config.js'
 import { ClassLevel, Section } from '../models/academics.js'
 import { CanteenItem, CanteenOrder, CanteenSpecial, CanteenTopup, CanteenWallet, WalletTxn } from '../models/canteen.js'
 import { Student, studentName } from '../models/students.js'
@@ -479,12 +481,47 @@ export async function tokenBoard({ branchId, date } = {}, auth) {
   }
 }
 
+// The token's scan code — printed on the slip as a QR and shown in the family app for a pre-order:
+//   SGT1.<orderId>.<signature>   (HMAC with the app secret, bound to the institution: can't be made up or used elsewhere)
+// The app's Scan button and the counter's "Scan to collect" read it (services/scan.js).
+const TOKEN_CODE = /^SGT1\.([a-f0-9]{24})\.([A-Za-z0-9_-]{16})$/
+const signTokenCode = (tenantId, id) => crypto.createHmac('sha256', config.jwtSecret).update(`canteen-token:${tenantId}:${id}`).digest('base64url').slice(0, 16)
+
+/** The scan code for an order (null outside an institution). */
+export function tokenScanCode(orderId, tenantId = getContext()?.tenantId) {
+  if (!orderId || !tenantId) return null
+  return `SGT1.${orderId}.${signTokenCode(String(tenantId), String(orderId))}`
+}
+
+/** The order id inside a token's scan code — null when it isn't one; refused when it was signed elsewhere. */
+export function readTokenCode(text, tenantId) {
+  const m = String(text ?? '').trim().match(TOKEN_CODE)
+  if (!m) return null
+  const good = signTokenCode(String(tenantId), m[1])
+  if (!crypto.timingSafeEqual(Buffer.from(m[2]), Buffer.from(good))) throw badRequest('This canteen token isn’t from this institution.')
+  return m[1]
+}
+
+/**
+ * Typed at the counter: the order with this token number on a day (today by default). Tokens restart on each campus, so
+ * `branchId` (or the person's own campus) picks between campuses when the number is in use at more than one.
+ */
+export async function orderIdByToken({ token, date, branchId }, auth) {
+  const d = date ?? (await today()).date
+  const rows = await CanteenOrder.find({ date: d, token, ...(branchId && { branchId }) }).select('_id branchId').lean()
+  if (rows.length <= 1) return rows[0]?._id ?? null
+  const mine = idStr(auth?.user?.branchId)
+  const own = mine && rows.find((r) => idStr(r.branchId) === mine)
+  if (own) return own._id
+  throw conflict(`Token ${token} is in use at more than one campus that day — scan the slip instead.`)
+}
+
 /** CANTEEN_TOKEN print data (documents/canteenDocs.js): the order, its campus and who sold it. */
 export async function tokenPrintData(id) {
   const o = isOid(id) ? await CanteenOrder.findById(id).lean() : null
   if (!o) throw notFound('Order')
   const branch = o.branchId ? await Branch.findById(o.branchId).select('name').lean() : null
-  return { order: orderView(o), branchId: o.branchId ?? null, campus: branch?.name ?? null, payLabel: CANTEEN_PAY_MODES[o.payMode]?.label ?? o.payMode }
+  return { order: orderView(o), branchId: o.branchId ?? null, campus: branch?.name ?? null, payLabel: CANTEEN_PAY_MODES[o.payMode]?.label ?? o.payMode, scanCode: o.token ? tokenScanCode(o._id) : null }
 }
 
 /** The newest order with a token (the template editor's preview). */
