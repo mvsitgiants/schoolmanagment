@@ -27,7 +27,7 @@ router.post('/:docType/preview', requirePermission('core.print-templates.view'),
     layout: z.object({
       paper: z.enum(values(PAPER_SIZES)), orientation: z.enum(['portrait', 'landscape']), margins: z.object({ top: mm, right: mm, bottom: mm, left: mm }),
       letterhead: z.enum(values(LETTERHEAD_MODES)), headerSpaceMm: z.coerce.number().min(0).max(120).optional(), footerSpaceMm: z.coerce.number().min(0).max(80).optional(),
-      footerText: z.string().max(300).optional(), showQr: z.boolean(), showPrintedOn: z.boolean(), fontScale: z.coerce.number().int().min(80).max(130),
+      footerText: z.string().max(300).optional(), showQr: z.boolean(), showPrintedOn: z.boolean(), fontScale: z.coerce.number().int().min(80).max(130), signMode: z.enum(['HAND', 'PRINTED', 'NONE']).optional(),
     }).partial().optional(),
   }).parse(req.body ?? {})
   html(res, await previewDocument(req.params.docType, body, req.auth))

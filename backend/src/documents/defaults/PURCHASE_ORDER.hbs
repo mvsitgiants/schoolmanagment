@@ -108,6 +108,6 @@
 <div class="po-signs no-break">
   <div><div class="who">{{po.raisedBy}}</div><div class="line">{{t "inventory.print.po.preparedBy" "Prepared by"}}</div></div>
   <div><div class="who">{{po.approvedBy}}</div><div class="line">{{t "inventory.print.po.approvedByLabel" "Approved by"}}</div></div>
-  <div><div class="seal">{{t "inventory.print.po.seal" "Seal"}}</div><div class="line">{{t "inventory.print.po.signatory" "For {{name}} — Authorised signatory" name=institution.name}}</div></div>
+  <div>{{> seal role="PRINCIPAL" label=(t "inventory.print.po.seal" "Seal")}}<div class="line">{{t "inventory.print.po.signatory" "For {{name}} — Authorised signatory" name=institution.name}}</div></div>
 </div>
 {{> footer}}

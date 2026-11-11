@@ -71,7 +71,7 @@
 <div class="signs">
   <div>{{t "students.print.tc.classTeacher" "Signature of Class Teacher"}}</div>
   <div>{{t "students.print.tc.checkedBy" "Checked by"}}<span class="sub">{{t "students.print.tc.checkedByHint" "(State full name and designation)"}}</span></div>
-  <div class="pr"><div class="seal">{{t "students.print.tc.seal" "School seal"}}</div>{{t "students.print.tc.principal" "Signature of Principal"}}{{#if tc.issuedBy}}<span class="sub">{{t "students.print.tc.issuedBy" "Issued by {{name}}" name=tc.issuedBy}}</span>{{/if}}</div>
+  <div class="pr">{{> seal role="PRINCIPAL" label=(t "students.print.tc.seal" "School seal")}}{{t "students.print.tc.principal" "Signature of Principal"}}{{#if tc.issuedBy}}<span class="sub">{{t "students.print.tc.issuedBy" "Issued by {{name}}" name=tc.issuedBy}}</span>{{/if}}</div>
 </div>
 {{#if tc.cancelled}}<p class="note" style="margin-top:3mm">{{t "students.print.tc.cancelledNote" "Cancelled: {{reason}}" reason=tc.cancelReason}}</p>{{/if}}
 </div>

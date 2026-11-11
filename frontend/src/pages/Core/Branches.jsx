@@ -11,11 +11,14 @@ import { hasPermission } from '../../api/auth'
 import useAuthUser from '../../hooks/useAuthUser'
 import { useSnackbar } from '../../context/SnackbarContext'
 import AttendanceSites, { siteIn, siteOut, sitesValid } from '../../components/geo/AttendanceSitesEditor'
+import PrintImageField from '../../components/print/PrintImageField'
 import { metresText } from '@schoolgiant/shared'
 
 function BranchForm({ branch, onClose, onSaved }) {
   const { t } = useTranslation('admin')
-  const [form, setForm] = useState(() => ({ name: '', code: '', addressLine: '', city: '', state: '', pincode: '', phone: '', gstin: '', active: true, ...branch, attendanceSites: (branch?.attendanceSites ?? []).map(siteIn) }))
+  const [form, setForm] = useState(() => ({ name: '', code: '', addressLine: '', city: '', state: '', pincode: '', phone: '', gstin: '', active: true, ...branch, attendanceSites: (branch?.attendanceSites ?? []).map(siteIn), identity: { printName: '', board: '', affiliationNo: '', schoolCode: '', udiseCode: '', email: '', principalName: '', logoUrl: '', sealUrl: '', principalSignUrl: '', ...branch?.identity } }))
+  const [ownPrint, setOwnPrint] = useState(() => Object.values(branch?.identity ?? {}).some(Boolean))
+  const setId = (k) => (v) => setForm((f) => ({ ...f, identity: { ...f.identity, [k]: v?.target ? v.target.value : v } }))
   const sitesOk = sitesValid(form.attendanceSites)
   const [errors, setErrors] = useState({})
   const { showError } = useSnackbar()
@@ -23,7 +26,7 @@ function BranchForm({ branch, onClose, onSaved }) {
   const save = useMutation({
     mutationFn: () => {
       const { name, code, addressLine, city, state, pincode, phone, gstin, active } = form
-      const body = { name, code, addressLine, city, state, pincode, phone, gstin, attendanceSites: form.attendanceSites.map(siteOut) }
+      const body = { name, code, addressLine, city, state, pincode, phone, gstin, attendanceSites: form.attendanceSites.map(siteOut), identity: ownPrint ? form.identity : Object.fromEntries(Object.keys(form.identity).map((k) => [k, ''])) }
       return branch ? updateBranch(branch.id, { ...body, active }) : createBranch(body)
     },
     onSuccess: onSaved,
@@ -49,6 +52,26 @@ function BranchForm({ branch, onClose, onSaved }) {
         <FormField label="GSTIN" error={errors.gstin} hint={t('admin.branches.gstinHint')}><Input value={form.gstin ?? ''} onChange={(e) => set('gstin')(e.target.value.toUpperCase())} maxLength={15} /></FormField>
       </div>
       {branch && !branch.isDefault && <label className="mt-4 flex items-center justify-between rounded-lg border border-border px-3 py-2.5 text-sm text-ink">{t('status.active')} <Switch checked={form.active} onChange={set('active')} label={t('status.active')} /></label>}
+      <div className="mt-5 rounded-xl border border-border p-4 space-y-3">
+        <label className="flex items-start gap-2.5 text-sm text-ink cursor-pointer">
+          <input type="checkbox" checked={ownPrint} onChange={(e) => setOwnPrint(e.target.checked)} className="mt-0.5 rounded border-border text-brand-500 focus:ring-brand-500" />
+          <span><span className="font-semibold">{t('admin.branches.ownPrint')}</span><span className="block text-xs text-ink-muted">{t('admin.branches.ownPrintHint')}</span></span>
+        </label>
+        {ownPrint && (
+          <div className="grid sm:grid-cols-2 gap-3">
+            <div className="sm:col-span-2"><FormField label={t('admin.branches.printName')} hint={t('admin.branches.printNameHint')}><Input value={form.identity.printName} onChange={setId('printName')} maxLength={160} /></FormField></div>
+            <FormField label={t('admin.branches.board')} hint={t('admin.branches.boardHint')}><Input value={form.identity.board} onChange={setId('board')} maxLength={120} /></FormField>
+            <FormField label={t('admin.branches.affiliationNo')}><Input value={form.identity.affiliationNo} onChange={setId('affiliationNo')} maxLength={60} /></FormField>
+            <FormField label={t('admin.branches.schoolCode')}><Input value={form.identity.schoolCode} onChange={setId('schoolCode')} maxLength={30} /></FormField>
+            <FormField label={t('admin.branches.udiseCode')}><Input value={form.identity.udiseCode} onChange={setId('udiseCode')} maxLength={60} /></FormField>
+            <FormField label={t('admin.branches.email')}><Input type="email" value={form.identity.email} onChange={setId('email')} maxLength={120} /></FormField>
+            <FormField label={t('admin.branches.principalName')}><Input value={form.identity.principalName} onChange={setId('principalName')} maxLength={120} /></FormField>
+            <PrintImageField label={t('admin.branches.logo')} value={form.identity.logoUrl} onChange={setId('logoUrl')} error={errors['identity.logoUrl']} />
+            <PrintImageField label={t('admin.branches.seal')} value={form.identity.sealUrl} onChange={setId('sealUrl')} error={errors['identity.sealUrl']} />
+            <PrintImageField wide label={t('admin.branches.principalSign')} value={form.identity.principalSignUrl} onChange={setId('principalSignUrl')} error={errors['identity.principalSignUrl']} />
+          </div>
+        )}
+      </div>
       <div className="mt-5"><AttendanceSites branchName={form.name} sites={form.attendanceSites} onChange={(attendanceSites) => setForm((f) => ({ ...f, attendanceSites }))} errors={errors} /></div>
     </Modal>
   )

@@ -124,7 +124,7 @@
   </div>
   <div class="signs">
     <div>{{t "students.print.admission.checkedBy" "Checked by (office)"}}</div>
-    <div style="border-top:0;padding-top:0"><div class="seal">{{t "students.print.admission.seal" "School seal"}}</div><div style="border-top:0.3mm solid #333;padding-top:1.2mm">{{t "students.print.admission.principal" "Principal"}}</div></div>
+    <div style="border-top:0;padding-top:0">{{> seal role="PRINCIPAL" label=(t "students.print.admission.seal" "School seal")}}<div style="border-top:0.3mm solid #333;padding-top:1.2mm">{{t "students.print.admission.principal" "Principal"}}</div></div>
   </div>
 </div>
 {{> footer}}

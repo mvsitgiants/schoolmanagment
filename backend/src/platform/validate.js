@@ -28,3 +28,14 @@ export const listResponse = (items, total, { page, pageSize }) => ({
   data: items,
   meta: { total, page, pageSize, totalPages: Math.max(1, Math.ceil(total / pageSize)) },
 })
+
+/**
+ * An image printed on documents (logo, school seal, a signature): a web address, or an uploaded PNG / JPG / WebP kept
+ * inline as a data URL so prints and PDFs show it without a sign-in. SVG is refused (it can carry script). '' clears it.
+ */
+const PRINT_IMAGE_DATA_URL = /^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/]+={0,2}$/
+export const printImage = z.union([
+  z.literal(''),
+  z.string().trim().max(500).regex(/^(https?:\/\/|\/)/i, 'Enter a web address (https://…) or upload an image'),
+  z.string().max(400_000, 'The image is too large — use one under 300 KB').regex(PRINT_IMAGE_DATA_URL, 'Upload a PNG, JPG or WebP image'),
+]).optional()

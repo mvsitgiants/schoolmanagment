@@ -26,6 +26,6 @@
 <p class="note">{{t "exams.print.duty.note" "Invigilators report to the exam office 30 minutes before each paper to collect the question papers and answer books, and sign against their duty."}}</p>
 <div class="signs no-break">
   <div>{{t "exams.print.seating.inchargeSign" "Controller / Exam in-charge"}}</div>
-  <div class="sealed"><div class="seal">{{t "exams.print.reportCard.seal" "School seal"}}</div>{{t "exams.print.reportCard.principalSign" "Principal"}}</div>
+  <div class="sealed">{{> seal role="PRINCIPAL" label=(t "exams.print.reportCard.seal" "School seal")}}{{t "exams.print.reportCard.principalSign" "Principal"}}</div>
 </div>
 {{> footer}}

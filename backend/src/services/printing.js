@@ -12,7 +12,7 @@ import { templateError } from '../documents/engine.js'
 // letterhead (institution-wide) and, per document, the template marked default — or the
 // built-in layout when the institution has not made one.
 
-const LAYOUT = ['align', 'showLogo', 'showContacts', 'ids', 'tagline', 'accentColor', 'footerText']
+const LAYOUT = ['align', 'showLogo', 'showContacts', 'ids', 'tagline', 'accentColor', 'footerText', 'sealUrl', 'signatures']
 
 async function institution() {
   const t = await Tenant.findById(getContext().tenantId).select('name profile').lean()
@@ -52,8 +52,10 @@ export async function saveTemplate(id, input, auth, req) {
   if (!PRINT_DOC_BY[docType]) throw badRequest('Pick the document this template prints.', { fields: { docType: 'Unknown document' } })
   if (await PrintTemplate.exists({ docType, name: input.name ?? before?.name, ...(id && { _id: { $ne: id } }) })) throw conflict(`There is already a ${PRINT_DOC_BY[docType].label.toLowerCase()} template with this name.`, { fields: { name: 'Already used' } })
   // the first template of a document becomes its default
-  const makeDefault = input.isDefault ?? (before ? before.isDefault : !await PrintTemplate.exists({ docType }))
-  if (before?.isDefault && input.isDefault === false) throw badRequest('Make another template the default instead.', { fields: { isDefault: 'One template must be the default' } })
+  // a campus's own template is never the institution's default — it prints that campus's records only
+  const forCampus = !!(input.branchId !== undefined ? input.branchId : before?.branchId)
+  const makeDefault = forCampus ? false : input.isDefault ?? (before ? before.isDefault : !await PrintTemplate.exists({ docType, branchId: null }))
+  if (!forCampus && before?.isDefault && input.isDefault === false) throw badRequest('Make another template the default instead.', { fields: { isDefault: 'One template must be the default' } })
   if (makeDefault && input.active === false) throw badRequest('The default template must stay in use.', { fields: { active: 'Default' } })
   if (input.body) {
     const err = templateError(input.body)

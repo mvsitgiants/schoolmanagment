@@ -93,7 +93,7 @@ const maskIds = (statutory) => Object.fromEntries(['pan', 'aadhaar', 'uan', 'esi
 export async function getEmployee(id, auth) {
   const showSalary = can(auth, 'hrms.employees.view_salary')
   const showIds = can(auth, 'hrms.employees.view_sensitive')
-  const extra = [showSalary && '+salary', showIds && '+statutory +bank'].filter(Boolean).join(' ')
+  const extra = ['+photo', showSalary && '+salary', showIds && '+statutory +bank'].filter(Boolean).join(' ')
   const e = await findEmployee(id, auth, { select: extra || undefined, lean: true })
   const n = await names()
   const [manager, user, reports] = await Promise.all([
@@ -104,7 +104,7 @@ export async function getEmployee(id, auth) {
   return {
     ...row(e, n), gender: e.gender ?? null, dob: e.dob ?? null, bloodGroup: e.bloodGroup ?? null, address: e.address ?? {}, emergencyContact: e.emergencyContact ?? {},
     qualifications: e.qualifications ?? null, experienceYears: e.experienceYears ?? null, subjects: e.subjects ?? [], confirmationDate: e.confirmationDate ?? null,
-    weeklyOffDays: e.weeklyOffDays ?? [], reportingManagerId: idStr(e.reportingManagerId), notes: e.notes ?? null, geofenceExempt: !!e.geofenceExempt,
+    weeklyOffDays: e.weeklyOffDays ?? [], reportingManagerId: idStr(e.reportingManagerId), notes: e.notes ?? null, geofenceExempt: !!e.geofenceExempt, photo: e.photo ?? null,
     manager: manager && { id: String(manager._id), name: manager.name, designation: manager.designation ?? null },
     login: user && { id: String(user._id), name: user.name, email: user.email, active: user.active, lastLoginAt: user.lastLoginAt ?? null },
     reports: reports.map((r) => ({ id: String(r._id), name: r.name, designation: r.designation ?? null })),
@@ -149,7 +149,7 @@ async function checkLink(userId, selfId) {
 
 const personal = (input) => {
   const out = {}
-  for (const k of ['name', 'gender', 'dob', 'bloodGroup', 'mobile', 'email', 'address', 'emergencyContact', 'qualifications', 'experienceYears', 'subjects', 'joiningDate', 'confirmationDate', 'weeklyOffDays', 'notes']) {
+  for (const k of ['name', 'photo', 'gender', 'dob', 'bloodGroup', 'mobile', 'email', 'address', 'emergencyContact', 'qualifications', 'experienceYears', 'subjects', 'joiningDate', 'confirmationDate', 'weeklyOffDays', 'notes']) {
     if (input[k] !== undefined) out[k] = input[k] === '' ? undefined : input[k]
   }
   return out

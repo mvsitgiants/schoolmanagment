@@ -5,7 +5,7 @@ import { clean } from '../../platform/db.js'
 import { badRequest, conflict, notFound } from '../../platform/errors.js'
 import { requirePermission } from '../../platform/middleware.js'
 import { importDepartments } from '../../services/coreImport.js'
-import { objectId, optionalText, z } from '../../platform/validate.js'
+import { objectId, optionalText, printImage, z } from '../../platform/validate.js'
 import { assertWithinLimit } from '../../services/subscription.js'
 import { attendanceSitesInput, sitesIn, sitesText } from '../../services/attendanceSites.js'
 
@@ -21,6 +21,11 @@ const branchSchema = z.object({
   gstin: z.string().trim().toUpperCase().regex(/^[0-9A-Z]{15}$/, 'GSTIN has 15 letters/digits').optional().or(z.literal('').transform(() => undefined)),
   // self-attendance geofence: named sites (circle or outline) of this branch
   attendanceSites: attendanceSitesInput.optional(),
+  // printed documents of this campus, when it is its own school on paper (empty = the institution's)
+  identity: z.object({
+    printName: optionalText(160), board: optionalText(120), affiliationNo: optionalText(60), schoolCode: optionalText(30), udiseCode: optionalText(60),
+    email: optionalText(120), principalName: optionalText(120), logoUrl: printImage, sealUrl: printImage, principalSignUrl: printImage,
+  }).optional(),
 })
 
 router.get('/branches', async (req, res) => {
@@ -47,8 +52,9 @@ router.patch('/branches/:id', requirePermission('core.branches.edit'), async (re
   if (input.active === false && branch.isDefault) throw badRequest('The main branch is always active.')
   if (input.active === true && !branch.active) await assertWithinLimit(req.auth.tenantId, 'branches', 1)
   const before = branch.toObject()
-  const { attendanceSites, ...rest } = input
+  const { attendanceSites, identity, ...rest } = input
   Object.assign(branch, rest)
+  if (identity) branch.identity = Object.fromEntries(Object.entries(identity).map(([k, v]) => [k, v || undefined]))
   if (attendanceSites) branch.attendanceSites = sitesIn(attendanceSites)
   await branch.save()
   const after = branch.toObject()

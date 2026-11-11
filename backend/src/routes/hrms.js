@@ -4,7 +4,7 @@ import {
   LEAVE_CALENDAR_KINDS, LEAVE_CHAIN_MAX_STEPS, LEAVE_STATUSES, MARKABLE, NO_LEAVE_MODES, REQUISITION_STATUSES, SALARY_MODES,
 } from '@schoolgiant/shared'
 import { authenticate, requireModule, requirePermission, subscriptionGate, tenantOnly } from '../platform/middleware.js'
-import { email, mobile, objectId, optionalText, pageParams, z } from '../platform/validate.js'
+import { email, mobile, objectId, optionalText, pageParams, printImage, z } from '../platform/validate.js'
 import {
   addHolidays, cancelExit, createEmployee, createLogin, deleteHoliday, exitEmployee, exportEmployees, getEmployee, hrmsMeta, importEmployees, linkLogin,
   listEmployees, listHolidays, myRecord, recordsFromLogins, saveHoliday, sensitive, setSalary, setSensitive, updateEmployee, updateMyRecord,
@@ -58,6 +58,7 @@ const employeeSchema = z.object({
   joiningDate: ymd, confirmationDate: blank(ymd),
   weeklyOffDays: z.array(z.enum(['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'])).max(3).optional(),
   geofenceExempt: z.boolean().optional(), // field staff: may check in from their phone anywhere
+  photo: printImage,
   notes: optionalText(2000),
   userId: optId,
   login: z.object({ email: blank(email), roleIds: z.array(objectId).min(1, 'Pick a role'), invite: z.boolean().default(true), password: optionalText(100) }).optional(),
@@ -323,7 +324,7 @@ const requisitionSchema = z.object({
 const candidateSchema = z.object({
   requisitionId: objectId, name: z.string().trim().min(2, 'Enter the name').max(120), mobile: blank(mobile), email: blank(email),
   gender: blank(z.enum(values(GENDERS))), qualifications: optionalText(300), experienceYears: z.coerce.number().min(0).max(60).optional().or(z.literal('').transform(() => undefined)),
-  currentEmployer: optionalText(120), expectedSalary: paise.optional().or(z.literal('').transform(() => undefined)), source: z.enum(CANDIDATE_SOURCES).default('OTHER'),
+  currentEmployer: optionalText(120), address: optionalText(300), expectedSalary: paise.optional().or(z.literal('').transform(() => undefined)), source: z.enum(CANDIDATE_SOURCES).default('OTHER'),
 })
 
 router.get('/requisitions', requirePermission('hrms.hiring.view'), async (req, res) => {

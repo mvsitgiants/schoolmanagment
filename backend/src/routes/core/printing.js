@@ -1,7 +1,7 @@
 import { Router } from 'express'
-import { LETTERHEAD_IDS, LETTERHEAD_MODES, PAPER_SIZES, PRINT_DOCS } from '@schoolgiant/shared'
+import { LETTERHEAD_IDS, LETTERHEAD_MODES, PAPER_SIZES, PRINT_DOCS, SIGNATORIES, SIGN_MODES } from '@schoolgiant/shared'
 import { requirePermission } from '../../platform/middleware.js'
-import { objectId, optionalText, z } from '../../platform/validate.js'
+import { objectId, optionalText, printImage, z } from '../../platform/validate.js'
 import { deleteTemplate, effectiveTemplate, getLetterhead, listTemplates, saveLetterhead, saveTemplate } from '../../services/printing.js'
 
 // Print templates (E8): /api/v1/core/print-templates, /api/v1/core/print/*.
@@ -17,10 +17,12 @@ router.put('/print/letterhead', requirePermission('core.print-templates.edit'), 
     align: z.enum(['LEFT', 'CENTER']).optional(),
     showLogo: z.boolean().optional(),
     showContacts: z.boolean().optional(),
-    ids: z.array(z.enum(values(LETTERHEAD_IDS))).max(4).optional(),
+    ids: z.array(z.enum(values(LETTERHEAD_IDS))).max(5).optional(),
     tagline: optionalText(120),
     accentColor: z.string().regex(/^(#[0-9a-fA-F]{6})?$/, 'Use a colour like #0E7C86').optional(),
     footerText: optionalText(300),
+    sealUrl: printImage,
+    signatures: z.array(z.object({ role: z.enum(values(SIGNATORIES)), name: optionalText(120), title: optionalText(120), imageUrl: printImage })).max(SIGNATORIES.length).optional(),
   }).parse(req.body)
   res.json({ data: await saveLetterhead(body, req.auth, req) })
 })
@@ -44,6 +46,8 @@ const templateBody = z.object({
   showQr: z.boolean().default(true),
   showPrintedOn: z.boolean().default(true),
   fontScale: z.coerce.number().int().min(80).max(130).default(100),
+  signMode: z.enum(values(SIGN_MODES)).optional().nullable(),
+  branchId: objectId.nullable().optional(),
   body: z.string().max(200_000).optional().nullable(),
   active: z.boolean().default(true),
 })

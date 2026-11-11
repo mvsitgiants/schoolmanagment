@@ -76,6 +76,6 @@
 <div class="signs no-break">
   <div>{{t "exams.print.hallTicket.studentSign" "Candidate"}}{{#if classTeacher}}<br><span class="note">&nbsp;</span>{{/if}}</div>
   <div>{{t "exams.print.hallTicket.teacherSign" "Class Teacher"}}{{#if classTeacher}}<br><span class="note">{{classTeacher}}</span>{{/if}}</div>
-  <div class="sealed"><div class="seal">{{t "exams.print.reportCard.seal" "School seal"}}</div>{{t "exams.print.hallTicket.principalSign" "Principal / Controller of Examinations"}}{{#if classTeacher}}<br><span class="note">&nbsp;</span>{{/if}}</div>
+  <div class="sealed">{{> seal role="PRINCIPAL" label=(t "exams.print.reportCard.seal" "School seal")}}{{t "exams.print.hallTicket.principalSign" "Principal / Controller of Examinations"}}{{#if classTeacher}}<br><span class="note">&nbsp;</span>{{/if}}</div>
 </div>
 {{> footer}}

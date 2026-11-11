@@ -97,7 +97,7 @@
     {{#if (and @root.receipt.verifyUrl @root.$layout.showQr)}}<div class="qr">{{qr @root.receipt.verifyUrl 13}}<span>{{t "fees.print.receipt.scanToCheck" "Scan to check this receipt"}}</span></div>{{/if}}
     <div class="signs">
       <div>{{t "fees.print.receipt.parentSign" "Signature of Parent"}}</div>
-      <div>{{t "fees.print.receipt.cashierSign" "Cashier / Accountant"}}{{#if @root.receipt.collectedBy}}<span class="by">{{t "fees.print.receipt.collectedBy" "Received by {{name}}" name=@root.receipt.collectedBy}}</span>{{/if}}</div>
+      <div>{{> seal role="ACCOUNTANT" label="Seal"}}{{t "fees.print.receipt.cashierSign" "Cashier / Accountant"}}{{#if @root.receipt.collectedBy}}<span class="by">{{t "fees.print.receipt.collectedBy" "Received by {{name}}" name=@root.receipt.collectedBy}}</span>{{/if}}</div>
     </div>
   </div>
 </div>

@@ -15,6 +15,7 @@ import { printDocuments } from '../../components/print/printDocument'
 import { useFormat } from '../../context/SettingsContext'
 import { readSheet } from '../../utils/readSheet'
 import { useHrLabels, useHrMeta } from '../../components/hrms/HrKit'
+import PrintImageField from '../../components/print/PrintImageField'
 
 const WEEK = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN']
 // each staff category's icon and colour, on the tiles and in the table
@@ -39,7 +40,7 @@ export function EmployeeForm({ employee, onClose, onSaved }) {
   const [form, setForm] = useState({
     name: e0.name ?? '', employeeCode: e0.employeeCode ?? '', designation: e0.designation ?? '', category: e0.category ?? 'TEACHING', employmentType: e0.employmentType ?? 'PERMANENT',
     departmentId: e0.departmentId ?? '', branchId: e0.branchId ?? '', reportingManagerId: e0.reportingManagerId ?? '', joiningDate: e0.joiningDate ?? '', confirmationDate: e0.confirmationDate ?? '',
-    gender: e0.gender ?? '', dob: e0.dob ?? '', bloodGroup: e0.bloodGroup ?? '', mobile: e0.mobile ?? '', email: e0.email ?? '',
+    photo: e0.photo ?? '', gender: e0.gender ?? '', dob: e0.dob ?? '', bloodGroup: e0.bloodGroup ?? '', mobile: e0.mobile ?? '', email: e0.email ?? '',
     qualifications: e0.qualifications ?? '', experienceYears: e0.experienceYears ?? '', subjects: (e0.subjects ?? []).join(', '),
     weeklyOffDays: e0.weeklyOffDays ?? [], notes: e0.notes ?? '', changeNote: '', geofenceExempt: !!e0.geofenceExempt,
     login: 'none', userId: '', loginEmail: '', roleId: '',
@@ -50,7 +51,7 @@ export function EmployeeForm({ employee, onClose, onSaved }) {
     const b = {
       name: form.name, employeeCode: form.employeeCode, designation: form.designation, category: form.category, employmentType: form.employmentType,
       departmentId: form.departmentId || null, branchId: form.branchId || null, reportingManagerId: form.reportingManagerId || null,
-      joiningDate: form.joiningDate, confirmationDate: form.confirmationDate, gender: form.gender, dob: form.dob, bloodGroup: form.bloodGroup,
+      joiningDate: form.joiningDate, confirmationDate: form.confirmationDate, photo: form.photo, gender: form.gender, dob: form.dob, bloodGroup: form.bloodGroup,
       mobile: form.mobile, email: form.email, qualifications: form.qualifications, experienceYears: form.experienceYears,
       subjects: form.subjects.split(',').map((s) => s.trim()).filter(Boolean), weeklyOffDays: form.weeklyOffDays, notes: form.notes, geofenceExempt: form.geofenceExempt,
     }
@@ -73,6 +74,7 @@ export function EmployeeForm({ employee, onClose, onSaved }) {
       <div className="space-y-5">
         <section className="grid sm:grid-cols-3 gap-4">
           <div className="sm:col-span-2"><FormField label={t('hrms.employees.name')} required error={errors.name}><Input value={form.name} onChange={set('name')} /></FormField></div>
+          <div className="sm:col-span-2"><PrintImageField label={t('hrms.employees.photo')} hint={t('hrms.employees.photoHint')} value={form.photo} onChange={(v) => setForm((f) => ({ ...f, photo: v }))} error={errors.photo} /></div>
           <FormField label={t('hrms.employees.code')} hint={employee ? undefined : t('hrms.employees.codeHint')} error={errors.employeeCode}><Input value={form.employeeCode} onChange={(e) => setForm((f) => ({ ...f, employeeCode: e.target.value.toUpperCase() }))} /></FormField>
           <FormField label={t('hrms.employees.designation')} error={errors.designation}><Input value={form.designation} onChange={set('designation')} placeholder={t('hrms.employees.designationPlaceholder')} /></FormField>
           <FormField label={t('hrms.employees.category')} required>

@@ -12,6 +12,12 @@ const branchSchema = new Schema({
   isDefault: { type: Boolean, default: false },
   addressLine: String, city: String, state: String, pincode: String,
   phone: String, gstin: String,
+  // A campus that is its own school on paper (e.g. the CBSE school and the UP Board inter college of one trust):
+  // what its printed documents show instead of the institution's. Empty fields fall back to the institution profile.
+  identity: {
+    printName: String, board: String, affiliationNo: String, schoolCode: String, udiseCode: String, email: String,
+    principalName: String, logoUrl: String, sealUrl: String, principalSignUrl: String,
+  },
   // Where staff and students may mark their own attendance (Settings › Staff & HR / Attendance › self attendance).
   // A site is a circle (centre + radius) or a drawn outline (polygon corners); services/attendanceSites.js.
   attendanceSites: [new Schema({

@@ -8,6 +8,39 @@ import { clean, isOid } from '../platform/db.js'
 import { AppError, badRequest, forbidden, notFound } from '../platform/errors.js'
 import { pdfAvailable, pdfOrNull } from '../platform/pdf.js'
 import { getLetterhead } from './printing.js'
+import { Branch } from '../models/tenant.js'
+import { Student } from '../models/students.js'
+import { Employee } from '../models/hrms.js'
+
+/**
+ * The campus a printed record belongs to — its own branchId, else its student's or staff member's. Used to print a
+ * campus that is its own school on paper (Branch.identity: name, board, numbers, seal, principal) and its address.
+ */
+async function campusOf(raw) {
+  const ids = [raw?.branchId, raw?.student?.branchId, raw?.receipt?.branchId, raw?.payment?.branchId, raw?.invoice?.branchId, raw?.employee?.branchId, raw?.tc?.branchId]
+  let id = ids.find((x) => x && isOid(String(x)))
+  const sid = raw?.student?.id ?? raw?.student?._id ?? raw?.studentId
+  if (!id && sid && isOid(String(sid))) id = (await Student.findById(sid).select('branchId').lean())?.branchId
+  const eid = raw?.employee?.id ?? raw?.employee?._id ?? raw?.employeeId
+  if (!id && eid && isOid(String(eid))) id = (await Employee.findById(eid).select('branchId').lean())?.branchId
+  return id ? Branch.findById(id).select('name addressLine city state pincode phone gstin identity').lean() : null
+}
+
+/** The institution's details as this campus prints them: its own identity and address where set, else the institution's. */
+function campusInstitution(inst, b) {
+  if (!b) return inst
+  const id = b.identity ?? {}
+  const pick = (k, from = id) => (from[k] ? { [k]: from[k] } : {})
+  return {
+    ...inst,
+    ...(id.printName ? { name: id.printName } : {}),
+    ...pick('board'), ...pick('affiliationNo'), ...pick('schoolCode'), ...pick('udiseCode'), ...pick('email'), ...pick('logoUrl'),
+    ...pick('sealUrl'), ...pick('principalSignUrl'), ...pick('principalName'),
+    ...(b.addressLine ? { addressLine: b.addressLine, city: b.city, state: b.state, pincode: b.pincode } : {}),
+    ...pick('phone', b), ...pick('gstin', b),
+    campus: b.name,
+  }
+}
 
 // Printed documents (engine E8): the data of one record, the institution's template for the
 // document (its own Handlebars body, or the built-in one) and the print layout — rendered
@@ -20,10 +53,11 @@ const docOf = (docType) => {
 }
 
 /** The template a document prints with: one picked by id, the institution's default, or the built-in layout. */
-async function templateFor(docType, templateId) {
+async function templateFor(docType, templateId, branchId) {
   const saved = templateId && isOid(templateId)
     ? await PrintTemplate.findOne({ _id: templateId, docType }).lean()
-    : await PrintTemplate.findOne({ docType, isDefault: true, active: true }).lean()
+    : (branchId && await PrintTemplate.findOne({ docType, branchId, active: true }).sort({ updatedAt: -1 }).lean())
+      || await PrintTemplate.findOne({ docType, isDefault: true, active: true }).lean()
   return saved ? { ...printDefaults(docType), ...clean(saved), builtIn: false } : printDefaults(docType)
 }
 
@@ -39,16 +73,20 @@ export async function renderData(docType, raw, opts = {}) {
 export async function renderPrint(docType, raw, { templateId, body, layout: draft, autoPrint = true, model: given, lang: askedLang } = {}) {
   const def = docOf(docType)
   let model = given ?? def.model(raw)
-  let template = { ...(await templateFor(docType, templateId)), ...(draft ?? {}) }
+  // the record's campus: its own template, and its own name and numbers when it is its own school on paper
+  const campus = await campusOf(raw).catch(() => null)
+  let template = { ...(await templateFor(docType, templateId, campus?._id)), ...(draft ?? {}) }
   // no saved template: the module's own setting chooses the 80 mm roll, or the paper (a sideways ID card)
   if (template.builtIn && !draft && def.thermal?.(raw)) template = { ...template, paper: 'THERMAL_80', margins: { top: 3, right: 3, bottom: 3, left: 3 } }
   if (template.builtIn && !draft && def.paper?.(raw)) template = { ...template, paper: def.paper(raw) }
   if (def.forPaper) model = def.forPaper(model, template.paper)
   const card = !!PAPER_BY[template.paper]?.card
   const letterhead = await getLetterhead()
+  // the record's campus prints as its own school when it has one on paper (e.g. the UP Board college of a CBSE school's trust)
+  const inst = campusInstitution({ ...letterhead.institution, ...raw.institution }, campus)
   // every template can print the institution's details (name, address, PAN, GSTIN, 80G registration …) as institution.*
-  model = { ...model, institution: { ...letterhead.institution, ...raw.institution, ...model.institution } }
-  const layout = layoutFor(template, letterhead, raw.institution)
+  model = { ...model, institution: { ...inst, ...model.institution, ...(inst.campus ? { name: inst.name } : {}) } }
+  const layout = layoutFor({ ...template, docType }, letterhead, inst)
   const source = body ?? (template.body?.trim() ? template.body : defaultTemplate(docType))
   if (!source) throw notFound('Template')
   const title = def.title(model)

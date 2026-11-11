@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { ChevronLeft, Eye, EyeOff, History, KeyRound, LogOut, Palmtree, Pencil, Undo2, Wallet } from 'lucide-react'
+import { ChevronLeft, Eye, EyeOff, History, KeyRound, LogOut, Palmtree, Pencil, Printer, Undo2, Wallet } from 'lucide-react'
+import { printDocument } from '../../components/print/printDocument'
 import { EXIT_TYPES, SALARY_MODES, toPaise, toRupees } from '@schoolgiant/shared'
 import { Attachments, ColorChip, DataTable, DateCell, FactGrid, FormField, Input, Modal, Money, Note, PageContainer, Panel, Select, StatCard, Tabs, Textarea, Timeline, hueTone, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
@@ -263,6 +264,7 @@ export default function EmployeeProfile() {
       <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
         <Button size="sm" variant="ghost" icon={ChevronLeft} onClick={() => navigate('/hrms/employees')}>{t('hrms.profile.allStaff')}</Button>
         <div className="flex flex-wrap gap-2">
+          {hasPermission('hrms.employees.view_salary') && <Button size="sm" variant="ghost" icon={Printer} onClick={() => printDocument('HR_OFFER_LETTER', emp.id)}>{t('hrms.profile.appointmentLetter')}</Button>}
           {canEdit && <Button size="sm" variant="secondary" icon={Pencil} onClick={() => setModal('edit')}>{t('hrms.profile.edit')}</Button>}
           {canExit && emp.status !== 'EXITED' && !emp.exit && <Button size="sm" variant="ghost" icon={LogOut} onClick={() => setModal('exit')}>{t('hrms.profile.exit')}</Button>}
           {canExit && emp.exit && <Button size="sm" variant="ghost" icon={Undo2} loading={undoExit.isPending}

@@ -30,6 +30,8 @@ const employeeSchema = new Schema({
   gender: String, // students.js GENDERS
   dob: String, // YYYY-MM-DD
   bloodGroup: String,
+  /** A small JPEG/WebP data URL for the staff ID card and profile; left out of lists — ask for `+photo`. */
+  photo: { type: String, select: false },
   mobile: { type: String, trim: true },
   email: { type: String, trim: true, lowercase: true },
   address: { line: String, city: String, state: String, pincode: String },
@@ -268,6 +270,7 @@ const candidateSchema = new Schema({
   mobile: { type: String, trim: true }, email: { type: String, trim: true, lowercase: true },
   gender: String,
   qualifications: String, experienceYears: Number, currentEmployer: String,
+  address: String, // printed on the offer letter
   expectedSalary: Number, // paise a month
   source: { type: String, default: 'OTHER' }, // CANDIDATE_SOURCES
   stage: { type: String, default: 'APPLIED' }, // CANDIDATE_STAGES

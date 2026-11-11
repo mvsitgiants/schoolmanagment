@@ -136,7 +136,9 @@
       "geofenceExemptHint": "Their phone check-ins skip the campus location check (drivers, staff on duty outside).",
       "idCards": "Print ID cards",
       "idCardsPicked": "Print {{count}} ID cards",
-      "idCardsPreparing": "Making the ID cards…"
+      "idCardsPreparing": "Making the ID cards…",
+      "photo": "Photo",
+      "photoHint": "Passport-size photo — printed on the staff ID card."
     },
     "profile": {
       "back": "Back",
@@ -267,7 +269,8 @@
         "noManager": "Reports to no one",
         "showAll": "Show all {{count}}",
         "showLess": "Show fewer"
-      }
+      },
+      "appointmentLetter": "Appointment letter"
     },
     "attendance": {
       "title": "Staff attendance",
@@ -557,7 +560,9 @@
       "files": "CV and papers",
       "history": "History",
       "vacanciesNav": "Vacancies",
-      "printOffer": "Print offer letter"
+      "printOffer": "Print offer letter",
+      "address": "Address",
+      "addressHint": "Printed on the offer letter."
     },
     "performance": {
       "title": "Appraisal",

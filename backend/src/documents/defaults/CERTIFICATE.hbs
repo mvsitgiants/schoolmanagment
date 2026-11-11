@@ -59,7 +59,7 @@
   <div class="c-foot">
     <div class="c-sign"><div class="line">{{t "certificates.print.coordinator" "Teacher in charge"}}</div></div>
     {{#if (and @root.$layout.showQr verify.url)}}<div class="c-qr">{{qr verify.url 15}}<div>{{t "certificates.print.scan" "Scan to verify"}}</div></div>{{/if}}
-    <div class="c-sign"><div class="seal">{{t "certificates.print.seal" "School seal"}}</div><div class="line">{{t "certificates.print.signature" "Principal"}}</div></div>
+    <div class="c-sign">{{> seal role="PRINCIPAL" label=(t "certificates.print.seal" "School seal")}}<div class="line">{{t "certificates.print.signature" "Principal"}}</div></div>
   </div>
 </div></div>
 {{else}}
@@ -124,7 +124,7 @@
       {{#if institution.city}}<div>{{t "certificates.print.place" "Place"}}: <b>{{institution.city}}</b></div>{{/if}}
       <div>{{t "certificates.print.date" "Date"}}: <b>{{date certificate.issueDate}}</b></div>
     </div>
-    <div class="c-sign"><div class="seal">{{t "certificates.print.seal" "School seal"}}</div><div class="line">{{t "certificates.print.signature" "Principal"}}<span class="sub">{{institution.name}}</span></div></div>
+    <div class="c-sign">{{> seal role="PRINCIPAL" label=(t "certificates.print.seal" "School seal")}}<div class="line">{{t "certificates.print.signature" "Principal"}}<span class="sub">{{institution.name}}</span></div></div>
   </div>
   {{#if certificate.cancelled}}<p class="note" style="margin-top:3mm">{{t "certificates.print.cancelledNote" "Cancelled: {{reason}}" reason=certificate.cancelReason}}</p>{{/if}}
 </div>

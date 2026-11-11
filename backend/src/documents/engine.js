@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url'
 import Handlebars from 'handlebars'
 import QRCode from 'qrcode'
 import bwipjs from 'bwip-js'
-import { LETTERHEAD_IDS, PAPER_BY, amountInWords, fixedPaper, formatINR, pageCss } from '@schoolgiant/shared'
+import { LETTERHEAD_IDS, PAPER_BY, amountInWords, fixedPaper, formatINR, pageCss, defaultSignMode } from '@schoolgiant/shared'
 
 const DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), 'defaults')
 const hb = Handlebars.create()
@@ -120,6 +120,13 @@ export function translateDoc(lang, key, fallback) {
 }
 
 const HELPERS = {
+  /** UP Board / state-board division from a percentage: {{division pct}} → First / Second / Third / Fail; {{division pct "hi"}} in Hindi. */
+  division: (pct, lang) => {
+    const n = Number(pct)
+    if (pct === null || pct === undefined || pct === '' || !Number.isFinite(n)) return ''
+    const k = n >= 60 ? 0 : n >= 45 ? 1 : n >= 33 ? 2 : 3
+    return (lang === 'hi' ? ['प्रथम श्रेणी', 'द्वितीय श्रेणी', 'तृतीय श्रेणी', 'अनुत्तीर्ण'] : ['First division', 'Second division', 'Third division', 'Fail'])[k]
+  },
   /** Translate a string: `{{t "key" "fallback"}}` or `{{t "key"}}`. Values for `{{placeholders}}` in the text come
    *  from the hash: `{{t "hrms.print.offer.dear" "Dear {{name}}," name=employee.name}}` (escaped like any value).
    *  The text itself may bold a part with `<b>…</b>`; any other markup stays escaped. */
@@ -181,6 +188,22 @@ for (const [name, fn] of Object.entries(HELPERS)) hb.registerHelper(name, fn)
  * text from the template (or `fallback=` the module's own footer) and the "printed on" line.
  */
 hb.registerPartial('letterhead', `{{#if (eq @root.$layout.mode "PREPRINTED")}}<div class="head preprinted">{{#if @partial-block}}{{> @partial-block}}{{/if}}</div>{{else}}<div class="head{{#if @root.$layout.center}} center{{/if}}"><div class="lh">{{{@root.$layout.block}}}</div>{{#if @partial-block}}<div class="corner">{{> @partial-block}}</div>{{/if}}</div>{{/if}}`)
+/**
+ * `{{> seal role="PRINCIPAL" label="School seal"}}` — what sits above a signatory's line: by hand, the dashed circle
+ * for the rubber stamp; printed, the uploaded seal with that person's signature over it (and their name under it);
+ * no signature, nothing. Every built-in template uses it where the seal goes.
+ */
+hb.registerHelper('signBlock', (role, label, options) => {
+  const sign = options?.data?.root?.$layout?.sign ?? { mode: 'HAND', people: {} }
+  const text = typeof label === 'string' && label ? label : 'School seal'
+  if (sign.mode === 'NONE') return ''
+  const who = sign.people?.[typeof role === 'string' && role ? role : 'PRINCIPAL'] ?? {}
+  if (sign.mode === 'PRINTED' && (sign.seal || who.img)) {
+    return new hb.SafeString(`<div class="signed">${sign.seal ? `<img class="seal-img" src="${esc(sign.seal)}" alt="" />` : ''}${who.img ? `<img class="sign-img" src="${esc(who.img)}" alt="" />` : ''}</div>${who.name ? `<div class="sign-name">${esc(who.name)}</div>` : ''}`)
+  }
+  return new hb.SafeString(`<div class="seal">${esc(text)}</div>`)
+})
+hb.registerPartial('seal', '{{signBlock role label}}')
 hb.registerPartial('footer', `{{#if (or @root.$layout.footerText fallback @root.$layout.showPrintedOn)}}<div class="doc-foot"><span>{{default @root.$layout.footerText fallback}}</span>{{#if @root.$layout.showPrintedOn}}<span>Printed {{dateTime @root.$now}}</span>{{/if}}</div>{{/if}}`)
 
 // ───────────────────────────────────────────────────────── templates
@@ -282,7 +305,19 @@ export function layoutFor(template, letterhead, institution) {
     width: template.orientation === 'landscape' && !fixedPaper(template.paper) ? paper.height : paper.width,
     pageCss: pageCss(template),
     fontScale: card ? 100 : template.fontScale ?? 100,
+    sign: signLayout(template, letterhead, h),
   }
+}
+
+/**
+ * How this document is signed (SIGN_MODES) and what can be printed: the seal, and each signatory's uploaded signature,
+ * name and title. A campus's own seal and principal (Branch.identity, merged into `h` by services/documents.js) win.
+ */
+function signLayout(template, letterhead, h) {
+  const people = {}
+  for (const x of letterhead?.signatures ?? []) if (x?.role) people[x.role] = { img: x.imageUrl || '', name: x.name || '', title: x.title || '' }
+  if (h.principalSignUrl || h.principalName) people.PRINCIPAL = { ...people.PRINCIPAL, img: h.principalSignUrl || people.PRINCIPAL?.img || '', name: h.principalName || people.PRINCIPAL?.name || '', title: people.PRINCIPAL?.title || '' }
+  return { mode: template.signMode || defaultSignMode(template.docType), seal: h.sealUrl || letterhead?.sealUrl || '', people }
 }
 
 const BASE_CSS = (L) => `
@@ -319,6 +354,10 @@ const BASE_CSS = (L) => `
   .photo { width: 28mm; height: 34mm; border: 0.3mm solid #555; display: flex; align-items: center; justify-content: center; text-align: center; color: #8A8F99; font-size: 7pt; overflow: hidden } .photo img { width: 100%; height: 100%; object-fit: cover }
   .signs { display: flex; justify-content: space-between; align-items: flex-end; gap: 8mm; margin-top: 16mm } .signs > div { flex: 1; text-align: center; border-top: 0.3mm solid #333; padding-top: 1.2mm; font-size: 8.6pt }
   .seal { width: 22mm; height: 22mm; border: 0.3mm dashed #9AA0AA; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #9AA0AA; font-size: 6.8pt; margin: 0 auto 2mm }
+  .signs > div { position: relative } .signs > div > .signed, .signs > div > .seal:first-child, .sealed > .signed { position: absolute; left: 50%; bottom: 100%; transform: translate(-50%, -1mm); margin: 0 }
+  .card-sign { display: block; max-height: 6mm; max-width: 22mm; object-fit: contain; margin: 0 auto -0.8mm }
+  .signed { position: relative; height: 22mm; width: 40mm; margin: 0 auto 1mm } .seal-img { position: absolute; left: 50%; top: 0; transform: translateX(-62%); width: 22mm; height: 22mm; object-fit: contain; opacity: .9 }
+  .sign-img { position: absolute; left: 50%; bottom: 0; transform: translateX(-38%); max-width: 36mm; max-height: 14mm; object-fit: contain } .sign-name { font-size: 8pt; font-weight: 600; margin-bottom: .6mm }
   .cut { border-top: 0.35mm dashed #8A8F99; margin: 7mm 0 5mm; text-align: center; line-height: 0 } .cut span { background: #fff; padding: 0 2mm; font-size: 7pt; color: #8A8F99 }
   @media print { .no-break { break-inside: avoid } .page-break { break-before: page } }
   ${L.card ? `* { -webkit-print-color-adjust: exact; print-color-adjust: exact } html, body { margin: 0; padding: 0 } .page { padding: 0 }

@@ -84,6 +84,6 @@
 <div class="signs no-break">
   <div>{{t "coe.print.transcript.preparedBy" "Prepared by"}}</div>
   <div>{{t "coe.print.transcript.checkedBy" "Checked by"}}</div>
-  <div class="sealed"><div class="seal">{{t "coe.print.gradeCard.seal" "Seal"}}</div>{{t "coe.print.transcript.controller" "Controller of Examinations"}}</div>
+  <div class="sealed">{{> seal role="CONTROLLER" label=(t "coe.print.gradeCard.seal" "Seal")}}{{t "coe.print.transcript.controller" "Controller of Examinations"}}</div>
 </div>
 {{> footer}}

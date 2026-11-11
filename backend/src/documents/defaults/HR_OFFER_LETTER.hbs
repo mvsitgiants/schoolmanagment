@@ -69,7 +69,7 @@
     <div>
       <div>{{t "hrms.print.offer.yours" "Yours sincerely,"}}</div>
       <div>{{t "hrms.print.offer.for" "For {{school}}" school=institution.name}}</div>
-      <div class="seal">{{t "hrms.print.offer.seal" "Seal"}}</div>
+      {{> seal role="PRINCIPAL" label=(t "hrms.print.offer.seal" "Seal")}}
       <div class="line">{{t "hrms.print.offer.signatory" "Principal / Authorised signatory"}}</div>
     </div>
   </div>

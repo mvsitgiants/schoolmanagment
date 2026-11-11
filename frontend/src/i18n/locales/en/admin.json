@@ -281,7 +281,18 @@
         "useBrand": "Use brand colour",
         "footer": "Footer for every document",
         "footerHint": "e.g. “24 × 7 emergency: 080 4000 1000”. A template can replace it.",
-        "save": "Save letterhead"
+        "save": "Save letterhead",
+        "signTitle": "Seal and signatures",
+        "signHint": "Printed on documents set to “Print the signature and seal”. Scan on white paper; a transparent PNG looks best. A TC and certificates are signed by hand unless you change their template.",
+        "seal": "School seal",
+        "sealHint": "The round rubber stamp, scanned.",
+        "signName": "Name printed under the signature",
+        "signatories": {
+          "PRINCIPAL": "Principal’s signature",
+          "ACCOUNTANT": "Accountant / cashier’s signature",
+          "CONTROLLER": "Controller of examinations’ signature",
+          "SECRETARY": "Secretary / trustee’s signature (80G receipts)"
+        }
       },
       "previewA4": "Preview · A4",
       "previewPaper": "Preview · {{paper}}",
@@ -369,7 +380,20 @@
           "name": "Corporate",
           "hint": "A coloured panel with the logo and photo, details on white and a barcode."
         }
-      }
+      },
+      "signMode": "Signature & seal",
+      "signModes": {
+        "HAND": "Leave blank — sign and stamp by hand",
+        "PRINTED": "Print the signature and seal",
+        "NONE": "No signature",
+        "HANDHint": "The usual way for a TC, certificates and the admission form.",
+        "PRINTEDHint": "The signature and seal uploaded under Letterhead are printed — for documents printed in bulk.",
+        "NONEHint": "For computer-generated documents."
+      },
+      "usedFor": "Used for",
+      "usedForHint": "Pick a campus to print only its records with this template — e.g. a state-board TC for that campus. Every other campus keeps the default.",
+      "allCampuses": "All campuses (the default choice)",
+      "campusOnly": "Only {{name}}"
     },
     "notificationSetup": {
       "channels": {
@@ -1440,7 +1464,21 @@
       "onYourPlan": "Campuses on your plan",
       "planFull": "You're using every campus your {{plan}} plan includes. <link>Upgrade</link> to add more.",
       "sharedNote": "Students and staff are shared across campuses; fees, stock and timetables belong to one campus. Each campus can have its own GSTIN and document numbering.",
-      "saved": "Campus saved."
+      "saved": "Campus saved.",
+      "ownPrint": "This campus is its own school on paper",
+      "ownPrintHint": "e.g. the UP Board inter college of a CBSE school’s trust. Its students’ and staff’s documents print with these details instead of the institution’s.",
+      "printName": "Name on documents",
+      "printNameHint": "e.g. “Green Valley Inter College”",
+      "board": "Board",
+      "boardHint": "e.g. “Board of High School & Intermediate Education, U.P.”",
+      "affiliationNo": "Affiliation / recognition no.",
+      "schoolCode": "School code",
+      "udiseCode": "UDISE code",
+      "email": "Email on documents",
+      "principalName": "Principal’s name",
+      "logo": "Logo",
+      "seal": "School seal",
+      "principalSign": "Principal’s signature"
     },
     "customFields": {
       "title": "Custom fields",
@@ -1706,6 +1744,13 @@
       "deleteField": "Delete field",
       "addField": "Add a field…",
       "addSection": "Add a section"
+    },
+    "printImage": {
+      "upload": "Upload",
+      "replace": "Replace",
+      "remove": "Remove",
+      "typeError": "Upload a PNG, JPG or WebP image.",
+      "tooBig": "This image is too large — use a smaller scan (under 300 KB)."
     }
   }
 }

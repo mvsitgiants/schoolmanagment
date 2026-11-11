@@ -15,6 +15,10 @@ const letterheadSchema = new Schema({
   tagline: String,
   accentColor: String,
   footerText: String,
+  // the school seal and signatures printed on documents whose template says "print the signature and seal"
+  // (images as data URLs, like the logo — they print without a sign-in); a campus can have its own (Branch.identity)
+  sealUrl: String,
+  signatures: { type: [new Schema({ role: String, name: String, title: String, imageUrl: String }, { _id: false })], default: [] },
   updatedBy: String,
 }, { timestamps: true })
 letterheadSchema.plugin(tenantPlugin)
@@ -36,6 +40,9 @@ const templateSchema = new Schema({
   showQr: { type: Boolean, default: true },
   showPrintedOn: { type: Boolean, default: true },
   fontScale: { type: Number, default: 100 },
+  signMode: String, // SIGN_MODES; empty = the document's default (defaultSignMode)
+  // a campus's own template (e.g. the UP Board TC of the inter college): its records print with it; null = the institution's
+  branchId: { type: mongoose.Schema.Types.ObjectId, default: null },
   body: String, // Handlebars body of the document; empty = the built-in template
   active: { type: Boolean, default: true },
   updatedBy: String,

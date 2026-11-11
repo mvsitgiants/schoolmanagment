@@ -99,7 +99,7 @@
       <div class="ttl">{{t "hrms.print.idCard.tag" "Staff ID card"}}</div>
     </header>
     <div class="bd">
-      <div class="ph"><span>{{initials}}</span></div>
+      <div class="ph">{{#if photo}}<img src="{{photo}}" alt="">{{else}}<span>{{initials}}</span>{{/if}}</div>
       <div class="main">
         <div class="who">
           <div class="nm two">{{name}}</div>
@@ -109,7 +109,7 @@
         <div class="mid">
           <div class="facts">
             <div class="f code"><b>{{t "hrms.print.idCard.code" "Employee code"}}</b><span>{{code}}</span></div>
-            <div class="fsign"><div class="line"></div><div class="cap">{{> sig}}</div></div>
+            <div class="fsign">{{#if (eq @root.$layout.sign.mode "PRINTED")}}{{#if @root.$layout.sign.people.PRINCIPAL.img}}<img class="card-sign" src="{{@root.$layout.sign.people.PRINCIPAL.img}}" alt="" />{{/if}}{{/if}}<div class="line"></div><div class="cap">{{> sig}}</div></div>
             {{#if bloodGroup}}<div class="f blood"><b>{{t "hrms.print.idCard.bloodGroup" "Blood group"}}</b><span>{{bloodGroup}}</span></div>{{/if}}
             {{#if mobile}}<div class="f num"><b>{{t "hrms.print.idCard.mobile" "Mobile"}}</b><span>{{mobile}}</span></div>{{/if}}
             {{#if @root.settings.validUntil}}<div class="f"><b>{{t "hrms.print.idCard.validUntil" "Valid until"}}</b><span>{{date @root.settings.validUntil}}</span></div>{{/if}}

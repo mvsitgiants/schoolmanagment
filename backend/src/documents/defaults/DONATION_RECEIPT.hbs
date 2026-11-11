@@ -64,7 +64,7 @@
     <span class="rb">{{#if receipt.receivedBy}}{{t "alumni.print.receipt.receivedBy" "Received by {{name}}" name=receipt.receivedBy}}{{/if}}</span>
     <div class="for">
       <div>{{t "alumni.print.receipt.forTrust" "For {{name}}" name=(default institution.trustName (default institution.legalName institution.name))}}</div>
-      <div class="seal">{{t "alumni.print.receipt.seal" "Seal"}}</div>
+      {{> seal role="SECRETARY" label=(t "alumni.print.receipt.seal" "Seal")}}
       <div class="line" style="margin-top:2mm">{{t "alumni.print.receipt.signature" "Authorised signatory"}}</div>
     </div>
   </div>

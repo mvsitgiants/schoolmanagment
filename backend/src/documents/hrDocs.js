@@ -23,7 +23,7 @@ async function offerLetterData(id, auth) {
     ])
     const date = (c.offer.at ? new Date(c.offer.at) : new Date()).toISOString().slice(0, 10)
     return {
-      kind: 'CANDIDATE', person: { name: c.name, gender: c.gender, mobile: c.mobile, email: c.email, address: null },
+      kind: 'CANDIDATE', person: { name: c.name, gender: c.gender, mobile: c.mobile, email: c.email, address: c.address || null },
       offer: c.offer, requisition: r, department, branch, date,
       refNo: `HR/OFFER/${fyOf(date)}/${r?.requisitionNo ?? String(c._id).slice(-6).toUpperCase()}`,
     }

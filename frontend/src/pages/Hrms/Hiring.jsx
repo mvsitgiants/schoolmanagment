@@ -84,12 +84,12 @@ function CandidateForm({ candidate, requisitionId, onClose, onSaved }) {
   const { t } = useTranslation('hrms')
   const { showError } = useSnackbar()
   const c = candidate ?? {}
-  const [form, setForm] = useState({ name: c.name ?? '', mobile: c.mobile ?? '', email: c.email ?? '', qualifications: c.qualifications ?? '', experienceYears: c.experienceYears ?? '', currentEmployer: c.currentEmployer ?? '', expected: c.expectedSalary ? String(toRupees(c.expectedSalary)) : '', source: c.source ?? 'OTHER' })
+  const [form, setForm] = useState({ name: c.name ?? '', mobile: c.mobile ?? '', email: c.email ?? '', qualifications: c.qualifications ?? '', experienceYears: c.experienceYears ?? '', currentEmployer: c.currentEmployer ?? '', address: c.address ?? '', expected: c.expectedSalary ? String(toRupees(c.expectedSalary)) : '', source: c.source ?? 'OTHER' })
   const [errors, setErrors] = useState({})
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }))
   const save = useMutation({
     mutationFn: () => {
-      const body = { name: form.name, mobile: form.mobile, email: form.email, qualifications: form.qualifications, experienceYears: form.experienceYears, currentEmployer: form.currentEmployer, expectedSalary: form.expected ? toPaise(form.expected) : '', source: form.source }
+      const body = { name: form.name, mobile: form.mobile, email: form.email, qualifications: form.qualifications, experienceYears: form.experienceYears, currentEmployer: form.currentEmployer, address: form.address, expectedSalary: form.expected ? toPaise(form.expected) : '', source: form.source }
       return candidate ? updateCandidate(candidate.id, body) : createCandidate({ ...body, requisitionId })
     },
     onSuccess: onSaved, onError: (e) => { setErrors(e.response?.data?.details?.fields ?? {}); showError(e.message) },
@@ -106,6 +106,7 @@ function CandidateForm({ candidate, requisitionId, onClose, onSaved }) {
         <div className="col-span-2"><FormField label={t('hrms.employees.qualifications')}><Input value={form.qualifications} onChange={set('qualifications')} /></FormField></div>
         <FormField label={t('hrms.employees.experience')}><Input type="number" min="0" value={form.experienceYears} onChange={set('experienceYears')} /></FormField>
         <FormField label={t('hrms.hiring.currentEmployer')}><Input value={form.currentEmployer} onChange={set('currentEmployer')} /></FormField>
+        <div className="col-span-2"><FormField label={t('hrms.hiring.address')} hint={t('hrms.hiring.addressHint')}><Input value={form.address} onChange={set('address')} maxLength={300} /></FormField></div>
         <FormField label={t('hrms.hiring.expected')}><Input type="number" min="0" value={form.expected} onChange={set('expected')} /></FormField>
         <FormField label={t('hrms.hiring.source')}><Select value={form.source} onChange={set('source')}>{CANDIDATE_SOURCES.map((s) => <option key={s} value={s}>{t(`hrms.hiring.sources.${s}`)}</option>)}</Select></FormField>
       </div>

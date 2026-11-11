@@ -4,13 +4,15 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import clsx from 'clsx'
 import { Trans, useTranslation } from 'react-i18next'
 import { Braces, Check, Code2, FileText, LayoutTemplate, Plus, Printer, RotateCcw, Star, Trash2 } from 'lucide-react'
-import { LETTERHEAD_IDS, LETTERHEAD_MODES, PAPER_BY, PAPER_SIZES, PRINT_DOC_BY } from '@schoolgiant/shared'
+import { LETTERHEAD_IDS, LETTERHEAD_MODES, PAPER_BY, PAPER_SIZES, PRINT_DOC_BY, SIGNATORIES, SIGN_MODES, defaultSignMode } from '@schoolgiant/shared'
+import PrintImageField from '../../components/print/PrintImageField'
 import { FormField, Input, Note, PageContainer, PageHeader, Panel, SegmentedControl, Select, StatusPill, Tabs, Textarea, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { Switch } from '../../components/app/Controls'
 import PrintPreview from '../../components/print/PrintPreview'
 import DocPreview from '../../components/print/DocPreview'
 import { fetchDocumentHelp } from '../../api/documents'
+import { fetchBranches } from '../../api/core'
 import { forgetPrintLayouts } from '../../components/print/printLayout'
 import {
   createPrintTemplate, deletePrintTemplate, fetchLetterhead, fetchPrintTemplates, saveLetterhead, updatePrintTemplate,
@@ -56,7 +58,7 @@ function LetterheadEditor() {
   const canEdit = hasPermission('core.print-templates.edit')
   const { data } = useQuery({ queryKey: ['print-letterhead'], queryFn: fetchLetterhead })
   const [f, setF] = useState(null)
-  useEffect(() => { if (data) setF({ align: data.align, showLogo: data.showLogo, showContacts: data.showContacts, ids: data.ids, tagline: data.tagline ?? '', accentColor: data.accentColor ?? '', footerText: data.footerText ?? '' }) }, [data])
+  useEffect(() => { if (data) setF({ align: data.align, showLogo: data.showLogo, showContacts: data.showContacts, ids: data.ids, tagline: data.tagline ?? '', accentColor: data.accentColor ?? '', footerText: data.footerText ?? '', sealUrl: data.sealUrl ?? '', signatures: SIGNATORIES.map((r) => ({ role: r.value, name: '', title: '', imageUrl: '', ...(data.signatures ?? []).find((x) => x.role === r.value) })) }) }, [data])
   const save = useMutation({
     mutationFn: () => saveLetterhead(f),
     onSuccess: (d) => { qc.setQueryData(['print-letterhead'], d); forgetPrintLayouts(); showSuccess(t('admin.printTemplates.letterhead.saved')) },
@@ -96,6 +98,26 @@ function LetterheadEditor() {
             </div>
           </FormField>
           <FormField label={t('admin.printTemplates.letterhead.footer')} hint={t('admin.printTemplates.letterhead.footerHint')}><Textarea rows={2} value={f.footerText} disabled={!canEdit} onChange={(e) => setF((x) => ({ ...x, footerText: e.target.value }))} maxLength={300} /></FormField>
+          {f.signatures && (
+            <div className="border-t border-border pt-4 space-y-3">
+              <div>
+                <p className="text-sm font-semibold text-ink">{t('admin.printTemplates.letterhead.signTitle')}</p>
+                <p className="text-xs text-ink-muted">{t('admin.printTemplates.letterhead.signHint')}</p>
+              </div>
+              <PrintImageField label={t('admin.printTemplates.letterhead.seal')} hint={t('admin.printTemplates.letterhead.sealHint')} value={f.sealUrl} disabled={!canEdit} onChange={(v) => setF((x) => ({ ...x, sealUrl: v }))} />
+              {f.signatures.map((sg, i) => {
+                const put = (patch) => setF((x) => ({ ...x, signatures: x.signatures.map((y, j) => (j === i ? { ...y, ...patch } : y)) }))
+                return (
+                  <div key={sg.role} className="rounded-lg border border-border p-3 grid gap-3 sm:grid-cols-[1fr_1fr] items-start">
+                    <PrintImageField wide label={t(`admin.printTemplates.letterhead.signatories.${sg.role}`)} value={sg.imageUrl} disabled={!canEdit} onChange={(v) => put({ imageUrl: v })} />
+                    <div className="grid gap-2">
+                      <FormField label={t('admin.printTemplates.letterhead.signName')}><Input value={sg.name} disabled={!canEdit} maxLength={120} onChange={(e) => put({ name: e.target.value })} /></FormField>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
           {canEdit && <div className="flex justify-end"><Button loading={save.isPending} icon={Check} onClick={() => save.mutate()}>{t('admin.printTemplates.letterhead.save')}</Button></div>}
         </div>
       </Panel>
@@ -202,6 +224,8 @@ function DesignPicker({ doc, designs, base, onPick, onClose }) {
 
 function TemplateRow({ tpl, active, onEdit }) {
   const { t } = useTranslation('admin')
+  const { data: campuses = [] } = useQuery({ queryKey: ['branches'], queryFn: fetchBranches, staleTime: 5 * 60_000, enabled: !!tpl.branchId })
+  const campusName = (id) => campuses.find((b) => b.id === String(id))?.name ?? ''
   const qc = useQueryClient()
   const { showSuccess, showError } = useSnackbar()
   const makeDefault = useMutation({
@@ -212,16 +236,17 @@ function TemplateRow({ tpl, active, onEdit }) {
   return (
     <div className={clsx('py-3 flex flex-wrap items-center gap-x-3 gap-y-1', active && 'bg-brand-50/40 -mx-5 px-5')}>
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium text-ink flex items-center gap-2">{tpl.name}{tpl.isDefault && <StatusPill tone="success">{t('admin.printTemplates.default')}</StatusPill>}{!tpl.active && <StatusPill tone="neutral">{t('ui.common.off')}</StatusPill>}</p>
+        <p className="text-sm font-medium text-ink flex items-center gap-2">{tpl.name}{tpl.isDefault && <StatusPill tone="success">{t('admin.printTemplates.default')}</StatusPill>}{tpl.branchId && <StatusPill tone="info">{t('admin.printTemplates.campusOnly', { name: campusName(tpl.branchId) })}</StatusPill>}{!tpl.active && <StatusPill tone="neutral">{t('ui.common.off')}</StatusPill>}</p>
         <p className="text-xs text-ink-faint">{layoutLine(t, tpl)}{tpl.updatedBy ? ` · ${t('admin.printTemplates.changedBy', { name: tpl.updatedBy })}` : ''}</p>
       </div>
-      {!tpl.isDefault && tpl.active && hasPermission('core.print-templates.edit') && <Button size="sm" variant="ghost" icon={Star} loading={makeDefault.isPending} onClick={() => makeDefault.mutate()}>{t('admin.printTemplates.makeDefault')}</Button>}
+      {!tpl.isDefault && !tpl.branchId && tpl.active && hasPermission('core.print-templates.edit') && <Button size="sm" variant="ghost" icon={Star} loading={makeDefault.isPending} onClick={() => makeDefault.mutate()}>{t('admin.printTemplates.makeDefault')}</Button>}
       {hasPermission('core.print-templates.edit') && <Button size="sm" variant="secondary" onClick={onEdit}>{t('actions.edit')}</Button>}
     </div>
   )
 }
 
 function TemplateEditor({ doc, template, design, base, letterhead, onClose }) {
+  const { data: campuses = [] } = useQuery({ queryKey: ['branches'], queryFn: fetchBranches, staleTime: 5 * 60_000 })
   const { t } = useTranslation('admin')
   const docName = docLabel(t, doc)
   const qc = useQueryClient()
@@ -233,6 +258,7 @@ function TemplateEditor({ doc, template, design, base, letterhead, onClose }) {
     name: start.name, paper: start.paper, orientation: start.orientation ?? 'portrait', margins: { ...start.margins }, letterhead: start.letterhead,
     headerSpaceMm: start.headerSpaceMm ?? 35, footerSpaceMm: start.footerSpaceMm ?? 20, footerText: start.footerText ?? '',
     showQr: start.showQr !== false, showPrintedOn: start.showPrintedOn !== false, fontScale: start.fontScale ?? 100, active: start.active !== false,
+    signMode: start.signMode || defaultSignMode(doc.value), branchId: start.branchId || '',
     isDefault: template ? template.isDefault : doc.templates.length === 0,
   }))
   // the document body: null = the standard layout, a string = this institution's own Handlebars template
@@ -249,6 +275,7 @@ function TemplateEditor({ doc, template, design, base, letterhead, onClose }) {
     ...f, margins: Object.fromEntries(Object.entries(f.margins).map(([k, v]) => [k, num(v)])),
     headerSpaceMm: num(f.headerSpaceMm), footerSpaceMm: num(f.footerSpaceMm), fontScale: num(f.fontScale) || 100,
     ...(doc.server && { body: docBody ?? null }),
+    branchId: f.branchId || null, ...(f.branchId && { isDefault: false }),
   })
   const save = useMutation({
     mutationFn: () => (template ? updatePrintTemplate(template.id, body()) : createPrintTemplate({ ...body(), docType: doc.value })),
@@ -289,13 +316,22 @@ function TemplateEditor({ doc, template, design, base, letterhead, onClose }) {
                 {['top', 'right', 'bottom', 'left'].map((k) => <div key={k}><Input inputMode="decimal" aria-label={t(`admin.printTemplates.marginAria.${k}`)} value={f.margins[k] ?? ''} onChange={setMargin(k)} className="font-mono-num text-center" /><p className="text-[11px] text-ink-faint text-center mt-0.5">{t(`admin.printTemplates.margins.${k}`)}</p></div>)}
               </div>
             </FormField>
+            {doc.server && <FormField label={t('admin.printTemplates.signMode')} hint={t(`admin.printTemplates.signModes.${f.signMode}Hint`)}><Select value={f.signMode} onChange={set('signMode')}>{SIGN_MODES.map((m) => <option key={m.value} value={m.value}>{t(`admin.printTemplates.signModes.${m.value}`)}</option>)}</Select></FormField>}
             <FormField label={t('admin.printTemplates.textSize')} hint={t('admin.printTemplates.textSizeHint')}><Select value={f.fontScale} onChange={set('fontScale')}>{[90, 100, 110, 120].map((v) => <option key={v} value={v}>{v}%</option>)}</Select></FormField>
             <FormField label={t('admin.printTemplates.footerText')} hint={t('admin.printTemplates.footerTextHint')}><Textarea rows={2} value={f.footerText} onChange={set('footerText')} maxLength={300} /></FormField>
           </>}
           <div className="flex flex-wrap gap-x-6 gap-y-3 text-sm text-ink">
             {!card && <div className="flex items-center gap-2"><Switch size="sm" checked={f.showQr} onChange={(v) => setF((x) => ({ ...x, showQr: v }))} label={t('admin.printTemplates.qrCode')} />{t('admin.printTemplates.qrToVerify')}</div>}
             {!card && <div className="flex items-center gap-2"><Switch size="sm" checked={f.showPrintedOn} onChange={(v) => setF((x) => ({ ...x, showPrintedOn: v }))} label={t('admin.printTemplates.printedOnDate')} />{t('admin.printTemplates.printedOnQuoted')}</div>}
-            <div className="flex items-center gap-2"><Switch size="sm" checked={f.isDefault} disabled={template?.isDefault} onChange={(v) => setF((x) => ({ ...x, isDefault: v, active: v ? true : x.active }))} label={t('admin.printTemplates.default')} />{t('admin.printTemplates.defaultFor', { doc: docName.toLowerCase() })}</div>
+            {campuses.length > 1 && !template?.isDefault && (
+              <FormField label={t('admin.printTemplates.usedFor')} hint={t('admin.printTemplates.usedForHint')}>
+                <Select value={f.branchId} onChange={(e) => setF((x) => ({ ...x, branchId: e.target.value, ...(e.target.value && { isDefault: false }) }))}>
+                  <option value="">{t('admin.printTemplates.allCampuses')}</option>
+                  {campuses.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
+                </Select>
+              </FormField>
+            )}
+            {!f.branchId && <div className="flex items-center gap-2"><Switch size="sm" checked={f.isDefault} disabled={template?.isDefault} onChange={(v) => setF((x) => ({ ...x, isDefault: v, active: v ? true : x.active }))} label={t('admin.printTemplates.default')} />{t('admin.printTemplates.defaultFor', { doc: docName.toLowerCase() })}</div>}
             {!f.isDefault && <div className="flex items-center gap-2"><Switch size="sm" checked={f.active} onChange={(v) => setF((x) => ({ ...x, active: v }))} label={t('admin.printTemplates.inUse')} />{t('admin.printTemplates.inUse')}</div>}
           </div>
           {doc.server && (

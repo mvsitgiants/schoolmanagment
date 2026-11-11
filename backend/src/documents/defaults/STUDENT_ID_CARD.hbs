@@ -107,7 +107,7 @@
         <div class="mid">
           <div class="facts">
             <div class="f code"><b>{{t "students.print.idCard.admissionNo" "Admission no."}}</b><span>{{admissionNo}}</span></div>
-            <div class="fsign"><div class="line"></div><div class="cap">{{#if @root.settings.signatory}}{{@root.settings.signatory}}{{else}}{{t "students.print.idCard.signatory" "Principal"}}{{/if}}</div></div>
+            <div class="fsign">{{#if (eq @root.$layout.sign.mode "PRINTED")}}{{#if @root.$layout.sign.people.PRINCIPAL.img}}<img class="card-sign" src="{{@root.$layout.sign.people.PRINCIPAL.img}}" alt="" />{{/if}}{{/if}}<div class="line"></div><div class="cap">{{#if @root.settings.signatory}}{{@root.settings.signatory}}{{else}}{{t "students.print.idCard.signatory" "Principal"}}{{/if}}</div></div>
             {{#if (and @root.settings.show.roll rollNo)}}<div class="f num"><b>{{t "students.print.idCard.roll" "Roll no."}}</b><span>{{rollNo}}</span></div>{{/if}}
             {{#if (and @root.settings.show.bloodGroup bloodGroup)}}<div class="f blood"><b>{{t "students.print.idCard.bloodGroup" "Blood group"}}</b><span>{{bloodGroup}}</span></div>{{/if}}
             {{#if (and @root.settings.show.dob dob)}}<div class="f"><b>{{t "students.print.idCard.dob" "Date of birth"}}</b><span>{{date dob}}</span></div>{{/if}}

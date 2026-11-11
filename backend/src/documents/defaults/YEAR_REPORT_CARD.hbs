@@ -110,7 +110,7 @@
 
 <div class="signs no-break">
   <div>{{t "exams.print.reportCard.teacherSign" "Class Teacher"}}{{#if classTeacher}}<br><span class="note">{{classTeacher}}</span>{{/if}}</div>
-  <div class="sealed"><div class="seal">{{t "exams.print.reportCard.seal" "School seal"}}</div>{{t "exams.print.reportCard.principalSign" "Principal"}}{{#if classTeacher}}<br><span class="note">&nbsp;</span>{{/if}}</div>
+  <div class="sealed">{{> seal role="PRINCIPAL" label=(t "exams.print.reportCard.seal" "School seal")}}{{t "exams.print.reportCard.principalSign" "Principal"}}{{#if classTeacher}}<br><span class="note">&nbsp;</span>{{/if}}</div>
   <div>{{t "exams.print.reportCard.parentSign" "Parent / Guardian"}}{{#if classTeacher}}<br><span class="note">&nbsp;</span>{{/if}}</div>
 </div>
 {{> footer}}

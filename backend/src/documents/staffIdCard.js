@@ -31,7 +31,7 @@ function barcodeUrl(text) {
 /** What the staff card prints for each of `ids` (in the caller's Staff & HR scope, in the order asked). */
 export async function staffIdCards(ids, auth) {
   const [rows, students, tenant, year, now] = await Promise.all([
-    Employee.find({ _id: { $in: ids }, ...employeeScope(auth) }).select('employeeCode name designation departmentId category bloodGroup mobile emergencyContact status joiningDate').lean(),
+    Employee.find({ _id: { $in: ids }, ...employeeScope(auth) }).select('employeeCode name designation departmentId category bloodGroup mobile emergencyContact status joiningDate +photo').lean(),
     getSettings('students'),
     Tenant.findById(auth.tenantId).select('name profile').lean(),
     currentYear(),
@@ -43,7 +43,7 @@ export async function staffIdCards(ids, auth) {
   return {
     staff: ids.map((id) => byId.get(String(id))).filter(Boolean).map((e) => ({
       id: String(e._id), code: e.employeeCode, name: e.name, designation: e.designation || EMPLOYEE_CATEGORIES.find((c) => c.value === e.category)?.label || '',
-      department: deps.get(String(e.departmentId)) ?? '', bloodGroup: e.bloodGroup ?? '', mobile: e.mobile ?? '', status: e.status,
+      department: deps.get(String(e.departmentId)) ?? '', bloodGroup: e.bloodGroup ?? '', mobile: e.mobile ?? '', status: e.status, photo: e.photo || null,
       emergency: e.emergencyContact?.phone ? { name: e.emergencyContact.name ?? '', relation: e.emergencyContact.relation ?? '', phone: e.emergencyContact.phone } : null,
     })),
     // the card colour and signatory follow the student card (Settings › Students), so both cards match

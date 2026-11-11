@@ -62,6 +62,23 @@ export const LETTERHEAD_MODES = [
   { value: 'NONE', label: 'No letterhead', hint: 'Just the institution name in one line, e.g. for receipt rolls.' },
 ]
 
+/** How a document is signed: blank lines for a pen and the rubber stamp, the uploaded signature and seal, or nothing. */
+export const SIGN_MODES = [
+  { value: 'HAND', label: 'Leave blank — sign and stamp by hand', hint: 'The usual way for a TC, certificates and the admission form.' },
+  { value: 'PRINTED', label: 'Print the signature and seal', hint: 'The uploaded signature and school seal are printed — for receipts, ID cards and report cards printed in bulk.' },
+  { value: 'NONE', label: 'No signature', hint: 'For computer-generated documents.' },
+]
+/** Whose signature can be uploaded (Print templates › Letterhead, and per campus for the principal). */
+export const SIGNATORIES = [
+  { value: 'PRINCIPAL', label: 'Principal' },
+  { value: 'ACCOUNTANT', label: 'Accountant / cashier' },
+  { value: 'CONTROLLER', label: 'Controller of examinations' },
+  { value: 'SECRETARY', label: 'Secretary / trustee' },
+]
+// documents printed in bulk carry the printed signature and seal by default; the rest are signed by hand
+const PRINTED_SIGN = new Set(['FEE_RECEIPT', 'FEE_INVOICE', 'STORE_SALE_RECEIPT', 'DONATION_RECEIPT', 'STUDENT_ID_CARD', 'STAFF_ID_CARD', 'HALL_TICKET', 'REPORT_CARD', 'YEAR_REPORT_CARD', 'PAYSLIP'])
+export const defaultSignMode = (docType) => (PRINTED_SIGN.has(docType) ? 'PRINTED' : 'HAND')
+
 /** Registration numbers the letterhead can show, from the institution profile. */
 export const LETTERHEAD_IDS = [
   { value: 'affiliationNo', label: 'Board affiliation no.', short: 'Affiliation No.' },
@@ -89,7 +106,7 @@ export function printDefaults(docType) {
     return {
       docType, name: 'Standard', isDefault: true, builtIn: true,
       paper: doc.paper, orientation: 'portrait', margins: { top: 0, right: 0, bottom: 0, left: 0 },
-      letterhead: 'NONE', headerSpaceMm: 0, footerSpaceMm: 0, footerText: '', showQr: true, showPrintedOn: false, fontScale: 100,
+      letterhead: 'NONE', headerSpaceMm: 0, footerSpaceMm: 0, footerText: '', showQr: true, showPrintedOn: false, fontScale: 100, signMode: defaultSignMode(docType),
     }
   }
   return {
@@ -97,7 +114,7 @@ export function printDefaults(docType) {
     paper: doc?.paper ?? 'A4', orientation: 'portrait',
     margins: small ? { top: 10, right: 10, bottom: 12, left: 10 } : { top: 12, right: 12, bottom: 16, left: 12 },
     letterhead: 'FULL', headerSpaceMm: 35, footerSpaceMm: 20,
-    footerText: '', showQr: true, showPrintedOn: true, fontScale: 100,
+    footerText: '', showQr: true, showPrintedOn: true, fontScale: 100, signMode: defaultSignMode(docType),
   }
 }
 
