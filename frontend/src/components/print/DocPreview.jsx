@@ -17,7 +17,7 @@ export default function DocPreview({ docType, body, layout, templateId, height =
   const [width, setWidth] = useState(420)
   const [html, setHtml] = useState('')
   const [error, setError] = useState(null)
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const req = useDebouncedValue(JSON.stringify({ body, layout, templateId }), 600)
 
   useEffect(() => {
@@ -50,14 +50,18 @@ export default function DocPreview({ docType, body, layout, templateId, height =
     ? Math.round(paper.width * MM * 2 + 18 + 32)
     : Math.round((layout?.orientation === 'landscape' ? paper.height : paper.width) * MM + 48)
   const scale = Math.min(paper.card ? 1.4 : 1, width / SHEET)
+  // the paper-height frame only while a page is shown; a failed preview is just its note, loading a short placeholder
+  const note = error && (
+    <div className={`${html ? 'absolute inset-x-0 top-0 z-10 m-2' : ''} rounded-md border border-danger-500/30 bg-danger-50 px-3 py-2 text-xs text-danger-700 flex gap-2`}>
+      <AlertTriangle className="w-4 h-4 shrink-0" /><span className="break-words min-w-0">{error}</span>
+    </div>
+  )
+  const skeleton = !html && !error && loading
   return (
-    <div ref={box} className="relative rounded-lg border border-border bg-[#F5F6F8] overflow-hidden" style={{ height }}>
-      {error && (
-        <div className="absolute inset-x-0 top-0 z-10 m-2 rounded-md border border-danger-500/30 bg-danger-50 px-3 py-2 text-xs text-danger-700 flex gap-2">
-          <AlertTriangle className="w-4 h-4 shrink-0" /><span className="break-words min-w-0">{error}</span>
-        </div>
-      )}
-      {loading && !html && <div className="absolute inset-0 animate-pulse bg-black/5" />}
+    <div ref={box} className={html || skeleton ? 'relative rounded-lg border border-border bg-[#F5F6F8] overflow-hidden' : 'relative'}
+      style={html ? { height } : skeleton ? { height: Math.min(height, 180) } : undefined}>
+      {note}
+      {skeleton && <div className="absolute inset-0 animate-pulse bg-black/5" />}
       {html && (
         <iframe title={t('ui.docPreview.title')} srcDoc={html} sandbox="allow-same-origin"
           style={{ width: SHEET, height: height / scale, transform: `scale(${scale})`, transformOrigin: 'top left', border: 0, opacity: loading ? 0.6 : 1 }} />
