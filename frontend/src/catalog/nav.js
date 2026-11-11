@@ -9,6 +9,8 @@ import {
 /** Extra routes that belong to a catalog page (detail screens etc.). */
 const ROUTE_ALIASES = [
   { prefix: '/core/all-pages', module: 'core', page: 'roles' },
+  { prefix: '/lms/bulk-upload', module: 'lms', page: 'create-content' },
+  { prefix: '/canteen/token-board', module: 'canteen', page: 'orders' }, // the token board: anyone who can see orders
 ]
 
 /** Routes open to every signed-in user. */

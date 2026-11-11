@@ -38,6 +38,7 @@ import { EXAM_SEATING_DOCS } from './examSeatingDocs.js'
 import { YEAR_RESULT_DOCS } from './yearResultDocs.js'
 import { bandRange, splitActivities, weekdayOf } from './examPrint.js'
 import { INVENTORY_DOCS } from './inventoryDocs.js'
+import { CANTEEN_DOCS } from './canteenDocs.js'
 import { ALUMNI_DOCS } from './alumniDocs.js'
 import { QUESTION_PAPER_DOCS } from './questionPaperDocs.js'
 import { COE_DOCS } from './coeDocs.js'
@@ -174,6 +175,7 @@ export const DOCS = {
   ...FEE_DOCS, // the fee invoice / bank challan (documents/feeDocs.js)
   ...HR_DOCS, // the offer / appointment letter (documents/hrDocs.js)
   ...INVENTORY_DOCS, // purchase order, store sale receipt (documents/inventoryDocs.js)
+  ...CANTEEN_DOCS, // the canteen token slip (documents/canteenDocs.js)
   ...YEAR_RESULT_DOCS, // the year-end report card (documents/yearResultDocs.js)
   ...EXAM_SEATING_DOCS, // seating charts, door lists, invigilation duties (documents/examSeatingDocs.js)
   ...QUESTION_PAPER_DOCS, // question papers and answer keys (documents/questionPaperDocs.js)

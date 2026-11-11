@@ -1,11 +1,11 @@
 import {
-  CANTEEN_DEFAULTS, CANTEEN_TAG_VALUES, DOC_TYPE_BY_CODE, canteenBlockReason, canteenSoldOn, canteenTotal, canteenWalletCheck, formatINR, sectionLabel, weekdayCode,
+  CANTEEN_DEFAULTS, CANTEEN_PAY_MODES, CANTEEN_TAG_VALUES, CANTEEN_TOKEN_LINGER_MS, DOC_TYPE_BY_CODE, canteenBlockReason, canteenSoldOn, canteenTotal, canteenWalletCheck, formatINR, sectionLabel, weekdayCode,
 } from '@schoolgiant/shared'
 import mongoose from 'mongoose'
 import { ClassLevel, Section } from '../models/academics.js'
 import { CanteenItem, CanteenOrder, CanteenSpecial, CanteenTopup, CanteenWallet, WalletTxn } from '../models/canteen.js'
 import { Student, studentName } from '../models/students.js'
-import { TenantCounter } from '../models/tenant.js'
+import { Branch, TenantCounter } from '../models/tenant.js'
 import { audit } from '../platform/audit.js'
 import { getContext } from '../platform/context.js'
 import { isOid, withTransaction } from '../platform/db.js'
@@ -13,6 +13,7 @@ import { badRequest, conflict, notFound } from '../platform/errors.js'
 import { emit } from '../platform/events.js'
 import { nextNumber } from '../platform/numbering.js'
 import { getSettings } from '../platform/settings.js'
+import { emitToRoom, joinRoom, leaveRoom, onSocket } from '../platform/realtime.js'
 import { institutionNow } from '../platform/time.js'
 import { escapeRegex } from '../platform/validate.js'
 
@@ -25,6 +26,12 @@ import { escapeRegex } from '../platform/validate.js'
 // update (balance ≥ amount) — two counters can't overspend the same wallet. The family's controls (a daily spend limit,
 // items or kinds of food ruled out) apply at the counter and to pre-orders alike. Finance hears canteen.topup,
 // canteen.refund and canteen.sale (see the wiring note); the family hears canteen.low_balance once per dip.
+//
+// Tokens (Settings › Canteen › tokens, on by default): every new order gets a token — 1, 2, 3 … restarting each day
+// on each campus (one atomic TenantCounter row: docType CANTEEN_TOKEN, scope = the campus id, period = the order's
+// date, so a pre-order gets its token for the day it is eaten). A counter sale is then PLACED ("preparing") → READY →
+// COLLECTED like a pre-order, instead of SERVED at once. Every new order and every move is pushed live on the
+// socket rooms `canteen:all` (the Orders screen) and `canteen:b:<campus id>` (that campus's token board).
 
 const MODULE = 'canteen'
 const idStr = (v) => (v ? String(v) : null)
@@ -37,6 +44,8 @@ export async function canteenSettings() {
   for (const k of ['lowBalance', 'minTopUp', 'maxTopUp', 'maxBalance']) if (Number.isFinite(own[`${k}Rs`])) out[k] = Math.round(own[`${k}Rs`] * 100)
   if (Number.isInteger(own.preorderDays)) out.preorderDays = own.preorderDays
   if (typeof own.preorderCutoff === 'string' && /^\d{2}:\d{2}$/.test(own.preorderCutoff)) out.preorderCutoff = own.preorderCutoff
+  if (typeof own.tokens === 'boolean') out.tokens = own.tokens
+  if (typeof own.tokenPrint === 'boolean') out.tokenPrint = own.tokenPrint
   return out
 }
 
@@ -363,6 +372,7 @@ export async function setControls(studentId, { dailyLimit, blockedItemIds, block
 
 export const orderView = (o) => ({
   id: String(o._id), orderNo: o.orderNo, date: o.date, source: o.source, status: o.status, payMode: o.payMode, total: o.total,
+  token: o.token ?? null, branchId: idStr(o.branchId),
   studentId: idStr(o.studentId), studentName: o.studentName ?? null, admissionNo: o.admissionNo ?? null,
   lines: (o.lines ?? []).map((l) => ({ itemId: idStr(l.itemId), name: l.name, category: l.category, mark: l.mark, price: l.price, qty: l.qty })),
   placedBy: o.placedBy ?? null, at: o.createdAt, readyAt: o.readyAt ?? null, collectedAt: o.collectedAt ?? null, cancelledAt: o.cancelledAt ?? null, cancelReason: o.cancelReason ?? null,
@@ -398,17 +408,106 @@ async function priceOrder({ student, wallet, lines, date, payMode }) {
   return { lines: out, total }
 }
 
+// ───────────────────────────────────────────────────────── tokens
+
+const LIVE_ALL = 'canteen:all'
+const liveRoom = (branchId) => `canteen:b:${branchId}`
+
+/** The campus an order belongs to: the counter's campus (the cashier's), else the student's, else the main campus. */
+async function orderBranch(...ids) {
+  const id = ids.find((x) => x && isOid(String(x)))
+  if (id) return id
+  return (await Branch.findOne({ isDefault: true }).select('_id').lean())?._id ?? (await Branch.findOne({ active: true }).select('_id').lean())?._id ?? null
+}
+
+/** The next token for a campus on a day: 1, 2, 3 … (one atomic $inc on the counter row). */
+async function nextToken(date, branchId) {
+  const c = await TenantCounter.findOneAndUpdate({ docType: 'CANTEEN_TOKEN', scope: branchId ? String(branchId) : 'ALL', period: date }, { $inc: { seq: 1 } }, { upsert: true, returnDocument: 'after' })
+  return c.seq
+}
+
+/** Tell the Orders screens and the campus's token board that an order was made or moved (never throws). */
+function pushLive(action, o) {
+  const tenantId = getContext()?.tenantId
+  if (!tenantId || !o) return
+  const branchId = idStr(o.branchId)
+  emitToRoom(tenantId, [LIVE_ALL, branchId && liveRoom(branchId)], 'canteen:order', {
+    action, order: { id: String(o._id), orderNo: o.orderNo, date: o.date, source: o.source, status: o.status, token: o.token ?? null, branchId, readyAt: o.readyAt ?? null, collectedAt: o.collectedAt ?? null },
+  })
+}
+
+let socketsOn = false
+/** Client → server: watch the live order updates (`{ branchId }`: one campus's board; none: every campus). */
+export function registerCanteenSockets() {
+  if (socketsOn) return
+  socketsOn = true
+  onSocket('canteen:watch', async (payload, ctx) => {
+    const b = payload?.branchId
+    joinRoom(ctx.socket, b && isOid(String(b)) ? liveRoom(String(b)) : LIVE_ALL)
+    return { watching: true }
+  }, { permission: 'canteen.orders.view' })
+  onSocket('canteen:unwatch', async (payload, ctx) => {
+    const b = payload?.branchId
+    leaveRoom(ctx.socket, b && isOid(String(b)) ? liveRoom(String(b)) : LIVE_ALL)
+    return { watching: false }
+  })
+}
+
+/**
+ * The token board for a campus and day: tokens being made, tokens ready to collect, and those collected in the last
+ * two minutes (the screen fades them out). `branchId`: the campus picked; none = the viewer's own, else the main one.
+ */
+export async function tokenBoard({ branchId, date } = {}, auth) {
+  const d = date ?? (await today()).date
+  const branches = await Branch.find({ active: { $ne: false } }).select('name code isDefault').sort({ isDefault: -1, name: 1 }).lean()
+  const has = (id) => id && branches.some((b) => String(b._id) === String(id))
+  const mine = idStr(auth?.user?.branchId)
+  const pick = has(branchId) ? String(branchId) : has(mine) ? mine : idStr(branches[0]?._id)
+  const now = new Date()
+  const rows = await CanteenOrder.find({
+    date: d, token: { $ne: null }, branchId: pick ?? null,
+    $or: [{ status: { $in: ['PLACED', 'READY'] } }, { status: 'COLLECTED', collectedAt: { $gte: new Date(now.getTime() - CANTEEN_TOKEN_LINGER_MS) } }],
+  }).select('token status source readyAt collectedAt createdAt').sort({ token: 1 }).lean()
+  const view = (o) => ({ id: String(o._id), token: o.token, source: o.source, at: o.createdAt, readyAt: o.readyAt ?? null, collectedAt: o.collectedAt ?? null })
+  const set = await canteenSettings()
+  return {
+    date: d, now, tokens: set.tokens, branchId: pick,
+    branches: branches.map((b) => ({ id: String(b._id), name: b.name, code: b.code ?? null })),
+    preparing: rows.filter((o) => o.status === 'PLACED').map(view),
+    ready: rows.filter((o) => o.status === 'READY').sort((a, b) => new Date(a.readyAt) - new Date(b.readyAt)).map(view),
+    collected: rows.filter((o) => o.status === 'COLLECTED').map(view),
+  }
+}
+
+/** CANTEEN_TOKEN print data (documents/canteenDocs.js): the order, its campus and who sold it. */
+export async function tokenPrintData(id) {
+  const o = isOid(id) ? await CanteenOrder.findById(id).lean() : null
+  if (!o) throw notFound('Order')
+  const branch = o.branchId ? await Branch.findById(o.branchId).select('name').lean() : null
+  return { order: orderView(o), branchId: o.branchId ?? null, campus: branch?.name ?? null, payLabel: CANTEEN_PAY_MODES[o.payMode]?.label ?? o.payMode }
+}
+
+/** The newest order with a token (the template editor's preview). */
+export async function latestTokenOrderId() {
+  return (await CanteenOrder.findOne({ token: { $ne: null } }).sort({ createdAt: -1 }).select('_id').lean())?._id
+}
+
 /** Make an order (counter sale or pre-order) and, from the wallet, take the money — together. */
-export async function placeOrder({ studentId, lines, payMode, date, source = 'COUNTER', placedBy }, req) {
+export async function placeOrder({ studentId, lines, payMode, date, source = 'COUNTER', placedBy, branchId: counterBranch }, req) {
   const student = studentId ? await studentOr404(studentId, { active: true }) : null
   if (payMode === 'WALLET' && !student) throw badRequest('Find the student to pay from the wallet, or take cash.')
   const wallet = student ? await walletFor(student._id) : null
   const priced = await priceOrder({ student, wallet, lines, date, payMode })
+  const { tokens } = await canteenSettings()
+  const branchId = await orderBranch(counterBranch, student?.branchId)
   const order = await withTransaction(async () => {
     const orderNo = await numberFor('CANTEEN_ORDER', 'CN', date)
+    const token = tokens ? await nextToken(date, branchId) : undefined
+    // tokens on: a counter sale is made first (PLACED = preparing), then called out by its token
+    const status = source === 'PREORDER' || tokens ? 'PLACED' : 'SERVED'
     const [o] = await CanteenOrder.create([{
-      orderNo, date, source, studentId: student?._id, studentName: student ? studentName(student) : undefined, admissionNo: student?.admissionNo, branchId: student?.branchId,
-      lines: priced.lines, total: priced.total, payMode, status: source === 'PREORDER' ? 'PLACED' : 'SERVED', placedBy: placedBy ?? who(),
+      orderNo, date, source, studentId: student?._id, studentName: student ? studentName(student) : undefined, admissionNo: student?.admissionNo, branchId: branchId ?? undefined,
+      lines: priced.lines, total: priced.total, payMode, status, token, placedBy: placedBy ?? who(),
     }])
     if (payMode === 'WALLET') {
       const { txn } = await moveWallet({ student, type: 'PURCHASE', amount: -priced.total, date: (await today()).date, orderId: o._id, orderNo, note: source === 'PREORDER' ? `Pre-order for ${date}` : undefined })
@@ -418,14 +517,15 @@ export async function placeOrder({ studentId, lines, payMode, date, source = 'CO
     return o.toObject()
   })
   await emit('canteen.sale', { entity: { type: 'canteen_order', id: order._id } })
+  pushLive('created', order)
   if (payMode === 'WALLET') await lowBalanceCheck(student._id)
-  await audit({ action: 'CREATE', module: MODULE, entityType: 'canteen_order', entityId: String(order._id), entityName: order.orderNo, ...(student && { studentId: student._id }), summary: `${source === 'PREORDER' ? `Pre-order for ${date}` : 'Counter sale'} ${order.orderNo}: ${formatINR(order.total)} (${payMode === 'WALLET' ? 'wallet' : 'cash'})${student ? ` — ${studentName(student)}` : ''}` }, req)
+  await audit({ action: 'CREATE', module: MODULE, entityType: 'canteen_order', entityId: String(order._id), entityName: order.orderNo, ...(student && { studentId: student._id }), summary: `${source === 'PREORDER' ? `Pre-order for ${date}` : 'Counter sale'} ${order.orderNo}${order.token ? ` (token ${order.token})` : ''}: ${formatINR(order.total)} (${payMode === 'WALLET' ? 'wallet' : 'cash'})${student ? ` — ${studentName(student)}` : ''}` }, req)
   return orderView(order)
 }
 
 export async function counterSale({ studentId, lines, payMode }, req) {
   const { date } = await today()
-  return placeOrder({ studentId, lines, payMode, date, source: 'COUNTER' }, req)
+  return placeOrder({ studentId, lines, payMode, date, source: 'COUNTER', branchId: req?.auth?.user?.branchId }, req)
 }
 
 /** Orders with the student's class / section (place). */
@@ -436,12 +536,12 @@ async function withPlaces(rows) {
   return rows.map((o) => ({ ...orderView(o), place: secOf.get(String(o.studentId)) ?? null }))
 }
 
-/** One page of a day's orders, newest first. The day's totals are daySummary (over the whole day). */
-export async function listOrders({ date, source, status, page = 1, pageSize = 50 }) {
+/** One page of a day's orders, newest first (`sort: 'token'`: by token). The day's totals are daySummary (over the whole day). */
+export async function listOrders({ date, source, status, sort, page = 1, pageSize = 50 }) {
   const d = date ?? (await today()).date
-  const f = { date: d, ...(source && { source }), ...(status && { status }) }
+  const f = { date: d, ...(source && { source }), ...(status && { status }), ...(sort === 'token' && { token: { $ne: null } }) }
   const [rows, total] = await Promise.all([
-    CanteenOrder.find(f).sort({ createdAt: -1, _id: -1 }).skip((page - 1) * pageSize).limit(pageSize).lean(),
+    CanteenOrder.find(f).sort(sort === 'token' ? { token: 1, _id: 1 } : { createdAt: -1, _id: -1 }).skip((page - 1) * pageSize).limit(pageSize).lean(),
     CanteenOrder.countDocuments(f),
   ])
   return { date: d, rows: await withPlaces(rows), total, page, pageSize }
@@ -454,16 +554,17 @@ export async function preorderBoard(date) {
   return { date: d, rows: await withPlaces(rows) }
 }
 
-/** Pre-order at the counter: PLACED → READY → COLLECTED. */
+/** A pre-order, or a counter sale with a token, at the counter: PLACED (preparing) → READY → COLLECTED. */
 export async function moveOrder(id, to, req) {
   const o = isOid(id) ? await CanteenOrder.findById(id).lean() : null
   if (!o) throw notFound('Order')
   const from = to === 'READY' ? ['PLACED'] : ['PLACED', 'READY']
-  if (o.source !== 'PREORDER' || !from.includes(o.status)) throw conflict(to === 'READY' ? 'Only a placed pre-order can be made ready.' : 'This pre-order was already collected or cancelled.')
+  if (!from.includes(o.status)) throw conflict(to === 'READY' ? 'Only an order still being made can be marked ready.' : 'This order was already collected, served or cancelled.')
   const set = to === 'READY' ? { status: 'READY', readyAt: new Date(), readyBy: who() } : { status: 'COLLECTED', collectedAt: new Date(), collectedBy: who() }
   const done = await CanteenOrder.findOneAndUpdate({ _id: o._id, status: { $in: from } }, { $set: set }, { new: true }).lean()
   if (!done) throw conflict('Someone else just changed this order. Refresh.')
-  await audit({ action: 'UPDATE', module: MODULE, entityType: 'canteen_order', entityId: String(o._id), entityName: o.orderNo, ...(o.studentId && { studentId: o.studentId }), summary: `Pre-order ${o.orderNo} ${to === 'READY' ? 'ready' : 'collected'}` }, req)
+  await audit({ action: 'UPDATE', module: MODULE, entityType: 'canteen_order', entityId: String(o._id), entityName: o.orderNo, ...(o.studentId && { studentId: o.studentId }), summary: `${o.source === 'PREORDER' ? 'Pre-order' : 'Order'} ${o.orderNo}${o.token ? ` (token ${o.token})` : ''} ${to === 'READY' ? 'ready' : 'collected'}` }, req)
+  pushLive(to === 'READY' ? 'ready' : 'collected', done)
   return orderView(done)
 }
 
@@ -477,6 +578,7 @@ export async function cancelPreorder(o, reason, req) {
     await CanteenOrder.updateOne({ _id: o._id }, { $set: { refundTxnId: txn._id } })
   }
   await emit('canteen.sale_cancelled', { entity: { type: 'canteen_order', id: o._id } })
+  pushLive('cancelled', claimed)
   await audit({ action: 'CANCEL', module: MODULE, entityType: 'canteen_order', entityId: String(o._id), entityName: o.orderNo, ...(o.studentId && { studentId: o.studentId }), summary: `Pre-order ${o.orderNo} for ${o.date} cancelled (${formatINR(o.total)} back to the wallet)${reason ? `: ${reason}` : ''}` }, req)
   return orderView(await CanteenOrder.findById(o._id).lean())
 }

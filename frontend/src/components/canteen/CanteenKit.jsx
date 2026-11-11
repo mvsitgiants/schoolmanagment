@@ -1,8 +1,10 @@
+import { useEffect, useRef } from 'react'
 import clsx from 'clsx'
 import { useTranslation } from 'react-i18next'
 import { Ban, Coffee, Cookie, Soup, Sparkles } from 'lucide-react'
 import { CANTEEN_CATEGORY_BY, CANTEEN_MARK_BY, CANTEEN_ORDER_STATUS, CANTEEN_TXN_TYPES, formatINR, hasSpendLimit } from '@schoolgiant/shared'
 import { StatusPill, TONE } from '../system'
+import { useRealtime } from '../../context/RealtimeContext'
 
 // Building blocks shared by the canteen screens (menu, counter, wallets) and the family app's canteen page.
 
@@ -22,7 +24,33 @@ export function useCanteenLabels() {
     pay: (v) => t(`canteen.payModes.${v}`, v),
     mode: (v) => t(`canteen.modes.${v}`, v),
     topup: (v) => t(`canteen.topupStatus.${v}`, v),
+    // with tokens: PLACED reads "Preparing"
+    token: (v) => t(`canteen.tokens.status.${v}`, t(`canteen.orderStatus.${v}`, v)),
   }
+}
+
+/** The order's token status pill: Preparing · Ready · Collected (other statuses as usual). */
+export function TokenPill({ status }) {
+  const L = useCanteenLabels()
+  return <StatusPill tone={status === 'READY' ? 'warning' : status === 'PLACED' ? 'info' : CANTEEN_ORDER_STATUS[status]?.tone}>{L.token(status)}</StatusPill>
+}
+
+/**
+ * Live canteen order updates (socket `canteen:order`): `onEvent({ action, order })` for every order made or moved.
+ * `branchId`: one campus (the token board); none: every campus. Re-joins after a reconnect. Returns `connected`.
+ */
+export function useCanteenLive(onEvent, branchId) {
+  const { connected, on, emit } = useRealtime()
+  const ref = useRef(onEvent)
+  ref.current = onEvent
+  useEffect(() => on('canteen:order', (e) => ref.current?.(e)), [on])
+  useEffect(() => {
+    if (!connected) return undefined
+    const body = branchId ? { branchId } : {}
+    emit('canteen:watch', body).catch(() => {})
+    return () => { emit('canteen:unwatch', body).catch(() => {}) }
+  }, [connected, emit, branchId])
+  return connected
 }
 
 /** The square-with-a-dot mark printed on Indian food packets: green veg, red non-veg, amber egg. */

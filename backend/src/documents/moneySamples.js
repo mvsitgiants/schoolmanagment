@@ -4,11 +4,19 @@
 import { donationReceiptModel } from './alumniDocs.js'
 import { purchaseOrderModel, storeSaleModel } from './inventoryDocs.js'
 import { offerLetterModel } from './hrDocs.js'
+import { canteenTokenModel } from './canteenDocs.js'
 
 const today = () => new Date().toISOString().slice(0, 10)
 const tax = { i1: { hsn: '6203', rate: 5 }, i2: { hsn: '6205', rate: 5 }, i3: { hsn: '4901', rate: 0 }, i4: { hsn: '4820', rate: 12 } }
 
 export const MONEY_SAMPLES = {
+  CANTEEN_TOKEN: () => canteenTokenModel({
+    campus: null, payLabel: 'Wallet',
+    order: {
+      token: 23, orderNo: 'CN26000123', date: today(), at: new Date(), total: 9000, payMode: 'WALLET', source: 'COUNTER', studentName: 'Aarav Sharma', admissionNo: '20260118',
+      lines: [{ name: 'Veg sandwich', qty: 1, price: 4000 }, { name: 'Masala chaas', qty: 2, price: 2500 }],
+    },
+  }),
   STORE_SALE_RECEIPT: (institution) => storeSaleModel({
     institution, itemTax: tax, branch: null,
     sale: {

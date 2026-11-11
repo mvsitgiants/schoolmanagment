@@ -68,6 +68,7 @@ import { registerNotificationListeners } from './services/notify.js'
 import commsRoutes from './routes/comms.js'
 import { registerPagingSockets } from './services/paging.js'
 import { registerChatListeners, registerChatSockets } from './services/chat.js'
+import { registerCanteenSockets } from './services/canteen.js'
 
 // Request log. Every request at debug; at info only what someone should look at — server errors
 // and slow requests — so the screens' polling doesn't drown the log. LOG_REQUESTS=true logs all.
@@ -101,6 +102,7 @@ export function createApp() {
   registerFinanceListeners()
   registerPagingSockets()
   registerChatSockets()
+  registerCanteenSockets()
   registerChatListeners()
   const app = express()
   app.set('trust proxy', 1)

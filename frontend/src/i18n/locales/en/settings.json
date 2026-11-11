@@ -331,6 +331,14 @@
         },
         "preorderCutoff": {
           "label": "Same-day pre-orders close at (HH:MM)"
+        },
+        "tokens": {
+          "label": "Give every order a token number",
+          "help": "Tokens start at 1 each day on each campus. A counter sale is then made first and called out by its token on the token board: Preparing, Ready, Collected. Off: a counter sale is served at once."
+        },
+        "tokenPrint": {
+          "label": "Print the token slip after each counter sale",
+          "help": "Prints on the 80 mm receipt printer at the counter. Only when tokens are on."
         }
       },
       "frontoffice": {

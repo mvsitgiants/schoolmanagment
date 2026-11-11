@@ -37,6 +37,7 @@ export const PRINT_DOCS = [
   { value: 'STAFF_ID_CARD', label: 'Staff ID card', module: 'hrms', paper: 'CARD_PORTRAIT', ready: true, server: true, many: true },
   { value: 'PURCHASE_ORDER', label: 'Purchase order', module: 'inventory', paper: 'A4', ready: true, server: true },
   { value: 'STORE_SALE_RECEIPT', label: 'Store receipt (uniform & book sale)', module: 'inventory', paper: 'A5', ready: true, server: true },
+  { value: 'CANTEEN_TOKEN', label: 'Canteen token slip', module: 'canteen', paper: 'THERMAL_80', ready: true, server: true },
 ]
 export const PRINT_DOC_BY = Object.fromEntries(PRINT_DOCS.map((d) => [d.value, d]))
 

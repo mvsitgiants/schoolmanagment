@@ -136,7 +136,14 @@
       "itemsBlocked_one": "{{count}} item blocked",
       "itemsBlocked_other": "{{count}} items blocked",
       "nothingToday": "Nothing is on sale today. Check the menu's days.",
-      "scanCamera": "Scan the ID card with the camera"
+      "scanCamera": "Scan the ID card with the camera",
+      "result": {
+        "title": "Order placed",
+        "order": "Order {{no}} · {{amount}}",
+        "print": "Print token",
+        "next": "Next order",
+        "hint": "Read the token out and hand it over. It is called on the token board when the food is ready."
+      }
     },
     "wallet": {
       "balance": "Wallet balance",
@@ -192,7 +199,8 @@
       "tabs": {
         "counter": "Counter",
         "preorders": "Pre-orders",
-        "summary": "Day summary"
+        "summary": "Day summary",
+        "tokens": "Tokens"
       },
       "walkIn": "Walk-in",
       "no": "Order",
@@ -280,7 +288,49 @@
       "controlsTitle": "Your controls",
       "noLimit": "No limit",
       "controlsSaved": "Saved. The canteen counter follows these from now on.",
-      "ledger": "Wallet history"
+      "ledger": "Wallet history",
+      "tokenStatus": {
+        "PLACED": "Being prepared",
+        "READY": "Ready to collect"
+      }
+    },
+    "tokens": {
+      "token": "Token",
+      "tokenN": "Token {{token}}",
+      "all": "All",
+      "status": {
+        "PLACED": "Preparing",
+        "READY": "Ready",
+        "COLLECTED": "Collected"
+      },
+      "markReady": "Ready",
+      "markCollected": "Collected",
+      "none": "No orders with a token on this day."
+    },
+    "board": {
+      "title": "Token board",
+      "live": "Updates as soon as an order is made, ready or collected.",
+      "polling": "Refreshes every 20 seconds.",
+      "campus": "Campus",
+      "preparing": "Preparing",
+      "ready": "Ready — please collect",
+      "nonePreparing": "Nothing is being made right now.",
+      "noneReady": "No tokens are ready yet.",
+      "chimeOn": "Chime on",
+      "chimeOff": "Chime off",
+      "fullScreen": "Full screen",
+      "exitFullScreen": "Leave full screen",
+      "off": "Tokens are switched off. Turn them on in Settings › Canteen to call out orders here."
+    },
+    "print": {
+      "token": {
+        "canteen": "Canteen",
+        "token": "Token",
+        "order": "Order {{no}}",
+        "total": "Total",
+        "paidBy": "Paid by {{mode}}",
+        "wait": "Please wait for your token to be called"
+      }
     }
   }
 }

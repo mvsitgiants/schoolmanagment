@@ -1,9 +1,9 @@
 import { useMemo, useRef, useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import clsx from 'clsx'
-import { Eye, FileUp, Paperclip, Search, Send, Share2, Users, X } from 'lucide-react'
+import { Eye, FileUp, Files, Paperclip, Search, Send, Share2, Users, X } from 'lucide-react'
 import { CONTENT_FILE_MAX_MB, CONTENT_TYPES, FILE_ACCEPT, addDaysYmd, htmlToText, videoEmbed } from '@schoolgiant/shared'
 import { Attachments, DateInput, FormField, Input, Modal, Note, PageContainer, PageHeader, Panel, SegmentedControl, Select, Skeleton, localIso } from '../../components/system'
 import Button from '../../components/ui/Button'
@@ -20,10 +20,10 @@ import { useFormat } from '../../context/SettingsContext'
 
 const TYPES = Object.keys(CONTENT_TYPES)
 const SHARED = TYPES.filter((k) => CONTENT_TYPES[k].kind)
-const fmtSize = (n) => (n < 1024 * 1024 ? `${Math.max(1, Math.round(n / 1024))} KB` : `${(n / 1024 / 1024).toFixed(1)} MB`)
+export const fmtSize = (n) => (n < 1024 * 1024 ? `${Math.max(1, Math.round(n / 1024))} KB` : `${(n / 1024 / 1024).toFixed(1)} MB`)
 
 /** The class's students with a search, to tick who sees the content. */
-function StudentPicker({ classId, value, onDone, onClose }) {
+export function StudentPicker({ classId, value, onDone, onClose }) {
   const { t } = useTranslation('lms')
   const [picked, setPicked] = useState(() => new Set(value))
   const [q, setQ] = useState('')
@@ -68,12 +68,41 @@ function StudentPicker({ classId, value, onDone, onClose }) {
   )
 }
 
+/** The dashed "drag and drop files here, or choose files" box (the browser's picker allows many at once). */
+export function FileDrop({ onFiles, disabled = false }) {
+  const { t } = useTranslation('lms')
+  const input = useRef(null)
+  const [over, setOver] = useState(false)
+  return (
+    <>
+      <button type="button" disabled={disabled} onClick={() => input.current?.click()}
+        onDragOver={(e) => { e.preventDefault(); if (!disabled) setOver(true) }} onDragLeave={() => setOver(false)}
+        onDrop={(e) => { e.preventDefault(); setOver(false); if (!disabled) onFiles([...e.dataTransfer.files]) }}
+        className={clsx('flex w-full flex-col items-center gap-1 rounded-lg border border-dashed px-3 py-4 text-center transition disabled:cursor-not-allowed disabled:opacity-60', over ? 'border-brand-500 bg-brand-50' : 'border-border hover:bg-black/[0.02]')}>
+        <FileUp className="h-5 w-5 text-ink-faint" aria-hidden />
+        <span className="text-sm text-ink">{t('lms.content.form.drop')} <span className="font-medium text-brand-700">{t('lms.content.form.browse')}</span></span>
+        <span className="text-xs text-ink-faint">{t('lms.content.form.fileTypes', { mb: CONTENT_FILE_MAX_MB })}</span>
+      </button>
+      <input ref={input} type="file" multiple accept={FILE_ACCEPT} className="hidden" onChange={(e) => { onFiles([...e.target.files]); e.target.value = '' }} />
+    </>
+  )
+}
+
+/** The syllabus topic picker, grouped by unit. */
+export function TopicSelect({ units, value, onChange, placeholder, disabled }) {
+  const { t } = useTranslation('lms')
+  return (
+    <Select value={value} disabled={disabled || !units.length} onChange={onChange}>
+      <option value="">{placeholder ?? t('lms.content.form.pickTopic')}</option>
+      {units.map((u) => <optgroup key={u.id} label={u.name}>{u.topics.map((tp) => <option key={tp.id} value={tp.id}>{tp.name}</option>)}</optgroup>)}
+    </Select>
+  )
+}
+
 /** Files waiting to be added when the content is saved (a new item has no id yet). */
 function PendingFiles({ files, onChange }) {
   const { t } = useTranslation('lms')
   const { showError } = useSnackbar()
-  const input = useRef(null)
-  const [over, setOver] = useState(false)
   const add = (list) => {
     const ok = []
     for (const f of list) {
@@ -84,15 +113,7 @@ function PendingFiles({ files, onChange }) {
   }
   return (
     <div className="space-y-2">
-      <button type="button" onClick={() => input.current?.click()}
-        onDragOver={(e) => { e.preventDefault(); setOver(true) }} onDragLeave={() => setOver(false)}
-        onDrop={(e) => { e.preventDefault(); setOver(false); add([...e.dataTransfer.files]) }}
-        className={clsx('flex w-full flex-col items-center gap-1 rounded-lg border border-dashed px-3 py-4 text-center transition', over ? 'border-brand-500 bg-brand-50' : 'border-border hover:bg-black/[0.02]')}>
-        <FileUp className="h-5 w-5 text-ink-faint" aria-hidden />
-        <span className="text-sm text-ink">{t('lms.content.form.drop')} <span className="font-medium text-brand-700">{t('lms.content.form.browse')}</span></span>
-        <span className="text-xs text-ink-faint">{t('lms.content.form.fileTypes', { mb: CONTENT_FILE_MAX_MB })}</span>
-      </button>
-      <input ref={input} type="file" multiple accept={FILE_ACCEPT} className="hidden" onChange={(e) => { add([...e.target.files]); e.target.value = '' }} />
+      <FileDrop onFiles={add} />
       {files.length > 0 && (
         <ul className="space-y-1">
           {files.map((f, i) => (
@@ -207,6 +228,15 @@ function ContentForm({ existing, start }) {
           )
         })}
       </div>
+      {!existing && f.type === 'MATERIAL' && hasPermission('lms.create-content.create') && (
+        <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-ink-muted">
+          <span>{t('lms.content.bulk.manyHint')}</span>
+          <Link to={`/lms/bulk-upload?${new URLSearchParams(Object.fromEntries(Object.entries({ classId: f.classId, subjectId: f.subjectId, topicId: f.topicId }).filter(([, v]) => v)))}`}
+            className="inline-flex min-h-[32px] items-center gap-1 font-medium text-brand-700 hover:underline">
+            <Files className="h-3.5 w-3.5" aria-hidden />{t('lms.content.bulk.manyLink')}
+          </Link>
+        </p>
+      )}
 
       <Panel>
         {!classes.length ? <Note tone="warning">{t('lms.content.form.noClasses')}</Note> : (
@@ -225,10 +255,7 @@ function ContentForm({ existing, start }) {
             </FormField>
             <FormField label={t('lms.content.form.topic')} required error={errors.topicId}
               hint={f.classId && f.subjectId && !topicsLoading && !units.length ? t('lms.content.form.noTopics') : undefined}>
-              <Select value={f.topicId} disabled={!units.length} onChange={set('topicId')}>
-                <option value="">{t('lms.content.form.pickTopic')}</option>
-                {units.map((u) => <optgroup key={u.id} label={u.name}>{u.topics.map((tp) => <option key={tp.id} value={tp.id}>{tp.name}</option>)}</optgroup>)}
-              </Select>
+              <TopicSelect units={units} value={f.topicId} onChange={set('topicId')} />
             </FormField>
           </div>
         )}

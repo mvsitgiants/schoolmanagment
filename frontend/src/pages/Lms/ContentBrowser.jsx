@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { FolderOpen, Library, Pencil, Plus, Trash2, X } from 'lucide-react'
+import { Files, FolderOpen, Library, Pencil, Plus, Trash2, X } from 'lucide-react'
 import { CONTENT_TYPES } from '@schoolgiant/shared'
 import { EmptyState, HeaderButton, PageContainer, PageHeader, Pagination, Panel, SearchInput, Select, SkeletonRows, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
@@ -55,7 +55,10 @@ export default function ContentBrowser({ mine = false }) {
   return (
     <PageContainer>
       <PageHeader icon={mine ? FolderOpen : Library} title={mine ? t('lms.content.list.mineTitle') : t('lms.content.list.libraryTitle')} subtitle={mine ? t('lms.content.list.mineSubtitle') : t('lms.content.list.librarySubtitle')}
-        actions={<HeaderButton icon={Plus} variant="primary" requires="lms.create-content.create" onClick={() => navigate('/lms/create-content')}>{t('lms.content.list.create')}</HeaderButton>} />
+        actions={<>
+          {mine && <HeaderButton icon={Files} requires="lms.create-content.create" onClick={() => navigate('/lms/bulk-upload')}>{t('lms.content.list.bulk')}</HeaderButton>}
+          <HeaderButton icon={Plus} variant="primary" requires="lms.create-content.create" onClick={() => navigate('/lms/create-content')}>{t('lms.content.list.create')}</HeaderButton>
+        </>} />
       <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center">
         <SearchInput value={search} onChange={(v) => { setSearch(v); setPage(0) }} placeholder={t('lms.content.list.search')} className="col-span-2" />
         <Select value={f.classId} onChange={setFilter('classId')} className="sm:w-40">

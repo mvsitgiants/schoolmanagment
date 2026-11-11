@@ -1,0 +1,36 @@
+{{!-- Canteen token slip (80 mm roll): handed over at the counter after a sale; the token is called out on the token
+      board when the order is ready. Main fields: token.no, token.orderNo, token.date, token.at, token.total,
+      token.payMode, token.campus, token.student, lines[] {name, qty, price, amount}.
+      Data from services/canteen.js (tokenPrintData). --}}
+<style>
+  .slip { text-align: center }
+  .slip .school { font-size: 10.5pt; font-weight: 700; text-transform: uppercase }
+  .slip .canteen { font-size: 8pt; color: #3B3F47; margin-top: .5mm }
+  .slip .cut { border-top: 0.3mm dashed #555; margin: 2.5mm 0 }
+  .slip .label { font-size: 9pt; font-weight: 700; letter-spacing: 1mm; text-transform: uppercase }
+  .slip .big { font-size: 46pt; font-weight: 800; line-height: 1; margin: 1mm 0 }
+  .slip .meta { display: flex; justify-content: space-between; gap: 2mm; font-size: 8pt }
+  .slip .items { width: 100%; border-collapse: collapse; font-size: 8.5pt; text-align: left; margin-top: 1.5mm }
+  .slip .items td { padding: .4mm 0; vertical-align: top }
+  .slip .items .r { text-align: right; white-space: nowrap }
+  .slip .total { display: flex; justify-content: space-between; font-size: 10pt; font-weight: 700; margin-top: 1.5mm }
+  .slip .wait { font-size: 9pt; font-weight: 600; margin-top: 3mm }
+</style>
+<div class="slip">
+  <div class="school">{{institution.name}}</div>
+  <div class="canteen">{{t "canteen.print.token.canteen" "Canteen"}}{{#if token.campus}} · {{token.campus}}{{/if}}</div>
+  <div class="cut"></div>
+  <div class="label">{{t "canteen.print.token.token" "Token"}}</div>
+  <div class="big">{{default token.no "—"}}</div>
+  {{#if token.student}}<div>{{token.student}}</div>{{/if}}
+  <div class="cut"></div>
+  <div class="meta"><span>{{t "canteen.print.token.order" "Order {{no}}" no=token.orderNo}}</span><span>{{date token.date}} {{time token.at}}</span></div>
+  <table class="items">
+    {{#each lines}}
+    <tr><td>{{name}} × {{num qty}}</td><td class="r">{{money amount}}</td></tr>
+    {{/each}}
+  </table>
+  <div class="total"><span>{{t "canteen.print.token.total" "Total"}}</span><span>{{money token.total}}</span></div>
+  <div class="meta"><span>{{t "canteen.print.token.paidBy" "Paid by {{mode}}" mode=token.payMode}}</span></div>
+  <div class="wait">{{t "canteen.print.token.wait" "Please wait for your token to be called"}}</div>
+</div>

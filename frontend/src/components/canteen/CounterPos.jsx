@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { Banknote, CreditCard, Minus, Plus, ScanLine, ShoppingBasket, Trash2, UserX, Wallet } from 'lucide-react'
+import { ArrowRight, Banknote, CreditCard, Minus, Plus, Printer, ScanLine, ShoppingBasket, Trash2, UserX, Wallet } from 'lucide-react'
 import { CANTEEN_CATEGORIES, canteenBlockReason, canteenTotal, canteenWalletCheck, formatINR, toPaise } from '@schoolgiant/shared'
 import { FormField, Input, Modal, Note, PersonCell, SegmentedControl } from '../system'
 import Button from '../ui/Button'
@@ -9,6 +9,7 @@ import { createOrder, fetchTodayMenu, fetchWallet, findStudents, topUpWallet } f
 import { ScanDialog, cardCodeOf } from '../scan/Scanner'
 import { hasPermission } from '../../api/auth'
 import { useSnackbar } from '../../context/SnackbarContext'
+import { printDocument } from '../print/printDocument'
 import { Balance, FoodMark, ItemTile, SpendBar, useCanteenLabels } from './CanteenKit'
 
 /** Cash or UPI into a wallet at the counter. */
@@ -27,6 +28,25 @@ export function TopUpModal({ student, onClose, onDone }) {
         <FormField label={t('canteen.topup.amountRs')} required><Input type="number" min="1" value={form.amount} onChange={(e) => setForm((f) => ({ ...f, amount: e.target.value }))} autoFocus /></FormField>
         <FormField label={t('canteen.topup.mode')}><SegmentedControl value={form.mode} onChange={(mode) => setForm((f) => ({ ...f, mode }))} options={[{ value: 'CASH', label: t('canteen.modes.CASH') }, { value: 'UPI', label: t('canteen.modes.UPI') }]} /></FormField>
         {form.mode === 'UPI' && <FormField label={t('canteen.topup.reference')}><Input value={form.reference} onChange={(e) => setForm((f) => ({ ...f, reference: e.target.value }))} /></FormField>}
+      </div>
+    </Modal>
+  )
+}
+
+/** After a sale with tokens on: the token, big, to read out and hand over — print the slip, or go to the next order. */
+function TokenResult({ order, onPrint, onNext }) {
+  const { t } = useTranslation('canteen')
+  return (
+    <Modal open onClose={onNext} size="sm" title={t('canteen.counter.result.title')} footer={<>
+      <Button variant="secondary" icon={Printer} onClick={onPrint}>{t('canteen.counter.result.print')}</Button>
+      <Button icon={ArrowRight} onClick={onNext} autoFocus>{t('canteen.counter.result.next')}</Button>
+    </>}>
+      <div className="py-2 text-center">
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-ink-muted">{t('canteen.tokens.token')}</p>
+        <p className="font-mono-num text-7xl sm:text-8xl font-extrabold leading-none text-ink tabular-nums">{order.token}</p>
+        <p className="mt-3 text-sm text-ink-muted">{t('canteen.counter.result.order', { no: order.orderNo, amount: formatINR(order.total) })}</p>
+        {order.studentName && <p className="text-sm text-ink">{order.studentName}</p>}
+        <p className="mt-3 text-xs text-ink-faint">{t('canteen.counter.result.hint')}</p>
       </div>
     </Modal>
   )
@@ -70,6 +90,7 @@ export default function CounterPos() {
   const [cart, setCart] = useState({}) // itemId → qty
   const [cat, setCat] = useState('ALL')
   const [topUp, setTopUp] = useState(false)
+  const [done, setDone] = useState(null) // the last sale, when it has a token
   const { data: menu, isLoading } = useQuery({ queryKey: ['canteen', 'today'], queryFn: () => fetchTodayMenu(), refetchInterval: 60_000 })
   const items = menu?.items ?? []
   const byId = new Map(items.map((i) => [i.id, i]))
@@ -95,7 +116,13 @@ export default function CounterPos() {
   const refreshStudent = async (id) => { try { const d = await fetchWallet(id); setStudent(d.student) } catch { /* keep the card as it was */ } }
   const pay = useMutation({
     mutationFn: (payMode) => createOrder({ studentId: student?.id ?? null, payMode, lines: lines.map((l) => ({ itemId: l.id, qty: l.qty })) }),
-    onSuccess: (o) => { showSuccess(t('canteen.counter.sold', { no: o.orderNo, amount: formatINR(o.total) })); qc.invalidateQueries({ queryKey: ['canteen'] }); reset() },
+    onSuccess: (o) => {
+      qc.invalidateQueries({ queryKey: ['canteen'] })
+      setStudent(null); setCart({}); setQ(''); setMatches(null)
+      if (!o.token) { showSuccess(t('canteen.counter.sold', { no: o.orderNo, amount: formatINR(o.total) })); reset(); return }
+      setDone(o)
+      if (menu?.tokenPrint) printDocument('CANTEEN_TOKEN', o.id)
+    },
     onError: (e) => showError(e.message),
   })
   const add = (it) => setCart((c) => ({ ...c, [it.id]: (c[it.id] ?? 0) + 1 }))
@@ -175,6 +202,7 @@ export default function CounterPos() {
           </div>
         )}
       </section>
+      {done && <TokenResult order={done} onPrint={() => printDocument('CANTEEN_TOKEN', done.id)} onNext={() => { setDone(null); reset() }} />}
       {topUp && student && <TopUpModal student={student} onClose={() => setTopUp(false)} onDone={async (r) => { setTopUp(false); showSuccess(t('canteen.topup.done', { balance: formatINR(r.balance) })); await refreshStudent(student.id); qc.invalidateQueries({ queryKey: ['canteen'] }) }} />}
     </div>
   )

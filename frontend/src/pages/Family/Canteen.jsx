@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { CreditCard, Minus, Plus, ShieldBan, ShoppingBasket, Utensils, Wallet, X } from 'lucide-react'
 import { CANTEEN_TAGS, canteenBlockReason, canteenSoldOn, canteenTotal, canteenWalletCheck, formatINR, toPaise, toRupees } from '@schoolgiant/shared'
-import { Input, Note } from '../../components/system'
+import { Input, Note, StatusPill } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { loadCheckout } from '../../utils/razorpayCheckout'
 import { FCard, FEmpty, FError, FSkeleton, useFamily, useFamilyQuery } from '../../components/family/FamilyKit'
@@ -211,8 +211,16 @@ export default function FamilyCanteen() {
           <div className="divide-y divide-border">
             {upcoming.map((o) => (
               <div key={o.id} className="flex items-center gap-2 py-2">
+                {o.token && o.date === d.date && (
+                  <span className="flex shrink-0 flex-col items-center rounded-xl border border-border bg-surface px-2.5 py-1">
+                    <span className="text-[10px] font-semibold uppercase tracking-wide text-ink-faint">{t('canteen.tokens.token')}</span>
+                    <span className="font-mono-num text-2xl font-extrabold leading-none text-ink tabular-nums">{o.token}</span>
+                  </span>
+                )}
                 <span className="min-w-0 flex-1"><span className="block truncate text-sm text-ink">{o.lines.map((l) => `${l.qty} × ${l.name}`).join(', ')}</span><span className="text-xs text-ink-muted">{date(o.date)} · {formatINR(o.total)}</span></span>
-                <OrderPill status={o.status} />
+                {o.token && o.date === d.date && ['PLACED', 'READY'].includes(o.status)
+                  ? <StatusPill tone={o.status === 'READY' ? 'success' : 'info'}>{t(`canteen.family.tokenStatus.${o.status}`)}</StatusPill>
+                  : <OrderPill status={o.status} />}
                 {o.canCancel && <Button size="sm" variant="ghost" icon={X} loading={cancel.isPending && cancel.variables === o.id} aria-label={t('canteen.family.cancel')} onClick={() => cancel.mutate(o.id)} />}
               </div>
             ))}

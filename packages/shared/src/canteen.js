@@ -50,7 +50,11 @@ export const CANTEEN_REFUND_MODES = [
 export const CANTEEN_ORDER_SOURCES = { COUNTER: { label: 'Counter', tone: 'neutral' }, PREORDER: { label: 'Pre-order', tone: 'violet' } }
 export const CANTEEN_PAY_MODES = { WALLET: { label: 'Wallet', tone: 'brand' }, CASH: { label: 'Cash', tone: 'warning' } }
 
-/** Counter sales are SERVED at once; a pre-order goes PLACED → READY → COLLECTED (or CANCELLED while still PLACED). */
+/**
+ * A pre-order goes PLACED → READY → COLLECTED (or CANCELLED while still PLACED). A counter sale is SERVED at once —
+ * unless tokens are on (Settings › Canteen › tokens): then it too goes PLACED ("Preparing") → READY → COLLECTED and
+ * its token number is called out on the token board.
+ */
 export const CANTEEN_ORDER_STATUS = {
   PLACED: { label: 'Placed', tone: 'info' },
   READY: { label: 'Ready', tone: 'warning' },
@@ -75,7 +79,14 @@ export const CANTEEN_DEFAULTS = {
   maxBalance: 1000000, // ₹10,000 held at most
   preorderDays: 7, // how far ahead families can pre-order
   preorderCutoff: '09:00', // same-day pre-orders close at this time
+  tokens: true, // every order gets a token (1, 2, 3 … a day per campus) and counter sales are called out when ready
+  tokenPrint: false, // print the token slip (80 mm) straight after a counter sale
 }
+
+/** The order statuses a token moves through (the token board's columns and the Orders filter). */
+export const CANTEEN_TOKEN_STATUSES = ['PLACED', 'READY', 'COLLECTED']
+/** A collected token stays on the board (faded) this long, then drops off. */
+export const CANTEEN_TOKEN_LINGER_MS = 2 * 60 * 1000
 export const CANTEEN_TOPUP_PRESETS = [20000, 50000, 100000] // ₹200 / ₹500 / ₹1,000
 
 /** A daily-spend limit is either null (no limit) or a whole number of paise. */

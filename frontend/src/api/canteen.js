@@ -41,6 +41,7 @@ export const fetchPreorders = (date) => get(`${BASE}/preorders`, { date: date ||
 export const createOrder = (body) => post(`${BASE}/orders`, body)
 export const orderReady = (id) => post(`${BASE}/orders/${id}/ready`)
 export const orderCollected = (id) => post(`${BASE}/orders/${id}/collect`)
+export const fetchTokenBoard = (branchId) => get(`${BASE}/tokens`, { branchId: branchId || undefined })
 export const fetchDaySummary = (date) => get(`${BASE}/summary`, { date: date || undefined })
 
 // wallets

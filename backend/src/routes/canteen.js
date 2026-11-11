@@ -3,8 +3,8 @@ import { CANTEEN_CATEGORIES, CANTEEN_DAYS, CANTEEN_MARKS, CANTEEN_REFUND_MODES, 
 import { authenticate, requireModule, requirePermission, subscriptionGate, tenantOnly } from '../platform/middleware.js'
 import { objectId, optionalText, z } from '../platform/validate.js'
 import {
-  adjustWallet, counterSale, daySummary, deleteItem, deleteSpecial, findStudents, listMenu, listOrders, listSpecials, listWallets, menuFor, moveOrder,
-  preorderBoard, refundWallet, saveItem, saveSpecial, setControls, setSoldOut, today, topUpAtCounter, walletDetail,
+  adjustWallet, canteenSettings, counterSale, daySummary, deleteItem, deleteSpecial, findStudents, listMenu, listOrders, listSpecials, listWallets, menuFor, moveOrder,
+  preorderBoard, refundWallet, saveItem, saveSpecial, setControls, setSoldOut, today, tokenBoard, topUpAtCounter, walletDetail,
 } from '../services/canteen.js'
 import { recheckTopup } from '../services/canteenFamily.js'
 
@@ -67,7 +67,8 @@ router.delete('/specials/:id', requirePermission('canteen.menu.edit', 'canteen.m
 router.get('/today', requirePermission('canteen.orders.view'), async (req, res) => {
   const { date } = z.object({ date: ymd.optional() }).parse(req.query)
   const d = date ?? (await today()).date
-  res.json({ data: { date: d, items: await menuFor(d) } })
+  const set = await canteenSettings()
+  res.json({ data: { date: d, items: await menuFor(d), tokens: set.tokens, tokenPrint: set.tokens && set.tokenPrint } })
 })
 /** Find a student: card code (RFID / QR on the ID card), admission number or name. */
 router.get('/find', requirePermission('canteen.orders.view', 'canteen.wallet.view'), async (req, res) => {
@@ -78,13 +79,18 @@ router.get('/find', requirePermission('canteen.orders.view', 'canteen.wallet.vie
 const linesSchema = z.array(z.object({ itemId: objectId, qty: z.coerce.number().int().min(1).max(50) })).min(1, 'Add at least one item').max(40)
 
 router.get('/orders', requirePermission('canteen.orders.view'), async (req, res) => {
-  const q = z.object({ date: ymd.optional(), source: z.enum(['COUNTER', 'PREORDER']).optional(), status: z.enum(['PLACED', 'READY', 'COLLECTED', 'SERVED', 'CANCELLED']).optional(), ...paging }).parse(req.query)
+  const q = z.object({ date: ymd.optional(), source: z.enum(['COUNTER', 'PREORDER']).optional(), status: z.enum(['PLACED', 'READY', 'COLLECTED', 'SERVED', 'CANCELLED']).optional(), sort: z.enum(['token']).optional(), ...paging }).parse(req.query)
   res.json({ data: await listOrders(q) })
 })
 /** The pre-order board for a day: every pre-order, not paged. */
 router.get('/preorders', requirePermission('canteen.orders.view'), async (req, res) => {
   const { date } = z.object({ date: ymd.optional() }).parse(req.query)
   res.json({ data: await preorderBoard(date) })
+})
+/** The token board (a TV at the counter): what is being made, what is ready, what was just collected — for one campus. */
+router.get('/tokens', requirePermission('canteen.orders.view'), async (req, res) => {
+  const q = z.object({ branchId: objectId.optional(), date: ymd.optional() }).parse(req.query)
+  res.json({ data: await tokenBoard(q, req.auth) })
 })
 router.post('/orders', requirePermission('canteen.orders.create'), async (req, res) => {
   const input = z.object({ studentId: objectId.optional().nullable(), lines: linesSchema, payMode: z.enum(['WALLET', 'CASH']) }).parse(req.body)

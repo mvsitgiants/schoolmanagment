@@ -87,7 +87,9 @@ describe('the counter and the wallet', () => {
     const top = (await admin.post(`${api}/wallets/${student.id}/topup`).send({ amount: 20000, mode: 'CASH' }).expect(201)).body.data
     expect(top.balance).toBe(20000)
     const sale = (await admin.post(`${api}/orders`).send({ studentId: student.id, payMode: 'WALLET', lines: [{ itemId: items.samosa.id, qty: 2 }, { itemId: items.coffee.id, qty: 1 }] }).expect(201)).body.data
-    expect(sale).toMatchObject({ total: 1500 * 2 + 2500, status: 'SERVED', payMode: 'WALLET', source: 'COUNTER' })
+    // tokens are on by default: the sale gets the day's token and is made first (PLACED = preparing)
+    expect(sale).toMatchObject({ total: 1500 * 2 + 2500, status: 'PLACED', payMode: 'WALLET', source: 'COUNTER' })
+    expect(sale.token).toBeGreaterThan(0)
     const w = (await admin.get(`${api}/wallets/${student.id}`).expect(200)).body.data
     expect(w.student.balance).toBe(20000 - 5500)
     expect(w.student.spentToday).toBe(5500)

@@ -148,6 +148,7 @@ const LmsLive = lazy(() => import('./pages/Lms/LiveClasses'))
 const LmsQuestions = lazy(() => import('./pages/Lms/QuestionBank'))
 const LmsCreateContent = lazy(() => import('./pages/Lms/CreateContent'))
 const LmsMyContent = lazy(() => import('./pages/Lms/MyContent'))
+const LmsBulkUpload = lazy(() => import('./pages/Lms/BulkUpload'))
 const LmsContentLibrary = lazy(() => import('./pages/Lms/ContentLibrary'))
 // Online tests
 const OtTests = lazy(() => import('./pages/OnlineTests/Tests'))
@@ -209,6 +210,7 @@ const HealthIncidents = lazy(() => import('./pages/Health/Incidents'))
 const CanteenMenu = lazy(() => import('./pages/Canteen/Menu'))
 const CanteenOrders = lazy(() => import('./pages/Canteen/Orders'))
 const CanteenWallets = lazy(() => import('./pages/Canteen/Wallets'))
+const CanteenTokenBoard = lazy(() => import('./pages/Canteen/TokenBoard'))
 const SurveysForms = lazy(() => import('./pages/Surveys/Forms'))
 const SurveysResponses = lazy(() => import('./pages/Surveys/Responses'))
 const WebsitePages = lazy(() => import('./pages/Website/Pages'))
@@ -353,6 +355,7 @@ export default function App() {
           <Route path="lms/question-bank" element={<LmsQuestions />} />
           <Route path="lms/create-content" element={<LmsCreateContent />} />
           <Route path="lms/my-content" element={<LmsMyContent />} />
+          <Route path="lms/bulk-upload" element={<LmsBulkUpload />} />
           <Route path="lms/content-library" element={<LmsContentLibrary />} />
           <Route path="online-tests" element={<Navigate to="/online-tests/tests" replace />} />
           <Route path="online-tests/tests" element={<OtTests />} />
@@ -483,6 +486,7 @@ export default function App() {
           <Route path="canteen/menu" element={<CanteenMenu />} />
           <Route path="canteen/orders" element={<CanteenOrders />} />
           <Route path="canteen/wallet" element={<CanteenWallets />} />
+          <Route path="canteen/token-board" element={<CanteenTokenBoard />} />
           <Route path="surveys" element={<Navigate to="/surveys/forms" replace />} />
           <Route path="surveys/forms" element={<SurveysForms />} />
           <Route path="surveys/responses" element={<SurveysResponses />} />

@@ -5,7 +5,9 @@
 //   CanteenSpecial  today's (or any day's) special: an item, optionally at a special price
 //   CanteenWallet   one per student: the balance and the family's controls (daily limit, blocked items / tags)
 //   WalletTxn       the wallet's ledger — append-only (TOP_UP, PURCHASE, REFUND, ADJUSTMENT); balanceAfter on each row
-//   CanteenOrder    a counter sale (SERVED at once) or a pre-order from the family app (PLACED → READY → COLLECTED)
+//   CanteenOrder    a counter sale (SERVED at once) or a pre-order from the family app (PLACED → READY → COLLECTED);
+//                   with tokens on, each order has a token (1, 2, 3 … a day per campus) and a counter sale goes
+//                   PLACED (preparing) → READY → COLLECTED too
 //   CanteenTopup    one online top-up try through the school's own Razorpay account (exactly-once credit)
 import mongoose from 'mongoose'
 import { tenantPlugin } from '../platform/db.js'
@@ -106,6 +108,7 @@ const orderSchema = new Schema({
   total: { type: Number, required: true },
   payMode: { type: String, default: 'WALLET' }, // CANTEEN_PAY_MODES
   status: { type: String, default: 'SERVED' }, // CANTEEN_ORDER_STATUS
+  token: Number, // tokens on: the day's number at this campus (TenantCounter CANTEEN_TOKEN, scope = campus, period = date)
   txnId: { type: ObjectId, ref: 'WalletTxn' }, // the PURCHASE row
   refundTxnId: { type: ObjectId, ref: 'WalletTxn' }, // a cancelled pre-order: the ADJUSTMENT row that gave it back
   placedBy: String,
@@ -117,6 +120,7 @@ orderSchema.plugin(tenantPlugin)
 orderSchema.index({ tenantId: 1, orderNo: 1 }, { unique: true })
 orderSchema.index({ tenantId: 1, date: 1, status: 1 })
 orderSchema.index({ tenantId: 1, studentId: 1, date: -1 })
+orderSchema.index({ tenantId: 1, date: 1, branchId: 1, token: 1 })
 export const CanteenOrder = model('CanteenOrder', orderSchema, 'canteen_orders')
 
 const topupSchema = new Schema({
