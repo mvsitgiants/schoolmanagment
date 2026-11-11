@@ -23,7 +23,7 @@ import {
 } from '../services/portalAuth.js'
 import { BLOCKED_STATUSES, effectiveStatus } from '../services/subscription.js'
 import { createAppOrder, verifyAppPayment } from '../services/feePayments.js'
-import { courseView, itemFile, joinLive, learningFor, markItem } from '../services/lmsFamily.js'
+import { courseView, itemFile, joinLive, learningFor, markItem, viewItem } from '../services/lmsFamily.js'
 import { busFor } from '../services/transport.js'
 import { ebookFile, libraryFor } from '../services/libraryFamily.js'
 import { familyCancelPreorder, familyCanteen, familyControls, familyPreorder, familyTopupStart, familyTopupVerify } from '../services/canteenFamily.js'
@@ -210,6 +210,7 @@ familyRouter.get('/students/:studentId/learning/courses/:courseId/items/:itemId/
   res.setHeader('Content-Security-Policy', "default-src 'none'; sandbox")
   await new Promise((resolve, reject) => { stream.on('error', reject); stream.on('end', resolve); stream.pipe(res) })
 })
+familyRouter.post('/students/:studentId/learning/courses/:courseId/items/:itemId/view', async (req, res) => { res.json({ data: await viewItem(req.family, sid(req), req.params.courseId, req.params.itemId) }) })
 familyRouter.post('/students/:studentId/learning/live/:liveId/join', async (req, res) => { res.json({ data: await joinLive(req.family, sid(req), req.params.liveId) }) })
 // online tests: list, start (or carry on), save answers as they go, report leaving the test, submit, result
 // calendar, parent–teacher meetings, photos

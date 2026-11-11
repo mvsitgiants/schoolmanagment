@@ -146,6 +146,9 @@ const FinReports = lazy(() => import('./pages/Finance/Reports'))
 const LmsCourses = lazy(() => import('./pages/Lms/Courses'))
 const LmsLive = lazy(() => import('./pages/Lms/LiveClasses'))
 const LmsQuestions = lazy(() => import('./pages/Lms/QuestionBank'))
+const LmsCreateContent = lazy(() => import('./pages/Lms/CreateContent'))
+const LmsMyContent = lazy(() => import('./pages/Lms/MyContent'))
+const LmsContentLibrary = lazy(() => import('./pages/Lms/ContentLibrary'))
 // Online tests
 const OtTests = lazy(() => import('./pages/OnlineTests/Tests'))
 const OtAttempts = lazy(() => import('./pages/OnlineTests/Attempts'))
@@ -348,6 +351,9 @@ export default function App() {
           <Route path="lms/courses" element={<LmsCourses />} />
           <Route path="lms/live-classes" element={<LmsLive />} />
           <Route path="lms/question-bank" element={<LmsQuestions />} />
+          <Route path="lms/create-content" element={<LmsCreateContent />} />
+          <Route path="lms/my-content" element={<LmsMyContent />} />
+          <Route path="lms/content-library" element={<LmsContentLibrary />} />
           <Route path="online-tests" element={<Navigate to="/online-tests/tests" replace />} />
           <Route path="online-tests/tests" element={<OtTests />} />
           <Route path="online-tests/attempts" element={<OtAttempts />} />

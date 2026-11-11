@@ -26,6 +26,43 @@ export function videoEmbed(url) {
   return null
 }
 
+// ───────────────────────────────────────────────────────── teaching content ("Create content")
+
+/**
+ * The tiles on "Create content". Study material, video and link are saved as course items (`kind`) in the class's
+ * subject course, in the unit named after the syllabus topic's unit; assignment opens the homework form and quiz the
+ * online-test form. `tone` is the calm colour of its chip.
+ */
+export const CONTENT_TYPES = {
+  MATERIAL: { kind: 'NOTE', icon: 'BookOpen', tone: 'brand' },
+  ASSIGNMENT: { icon: 'ClipboardList', tone: 'warning' },
+  QUIZ: { icon: 'ListChecks', tone: 'violet' },
+  VIDEO: { kind: 'VIDEO', icon: 'PlayCircle', tone: 'danger' },
+  LINK: { kind: 'LINK', icon: 'Link', tone: 'teal' },
+}
+/** A course item kind → its tile (items made on the course page show up as study material). */
+export const contentTypeOfKind = (kind) => (kind === 'VIDEO' ? 'VIDEO' : kind === 'LINK' ? 'LINK' : 'MATERIAL')
+
+export const CONTENT_VISIBILITY = ['ALL', 'STUDENTS']
+export const CONTENT_STATUS = {
+  PUBLISHED: { tone: 'success' },
+  SCHEDULED: { tone: 'info' },
+  HIDDEN: { tone: 'neutral' },
+}
+/** Largest file a teacher adds to content (the files engine allows a little more). */
+export const CONTENT_FILE_MAX_MB = 10
+
+/** PUBLISHED (students see it), SCHEDULED (shows from publishAt) or HIDDEN (switched off on the course page). */
+export function contentStatus(item, now = new Date()) {
+  if (item?.published === false) return 'HIDDEN'
+  if (item?.publishAt && new Date(item.publishAt) > now) return 'SCHEDULED'
+  return 'PUBLISHED'
+}
+
+/** Does this student see the item now? Published, its time has come, and meant for everyone or for them. */
+export const itemVisibleTo = (item, studentId, now = new Date()) => contentStatus(item, now) === 'PUBLISHED'
+  && (item.visibility !== 'STUDENTS' || (item.studentIds ?? []).some((s) => String(s) === String(studentId)))
+
 /** Is this a web address (http or https)? */
 export const isWebUrl = (s) => /^https?:\/\/[^\s]+\.[^\s]+$/i.test(String(s ?? '').trim())
 

@@ -8,6 +8,7 @@ import Button from '../ui/Button'
 import { fetchSyllabusTopic, saveSyllabusTopic, updateTopicPlan } from '../../api/homework'
 import { hasPermission } from '../../api/auth'
 import { useSnackbar } from '../../context/SnackbarContext'
+import { TopicContentLink } from '../lms/ContentKit'
 import { useFormat } from '../../context/SettingsContext'
 
 // Topic material and a section's record of a topic — shared by the syllabus page and the teacher's day.
@@ -333,6 +334,7 @@ export function TopicDrawer({ topicId, subjectId, section, onClose, onChanged })
                 {canEdit && <Button size="sm" variant="secondary" icon={Pencil} onClick={() => setEditing(true)}>{t('homework.topic.edit')}</Button>}
               </div>
               <TopicMaterial topic={topic} />
+              <TopicContentLink topicId={topic.id} />
               {topic.contentBy && <p className="text-xs text-ink-faint inline-flex items-center gap-1"><MessageCircleQuestion className="w-3.5 h-3.5" aria-hidden />{t('homework.topic.updatedBy', { name: topic.contentBy })}</p>}
             </>
           )}

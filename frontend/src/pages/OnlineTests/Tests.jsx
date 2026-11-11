@@ -18,10 +18,10 @@ const PAGE = 50
 
 const tomorrow = () => localIso(new Date(Date.now() + 864e5))
 
-function TestForm({ test, onClose, onSaved }) {
+function TestForm({ test, defaults, onClose, onSaved }) {
   const { t } = useTranslation('tests')
   const { showError } = useSnackbar()
-  const x = test ?? {}
+  const x = test ?? defaults ?? {}
   const draft = !test || test.status === 'DRAFT'
   const [f, setF] = useState({
     title: x.title ?? '', instructions: x.instructions ?? '', classId: x.classId ?? '', subjectId: x.subjectId ?? '', sectionIds: x.sectionIds ?? [],
@@ -197,7 +197,8 @@ export default function Tests() {
   const [status, setStatus] = useState('')
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
-  const [creating, setCreating] = useState(false)
+  // ?new=1&classId=…&subjectId=…&title=… (from "Create content" › Quiz) opens the form filled in
+  const [creating, setCreating] = useState(() => (params.get('new') === '1' ? { classId: params.get('classId') ?? '', subjectId: params.get('subjectId') ?? '', title: params.get('title') ?? '' } : false))
   const q = useDebouncedValue(search.trim(), 300)
   const query = { status: status || undefined, search: q || undefined, page, pageSize: PAGE }
   const { data, isLoading, error, refetch } = useQuery({ queryKey: ['tests', 'list', query], queryFn: () => fetchTests(query), placeholderData: keepPreviousData })
@@ -252,7 +253,7 @@ export default function Tests() {
             pagination={total > PAGE ? { page: page - 1, size: PAGE, totalElements: total, totalPages: Math.ceil(total / PAGE), onPageChange: (p) => setPage(p + 1) } : undefined} />
         </>
       )}
-      {creating && <TestForm onClose={() => setCreating(false)} onSaved={(x) => { setCreating(false); qc.invalidateQueries({ queryKey: ['tests'] }); open(x.id) }} />}
+      {creating && <TestForm defaults={creating === true ? undefined : creating} onClose={() => { setCreating(false); if (params.get('new')) setParams({}, { replace: true }) }} onSaved={(x) => { setCreating(false); qc.invalidateQueries({ queryKey: ['tests'] }); open(x.id) }} />}
     </PageContainer>
   )
 }

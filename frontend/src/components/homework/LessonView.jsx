@@ -12,6 +12,7 @@ import { useSnackbar } from '../../context/SnackbarContext'
 import { hasPermission } from '../../api/auth'
 import { useFormat } from '../../context/SettingsContext'
 import { MaterialView } from './LessonMaterial'
+import { TopicContentLink } from '../lms/ContentKit'
 
 /** One labelled line of the lesson's own plan, with its icon; nothing when empty. */
 function PlanLine({ icon: Icon, label, children }) {
@@ -48,6 +49,7 @@ function TopicCard({ name, q, open, onToggle }) {
           {q.isLoading ? <Skeleton className="h-24" /> : topic ? (
             <>
               <TopicMaterial topic={topic} />
+              <TopicContentLink topicId={topic.id} className="mt-2" />
               {empty && hasPermission('homework.syllabus.edit') && (
                 <Link to="/homework/syllabus" className="mt-2 inline-block text-sm font-medium text-brand-700 hover:underline">{t('homework.lessons.view.addMaterial')}</Link>
               )}

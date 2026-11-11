@@ -151,7 +151,15 @@ export async function saveOutline(id, units, auth, req) {
     if (['LINK', 'VIDEO'].includes(it.kind) && !isWebUrl(it.url)) fields[`units.${i}.items.${j}.url`] = 'A web address (https://…)'
   }))
   if (Object.keys(fields).length) throw fieldsError(fields)
-  c.units = units.map((u) => ({ ...(isOid(u.id) && { _id: u.id }), title: u.title, items: u.items.map((it) => ({ ...(isOid(it.id) && { _id: it.id }), kind: it.kind, title: it.title, body: it.kind === 'NOTE' ? it.body : undefined, url: ['LINK', 'VIDEO'].includes(it.kind) ? it.url : undefined, published: it.published !== false, minutes: it.minutes || undefined })) }))
+  // what "Create content" added to an item (topic, rich text, schedule, who sees it, views) stays with it
+  const before = new Map(c.units.flatMap((u) => u.items).map((i) => [String(i._id), i.toObject()]))
+  const kept = (it) => {
+    const p = isOid(it.id) && before.get(String(it.id))
+    if (!p) return {}
+    const html = p.descriptionHtml && !(it.kind === 'NOTE' && (it.body ?? '') !== (p.body ?? '')) ? p.descriptionHtml : undefined
+    return { topicId: p.topicId, descriptionHtml: html, publishAt: p.publishAt, visibility: p.visibility, studentIds: p.studentIds, views: p.views, createdBy: p.createdBy, createdById: p.createdById, createdAt: p.createdAt, updatedAt: p.updatedAt }
+  }
+  c.units = units.map((u) => ({ ...(isOid(u.id) && { _id: u.id }), title: u.title, items: u.items.map((it) => ({ ...kept(it), ...(isOid(it.id) && { _id: it.id }), kind: it.kind, title: it.title, body: it.kind === 'NOTE' ? it.body : undefined, url: ['LINK', 'VIDEO'].includes(it.kind) ? it.url : undefined, published: it.published !== false, minutes: it.minutes || undefined })) }))
   await c.save()
   await audit({ action: 'UPDATE', module: 'lms', entityType: 'course', entityId: String(c._id), entityName: c.title, summary: `Changed the material of ${c.title} (${units.length} unit(s), ${countItems(c.units)} item(s))` }, req)
   return getCourse(id, auth)
@@ -203,8 +211,11 @@ export async function lmsItemRecord(itemId, auth) {
   const c = await Course.findOne({ 'units.items._id': itemId, ...(await visibleFilter(auth)) }).lean()
   if (!c) return null
   const item = c.units.flatMap((u) => u.items).find((i) => String(i._id) === String(itemId))
-  return { name: `${c.title} · ${item?.title ?? ''}`, canAdd: mayChange(auth, c) }
+  return { name: `${c.title} · ${item?.title ?? ''}`, canAdd: mayChange(auth, c) || (!!item?.createdById && String(item.createdById) === String(auth.userId)) }
 }
+
+// for teaching content (services/lmsContent.js)
+export { visibleFilter, wide as lmsWide, names as lmsNames }
 
 // ───────────────────────────────────────────────────────── live classes
 

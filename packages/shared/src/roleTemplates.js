@@ -20,6 +20,8 @@ const TEACHING = [
   ['exams', ['question-papers'], 'A'], // set papers for their subjects; the exam in-charge approves
   ['timetable', ['timetable'], 'V'],
   ['lms', ['courses', 'live-classes', 'question-bank'], 'A'],
+  ['lms', ['create-content', 'my-content'], 'F'], // share study material, videos and links; edit / delete their own (the server checks it is theirs)
+  ['lms', ['content-library'], 'V'],
   ['online-tests', '*', 'A'],
   ['communication', ['messages', 'chat'], '+view create send'],
   ['communication', ['notices'], 'V'],

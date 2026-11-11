@@ -70,7 +70,7 @@ const RECORDS = {
   },
   // Study material on a course item: worksheets, slides, PDFs — students download them in the app.
   lms_item: {
-    module: 'lms', view: ['lms.courses.view'], add: ['lms.courses.create', 'lms.courses.edit'],
+    module: 'lms', view: ['lms.courses.view', 'lms.create-content.view', 'lms.my-content.view', 'lms.content-library.view'], add: ['lms.courses.create', 'lms.courses.edit', 'lms.create-content.create', 'lms.my-content.edit', 'lms.content-library.edit'],
     load: (id, auth) => lmsItemRecord(id, auth),
   },
   // An expense's bill, quotation or delivery note.

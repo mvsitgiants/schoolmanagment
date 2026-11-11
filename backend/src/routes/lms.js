@@ -1,11 +1,12 @@
 import { Router } from 'express'
-import { BLOOM_LEVELS, COURSE_STATUS, DIFFICULTY, ITEM_KINDS, LIVE_PROVIDERS, LIVE_STATUS, QUESTION_TYPES } from '@schoolgiant/shared'
+import { BLOOM_LEVELS, CONTENT_STATUS, CONTENT_TYPES, CONTENT_VISIBILITY, COURSE_STATUS, DIFFICULTY, ITEM_KINDS, LIVE_PROVIDERS, LIVE_STATUS, QUESTION_TYPES } from '@schoolgiant/shared'
 import { authenticate, requireModule, requirePermission, subscriptionGate, tenantOnly } from '../platform/middleware.js'
 import { objectId, optionalText, pageParams, z } from '../platform/validate.js'
 import {
   cancelLive, courseProgressReport, createCourse, createLive, deleteCourse, deleteQuestion, endLive, getCourse, getQuestion, importQuestions, listCourses, listLive,
   listQuestions, liveAttendance, lmsLookup, saveOutline, saveQuestion, setCourseStatus, startLive, updateCourse, updateLive,
 } from '../services/lms.js'
+import { contentStudents, contentTopics, createContent, deleteContent, getContent, listContent, topicContentCount, updateContent } from '../services/lmsContent.js'
 
 // Learning (LMS): /api/v1/lms — courses and material, live classes, the question bank.
 const router = Router()
@@ -14,7 +15,7 @@ router.use(authenticate, tenantOnly, subscriptionGate, requireModule('lms'))
 const ymd = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Use YYYY-MM-DD')
 const hhmm = z.string().regex(/^\d{2}:\d{2}$/, 'Use HH:MM')
 const id = (req) => objectId.parse(req.params.id)
-const ANY = ['lms.courses.view', 'lms.live-classes.view', 'lms.question-bank.view']
+const ANY = ['lms.courses.view', 'lms.live-classes.view', 'lms.question-bank.view', 'lms.create-content.view', 'lms.my-content.view', 'lms.content-library.view']
 
 router.get('/lookup', requirePermission(...ANY), async (req, res) => { res.json({ data: await lmsLookup(req.auth) }) })
 
@@ -47,6 +48,36 @@ router.post('/courses/:id/status', requirePermission('lms.courses.edit', 'lms.co
 })
 router.delete('/courses/:id', requirePermission('lms.courses.delete'), async (req, res) => { res.json({ data: await deleteCourse(id(req), req.auth, req) }) })
 router.get('/courses/:id/progress', requirePermission('lms.courses.view'), async (req, res) => { res.json({ data: await courseProgressReport(id(req), req.auth) }) })
+
+// ───────────────────────────────────────────────────────── teaching content (create / my content / library)
+
+const CONTENT_VIEW = ['lms.create-content.view', 'lms.my-content.view', 'lms.content-library.view']
+const contentBody = z.object({
+  type: z.enum(Object.keys(CONTENT_TYPES).filter((k) => CONTENT_TYPES[k].kind)), classId: objectId, subjectId: objectId, topicId: objectId,
+  title: z.string().trim().min(1, 'Give it a title').max(160), descriptionHtml: z.string().max(50000).optional().default(''),
+  url: z.string().trim().max(1000).optional().default(''), publish: z.enum(['NOW', 'LATER']).default('NOW'),
+  publishDate: ymd.optional().nullable(), publishTime: hhmm.optional().nullable(),
+  visibility: z.enum(CONTENT_VISIBILITY).default('ALL'), studentIds: z.array(objectId).max(2000).default([]),
+})
+const contentQuery = z.object({
+  classId: objectId.optional(), subjectId: objectId.optional(), topicId: objectId.optional(), teacherId: objectId.optional(),
+  type: z.enum(Object.keys(CONTENT_TYPES).filter((k) => CONTENT_TYPES[k].kind)).optional(), status: z.enum(Object.keys(CONTENT_STATUS)).optional(),
+})
+router.get('/content/topics', requirePermission('lms.create-content.view', 'lms.my-content.edit'), async (req, res) => {
+  res.json({ data: await contentTopics(z.object({ classId: objectId, subjectId: objectId }).parse(req.query), req.auth) })
+})
+router.get('/content/students', requirePermission('lms.create-content.view', 'lms.my-content.edit'), async (req, res) => {
+  res.json({ data: await contentStudents(z.object({ classId: objectId }).parse(req.query), req.auth) })
+})
+router.get('/content/topic-count', requirePermission(...CONTENT_VIEW, 'lms.courses.view'), async (req, res) => {
+  res.json({ data: await topicContentCount(objectId.parse(req.query.topicId), req.auth) })
+})
+router.get('/content/mine', requirePermission('lms.my-content.view'), async (req, res) => { res.json(await listContent(contentQuery.parse(req.query), pageParams(req.query), req.auth, { mine: true })) })
+router.get('/content', requirePermission('lms.content-library.view'), async (req, res) => { res.json(await listContent(contentQuery.parse(req.query), pageParams(req.query), req.auth)) })
+router.post('/content', requirePermission('lms.create-content.create'), async (req, res) => { res.status(201).json({ data: await createContent(contentBody.parse(req.body), req.auth, req) }) })
+router.get('/content/:id', requirePermission(...CONTENT_VIEW), async (req, res) => { res.json({ data: await getContent(id(req), req.auth) }) })
+router.put('/content/:id', requirePermission('lms.my-content.edit', 'lms.content-library.edit'), async (req, res) => { res.json({ data: await updateContent(id(req), contentBody.parse(req.body), req.auth, req) }) })
+router.delete('/content/:id', requirePermission('lms.my-content.delete', 'lms.content-library.delete'), async (req, res) => { res.json({ data: await deleteContent(id(req), req.auth, req) }) })
 
 // ───────────────────────────────────────────────────────── live classes
 

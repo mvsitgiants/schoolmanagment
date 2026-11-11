@@ -193,6 +193,9 @@ export const MODULES = [
     desc: 'Courses, study material, live classes and assignments.',
     pages: [
       pg('courses', 'Courses & material', 'V C E D'),
+      pg('create-content', 'Create content', 'V C'),
+      pg('my-content', 'My content', 'V E D'),
+      pg('content-library', 'Content library', 'V E D'),
       pg('live-classes', 'Live classes', 'V C start'),
       pg('question-bank', 'Question bank', 'V C E D I'),
     ] },

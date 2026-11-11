@@ -17,6 +17,14 @@ const itemSchema = new Schema({
   url: String, // LINK / VIDEO
   published: { type: Boolean, default: true },
   minutes: Number, // roughly how long it takes
+  // shared from "Create content" (items made on the course page leave these empty)
+  topicId: ObjectId, // the syllabus topic (Syllabus.units.topics._id) of the course's class + subject
+  descriptionHtml: String, // rich text, sanitised (shared richText.js); `body` keeps its words for older screens
+  publishAt: Date, // null = shown at once; later = students see it from then
+  visibility: { type: String, default: 'ALL' }, // CONTENT_VISIBILITY
+  studentIds: { type: [ObjectId], default: undefined }, // visibility STUDENTS
+  views: { type: Number, default: 0 }, // students who opened it (each counted once)
+  createdBy: String, createdById: ObjectId, createdAt: Date, updatedAt: Date,
 })
 const unitSchema = new Schema({
   title: { type: String, required: true, trim: true },
@@ -39,12 +47,15 @@ const courseSchema = new Schema({
 courseSchema.plugin(tenantPlugin)
 courseSchema.index({ tenantId: 1, academicYearId: 1, classId: 1, subjectId: 1 })
 courseSchema.index({ tenantId: 1, 'units.items._id': 1 })
+courseSchema.index({ tenantId: 1, 'units.items.createdById': 1 })
+courseSchema.index({ tenantId: 1, 'units.items.topicId': 1 })
 export const Course = model('Course', courseSchema, 'lms_courses')
 
 const progressSchema = new Schema({
   courseId: { type: ObjectId, required: true },
   studentId: { type: ObjectId, required: true },
   done: { type: [ObjectId], default: [] },
+  viewed: { type: [ObjectId], default: [] }, // items opened (counted once in the item's views)
   lastAt: Date,
 }, { timestamps: true })
 progressSchema.plugin(tenantPlugin)

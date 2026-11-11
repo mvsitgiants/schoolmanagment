@@ -73,6 +73,7 @@ export const familyLearning = (slug, id) => fget(slug, `${st(id)}/learning`)
 export const familyCourse = (slug, id, courseId) => fget(slug, `${st(id)}/learning/courses/${courseId}`)
 export const familyMarkItem = (slug, id, courseId, itemId, done) => fpost(slug, `${st(id)}/learning/courses/${courseId}/items/${itemId}`, { done })
 export const familyJoinLive = (slug, id, liveId) => fpost(slug, `${st(id)}/learning/live/${liveId}/join`)
+export const familyViewItem = (slug, id, courseId, itemId) => fpost(slug, `${st(id)}/learning/courses/${courseId}/items/${itemId}/view`, {})
 export const familyItemFileUrl = (slug, id, courseId, itemId, fileId) => `${API_BASE_URL}${base(slug)}${st(id)}/learning/courses/${courseId}/items/${itemId}/files/${fileId}`
 
 // online tests

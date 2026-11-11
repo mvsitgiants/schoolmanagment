@@ -5,7 +5,8 @@ import clsx from 'clsx'
 import { BookOpen, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, Circle, ExternalLink, FileText, GraduationCap, Link2, Paperclip, PlayCircle, Video } from 'lucide-react'
 import { SideNav, SideNavLayout, StatusPill, TONE, hueTone } from '../../components/system'
 import { FCard, FEmpty, FError, FSkeleton, useFamily, useFamilyQuery } from '../../components/family/FamilyKit'
-import { familyCourse, familyItemFileUrl, familyJoinLive, familyLearning, familyMarkItem } from '../../api/family'
+import { familyCourse, familyItemFileUrl, familyJoinLive, familyLearning, familyMarkItem, familyViewItem } from '../../api/family'
+import { RichTextView } from '../../components/lms/RichText'
 import { useFormat } from '../../context/SettingsContext'
 
 const size = (n) => (n < 1024 * 1024 ? `${Math.max(1, Math.round(n / 1024))} KB` : `${(n / 1024 / 1024).toFixed(1)} MB`)
@@ -35,6 +36,13 @@ function CourseView({ courseId, onBack }) {
   const { data: c, isLoading, error } = useFamilyQuery(['course', courseId], () => familyCourse(slug, studentId, courseId))
   const mark = useMutation({ mutationFn: ({ itemId, done }) => familyMarkItem(slug, studentId, courseId, itemId, done), onSuccess: (d) => { qc.setQueryData(['family', slug, studentId, 'course', courseId], d); qc.invalidateQueries({ queryKey: ['family', slug, studentId, 'learning'] }) } })
   const [open, setOpen] = useState(null)
+  const [seen] = useState(() => new Set())
+  // opening an item counts a view (once per student on the server; once per visit here)
+  const toggle = (itemId) => {
+    const next = open === itemId ? null : itemId
+    setOpen(next)
+    if (next && !seen.has(next)) { seen.add(next); familyViewItem(slug, studentId, courseId, next).catch(() => {}) }
+  }
   if (isLoading) return <FSkeleton className="h-64" />
   if (error) return <FError error={error} />
   return (
@@ -69,7 +77,7 @@ function CourseView({ courseId, onBack }) {
                         className="-ms-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-xl hover:bg-black/[0.03]">
                         {i.done ? <CheckCircle2 className="h-6 w-6 text-success-600" /> : <Circle className="h-6 w-6 text-ink-faint" />}
                       </button>
-                      <button type="button" onClick={() => setOpen(expanded ? null : i.id)} aria-expanded={expanded} className="flex min-h-[48px] min-w-0 flex-1 items-center gap-2.5 py-1.5 text-start">
+                      <button type="button" onClick={() => toggle(i.id)} aria-expanded={expanded} className="flex min-h-[48px] min-w-0 flex-1 items-center gap-2.5 py-1.5 text-start">
                         <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-black/[0.04] text-ink-muted"><Icon className="h-4 w-4" aria-hidden /></span>
                         <span className="min-w-0 flex-1">
                           <span className={clsx('block text-sm font-medium leading-snug break-words', i.done ? 'text-ink-muted line-through decoration-ink-faint' : 'text-ink')}>{i.title}</span>
@@ -80,11 +88,11 @@ function CourseView({ courseId, onBack }) {
                     </div>
                     {expanded && (
                       <div className="mb-2 mt-1 space-y-2 ps-10">
-                        {i.body && <p className="text-sm text-ink whitespace-pre-line break-words">{i.body}</p>}
+                        {i.html ? <RichTextView html={i.html} /> : i.body && <p className="text-sm text-ink whitespace-pre-line break-words">{i.body}</p>}
                         {i.embed && <div className="aspect-video w-full overflow-hidden rounded-xl bg-black"><iframe src={i.embed} title={i.title} className="h-full w-full" allow="accelerometer; encrypted-media; picture-in-picture; fullscreen" allowFullScreen /></div>}
-                        {i.url && !i.embed && <a href={i.url} target="_blank" rel="noreferrer" className="inline-flex min-h-[44px] items-center gap-1.5 rounded-lg border border-border px-3 text-sm font-medium text-brand-700 hover:bg-black/[0.02]"><ExternalLink className="h-4 w-4" />{t('family.learning.open')}</a>}
+                        {i.url && !i.embed && <a href={i.url} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-[44px] items-center gap-1.5 rounded-lg border border-border px-3 text-sm font-medium text-brand-700 hover:bg-black/[0.02]"><ExternalLink className="h-4 w-4" />{t('family.learning.open')}</a>}
                         {i.files.map((f) => (
-                          <a key={f.id} href={familyItemFileUrl(slug, studentId, courseId, i.id, f.id)} target="_blank" rel="noreferrer" className="flex min-h-[44px] items-center gap-2 rounded-lg border border-border px-3 text-sm text-ink hover:bg-black/[0.02]">
+                          <a key={f.id} href={familyItemFileUrl(slug, studentId, courseId, i.id, f.id)} target="_blank" rel="noopener noreferrer" className="flex min-h-[44px] items-center gap-2 rounded-lg border border-border px-3 text-sm text-ink hover:bg-black/[0.02]">
                             <Paperclip className="h-4 w-4 shrink-0 text-ink-faint" aria-hidden /><span className="min-w-0 flex-1 truncate">{f.name}</span><span className="shrink-0 text-xs text-ink-faint">{size(f.size)}</span>
                           </a>
                         ))}

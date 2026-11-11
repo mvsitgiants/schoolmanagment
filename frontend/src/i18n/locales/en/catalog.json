@@ -180,6 +180,9 @@
       },
       "lms": {
         "courses": "Courses & material",
+        "create-content": "Create content",
+        "my-content": "My content",
+        "content-library": "Content library",
         "live-classes": "Live classes",
         "question-bank": "Question bank"
       },
