@@ -35,6 +35,8 @@ export const createQuestion = (body) => post(`${BASE}/questions`, body)
 export const updateQuestion = (id, body) => put(`${BASE}/questions/${id}`, body)
 export const deleteQuestion = (id) => del(`${BASE}/questions/${id}`)
 export const importQuestions = (rows, dryRun) => post(`${BASE}/questions/import`, { rows, dryRun })
+// the questions written on a class's syllabus topics (Teaching hub), copied into the bank → { added, already, topics }
+export const questionsFromTopics = (body) => post(`${BASE}/questions/from-topics`, body)
 
 // teaching content: create, my content, library
 export const fetchContentTopics = (classId, subjectId) => get(`${BASE}/content/topics`, { classId, subjectId })

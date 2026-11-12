@@ -2,12 +2,13 @@ import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { ArrowDown, ArrowUp, ChevronLeft, ClipboardCheck, Lock, Plus, Send, Shuffle, Trash2, X } from 'lucide-react'
+import { ArrowDown, ArrowUp, ChevronLeft, ClipboardCheck, Download, Lock, PenLine, Plus, Send, Shuffle, Trash2, X } from 'lucide-react'
 import { DIFFICULTY, QUESTION_TYPES, RESULT_RELEASE, TEST_STATUS } from '@schoolgiant/shared'
 import { DateInput, ColorChip, DataTable, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, Panel, SearchInput, SegmentedControl, Select, SideNav, SideNavLayout, StatusPill, Textarea, localIso, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { addTestQuestions, closeTest, createTest, deleteTest, fetchTest, fetchTests, pickTestQuestions, publishTest, setTestQuestions, updateTest } from '../../api/onlineTests'
-import { fetchQuestions } from '../../api/lms'
+import { fetchQuestions, questionsFromTopics } from '../../api/lms'
+import { QuestionForm } from '../Lms/QuestionBank'
 import { hasPermission } from '../../api/auth'
 import { useSnackbar } from '../../context/SnackbarContext'
 import { useFormat } from '../../context/SettingsContext'
@@ -79,6 +80,15 @@ function BankPicker({ test, onClose, onDone }) {
   const [filter, setFilter] = useState({ chapter: '', difficulty: '', type: '' })
   const [chosen, setChosen] = useState([])
   const [count, setCount] = useState('5')
+  const [writing, setWriting] = useState(false)
+  const qc = useQueryClient()
+  const canWrite = hasPermission('lms.question-bank.create')
+  // the questions already written on this class's topics (Teaching hub) → into the bank, then they can be ticked
+  const bring = useMutation({
+    mutationFn: () => questionsFromTopics({ classId: test.classId, subjectId: test.subjectId }),
+    onSuccess: (r) => { qc.invalidateQueries({ queryKey: ['lms-questions'] }); showSuccess(r.added ? t('tests.builder.broughtIn', { count: r.added, topics: r.topics }) : r.already ? t('tests.builder.alreadyIn') : t('tests.builder.noTopicQuestions')) },
+    onError: (e) => showError(e.message),
+  })
   const have = new Set(test.questions.map((q) => q.questionId))
   const params = { subjectId: test.subjectId, ...Object.fromEntries(Object.entries(filter).filter(([, v]) => v)), page: 1, pageSize: 100 }
   const { data, isLoading } = useQuery({ queryKey: ['lms-questions', params], queryFn: () => fetchQuestions(params) })
@@ -101,7 +111,15 @@ function BankPicker({ test, onClose, onDone }) {
           <div className="w-20"><Input type="number" min="1" max="100" value={count} onChange={(e) => setCount(e.target.value)} aria-label={t('tests.builder.count')} /></div>
           <Button size="sm" variant="secondary" loading={pick.isPending} onClick={() => pick.mutate()}>{t('tests.builder.pick')}</Button>
         </div>
-        {isLoading ? <p className="text-sm text-ink-faint">{t('tests.loading')}</p> : !(data?.data ?? []).length ? <Note>{t('tests.builder.bankEmpty')}</Note> : (
+        {/* nothing suitable in the bank: write one here, or bring in the questions written on the topics */}
+        {canWrite && (
+          <div className="flex flex-wrap items-center gap-2">
+            <Button size="sm" variant="secondary" icon={PenLine} onClick={() => setWriting(true)}>{t('tests.builder.write')}</Button>
+            <Button size="sm" variant="secondary" icon={Download} loading={bring.isPending} onClick={() => bring.mutate()}>{t('tests.builder.bringIn')}</Button>
+            <span className="text-xs text-ink-faint">{t('tests.builder.bringInHint')}</span>
+          </div>
+        )}
+        {isLoading ? <p className="text-sm text-ink-faint">{t('tests.loading')}</p> : !(data?.data ?? []).length ? <Note>{canWrite ? t('tests.builder.bankEmptyHelp') : t('tests.builder.bankEmpty')}</Note> : (
           <div className="max-h-[50vh] overflow-y-auto divide-y divide-border rounded-lg border border-border">
             {data.data.map((q) => (
               <label key={q.id} className={`flex gap-3 px-3 py-2.5 text-sm ${have.has(q.id) ? 'opacity-50' : 'cursor-pointer hover:bg-bg'}`}>
@@ -112,6 +130,8 @@ function BankPicker({ test, onClose, onDone }) {
           </div>
         )}
       </div>
+      {writing && <QuestionForm question={null} defaults={{ subjectId: test.subjectId, classId: test.classId }} onClose={() => setWriting(false)}
+        onSaved={(q) => { setWriting(false); qc.invalidateQueries({ queryKey: ['lms-questions'] }); if (q?.id) setChosen((c) => [...c, q.id]); showSuccess(t('tests.builder.written')) }} />}
     </Modal>
   )
 }

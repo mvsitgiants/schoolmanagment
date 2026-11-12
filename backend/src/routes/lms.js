@@ -3,7 +3,7 @@ import { BLOOM_LEVELS, CONTENT_STATUS, CONTENT_TYPES, CONTENT_VISIBILITY, COURSE
 import { authenticate, requireModule, requirePermission, subscriptionGate, tenantOnly } from '../platform/middleware.js'
 import { objectId, optionalText, pageParams, z } from '../platform/validate.js'
 import {
-  cancelLive, courseProgressReport, createCourse, createLive, deleteCourse, deleteQuestion, endLive, getCourse, getQuestion, importQuestions, listCourses, listLive,
+  cancelLive, courseProgressReport, createCourse, createLive, deleteCourse, deleteQuestion, endLive, getCourse, getQuestion, importQuestions, questionsFromTopics, listCourses, listLive,
   listQuestions, liveAttendance, lmsLookup, saveOutline, saveQuestion, setCourseStatus, startLive, updateCourse, updateLive,
 } from '../services/lms.js'
 import { contentStudents, contentTopics, createContent, deleteContent, getContent, listContent, topicContentCount, updateContent } from '../services/lmsContent.js'
@@ -119,6 +119,10 @@ router.get('/questions', requirePermission('lms.question-bank.view'), async (req
   res.json(await listQuestions(q, pageParams(req.query)))
 })
 router.post('/questions', requirePermission('lms.question-bank.create'), async (req, res) => { res.status(201).json({ data: await saveQuestion(null, questionBody.parse(req.body), req.auth, req) }) })
+// the questions already written on a class's syllabus topics (Teaching hub), copied into the bank for that class and subject
+router.post('/questions/from-topics', requirePermission('lms.question-bank.create'), async (req, res) => {
+  res.json({ data: await questionsFromTopics(z.object({ classId: objectId, subjectId: objectId }).parse(req.body), req.auth, req) })
+})
 router.post('/questions/import', requirePermission('lms.question-bank.import'), async (req, res) => {
   const { rows, dryRun } = z.object({ rows: z.array(z.record(z.string(), z.any())).min(1).max(3000), dryRun: z.boolean().default(true) }).parse(req.body)
   res.json({ data: await importQuestions(rows, { dryRun }, req.auth, req) })

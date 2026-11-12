@@ -19,7 +19,8 @@ function useSubjects() {
   return { classes, subjects }
 }
 
-function QuestionForm({ question, defaults, onClose, onSaved, onDelete }) {
+/** Write or change one bank question (also opened from an online test's "Questions from the bank"). */
+export function QuestionForm({ question, defaults, onClose, onSaved, onDelete }) {
   const { t } = useTranslation('lms')
   const { showError } = useSnackbar()
   const { classes, subjects } = useSubjects()

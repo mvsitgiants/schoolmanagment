@@ -4,6 +4,7 @@ import {
 } from '@schoolgiant/shared'
 import { ClassLevel, Section, Subject } from '../models/academics.js'
 import { Attachment } from '../models/engines.js'
+import { Syllabus } from '../models/homework.js'
 import { Course, CourseProgress, LiveClass, Question } from '../models/lms.js'
 import { Student, studentName } from '../models/students.js'
 import { can, scopeOf } from '../platform/access.js'
@@ -376,6 +377,57 @@ export async function saveQuestion(id, input, auth, req) {
   await q.save()
   await audit({ action: id ? 'UPDATE' : 'CREATE', module: 'lms', entityType: 'question', entityId: String(q._id), entityName: q.text.slice(0, 60), summary: `${id ? 'Changed' : 'Added'} a ${QUESTION_TYPES[q.type].label.toLowerCase()} question` }, req)
   return qOut(q.toObject())
+}
+
+/**
+ * The questions already written on a class's syllabus topics (Teaching hub: class, homework and exam questions) copied
+ * into the question bank for that class and subject — each once (one already there with the same words is skipped).
+ * The topic becomes the chapter. A multiple-choice question needs its right option (the answer is the option's letter or
+ * its words); one without becomes a short answer, so a teacher marks it. Returns { added, already, topics }.
+ */
+export async function questionsFromTopics({ classId, subjectId }, auth, req) {
+  const year = await currentYear()
+  if (!year) throw conflict('Set up the academic year first.')
+  const [syl, subject] = await Promise.all([
+    Syllabus.findOne({ academicYearId: year._id, classId, subjectId }).select('units.topics.name units.topics.questions').lean(),
+    Subject.findById(subjectId).select('name').lean(),
+  ])
+  if (!subject) throw notFound('Subject')
+  const norm = (x) => String(x ?? '').trim().toLowerCase().replace(/\s+/g, ' ')
+  const have = new Set((await Question.find({ subjectId, classId }).select('text').lean()).map((q) => norm(q.text)))
+  const me = isOid(auth.userId) ? auth.userId : undefined
+  const rows = []
+  let already = 0
+  const topics = new Set()
+  for (const u of syl?.units ?? []) {
+    for (const tp of u.topics ?? []) {
+      for (const q of tp.questions ?? []) {
+        const text = String(q.question ?? '').trim()
+        if (!text) continue
+        if (have.has(norm(text))) { already++; continue }
+        have.add(norm(text))
+        const base = { subjectId, classId, chapter: tp.name.slice(0, 120), text, difficulty: 'MEDIUM', tags: ['syllabus'], createdBy: auth.user?.name, createdById: me }
+        const opts = (q.options ?? []).map((o) => String(o).trim()).filter(Boolean)
+        const ans = String(q.answer ?? '').trim()
+        let right = -1
+        if (q.kind === 'MCQ' && opts.length >= 2) {
+          right = /^[a-h]\)?\.?$/i.test(ans) ? ans.toUpperCase().charCodeAt(0) - 65 : opts.findIndex((o) => norm(o) === norm(ans))
+        }
+        if (q.kind === 'MCQ' && right >= 0 && right < opts.length) {
+          rows.push({ ...base, type: 'MCQ', marks: 1, options: opts.map((o, i) => ({ text: o, correct: i === right })) })
+        } else {
+          const long = q.kind === 'LONG'
+          rows.push({ ...base, type: long ? 'LONG' : 'SHORT', marks: long ? 5 : 2, answers: ans ? [ans] : undefined })
+        }
+        topics.add(tp.name)
+      }
+    }
+  }
+  if (rows.length) {
+    await Question.insertMany(rows)
+    await audit({ action: 'CREATE', module: 'lms', entityType: 'question', entityId: `${classId}:${subjectId}`, entityName: subject.name, summary: `Brought ${rows.length} question(s) from ${topics.size} syllabus topic(s) of ${subject.name} into the question bank` }, req)
+  }
+  return { added: rows.length, already, topics: topics.size }
 }
 
 /** A question a test used is switched off instead of deleted (the test keeps its copy). */
