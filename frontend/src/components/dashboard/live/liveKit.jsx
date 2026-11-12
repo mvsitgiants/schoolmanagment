@@ -124,5 +124,5 @@ export function usePlain() {
     }
     return formatCurrency(r)
   }
-  return { clock, longDate, shortDate, money }
+  return { clock, day, longDate, shortDate, money }
 }

@@ -1,13 +1,14 @@
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { ChevronRight } from 'lucide-react'
-import { Block, Dot, usePlain } from './liveKit'
+import clsx from 'clsx'
+import { Block, usePlain } from './liveKit'
 
 // What needs the principal first, most urgent at the top. Each row is a plain sentence — what is wrong and what to
-// do about it — with a dot for how urgent (red: now, amber: today, grey: when you can), the details in grey, and a
-// link to the screen where it is done.
+// do about it — with a small tag for how urgent (red "Act now", amber "Today", grey "When you can"), the details in
+// grey, and a link to the screen where it is done.
 
-const LEVEL = { high: 'danger', medium: 'warning', low: 'muted' }
+const TAG = { high: 'bg-rose-50 text-rose-700', medium: 'bg-amber-50 text-amber-700', low: 'bg-black/[0.05] text-ink-muted' }
 
 function detail(p, t) {
   const list = (xs) => (xs?.length ? xs.join(', ') : '')
@@ -28,13 +29,12 @@ export default function PrioritiesPanel({ priorities, markBefore, className }) {
     <Block title={t('dashboard.live.priorities.title')} sub={t('dashboard.live.priorities.subtitle')} className={className}>
       {priorities.length ? (
         <ol className="divide-y divide-border">
-          {priorities.map((p, i) => {
+          {priorities.map((p) => {
             const more = detail(p, t)
             return (
               <li key={p.key}>
                 <Link to={p.link} className="group flex min-w-0 items-center gap-3 px-4 py-2.5 hover:bg-bg">
-                  <span className="w-4 shrink-0 text-end text-[11px] text-ink-faint tabular-nums">{i + 1}</span>
-                  <Dot level={LEVEL[p.severity] ?? 'muted'} size={7} title={t(`dashboard.live.priorities.level.${p.severity}`)} />
+                  <span className={clsx('w-[92px] shrink-0 rounded-md px-2 py-0.5 text-center text-[11px] font-medium', TAG[p.severity] ?? TAG.low)}>{t(`dashboard.live.priorities.level.${p.severity}`)}</span>
                   <span className="min-w-0 flex-1">
                     <span className="block text-[13px] leading-snug text-ink">{t(`dashboard.live.priorities.say.${p.key}`, { count: p.count, time: clock(p.by ?? markBefore), amount: money(p.amount ?? 0) })}</span>
                     {more && <span className="block truncate text-[11.5px] text-ink-faint">{more}</span>}
@@ -46,9 +46,6 @@ export default function PrioritiesPanel({ priorities, markBefore, className }) {
           })}
         </ol>
       ) : <p className="px-4 py-6 text-sm text-ink-muted">{t('dashboard.live.priorities.clear')}</p>}
-      <p className="flex flex-wrap gap-x-3 gap-y-1 border-t border-border px-4 py-2 text-[11px] text-ink-faint">
-        {['high', 'medium', 'low'].map((k) => <span key={k} className="inline-flex items-center gap-1"><Dot level={LEVEL[k]} size={6} />{t(`dashboard.live.priorities.level.${k}`)}</span>)}
-      </p>
     </Block>
   )
 }

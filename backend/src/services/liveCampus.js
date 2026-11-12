@@ -25,6 +25,7 @@ import { waitingCount } from './approvals.js'
 import { branchFilterFor, on, pendingFor, scopedSections } from './dashboard.js'
 import { homeworkLookup } from './homework.js'
 import { dayOffFor } from './hrmsCommon.js'
+import { recentActivity } from './overview.js'
 import { listBells, substitutionNeeds } from './timetable.js'
 
 // Dashboard › Live campus: the school right now, class by class — the period each section is in, who is teaching it
@@ -540,6 +541,36 @@ async function agendaBlock(ctx, { sections, uncoveredToday }) {
   return dates.map((d) => { const day = days.get(d); day.items.sort((a, b) => ORDER.indexOf(a.kind) - ORDER.indexOf(b.kind)); return day })
 }
 
+// ───────────────────────────────────────────────────────── attendance, day by day
+
+/**
+ * Students present on each of the last school days attendance was taken (up to six, ending on the day looked at):
+ * [{ date, present, absent, onLeave, counted, pct, sections }]. The day's own sheet (period 0); a period-wise school's
+ * first period taken stands in for the day.
+ */
+async function attendanceDays(ctx, sectionIds) {
+  const sheets = await AttendanceSheet.find({ sectionId: { $in: sectionIds }, date: { $gte: addDaysYmd(ctx.today, -20), $lte: ctx.today } })
+    .select('sectionId date period entries counts').sort({ period: 1 }).lean()
+  const first = new Map() // date|section → the sheet that stands for the day
+  for (const s of sheets) {
+    const k = `${s.date}|${s.sectionId}`
+    if (!first.has(k) || (first.get(k).period !== 0 && s.period === 0)) first.set(k, s)
+  }
+  const byDate = new Map()
+  for (const s of first.values()) {
+    const c = s.counts?.total ? s.counts : countMarks(s.entries)
+    const d = byDate.get(s.date) ?? { date: s.date, present: 0, absent: 0, onLeave: 0, counted: 0, sections: 0 }
+    d.present += (c.P ?? 0) + (c.L ?? 0) + (c.HD ?? 0)
+    d.absent += c.A ?? 0
+    d.onLeave += c.LV ?? 0
+    d.counted += c.total ?? 0
+    d.sections++
+    byDate.set(s.date, d)
+  }
+  return [...byDate.values()].sort((a, b) => a.date.localeCompare(b.date)).slice(-6)
+    .map((d) => ({ ...d, pct: d.counted ? Math.round((d.present / d.counted) * 1000) / 10 : null }))
+}
+
 // ───────────────────────────────────────────────────────── the page
 
 export async function liveCampus(auth, { at, branchId, date } = {}) {
@@ -549,7 +580,7 @@ export async function liveCampus(auth, { at, branchId, date } = {}) {
     year: ctx.year ? { id: String(ctx.year._id), name: ctx.year.name } : null,
     branches: ctx.canPick ? ctx.branches.map((b) => ({ id: String(b._id), name: b.name, code: b.code })) : [], branchId: ctx.picked ? String(ctx.picked._id) : null,
     frame: ctx.frame, published: !!ctx.pub, inUse: ctx.inUse, attendanceMode: ctx.attCfg.mode, markBefore: ctx.attCfg.markBefore || null,
-    sections: [], teachers: null, syllabus: null, priorities: [], agenda: [], summary: {},
+    sections: [], teachers: null, syllabus: null, priorities: [], agenda: [], attendanceDays: [], activity: null, summary: {},
   }
   if (!ctx.year) return out
   const flags = {
@@ -570,10 +601,14 @@ export async function liveCampus(auth, { at, branchId, date } = {}) {
   out.sections = (board?.board ?? []).map((s) => (flags.attendance ? s : { ...s, attendance: null }))
   out.teachers = teachers
   out.syllabus = syllabus
-  const [priorities, agenda] = await Promise.all([
+  const [priorities, agenda, days, activity] = await Promise.all([
     safe('priorities', () => prioritiesBlock(ctx, { board: out.sections, teachers, syllabus, sectionIds, flags }), []),
     safe('agenda', () => agendaBlock(ctx, { sections, uncoveredToday: teachers ? teachers.uncovered.filter((u) => !u.done).length : null }), []),
+    flags.attendance ? safe('attendanceDays', () => attendanceDays(ctx, sectionIds), []) : [],
+    safe('activity', () => recentActivity(auth), null),
   ])
+  out.attendanceDays = days
+  out.activity = activity
   out.priorities = priorities
   out.agenda = agenda
 
@@ -587,7 +622,12 @@ export async function liveCampus(auth, { at, branchId, date } = {}) {
     uncovered: teachers ? teachers.uncovered.filter((u) => !u.done).length : null,
     teachersIn: teachers ? teachers.counts.PRESENT + teachers.counts.LATE : null,
     teachersExpected: teachers ? teachers.counts.total - teachers.counts.OFF : null,
-    attendance: flags.attendance ? { marked: marked.length, sections: out.sections.length, present, counted, pct: counted ? Math.round((present / counted) * 1000) / 10 : null } : null,
+    attendance: flags.attendance ? {
+      marked: marked.length, sections: out.sections.length, present, counted, pct: counted ? Math.round((present / counted) * 1000) / 10 : null,
+      absent: marked.reduce((n, s) => n + (s.attendance.absent ?? 0), 0), onLeave: marked.reduce((n, s) => n + (s.attendance.onLeave ?? 0), 0),
+      students: out.sections.reduce((n, s) => n + (s.strength ?? 0), 0),
+      notCounted: out.sections.filter((s) => !s.attendance?.marked).reduce((n, s) => n + (s.strength ?? 0), 0),
+    } : null,
     syllabusBehind: syllabus ? syllabus.behindRows : null,
     approvals: priorities.find((p) => p.key === 'approvals')?.count ?? 0,
   }

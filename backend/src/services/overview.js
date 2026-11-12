@@ -242,7 +242,8 @@ async function approvals(auth) {
   return out
 }
 
-async function activity(auth) {
+/** The last changes people made (not sign-ins or views), for someone who may read the audit log. */
+export async function recentActivity(auth) {
   if (!can(auth, 'core.audit.view')) return null
   const rows = await AuditLog.find({ action: { $nin: ['LOGIN', 'LOGOUT', 'VIEW'] } }).sort({ at: -1 }).limit(8).select('at userName action module entityType entityName summary').lean()
   return rows.map((r) => ({ id: String(r._id), at: r.at, who: r.userName ?? null, action: r.action, module: r.module ?? null, what: r.summary || r.entityName || r.entityType }))
@@ -258,7 +259,7 @@ export async function institutionOverview(auth, { from, to } = {}) {
   const year = await currentYear()
   const out = { today, range, prev: ctx.prev, buckets: ctx.buckets, year: year ? { id: String(year._id), name: year.name } : null, kpis: {} }
   out.approvals = await approvals(auth)
-  out.activity = await activity(auth)
+  out.activity = await recentActivity(auth)
   if (on(auth, 'admissions', 'admissions.enquiries.view')) out.kpis.enquiries = await admissionsKpi(ctx)
   if (on(auth, 'finance', 'finance.expenses.view')) out.kpis.expenses = await expensesKpi(ctx)
   if (on(auth, 'hrms', 'hrms.employees.view')) out.kpis.staff = await staffKpi(ctx)

@@ -64,6 +64,25 @@ function Row({ x, plain }) {
   )
 }
 
+// present in the brand colour, late amber, absent / on leave red, not in yet grey — a 2px gap between the parts
+const PARTS = [['PRESENT', 'bg-brand-500'], ['LATE', 'bg-amber-500'], ['AWAY', 'bg-rose-500'], ['NOT_IN_YET', 'bg-black/[0.15]']]
+
+function StateBar({ c, expected }) {
+  const { t } = useTranslation('dashboard')
+  const n = { PRESENT: c.PRESENT ?? 0, LATE: c.LATE ?? 0, AWAY: (c.ABSENT ?? 0) + (c.ON_LEAVE ?? 0), NOT_IN_YET: c.NOT_IN_YET ?? 0 }
+  const parts = PARTS.filter(([k]) => n[k] > 0)
+  return (
+    <div className="space-y-1.5">
+      <span className="flex h-2.5 w-full gap-0.5 overflow-hidden rounded-full bg-black/[0.07]">
+        {parts.map(([k, cls]) => <span key={k} title={t(`dashboard.live.teachers.bar.${k}`, { count: n[k] })} className={clsx('h-full first:rounded-s-full last:rounded-e-full', cls)} style={{ width: `${(n[k] / expected) * 100}%` }} />)}
+      </span>
+      <p className="flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-ink-muted">
+        {parts.map(([k, cls]) => <span key={k} className="inline-flex items-center gap-1"><span className={clsx('h-2 w-2 rounded-full', cls)} aria-hidden />{t(`dashboard.live.teachers.bar.${k}`, { count: n[k] })}</span>)}
+      </p>
+    </div>
+  )
+}
+
 export default function TeachersPanel({ teachers, now, firstStart, className }) {
   const { t } = useTranslation('dashboard')
   const { clock } = usePlain()
@@ -94,11 +113,11 @@ export default function TeachersPanel({ teachers, now, firstStart, className }) 
       actions={hasPermission('hrms.attendance.view') && <Link to="/hrms/attendance" className="text-xs font-medium text-brand-600 hover:underline">{t('dashboard.live.teachers.link')}</Link>}>
       <div className="space-y-2 px-4 py-3">
         <p className="text-[13px] text-ink">{summary}</p>
-        {!planned && <span className="block h-1 w-full overflow-hidden rounded-full bg-black/[0.07]"><span className="block h-full rounded-full bg-ink/70" style={{ width: `${expected ? (inNow / expected) * 100 : 0}%` }} /></span>}
+        {!planned && expected > 0 && <StateBar c={c} expected={expected} />}
         {!planned && teachers.freeNow > 0 && <p className="text-[11.5px] text-ink-faint">{t('dashboard.live.teachers.freeCount', { count: teachers.freeNow })}</p>}
       </div>
       {shown.length ? (
-        <ul className={clsx('divide-y divide-border border-t border-border', all && 'max-h-[420px] overflow-y-auto [scrollbar-width:thin]')}>
+        <ul className="max-h-[340px] divide-y divide-border overflow-y-auto border-t border-border [scrollbar-width:thin]">
           {shown.map((x) => <Row key={x.id} x={x} plain={all && !needsLook(x)} />)}
         </ul>
       ) : <p className="border-t border-border px-4 py-3 text-[13px] text-ink-muted">{empty}</p>}

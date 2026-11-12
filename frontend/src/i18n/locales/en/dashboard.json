@@ -314,7 +314,17 @@
         "allPast": "Their lessons that had no teacher are over:",
         "lessonChip": "Period {{no}} · {{section}} · {{time}}",
         "suggest": "Suggested substitute: {{name}}",
-        "findSubstitute": "Find a substitute"
+        "findSubstitute": "Find a substitute",
+        "bar": {
+          "PRESENT_one": "{{count}} in",
+          "PRESENT_other": "{{count}} in",
+          "LATE_one": "{{count}} late",
+          "LATE_other": "{{count}} late",
+          "AWAY_one": "{{count}} absent or on leave",
+          "AWAY_other": "{{count}} absent or on leave",
+          "NOT_IN_YET_one": "{{count}} not in yet",
+          "NOT_IN_YET_other": "{{count}} not in yet"
+        }
       },
       "timetable": {
         "titleToday": "Today’s timetable",
@@ -348,8 +358,6 @@
         "firstLesson": "school hasn’t started; first lesson: {{subject}} at {{time}}",
         "notStarted": "school hasn’t started",
         "over": "lessons are over for the day",
-        "idleLine_one": "{{list}} — no lesson this period",
-        "idleLine_other": "{{list}} — no lesson this period",
         "problemsFirst_one": "{{count}} class needs attention",
         "problemsFirst_other": "{{count}} classes need attention",
         "noProblems": "No class has a problem right now.",
@@ -357,7 +365,9 @@
         "clickHint": "Click a class to see its whole day, attendance and syllabus.",
         "laterUncovered_one": "later lesson with no teacher: {{list}}",
         "laterUncovered_other": "{{count}} later lessons with no teacher: {{list}}",
-        "periodAt": "{{subject}} in period {{no}} ({{time}})"
+        "periodAt": "{{subject}} in period {{no}} ({{time}})",
+        "idleAll_one": "No lesson this period: {{list}}",
+        "idleAll_other": "No lesson this period ({{count}} classes): {{list}}"
       },
       "drawer": {
         "kicker": "Class details",
@@ -412,7 +422,9 @@
         "birthdays_one": "Student birthday: {{names}}",
         "birthdays_other": "{{count}} student birthdays: {{names}}",
         "staffBirthdays_one": "Staff birthday: {{names}}",
-        "staffBirthdays_other": "{{count}} staff birthdays: {{names}}"
+        "staffBirthdays_other": "{{count}} staff birthdays: {{names}}",
+        "comingUp": "Coming up",
+        "nothingAhead": "Nothing planned in the next few days."
       },
       "syllabus": {
         "title": "Syllabus — subjects most behind",
@@ -431,8 +443,68 @@
         "seeAll": "See all subjects ({{count}})",
         "seeTop": "Show only the subjects most behind",
         "list": "List",
-        "grid": "Table by class"
-      }
+        "grid": "Table by class",
+        "ringLabel": "{{done}}% of the syllabus taught; {{expected}}% should be by now",
+        "taughtWord": "taught",
+        "shouldBe": "{{expected}}% should be taught by now",
+        "behindLine_one": "{{count}} subject behind the plan, in {{sections}} classes",
+        "behindLine_other": "{{count}} subjects behind the plan, in {{sections}} classes",
+        "mostBehind": "Most behind",
+        "titleShort": "Syllabus"
+      },
+      "kpi": {
+        "students": "Students present today",
+        "studentsHelp": "Students marked present (or late, or half day) in the classes that have taken attendance today, out of the students counted so far.",
+        "studentsNone": "no class has taken attendance yet",
+        "attendanceAll": "every class is done",
+        "attendanceLate_one": "{{count}} class late — was due by {{time}}",
+        "attendanceLate_other": "{{count}} classes late — were due by {{time}}",
+        "attendanceDue": "classes · due by {{time}}",
+        "fees": "Fees overdue",
+        "feesHelp": "Fees past their due date and not yet paid. Open it to send reminders to the families.",
+        "feesSub_one": "{{count}} student · send reminders",
+        "feesSub_other": "{{count}} students · send reminders",
+        "studentsSub": "{{pct}}% present · {{absent}} absent · {{leave}} on leave"
+      },
+      "quick": {
+        "title": "Quick actions",
+        "mark": "Mark attendance",
+        "cover": "Book a substitute",
+        "staff": "Staff attendance",
+        "notice": "Send a notice",
+        "dues": "Fee dues & reminders",
+        "syllabus": "Syllabus tracker"
+      },
+      "att": {
+        "title": "Student attendance today",
+        "link": "See reports",
+        "ringLabel": "{{present}} of {{total}} students present",
+        "presentN_one": "{{count}} present",
+        "presentN_other": "{{count}} present",
+        "leaveN_one": "{{count}} on leave",
+        "leaveN_other": "{{count}} on leave",
+        "absentN_one": "{{count}} absent",
+        "absentN_other": "{{count}} absent",
+        "present": "present",
+        "noneYet": "not taken yet",
+        "presentL": "Present",
+        "absentL": "Absent",
+        "leaveL": "On leave",
+        "notMarkedL_one": "Not marked yet ({{count}} class)",
+        "notMarkedL_other": "Not marked yet ({{count}} classes)",
+        "partial": "{{marked}} of {{total}} classes have marked so far — all should be done by {{time}}.",
+        "lastDays": "Last school days — % of students present",
+        "dayTitle": "{{date}}: {{pct}}% present — {{present}} of {{counted}}, {{absent}} absent ({{classes}} classes marked)",
+        "todayShort": "Today"
+      },
+      "activity": {
+        "title": "Recent activity",
+        "link": "See all",
+        "system": "System",
+        "empty": "Nothing has changed yet."
+      },
+      "classesShow": "See every class today ({{count}})",
+      "classesHide": "Hide the classes"
     }
   },
   "home": {

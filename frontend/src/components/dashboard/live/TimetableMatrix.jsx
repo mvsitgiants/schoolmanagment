@@ -61,6 +61,9 @@ function NowLine({ s, data, onOpen, planned }) {
 function RightNow({ groups, data, onOpen, planned }) {
   const { t } = useTranslation('dashboard')
   const problems = groups.flatMap((g) => g.rows.filter(needsAttention))
+  // classes with no lesson this period: one grey line for all of them, at the end, instead of a line each
+  const isIdle = (s) => !needsAttention(s) && s.phase === 'PERIOD' && !s.current?.subject
+  const idleAll = groups.flatMap((g) => g.rows.filter(isIdle))
   return (
     <div className="divide-y divide-border">
       {problems.length > 0 && (
@@ -71,23 +74,22 @@ function RightNow({ groups, data, onOpen, planned }) {
       )}
       {groups.map((g) => {
         const rest = g.rows.filter((s) => !needsAttention(s))
-        const busy = rest.filter((s) => !(s.phase === 'PERIOD' && !s.current?.subject))
-        const idle = rest.filter((s) => s.phase === 'PERIOD' && !s.current?.subject)
-        if (!rest.length) return null
+        const busy = rest.filter((s) => !isIdle(s))
+        if (!busy.length) return null
         return (
           <div key={g.id}>
             <p className="bg-bg px-4 py-1 text-[11.5px] font-semibold text-ink-muted">{g.name}</p>
             <ul>
               {busy.map((s) => <NowLine key={s.id} s={s} data={data} onOpen={onOpen} planned={planned} />)}
-              {idle.length > 0 && (
-                <li className="px-4 py-2 text-[13px] text-ink-faint">
-                  {t('dashboard.live.timetable.idleLine', { list: idle.map((s) => sectionName(s.className, s.short)).join(', '), count: idle.length })}
-                </li>
-              )}
             </ul>
           </div>
         )
       })}
+      {idleAll.length > 0 && (
+        <p className="px-4 py-2.5 text-[12.5px] leading-relaxed text-ink-faint">
+          {t('dashboard.live.timetable.idleAll', { list: idleAll.map((s) => sectionName(s.className, s.short)).join(', '), count: idleAll.length })}
+        </p>
+      )}
     </div>
   )
 }

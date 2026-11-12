@@ -25,15 +25,17 @@ function line(item, t, { clock, money }) {
   }
 }
 
-export default function WeekAhead({ agenda, today, className }) {
+export default function WeekAhead({ agenda: all, today, className, compact = false }) {
   const { t } = useTranslation('dashboard')
   const plain = usePlain()
+  const agenda = compact ? all.filter((d) => d.date >= today && (d.items.length || d.cover > 0)).slice(0, 4) : all
   const tomorrow = new Date(Date.parse(`${today}T00:00:00Z`) + 864e5).toISOString().slice(0, 10)
   const dayLabel = (d) => (d.date === today || d.date === tomorrow
     ? `${t(d.date === today ? 'dashboard.live.week.today' : 'dashboard.live.week.tomorrow')} · ${plain.longDate(d.date)}`
     : plain.longDate(d.date))
   return (
-    <Block title={agenda[0]?.date === today ? t('dashboard.live.week.title') : t('dashboard.live.week.titleFrom', { date: plain.longDate(agenda[0]?.date ?? today) })} className={className}>
+    <Block title={compact ? t('dashboard.live.week.comingUp') : agenda[0]?.date === today ? t('dashboard.live.week.title') : t('dashboard.live.week.titleFrom', { date: plain.longDate(agenda[0]?.date ?? today) })} className={className}>
+      {compact && !agenda.length && <p className="px-4 py-6 text-sm text-ink-muted">{t('dashboard.live.week.nothingAhead')}</p>}
       <ul className="divide-y divide-border">
         {agenda.map((d) => {
           const holidays = d.items.filter((x) => x.kind === 'HOLIDAY')

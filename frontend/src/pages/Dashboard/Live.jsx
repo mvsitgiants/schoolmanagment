@@ -2,60 +2,35 @@ import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import clsx from 'clsx'
-import { MapPin, RefreshCw } from 'lucide-react'
+import { CalendarCheck, ChevronDown, IndianRupee, MapPin, RefreshCw, UserCheck, Users } from 'lucide-react'
 import { ControlChip, Note, PageContainer, Skeleton } from '../../components/system'
 import Button from '../../components/ui/Button'
 import DayRibbon from '../../components/dashboard/live/DayRibbon'
 import PrioritiesPanel from '../../components/dashboard/live/PrioritiesPanel'
 import SyllabusPanel from '../../components/dashboard/live/SyllabusPanel'
-import TeachersPanel from '../../components/dashboard/live/TeachersPanel'
 import TimetableMatrix from '../../components/dashboard/live/TimetableMatrix'
 import WeekAhead from '../../components/dashboard/live/WeekAhead'
+import { AttendanceCard, QuickActions, Tiles } from '../../components/dashboard/live/Overview'
 import { situationOf, usePlain } from '../../components/dashboard/live/liveKit'
+import { hasPermission } from '../../api/auth'
 import { fetchLiveCampus } from '../../api/dashboard'
 import { useFormat } from '../../context/SettingsContext'
 
 /**
- * Dashboard › Live campus, written for a principal: a plain sentence or two on what is going on, six figures each with
- * a line saying what it means, what needs doing first, which teachers are not in, today's timetable class by class,
- * the next seven days and the syllabus against the plan. Refreshes every minute; another period (the strip) or
- * another day can be looked at instead of now — the wording then says it is the plan, or what happened.
+ * Dashboard › Live campus, for a principal or the owner — what needs doing first, at a glance: one sentence on where
+ * the day is, six figures that open the screen to deal with them (students present, teachers in, attendance taken,
+ * lessons without a teacher, fees overdue, waiting for approval), what needs attention beside one-tap shortcuts,
+ * today's attendance with the last school days, the syllabus against the plan, the teachers, every class today
+ * (the period strip looks at another time), the next seven days and the last changes. Refreshes every minute.
+ * Colour only where something needs doing: red to act now, amber to look at today.
  */
-
-const NUM = { danger: 'text-rose-600', warning: 'text-amber-600', normal: 'text-ink' }
-
-/** One figure: plain label with a "?" that explains it, the number, and a grey line saying what it means. */
-function Figure({ it }) {
-  const [help, setHelp] = useState(false)
-  return (
-    <div className="min-w-0 bg-surface px-3 py-3 sm:px-4">
-      <p className="flex items-start gap-1 text-[11.5px] text-ink-muted">
-        <span className="min-w-0 leading-tight">{it.label}</span>
-        <button type="button" onClick={() => setHelp((v) => !v)} title={it.help} aria-label={it.help} aria-expanded={help}
-          className="mt-px inline-flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-full border border-border text-[9px] font-semibold text-ink-faint hover:border-ink-faint hover:text-ink">?</button>
-      </p>
-      <p className={clsx('mt-0.5 text-xl font-semibold tabular-nums sm:text-[22px]', NUM[it.level ?? 'normal'])}>{it.value}</p>
-      {it.sub && <p className="text-[11.5px] leading-snug text-ink-faint">{it.sub}</p>}
-      {help && <p className="mt-1.5 rounded-md bg-bg px-2 py-1.5 text-[11.5px] leading-snug text-ink-muted">{it.help}</p>}
-    </div>
-  )
-}
-
-function Figures({ items }) {
-  const cols = { 1: 'grid-cols-1', 2: 'grid-cols-2', 3: 'grid-cols-3', 4: 'grid-cols-2 sm:grid-cols-4', 5: 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-5', 6: 'grid-cols-2 sm:grid-cols-3 xl:grid-cols-6' }[items.length] ?? 'grid-cols-3'
-  return (
-    <div className={clsx('grid gap-px overflow-hidden rounded-xl border border-border bg-border', cols)}>
-      {items.map((it) => <Figure key={it.key} it={it} />)}
-    </div>
-  )
-}
 
 export default function Live() {
   const { t } = useTranslation('dashboard')
   const { time } = useFormat()
-  const { clock, longDate } = usePlain()
+  const { clock, longDate, money } = usePlain()
   const [params, setParams] = useSearchParams()
+  const [classes, setClasses] = useState(false) // every class today: folded away until asked for
   const at = params.get('at') ?? ''
   const day = params.get('date') ?? ''
   const branchId = params.get('branch') ?? ''
@@ -94,62 +69,48 @@ export default function Live() {
             : t('dashboard.live.say.after')
     if (sit === 'LIVE') lines.push(t('dashboard.live.say.nowLine', { date: dateText, time: clock(n.time), moment }))
     else lines.push(t(sit === 'FUTURE' ? 'dashboard.live.say.planLine' : 'dashboard.live.say.pastLine', { when: when ? `${when}, ${dateText}` : dateText, time: clock(n.time), moment }))
-    if (open && d.teachers) {
-      const expected = s.teachersExpected
-      if (sit === 'FUTURE' && !n.isToday) lines.push(tc.ON_LEAVE ? t('dashboard.live.say.teachersPlanLeave', { count: expected, leave: tc.ON_LEAVE }) : t('dashboard.live.say.teachersPlan', { count: expected }))
-      else if (s.teachersIn === 0) lines.push(t(n.phase === 'BEFORE' && n.isToday ? 'dashboard.live.say.teachersNoneYet' : 'dashboard.live.say.teachersNone', { count: expected }))
-      else if (s.teachersIn >= expected) lines.push(t('dashboard.live.say.teachersAll', { count: expected }))
-      else lines.push([t('dashboard.live.say.teachersSome', { in: s.teachersIn, count: expected }), away && t('dashboard.live.say.teachersAway', { count: away }), notIn && t('dashboard.live.say.teachersNotIn', { count: notIn })].filter(Boolean).join('; ') + '.')
-    }
-    if (open && s.attendance) {
-      const a = s.attendance
-      const by = clock(d.markBefore)
-      if (sit === 'FUTURE' && !n.isToday) lines.push(t('dashboard.live.say.attendancePlan', { time: by }))
-      else if (a.marked === 0) lines.push(overdueClasses ? t('dashboard.live.say.attendanceNoneLate', { time: by }) : t('dashboard.live.say.attendanceNone', { time: by }))
-      else if (a.marked >= a.sections) lines.push(t('dashboard.live.say.attendanceAll', { count: a.sections, pct: a.pct ?? 0 }))
-      else lines.push(t('dashboard.live.say.attendanceSome', { marked: a.marked, count: a.sections, time: by }))
-    }
-    if (open && s.uncovered != null) lines.push(s.uncovered ? t('dashboard.live.say.uncovered', { count: s.uncovered }) : t('dashboard.live.say.covered'))
   }
 
-  // ── the six figures
+  // ── the six figures, each opening the screen where it is dealt with
   const figures = []
+  const planned = sit === 'FUTURE' && !n?.isToday
+  const linkIf = (perm, to) => (hasPermission(perm) ? to : undefined)
+  if (s?.attendance && open) {
+    const a = s.attendance
+    figures.push({
+      key: 'students', icon: Users, label: t('dashboard.live.kpi.students'), help: t('dashboard.live.kpi.studentsHelp'),
+      value: planned || !a.counted ? '–' : a.present, of: planned || !a.counted ? null : a.counted,
+      sub: planned ? t('dashboard.live.fig.notYet') : !a.counted ? t('dashboard.live.kpi.studentsNone') : t('dashboard.live.kpi.studentsSub', { pct: a.pct ?? 0, absent: a.absent, leave: a.onLeave }),
+      tone: a.counted && a.pct != null && a.pct < 85 ? 'warning' : 'normal', link: linkIf('attendance.reports.view', '/attendance/reports'),
+    })
+  }
   if (s && open && d.teachers) {
     const exp = s.teachersExpected
-    const sub = sit === 'FUTURE' && !n.isToday ? t('dashboard.live.fig.teachersPlan')
+    const sub = planned ? t('dashboard.live.fig.teachersPlan')
       : s.teachersIn >= exp ? t('dashboard.live.fig.teachersAll')
-        : s.teachersIn === 0 ? t('dashboard.live.fig.teachersNone')
+        : s.teachersIn === 0 && !away ? t('dashboard.live.fig.teachersNone')
           : [away && t('dashboard.live.fig.teachersAway', { count: away }), notIn && t('dashboard.live.fig.teachersNotIn', { count: notIn })].filter(Boolean).join(' · ')
-    figures.push({ key: 'teachers', label: t('dashboard.live.fig.teachers'), help: t('dashboard.live.fig.teachersHelp'), value: sit === 'FUTURE' && !n.isToday ? t('dashboard.live.fig.expected', { count: exp }) : t('dashboard.live.fig.of', { n: s.teachersIn, total: exp }), level: away || lateNotIn ? 'warning' : 'normal', sub })
-  }
-  if (s && open && d.sections.length) {
-    const sub = n.phase !== 'PERIOD' ? t('dashboard.live.fig.lessonsNoPeriod')
-      : t(sit === 'FUTURE' ? 'dashboard.live.fig.lessonsOtherPlan' : 'dashboard.live.fig.lessonsOther', { count: s.sections - s.running })
-    figures.push({ key: 'lessons', label: sit === 'LIVE' ? t('dashboard.live.fig.lessons') : t('dashboard.live.fig.lessonsAt', { time: clock(n.time) }), help: t('dashboard.live.fig.lessonsHelp'), value: t('dashboard.live.fig.of', { n: s.running, total: s.sections }), sub })
-  }
-  if (s && open && s.uncovered != null) {
-    figures.push({ key: 'uncovered', label: t('dashboard.live.fig.uncovered'), help: t('dashboard.live.fig.uncoveredHelp'), value: s.uncovered ? s.uncovered : t('dashboard.live.fig.none'), level: s.uncovered ? 'danger' : 'normal', sub: s.uncovered ? t('dashboard.live.fig.uncoveredSub') : t('dashboard.live.fig.allCovered') })
+    figures.push({ key: 'teachers', icon: UserCheck, label: t('dashboard.live.fig.teachers'), help: t('dashboard.live.fig.teachersHelp'), value: planned ? exp : s.teachersIn, of: planned ? null : exp, bar: planned ? null : { value: s.teachersIn, max: exp }, tone: away || lateNotIn ? 'warning' : 'normal', sub, link: linkIf('hrms.attendance.view', '/hrms/attendance') })
   }
   if (s?.attendance && open) {
     const a = s.attendance
-    const planned = sit === 'FUTURE' && !n.isToday
-    const sub = planned ? t('dashboard.live.fig.attendancePlan', { time: clock(d.markBefore) })
-      : a.marked >= a.sections && a.pct != null ? t('dashboard.live.fig.attendanceDone', { pct: a.pct }) : t('dashboard.live.fig.attendanceDue', { time: clock(d.markBefore) })
-    figures.push({ key: 'attendance', label: t('dashboard.live.fig.attendance'), help: t('dashboard.live.fig.attendanceHelp', { time: clock(d.markBefore) }), value: planned ? t('dashboard.live.fig.notYet') : t('dashboard.live.fig.ofClasses', { n: a.marked, total: a.sections }), level: overdueClasses ? 'danger' : 'normal', sub })
+    figures.push({
+      key: 'attendance', icon: CalendarCheck, label: t('dashboard.live.fig.attendance'), help: t('dashboard.live.fig.attendanceHelp', { time: clock(d.markBefore) }),
+      value: planned ? '–' : a.marked, of: planned ? null : a.sections, bar: planned ? null : { value: a.marked, max: a.sections },
+      sub: planned ? t('dashboard.live.fig.attendancePlan', { time: clock(d.markBefore) }) : a.marked >= a.sections ? t('dashboard.live.kpi.attendanceAll') : overdueClasses ? t('dashboard.live.kpi.attendanceLate', { count: overdueClasses, time: clock(d.markBefore) }) : t('dashboard.live.kpi.attendanceDue', { time: clock(d.markBefore) }),
+      tone: overdueClasses ? 'danger' : 'normal', link: linkIf('attendance.mark.view', '/attendance/mark'),
+    })
   }
-  if (s && s.syllabusBehind != null) {
-    figures.push({ key: 'syllabus', label: t('dashboard.live.fig.syllabus'), help: t('dashboard.live.fig.syllabusHelp'), value: s.syllabusBehind, level: s.syllabusBehind ? 'warning' : 'normal', sub: t('dashboard.live.fig.syllabusSub', { done: d.syllabus?.avgPct ?? 0, expected: d.syllabus?.avgExpected ?? 0 }) })
+  if (s && open && s.uncovered != null) {
   }
-  if (s) {
-    const parts = d.priorities.find((p) => p.key === 'approvals')?.parts ?? []
-    figures.push({ key: 'approvals', label: t('dashboard.live.fig.approvals'), help: t('dashboard.live.fig.approvalsHelp'), value: s.approvals, sub: parts.length ? parts.map((x) => t(`dashboard.live.priorities.parts.${x.key}`, { count: x.count })).join(' · ') : t('dashboard.live.fig.nothingWaiting') })
-  }
+  const fees = d?.priorities.find((p) => p.key === 'feesOverdue')
+  if (fees) figures.push({ key: 'fees', icon: IndianRupee, label: t('dashboard.live.kpi.fees'), help: t('dashboard.live.kpi.feesHelp'), value: money(fees.amount ?? 0), sub: t('dashboard.live.kpi.feesSub', { count: fees.count }), tone: 'warning', link: fees.link })
 
   return (
     <PageContainer>
       <div className="flex flex-col gap-3">
         <div className="flex flex-wrap items-start justify-between gap-3">
-          <div className="min-w-0 max-w-3xl">
+          <div className="min-w-0 flex-1 basis-[420px]">
             <div className="flex flex-wrap items-center gap-2">
               <h1 className="font-display text-xl font-semibold tracking-tight text-ink sm:text-2xl">{t('dashboard.live.title')}</h1>
               {n && sit === 'LIVE' && (
@@ -159,9 +120,7 @@ export default function Live() {
               )}
             </div>
             {n ? (
-              <div className="mt-1.5 space-y-0.5 text-[14px] leading-relaxed text-ink">
-                {lines.map((l, i) => <p key={i} className={i ? 'text-ink-muted' : undefined}>{l}</p>)}
-              </div>
+              <p className="mt-1 text-[14px] leading-relaxed text-ink-muted">{lines[0]}</p>
             ) : <p className="mt-1 text-sm text-ink-muted">{t('dashboard.live.loading')}</p>}
             {n && sit !== 'LIVE' && (
               <Button size="sm" className="mt-2" onClick={() => set({ date: '', at: '' })}>{t('dashboard.live.seeNow')}</Button>
@@ -184,7 +143,6 @@ export default function Live() {
             <Button size="sm" variant="secondary" icon={RefreshCw} loading={isFetching} onClick={() => refetch()}>{t('dashboard.live.refresh')}</Button>
           </div>
         </div>
-        {d?.frame?.length > 0 && open && <DayRibbon frame={d.frame} now={n} at={at} onPick={(v) => set({ at: v })} />}
       </div>
 
       {error && <Note tone="danger">{error.message}</Note>}
@@ -200,19 +158,37 @@ export default function Live() {
 
       {d && (
         <>
-          {figures.length > 0 && <Figures items={figures} />}
+          {figures.length > 0 && <Tiles items={figures} />}
 
+          {/* what needs doing first, beside the shortcuts */}
           <div className="grid grid-cols-1 gap-4 xl:grid-cols-3 xl:items-start">
-            <PrioritiesPanel priorities={d.priorities} markBefore={d.markBefore} className={d.teachers && open ? 'xl:col-span-2' : 'xl:col-span-3'} />
-            {d.teachers && open && <TeachersPanel teachers={d.teachers} now={n} firstStart={firstStart} />}
+            <PrioritiesPanel priorities={d.priorities} markBefore={d.markBefore} className="xl:col-span-2" />
+            <QuickActions />
           </div>
 
-          {open && d.sections.length > 0 && <TimetableMatrix data={d} />}
-
-          <div className="grid grid-cols-1 gap-4 xl:grid-cols-2 xl:items-start">
-            {d.agenda.length > 0 && <WeekAhead agenda={d.agenda} today={n.today} />}
-            {d.syllabus && d.syllabus.rows.length > 0 && <SyllabusPanel syllabus={d.syllabus} />}
+          {/* students, the syllabus, what is coming up */}
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-3 xl:items-start">
+            {s?.attendance && open && <AttendanceCard a={s.attendance} days={d.attendanceDays} today={n.today} markBefore={d.markBefore} />}
+            {d.syllabus && d.syllabus.rows.length > 0 && <SyllabusPanel syllabus={d.syllabus} compact />}
+            {d.agenda.length > 0 && <WeekAhead agenda={d.agenda} today={n.today} compact />}
           </div>
+
+          {/* every class today, only when asked for; the strip looks at another period */}
+          {open && d.sections.length > 0 && (
+            <div className="space-y-2">
+              <button type="button" onClick={() => setClasses((v) => !v)} aria-expanded={classes}
+                className="inline-flex items-center gap-1.5 text-sm font-medium text-brand-700 hover:underline">
+                <ChevronDown className={classes ? 'h-4 w-4 rotate-180 transition' : 'h-4 w-4 transition'} aria-hidden />
+                {classes ? t('dashboard.live.classesHide') : t('dashboard.live.classesShow', { count: d.sections.length })}
+              </button>
+              {classes && (
+                <>
+                  {d.frame?.length > 0 && <DayRibbon frame={d.frame} now={n} at={at} onPick={(v) => set({ at: v })} />}
+                  <TimetableMatrix data={d} />
+                </>
+              )}
+            </div>
+          )}
         </>
       )}
     </PageContainer>

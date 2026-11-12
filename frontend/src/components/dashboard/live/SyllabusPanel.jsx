@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import clsx from 'clsx'
+import { Ring } from './Overview'
 import { Block, Chip, ThinBar, sectionName } from './liveKit'
 
 // The syllabus against the year plan, calmly: one grey line of totals, then the subjects most behind — a thin bar for
@@ -69,33 +70,44 @@ function Grid({ rows }) {
   )
 }
 
-export default function SyllabusPanel({ syllabus, className }) {
+export default function SyllabusPanel({ syllabus, className, compact = false }) {
   const { t } = useTranslation('dashboard')
   const [view, setView] = useState('TOP')
   const rows = useMemo(() => [...syllabus.rows].sort(behindOrder), [syllabus.rows])
-  const top = rows.filter((r) => r.behind > 0 || gap(r) > 0).slice(0, 8)
+  const top = rows.filter((r) => r.behind > 0 || gap(r) > 0).slice(0, 4)
   return (
-    <Block title={t('dashboard.live.syllabus.title')} className={className}
+    <Block title={compact ? t('dashboard.live.syllabus.titleShort') : t('dashboard.live.syllabus.title')} className={className}
       actions={<Link to="/homework/syllabus" className="text-xs font-medium text-brand-600 hover:underline">{t('dashboard.live.syllabus.link')}</Link>}>
       <div className="space-y-3 px-4 py-3">
-        <p className="text-[12px] text-ink-muted">
-          {t('dashboard.live.syllabus.totals', { count: syllabus.behindRows, sections: syllabus.sectionsBehind, done: syllabus.avgPct ?? 0, expected: syllabus.avgExpected ?? 0 })}
-        </p>
-        {view !== 'TOP' && (
+        <div className="flex items-center gap-4">
+          <Ring size={104} stroke={11} total={100} label={t('dashboard.live.syllabus.ringLabel', { done: syllabus.avgPct ?? 0, expected: syllabus.avgExpected ?? 0 })}
+            parts={[{ key: 'done', value: syllabus.avgPct ?? 0, className: (syllabus.avgExpected ?? 0) - (syllabus.avgPct ?? 0) > 5 ? 'stroke-amber-500' : 'stroke-brand-500', label: t('dashboard.live.syllabus.ringLabel', { done: syllabus.avgPct ?? 0, expected: syllabus.avgExpected ?? 0 }) }]}>
+            <span className="text-xl font-semibold tabular-nums text-ink">{syllabus.avgPct ?? 0}%</span>
+            <span className="text-[10.5px] leading-tight text-ink-muted">{t('dashboard.live.syllabus.taughtWord')}</span>
+          </Ring>
+          <div className="min-w-0 space-y-1 text-[12.5px]">
+            {syllabus.avgExpected != null && <p className="text-ink">{t('dashboard.live.syllabus.shouldBe', { expected: syllabus.avgExpected })}</p>}
+            <p className={syllabus.behindRows ? 'text-amber-700' : 'text-ink-muted'}>
+              {syllabus.behindRows ? t('dashboard.live.syllabus.behindLine', { count: syllabus.behindRows, sections: syllabus.sectionsBehind }) : t('dashboard.live.syllabus.allOnTrack')}
+            </p>
+          </div>
+        </div>
+        {!compact && view === 'TOP' && top.length > 0 && <p className="text-[11.5px] font-medium text-ink-muted">{t('dashboard.live.syllabus.mostBehind')}</p>}
+        {!compact && view !== 'TOP' && (
           <div className="flex gap-1.5">
             <Chip active={view === 'LIST'} onClick={() => setView('LIST')}>{t('dashboard.live.syllabus.list')}</Chip>
             <Chip active={view === 'GRID'} onClick={() => setView('GRID')}>{t('dashboard.live.syllabus.grid')}</Chip>
           </div>
         )}
-        {view === 'GRID' ? <><p className="text-[11.5px] text-ink-faint">{t('dashboard.live.syllabus.gridLegend')}</p><Grid rows={rows} /></> : (view === 'TOP' ? top : rows).length ? (
+        {compact ? null : view === 'GRID' ? <><p className="text-[11.5px] text-ink-faint">{t('dashboard.live.syllabus.gridLegend')}</p><Grid rows={rows} /></> : (view === 'TOP' ? top : rows).length ? (
           <ul className={clsx('space-y-2.5', view === 'LIST' && 'max-h-[420px] overflow-y-auto pe-1 [scrollbar-width:thin]')}>
             {(view === 'TOP' ? top : rows).map((r) => <Row key={`${r.sectionId}:${r.subjectId}`} r={r} />)}
           </ul>
         ) : <p className="text-sm text-ink-muted">{t('dashboard.live.syllabus.allOnTrack')}</p>}
       </div>
-      <button type="button" onClick={() => setView(view === 'TOP' ? 'LIST' : 'TOP')} className="w-full border-t border-border px-4 py-2 text-start text-xs font-medium text-ink-muted hover:text-ink">
+      {!compact && <button type="button" onClick={() => setView(view === 'TOP' ? 'LIST' : 'TOP')} className="w-full border-t border-border px-4 py-2 text-start text-xs font-medium text-ink-muted hover:text-ink">
         {view === 'TOP' ? t('dashboard.live.syllabus.seeAll', { count: rows.length }) : t('dashboard.live.syllabus.seeTop')}
-      </button>
+      </button>}
     </Block>
   )
 }
