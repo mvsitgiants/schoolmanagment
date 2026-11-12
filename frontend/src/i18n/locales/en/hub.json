@@ -1,10 +1,10 @@
 {
   "hub": {
-    "title": "Subject hub",
+    "title": "Teaching hub",
     "subtitle": "Build everything for one class and subject in one place: topics, what students read, your teaching notes and questions.",
     "banner": {
       "text": "Build each topic’s lesson in one place — what students read, your teaching notes and the questions.",
-      "action": "Build lessons in the Subject hub"
+      "action": "Build lessons in the Teaching hub"
     },
     "back": "Back",
     "next": "Next",
@@ -13,7 +13,7 @@
     "cancel": "Cancel",
     "remove": "Remove",
     "readOnly": "You can look at this subject but not change it.",
-    "livePublished": "This unit is already published. Changes you save show to students straight away.",
+    "livePublished": "Students can already see this unit — what you save here shows to them straight away.",
     "steps": {
       "label": "Steps",
       "details": "Select details",
@@ -29,8 +29,18 @@
       "MIXED": "Partly published"
     },
     "months": {
-      "1": "January", "2": "February", "3": "March", "4": "April", "5": "May", "6": "June",
-      "7": "July", "8": "August", "9": "September", "10": "October", "11": "November", "12": "December"
+      "1": "January",
+      "2": "February",
+      "3": "March",
+      "4": "April",
+      "5": "May",
+      "6": "June",
+      "7": "July",
+      "8": "August",
+      "9": "September",
+      "10": "October",
+      "11": "November",
+      "12": "December"
     },
     "pick": {
       "title": "Which class, subject and unit?",
@@ -45,7 +55,12 @@
       "noClasses": "You don’t have any classes to teach yet. Ask the office to give you your classes and subjects.",
       "topicCount_one": "{{count}} topic",
       "topicCount_other": "{{count}} topics",
-      "months": "{{from}} to {{to}}"
+      "months": "{{from}} to {{to}}",
+      "hintTree": "Open a class on the left, then a subject. Pick a unit or a topic to start working on it.",
+      "unitsHint": "Pick a unit to add and check its topics.",
+      "withContent": "{{done}} of {{all}} with content",
+      "live_one": "{{count}} published",
+      "live_other": "{{count}} published"
     },
     "unit": {
       "new": "New unit",
@@ -92,7 +107,8 @@
       "deleteConfirm": "Remove topic",
       "deleted": "Topic removed.",
       "inUse_one": "This topic has already been taught in {{count}} section, so it can’t be removed. You can rename it instead.",
-      "inUse_other": "This topic has already been taught in {{count}} sections, so it can’t be removed. You can rename it instead."
+      "inUse_other": "This topic has already been taught in {{count}} sections, so it can’t be removed. You can rename it instead.",
+      "forStudents": "For students: {{status}}"
     },
     "sub": {
       "toggle": "Add sub topics",
@@ -114,10 +130,26 @@
     },
     "from": {
       "title": "Add content from",
-      "write": { "name": "Write & type", "short": "Write", "hint": "Type it yourself" },
-      "upload": { "name": "Upload file", "short": "Upload", "hint": "PDFs, slides, pictures" },
-      "camera": { "name": "Scan with camera", "short": "Camera", "hint": "Photo of a book page" },
-      "library": { "name": "Add from library", "short": "Library", "hint": "Content already shared" }
+      "write": {
+        "name": "Write & type",
+        "short": "Write",
+        "hint": "Type it yourself"
+      },
+      "upload": {
+        "name": "Upload file",
+        "short": "Upload",
+        "hint": "PDFs, slides, pictures"
+      },
+      "camera": {
+        "name": "Scan with camera",
+        "short": "Camera",
+        "hint": "Photo of a book page"
+      },
+      "library": {
+        "name": "Add from library",
+        "short": "Library",
+        "hint": "Content already shared"
+      }
     },
     "files": {
       "title": "Attached files",
@@ -125,7 +157,7 @@
       "removeTitle": "Remove this file?",
       "removeMessage": "“{{name}}” will no longer show to students.",
       "removeConfirm": "Remove file",
-      "removedReason": "Removed in the subject hub",
+      "removedReason": "Removed in the Teaching hub",
       "tooBig": "“{{name}}” is too big. Files can be up to {{mb}} MB.",
       "added_one": "{{count}} file added.",
       "added_other": "{{count}} files added.",
@@ -190,8 +222,16 @@
       "answer": "Answer (only teachers see it)",
       "kindLabel": "Type of question",
       "useLabel": "Use it for",
-      "kind": { "SHORT": "Short answer", "LONG": "Long answer", "MCQ": "Multiple choice" },
-      "use": { "CLASS": "Practice in class", "HOMEWORK": "Homework", "EXAM": "Exams" },
+      "kind": {
+        "SHORT": "Short answer",
+        "LONG": "Long answer",
+        "MCQ": "Multiple choice"
+      },
+      "use": {
+        "CLASS": "Practice in class",
+        "HOMEWORK": "Homework",
+        "EXAM": "Exams"
+      },
       "optionN": "Choice {{n}}",
       "addOption": "Add a choice",
       "add": "Add question"
@@ -255,6 +295,123 @@
       "title": "Leave without saving?",
       "message": "Some topics have changes that aren’t saved yet.",
       "leave": "Leave"
+    },
+    "tree": {
+      "title": "Classes and subjects",
+      "search": "Find a topic",
+      "noMatch": "No topic has that name.",
+      "noUnits": "No units yet",
+      "state": {
+        "PUBLISHED": "For students: published",
+        "SCHEDULED": "For students: scheduled",
+        "DRAFT": "For students: draft",
+        "NONE": "For students: nothing yet"
+      },
+      "questions_one": "{{count}} question",
+      "questions_other": "{{count}} questions",
+      "taught_one": "Taught in {{count}} class",
+      "taught_other": "Taught in {{count}} classes",
+      "legendQuestions": "Questions",
+      "legendTaught": "Taught",
+      "addClass": "Add class",
+      "addSubject": "Add subject",
+      "partly_one": "Partly taught in {{count}} class",
+      "partly_other": "Partly taught in {{count}} classes",
+      "legendPartly": "Partly taught",
+      "legendCount": "Numbers like 3/3: topics written for students",
+      "countTitle": "{{done}} of {{all}} topics written for students",
+      "keyStudents": "For students",
+      "keyTeaching": "Teaching",
+      "short": {
+        "PUBLISHED": "Published",
+        "SCHEDULED": "Scheduled",
+        "DRAFT": "Draft",
+        "NONE": "Nothing yet"
+      }
+    },
+    "view": {
+      "edit": "Edit",
+      "write": "Write it",
+      "inClass": "In class",
+      "inClassNote": "Who teaches it, taught or not, lessons planned",
+      "noTeacher": "No teacher set",
+      "planned": "Planned for {{date}}",
+      "lessons_one": "{{count}} lesson",
+      "lessons_other": "{{count}} lessons",
+      "lessonPlans": "Lessons planned for this topic",
+      "planLesson": "Plan a lesson",
+      "noLessons": "No lesson planned for this topic yet.",
+      "studentsSee": "What students see",
+      "parts_one": "{{count}} part",
+      "parts_other": "{{count}} parts",
+      "nothingYet": "Nothing written for students yet.",
+      "discardTitle": "Discard your changes?",
+      "discardMessage": "What you changed in this topic since you last saved will be lost.",
+      "discard": "Discard changes"
+    },
+    "classes": {
+      "title": "Classes and teachers",
+      "hint": "Who teaches this subject in each class, and how far each class has got.",
+      "taught": "Taught {{done}} of {{all}}",
+      "behind_one": "{{count}} topic behind",
+      "behind_other": "{{count}} topics behind",
+      "changeTeacher": "Change teacher",
+      "setTeacher": "Set teacher"
+    },
+    "setup": {
+      "addClass": "Add class",
+      "className": "Class name",
+      "classNameExample": "e.g. Class 6",
+      "code": "Short code",
+      "codeHint": "Letters, digits or dashes, up to 12 — e.g. C6",
+      "sections": "Sections",
+      "sectionsHint": "Comma between sections, e.g. A, B. Use one section if the class is taught as one group.",
+      "sectionsNeeded": "Name at least one section",
+      "subjects": "Subjects",
+      "subjectsHint": "The subjects taught in this class. You can add more later.",
+      "addSubject": "Add subject",
+      "addSubjectTo": "Add subjects to {{name}}",
+      "pickSubjects": "Subjects already in your list",
+      "orNew": "Or add a new subject",
+      "newSubject": "New subject",
+      "subjectName": "Subject name",
+      "subjectExample": "e.g. Sanskrit",
+      "teacherTitle": "Teacher for {{subject}} — {{section}}",
+      "teacher": "Teacher",
+      "nobody": "No teacher",
+      "saveTeacher": "Save teacher",
+      "classAdded": "{{name}} added.",
+      "subjectAdded": "Subject added.",
+      "teacherSaved": "Teacher saved."
+    },
+    "path": {
+      "label": "Where you are"
+    },
+    "panel": {
+      "howTo": "How to teach it",
+      "keyPoints": "Key points",
+      "book": "Book",
+      "homework": "Homework idea",
+      "loading": "Loading…",
+      "editInHub": "Edit in Teaching hub"
+    },
+    "teach": {
+      "taught": "Taught",
+      "partly": "Partly taught",
+      "taughtSome": "Taught in {{done}} of {{all}} classes",
+      "behind": "Behind",
+      "notStarted": "Not started",
+      "partlyBehind": "Partly taught · Behind"
+    },
+    "subject": {
+      "hint": "Every unit with its topics. Open a topic to see and mark it here; Open unit to add or change topics.",
+      "openUnit": "Open unit",
+      "editTopic": "Edit topic",
+      "hintView": "Every unit with its topics, as it stands. Open a topic to see it and mark it taught; press Edit to add or change."
+    },
+    "mode": {
+      "edit": "Edit",
+      "done": "Done editing"
     }
   }
 }

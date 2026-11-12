@@ -106,7 +106,7 @@ const planSchema = z.object({
   materialNotes: optionalText(4000),
 })
 const planQuery = z.object({
-  from: ymd.optional(), to: ymd.optional(), sectionId: objectId.optional(), subjectId: objectId.optional(),
+  from: ymd.optional(), to: ymd.optional(), sectionId: objectId.optional(), subjectId: objectId.optional(), topicId: objectId.optional(),
   mine: z.enum(['1', 'true']).optional().transform((v) => !!v),
 })
 // one page of the list: 50 rows by default, at most 100 (the platform's clamp)

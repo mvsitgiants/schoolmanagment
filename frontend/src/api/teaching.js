@@ -5,6 +5,7 @@ const BASE = '/v1/teaching/hub'
 const data = (r) => r.data.data
 
 export const fetchHub = (classId, subjectId, unitId, topicId) => api.get(BASE, { params: { classId, subjectId, unitId, topicId } }).then(data)
+export const fetchHubOutline = () => api.get(`${BASE}/outline`).then(data)
 export const fetchHubStudents = (classId, subjectId) => api.get(`${BASE}/students`, { params: { classId, subjectId } }).then(data)
 export const addHubUnit = (body) => api.post(`${BASE}/units`, body).then(data)
 export const saveHubUnit = (id, body) => api.put(`${BASE}/units/${id}`, body).then(data)

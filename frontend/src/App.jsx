@@ -149,7 +149,6 @@ const LmsLive = lazy(() => import('./pages/Lms/LiveClasses'))
 const LmsQuestions = lazy(() => import('./pages/Lms/QuestionBank'))
 const LmsCreateContent = lazy(() => import('./pages/Lms/CreateContent'))
 const LmsMyContent = lazy(() => import('./pages/Lms/MyContent'))
-const LmsBulkUpload = lazy(() => import('./pages/Lms/BulkUpload'))
 const LmsContentLibrary = lazy(() => import('./pages/Lms/ContentLibrary'))
 // Online tests
 const OtTests = lazy(() => import('./pages/OnlineTests/Tests'))
@@ -355,8 +354,9 @@ export default function App() {
           <Route path="lms/live-classes" element={<LmsLive />} />
           <Route path="lms/question-bank" element={<LmsQuestions />} />
           <Route path="lms/create-content" element={<LmsCreateContent />} />
+          {/* bulk upload was removed: files are added topic by topic in the Teaching hub */}
+          <Route path="lms/bulk-upload" element={<Navigate to="/teaching/hub" replace />} />
           <Route path="lms/my-content" element={<LmsMyContent />} />
-          <Route path="lms/bulk-upload" element={<LmsBulkUpload />} />
           <Route path="lms/content-library" element={<LmsContentLibrary />} />
           <Route path="online-tests" element={<Navigate to="/online-tests/tests" replace />} />
           <Route path="online-tests/tests" element={<OtTests />} />

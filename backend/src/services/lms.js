@@ -98,7 +98,7 @@ export async function getCourse(id, auth) {
     ...clean(c), classId: String(c.classId), subjectId: String(c.subjectId), sectionIds: c.sectionIds.map(String), teacherIds: c.teacherIds.map(String),
     className: n.cls.get(String(c.classId))?.name ?? '', subject: n.subject.get(String(c.subjectId)) ?? '', statusLabel: COURSE_STATUS[c.status]?.label,
     sections: c.sectionIds.map((s) => ({ id: String(s), label: n.section.get(String(s)) ?? '' })),
-    units: c.units.map((u) => ({ id: String(u._id), title: u.title, items: u.items.map((i) => ({ id: String(i._id), kind: i.kind, title: i.title, body: i.body ?? '', url: i.url ?? '', published: i.published !== false, minutes: i.minutes ?? null, files: files.filter((x) => x.entityId === String(i._id)).map((x) => ({ id: String(x._id), name: x.fileName, mime: x.mime, size: x.size })) })) })),
+    units: c.units.map((u) => ({ id: String(u._id), title: u.title, items: u.items.map((i) => ({ id: String(i._id), kind: i.kind, title: i.title, body: i.body ?? '', html: i.descriptionHtml ?? '', url: i.url ?? '', published: i.published !== false, minutes: i.minutes ?? null, files: files.filter((x) => x.entityId === String(i._id)).map((x) => ({ id: String(x._id), name: x.fileName, mime: x.mime, size: x.size })) })) })),
     canChange: mayChange(auth, c),
   }
 }

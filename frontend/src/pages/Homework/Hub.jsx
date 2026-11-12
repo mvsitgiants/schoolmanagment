@@ -3,26 +3,30 @@ import { useSearchParams } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import clsx from 'clsx'
-import { ArrowLeft, ArrowRight, BookOpen, Check, GraduationCap, Layers, LayoutPanelTop, Pencil, Plus, Save, Send } from 'lucide-react'
-import { FormField, Note, PageContainer, PageHeader, Panel, Select, Skeleton, useConfirm, usePrompt } from '../../components/system'
+import { ArrowLeft, ArrowRight, Check, ChevronRight, LayoutPanelTop, ListTree, Pencil, Plus, Save, Send, UserRound } from 'lucide-react'
+import { Note, PageContainer, PageHeader, Panel, Skeleton, StatusPill, useConfirm, usePrompt } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { TopicCard } from '../../components/homework/HubTopic'
+import HubTree, { ContentDot } from '../../components/homework/HubTree'
+import TopicPanel from '../../components/homework/TopicPanel'
+import HubSubjectView from '../../components/homework/HubSubjectView'
+import { AddClassModal, AddSubjectModal, TeacherModal } from '../../components/homework/HubSetup'
+import { fetchSyllabus } from '../../api/homework'
 import { UnitModal } from '../../components/homework/HubTools'
 import HubReview, { publishDefaults } from '../../components/homework/HubReview'
-import { fetchHomeworkLookup } from '../../api/homework'
-import { addHubTopic, addHubUnit, deleteHubTopic, deleteHubUnit, ensureHubItem, fetchHub, orderHubTopics, publishHubUnit, saveHubTopic, saveHubUnit } from '../../api/teaching'
+import { addHubTopic, addHubUnit, deleteHubTopic, deleteHubUnit, ensureHubItem, fetchHub, fetchHubOutline, orderHubTopics, publishHubUnit, saveHubTopic, saveHubUnit } from '../../api/teaching'
 import { hasPermission } from '../../api/auth'
 import { useSnackbar } from '../../context/SnackbarContext'
 import { useFormat } from '../../context/SettingsContext'
 
 // Homework & lessons › Subject hub: one place where a teacher builds a class + subject, unit by unit.
-//   1 Select details  class, subject, unit (a unit is added or renamed here, with its months)
+//   (left)            the outline: class → subject → unit → topic, with what each topic holds (components/homework/HubTree)
+//   1 Select details  the chosen subject's units (a unit is added or renamed here, with its months); on phones, the outline
 //   2 Add content     the unit's topics: what students read (with sub-topics, files, photos of book pages, library
 //                     material), the teacher's notes and the questions
 //   3 Review & publish  the unit as a student sees it, a checklist, and publishing (now or later, all or chosen students)
 // Deep link: /teaching/hub?classId=&subjectId=&unitId=. Student content is an LMS item per topic / sub-topic.
 
-const STEPS = ['details', 'content', 'review']
 const PUBLISHED = ['PUBLISHED', 'SCHEDULED', 'MIXED']
 
 const formOf = (tp, alias) => ({
@@ -40,26 +44,22 @@ const bodyOf = (f, place) => ({
   subTopics: f.subOn ? f.subTopics.filter((s) => s.name.trim()).map((s) => ({ id: s.id, name: s.name, contentHtml: s.contentHtml })) : [],
 })
 
-function Stepper({ step, max, onGo }) {
+/** Where you are: Class › Subject › Unit (› Review & publish); earlier parts take you back there. */
+function Path({ items }) {
   const { t } = useTranslation('hub')
   return (
-    <ol className="flex items-center gap-2" aria-label={t('hub.steps.label')}>
-      {STEPS.map((s, i) => {
-        const n = i + 1
-        const on = n === step
-        return (
-          <li key={s} className={clsx('flex min-w-0 items-center gap-2', i > 0 && 'flex-1')}>
-            {i > 0 && <span className={clsx('h-px min-w-[12px] flex-1', n <= step ? 'bg-brand-400' : 'bg-border')} aria-hidden />}
-            <button type="button" disabled={n > max} onClick={() => onGo(n)} aria-current={on ? 'step' : undefined} className="flex min-h-[44px] shrink-0 items-center gap-2 disabled:cursor-not-allowed">
-              <span className={clsx('grid h-7 w-7 place-items-center rounded-full text-xs font-semibold', on ? 'bg-brand-600 text-white' : n < step ? 'bg-brand-100 text-brand-700' : 'bg-bg text-ink-muted ring-1 ring-border')}>
-                {n < step ? <Check className="h-3.5 w-3.5" aria-hidden /> : n}
-              </span>
-              <span className={clsx('text-sm', on ? 'font-semibold text-ink' : 'hidden text-ink-muted md:inline')}>{t(`hub.steps.${s}`)}</span>
-            </button>
+    <nav aria-label={t('hub.path.label')}>
+      <ol className="flex min-w-0 flex-wrap items-center gap-x-1 gap-y-0.5 text-sm">
+        {items.map((x, i) => (
+          <li key={i} className="flex min-w-0 items-center gap-1">
+            {i > 0 && <ChevronRight className="h-3.5 w-3.5 shrink-0 text-ink-faint rtl:rotate-180" aria-hidden />}
+            {x.onClick
+              ? <button type="button" onClick={x.onClick} className="min-h-[32px] truncate rounded px-1 text-ink-muted hover:bg-black/[0.04] hover:text-ink [@media(pointer:coarse)]:min-h-[44px]">{x.label}</button>
+              : <span aria-current={i === items.length - 1 ? 'page' : undefined} className={clsx('truncate px-1', i === items.length - 1 ? 'font-semibold text-ink' : 'text-ink-muted')}>{x.label}</span>}
           </li>
-        )
-      })}
-    </ol>
+        ))}
+      </ol>
+    </nav>
   )
 }
 
@@ -74,10 +74,16 @@ export default function Hub() {
   const classId = params.get('classId') ?? ''
   const subjectId = params.get('subjectId') ?? ''
   const unitId = params.get('unitId') ?? ''
-  const [step, setStep] = useState(() => (classId && subjectId && (unitId || params.get('topicId')) ? 2 : 1))
+  // Edit off (the default): a clean, read-only view of the subject; on: every add / change button and the step editor.
+  // A link at a topic ("Edit in Teaching hub") or ?edit=1 opens with it on.
+  const [editMode, setEditMode] = useState(() => !!params.get('topicId') || params.get('edit') === '1')
+  const [focus, setFocus] = useState(null) // read-only: the unit / topic picked in the tree ({ unitId, topicId, n })
+  const [step, setStep] = useState(() => (classId && subjectId && params.get('topicId') ? 2 : 1))
   const [drafts, setDrafts] = useState({}) // topic id → the topic as being edited (unsaved)
   const [openId, setOpenId] = useState(() => params.get('topicId')) // a link from another screen opens its topic
   const [busy, setBusy] = useState('')
+  const [editingIds, setEditingIds] = useState(() => new Set()) // topics opened for editing (others show as they are)
+  const [setup, setSetup] = useState(null) // { kind: 'class' } | { kind: 'subject', classId, className } | { kind: 'teacher', section }
   const [unitDialog, setUnitDialog] = useState(null) // { unit } | { unit: null }
   const [options, setOptions] = useState(() => publishDefaults(null))
   const [errors, setErrors] = useState({})
@@ -88,10 +94,10 @@ export default function Hub() {
   const place = { classId, subjectId }
   const hubKey = ['teaching-hub', classId, subjectId, unitId]
   const editable = hasPermission('homework.hub.edit')
-  const { data: look, isLoading: lookLoading } = useQuery({ queryKey: ['homework-lookup'], queryFn: fetchHomeworkLookup, staleTime: 60_000 })
+  const { data: outline, isLoading: outlineLoading } = useQuery({ queryKey: ['teaching-hub-outline'], queryFn: fetchHubOutline, staleTime: 30_000 })
+  // each class's record of the subject (taught, revision, extra classes, teachers) and the lookup for planning lessons
+  const { data: syllabus } = useQuery({ queryKey: ['syllabus', classId, subjectId], queryFn: () => fetchSyllabus(classId, subjectId), enabled: !!(classId && subjectId) })
   const { data: hub, isLoading: hubLoading, error: hubError } = useQuery({ queryKey: hubKey, queryFn: () => fetchHub(classId, subjectId, unitId || undefined, (!unitId && params.get('topicId')) || undefined), enabled: !!(classId && subjectId) })
-  const classes = look?.classes ?? []
-  const cls = classes.find((c) => c.id === classId)
   const dirtyIds = Object.keys(drafts)
   const dirty = dirtyIds.length > 0
   const ctx = { classId, subjectId, lmsOn: !!hub?.lmsOn, editable: editable && !!hub?.canEdit }
@@ -121,12 +127,43 @@ export default function Hub() {
     return () => window.removeEventListener('beforeunload', warn)
   }, [dirty])
 
-  const refresh = () => qc.invalidateQueries({ queryKey: ['teaching-hub', classId, subjectId] })
+  const refresh = () => { qc.invalidateQueries({ queryKey: ['teaching-hub-outline'] }); qc.invalidateQueries({ queryKey: ['syllabus', classId, subjectId] }); return qc.invalidateQueries({ queryKey: ['teaching-hub', classId, subjectId] }) }
   const leaveOk = async () => !dirty || confirm({ title: t('hub.unsaved.title'), message: t('hub.unsaved.message'), confirmLabel: t('hub.unsaved.leave'), tone: 'danger' })
-  const switchTo = async (patch) => {
-    if (!await leaveOk()) return
-    setDrafts({}); setOpenId(null)
-    setPlace(patch)
+
+  /** From the outline: a subject (step 1, its units), a unit or a topic (step 2, the topic open and in view). */
+  const pick = async ({ classId: c, subjectId: sb, unitId: u, topicId: tp }) => {
+    if (!editMode) {
+      if (c !== classId || sb !== subjectId) setPlace({ classId: c, subjectId: sb, unitId: '', topicId: '' })
+      setStep(1)
+      setFocus(u || tp ? { unitId: u, topicId: tp, n: Date.now() } : null)
+      if (!u && !tp) window.scrollTo({ top: 0, behavior: 'smooth' })
+      return
+    }
+    const sameUnit = c === classId && sb === subjectId && !!u && u === unitId
+    if (!sameUnit) {
+      if (!await leaveOk()) return
+      setDrafts({})
+      setEditingIds(new Set())
+      setPlace({ classId: c, subjectId: sb, unitId: u ?? '', topicId: '' })
+    }
+    setOpenId(tp ?? null)
+    if (tp) { linkedTopic.current = tp; if (sameUnit) requestAnimationFrame(() => document.getElementById(`hub-topic-${tp}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })) }
+    setStep(u ? 2 : 1)
+    if (!tp) window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  // a topic with nothing in it opens straight into editing; others show as they are until "Edit"
+  const isEmpty = (tp) => !tp.content?.html && !tp.content?.files?.length && !tp.subTopics.length && !tp.questions.length && !tp.howTo && !tp.keyPoints.length && !tp.teacherFiles?.length
+  const isEditing = (tp) => ctx.editable && (editingIds.has(tp.id) || !!drafts[tp.id] || isEmpty(tp))
+  const setEditing = (id, on) => setEditingIds((x) => { const n = new Set(x); if (on) n.add(id); else n.delete(id); return n })
+  const cancelEdit = (tp) => async () => {
+    if (drafts[tp.id] && !await confirm({ title: t('hub.view.discardTitle'), message: t('hub.view.discardMessage'), confirmLabel: t('hub.view.discard'), tone: 'danger' })) return
+    setDrafts((d) => { const n = { ...d }; delete n[tp.id]; return n })
+    setEditing(tp.id, false)
+  }
+  const afterSetup = async (pickNext) => {
+    await Promise.all([qc.invalidateQueries({ queryKey: ['teaching-hub-outline'] }), qc.invalidateQueries({ queryKey: ['homework-lookup'] }), qc.invalidateQueries({ queryKey: ['syllabus'] })])
+    if (pickNext) pick(pickNext)
   }
 
   const formFor = (tp) => drafts[tp.id] ?? formOf(tp, alias.current)
@@ -275,66 +312,134 @@ export default function Hub() {
     } finally { setBusy('') }
   }
 
+  // the step's own buttons, in its header row next to its other buttons (no floating bar)
+  const backButton = step > 1 && <Button variant="ghost" icon={ArrowLeft} onClick={() => goto(step - 1)}>{t('hub.back')}</Button>
+  const draftButton = ctx.editable && hub?.unit && <Button variant="secondary" icon={Save} loading={busy === 'draft'} onClick={saveDraft}>{t('hub.draft.button')}</Button>
+  const nextButton = step < 3
+    ? <Button iconRight={ArrowRight} disabled={!hub?.unit} loading={busy === 'save'} onClick={() => goto(step + 1)}>{step === 1 ? t('hub.nextContent') : t('hub.nextReview')}</Button>
+    : ctx.editable && hub?.lmsOn && <Button icon={Send} loading={busy === 'publish'} onClick={publish}>{options.when === 'LATER' ? t('hub.publish.schedule') : t('hub.publish.button')}</Button>
+
+  // the shared topic panel's inputs: what students see, and each class's record of the topic
+  const canMark = hasPermission('homework.syllabus.edit') || hasPermission('homework.lesson-plans.edit')
+  const partsOfHub = (tp) => [{ id: 'topic', name: null, html: tp.content?.html, files: tp.content?.files ?? [] }, ...tp.subTopics.map((x) => ({ id: x.id, name: x.name, html: x.content?.html, files: x.content?.files ?? [] }))]
+  const classesOf = (tp) => (syllabus?.sections ?? []).map((sec) => ({ id: sec.id, label: sec.label, teachers: sec.teachers ?? [], row: sec.topicPlan?.[tp.id] ?? {}, tickDate: sec.ticks?.[tp.id]?.date }))
+  // how far a topic is taught across the classes: every class taught, some (or partly), behind its planned dates, or not yet
+  const teachingOf = (tp) => {
+    const secs = syllabus?.sections ?? []
+    if (!secs.length) return null
+    const rows = secs.map((x) => x.topicPlan?.[tp.id] ?? {})
+    const taught = rows.filter((r) => r.status === 'TAUGHT').length
+    const partly = rows.filter((r) => r.status === 'PARTLY').length
+    const behind = rows.some((r) => r.status !== 'TAUGHT' && r.end && r.end < syllabus.today)
+    const [tone, label] = taught === secs.length ? ['success', t('hub.teach.taught')]
+      : behind ? ['danger', taught || partly ? t('hub.teach.partlyBehind') : t('hub.teach.behind')]
+        : taught || partly ? ['warning', secs.length > 1 ? t('hub.teach.taughtSome', { done: taught, all: secs.length }) : t('hub.teach.partly')]
+          : ['neutral', t('hub.teach.notStarted')]
+    return <StatusPill tone={tone}>{label}</StatusPill>
+  }
+  const canEditHub = hasPermission('homework.hub.edit') || hasPermission('homework.hub.create') || hasPermission('academics.classes.create')
+  const toggleEdit = async () => {
+    if (!editMode) { setEditMode(true); return }
+    if (!await leaveOk()) return
+    setDrafts({}); setEditingIds(new Set()); setOpenId(null); setStep(1); setEditMode(false)
+    setPlace({ topicId: '', edit: '' })
+  }
+  const canAddClass = hasPermission('academics.classes.create')
+  const canAddSubject = hasPermission('academics.classes.edit')
+  const selected = editMode
+    ? { classId, subjectId, unitId: step === 1 ? '' : unitId, topicId: step === 2 ? openId : null }
+    : { classId, subjectId, unitId: focus?.unitId ?? '', topicId: focus?.topicId ?? null }
+  const subjectOutline = outline?.classes.find((c) => c.id === classId)?.subjects.find((x) => x.id === subjectId)
   const monthName = (ym) => { const [y, m] = ym.split('-').map(Number); return `${t(`hub.months.${m}`)} ${y}` }
-  const max = hub?.unit ? 3 : 1
   const status = hub?.unit?.status
 
   return (
     <PageContainer>
-      <PageHeader icon={LayoutPanelTop} title={t('hub.title')} subtitle={t('hub.subtitle')} />
-      <div className="space-y-3 pb-40 lg:pb-0">
-        <Panel><Stepper step={step} max={max} onGo={goto} /></Panel>
+      <PageHeader icon={LayoutPanelTop} title={t('hub.title')} subtitle={t('hub.subtitle')}
+        actions={canEditHub && (editMode
+          ? <Button icon={Check} onClick={toggleEdit}>{t('hub.mode.done')}</Button>
+          : <Button variant="secondary" icon={Pencil} onClick={toggleEdit}>{t('hub.mode.edit')}</Button>)} />
+      <div className="lg:grid lg:grid-cols-[18rem_minmax(0,1fr)] lg:items-start lg:gap-4">
+      <aside className="hidden overflow-hidden rounded-xl border border-border bg-surface shadow-card lg:sticky lg:top-4 lg:flex lg:max-h-[calc(100vh-2rem)] lg:flex-col">
+        <HubTree outline={outline} loading={outlineLoading} selected={selected} onPick={pick} onAddClass={editMode && canAddClass ? () => setSetup({ kind: 'class' }) : undefined} onAddSubject={editMode && canAddSubject ? (c) => setSetup({ kind: 'subject', classId: c.id, className: c.name }) : undefined} className="flex-1" />
+      </aside>
+      <div className="min-w-0">
+      <div className="space-y-3">
+        {classId && subjectId && (
+          <Path items={[
+            { label: hub?.className ?? outline?.classes.find((c) => c.id === classId)?.name ?? '' },
+            { label: hub?.subject ?? subjectOutline?.name ?? '', onClick: step > 1 ? () => pick({ classId, subjectId }) : undefined },
+            ...(step > 1 && hub?.unit ? [{ label: hub.unit.name, onClick: step > 2 ? () => goto(2) : undefined }] : []),
+            ...(step > 2 ? [{ label: t('hub.steps.review') }] : []),
+          ].filter((x) => x.label)} />
+        )}
 
         {hubError && <Note tone="warning">{hubError.message}</Note>}
         {hub && !hub.lmsOn && <Note tone="warning">{t('hub.content.lmsOff')}</Note>}
         {hub && !ctx.editable && <Note tone="info">{t('hub.readOnly')}</Note>}
 
-        {step === 1 && (lookLoading ? <Skeleton className="h-48" /> : !classes.length ? <Note tone="warning">{t('hub.pick.noClasses')}</Note> : (
-          <Panel title={t('hub.pick.title')} subtitle={t('hub.pick.hint')}>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-              <FormField label={<span className="inline-flex items-center gap-1.5"><GraduationCap className="h-4 w-4 text-ink-faint" aria-hidden />{t('hub.pick.class')}</span>} required>
-                <Select value={classId} onChange={(e) => { const c = classes.find((x) => x.id === e.target.value); switchTo({ classId: e.target.value, subjectId: c?.subjects.length === 1 ? c.subjects[0].id : '', unitId: '' }) }}>
-                  <option value="">{t('hub.pick.pickClass')}</option>
-                  {classes.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-                </Select>
-              </FormField>
-              <FormField label={<span className="inline-flex items-center gap-1.5"><BookOpen className="h-4 w-4 text-ink-faint" aria-hidden />{t('hub.pick.subject')}</span>} required>
-                <Select value={subjectId} disabled={!cls} onChange={(e) => switchTo({ subjectId: e.target.value, unitId: '' })}>
-                  <option value="">{t('hub.pick.pickSubject')}</option>
-                  {(cls?.subjects ?? []).map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
-                </Select>
-              </FormField>
-              <FormField label={<span className="inline-flex items-center gap-1.5"><Layers className="h-4 w-4 text-ink-faint" aria-hidden />{t('hub.pick.unit')}</span>} required
-                hint={hub && !hub.units.length ? t('hub.pick.noUnits') : undefined}>
-                <Select value={unitId} disabled={!hub?.units.length} onChange={(e) => switchTo({ unitId: e.target.value })}>
-                  {!hub?.units.length && <option value="">{t('hub.pick.pickUnit')}</option>}
-                  {(hub?.units ?? []).map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
-                </Select>
-              </FormField>
-            </div>
-            {classId && subjectId && (hubLoading ? <Skeleton className="mt-3 h-16" /> : hub && (
-              <div className="mt-3 flex flex-wrap items-center gap-2">
-                {ctx.editable && hasPermission('homework.hub.create') && <Button size="sm" variant="secondary" icon={Plus} onClick={() => setUnitDialog({ unit: null })}>{t('hub.unit.new')}</Button>}
-                {ctx.editable && hub.unit && <Button size="sm" variant="ghost" icon={Pencil} onClick={() => setUnitDialog({ unit: hub.units.find((u) => u.id === hub.unit.id) })}>{t('hub.unit.edit')}</Button>}
-                {hub.unit && (
-                  <span className="text-xs text-ink-muted sm:ms-auto">
-                    {[t('hub.pick.topicCount', { count: hub.topics.length }), hub.unit.fromMonth && t('hub.pick.months', { from: monthName(hub.unit.fromMonth), to: monthName(hub.unit.toMonth ?? hub.unit.fromMonth) }), status && t(`hub.status.${status}`)].filter(Boolean).join(' · ')}
-                  </span>
+        {step === 1 && (
+          <>
+            {/* phones and tablets: the outline is the way in */}
+            <Panel className="lg:hidden overflow-hidden" flush>
+              <HubTree outline={outline} loading={outlineLoading} selected={selected} onPick={pick} onAddClass={editMode && canAddClass ? () => setSetup({ kind: 'class' }) : undefined} onAddSubject={editMode && canAddSubject ? (c) => setSetup({ kind: 'subject', classId: c.id, className: c.name }) : undefined} className="max-h-[70vh]" />
+            </Panel>
+            {!(classId && subjectId) ? (
+              <Panel className="hidden lg:block">
+                <div className="flex flex-col items-center gap-2 py-10 text-center">
+                  <ListTree className="h-8 w-8 text-ink-faint" aria-hidden />
+                  <p className="text-sm font-medium text-ink">{t('hub.pick.title')}</p>
+                  <p className="max-w-sm text-sm text-ink-muted">{t('hub.pick.hintTree')}</p>
+                </div>
+              </Panel>
+            ) : hubLoading ? <Skeleton className="h-48" /> : hub && (
+              <Panel title={[hub.className, hub.subject].join(' · ')} subtitle={editMode ? t('hub.subject.hint') : t('hub.subject.hintView')}
+                actions={editMode && <div className="flex flex-wrap justify-end gap-2">{ctx.editable && hasPermission('homework.hub.create') && <Button variant="secondary" icon={Plus} onClick={() => setUnitDialog({ unit: null })}>{t('hub.unit.new')}</Button>}{nextButton}</div>}>
+                {!hub.units.length ? <p className="py-6 text-center text-sm text-ink-muted">{t('hub.pick.noUnits')}</p> : (
+                  <HubSubjectView units={hub.units} outlineUnits={subjectOutline?.units} subjectId={subjectId} today={syllabus?.today} classesOf={classesOf}
+                    canMark={canMark} canEdit={ctx.editable} editMode={editMode} focus={focus} monthName={monthName}
+                    onOpenUnit={(u) => pick({ classId, subjectId, unitId: u.id })} onEditUnit={(u) => setUnitDialog({ unit: u })}
+                    onEditTopic={async (u, x) => { await pick({ classId, subjectId, unitId: u.id, topicId: x.id }); setEditing(x.id, true) }}
+                    onChanged={() => { qc.invalidateQueries({ queryKey: ['syllabus', classId, subjectId] }); qc.invalidateQueries({ queryKey: ['teaching-hub-outline'] }) }} />
                 )}
-              </div>
-            ))}
-          </Panel>
-        ))}
+              </Panel>
+            )}
+            {classId && subjectId && syllabus?.sections?.length > 0 && (
+              <Panel title={t('hub.classes.title')} subtitle={t('hub.classes.hint')}>
+                <ul className="divide-y divide-border">
+                  {syllabus.sections.map((sec) => {
+                    const names = (sec.teachers ?? []).map((x) => x.name).filter(Boolean).join(', ')
+                    return (
+                      <li key={sec.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2.5">
+                        <span className="min-w-0 flex-1">
+                          <span className="block text-sm font-medium text-ink">{sec.label}</span>
+                          <span className="flex items-center gap-1 truncate text-xs text-ink-muted"><UserRound className="h-3.5 w-3.5 shrink-0" aria-hidden />{names || t('hub.view.noTeacher')}</span>
+                        </span>
+                        <span className="shrink-0 text-xs text-ink-muted">{t('hub.classes.taught', { done: sec.done, all: sec.topics })}</span>
+                        {sec.behind > 0 && <span className="shrink-0 text-xs font-medium text-amber-700">{t('hub.classes.behind', { count: sec.behind })}</span>}
+                        {editMode && hasPermission('academics.allocation.edit') && (
+                          <Button size="sm" variant="ghost" icon={Pencil} onClick={() => setSetup({ kind: 'teacher', section: sec })}>{names ? t('hub.classes.changeTeacher') : t('hub.classes.setTeacher')}</Button>
+                        )}
+                      </li>
+                    )
+                  })}
+                </ul>
+              </Panel>
+            )}
+          </>
+        )}
 
-        {step === 2 && hub?.unit && (
+        {editMode && step === 2 && hub?.unit && (
           <div className="space-y-3">
-            {PUBLISHED.includes(status) && <Note tone="info">{t('hub.livePublished')}</Note>}
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="min-w-0">
                 <h2 className="truncate text-base font-semibold text-ink">{t('hub.topics.title')}</h2>
-                <p className="truncate text-xs text-ink-muted">{[hub.className, hub.subject, hub.unit.name].join(' · ')}</p>
               </div>
-              {ctx.editable && hasPermission('homework.hub.create') && <Button size="sm" icon={Plus} loading={busy === 'add'} onClick={addTopic}>{t('hub.topics.add')}</Button>}
+              <div className="flex flex-wrap items-center gap-2">
+                {draftButton}
+                {ctx.editable && hasPermission('homework.hub.create') && <Button variant="secondary" icon={Plus} loading={busy === 'add'} onClick={addTopic}>{t('hub.topics.add')}</Button>}
+                {nextButton}
+              </div>
             </div>
             {!hub.topics.length ? (
               <Panel><p className="py-6 text-center text-sm text-ink-muted">{t('hub.topics.none')}</p></Panel>
@@ -344,7 +449,9 @@ export default function Hub() {
                   <TopicCard key={tp.id} n={i + 1} topic={tp} form={formFor(tp)} onForm={onForm(tp)} dirty={!!drafts[tp.id]} ctx={ctx}
                     open={openId === tp.id} onToggle={() => setOpenId((o) => (o === tp.id ? null : tp.id))}
                     onRename={rename(tp)} onDelete={removeTopic(tp)} onMove={(dir) => move(i, dir)} canUp={i > 0} canDown={i < hub.topics.length - 1}
-                    onSave={() => run(`save-${tp.id}`, async () => { await saveOne(tp.id); showSuccess(t('hub.topic.saved')); return true })} saving={busy === `save-${tp.id}`}
+                    onSave={() => run(`save-${tp.id}`, async () => { await saveOne(tp.id); setEditing(tp.id, false); showSuccess(t('hub.topic.saved')); return true })} saving={busy === `save-${tp.id}`}
+                    live={PUBLISHED.includes(status)} teaching={teachingOf(tp)} editing={isEditing(tp)} onEdit={() => setEditing(tp.id, true)} onCancel={isEmpty(tp) ? undefined : cancelEdit(tp)}
+                    view={<TopicPanel topic={tp} parts={partsOfHub(tp)} classes={classesOf(tp)} subjectId={subjectId} today={syllabus?.today} canMark={canMark} canEdit={ctx.editable} onEdit={() => setEditing(tp.id, true)} onChanged={() => qc.invalidateQueries({ queryKey: ['syllabus', classId, subjectId] })} />}
                     getItemId={getItemId(tp)} onFilesChanged={refresh}
                     handleProps={{ onMouseDown: () => setArmed(tp.id), onMouseUp: () => setArmed(null) }}
                     dragProps={{
@@ -360,24 +467,25 @@ export default function Hub() {
           </div>
         )}
 
-        {step === 3 && hub?.unit && <HubReview hub={hub} options={options} onOptions={setOptions} errors={errors} />}
-      </div>
-
-      <div className="action-bar flex items-center gap-2 border-t border-border bg-surface/95 py-3 backdrop-blur lg:mt-4 lg:rounded-xl lg:border lg:!px-3">
-        {step > 1 && <Button variant="ghost" icon={ArrowLeft} onClick={() => goto(step - 1)} aria-label={t('hub.back')}><span className="hidden sm:inline">{t('hub.back')}</span></Button>}
-        {ctx.editable && hub?.unit && (
-          <Button variant="secondary" icon={Save} loading={busy === 'draft'} onClick={saveDraft}>{t('hub.draft.button')}</Button>
-        )}
-        <span className="flex-1" />
-        {step < 3 ? (
-          <Button iconRight={ArrowRight} disabled={!hub?.unit} loading={busy === 'save'} onClick={() => goto(step + 1)}>
-            <span className="sm:hidden">{t('hub.next')}</span><span className="hidden sm:inline">{step === 1 ? t('hub.nextContent') : t('hub.nextReview')}</span>
-          </Button>
-        ) : ctx.editable && hub?.lmsOn && (
-          <Button icon={Send} loading={busy === 'publish'} onClick={publish}>{options.when === 'LATER' ? t('hub.publish.schedule') : t('hub.publish.button')}</Button>
+        {editMode && step === 3 && hub?.unit && (
+          <div className="space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="min-w-0">
+                <h2 className="truncate text-base font-semibold text-ink">{t('hub.steps.review')}</h2>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">{backButton}{draftButton}{nextButton}</div>
+            </div>
+            <HubReview hub={hub} options={options} onOptions={setOptions} errors={errors} />
+          </div>
         )}
       </div>
 
+      </div>
+      </div>
+
+      {setup?.kind === 'class' && <AddClassModal onClose={() => setSetup(null)} onSaved={(cls) => { showSuccess(t('hub.setup.classAdded', { name: cls.name })); afterSetup(cls.subjectIds?.length ? { classId: cls.id, subjectId: String(cls.subjectIds[0]) } : null) }} />}
+      {setup?.kind === 'subject' && <AddSubjectModal classId={setup.classId} className={setup.className} onClose={() => setSetup(null)} onSaved={(ids) => { showSuccess(t('hub.setup.subjectAdded')); afterSetup(ids[0] ? { classId: setup.classId, subjectId: ids[0] } : null) }} />}
+      {setup?.kind === 'teacher' && hub && <TeacherModal section={setup.section} subjectId={subjectId} subject={hub.subject} onClose={() => setSetup(null)} onSaved={() => { showSuccess(t('hub.setup.teacherSaved')); afterSetup() }} />}
       {unitDialog && hub && <UnitModal unit={unitDialog.unit} months={hub.months} saving={busy === 'unit'} onSave={saveUnit} onDelete={hasPermission('homework.hub.delete') ? removeUnit : undefined} onClose={() => setUnitDialog(null)} />}
     </PageContainer>
   )

@@ -62,7 +62,7 @@
       "frontoffice": "Visitor log, gate passes, call log and complaints.",
       "academics": "Academic years, terms, classes and sections, subjects and grading schemes.",
       "attendance": "Daily or period-wise attendance, absence alerts to parents and student leave.",
-      "homework": "Subject hub, lesson plans, syllabus tracking, homework and submissions.",
+      "homework": "Teaching hub, lesson plans, syllabus tracking, homework and submissions.",
       "exams": "Exam schedule, seating and invigilation, question papers, hall tickets, marks entry, results and report cards.",
       "timetable": "Timetable generator, substitutions and room allocation.",
       "lms": "Courses, study material, live classes and assignments.",
@@ -158,7 +158,7 @@
         "reports": "Attendance reports"
       },
       "homework": {
-        "hub": "Subject hub",
+        "hub": "Teaching hub",
         "lesson-plans": "Lesson plans",
         "syllabus": "Syllabus tracker",
         "homework": "Homework"

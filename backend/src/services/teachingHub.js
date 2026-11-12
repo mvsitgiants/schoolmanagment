@@ -2,6 +2,7 @@ import mongoose from 'mongoose'
 import { QUESTION_KINDS, QUESTION_USES, monthsInRange } from '@schoolgiant/shared'
 import { Section } from '../models/academics.js'
 import { Attachment } from '../models/engines.js'
+import { Course } from '../models/lms.js'
 import { LessonPlan, SectionTopicPlan, Syllabus, SyllabusDone } from '../models/homework.js'
 import { Student, studentName } from '../models/students.js'
 import { moduleEnabled } from '../platform/access.js'
@@ -107,6 +108,59 @@ export async function getHub({ classId, subjectId, unitId, topicId }, auth) {
       content: items.get(keyOf(t._id)) ?? null,
       subTopics: (t.subTopics ?? []).map((s) => ({ id: String(s._id), name: s.name, content: items.get(keyOf(t._id, s._id)) ?? null })),
       contentBy: t.contentBy ?? null, contentAt: t.contentAt ?? null,
+    })),
+  }
+}
+
+/**
+ * The outline on the left of the Subject hub: every class and subject this person works on, each one's units and topics,
+ * and on each topic what is there — student content (NONE · DRAFT · SCHEDULED · PUBLISHED), sub-topics, the teacher's
+ * notes, questions, and in how many sections it was taught. A handful of queries for the whole year, whatever its size.
+ */
+export async function hubOutline(auth) {
+  const year = await requireYear()
+  const look = await homeworkLookup(auth)
+  const classIds = look.classes.map((c) => oid(c.id))
+  const lmsOn = moduleEnabled(auth, 'lms')
+  const [syllabi, items, taught, partly] = await Promise.all([
+    Syllabus.find({ academicYearId: year._id, classId: { $in: classIds } })
+      .select('classId subjectId units._id units.name units.fromMonth units.toMonth units.topics._id units.topics.name units.topics.howTo units.topics.keyPoints units.topics.questions._id units.topics.subTopics._id').lean(),
+    // the student content of each topic (its hub item; sub-topics' items don't change the topic's state)
+    lmsOn ? Course.aggregate([
+      { $match: { academicYearId: year._id, classId: { $in: classIds }, 'units.items.hub': true } },
+      { $unwind: '$units' }, { $unwind: '$units.items' },
+      { $match: { 'units.items.hub': true, 'units.items.subTopicId': null } },
+      { $project: { _id: 0, id: '$units.items._id', topicId: '$units.items.topicId', published: '$units.items.published', publishAt: '$units.items.publishAt', size: { $strLenCP: { $ifNull: ['$units.items.descriptionHtml', ''] } } } },
+    ]) : [],
+    SyllabusDone.aggregate([{ $group: { _id: '$topicId', n: { $sum: 1 } } }]),
+    // classes where it is partly taught (started, not finished)
+    SectionTopicPlan.aggregate([{ $match: { status: 'PARTLY' } }, { $group: { _id: '$topicId', n: { $sum: 1 } } }]),
+  ])
+  const withFiles = items.length ? new Set((await Attachment.distinct('entityId', { entityType: 'lms_item', entityId: { $in: items.map((i) => String(i.id)) }, 'deleted.at': null })).map(String)) : new Set()
+  const now = new Date()
+  const contentOf = new Map(items.map((i) => {
+    const has = i.size > 0 || withFiles.has(String(i.id))
+    const state = !has ? 'NONE' : i.published === false ? 'DRAFT' : i.publishAt && i.publishAt > now ? 'SCHEDULED' : 'PUBLISHED'
+    return [String(i.topicId), state]
+  }))
+  const taughtIn = new Map(taught.map((x) => [String(x._id), x.n]))
+  const partlyIn = new Map(partly.map((x) => [String(x._id), x.n]))
+  const sylOf = new Map(syllabi.map((x) => [`${x.classId}:${x.subjectId}`, x]))
+  return {
+    year: { id: String(year._id), name: year.name }, lmsOn,
+    classes: look.classes.map((c) => ({
+      id: c.id, name: c.name,
+      subjects: c.subjects.map((sb) => ({
+        id: sb.id, name: sb.name,
+        units: (sylOf.get(`${c.id}:${sb.id}`)?.units ?? []).map((u) => ({
+          id: String(u._id), name: u.name, fromMonth: u.fromMonth ?? null, toMonth: u.toMonth ?? null,
+          topics: (u.topics ?? []).map((t) => ({
+            id: String(t._id), name: t.name, content: contentOf.get(String(t._id)) ?? 'NONE',
+            subTopics: t.subTopics?.length ?? 0, questions: t.questions?.length ?? 0,
+            notes: !!(t.howTo || t.keyPoints?.length), taughtIn: taughtIn.get(String(t._id)) ?? 0, partlyIn: partlyIn.get(String(t._id)) ?? 0,
+          })),
+        })),
+      })),
     })),
   }
 }

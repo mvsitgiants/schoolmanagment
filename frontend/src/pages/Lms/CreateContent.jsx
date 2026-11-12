@@ -1,12 +1,11 @@
 import { useMemo, useRef, useState } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { Navigate, useNavigate, useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import clsx from 'clsx'
 import { Eye, FileUp, Files, Paperclip, Search, Send, Share2, Users, X } from 'lucide-react'
 import { CONTENT_FILE_MAX_MB, CONTENT_TYPES, FILE_ACCEPT, addDaysYmd, htmlToText, videoEmbed } from '@schoolgiant/shared'
 import { Attachments, DateInput, FormField, Input, Modal, Note, PageContainer, PageHeader, Panel, SegmentedControl, Select, Skeleton, localIso } from '../../components/system'
-import HubBanner from '../../components/homework/HubBanner'
 import Button from '../../components/ui/Button'
 import { RichTextEditor } from '../../components/lms/RichText'
 import { ContentPreview, TypeIcon } from '../../components/lms/ContentKit'
@@ -229,15 +228,6 @@ function ContentForm({ existing, start }) {
           )
         })}
       </div>
-      {!existing && f.type === 'MATERIAL' && hasPermission('lms.create-content.create') && (
-        <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-ink-muted">
-          <span>{t('lms.content.bulk.manyHint')}</span>
-          <Link to={`/lms/bulk-upload?${new URLSearchParams(Object.fromEntries(Object.entries({ classId: f.classId, subjectId: f.subjectId, topicId: f.topicId }).filter(([, v]) => v)))}`}
-            className="inline-flex min-h-[32px] items-center gap-1 font-medium text-brand-700 hover:underline">
-            <Files className="h-3.5 w-3.5" aria-hidden />{t('lms.content.bulk.manyLink')}
-          </Link>
-        </p>
-      )}
 
       <Panel>
         {!classes.length ? <Note tone="warning">{t('lms.content.form.noClasses')}</Note> : (
@@ -331,10 +321,11 @@ export default function CreateContent() {
   const editId = params.get('edit')
   const { data: existing, isLoading, error } = useQuery({ queryKey: ['lms-content', 'one', editId], queryFn: () => fetchContent(editId), enabled: !!editId })
   const start = { type: params.get('kind')?.toUpperCase(), classId: params.get('classId'), subjectId: params.get('subjectId'), topicId: params.get('topicId') }
+  // new content is written in the Teaching hub; this form only edits items shared from it before (or by bulk upload)
+  if (!editId) return <Navigate replace to={`/teaching/hub?${new URLSearchParams(Object.entries({ classId: start.classId, subjectId: start.subjectId, topicId: start.topicId }).filter(([, v]) => v))}`} />
   return (
     <PageContainer>
       <PageHeader icon={Share2} title={editId ? t('lms.content.form.editTitle') : t('lms.content.form.newTitle')} subtitle={t('lms.content.form.subtitle')} />
-      <HubBanner classId={existing?.classId ?? start.classId} subjectId={existing?.subjectId ?? start.subjectId} className="mb-3" />
       {editId && isLoading ? <Skeleton className="h-96" /> : error ? <Note tone="warning">{error.message}</Note> : (
         <ContentForm key={editId ?? 'new'} existing={editId ? existing : null} start={start} />
       )}

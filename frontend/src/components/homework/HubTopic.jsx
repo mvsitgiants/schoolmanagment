@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import clsx from 'clsx'
-import { ArrowDown, ArrowUp, BookMarked, Camera, ChevronDown, Copy, GripVertical, HelpCircle, Library, Paperclip, PenLine, Plus, Save, Trash2, Upload, X } from 'lucide-react'
+import { ArrowDown, ArrowUp, BookMarked, Camera, ChevronDown, Copy, GripVertical, HelpCircle, Library, Paperclip, Pencil, PenLine, Plus, Save, Trash2, Upload, X } from 'lucide-react'
 import { CONTENT_FILE_MAX_MB, FILE_ACCEPT, QUESTION_KINDS, QUESTION_USES } from '@schoolgiant/shared'
 import { FormField, Input, Select, Textarea, useConfirm } from '../system'
 import Button from '../ui/Button'
@@ -263,7 +263,8 @@ function Questions({ questions, onChange, disabled }) {
 }
 
 /** The topic name, changed in place (Enter or leaving the box saves it). */
-function TopicName({ name, onRename, disabled }) {
+/** The topic's name: opens the topic; while it is being edited, a click renames it instead. */
+function TopicName({ name, onRename, disabled, canRename, onOpen }) {
   const { t } = useTranslation('hub')
   const [editing, setEditing] = useState(false)
   const [v, setV] = useState(name)
@@ -273,7 +274,7 @@ function TopicName({ name, onRename, disabled }) {
       onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); if (e.key === 'Escape') { setV(name); setEditing(false) } }} className="min-w-0 flex-1" />
   }
   return (
-    <button type="button" disabled={disabled} onClick={() => { setV(name); setEditing(true) }} title={t('hub.topic.rename')}
+    <button type="button" disabled={canRename && disabled} onClick={() => { if (!canRename) { onOpen?.(); return } setV(name); setEditing(true) }} title={canRename ? t('hub.topic.rename') : undefined}
       className="min-w-0 flex-1 truncate rounded-md px-1 py-1 text-start text-sm font-semibold text-ink hover:bg-black/[0.03] disabled:hover:bg-transparent">
       {name}
     </button>
@@ -286,7 +287,7 @@ function TopicName({ name, onRename, disabled }) {
  */
 export function TopicCard({
   n, topic, form, onForm, open, onToggle, onRename, onDelete, onMove, canUp, canDown, onSave, saving, dirty,
-  getItemId, onFilesChanged, ctx, dragProps, handleProps,
+  getItemId, onFilesChanged, ctx, dragProps, handleProps, editing = true, onEdit, onCancel, view, live = false, teaching,
 }) {
   const { t } = useTranslation('hub')
   const confirm = useConfirm()
@@ -297,7 +298,7 @@ export function TopicCard({
     if (form.subOn && form.subTopics.some((s) => s.id) && !await confirm({ title: t('hub.sub.offTitle'), message: t('hub.sub.offMessage'), confirmLabel: t('hub.sub.offConfirm'), tone: 'danger' })) return
     onForm(form.subOn ? { subOn: false } : { subOn: true, subTopics: form.subTopics.length ? form.subTopics : [{ key: `s${Date.now()}`, name: '', contentHtml: '' }] })
   }
-  const status = topic.content?.status
+  const status = topic.content?.status ?? 'EMPTY'
   return (
     <li {...dragProps} id={`hub-topic-${topic.id}`} className={clsx('scroll-mt-20 rounded-xl border bg-surface shadow-card', open ? 'border-brand-300' : 'border-border')}>
       <div className="flex min-h-[52px] items-center gap-1 px-1.5 sm:gap-2 sm:px-2">
@@ -311,9 +312,14 @@ export function TopicCard({
           </>
         )}
         <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-bg text-xs font-semibold text-ink-muted">{n}</span>
-        <TopicName name={topic.name} onRename={onRename} disabled={!editable} />
+        <TopicName name={topic.name} onRename={onRename} disabled={!editable} canRename={editable && open && editing} onOpen={onToggle} />
         {dirty && <span className="hidden shrink-0 text-xs text-amber-600 sm:inline">{t('hub.topic.unsaved')}</span>}
-        {!dirty && status && status !== 'DRAFT' && <span className="hidden shrink-0 text-xs text-ink-muted sm:inline">{t(`hub.status.${status}`)}</span>}
+        {/* how far it is taught (the pill), and what students can see (muted) */}
+        {teaching}
+        {!dirty && status && <span className="hidden shrink-0 text-xs text-ink-muted md:inline">{t('hub.topic.forStudents', { status: t(`hub.status.${status}`) })}</span>}
+        {editable && open && !editing && onEdit && (
+          <Button size="sm" variant="secondary" icon={Pencil} onClick={onEdit} className="shrink-0">{t('hub.view.edit')}</Button>
+        )}
         {editable && (
           <button type="button" onClick={onDelete} aria-label={t('hub.topic.delete', { name: topic.name })} title={t('hub.topic.delete', { name: topic.name })}
             className="grid h-11 w-11 shrink-0 place-items-center rounded-lg text-ink-faint hover:bg-danger-50 hover:text-danger-700"><Trash2 className="h-4 w-4" aria-hidden /></button>
@@ -321,8 +327,10 @@ export function TopicCard({
         <button type="button" onClick={onToggle} aria-expanded={open} aria-label={open ? t('hub.topic.close') : t('hub.topic.open')}
           className="grid h-11 w-11 shrink-0 place-items-center rounded-lg text-ink-muted hover:bg-black/[0.04]"><ChevronDown className={clsx('h-5 w-5 transition', open && 'rotate-180')} aria-hidden /></button>
       </div>
-      {open && (
+      {open && !editing && view && <div className="border-t border-border px-3 py-3 sm:px-4">{view}</div>}
+      {open && editing && (
         <div className="space-y-4 border-t border-border px-3 py-3 sm:px-4">
+          {live && <p className="rounded-lg bg-brand-50/60 px-3 py-2 text-xs text-brand-800">{t('hub.livePublished')}</p>}
           {/* sub-topics */}
           <div className="space-y-2">
             <label className="flex min-h-[44px] cursor-pointer items-center justify-between gap-3">
@@ -374,7 +382,8 @@ export function TopicCard({
           </Fold>
 
           {editable && (
-            <div className="flex justify-end">
+            <div className="flex justify-end gap-2">
+              {onCancel && <Button size="sm" variant="ghost" onClick={onCancel}>{t('hub.cancel')}</Button>}
               <Button size="sm" icon={Save} loading={saving} disabled={!dirty} onClick={onSave}>{t('hub.topic.save')}</Button>
             </div>
           )}

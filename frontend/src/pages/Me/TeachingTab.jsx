@@ -19,7 +19,7 @@ import { QuietEmpty, Tile } from './shared'
 export const MY_TEACHING = ['my-teaching']
 
 /** Lesson plans of the week, one block per day; today's open. */
-function WeekPlans({ data, onPlan, onAct, onOpen }) {
+function WeekPlans({ data, onPlan, onAct, onOpen, openId, renderLesson }) {
   const { t } = useTranslation('homework')
   const prompt = usePrompt()
   const weekday = useWeekdayLabel()
@@ -42,20 +42,29 @@ function WeekPlans({ data, onPlan, onAct, onOpen }) {
               {d === data.today ? t('homework.mine.today') : weekday(d)} · {date(d)}
             </p>
             {plans.length ? (
-              <ListRows>
+              <ul className="divide-y divide-border rounded-lg border border-border">
                 {plans.map((p) => (
-                  <ListRow key={p.id} icon={NotebookPen} tone={LESSON_STATUS[p.status]?.tone ?? 'info'} onClick={() => onOpen(p)}
-                    title={p.title}
-                    subtitle={[p.period && t('homework.lessons.periodN', { n: p.period }), p.topics.join(', ')].filter(Boolean).join(' · ')}
-                    meta={<><ColorChip label={p.section} seed={p.classId ?? p.section} /><ColorChip label={p.subject} seed={p.subjectId} dot /><StatusPill tone={LESSON_STATUS[p.status]?.tone}>{statusLabel(p.status)}</StatusPill></>}
-                    trailing={p.status === 'PLANNED' && p.canChange && canEdit && (
-                      <div className="flex gap-1">
-                        <Button size="sm" variant="ghost" icon={Check} title={t('homework.lessons.markDone')} aria-label={t('homework.lessons.markDone')} onClick={() => markDone(p)} />
-                        <Button size="sm" variant="ghost" icon={SkipForward} title={t('homework.lessons.skip')} aria-label={t('homework.lessons.skip')} onClick={() => onAct(() => setLessonPlanStatus(p.id, { status: 'SKIPPED' }), t('homework.lessons.skipped'))} />
-                      </div>
-                    )} />
+                  <li key={p.id}>
+                    <div className="flex items-center gap-1 pe-1.5">
+                    {/* a lesson: period, its name with the class and subject under it, status — the row opens it */}
+                    <button type="button" onClick={() => onOpen(p)} aria-expanded={openId === p.id} className="flex min-h-[44px] min-w-0 flex-1 items-center gap-3 px-2.5 py-1.5 text-start hover:bg-black/[0.02] [@media(pointer:coarse)]:min-h-[52px]">
+                      <span className="w-16 shrink-0 whitespace-nowrap text-xs text-ink-muted">{p.period ? t('homework.lessons.periodN', { n: p.period }) : '—'}</span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-sm font-medium text-ink">{p.title}</span>
+                        <span className="block truncate text-xs text-ink-muted">{[p.section, p.subject].filter(Boolean).join(' · ')}</span>
+                      </span>
+                      <StatusPill tone={LESSON_STATUS[p.status]?.tone}>{statusLabel(p.status)}</StatusPill>
+                    </button>
+                    {p.status === 'PLANNED' && p.canChange && canEdit && <>
+                      <Button size="sm" variant="ghost" icon={Check} title={t('homework.lessons.markDone')} aria-label={t('homework.lessons.markDone')} onClick={() => markDone(p)} />
+                      <Button size="sm" variant="ghost" icon={SkipForward} title={t('homework.lessons.skip')} aria-label={t('homework.lessons.skip')} onClick={() => onAct(() => setLessonPlanStatus(p.id, { status: 'SKIPPED' }), t('homework.lessons.skipped'))} />
+                    </>}
+                    </div>
+                    {/* opened in place, under its row */}
+                    {openId === p.id && <div className="border-t border-border bg-bg/40 px-3 py-3">{renderLesson(p)}</div>}
+                  </li>
                 ))}
-              </ListRows>
+              </ul>
             ) : (
               <div className="flex flex-wrap items-center gap-2 rounded-lg border border-dashed border-border px-3 py-2.5">
                 <p className="text-sm text-ink-faint flex-1">{t('homework.mine.nothingToday')}</p>
@@ -144,7 +153,9 @@ export default function TeachingTab({ action, onActionDone }) {
             {canPlan && <Button size="sm" variant="secondary" icon={Plus} onClick={() => setPlanning({ date: data.today })}>{t('homework.mine.planLesson')}</Button>}
             <Link to="/homework/lesson-plans" className="text-xs font-medium text-brand-600 hover:underline px-1">{t('homework.mine.allPlans')}</Link>
           </>}>
-          <WeekPlans data={data} onPlan={setPlanning} onAct={onAct} onOpen={setViewing} />
+          <WeekPlans data={data} onPlan={setPlanning} onAct={onAct} onOpen={(p) => setViewing((v) => (v?.id === p.id ? null : p))} openId={viewing?.id}
+            renderLesson={(p) => <LessonView plan={p} onClose={() => setViewing(null)} onDeleted={() => { setViewing(null); refresh() }}
+              onEdit={p.canChange && hasPermission('homework.lesson-plans.edit') ? () => { setEditingPlan(p); setViewing(null) } : undefined} />} />
         </SectionCard>
 
         <SectionCard icon={BookOpenCheck} title={t('homework.mine.toCheck')} count={data.toCheck.length || null} hint={t('homework.mine.toCheckHint')} flush
@@ -194,8 +205,6 @@ export default function TeachingTab({ action, onActionDone }) {
         ) : <QuietEmpty icon={ListChecks} title={t('homework.mine.noClassesTitle')} hint={t('homework.mine.noClasses')} />}
       </SectionCard>
 
-      {viewing && <LessonView plan={viewing} onClose={() => setViewing(null)} onDeleted={() => { setViewing(null); refresh() }}
-        onEdit={viewing.canChange && hasPermission('homework.lesson-plans.edit') ? () => { setEditingPlan(viewing); setViewing(null) } : undefined} />}
       {editingPlan && lookup && <PlanForm lookup={lookup} plan={editingPlan} defaultDate={editingPlan.date}
         onClose={() => setEditingPlan(null)} onSaved={() => { setEditingPlan(null); refresh(); showSuccess(t('homework.lessons.saved')) }} />}
       {planning && lookup && <PlanForm lookup={lookup} plan={null} defaultDate={planning.date} defaults={planning}

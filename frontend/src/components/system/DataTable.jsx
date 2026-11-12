@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { Fragment, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import clsx from 'clsx'
 import { AlertTriangle, ChevronLeft, ChevronRight, ChevronsUpDown, ChevronUp, ChevronDown, Inbox, Download, RefreshCw } from 'lucide-react'
@@ -63,6 +63,8 @@ export default function DataTable({
   maxHeight, pagination, dense = false, className,
   totals, totalsLabel, rowTone,
   selectable = false, selectedIds = [], onSelectionChange,
+  // a record opened in place: the row whose key is `expandedKey` shows `renderExpanded(row)` under it, full width
+  expandedKey, renderExpanded,
 }) {
   const { t } = useTranslation('ui')
   const isMobile = useIsMobile()
@@ -189,6 +191,7 @@ export default function DataTable({
             columns={columns} rows={sortedRows} loading={loading} keyOf={keyOf}
             selectedId={selectedId} onSelect={select} emptyBlock={emptyBlock}
             selectable={selectable} picked={picked} onPick={togglePick}
+            expandedKey={expandedKey} renderExpanded={renderExpanded}
           />
           {!loading && totalsRow && sortedRows.length > 0 && (
             <div className="border-t border-border bg-bg px-4 py-3 flex flex-wrap gap-x-5 gap-y-1">
@@ -269,9 +272,11 @@ export default function DataTable({
               sortedRows.map((row, i) => {
                 const k = keyOf(row, i)
                 const selected = (selectedId != null && k === selectedId) || picked.has(k)
+                const expanded = renderExpanded && expandedKey != null && k === expandedKey
                 return (
+                  <Fragment key={k}>
                   <tr
-                    key={k}
+                    aria-expanded={renderExpanded ? !!expanded : undefined}
                     onClick={select ? (e) => {
                       // a click on an action control in the row (button, link, form
                       // field) does its own thing — it must not also open the row.
@@ -318,6 +323,12 @@ export default function DataTable({
                       </td>
                     ))}
                   </tr>
+                  {expanded && (
+                    <tr className="bg-surface">
+                      <td colSpan={cols.length} className="border-b border-border px-4 py-3">{renderExpanded(row)}</td>
+                    </tr>
+                  )}
+                  </Fragment>
                 )
               })}
           </tbody>
@@ -355,7 +366,7 @@ function labelFor(c) {
   return ''
 }
 
-function MobileList({ columns, rows, loading, keyOf, selectedId, onSelect, emptyBlock, selectable, picked, onPick }) {
+function MobileList({ columns, rows, loading, keyOf, selectedId, onSelect, emptyBlock, selectable, picked, onPick, expandedKey, renderExpanded }) {
   const { t } = useTranslation('ui')
   const [open, setOpen] = useState(() => new Set())
 
@@ -443,6 +454,7 @@ function MobileList({ columns, rows, loading, keyOf, selectedId, onSelect, empty
                 )}
               </div>
             )}
+            {renderExpanded && expandedKey != null && k === expandedKey && <div className="border-t border-border px-4 py-3">{renderExpanded(row)}</div>}
           </li>
         )
       })}

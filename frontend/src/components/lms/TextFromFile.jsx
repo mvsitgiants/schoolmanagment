@@ -5,6 +5,7 @@ import { FormField, Modal, Note, ProgressBar, SegmentedControl, Textarea } from 
 import Button from '../ui/Button'
 import { krutiToUnicode } from '../../utils/krutiDev'
 import { OCR_MAX_PAGES, closeOcr, readPdf, readPhoto, textToHtml } from '../../utils/ocr'
+import { CameraCapture } from '../homework/HubTools'
 
 const LANGS = ['hin+eng', 'eng', 'hin']
 const isPdf = (f) => f.type === 'application/pdf' || /\.pdf$/i.test(f.name)
@@ -17,7 +18,7 @@ const isImage = (f) => /^image\/(jpeg|png|webp)$/.test(f.type)
 export default function TextFromFile({ onClose, onAdd }) {
   const { t } = useTranslation('lms')
   const files = useRef(null)
-  const camera = useRef(null)
+  const [camera, setCamera] = useState(false) // the live camera (webcam on a computer, the camera app on a phone)
   const [langs, setLangs] = useState('hin+eng')
   const [step, setStep] = useState('PICK') // PICK · READING · REVIEW
   const [pages, setPages] = useState([]) // { text, how, kruti, preview, original }
@@ -26,12 +27,14 @@ export default function TextFromFile({ onClose, onAdd }) {
   const stop = useRef(false)
   useEffect(() => () => { stop.current = true; closeOcr() }, [])
 
-  const read = async (list) => {
+  /** Read a PDF or photos; `append` adds them after the pages already read (another photo). */
+  const read = async (list, { append = false } = {}) => {
     const pdf = list.find(isPdf)
     const photos = list.filter(isImage)
     if (!pdf && !photos.length) { setNote({ tone: 'warning', text: t('lms.ocr.wrongType') }); return }
     setNote(null)
-    setPages([])
+    const base = append ? pages.length : 0
+    if (!append) setPages([])
     setStep('READING')
     stop.current = false
     const add = (p) => setPages((x) => { const next = [...x]; next[p.index] = { ...p, original: p.text, text: p.kruti ? krutiToUnicode(p.text) : p.text }; return next })
@@ -49,7 +52,7 @@ export default function TextFromFile({ onClose, onAdd }) {
           if (stop.current) return
           setProgress({ page: i + 1, of: Math.min(photos.length, OCR_MAX_PAGES), pct: 0 })
           const p = await readPhoto(f, { langs, onProgress: (pct) => setProgress((x) => ({ ...x, pct })) })
-          add({ ...p, index: i, kruti: false })
+          add({ ...p, index: base + i, kruti: false })
         }
         if (photos.length > OCR_MAX_PAGES) setNote({ tone: 'info', text: t('lms.ocr.firstPages', { count: OCR_MAX_PAGES, total: photos.length }) })
       }
@@ -70,6 +73,7 @@ export default function TextFromFile({ onClose, onAdd }) {
     <Modal open onClose={onClose} size="xl" title={t('lms.ocr.title')}
       footer={step === 'REVIEW' ? <>
         <Button variant="secondary" onClick={() => { setStep('PICK'); setPages([]); setNote(null) }}>{t('lms.ocr.again')}</Button>
+        <Button variant="secondary" icon={Camera} onClick={() => setCamera(true)}>{t('lms.ocr.anotherPhoto')}</Button>
         <Button icon={ScanText} disabled={!kept.length} onClick={() => { onAdd(kept.map((p) => textToHtml(p.text)).join('')); onClose() }}>{t('lms.ocr.add')}</Button>
       </> : <Button variant="secondary" onClick={onClose}>{t('lms.ocr.cancel')}</Button>}>
       <div className="space-y-4">
@@ -83,9 +87,8 @@ export default function TextFromFile({ onClose, onAdd }) {
             </FormField>
             <div className="flex flex-wrap gap-2">
               <input ref={files} type="file" multiple accept="application/pdf,.pdf,image/jpeg,image/png,image/webp" className="hidden" onChange={pick} />
-              <input ref={camera} type="file" accept="image/*" capture="environment" className="hidden" onChange={pick} />
               <Button icon={FileUp} onClick={() => files.current?.click()}>{t('lms.ocr.choose')}</Button>
-              <Button variant="secondary" icon={Camera} onClick={() => camera.current?.click()}>{t('lms.ocr.camera')}</Button>
+              <Button variant="secondary" icon={Camera} onClick={() => setCamera(true)}>{t('lms.ocr.camera')}</Button>
             </div>
             <ul className="list-disc space-y-1 ps-5 text-xs text-ink-muted">
               <li>{t('lms.ocr.tipPdf')}</li>
@@ -137,6 +140,7 @@ export default function TextFromFile({ onClose, onAdd }) {
           </div>
         )}
       </div>
+      {camera && <CameraCapture onClose={() => setCamera(false)} onPhoto={(file) => { setCamera(false); read([file], { append: step === 'REVIEW' }) }} />}
     </Modal>
   )
 }

@@ -3,7 +3,7 @@ import { QUESTION_KINDS, QUESTION_USES } from '@schoolgiant/shared'
 import { authenticate, requireModule, requirePermission, subscriptionGate, tenantOnly } from '../platform/middleware.js'
 import { objectId, z } from '../platform/validate.js'
 import {
-  addTopic, copyTopicFiles, deleteTopic, deleteUnit, ensureHubItem, getHub, hubStudents, orderTopics, publishUnit, saveHubTopic, saveUnit,
+  addTopic, copyTopicFiles, deleteTopic, deleteUnit, ensureHubItem, getHub, hubOutline, hubStudents, orderTopics, publishUnit, saveHubTopic, saveUnit,
 } from '../services/teachingHub.js'
 
 // Subject hub: /api/v1/teaching/hub/* (catalog page homework.hub). Which classes and subjects someone works on
@@ -22,6 +22,10 @@ router.get('/hub', requirePermission('homework.hub.view'), async (req, res) => {
   const blank = objectId.optional().or(z.literal('').transform(() => undefined))
   const q = z.object({ ...place, unitId: blank, topicId: blank }).parse(req.query)
   res.json({ data: await getHub(q, req.auth) })
+})
+// the outline on the left: every class → subject → unit → topic this person works on, with what each topic holds
+router.get('/hub/outline', requirePermission('homework.hub.view'), async (req, res) => {
+  res.json({ data: await hubOutline(req.auth) })
 })
 router.get('/hub/students', requirePermission('homework.hub.view'), async (req, res) => {
   res.json({ data: await hubStudents(placeQ.parse(req.query), req.auth) })

@@ -142,7 +142,9 @@
       },
       "summary": {
         "total": "Lessons this week",
-        "totalMonth": "Lessons this month"
+        "totalMonth": "Lessons this month",
+        "lessons_one": "lesson",
+        "lessons_other": "lessons"
       },
       "viewWeek": "Week",
       "viewMonth": "Month",
@@ -164,7 +166,13 @@
         "when": "When",
         "plan": "The lesson plan",
         "periods_one": "{{count}} period",
-        "periods_other": "{{count}} periods"
+        "periods_other": "{{count}} periods",
+        "forTeacher": "For the teacher",
+        "questions_one": "{{count}} question",
+        "questions_other": "{{count}} questions",
+        "items_one": "{{count}} item",
+        "items_other": "{{count}} items",
+        "close": "Close"
       }
     },
     "syllabus": {
@@ -241,7 +249,13 @@
       "subjectsN_one": "{{count}} subject",
       "subjectsN_other": "{{count}} subjects",
       "subjectsNav": "{{cls}} subjects",
-      "overall": "Taught"
+      "overall": "Taught",
+      "mark": {
+        "taught": "{{name}}: taught",
+        "markTaught": "Mark taught (today)",
+        "markTaughtNamed": "Mark {{name}} taught today",
+        "taughtOn": "Taught"
+      }
     },
     "mine": {
       "noYear": "Add an academic year first (Academic setup › Academic years & terms).",
@@ -278,7 +292,7 @@
       "noClassesTitle": "No classes yet",
       "teachToday": "My teaching day",
       "teachTodayHint": "What to teach in each class today, with the book pages, notes and questions",
-      "hub": "Subject hub",
+      "hub": "Teaching hub",
       "hubHint": "Build each topic’s lesson: what students read, your notes and the questions",
       "openDay": "Today in this class",
       "revisionN_one": "{{count}} to revise",
@@ -327,9 +341,9 @@
         "SCHEDULED": "Scheduled — students see it later",
         "HIDDEN": "Hidden from students"
       },
-      "openInHub": "Open in Subject hub",
-      "editInHub": "Edit in Subject hub",
-      "hubHint": "Build this topic in the Subject hub: what students read, your teaching notes and the questions, all in one place.",
+      "openInHub": "Open in Teaching hub",
+      "editInHub": "Edit in Teaching hub",
+      "hubHint": "Build this topic in the Teaching hub: what students read, your teaching notes and the questions, all in one place.",
       "material": "Teaching material",
       "hasMaterial": "Has teaching material",
       "edit": "Edit material",
@@ -381,7 +395,15 @@
         "markTaken": "Mark as taken"
       },
       "reviseBy": "Revise on",
-      "bookRef": "Book"
+      "bookRef": "Book",
+      "markAsk": {
+        "title": "Mark “{{name}}” as taught?",
+        "titlePlain": "Mark this topic as taught?",
+        "message": "Once taught, it stays taught — later you can only mark it for revision or add an extra class. If you covered only part of it, choose Partly taught.",
+        "taught": "Taught",
+        "partly": "Partly taught",
+        "cancel": "Cancel"
+      }
     },
     "teach": {
       "title": "My teaching day",

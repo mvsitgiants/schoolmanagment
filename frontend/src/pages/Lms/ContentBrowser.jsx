@@ -2,13 +2,12 @@ import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { Files, FolderOpen, Library, Pencil, Plus, Trash2, X } from 'lucide-react'
+import { FolderOpen, LayoutPanelTop, Library, Pencil, Trash2, X } from 'lucide-react'
 import { CONTENT_TYPES } from '@schoolgiant/shared'
 import { EmptyState, HeaderButton, PageContainer, PageHeader, Pagination, Panel, SearchInput, Select, SkeletonRows, useConfirm } from '../../components/system'
-import HubBanner from '../../components/homework/HubBanner'
 import { hasPermission } from '../../api/auth'
 import Button from '../../components/ui/Button'
-import { ContentCard, ContentPreview } from '../../components/lms/ContentKit'
+import { ContentCard, ContentPreview, canEditItem } from '../../components/lms/ContentKit'
 import useDebouncedValue from '../../hooks/useDebouncedValue'
 import { deleteContent, fetchContentLibrary, fetchContentTopics, fetchLmsLookup, fetchMyContent } from '../../api/lms'
 import { useSnackbar } from '../../context/SnackbarContext'
@@ -51,7 +50,7 @@ export default function ContentBrowser({ mine = false }) {
   const askDelete = async (item) => {
     if (await confirm({ title: t('lms.content.list.deleteConfirm', { title: item.title }), message: t('lms.content.list.deleteHint'), confirmLabel: t('lms.content.delete'), tone: 'danger' })) remove.mutate(item.id)
   }
-  // a topic's Subject hub content is edited in the hub (opened at that topic); anything else in the content form
+  // a topic's content is edited in the Teaching hub (opened at that topic); an older item shared on its own, in the content form
   const edit = (item) => navigate(item.hub && item.topicId && hasPermission('homework.hub.view')
     ? `/teaching/hub?${new URLSearchParams({ classId: item.classId, subjectId: item.subjectId, topicId: item.topicId })}`
     : `/lms/create-content?edit=${item.id}`)
@@ -61,10 +60,8 @@ export default function ContentBrowser({ mine = false }) {
     <PageContainer>
       <PageHeader icon={mine ? FolderOpen : Library} title={mine ? t('lms.content.list.mineTitle') : t('lms.content.list.libraryTitle')} subtitle={mine ? t('lms.content.list.mineSubtitle') : t('lms.content.list.librarySubtitle')}
         actions={<>
-          {mine && <HeaderButton icon={Files} requires="lms.create-content.create" onClick={() => navigate('/lms/bulk-upload')}>{t('lms.content.list.bulk')}</HeaderButton>}
-          <HeaderButton icon={Plus} variant="primary" requires="lms.create-content.create" onClick={() => navigate('/lms/create-content')}>{t('lms.content.list.create')}</HeaderButton>
+          <HeaderButton icon={LayoutPanelTop} variant="primary" requires="homework.hub.view" onClick={() => navigate('/teaching/hub?edit=1')}>{t('lms.content.list.writeInHub')}</HeaderButton>
         </>} />
-      <HubBanner classId={f.classId} subjectId={f.subjectId} className="mb-3" />
       <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center">
         <SearchInput value={search} onChange={(v) => { setSearch(v); setPage(0) }} placeholder={t('lms.content.list.search')} className="col-span-2" />
         <Select value={f.classId} onChange={setFilter('classId')} className="sm:w-40">
@@ -105,7 +102,8 @@ export default function ContentBrowser({ mine = false }) {
       </div>
       <Panel flush className="mt-3">
         {isLoading ? <div className="p-4"><SkeletonRows rows={5} /></div> : error ? <EmptyState error={error} onRetry={refetch} /> : !rows.length ? (
-          <EmptyState icon={mine ? FolderOpen : Library} title={mine ? t('lms.content.list.emptyMine') : t('lms.content.list.emptyLibrary')} hint={mine ? t('lms.content.list.emptyMineHint') : undefined} />
+          <EmptyState icon={mine ? FolderOpen : Library} title={mine ? t('lms.content.list.emptyMine') : t('lms.content.list.emptyLibrary')} hint={mine ? t('lms.content.list.emptyMineHint') : undefined}
+            action={hasPermission('homework.hub.view') && <Button icon={LayoutPanelTop} onClick={() => navigate('/teaching/hub?edit=1')}>{t('lms.content.list.writeInHub')}</Button>} />
         ) : (
           <ul className="divide-y divide-border px-3 sm:px-4">
             {rows.map((item) => (
@@ -118,7 +116,7 @@ export default function ContentBrowser({ mine = false }) {
       {open && (
         <ContentPreview item={open} onClose={() => setOpen(null)} footer={<>
           {open.canDelete && <Button variant="ghost" icon={Trash2} onClick={() => askDelete(open)}>{t('lms.content.delete')}</Button>}
-          {open.canEdit && <Button variant="secondary" icon={Pencil} onClick={() => edit(open)}>{t('lms.content.edit')}</Button>}
+          {canEditItem(open) && <Button variant="secondary" icon={Pencil} onClick={() => edit(open)}>{t('lms.content.edit')}</Button>}
           <Button onClick={() => setOpen(null)}>{t('lms.content.preview.close')}</Button>
         </>} />
       )}

@@ -89,7 +89,11 @@
       "tabProgress": "Student progress",
       "unitsShown_one": "{{count}} unit · items shown",
       "unitsShown_other": "{{count}} units · items shown",
-      "nav": "Courses"
+      "nav": "Courses",
+      "subtitleRead": "What students of each class see, subject by subject. It is written in the Teaching hub.",
+      "writeInHub": "Write in Teaching hub",
+      "editInHub": "Edit in Teaching hub",
+      "nothingYet": "Nothing shared with students yet. Write it topic by topic in the Teaching hub."
     },
     "outline": {
       "unit": "Unit",
@@ -272,7 +276,7 @@
       "chosenCount_other": "{{count}} students chosen",
       "by": "Shared by {{name}}",
       "noTopic": "No topic",
-      "hubChip": "Subject hub",
+      "hubChip": "Teaching hub",
       "open": "Open",
       "edit": "Edit",
       "delete": "Delete",
@@ -349,7 +353,7 @@
       },
       "list": {
         "mineTitle": "My content",
-        "mineSubtitle": "What you have shared with your students",
+        "mineSubtitle": "What students of your classes see — for the subjects you teach, and anything you shared yourself",
         "libraryTitle": "Content library",
         "librarySubtitle": "Everything teachers have shared, by class, subject and topic",
         "create": "Create content",
@@ -363,65 +367,13 @@
         "someone": "Unknown teacher",
         "topicFilter": "Topic: {{topic}}",
         "oneTopic": "one topic",
-        "emptyMine": "You haven’t shared anything yet.",
-        "emptyMineHint": "Create content to share notes, videos and links with your class.",
+        "emptyMine": "Nothing shared for your classes yet.",
+        "emptyMineHint": "Write it topic by topic in the Teaching hub. Students see it as soon as you publish.",
         "emptyLibrary": "Nothing shared here yet.",
         "deleteConfirm": "Delete “{{title}}”?",
         "deleteHint": "Students will no longer see it, and its files are removed.",
         "deleted": "Deleted.",
-        "bulk": "Bulk upload"
-      },
-      "bulk": {
-        "manyHint": "Have a lot of notes or pictures?",
-        "manyLink": "Upload many files",
-        "title": "Bulk upload",
-        "subtitle": "Drop many files at once. Each file is shared as its own study material.",
-        "noPermission": "You can’t share content. Ask the office to let you create content.",
-        "forAll": "For every file",
-        "topicForAll": "Topic for all",
-        "topicForAllHint": "Every file gets this topic. You can change it for one file below.",
-        "placedHint": "Some files are already shared to this class and subject, so they can’t be changed now.",
-        "files": "Files",
-        "filesHint": "Up to {{max}} files at a time",
-        "badType": "this kind of file can’t be shared",
-        "badSize": "larger than {{mb}} MB",
-        "badDuplicate": "already in the list",
-        "badLimit": "only {{max}} files can be added at a time",
-        "rejected_one": "{{count}} file was not added",
-        "rejected_other": "{{count}} files were not added",
-        "rejectedRow": "{{name}}: {{reason}}",
-        "dismiss": "Hide this note",
-        "rowTitle": "Title of file {{n}}",
-        "shortDescription": "Short description",
-        "optional": "Optional",
-        "state": {
-          "WAITING": "Waiting",
-          "UPLOADING": "Uploading",
-          "DONE": "Done",
-          "FAILED": "Failed"
-        },
-        "needClass": "Pick a class",
-        "needSubject": "Pick a subject",
-        "needWhen": "Pick the date and time",
-        "needStudents": "Pick the students",
-        "needFiles": "Add at least one file.",
-        "needTitle": "Give it a title",
-        "needTopic": "Pick a topic",
-        "savedNoFile": "Shared without its file ({{reason}}). Try again to add the file.",
-        "working": "Sharing… {{done}} of {{total}} done",
-        "summaryDone_one": "{{count}} item shared with your students.",
-        "summaryDone_other": "All {{count}} items shared with your students.",
-        "summaryScheduled_one": "{{count}} item scheduled.",
-        "summaryScheduled_other": "All {{count}} items scheduled.",
-        "summaryFailed": "{{done}} shared, {{failed}} failed. Fix them or try again.",
-        "summaryStopped": "{{done}} shared, {{left}} not sent yet.",
-        "goMine": "Go to My content",
-        "publishN_one": "Publish {{count}} item",
-        "publishN_other": "Publish {{count}} items",
-        "scheduleN_one": "Schedule {{count}} item",
-        "scheduleN_other": "Schedule {{count}} items",
-        "retry_one": "Try {{count}} again",
-        "retry_other": "Try {{count}} again"
+        "writeInHub": "Write in Teaching hub"
       }
     },
     "ocr": {
@@ -437,7 +389,7 @@
       "choose": "Choose PDF or photos",
       "camera": "Take a photo",
       "tipPdf": "A typed PDF gives exact text, maths symbols included. Old Hindi PDFs in the Kruti Dev font are turned into proper Hindi.",
-      "tipPhoto": "For photos and scanned pages: hold the page flat, in good light, and fill the frame. Printed text works best; handwriting is often wrong.",
+      "tipPhoto": "Take a photo uses this device's camera (the webcam on a computer). Hold the page flat, in good light, and fill the frame. Printed text works best; handwriting is often wrong.",
       "tipMaths": "Maths in photos is often misread (x² becomes x2). Fix it with the Σ maths symbols button in the editor.",
       "tipFirstTime": "The first time, this device downloads the reading tools (about 8 MB). After that it starts at once.",
       "wrongType": "Choose a PDF, or photos (JPG, PNG or WebP).",
@@ -460,7 +412,8 @@
       "again": "Start again",
       "add": "Add to content",
       "cancel": "Cancel",
-      "useCopied": "Use the PDF’s own text instead (exact English and maths, damaged Hindi)"
+      "useCopied": "Use the PDF’s own text instead (exact English and maths, damaged Hindi)",
+      "anotherPhoto": "Take another photo"
     }
   }
 }

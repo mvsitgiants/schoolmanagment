@@ -1,14 +1,14 @@
 import { useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { ArrowDown, ArrowUp, ChevronLeft, Eye, EyeOff, Library, Plus, Send, Trash2, X } from 'lucide-react'
-import { COURSE_STATUS, ITEM_KINDS } from '@schoolgiant/shared'
-import { Attachments, ColorChip, DataTable, DateCell, Fraction, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, Panel, PersonCell, ProgressBar, SegmentedControl, Select, SideNav, SideNavLayout, StatusPill, Tabs, Textarea, useConfirm } from '../../components/system'
+import { ChevronDown, ChevronLeft, LayoutPanelTop, Library } from 'lucide-react'
+import { COURSE_STATUS } from '@schoolgiant/shared'
+import { Attachments, ColorChip, DataTable, DateCell, Fraction, FormField, HeaderButton, Note, PageContainer, PageHeader, Panel, PersonCell, ProgressBar, SegmentedControl, Select, SideNav, SideNavLayout, StatusPill, Tabs } from '../../components/system'
 import Button from '../../components/ui/Button'
-import { createCourse, deleteCourse, fetchCourse, fetchCourseProgress, fetchCourses, fetchLmsLookup, saveOutline, setCourseStatus, updateCourse } from '../../api/lms'
+import { fetchCourse, fetchCourseProgress, fetchCourses, fetchLmsLookup } from '../../api/lms'
 import { hasPermission } from '../../api/auth'
-import { useSnackbar } from '../../context/SnackbarContext'
+import { RichTextView } from '../../components/lms/RichText'
 
 const useLookup = () => useQuery({ queryKey: ['lms-lookup'], queryFn: fetchLmsLookup, staleTime: 60_000 })
 
@@ -50,96 +50,43 @@ export function ClassSubjectPicker({ value, onChange, errors = {} }) {
   )
 }
 
-function CourseForm({ course, onClose, onSaved }) {
+/**
+ * What students of this class see for the subject, unit by unit — read only. It is written in the Teaching hub (each
+ * topic's content lands here as an item); an item opens to its text, link and files.
+ */
+function Outline({ course }) {
   const { t } = useTranslation('lms')
-  const { showError } = useSnackbar()
-  const [f, setF] = useState({ title: course?.title ?? '', description: course?.description ?? '', classId: course?.classId ?? '', subjectId: course?.subjectId ?? '', sectionIds: course?.sectionIds ?? [] })
-  const [errors, setErrors] = useState({})
-  const save = useMutation({ mutationFn: () => (course ? updateCourse(course.id, f) : createCourse(f)), onSuccess: onSaved, onError: (e) => { setErrors(e.response?.data?.details?.fields ?? {}); showError(e.message) } })
-  return (
-    <Modal open onClose={onClose} title={course ? t('lms.courses.editTitle') : t('lms.courses.newTitle')} footer={<>
-      <Button variant="secondary" onClick={onClose}>{t('actions.cancel')}</Button>
-      <Button loading={save.isPending} disabled={f.title.trim().length < 2 || !f.classId || !f.subjectId} onClick={() => save.mutate()}>{t('lms.save')}</Button>
-    </>}>
-      <div className="space-y-4">
-        <FormField label={t('lms.courses.name')} required error={errors.title}><Input value={f.title} onChange={(e) => setF((x) => ({ ...x, title: e.target.value }))} placeholder={t('lms.courses.namePlaceholder')} /></FormField>
-        <ClassSubjectPicker value={f} onChange={setF} errors={errors} />
-        <FormField label={t('lms.courses.description')}><Textarea rows={3} value={f.description} onChange={(e) => setF((x) => ({ ...x, description: e.target.value }))} /></FormField>
-      </div>
-    </Modal>
-  )
-}
-
-/** The outline: units and their items, edited in place and saved together. */
-function Outline({ course, onSaved }) {
-  const { t } = useTranslation('lms')
-  const { showError } = useSnackbar()
-  const [units, setUnits] = useState(course.units)
   const [open, setOpen] = useState(null)
-  const [dirty, setDirty] = useState(false)
-  const change = (fn) => { setUnits(fn); setDirty(true) }
-  const setUnit = (i, patch) => change((u) => u.map((x, j) => (j === i ? { ...x, ...patch } : x)))
-  const setItem = (i, k, patch) => setUnit(i, { items: units[i].items.map((x, j) => (j === k ? { ...x, ...patch } : x)) })
-  const move = (list, i, d) => { const out = [...list]; const [x] = out.splice(i, 1); out.splice(i + d, 0, x); return out }
-  const save = useMutation({ mutationFn: () => saveOutline(course.id, units), onSuccess: (c) => { setUnits(c.units); setDirty(false); onSaved(c) }, onError: (e) => showError(e.message) })
-  const editable = course.canChange
-  const itemTools = (i, k, it, u, labelled = false) => <>
-    <Button size="sm" variant="ghost" icon={it.published ? Eye : EyeOff} aria-label={t('lms.outline.toggle')} title={t('lms.outline.toggle')} onClick={() => setItem(i, k, { published: !it.published })}>{labelled && (it.published ? t('lms.outline.hide') : t('lms.outline.show'))}</Button>
-    <Button size="sm" variant="ghost" icon={ArrowUp} disabled={!k} aria-label={t('lms.up')} title={t('lms.up')} onClick={() => setUnit(i, { items: move(u.items, k, -1) })}>{labelled && t('lms.up')}</Button>
-    <Button size="sm" variant="ghost" icon={X} aria-label={t('lms.remove')} title={t('lms.remove')} onClick={() => setUnit(i, { items: u.items.filter((_, j) => j !== k) })}>{labelled && t('lms.remove')}</Button>
-  </>
+  if (!course.units.some((u) => u.items.length)) return <Note>{t('lms.courses.nothingYet')}</Note>
   return (
-    <div className="space-y-4">
-      {units.map((u, i) => (
-        <Panel key={u.id ?? `n${i}`} title={editable ? <Input value={u.title} onChange={(e) => setUnit(i, { title: e.target.value })} aria-label={t('lms.outline.unit')} /> : u.title}
-          actions={editable && <div className="flex gap-1">
-            <Button size="sm" variant="ghost" icon={ArrowUp} disabled={!i} aria-label={t('lms.up')} onClick={() => change((x) => move(x, i, -1))} />
-            <Button size="sm" variant="ghost" icon={ArrowDown} disabled={i === units.length - 1} aria-label={t('lms.down')} onClick={() => change((x) => move(x, i, 1))} />
-            <Button size="sm" variant="ghost" icon={Trash2} disabled={u.items.length > 0} aria-label={t('lms.remove')} onClick={() => change((x) => x.filter((_, j) => j !== i))} />
-          </div>}>
-          <div className="space-y-2">
-            {u.items.map((it, k) => {
-              const expanded = open === (it.id ?? `${i}:${k}`)
+    <div className="space-y-3">
+      {course.units.filter((u) => u.items.length).map((u) => (
+        <Panel key={u.id} title={u.title}>
+          <ul className="divide-y divide-border">
+            {u.items.map((it) => {
+              const expanded = open === it.id
               return (
-                <div key={it.id ?? `${i}:${k}`} className="rounded-lg border border-border">
-                  <div className="flex items-center gap-2 px-3 py-1.5">
-                    <span className="text-[11px] uppercase tracking-wide text-ink-faint w-12 sm:w-14 shrink-0">{t(`lms.kinds.${it.kind}`)}</span>
-                    <button type="button" className="flex-1 min-w-0 min-h-[32px] text-start text-sm text-ink truncate" onClick={() => setOpen(expanded ? null : (it.id ?? `${i}:${k}`))}>{it.title || t('lms.outline.untitled')}</button>
+                <li key={it.id}>
+                  <button type="button" onClick={() => setOpen(expanded ? null : it.id)} aria-expanded={expanded} className="flex min-h-[40px] w-full items-center gap-2 px-1 text-start">
+                    <span className="w-16 shrink-0 text-[11px] uppercase tracking-wide text-ink-faint">{t(`lms.kinds.${it.kind}`)}</span>
+                    <span className="min-w-0 flex-1 truncate text-sm text-ink">{it.title || t('lms.outline.untitled')}</span>
                     {!it.published && <StatusPill tone="neutral">{t('lms.outline.hidden')}</StatusPill>}
                     {it.files?.length > 0 && <span className="text-xs text-ink-faint">{t('lms.outline.files', { count: it.files.length })}</span>}
-                    {/* phones: the item's buttons move into its opened panel so the title keeps the row */}
-                    {editable && <span className="hidden sm:contents">{itemTools(i, k, it, u)}</span>}
-                  </div>
+                    <ChevronDown className={`h-4 w-4 shrink-0 text-ink-faint transition ${expanded ? 'rotate-180' : ''}`} aria-hidden />
+                  </button>
                   {expanded && (
-                    <div className="border-t border-border px-3 py-3 space-y-3">
-                      {editable && <div className="flex flex-wrap gap-1 sm:hidden">{itemTools(i, k, it, u, true)}</div>}
-                      <div className="grid sm:grid-cols-[2fr_100px] gap-2">
-                        <Input value={it.title} disabled={!editable} onChange={(e) => setItem(i, k, { title: e.target.value })} aria-label={t('lms.outline.title')} placeholder={t('lms.outline.title')} />
-                        <Input type="number" min="0" value={it.minutes ?? ''} disabled={!editable} onChange={(e) => setItem(i, k, { minutes: e.target.value ? Number(e.target.value) : null })} aria-label={t('lms.outline.minutes')} placeholder={t('lms.outline.minutes')} />
-                      </div>
-                      {it.kind === 'NOTE' && <Textarea rows={6} value={it.body} disabled={!editable} onChange={(e) => setItem(i, k, { body: e.target.value })} aria-label={t('lms.outline.body')} />}
-                      {['LINK', 'VIDEO'].includes(it.kind) && <Input value={it.url} disabled={!editable} onChange={(e) => setItem(i, k, { url: e.target.value })} placeholder={it.kind === 'VIDEO' ? t('lms.outline.videoPlaceholder') : 'https://'} aria-label={t('lms.outline.url')} />}
-                      {it.id ? <Attachments entityType="lms_item" entityId={it.id} canAdd={editable} compact /> : <p className="text-xs text-ink-faint">{t('lms.outline.saveForFiles')}</p>}
+                    <div className="space-y-2 px-1 pb-3">
+                      {it.html ? <RichTextView html={it.html} /> : it.body && <p className="whitespace-pre-line text-sm text-ink">{it.body}</p>}
+                      {it.url && <a href={it.url} target="_blank" rel="noopener noreferrer" className="break-all text-sm text-brand-700 hover:underline">{it.url}</a>}
+                      <Attachments entityType="lms_item" entityId={it.id} canAdd={false} compact hideEmpty />
                     </div>
                   )}
-                </div>
+                </li>
               )
             })}
-            {editable && (
-              <div className="flex flex-wrap gap-1">
-                {Object.keys(ITEM_KINDS).map((kind) => <Button key={kind} size="sm" variant="ghost" icon={Plus} onClick={() => { setUnit(i, { items: [...u.items, { kind, title: '', body: '', url: '', published: true, files: [] }] }); setOpen(`${i}:${u.items.length}`) }}>{t(`lms.kinds.${kind}`)}</Button>)}
-              </div>
-            )}
-          </div>
+          </ul>
         </Panel>
       ))}
-      {editable && (
-        <div className="flex flex-wrap gap-2 sticky bottom-2">
-          <Button variant="secondary" icon={Plus} onClick={() => change((x) => [...x, { title: t('lms.outline.newUnit', { n: x.length + 1 }), items: [] }])}>{t('lms.outline.addUnit')}</Button>
-          <Button loading={save.isPending} disabled={!dirty} onClick={() => save.mutate()}>{t('lms.outline.save')}</Button>
-          {dirty && <span className="self-center text-xs text-amber-700">{t('lms.outline.unsaved')}</span>}
-        </div>
-      )}
     </div>
   )
 }
@@ -158,14 +105,8 @@ function Progress({ courseId }) {
 
 function CourseDetail({ id, onBack }) {
   const { t } = useTranslation('lms')
-  const qc = useQueryClient()
-  const confirm = useConfirm()
-  const { showSuccess, showError } = useSnackbar()
   const [tab, setTab] = useState('outline')
-  const [editing, setEditing] = useState(false)
   const { data: c, isLoading } = useQuery({ queryKey: ['lms-course', id], queryFn: () => fetchCourse(id) })
-  const refresh = () => { qc.invalidateQueries({ queryKey: ['lms-course', id] }); qc.invalidateQueries({ queryKey: ['lms-courses'] }) }
-  const act = useMutation({ mutationFn: ({ fn }) => fn(), onSuccess: (_, v) => { refresh(); showSuccess(v.done); if (v.back) onBack() }, onError: (e) => showError(e.message) })
   if (isLoading || !c) return <p className="text-sm text-ink-faint">{t('lms.loading')}</p>
   return (
     <div className="space-y-4">
@@ -180,30 +121,26 @@ function CourseDetail({ id, onBack }) {
             <p className="text-xs text-ink-muted">{[c.className, c.subject, c.sections.length ? c.sections.map((s) => s.label).join(', ') : t('lms.allSections')].join(' · ')}</p>
           </div>
         </div>
-        {c.canChange && <div className="flex w-full flex-wrap gap-2 ps-12 sm:w-auto sm:ps-0">
-          <Button size="sm" variant="ghost" onClick={() => setEditing(true)}>{t('lms.edit')}</Button>
-          {c.status !== 'PUBLISHED' && <Button size="sm" icon={Send} onClick={() => act.mutate({ fn: () => setCourseStatus(c.id, 'PUBLISHED'), done: t('lms.courses.published') })}>{t('lms.courses.publish')}</Button>}
-          {c.status === 'PUBLISHED' && <Button size="sm" variant="ghost" onClick={() => act.mutate({ fn: () => setCourseStatus(c.id, 'ARCHIVED'), done: t('lms.courses.archived') })}>{t('lms.courses.archive')}</Button>}
-          {hasPermission('lms.courses.delete') && <Button size="sm" variant="ghost" icon={Trash2} aria-label={t('lms.delete')} title={t('lms.delete')}
-            onClick={async () => { if (await confirm({ title: t('lms.courses.deleteConfirm', { name: c.title }), confirmLabel: t('lms.delete'), tone: 'danger' })) act.mutate({ fn: () => deleteCourse(c.id), done: t('lms.courses.deleted'), back: true }) }} />}
-        </div>}
+        {hasPermission('homework.hub.view') && (
+          <Link to={`/teaching/hub?${new URLSearchParams({ classId: c.classId, subjectId: c.subjectId, edit: '1' })}`}
+            className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-border bg-surface px-3 text-sm font-medium text-brand-700 hover:bg-brand-50">
+            <LayoutPanelTop className="h-4 w-4" aria-hidden />{t('lms.courses.editInHub')}
+          </Link>
+        )}
       </div>
-      {c.status === 'DRAFT' && <Note>{t('lms.courses.draftHint')}</Note>}
       <Tabs value={tab} onChange={setTab} tabs={[{ value: 'outline', label: t('lms.courses.tabOutline') }, { value: 'progress', label: t('lms.courses.tabProgress') }]} />
-      {tab === 'outline' ? <Outline key={c.updatedAt} course={c} onSaved={() => { refresh(); showSuccess(t('lms.saved')) }} /> : <Progress courseId={c.id} />}
-      {editing && <CourseForm course={c} onClose={() => setEditing(false)} onSaved={() => { setEditing(false); refresh(); showSuccess(t('lms.saved')) }} />}
+      {tab === 'outline' ? <Outline course={c} /> : <Progress courseId={c.id} />}
     </div>
   )
 }
 
-/** LMS › Courses & material: a class's subject laid out in units — notes, files, links and videos. */
+/** LMS › Courses & material: what students of each class see, subject by subject (read only; written in the Teaching hub). */
 export default function Courses() {
   const { t } = useTranslation('lms')
-  const qc = useQueryClient()
   const [params, setParams] = useSearchParams()
+  const navigate = useNavigate()
   const openId = params.get('course')
   const [status, setStatus] = useState('')
-  const [creating, setCreating] = useState(false)
   const { data: rows = [], isLoading, error, refetch } = useQuery({ queryKey: ['lms-courses', status], queryFn: () => fetchCourses({ status: status || undefined }) })
   const open = (id) => setParams(id ? { course: id } : {})
   const statusLabel = (s) => t(`lms.courseStatus.${s}`)
@@ -211,8 +148,8 @@ export default function Courses() {
   const siblings = openId && !rows.some((r) => r.id === openId) ? [] : rows
   return (
     <PageContainer>
-      <PageHeader icon={Library} title={t('lms.courses.title')} subtitle={t('lms.courses.subtitle')}
-        actions={!openId && <HeaderButton icon={Plus} variant="primary" requires="lms.courses.create" onClick={() => setCreating(true)}>{t('lms.courses.new')}</HeaderButton>} />
+      <PageHeader icon={Library} title={t('lms.courses.title')} subtitle={t('lms.courses.subtitleRead')}
+        actions={!openId && <HeaderButton icon={LayoutPanelTop} variant="primary" requires="homework.hub.view" onClick={() => navigate('/teaching/hub?edit=1')}>{t('lms.courses.writeInHub')}</HeaderButton>} />
       {openId ? (
         <SideNavLayout nav={siblings.length > 1 && (
           <SideNav title={t('lms.courses.nav')} value={openId} onChange={open} items={siblings.map((r) => ({
@@ -245,7 +182,6 @@ export default function Courses() {
           ]} onRowClick={(r) => open(r.id)} emptyIcon={Library} emptyTitle={t('lms.courses.empty')} emptyHint={t('lms.courses.emptyHint')} />
         </>
       )}
-      {creating && <CourseForm onClose={() => setCreating(false)} onSaved={(c) => { setCreating(false); qc.invalidateQueries({ queryKey: ['lms-courses'] }); open(c.id) }} />}
     </PageContainer>
   )
 }

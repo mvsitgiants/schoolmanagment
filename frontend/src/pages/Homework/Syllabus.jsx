@@ -2,14 +2,14 @@ import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { BookOpen, CalendarRange, CheckCircle2, ChevronLeft, CircleAlert, CircleDashed, ClipboardPaste, ListChecks, Pencil, Plus, Save, X } from 'lucide-react'
+import { BookOpen, CalendarRange, Check, CheckCheck, CheckCircle2, ChevronLeft, CircleAlert, CircleDashed, ClipboardPaste, ListChecks, Pencil, Plus, Save, X } from 'lucide-react'
 import { parseSyllabusText, spreadUnits, topicMonth, yearPlan } from '@schoolgiant/shared'
 import { ColorChip, DataTable, Input, Modal, Note, PageContainer, PageHeader, Panel, PillRow, ProgressBar, SegmentedControl, SideNav, SideNavLayout, StatusPill, Textarea, pillClass, useConfirm } from '../../components/system'
 import { MonthSelect, useMonthLabel } from '../../components/homework/HomeworkKit'
-import { TopicDrawer, TopicStatusPill } from '../../components/homework/TopicKit'
-import HubBanner from '../../components/homework/HubBanner'
+import { TopicStatusPill, useMarkTaught } from '../../components/homework/TopicKit'
+import { TopicDrawer } from '../../components/homework/TopicPanel'
 import Button from '../../components/ui/Button'
-import { fetchSyllabus, fetchSyllabusOverview, markSyllabusTopics, saveSyllabus } from '../../api/homework'
+import { fetchSyllabus, fetchSyllabusOverview, markSyllabusTopics, saveSyllabus, updateTopicPlan } from '../../api/homework'
 import { hasPermission } from '../../api/auth'
 import { useSnackbar } from '../../context/SnackbarContext'
 import { useFormat } from '../../context/SettingsContext'
@@ -140,7 +140,7 @@ function YearPlanView({ syl, sec }) {
                   return (
                     <li key={r.topicId} className="flex items-start gap-2 text-sm">
                       <Icon className={`w-4 h-4 mt-0.5 shrink-0 ${TONE[st]}`} aria-label={t(`homework.syllabus.plan.state.${st}`)} />
-                      <span className="min-w-0"><span className={r.done ? 'text-ink-muted line-through' : 'text-ink'}>{r.name}</span><span className="block text-xs text-ink-faint truncate">{r.unit}</span></span>
+                      <span className="min-w-0"><span className="text-ink">{r.name}</span><span className="block text-xs text-ink-faint truncate">{r.unit}</span></span>
                     </li>
                   )
                 })}
@@ -171,6 +171,18 @@ function Detail({ classId, subjectId, initialSection, onBack }) {
   const [openTopic, setOpenTopic] = useState(null)
   const monthLabel = useMonthLabel()
   useEffect(() => { if (syl && !syl.sections.some((s) => s.id === sectionId)) setSectionId(syl.sections[0]?.id ?? '') }, [syl, sectionId])
+  // marking taught can't be undone: ask first — taught, or only partly (the topic's record in this section)
+  const [askMark, markDialog] = useMarkTaught()
+  const partly = useMutation({
+    mutationFn: ({ topicId }) => updateTopicPlan({ sectionId, subjectId, topicId, status: 'PARTLY', date: syl.today }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: key }); qc.invalidateQueries({ queryKey: ['syllabus-overview'] }) },
+    onError: (e) => showError(e.message),
+  })
+  const mark = async (tp) => {
+    const c = await askMark(tp.name)
+    if (c === 'TAUGHT') tick.mutate({ topicId: tp.id, done: true })
+    if (c === 'PARTLY') partly.mutate({ topicId: tp.id })
+  }
   const tick = useMutation({
     mutationFn: ({ topicId, done }) => markSyllabusTopics({ sectionId, subjectId, topicIds: [topicId], done }),
     onSuccess: (d) => { qc.setQueryData(key, d); qc.invalidateQueries({ queryKey: ['syllabus-overview'] }) },
@@ -230,10 +242,18 @@ function Detail({ classId, subjectId, initialSection, onBack }) {
                       const pl = sec.topicPlan?.[tp.id]
                       return (
                         <div key={tp.id} className="flex items-start sm:items-center gap-3 py-2.5 sm:py-2 text-sm">
-                          <input type="checkbox" checked={!!d} aria-label={tp.name} disabled={!canTick || tick.isPending} onChange={(e) => tick.mutate({ topicId: tp.id, done: e.target.checked })} className="mt-0.5 sm:mt-0 h-5 w-5 sm:h-4 sm:w-4 shrink-0 rounded border-border text-brand-500 focus:ring-brand-500" />
+                          {/* taught stays taught (✓✓); not yet: a circle to mark it taught today (dashed amber when partly taught) */}
+                          {d ? <CheckCheck className="mt-0.5 h-5 w-5 shrink-0 text-success-600 sm:mt-0" role="img" aria-label={t('homework.syllabus.mark.taught', { name: tp.name })} />
+                            : canTick ? (
+                              <button type="button" disabled={tick.isPending || partly.isPending} onClick={() => mark(tp)}
+                                title={t('homework.syllabus.mark.markTaught')} aria-label={t('homework.syllabus.mark.markTaughtNamed', { name: tp.name })}
+                                className={`group mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full border-2 transition hover:border-success-600 hover:bg-success-50 disabled:opacity-50 sm:mt-0 ${pl?.status === 'PARTLY' ? 'border-dashed border-amber-500' : 'border-ink-faint/50'}`}>
+                                <Check className="h-3 w-3 text-success-600 opacity-0 group-hover:opacity-100" aria-hidden />
+                              </button>
+                            ) : <span className={`mt-0.5 h-5 w-5 shrink-0 rounded-full border-2 sm:mt-0 ${pl?.status === 'PARTLY' ? 'border-dashed border-amber-500' : 'border-ink-faint/50'}`} aria-hidden />}
                           {/* tap the topic for its material and this section's record; phones: when / who sits under it */}
                           <button type="button" onClick={() => setOpenTopic(tp.id)} className="flex-1 min-w-0 text-start flex flex-col sm:flex-row sm:items-center gap-x-3 gap-y-1">
-                            <span className={`flex-1 ${d ? 'text-ink-muted line-through' : 'text-ink'} hover:text-brand-700`}>
+                            <span className="flex-1 text-ink hover:text-brand-700">
                               {tp.name}{tp.hasContent && <BookOpen className="inline w-3.5 h-3.5 ms-1.5 text-ink-faint" aria-label={t('homework.topic.hasMaterial')} />}
                             </span>
                             {(pl?.status === 'PARTLY' || pl?.needsRevision || pl?.extraClasses?.length > 0) && (
@@ -245,7 +265,7 @@ function Detail({ classId, subjectId, initialSection, onBack }) {
                             )}
                             {!d && pl?.start && <span className={`text-xs ${pl.end < syl.today ? 'text-danger-600' : 'text-ink-faint'}`}>{date(pl.start)}</span>}
                             {!d && !pl?.start && tp.month && <span className={`text-xs ${tp.month < syl.month ? 'text-danger-600' : 'text-ink-faint'}`}>{monthLabel(tp.month)}</span>}
-                            {d && <span className="text-xs text-ink-faint">{date(d.date)}{d.by ? ` · ${d.by}` : ''}{d.fromPlan ? ` · ${t('homework.syllabus.fromPlan')}` : ''}</span>}
+                            {d && <span className="text-xs text-ink-muted"><span className="font-medium text-success-700">{t('homework.syllabus.mark.taughtOn')}</span> {date(d.date)}{d.by ? ` · ${d.by}` : ''}{d.fromPlan ? ` · ${t('homework.syllabus.fromPlan')}` : ''}</span>}
                           </button>
                         </div>
                       )
@@ -257,6 +277,7 @@ function Detail({ classId, subjectId, initialSection, onBack }) {
             })}
           </>}
           {!syl.sections.length && <Note tone="warning">{t('homework.syllabus.noSections')}</Note>}
+          {markDialog}
         </>
       )}
       {openTopic && <TopicDrawer topicId={openTopic} subjectId={subjectId} onClose={() => setOpenTopic(null)}
@@ -318,7 +339,6 @@ export default function Syllabus() {
   return (
     <PageContainer>
       <PageHeader icon={ListChecks} title={t('homework.syllabus.title')} subtitle={t('homework.syllabus.subtitle')} />
-      <HubBanner classId={classId} subjectId={subjectId} className="mb-3" />
       {classId && subjectId ? (
         <SideNavLayout nav={subjectNav}>
           <Detail key={`${classId}:${subjectId}`} classId={classId} subjectId={subjectId} initialSection={params.get('section')} onBack={() => setParams({ class: classId })} />

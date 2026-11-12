@@ -169,7 +169,11 @@ export async function getSyllabus({ classId, subjectId }, auth) {
   const [syl, subject] = await Promise.all([Syllabus.findOne({ academicYearId: year._id, classId, subjectId }).lean(), Subject.findById(subjectId).select('name').lean()])
   const units = unitsDto(syl?.units)
   const sections = look.sections.filter((s) => s.classId === String(classId) && s.subjects.some((x) => x.id === String(subjectId)))
-  const done = await SyllabusDone.find({ sectionId: { $in: sections.map((s) => s.id) }, subjectId }).lean()
+  const [done, allocs] = await Promise.all([
+    SyllabusDone.find({ sectionId: { $in: sections.map((s) => s.id) }, subjectId }).lean(),
+    TeacherAllocation.find({ sectionId: { $in: sections.map((s) => s.id) }, subjectId }).select('sectionId teacherId').lean(),
+  ])
+  const teacherNames = new Map((await User.find({ _id: { $in: allocs.map((a) => a.teacherId) } }).select('name').lean()).map((u) => [String(u._id), u.name]))
   const month = await thisMonth()
   const date = await today()
   const plans = await sectionPlans({ year, subjectId, units, sections, date })
@@ -185,6 +189,8 @@ export async function getSyllabus({ classId, subjectId }, auth) {
       const sp = plans.get(s.id)
       return {
         id: s.id, label: s.label, short: s.short,
+        // who teaches this subject to the section (teacher allocation)
+        teachers: allocs.filter((a) => String(a.sectionId) === s.id).map((a) => ({ id: String(a.teacherId), name: teacherNames.get(String(a.teacherId)) ?? '' })),
         ticks: Object.fromEntries(mine.map((d) => [String(d.topicId), { date: d.date, by: d.by, fromPlan: !!d.lessonPlanId }])),
         ...syllabusProgress(units, ticked), behind: sp.progress.behind, due: plan.due.length,
         progress: sp.progress,
@@ -288,7 +294,7 @@ async function planRows(rows, auth) {
 }
 
 /** The lesson-plan filter for this year, the caller's classes and the picked class / subject / teacher / dates — ids cast, so it serves aggregates too. */
-async function planFilter({ from, to, sectionId, subjectId, mine }, auth) {
+async function planFilter({ from, to, sectionId, subjectId, topicId, mine }, auth) {
   const year = await requireYear()
   const allowed = await sectionsInScope(auth, 'homework')
   const filter = { academicYearId: year._id }
@@ -298,6 +304,7 @@ async function planFilter({ from, to, sectionId, subjectId, mine }, auth) {
     filter.sectionId = oid(sectionId)
   }
   if (subjectId) filter.subjectId = oid(subjectId)
+  if (topicId) filter.topicIds = oid(topicId) // the lessons that cover this syllabus topic
   if (mine) filter.teacherId = isOid(auth.userId) ? oid(auth.userId) : null
   if (from || to) filter.date = { ...(from && { $gte: from }), ...(to && { $lte: to }) }
   return filter

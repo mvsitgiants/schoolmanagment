@@ -1,5 +1,5 @@
 import { CONTENT_TYPES, contentStatus, contentTypeOfKind, hasRichContent, isWebUrl, sanitizeHtml, htmlToText, videoEmbed } from '@schoolgiant/shared'
-import { Section, Subject } from '../models/academics.js'
+import { Section, Subject, TeacherAllocation } from '../models/academics.js'
 import { Attachment } from '../models/engines.js'
 import { Syllabus } from '../models/homework.js'
 import { Course } from '../models/lms.js'
@@ -209,6 +209,27 @@ export async function getContent(id, auth) {
 }
 
 /** My content (`mine`) or the library: items of this year's courses the caller can see, newest first, paged. */
+/**
+ * "My content": what I shared myself, and everything shared for the classes and subjects I teach — the subjects I am
+ * allocated to a section, and every subject of a class I am the class teacher of — whoever wrote it.
+ */
+async function mineFilter(auth, yearId) {
+  const id = me(auth)
+  if (!id) return { 'units.items.createdById': null }
+  const [allocs, mineAsClassTeacher] = await Promise.all([
+    TeacherAllocation.find({ teacherId: id }).select('sectionId subjectId').lean(),
+    Section.find({ classTeacherId: id, academicYearId: yearId }).select('classId').lean(),
+  ])
+  const sections = allocs.length ? await Section.find({ _id: { $in: allocs.map((a) => a.sectionId) }, academicYearId: yearId }).select('classId').lean() : []
+  const classOf = new Map(sections.map((x) => [String(x._id), x.classId]))
+  const pairs = [...new Map(allocs.filter((a) => classOf.has(String(a.sectionId))).map((a) => [`${classOf.get(String(a.sectionId))}:${a.subjectId}`, { classId: classOf.get(String(a.sectionId)), subjectId: a.subjectId }])).values()]
+  return { $or: [
+    { 'units.items.createdById': id },
+    ...pairs,
+    ...(mineAsClassTeacher.length ? [{ classId: { $in: mineAsClassTeacher.map((x) => x.classId) } }] : []),
+  ] }
+}
+
 export async function listContent(q, pg, auth, { mine = false } = {}) {
   const year = await currentYear()
   if (!year) return { ...listResponse([], 0, pg), teachers: [] }
@@ -216,7 +237,7 @@ export async function listContent(q, pg, auth, { mine = false } = {}) {
   if (isOid(q.classId)) match.classId = oid(q.classId)
   if (isOid(q.subjectId)) match.subjectId = oid(q.subjectId)
   const im = {}
-  if (mine) im['units.items.createdById'] = me(auth)
+  if (mine) im.$and = [await mineFilter(auth, year._id)]
   else if (isOid(q.teacherId)) im['units.items.createdById'] = oid(q.teacherId)
   if (isOid(q.topicId)) im['units.items.topicId'] = oid(q.topicId)
   if (q.type) im['units.items.kind'] = q.type === 'MATERIAL' ? { $in: ['NOTE', 'FILE'] } : CONTENT_TYPES[q.type].kind

@@ -1,20 +1,17 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { ArrowRight, BookOpen, Check, CheckCheck, ChevronDown, ChevronUp, CircleDashed, Eye, LayoutPanelTop, Lightbulb, Paperclip, MessageCircleQuestion, NotebookPen, Pencil, Plus, Presentation, RotateCcw, Save, SkipForward, Trash2, X } from 'lucide-react'
-import { QUESTION_KINDS, QUESTION_USES, TOPIC_STATUS } from '@schoolgiant/shared'
-import { DateInput, Attachments, Drawer, FormField, Input, Modal, Note, ProgressBar, Select, StatusPill, Textarea } from '../system'
+import { ArrowRight, BookOpen, CalendarClock, Check, CheckCheck, ChevronDown, ChevronUp, CircleDashed, LayoutPanelTop, Lightbulb, MessageCircleQuestion, NotebookPen, Plus, Presentation, RotateCcw, SkipForward, Trash2 } from 'lucide-react'
+import { TOPIC_STATUS } from '@schoolgiant/shared'
+import { DateInput, Attachments, FormField, Input, Modal, ProgressBar, StatusPill } from '../system'
 import Button from '../ui/Button'
-import { fetchSyllabusTopic, saveSyllabusTopic, updateTopicPlan } from '../../api/homework'
+import { updateTopicPlan } from '../../api/homework'
 import { hasPermission } from '../../api/auth'
-import { apiUrl } from '../../api/client'
-import { RichTextView } from '../lms/RichText'
 import { useSnackbar } from '../../context/SnackbarContext'
-import { TopicContentLink } from '../lms/ContentKit'
 import { useFormat } from '../../context/SettingsContext'
 
-// Topic material and a section's record of a topic — shared by the syllabus page and the teacher's day.
+// Pieces of a syllabus topic: its material, questions, the marking buttons and the hub link — put together by TopicPanel.
 
 /** "NCERT Maths · Ch 3 · p. 45–52" from a topic's book reference. */
 export function bookLine(book) {
@@ -72,7 +69,7 @@ function QuestionRow({ q, n }) {
 }
 
 /** A topic's teaching material, read-only: book and files, how to teach it, key points, questions. */
-export function TopicMaterial({ topic, files = true }) {
+export function TopicMaterial({ topic, files = true, questions = true }) {
   const { t } = useTranslation('homework')
   const book = bookLine(topic.book)
   const empty = !book && !topic.howTo && !topic.keyPoints?.length && !topic.questions?.length && !topic.homeworkHint
@@ -111,7 +108,7 @@ export function TopicMaterial({ topic, files = true }) {
           )}
         </div>
       </div>
-      {topic.questions?.length > 0 && (
+      {questions && topic.questions?.length > 0 && (
         <div>
           <Head icon={MessageCircleQuestion}>{t('homework.topic.questions', { count: topic.questions.length })}</Head>
           <ul className="grid gap-2 md:grid-cols-2">{topic.questions.map((q, i) => <QuestionRow key={q.id ?? i} q={q} n={i + 1} />)}</ul>
@@ -121,154 +118,25 @@ export function TopicMaterial({ topic, files = true }) {
   )
 }
 
-/** The Subject hub, opened at a topic (needs the topic's class, subject and unit). */
-export const hubLink = (tp) => `/teaching/hub?${new URLSearchParams({ classId: tp.classId, subjectId: tp.subjectId, unitId: tp.unitId, topicId: tp.id })}`
+/** The Teaching hub, opened at a topic (needs its class and subject; the unit is found from the topic when left out). */
+export const hubLink = (tp) => `/teaching/hub?${new URLSearchParams(Object.entries({ classId: tp.classId, subjectId: tp.subjectId, unitId: tp.unitId, topicId: tp.id }).filter(([, v]) => v))}`
 
-/** "Open in Subject hub" — a link, or (`prominent`) a button-like link. Nothing without the hub's view right. */
+/** A topic's questions on their own (the lesson view shows them in a section of their own). */
+export function TopicQuestions({ topic }) {
+  if (!topic.questions?.length) return null
+  return <ul className="grid gap-2 md:grid-cols-2">{topic.questions.map((q, i) => <QuestionRow key={q.id ?? i} q={q} n={i + 1} />)}</ul>
+}
+
+/** "Open in Teaching hub" — a link, or (`prominent`) a button-like link. Nothing without the hub's view right. */
 export function OpenInHub({ topic, prominent = false, label, className = '' }) {
   const { t } = useTranslation('homework')
-  if (!topic?.classId || !topic?.unitId || !hasPermission('homework.hub.view')) return null
+  if (!topic?.classId || !topic?.subjectId || !hasPermission('homework.hub.view')) return null
   return (
     <Link to={hubLink(topic)} className={prominent
       ? `inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-brand-600 px-4 text-sm font-semibold text-white hover:bg-brand-700 ${className}`
       : `inline-flex min-h-10 items-center gap-1.5 text-sm font-medium text-brand-700 hover:underline ${className}`}>
       <LayoutPanelTop className="h-4 w-4 shrink-0" aria-hidden />{label ?? t('homework.topic.openInHub')}{prominent && <ArrowRight className="h-4 w-4 shrink-0 rtl:rotate-180" aria-hidden />}
     </Link>
-  )
-}
-
-/**
- * What students read for a topic (its Subject hub content: text, pictures, videos, files — of the topic and each
- * sub-topic), under "What students see", with the link to the hub. `topic` is a loaded topic (api fetchSyllabusTopic);
- * without it the topic is loaded by `topicId`.
- */
-export function TopicStudentContent({ topic: given, topicId, hubLinkToo = true }) {
-  const { t } = useTranslation('homework')
-  const { data } = useQuery({ queryKey: ['syllabus-topic', topicId], queryFn: () => fetchSyllabusTopic(topicId), staleTime: 60_000, enabled: !given && !!topicId })
-  const topic = given ?? data
-  if (!topic) return null
-  const parts = topic.studentContent ?? []
-  return (
-    <div className="space-y-2">
-      {parts.length > 0 && (
-        <div className="rounded-lg border border-border px-3 py-2.5 space-y-3">
-          <p className="flex items-center gap-1.5 text-[13px] font-semibold text-ink"><Eye className="w-4 h-4 text-brand-600" aria-hidden />{t('homework.topic.studentsSee')}</p>
-          {parts.map((x) => (
-            <div key={x.id} className="space-y-1.5 min-w-0">
-              {(x.subTopicId || x.status !== 'PUBLISHED') && (
-                <div className="flex flex-wrap items-center gap-1.5">
-                  {x.subTopicId && <p className="text-sm font-semibold text-ink">{x.title}</p>}
-                  {x.status !== 'PUBLISHED' && <StatusPill tone="neutral" dot={false}>{t(`homework.topic.contentStatus.${x.status}`)}</StatusPill>}
-                </div>
-              )}
-              {x.html && <RichTextView html={x.html} />}
-              {x.files.length > 0 && (
-                <ul className="flex flex-wrap gap-1.5">
-                  {x.files.map((f) => (
-                    <li key={f.id} className="max-w-full">
-                      <a href={apiUrl(`/v1/files/${f.id}/content`)} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-9 max-w-full items-center gap-1.5 rounded-full border border-border px-2.5 text-xs text-ink hover:bg-black/[0.03]">
-                        <Paperclip className="h-3.5 w-3.5 shrink-0 text-ink-faint" aria-hidden /><span className="min-w-0 truncate">{f.name}</span>
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
-      {hubLinkToo && <OpenInHub topic={topic} />}
-    </div>
-  )
-}
-
-/** Edit a topic's material. */
-function TopicEditor({ topic, onDone }) {
-  const { t } = useTranslation('homework')
-  const qc = useQueryClient()
-  const { showSuccess, showError } = useSnackbar()
-  const [form, setForm] = useState(() => ({
-    book: { ...topic.book }, howTo: topic.howTo, homeworkHint: topic.homeworkHint,
-    keyPoints: topic.keyPoints.length ? [...topic.keyPoints] : [''],
-    questions: topic.questions.map((q) => ({ ...q, options: q.options.length ? [...q.options] : ['', ''] })),
-  }))
-  const setBook = (k) => (e) => setForm((f) => ({ ...f, book: { ...f.book, [k]: e.target.value } }))
-  const setPoint = (i, v) => setForm((f) => ({ ...f, keyPoints: f.keyPoints.map((x, j) => (j === i ? v : x)) }))
-  const setQ = (i, patch) => setForm((f) => ({ ...f, questions: f.questions.map((x, j) => (j === i ? { ...x, ...patch } : x)) }))
-  const save = useMutation({
-    mutationFn: () => saveSyllabusTopic(topic.id, {
-      book: form.book, howTo: form.howTo, homeworkHint: form.homeworkHint,
-      keyPoints: form.keyPoints.map((k) => k.trim()).filter(Boolean),
-      questions: form.questions.filter((q) => q.question.trim()).map((q) => ({ id: q.id, question: q.question, answer: q.answer, kind: q.kind, use: q.use, options: q.kind === 'MCQ' ? q.options.filter((o) => o.trim()) : undefined })),
-    }),
-    onSuccess: (d) => { qc.setQueryData(['syllabus-topic', topic.id], d); qc.invalidateQueries({ queryKey: ['syllabus'] }); qc.invalidateQueries({ queryKey: ['teach-day'] }); showSuccess(t('homework.topic.saved')); onDone() },
-    onError: (e) => showError(e.message),
-  })
-  return (
-    <div className="space-y-4">
-      <div className="grid gap-3 sm:grid-cols-3">
-        <FormField label={t('homework.topic.bookName')} className="sm:col-span-3"><Input value={form.book.name} onChange={setBook('name')} placeholder={t('homework.topic.bookNameHint')} /></FormField>
-        <FormField label={t('homework.topic.chapter')} className="sm:col-span-2"><Input value={form.book.chapter} onChange={setBook('chapter')} /></FormField>
-        <FormField label={t('homework.topic.pages')}><Input value={form.book.pages} onChange={setBook('pages')} placeholder={t('homework.topic.pagesHint')} /></FormField>
-      </div>
-      <Attachments entityType="syllabus_topic" entityId={topic.id} canAdd label={t('homework.topic.files')} compact />
-      <FormField label={t('homework.topic.howTo')} hint={t('homework.topic.howToHint')}>
-        <Textarea rows={5} value={form.howTo} onChange={(e) => setForm((f) => ({ ...f, howTo: e.target.value }))} />
-      </FormField>
-      <div>
-        <p className="text-sm font-medium text-ink mb-1.5">{t('homework.topic.keyPoints')}</p>
-        <div className="space-y-2">
-          {form.keyPoints.map((k, i) => (
-            <div key={i} className="flex gap-2">
-              <Input className="flex-1 min-w-0" value={k} onChange={(e) => setPoint(i, e.target.value)} aria-label={t('homework.topic.keyPointN', { n: i + 1 })} />
-              <Button size="sm" variant="ghost" icon={X} aria-label={t('homework.topic.remove')} title={t('homework.topic.remove')} onClick={() => setForm((f) => ({ ...f, keyPoints: f.keyPoints.filter((_, j) => j !== i) }))} />
-            </div>
-          ))}
-          <Button size="sm" variant="ghost" icon={Plus} onClick={() => setForm((f) => ({ ...f, keyPoints: [...f.keyPoints, ''] }))}>{t('homework.topic.addPoint')}</Button>
-        </div>
-      </div>
-      <div>
-        <p className="text-sm font-medium text-ink mb-1.5">{t('homework.topic.questionsTitle')}</p>
-        <div className="space-y-3">
-          {form.questions.map((q, i) => (
-            <div key={q.id ?? `n-${i}`} className="rounded-lg border border-border p-2.5 space-y-2">
-              <div className="flex gap-2">
-                <Textarea className="flex-1 min-w-0" rows={2} value={q.question} onChange={(e) => setQ(i, { question: e.target.value })} placeholder={t('homework.topic.question')} aria-label={t('homework.topic.question')} />
-                <Button size="sm" variant="ghost" icon={Trash2} aria-label={t('homework.topic.remove')} title={t('homework.topic.remove')} onClick={() => setForm((f) => ({ ...f, questions: f.questions.filter((_, j) => j !== i) }))} />
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <Select value={q.kind} onChange={(e) => setQ(i, { kind: e.target.value })} aria-label={t('homework.topic.kindLabel')}>
-                  {QUESTION_KINDS.map((k) => <option key={k} value={k}>{t(`homework.topic.kind.${k}`)}</option>)}
-                </Select>
-                <Select value={q.use} onChange={(e) => setQ(i, { use: e.target.value })} aria-label={t('homework.topic.useLabel')}>
-                  {QUESTION_USES.map((k) => <option key={k} value={k}>{t(`homework.topic.use.${k}`)}</option>)}
-                </Select>
-              </div>
-              {q.kind === 'MCQ' && (
-                <div className="space-y-1.5">
-                  {q.options.map((o, k) => (
-                    <div key={k} className="flex gap-2">
-                      <Input className="flex-1 min-w-0" value={o} onChange={(e) => setQ(i, { options: q.options.map((x, m) => (m === k ? e.target.value : x)) })} placeholder={t('homework.topic.optionN', { n: k + 1 })} aria-label={t('homework.topic.optionN', { n: k + 1 })} />
-                      <Button size="sm" variant="ghost" icon={X} aria-label={t('homework.topic.remove')} title={t('homework.topic.remove')} onClick={() => setQ(i, { options: q.options.filter((_, m) => m !== k) })} />
-                    </div>
-                  ))}
-                  {q.options.length < 8 && <Button size="sm" variant="ghost" icon={Plus} onClick={() => setQ(i, { options: [...q.options, ''] })}>{t('homework.topic.addOption')}</Button>}
-                </div>
-              )}
-              <Textarea rows={2} value={q.answer} onChange={(e) => setQ(i, { answer: e.target.value })} placeholder={t('homework.topic.answer')} aria-label={t('homework.topic.answer')} />
-            </div>
-          ))}
-          <Button size="sm" variant="ghost" icon={Plus} onClick={() => setForm((f) => ({ ...f, questions: [...f.questions, { question: '', answer: '', kind: 'SHORT', use: 'CLASS', options: ['', ''] }] }))}>{t('homework.topic.addQuestion')}</Button>
-        </div>
-      </div>
-      <FormField label={t('homework.topic.homeworkHint')} hint={t('homework.topic.homeworkHintHelp')}>
-        <Textarea rows={3} value={form.homeworkHint} onChange={(e) => setForm((f) => ({ ...f, homeworkHint: e.target.value }))} />
-      </FormField>
-      <div className="flex justify-end gap-2 sticky bottom-0 bg-surface py-2">
-        <Button variant="ghost" onClick={onDone}>{t('actions.cancel')}</Button>
-        <Button icon={Save} loading={save.isPending} onClick={() => save.mutate()}>{t('homework.topic.save')}</Button>
-      </div>
-    </div>
   )
 }
 
@@ -295,7 +163,29 @@ function ExtraClassModal({ defaultDate, onClose, onSave, saving }) {
  * revision, extra classes, and — when `onHomework` is given — give homework. `row` is the topic's
  * record in that section ({ id, status, needsRevision, extraClasses }).
  */
-export function TopicActions({ sectionId, subjectId, row, date, canMark = true, onHomework, onChanged, showDate = false }) {
+/**
+ * Asked before a topic is marked taught (it can't be undone): Taught, Partly taught, or Cancel.
+ * const [askMark, markDialog] = useMarkTaught(); const choice = await askMark(name) // 'TAUGHT' | 'PARTLY' | null; render {markDialog}
+ */
+export function useMarkTaught() {
+  const { t } = useTranslation('homework')
+  const [asking, setAsking] = useState(null) // { name, resolve }
+  const ask = (name) => new Promise((resolve) => setAsking({ name, resolve }))
+  const answer = (v) => { asking?.resolve(v); setAsking(null) }
+  const dialog = asking && (
+    <Modal open onClose={() => answer(null)} size="md" title={asking.name ? t('homework.topic.markAsk.title', { name: asking.name }) : t('homework.topic.markAsk.titlePlain')}
+      footer={<>
+        <Button variant="ghost" onClick={() => answer(null)}>{t('homework.topic.markAsk.cancel')}</Button>
+        <Button variant="secondary" icon={CircleDashed} onClick={() => answer('PARTLY')}>{t('homework.topic.markAsk.partly')}</Button>
+        <Button icon={CheckCheck} onClick={() => answer('TAUGHT')}>{t('homework.topic.markAsk.taught')}</Button>
+      </>}>
+      <p className="text-sm text-ink-muted">{t('homework.topic.markAsk.message')}</p>
+    </Modal>
+  )
+  return [ask, dialog]
+}
+
+export function TopicActions({ sectionId, subjectId, row, date, canMark = true, onHomework, onChanged, showDate = false, compact = false, after, topicName }) {
   const { t } = useTranslation('homework')
   const { showSuccess, showError } = useSnackbar()
   const { date: fmt } = useFormat()
@@ -306,14 +196,83 @@ export function TopicActions({ sectionId, subjectId, row, date, canMark = true, 
     onError: (e) => showError(e.message),
   })
   const send = (body, done) => act.mutate({ body, done })
+  const [askMark, markDialog] = useMarkTaught()
+  // taught can't be undone: ask first (taught, or only partly)
+  const markTaught = async () => {
+    const c = await askMark(topicName)
+    if (c === 'TAUGHT') send({ status: 'TAUGHT', date }, t('homework.topic.done.taught'))
+    if (c === 'PARTLY') send({ status: 'PARTLY', date }, t('homework.topic.done.partly'))
+  }
   const busy = act.isPending
+  const extras = row.extraClasses?.length > 0 && (
+    <ul className="space-y-1">
+      {row.extraClasses.map((x) => (
+        <li key={x.id} className="flex items-center gap-2 text-sm">
+          <button type="button" disabled={!canMark || busy} aria-pressed={x.done} onClick={() => send({ extraId: x.id, extraDone: !x.done }, x.done ? null : t('homework.topic.done.extraTaken'))}
+            className={`inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border ${x.done ? 'border-success-500 bg-success-50 text-success-600' : 'border-border text-ink-faint'}`}
+            aria-label={t('homework.topic.extra.markTaken')} title={t('homework.topic.extra.markTaken')}>
+            {x.done && <Check className="w-4 h-4" />}
+          </button>
+          <span className="min-w-0 flex-1 text-ink">{t('homework.topic.extra.on', { date: fmt(x.date) })}{x.period ? ` · ${t('homework.lessons.periodN', { n: x.period })}` : ''}{x.note ? ` · ${x.note}` : ''}</span>
+          {canMark && <Button size="sm" variant="ghost" icon={Trash2} disabled={busy} aria-label={t('homework.topic.remove')} title={t('homework.topic.remove')} onClick={() => send({ extraId: x.id, removeExtra: true }, null)} />}
+        </li>
+      ))}
+    </ul>
+  )
+  const [dating, setDating] = useState(false)
+  if (compact) {
+    // the Teaching hub: icon buttons only (their names show on hover and to screen readers)
+    const icon = (Icon, label, onClick, pressed) => (
+      <button type="button" title={label} aria-label={label} aria-pressed={pressed} disabled={busy} onClick={onClick}
+        className={`grid h-8 w-8 shrink-0 place-items-center rounded-md border transition disabled:opacity-50 [@media(pointer:coarse)]:h-10 [@media(pointer:coarse)]:w-10 ${pressed ? 'border-brand-600 bg-brand-600 text-white' : 'border-transparent text-ink-muted hover:bg-black/[0.04] hover:text-brand-700'}`}>
+        <Icon className="h-4 w-4" aria-hidden />
+      </button>
+    )
+    // once taught it stays taught: only revision, an extra class or homework from here (no way back to "not taught")
+    const taught = row.status === 'TAUGHT'
+    return (
+      <div className="space-y-1.5">
+        <div className="flex flex-wrap items-center gap-1">
+          {canMark && !taught && <>
+            {icon(CheckCheck, t('homework.topic.act.taught'), markTaught, false)}
+            {icon(CircleDashed, t('homework.topic.act.partly'), () => send({ status: row.status === 'PARTLY' ? 'NOT_STARTED' : 'PARTLY', date }, t('homework.topic.done.partly')), row.status === 'PARTLY')}
+            {icon(SkipForward, t('homework.topic.act.notTaught'), () => send({ notTaughtOn: date }, t('homework.topic.done.carried')))}
+            <span className="mx-0.5 h-5 w-px bg-border" aria-hidden />
+          </>}
+          {canMark && <>
+            {icon(RotateCcw, t('homework.topic.act.revision'), () => send({ needsRevision: !row.needsRevision }, row.needsRevision ? t('homework.topic.done.revised') : t('homework.topic.done.revision')), !!row.needsRevision)}
+            {icon(Plus, t('homework.topic.act.extra'), () => setAdding(true))}
+            {showDate && !taught && icon(CalendarClock, t('homework.topic.plannedFor'), () => setDating((x) => !x), dating)}
+            {onHomework && hasPermission('homework.homework.create') && icon(NotebookPen, t('homework.topic.act.homework'), onHomework)}
+          </>}
+          {after}
+        </div>
+        {canMark && showDate && dating && !taught && (
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs text-ink-muted">{t('homework.topic.plannedFor')}</span>
+            <DateInput className="!h-8 w-40" value={row.start ?? ''} aria-label={t('homework.topic.plannedFor')} disabled={busy} onChange={(e) => send({ plannedDate: e.target.value || null }, t('homework.topic.done.moved'))} />
+            {row.override && <Button size="sm" variant="ghost" icon={RotateCcw} disabled={busy} onClick={() => send({ plannedDate: null }, t('homework.topic.done.moved'))}>{t('homework.topic.resetDate')}</Button>}
+          </div>
+        )}
+        {canMark && row.needsRevision && (
+          <label className="inline-flex items-center gap-1.5 text-xs text-ink-muted">
+            {t('homework.topic.reviseBy')}
+            <DateInput className="!h-8 !w-auto" value={row.revisionBy ?? ''} disabled={busy} onChange={(e) => send({ revisionBy: e.target.value || null }, t('homework.topic.done.reviseBy'))} />
+          </label>
+        )}
+        {extras}
+        {adding && <ExtraClassModal defaultDate={date} saving={busy} onClose={() => setAdding(false)} onSave={(x) => send({ addExtra: x }, t('homework.topic.done.extraAdded'))} />}
+        {markDialog}
+      </div>
+    )
+  }
   const big = 'min-h-10 sm:min-h-0'
   return (
     <div className="space-y-2">
-      {canMark && (
+      {canMark && row.status !== 'TAUGHT' && (
         <div className="grid grid-cols-3 gap-1.5">
           <Button size="sm" className={big} variant={row.status === 'TAUGHT' ? 'primary' : 'secondary'} icon={CheckCheck} disabled={busy}
-            onClick={() => send(row.status === 'TAUGHT' ? { status: 'NOT_STARTED' } : { status: 'TAUGHT', date }, row.status === 'TAUGHT' ? t('homework.topic.done.undone') : t('homework.topic.done.taught'))}>{t('homework.topic.act.taught')}</Button>
+            onClick={markTaught}>{t('homework.topic.act.taught')}</Button>
           <Button size="sm" className={big} variant={row.status === 'PARTLY' ? 'primary' : 'secondary'} icon={CircleDashed} disabled={busy}
             onClick={() => send({ status: row.status === 'PARTLY' ? 'NOT_STARTED' : 'PARTLY', date }, t('homework.topic.done.partly'))}>{t('homework.topic.act.partly')}</Button>
           <Button size="sm" className={big} variant="secondary" icon={SkipForward} disabled={busy}
@@ -342,75 +301,9 @@ export function TopicActions({ sectionId, subjectId, row, date, canMark = true, 
           {row.override && <Button size="sm" variant="ghost" icon={RotateCcw} disabled={busy} onClick={() => send({ plannedDate: null }, t('homework.topic.done.moved'))}>{t('homework.topic.resetDate')}</Button>}
         </div>
       )}
-      {row.extraClasses?.length > 0 && (
-        <ul className="space-y-1">
-          {row.extraClasses.map((x) => (
-            <li key={x.id} className="flex items-center gap-2 text-sm">
-              <button type="button" disabled={!canMark || busy} aria-pressed={x.done} onClick={() => send({ extraId: x.id, extraDone: !x.done }, x.done ? null : t('homework.topic.done.extraTaken'))}
-                className={`inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border ${x.done ? 'border-success-500 bg-success-50 text-success-600' : 'border-border text-ink-faint'}`}
-                aria-label={t('homework.topic.extra.markTaken')} title={t('homework.topic.extra.markTaken')}>
-                {x.done && <Check className="w-4 h-4" />}
-              </button>
-              <span className="min-w-0 flex-1 text-ink">{t('homework.topic.extra.on', { date: fmt(x.date) })}{x.period ? ` · ${t('homework.lessons.periodN', { n: x.period })}` : ''}{x.note ? ` · ${x.note}` : ''}</span>
-              {canMark && <Button size="sm" variant="ghost" icon={Trash2} disabled={busy} aria-label={t('homework.topic.remove')} title={t('homework.topic.remove')} onClick={() => send({ extraId: x.id, removeExtra: true }, null)} />}
-            </li>
-          ))}
-        </ul>
-      )}
+      {extras}
       {adding && <ExtraClassModal defaultDate={date} saving={busy} onClose={() => setAdding(false)} onSave={(x) => send({ addExtra: x }, t('homework.topic.done.extraAdded'))} />}
+        {markDialog}
     </div>
-  )
-}
-
-/**
- * A topic opened from the syllabus: its material (edit it, add files) and — when `section` is given —
- * how it stands in that section ({ id, label, row, date }).
- */
-export function TopicDrawer({ topicId, subjectId, section, onClose, onChanged }) {
-  const { t } = useTranslation('homework')
-  const { date: fmt } = useFormat()
-  const [editing, setEditing] = useState(false)
-  const { data: topic, isLoading, error } = useQuery({ queryKey: ['syllabus-topic', topicId], queryFn: () => fetchSyllabusTopic(topicId) })
-  const canEdit = hasPermission('homework.syllabus.edit') && topic?.canEdit
-  const canMark = hasPermission('homework.syllabus.edit') || hasPermission('homework.lesson-plans.edit')
-  const row = section?.row
-  return (
-    <Drawer open onClose={onClose} size="xl" title={topic?.name ?? t('homework.loading')} subtitle={topic ? `${topic.className} · ${topic.subject} · ${topic.unit}` : undefined}>
-      {isLoading && <p className="text-sm text-ink-faint">{t('homework.loading')}</p>}
-      {error && <Note tone="warning">{error.message}</Note>}
-      {topic && (
-        <div className="space-y-5">
-          {row && (
-            <div className="rounded-xl border border-border p-3 space-y-2.5">
-              <div className="flex flex-wrap items-center gap-2">
-                <p className="text-sm font-semibold text-ink flex-1 min-w-0">{t('homework.topic.inSection', { section: section.label })}</p>
-                <TopicStatusPill status={row.status} />
-                {row.needsRevision && <StatusPill tone="warning">{t('homework.topic.needsRevision')}</StatusPill>}
-              </div>
-              {row.start && <p className="text-xs text-ink-muted">{row.start === row.end ? t('homework.topic.plannedOn', { date: fmt(row.start) }) : t('homework.topic.plannedRange', { from: fmt(row.start), to: fmt(row.end) })}{row.override ? ` · ${t('homework.topic.ownDate')}` : ''}</p>}
-              <TopicActions sectionId={section.id} subjectId={subjectId} row={row} date={section.date} canMark={canMark} onChanged={onChanged} showDate />
-            </div>
-          )}
-          {editing ? <TopicEditor topic={topic} onDone={() => setEditing(false)} /> : (
-            <>
-              {hasPermission('homework.hub.view') && (
-                <div className="flex flex-col gap-2 rounded-xl border border-brand-200 bg-brand-50/40 p-3 sm:flex-row sm:items-center">
-                  <p className="min-w-0 flex-1 text-sm text-ink">{t('homework.topic.hubHint')}</p>
-                  <OpenInHub topic={topic} prominent label={canEdit ? t('homework.topic.editInHub') : t('homework.topic.openInHub')} className="shrink-0" />
-                </div>
-              )}
-              <div className="flex items-center justify-between gap-2">
-                <p className="text-sm font-semibold text-ink">{t('homework.topic.material')}</p>
-                {canEdit && <Button size="sm" variant="ghost" icon={Pencil} onClick={() => setEditing(true)}>{t('homework.topic.edit')}</Button>}
-              </div>
-              <TopicMaterial topic={topic} />
-              <TopicStudentContent topic={topic} hubLinkToo={false} />
-              <TopicContentLink topicId={topic.id} />
-              {topic.contentBy && <p className="text-xs text-ink-faint inline-flex items-center gap-1"><MessageCircleQuestion className="w-3.5 h-3.5" aria-hidden />{t('homework.topic.updatedBy', { name: topic.contentBy })}</p>}
-            </>
-          )}
-        </div>
-      )}
-    </Drawer>
   )
 }

@@ -42,7 +42,14 @@
         "all": "All sections",
         "pending": "Not taken",
         "taken": "Taken"
-      }
+      },
+      "presentWord": "present",
+      "absentWord": "absent",
+      "classesMarked_one": "class marked",
+      "classesMarked_other": "classes marked",
+      "navMarked": "Marked · {{present}} present · {{absent}} absent",
+      "navToMark_one": "To mark · {{count}} student",
+      "navToMark_other": "To mark · {{count}} students"
     },
     "mark": {
       "title": "Mark attendance",
@@ -95,7 +102,11 @@
         "notHere": "Not in this class",
         "restAbsent_one": "Mark the {{count}} not scanned absent",
         "restAbsent_other": "Mark the {{count}} not scanned absent"
-      }
+      },
+      "subtitleDay": "{{weekday}}, {{date}}",
+      "prevDay": "Previous day",
+      "nextDay": "Next day",
+      "today": "Today"
     },
     "register": {
       "title": "Attendance register",

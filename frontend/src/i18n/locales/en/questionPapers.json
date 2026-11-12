@@ -247,7 +247,7 @@
       "fitsOnly": "Only questions that suit this section",
       "directHint": "Questions teachers kept for exams on this class and subject’s syllabus topics. Tick the ones you want; each gets this section’s {{marks}} mark(s).",
       "finishHint": "Questions teachers kept for exams on this class and subject’s syllabus topics. Pick one to open it in the question form — mark the right answer there, then add it. It gets this section’s {{marks}} mark(s).",
-      "none": "No exam questions on this subject’s syllabus yet. Teachers add them in the Subject hub (a question’s “Use” set to Exam).",
+      "none": "No exam questions on this subject’s syllabus yet. Teachers add them in the Teaching hub (a question’s “Use” set to Exam).",
       "noneHere": "No questions here. Try another unit or topic, or show every kind.",
       "pick": "Pick this question",
       "use": "Use this",

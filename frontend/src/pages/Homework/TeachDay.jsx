@@ -10,7 +10,8 @@ import { fetchHomeworkLookup, fetchTeachDay } from '../../api/homework'
 import { useSnackbar } from '../../context/SnackbarContext'
 import { useFormat } from '../../context/SettingsContext'
 import { useWeekdayLabel } from '../../components/homework/HomeworkKit'
-import { ProgressStrip, TopicActions, TopicMaterial, TopicStatusPill, TopicStudentContent, bookLine } from '../../components/homework/TopicKit'
+import { ProgressStrip, TopicStatusPill, bookLine } from '../../components/homework/TopicKit'
+import TopicPanel from '../../components/homework/TopicPanel'
 import { HomeworkForm } from './Homework'
 
 /** The homework a topic suggests: the suggestion, then its homework questions. */
@@ -21,7 +22,7 @@ function homeworkFrom(topic) {
 }
 
 /** One topic as a card: tap to open its material and the buttons. */
-function TopicCard({ topic, subject, sectionId, date, tone, onHomework, onChanged }) {
+function TopicCard({ topic, subject, section, date, tone, onHomework, onChanged }) {
   const { t } = useTranslation('homework')
   const { date: fmt } = useFormat()
   const [open, setOpen] = useState(false)
@@ -44,11 +45,10 @@ function TopicCard({ topic, subject, sectionId, date, tone, onHomework, onChange
         {open ? <ChevronUp className="w-5 h-5 text-ink-faint shrink-0 mt-0.5" /> : <ChevronDown className="w-5 h-5 text-ink-faint shrink-0 mt-0.5" />}
       </button>
       {open && (
-        <div className="border-t border-border px-3 py-3 space-y-4">
-          <TopicMaterial topic={topic} />
-          <TopicStudentContent topicId={topic.id} />
-          <TopicActions sectionId={sectionId} subjectId={subject.subjectId} row={topic} date={date} canMark={subject.canMark}
-            onHomework={() => onHomework(subject, topic)} onChanged={onChanged} />
+        <div className="border-t border-border px-3 py-3">
+          <TopicPanel topic={topic} subjectId={subject.subjectId} today={date} canMark={subject.canMark} onChanged={onChanged}
+            onHomework={() => onHomework(subject, topic)} link={{ classId: section.classId, subjectId: subject.subjectId, id: topic.id }}
+            classes={[{ id: section.id, label: section.label, row: topic }]} />
         </div>
       )}
     </div>
@@ -141,7 +141,7 @@ export default function TeachDay() {
           <div className="space-y-4 min-w-0">
           {data.subjects.map((s) => {
             const nothing = !s.today.length && !s.overdue.length && !s.extra.length && !s.revision.length
-            const rest = { subject: s, sectionId: data.sectionId, date: day, onHomework, onChanged: refresh }
+            const rest = { subject: s, section: data.section, date: day, onHomework, onChanged: refresh }
             return (
               <section key={s.subjectId} className={`rounded-xl border border-border bg-surface p-3 space-y-3 ${s.subjectId === shownSubject ? '' : 'lg:hidden'}`}>
                 <div className="flex flex-wrap items-center gap-x-2 gap-y-1">

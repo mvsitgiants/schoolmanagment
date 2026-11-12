@@ -35,6 +35,9 @@ export function ContentStatus({ item }) {
 }
 
 /** One shared item: type, title, class / subject / topic, status, views and files, with its actions. */
+/** May change it: its own rule, or — for Teaching hub content — the hub's edit right (the hub checks the class and subject). */
+export const canEditItem = (item) => item.canEdit || (item.hub && !!item.topicId && hasPermission('homework.hub.edit'))
+
 export function ContentCard({ item, onOpen, onEdit, onDelete, showTeacher = false }) {
   const { t } = useTranslation('lms')
   return (
@@ -60,7 +63,7 @@ export function ContentCard({ item, onOpen, onEdit, onDelete, showTeacher = fals
       </div>
       <div className="flex shrink-0 items-center gap-0.5">
         {onOpen && <Button size="sm" variant="ghost" icon={Eye} onClick={onOpen} aria-label={t('lms.content.open')} title={t('lms.content.open')} />}
-        {onEdit && item.canEdit && <Button size="sm" variant="ghost" icon={Pencil} onClick={onEdit} aria-label={t('lms.content.edit')} title={t('lms.content.edit')} />}
+        {onEdit && canEditItem(item) && <Button size="sm" variant="ghost" icon={Pencil} onClick={onEdit} aria-label={t('lms.content.edit')} title={t('lms.content.edit')} />}
         {onDelete && item.canDelete && <Button size="sm" variant="ghost" icon={Trash2} onClick={onDelete} aria-label={t('lms.content.delete')} title={t('lms.content.delete')} />}
       </div>
     </li>
