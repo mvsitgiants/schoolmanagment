@@ -283,9 +283,9 @@
         "footerHint": "e.g. “24 × 7 emergency: 080 4000 1000”. A template can replace it.",
         "save": "Save letterhead",
         "signTitle": "Seal and signatures",
-        "signHint": "Printed on documents set to “Print the signature and seal”. Scan on white paper; a transparent PNG looks best. A TC and certificates are signed by hand unless you change their template.",
+        "signHint": "Printed on documents set to “Print the signature and seal”. Upload a scan (signed on white paper; a transparent PNG looks best) or sign on the screen. A TC and certificates are signed by hand unless you change their template.",
         "seal": "School seal",
-        "sealHint": "The round rubber stamp, scanned.",
+        "sealHint": "The round rubber stamp: upload a scan, or make one here.",
         "signName": "Name printed under the signature",
         "signatories": {
           "PRINCIPAL": "Principal’s signature",
@@ -1756,7 +1756,49 @@
       "replace": "Replace",
       "remove": "Remove",
       "typeError": "Upload a PNG, JPG or WebP image.",
-      "tooBig": "This image is too large — use a smaller scan (under 300 KB)."
+      "tooBig": "This image is too large — use a smaller scan (under 300 KB).",
+      "draw": "Draw",
+      "makeStamp": "Make seal",
+      "cancel": "Cancel",
+      "inks": {
+        "BLUE": "Blue",
+        "BLACK": "Black",
+        "VIOLET": "Violet",
+        "RED": "Red"
+      },
+      "signature": {
+        "title": "Sign on the screen",
+        "help": "Sign inside the box with a finger, a stylus or the mouse, just as you sign on paper. It prints small on documents, so sign large and clear.",
+        "pad": "Signature box",
+        "signHere": "Sign here",
+        "ink": "Ink",
+        "undo": "Undo",
+        "clear": "Start again",
+        "use": "Use this signature"
+      },
+      "stamp": {
+        "title": "Make the school seal",
+        "help": "For a school without a scanned seal: a rubber-stamp design made from the school’s name. It prints where the seal goes on documents set to print the signature and seal.",
+        "shape": "Shape",
+        "shapes": {
+          "ROUND": "Round",
+          "RECT": "Rectangle"
+        },
+        "ink": "Ink colour",
+        "ring": "Around the ring",
+        "ringHint": "Usually the school’s full name. Use English letters — Hindi letters don’t join up correctly around a circle.",
+        "place": "Place (after the name)",
+        "centre": "In the middle",
+        "centreHint": "One or two short lines. Leave both empty for a star.",
+        "centre1Example": "e.g. ESTD. 1985",
+        "centre2Example": "e.g. PRINCIPAL",
+        "lines": "Lines",
+        "linesHint": "The first line prints in bold.",
+        "line3Example": "e.g. Principal",
+        "preview": "Preview",
+        "printNote": "Printed about 2 cm across, a little see-through, as a real stamp looks.",
+        "use": "Use this seal"
+      }
     }
   }
 }

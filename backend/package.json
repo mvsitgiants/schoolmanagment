@@ -9,6 +9,7 @@
     "db": "node src/dev/devdb.js",
     "seed": "node --env-file-if-exists=.env src/seed/seed.js",
     "seed:demo": "node --env-file-if-exists=.env src/seed/demoStThomas.js",
+    "seed:demo:content": "node --env-file-if-exists=.env src/seed/demoStThomas.js --fresh-content",
     "test": "vitest run",
     "dev:db": "node src/dev/devdb.js"
   },

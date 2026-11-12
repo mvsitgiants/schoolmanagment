@@ -12,6 +12,7 @@ import { Tenant } from '../models/platform.js'
 import { runAsTenant } from '../platform/context.js'
 import { connectDb } from '../platform/db.js'
 import { institutionNow } from '../platform/time.js'
+import { lessonFor, subjectKind } from './demoContent.js'
 
 const SLUG = 'st-thomas-school'
 const ADMIN = { email: 'admin@stthomas.test', password: 'Admin@123' }
@@ -49,7 +50,11 @@ async function freshSignIn(email, password) {
 }
 
 // DEMO_ONLY=hostel,canteen runs only the steps whose names contain one of those words (for working on a few steps).
+// --fresh-content (npm run seed:demo:content): clears every syllabus and all topic content first, then runs only the
+// syllabus, teaching-material and subject-hub steps, so every class and subject is filled again from scratch.
+const FRESH_CONTENT = process.argv.includes('--fresh-content')
 const ONLY = process.env.DEMO_ONLY?.split(',').map((x) => x.trim().toLowerCase()).filter(Boolean)
+  ?? (FRESH_CONTENT ? ['syllabus', 'teaching', 'subject hub'] : undefined)
 
 async function step(name, fn) {
   if (ONLY?.length && !ONLY.some((w) => name.toLowerCase().includes(w))) return
@@ -986,6 +991,9 @@ const CURRICULUM = {
   },
   English: ['Reading: unseen passages', 'Grammar: tenses', 'Literature: prose — chapter 1', 'Grammar: subject–verb agreement', 'Writing: formal letters', 'Literature: poem — the first poem', 'Grammar: active and passive voice', 'Literature: prose — chapter 2', 'Writing: notice and message', 'Grammar: reported speech', 'Literature: poem — the second poem', 'Writing: story and diary entry'],
   Hindi: ['व्याकरण: संज्ञा', 'गद्य: पाठ 1', 'व्याकरण: सर्वनाम', 'काव्य: कविता 1', 'व्याकरण: विशेषण', 'लेखन: पत्र लेखन', 'गद्य: पाठ 2', 'व्याकरण: क्रिया', 'काव्य: कविता 2', 'लेखन: अनुच्छेद लेखन', 'व्याकरण: मुहावरे', 'लेखन: निबंध'],
+  Sanskrit: ['वर्णमाला और उच्चारण', 'शब्द रूप: अकारान्त पुंलिङ्ग', 'शब्द रूप: आकारान्त स्त्रीलिङ्ग', 'धातु रूप: लट् लकार', 'धातु रूप: लृट् लकार', 'संख्या: एक से पचास', 'सन्धि: स्वर सन्धि', 'कारक और विभक्ति', 'पाठ: सुभाषितानि', 'पाठ: कथा', 'अनुवाद: हिन्दी से संस्कृत', 'पत्र लेखन'],
+  'Physical Education': ['Warm-up and fitness', 'Athletics: sprints and relays', 'Long jump and high jump', 'Football skills', 'Volleyball skills', 'Kho-kho and kabaddi', 'Yoga: asanas and pranayama', 'Health and nutrition', 'First aid basics', 'Sports day practice'],
+  'Art & Craft': ['Pencil shading', 'Still life drawing', 'Colour wheel and mixing', 'Poster making', 'Madhubani painting', 'Paper craft', 'Clay modelling', 'Landscape painting', 'Calligraphy', 'Collage from waste material'],
   'Computer Science': ['Computer fundamentals', 'Operating system basics', 'Word processing', 'Spreadsheets: formulas', 'Spreadsheets: charts', 'Presentations', 'Internet and email', 'Cyber safety', 'Introduction to programming', 'Programming: loops and decisions'],
 }
 // Nursery – Class 5: one topic list per subject (the tracker shows every class, not just the ones with a timetable)
@@ -1040,6 +1048,9 @@ const LESSON_LOOK = {
   'Social Science': { method: 'Map / picture to start, read the key section together, group discussion on two questions, timeline or flow chart on the board.', resources: 'Textbook, atlas / wall map, pictures', homework: 'Write three key points and one question' },
   English: { method: 'Pre-reading questions, reading aloud in turns, vocabulary from the text, short written task.', resources: 'Textbook, dictionary, worksheet', homework: 'Write 100 words on the theme' },
   Hindi: { method: 'पाठ का पठन, कठिन शब्दों के अर्थ, प्रश्नोत्तर पर चर्चा, अभ्यास कार्य।', resources: 'पाठ्यपुस्तक, श्यामपट्ट', homework: 'पाठ के प्रश्न 1–4' },
+  Sanskrit: { method: 'श्लोक / वाक्यों का शुद्ध उच्चारण, शब्दार्थ, हिन्दी अनुवाद, व्याकरण बिंदु का अभ्यास।', resources: 'पाठ्यपुस्तक, श्यामपट्ट, शब्द-रूप तालिका', homework: 'शब्द रूप / धातु रूप तीन बार लिखें' },
+  'Physical Education': { method: 'Warm-up, demonstration of the skill, practice in pairs and groups, a short game, cool-down.', resources: 'Playground, cones, balls, whistle', homework: 'Ten minutes of stretching at home' },
+  'Art & Craft': { method: 'Show the sample, demonstrate step by step, students work on their own piece, display and share.', resources: 'Drawing books, colours, craft paper, glue', homework: 'Finish the piece at home' },
   'Computer Science': { method: 'Show it on the projector, students try it at their desks in pairs, check each pair’s work.', resources: 'Computer lab, projector', homework: 'Practice the steps at home if possible' },
 }
 const REFLECTIONS = [
@@ -1073,10 +1084,9 @@ async function fillPrimarySyllabus(admin) {
 // partly taught, an extra class tomorrow, a taught topic due for revision. Skips topics that already have material.
 // Teaching material on every syllabus topic: the board's book with chapter and pages, how to teach it (in the way that
 // subject is taught), key points, three questions and a homework idea. Topics that already have material are left alone.
-function materialFor({ topic, unit, subject, className, board, n }) {
-  const junior = /nursery|lkg|ukg/i.test(className)
-  const kind = junior ? 'JUNIOR' : /math/i.test(subject) ? 'MATHS' : /science|physics|chemistry|biology|evs|environment/i.test(subject) ? 'SCIENCE'
-    : /hindi|english|sanskrit|urdu/i.test(subject) ? 'LANGUAGE' : /social|history|geography|civics|economics/i.test(subject) ? 'SOCIAL' : /computer/i.test(subject) ? 'COMPUTER' : 'GENERAL'
+function materialFor({ topic, unit, subject, className, grade, board, n }) {
+  const junior = grade <= 0
+  const kind = { ENGLISH: 'LANGUAGE', HINDI: 'LANGUAGE' }[subjectKind(subject, grade)] ?? subjectKind(subject, grade)
   const book = board === 'CBSE'
     ? `NCERT ${subject}${junior ? ' activity book' : ''} — ${className.replace(/\s*\(CBSE\)/, '')}`
     : `${subject} (UP Board, NCERT-based) — ${className.replace(/\s*\(UP\)/, '')}`
@@ -1088,6 +1098,8 @@ function materialFor({ topic, unit, subject, className, board, n }) {
     LANGUAGE: `Read “${topic}” aloud with expression, then let pupils read paragraph by paragraph. Explain difficult words on the board, discuss the central idea, and do one grammar point from the lesson with three examples. Pupils write two sentences of their own.`,
     SOCIAL: `Show the map / timeline for “${topic}” first. Tell the main story in 10 minutes, then let groups answer one question each from the text and report back. Link it to something in Uttar Pradesh or the pupils’ own town.`,
     COMPUTER: `Explain “${topic}” on the board with a labelled diagram, then show it on the lab computer / projector. Pupils try it in pairs for 10 minutes; check each pair and end with two quick questions.`,
+    ARTS: `Show a finished sample of “${topic}” and talk about it for two minutes. Demonstrate each step slowly, then let pupils work on their own piece while you go round and help. Display a few pieces at the end and let pupils say what they like.`,
+    PE: `Warm up for five minutes. Demonstrate “${topic}”, let pupils practise it in pairs, then in groups, and finish with a short game that uses the skill. Cool down and talk about one safety rule.`,
     GENERAL: `Introduce “${topic}” with a question to the class, explain the main idea with one example, let pupils try one task in pairs, and close with a two-line summary in their notebooks.`,
   }[kind]
   const points = {
@@ -1097,12 +1109,18 @@ function materialFor({ topic, unit, subject, className, board, n }) {
     LANGUAGE: ['Central idea of the lesson', 'New words and their meanings', 'Grammar point with examples'],
     SOCIAL: ['Main events / places in order', 'Why it matters today', 'Map / timeline work'],
     COMPUTER: [`What “${topic}” does`, 'Steps to do it on the computer', 'One shortcut or tip'],
+    ARTS: ['Materials and the steps, in order', 'Neat, careful work', 'Every pupil finishes and shares'],
+    PE: ['Warm-up before, cool-down after', 'The skill done correctly before fast', 'Safety and fair play'],
     GENERAL: [`Main idea of “${topic}”`, 'One example', 'Summary in two lines'],
   }[kind]
   const questions = junior
     ? [
       { question: `Show and tell: what do you see in the picture of “${topic}”?`, answer: 'Any correct naming or description.', kind: 'SHORT', use: 'CLASS' },
       { question: `Colour the pictures that belong to “${topic}”.`, answer: 'Correct pictures coloured.', kind: 'SHORT', use: 'HOMEWORK' },
+    ]
+    : kind === 'ARTS' || kind === 'PE' ? [
+      { question: `Show the class one step of “${topic}” and say why it matters.`, answer: 'The step done correctly with a sensible reason.', kind: 'SHORT', use: 'CLASS' },
+      { question: kind === 'PE' ? `Practise “${topic}” for ten minutes at home and note how it went.` : `Finish your “${topic}” work at home and bring it to the next class.`, answer: 'Done and shown to the teacher.', kind: 'SHORT', use: 'HOMEWORK' },
     ]
     : [
       { question: `Explain “${topic}” in your own words with one example.`, answer: 'Correct meaning with a suitable example.', kind: 'SHORT', use: 'CLASS' },
@@ -1112,7 +1130,7 @@ function materialFor({ topic, unit, subject, className, board, n }) {
   return {
     book: { name: book, chapter: unit, pages: `p. ${from}–${from + 6}` },
     howTo: how, keyPoints: points, questions,
-    homeworkHint: junior ? `Colour and paste one picture of “${topic}” in the activity book.` : questions[2].question,
+    homeworkHint: junior ? `Colour and paste one picture of “${topic}” in the activity book.` : questions.at(-1).question,
   }
 }
 
@@ -1128,7 +1146,7 @@ async function fillAllTopicMaterial(admin) {
         for (const t of u.topics ?? []) {
           n++
           if (t.hasContent) continue
-          await admin.put(`/homework/syllabus/topics/${t.id}`, materialFor({ topic: t.name, unit: u.name, subject: subj.name, className: c.name, board, n }))
+          await admin.put(`/homework/syllabus/topics/${t.id}`, materialFor({ topic: t.name, unit: u.name, subject: subj.name, className: c.name, grade: gradeOf(c.code), board, n }))
           filled++
         }
       }
@@ -1137,70 +1155,72 @@ async function fillAllTopicMaterial(admin) {
   return filled ? `${filled} topics given teaching material` : 'already there'
 }
 
-// Subject hub: student-facing lesson content for a few classes' first two units (topic text, sub-topics on the first
-// topic, questions tagged class / homework / exam), then each unit published to its students. Skips topics with content.
-const esc = (x) => String(x).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]))
-function hubHtml({ topic, subject, unit }) {
-  const t = esc(topic)
-  const maths = /math/i.test(subject)
-  const science = /science|physics|chemistry|biology|evs/i.test(subject)
-  const ideas = maths
-    ? [`What ${t} means, with a picture or number line`, 'The rule / formula, written in words first', 'Where we use it in daily life']
-    : science
-      ? [`What ${t} is, in simple words`, 'What we observe in the activity and why', 'One real-life example and one safety point']
-      : [`The main idea of “${t}”`, 'New words and their meanings', 'How to answer questions on it in your own words']
-  const example = maths
-    ? `<p><strong>Worked example:</strong> Read the question twice, write what is given and what is asked, then solve step by step. Check your answer by putting it back into the question.</p>`
-    : science
-      ? `<p><strong>Try at home:</strong> Look around your home for one example of ${t.toLowerCase()} and write two lines about it in your notebook.</p>`
-      : `<p><strong>Read aloud:</strong> Read the lesson once silently and once aloud. Underline five new words and find their meanings.</p>`
-  return `<h2>${t}</h2><p>In this lesson of <em>${esc(unit)}</em> we learn about <strong>${t}</strong>. Read this before the class and again after it.</p><h3>Key ideas</h3><ul>${ideas.map((x) => `<li>${x}</li>`).join('')}</ul>${example}<p>Do the practice questions below. Ask your teacher in the next class if anything is not clear.</p>`
-}
-function hubQuestions(topic, existing = []) {
-  const t = topic
-  const keep = existing.map((q, i) => ({ ...q, use: q.use === 'EXAM' ? 'EXAM' : q.kind === 'LONG' ? 'HOMEWORK' : i === 0 ? 'CLASS' : q.use || 'CLASS' }))
-  if (keep.some((q) => q.use === 'EXAM')) return keep
-  return [...keep,
-    { question: `Define “${t}” and give one example.`, answer: 'A correct definition with a suitable example (2 marks).', kind: 'SHORT', use: 'EXAM' },
-    { question: `Explain “${t}” in detail with a diagram or worked example where possible.`, answer: 'Explanation with key points, example / diagram and conclusion (5 marks).', kind: 'LONG', use: 'EXAM' },
-  ]
+// --fresh-content: remove every syllabus (units, topics, teacher's notes, questions), what was marked taught or planned
+// on them, the lesson plans, and all content shared for a topic (Subject hub, Create content) with its files. The
+// class + subject courses that only held that content go too; courses made on the course page keep their own items.
+async function clearContentAndSyllabus() {
+  return runAsTenant(tenant._id, async () => {
+    const { LessonPlan, SectionTopicPlan, Syllabus, SyllabusDone } = await import('../models/homework.js')
+    const { Course, CourseProgress } = await import('../models/lms.js')
+    const { Attachment } = await import('../models/engines.js')
+    const topicIds = (await Syllabus.find().select('units.topics._id').lean()).flatMap((s) => s.units.flatMap((u) => u.topics.map((t) => String(t._id))))
+    const planIds = (await LessonPlan.find().select('_id').lean()).map((x) => String(x._id))
+    const itemIds = []
+    const emptied = []
+    for (const c of await Course.find({ 'units.items': { $elemMatch: { $or: [{ topicId: { $ne: null } }, { hub: true }] } } })) {
+      for (const u of c.units) {
+        for (const i of u.items.filter((x) => x.topicId || x.hub)) { itemIds.push(String(i._id)); u.items.pull(i._id) }
+      }
+      if (!c.sectionIds.length && !c.units.some((u) => u.items.length)) emptied.push(c._id)
+      else await c.save()
+    }
+    await Course.deleteMany({ _id: { $in: emptied } })
+    await CourseProgress.deleteMany({ courseId: { $in: emptied } })
+    const files = await Attachment.updateMany({ 'deleted.at': null, $or: [
+      { entityType: 'lms_item', entityId: { $in: itemIds } }, { entityType: 'syllabus_topic', entityId: { $in: topicIds } }, { entityType: 'lesson_plan', entityId: { $in: planIds } },
+    ] }, { $set: { deleted: { at: new Date(), by: 'Demo data', reason: 'Syllabus and content cleared to be filled again' } } })
+    const [syl] = await Promise.all([Syllabus.deleteMany({}), SyllabusDone.deleteMany({}), SectionTopicPlan.deleteMany({}), LessonPlan.deleteMany({})])
+    return `${syl.deletedCount} syllabi (${topicIds.length} topics), ${planIds.length} lesson plans, ${itemIds.length} content items, ${emptied.length} content courses, ${files.modifiedCount} files removed`
+  })
 }
 
+// Subject hub: student content on every topic of every class and subject (a lesson page, two sub-topics, and exam
+// questions added to the topic's own), written the way the subject is taught (demoContent.js); then each unit is
+// published to all its students. Topics that already have content are left alone, so a second run adds nothing.
 async function fillSubjectHub(admin) {
   const classes = (await admin.get('/academics/classes')).classes
-  const picks = ['C5', 'C8', 'U10', 'U11'].map((code) => classes.find((c) => c.code === code)).filter(Boolean)
   let topicsDone = 0
   let unitsPublished = 0
-  for (const c of picks) {
-    for (const subj of (c.subjects ?? []).filter((x) => /math|science|english/i.test(x.name)).slice(0, 3)) {
-      const first = await admin.get('/teaching/hub', { classId: c.id, subjectId: subj.id }).catch(() => null)
-      for (const u of (first?.units ?? []).slice(0, 2)) {
-        const hub = await admin.get('/teaching/hub', { classId: c.id, subjectId: subj.id, unitId: u.id }).catch(() => null)
+  for (const c of classes) {
+    const grade = gradeOf(c.code)
+    // subjects in parallel: each has its own syllabus and course, so the saves never meet
+    await Promise.all((c.subjects ?? []).map(async (subj) => {
+      const place = { classId: c.id, subjectId: subj.id }
+      const first = await admin.get('/teaching/hub', place).catch(() => null)
+      for (const u of first?.units ?? []) {
+        const hub = await admin.get('/teaching/hub', { ...place, unitId: u.id }).catch(() => null)
         if (!hub?.topics?.length) continue
         let wrote = false
-        for (const [i, t] of hub.topics.entries()) {
-          const has = t.content && (t.content.html || t.content.descriptionHtml || t.content.contentHtml || t.content.hasContent)
-          if (has) continue
+        for (const t of hub.topics) {
+          if (t.content?.html) continue
+          const lesson = lessonFor({ topic: t.name, unit: u.name, subject: subj.name, grade })
+          const own = t.questions.map(({ id, options, ...q }) => ({ id, ...q, ...(q.kind === 'MCQ' && { options }) }))
           await admin.put(`/teaching/hub/topics/${t.id}`, {
-            classId: c.id, subjectId: subj.id,
-            contentHtml: hubHtml({ topic: t.name, subject: subj.name, unit: u.name }),
-            questions: hubQuestions(t.name, t.questions).map(({ id, ...q }) => ({ ...(id && { id }), ...q })),
-            ...(i === 0 && !t.subTopics?.length ? { subTopics: [
-              { name: `Basics of ${t.name}`, contentHtml: `<p>Start here: the simple meaning of <strong>${esc(t.name)}</strong>, with one example from daily life.</p>` },
-              { name: `${t.name} — practice`, contentHtml: '<p>Try the textbook examples first, then the exercise questions. Check each answer.</p>' },
-            ] } : {}),
+            ...place, contentHtml: lesson.contentHtml,
+            questions: own.some((q) => q.use === 'EXAM') ? own : [...own, ...lesson.questions],
+            ...(!t.subTopics?.length && { subTopics: lesson.subTopics }),
           })
           topicsDone++
           wrote = true
         }
-        if (wrote || hub.unit?.status === 'DRAFT' || hub.unit?.status === 'MIXED') {
-          await admin.post(`/teaching/hub/units/${u.id}/publish`, { classId: c.id, subjectId: subj.id, publish: true, when: 'NOW', visibility: 'ALL' })
+        if (wrote || ['DRAFT', 'MIXED'].includes(hub.unit?.status)) {
+          await admin.post(`/teaching/hub/units/${u.id}/publish`, { ...place, publish: true, when: 'NOW', visibility: 'ALL' })
           unitsPublished++
         }
       }
-    }
+    }))
   }
-  return topicsDone || unitsPublished ? `${topicsDone} topics given student content, ${unitsPublished} units published` : 'already there'
+  return topicsDone || unitsPublished ? `${topicsDone} topics given student content, ${unitsPublished} units published (${classes.length} classes)` : 'already there'
 }
 
 async function fillTeachingPlanner(admin) {
@@ -1831,6 +1851,7 @@ async function main() {
   console.log(`Filling ${tenant.name} (today ${today}, ${lookup.sections.length} classes)`)
   await admin.patch('/core/settings/modules/portal', { enabled: true }).catch(() => {})
   await loadBranches(admin)
+  if (FRESH_CONTENT) await step('Clear every syllabus and all topic content', () => clearContentAndSyllabus())
   await step('Letterhead', () => fillLetterhead(admin))
   await step('Students', () => fillStudents(admin))
   await step('Staff & HR', () => fillStaff(admin))

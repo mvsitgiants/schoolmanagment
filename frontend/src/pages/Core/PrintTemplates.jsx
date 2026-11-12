@@ -104,12 +104,12 @@ function LetterheadEditor() {
                 <p className="text-sm font-semibold text-ink">{t('admin.printTemplates.letterhead.signTitle')}</p>
                 <p className="text-xs text-ink-muted">{t('admin.printTemplates.letterhead.signHint')}</p>
               </div>
-              <PrintImageField label={t('admin.printTemplates.letterhead.seal')} hint={t('admin.printTemplates.letterhead.sealHint')} value={f.sealUrl} disabled={!canEdit} onChange={(v) => setF((x) => ({ ...x, sealUrl: v }))} />
+              <PrintImageField make="stamp" stampDefaults={{ name: h.name, place: h.city }} label={t('admin.printTemplates.letterhead.seal')} hint={t('admin.printTemplates.letterhead.sealHint')} value={f.sealUrl} disabled={!canEdit} onChange={(v) => setF((x) => ({ ...x, sealUrl: v }))} />
               {f.signatures.map((sg, i) => {
                 const put = (patch) => setF((x) => ({ ...x, signatures: x.signatures.map((y, j) => (j === i ? { ...y, ...patch } : y)) }))
                 return (
                   <div key={sg.role} className="rounded-lg border border-border p-3 grid gap-3 sm:grid-cols-[1fr_1fr] items-start">
-                    <PrintImageField wide label={t(`admin.printTemplates.letterhead.signatories.${sg.role}`)} value={sg.imageUrl} disabled={!canEdit} onChange={(v) => put({ imageUrl: v })} />
+                    <PrintImageField wide make="signature" label={t(`admin.printTemplates.letterhead.signatories.${sg.role}`)} value={sg.imageUrl} disabled={!canEdit} onChange={(v) => put({ imageUrl: v })} />
                     <div className="grid gap-2">
                       <FormField label={t('admin.printTemplates.letterhead.signName')}><Input value={sg.name} disabled={!canEdit} maxLength={120} onChange={(e) => put({ name: e.target.value })} /></FormField>
                     </div>

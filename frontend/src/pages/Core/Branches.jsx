@@ -76,14 +76,14 @@ function BranchForm({ branch, onClose, onSaved, onDeleted }) {
             <FormField label={t('admin.branches.email')}><Input type="email" value={form.identity.email} onChange={setId('email')} maxLength={120} /></FormField>
             <FormField label={t('admin.branches.principalName')}><Input value={form.identity.principalName} onChange={setId('principalName')} maxLength={120} /></FormField>
             <PrintImageField label={t('admin.branches.logo')} value={form.identity.logoUrl} onChange={setId('logoUrl')} error={errors['identity.logoUrl']} />
-            <PrintImageField label={t('admin.branches.seal')} value={form.identity.sealUrl} onChange={setId('sealUrl')} error={errors['identity.sealUrl']} />
-            <PrintImageField wide label={t('admin.branches.principalSign')} value={form.identity.principalSignUrl} onChange={setId('principalSignUrl')} error={errors['identity.principalSignUrl']} />
+            <PrintImageField make="stamp" stampDefaults={{ name: form.identity.printName || form.name, place: form.city }} label={t('admin.branches.seal')} value={form.identity.sealUrl} onChange={setId('sealUrl')} error={errors['identity.sealUrl']} />
+            <PrintImageField wide make="signature" label={t('admin.branches.principalSign')} value={form.identity.principalSignUrl} onChange={setId('principalSignUrl')} error={errors['identity.principalSignUrl']} />
             <p className="sm:col-span-2 text-xs text-ink-muted">{t('admin.branches.otherSignsHint')}</p>
             {form.identity.signatures.map((sg, i) => {
               const put = (patch) => setForm((f) => ({ ...f, identity: { ...f.identity, signatures: f.identity.signatures.map((y, j) => (j === i ? { ...y, ...patch } : y)) } }))
               return (
                 <div key={sg.role} className="sm:col-span-2 grid sm:grid-cols-2 gap-3 rounded-lg border border-border p-3">
-                  <PrintImageField wide label={t(`admin.printTemplates.letterhead.signatories.${sg.role}`)} value={sg.imageUrl} onChange={(v) => put({ imageUrl: v })} />
+                  <PrintImageField wide make="signature" label={t(`admin.printTemplates.letterhead.signatories.${sg.role}`)} value={sg.imageUrl} onChange={(v) => put({ imageUrl: v })} />
                   <FormField label={t('admin.printTemplates.letterhead.signName')}><Input value={sg.name} maxLength={120} onChange={(e) => put({ name: e.target.value })} /></FormField>
                 </div>
               )
