@@ -192,16 +192,29 @@ const seatLabels = () => model('SEAT_LABEL', {
 
 // ── exam seating: one session of the annual exam, Class 8 – A and 8 – B sharing two rooms
 function seating(institution, withDrawing = true) {
-  const people = [[AARAV_NAME, '7', '8-A', 0], ['Ishita Verma', '12', '8-A', 0], ['Kabir Singh', '3', '8-B', 1], ['Riya Pandey', '5', '8-B', 1]]
-  const room = (name, code, from, invigilators) => ({
-    name, code, students: 4, invigilators, columns: 2, perBench: 2, compact: false,
-    runs: [{ section: 'Class 8 – A', from: String(from), to: String(from + 1), count: 2 }, { section: 'Class 8 – B', from: String(from), to: String(from + 1), count: 2 }],
-    ...(withDrawing ? { rows: [{ benches: [0, 1].map((b) => ({ seats: [0, 1].map((k) => { const [n, roll, section, tone] = people[b * 2 + k]; return { label: `${String.fromCharCode(65 + b)}${k + 1}`, name: n, rollNo: roll, section, tone } }) })) }, { benches: [{ seats: [{ label: 'C1', empty: true }, { label: 'C2', empty: true }] }, { seats: [{ label: 'D1', empty: true }, { label: 'D2', empty: true }] }] }] } : {}),
-  })
+  // a room as an exam centre fills it: 3 columns of 3-seat benches, 10 benches deep, the middle seat of the first and
+  // last column and the outer seats of the middle column left empty so no two from one class sit side by side
+  const FILL = [[0, 2], [1], [0, 2]] // seats used in each column
+  const room = (name, code, first, invigilators) => {
+    const rows = Array.from({ length: 10 }, () => ({ benches: [0, 1, 2].map(() => ({ seats: [] })) }))
+    let roll = first
+    const last = first + 41
+    FILL.forEach((used, c) => used.forEach((k) => rows.forEach((row, r) => {
+      if (roll > last) return
+      const section = roll % 2 ? '10-A' : '10-B'
+      row.benches[c].seats[k] = { label: `${String.fromCharCode(65 + c)}${r + 1}-${k + 1}`, name: section === '10-A' ? AARAV_NAME : 'Ishita Verma', rollNo: String(roll++), section, tone: section === '10-A' ? 0 : 1 }
+    })))
+    for (const row of rows) for (const [c, bench] of row.benches.entries()) for (const k of [0, 1, 2]) bench.seats[k] ??= { label: `${String.fromCharCode(65 + c)}-${k + 1}`, empty: true }
+    return {
+      name, code, students: last - first + 1, invigilators, columns: 3, perBench: 3, compact: true,
+      runs: [{ section: 'Class 10 – A', from: String(first), to: String(last), count: 21 }, { section: 'Class 10 – B', from: String(first + 1), to: String(last - 1), count: 21 }],
+      ...(withDrawing ? { rows } : {}),
+    }
+  }
   return {
     institution, exam: { id: 'x1', name: 'Annual examination 2026-27' }, session: { key: 'k1', date: day(10), startTime: '09:00', endTime: '12:00' }, status: 'PUBLISHED',
-    classes: [{ id: 'c1', name: 'Class 8 – A', code: '8-A', students: 38, subject: 'Mathematics', n: 0 }, { id: 'c2', name: 'Class 8 – B', code: '8-B', students: 36, subject: 'Mathematics', n: 1 }],
-    rooms: [room('Room 204', 'R204', 1, ['Kavita Srivastava', 'Rohit Tiwari']), room('Room 205', 'R205', 3, ['Pooja Saxena'])],
+    classes: [{ id: 'c1', name: 'Class 10 – A', code: '10-A', students: 38, subject: 'Mathematics', n: 0 }, { id: 'c2', name: 'Class 10 – B', code: '10-B', students: 36, subject: 'Mathematics', n: 1 }],
+    rooms: [room('Room 5', 'R5', 209, ['Kavita Srivastava', 'Rohit Tiwari']), room('Room 6', 'R6', 251, ['Pooja Saxena'])],
   }
 }
 

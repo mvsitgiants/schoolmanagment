@@ -489,7 +489,26 @@ export async function seatingChartPrint(planId, auth) {
     })),
   }
 }
-export const seatingChartModel = (raw) => ({ ...raw, roomCount: raw.rooms.length })
+/**
+ * The chart as the exam-centre sheet lays it out: each column of benches is a block, each seat of a bench a column in
+ * it (Seat 1, Seat 2 …) and the benches run down front to back; how many sit in each seat column, on top.
+ */
+function blocksOf(room) {
+  const per = Math.max(1, room.perBench ?? 1)
+  return Array.from({ length: Math.max(1, room.columns ?? 1) }, (_, c) => {
+    const seatAt = (row, k) => row.benches[c]?.seats?.[k] ?? { empty: true }
+    return {
+      n: c + 1,
+      seats: Array.from({ length: per }, (_, k) => ({ n: k + 1, count: room.rows.filter((row) => !seatAt(row, k).empty).length })),
+      lines: room.rows.map((row) => ({ cells: Array.from({ length: per }, (_, k) => seatAt(row, k)) })),
+    }
+  })
+}
+export const seatingChartModel = (raw) => ({
+  ...raw, roomCount: raw.rooms.length,
+  centreCode: raw.institution?.schoolCode || raw.institution?.affiliationNo || '',
+  rooms: raw.rooms.map((r) => (r.rows ? { ...r, blocks: blocksOf(r) } : r)),
+})
 
 /** EXAM_DOOR_LIST: the notice for the board — per room, each class-section's roll numbers. */
 export async function doorListPrint(planId, auth) {

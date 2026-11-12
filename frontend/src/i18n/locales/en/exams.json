@@ -352,7 +352,15 @@
         "inchargeSign": "Controller / Exam in-charge",
         "dateTime": "Date & time",
         "papers": "Papers",
-        "rollRange": "Roll"
+        "rollRange": "Roll",
+        "sheetTitle": "Exam seating arrangement",
+        "centre": "Centre name",
+        "centreCode": "Centre code",
+        "exam": "Exam",
+        "candidates": "Total candidates",
+        "rollNos": "Roll numbers",
+        "column": "Column",
+        "seat": "Seat"
       },
       "door": {
         "title": "Examination seating arrangement",

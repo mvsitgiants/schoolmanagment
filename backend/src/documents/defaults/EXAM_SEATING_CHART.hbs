@@ -1,55 +1,70 @@
-{{!-- Exam seating chart (A4, one page per room): the room drawn from the front, every seat with the student sitting
-      there (roll no., name, class-section), the papers being written, the roll-number runs per class-section and the
-      invigilators. exam.name · session {date, startTime, endTime} · status · classes[] {name, subject} ·
-      rooms[] {name, code, students, invigilators[], columns, runs[] {section, from, to, count},
-      rows[] {benches[] {seats[] {label, name, rollNo, section, tone, empty}}}} · compact.
-      Data from services/examSeating.js (seatingChartPrint). --}}
+{{!-- Exam seating arrangement (A4, one page per room), laid out as the exam-centre sheet: a title bar, the centre and
+      room facts, how many sit in each seat column, then each column of benches as a block — Seat 1, Seat 2 … across,
+      the benches front to back down — with the roll number (and class-section) in every seat. The school's print
+      colour ($accent) for headings; a light red only for a seat column nobody sits in.
+      institution {name, schoolCode, affiliationNo} · centreCode · exam.name · session {date, startTime, endTime} ·
+      status · classes[] {name, subject} · rooms[] {name, code, students, invigilators[], perBench, runs[] {section,
+      from, to, count}, blocks[] {n, seats[] {n, count}, lines[] {cells[] {label, rollNo, section, name, empty}}}}.
+      Data from services/examSeating.js (seatingChartPrint, seatingChartModel). --}}
 <style>
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact }
   .room { break-after: page } .room:last-child { break-after: auto }
-  .facts { margin-bottom: 3mm } .facts th { width: 26mm } .facts td { font-weight: 600 }
-  .board { text-align: center; font-size: 7.5pt; font-weight: 700; letter-spacing: .3em; text-transform: uppercase; border: .35mm solid #333; padding: .9mm; width: 60%; margin: 0 auto 3mm }
-  .plan { display: flex; flex-direction: column; gap: 1mm }
-  .row { display: grid; gap: 1.2mm }
-  .bench { display: flex; gap: .5mm; min-width: 0; border: .25mm solid #555; padding: .5mm }
-  .seat { flex: 1 1 0; min-width: 0; overflow: hidden; padding: .4mm .7mm; font-size: 6pt; line-height: 1.15; min-height: 6.4mm; border: .2mm solid #B8BCC4 }
-  .seat .no, .seat .nm { white-space: nowrap; overflow: hidden; text-overflow: ellipsis } .seat .no { font-weight: 700; font-size: 6.8pt }
-  .seat.empty { border-style: dashed; color: #A9AEB9 }
-  .papers { font-size: 7.6pt; margin: 2mm 0 1.2mm } .papers b { font-weight: 700 }
-  .runs { display: grid; grid-template-columns: repeat(4, 1fr); border-top: .25mm solid #555; border-left: .25mm solid #555; font-size: 7.8pt }
-  .runs > div { border-right: .25mm solid #555; border-bottom: .25mm solid #555; padding: .4mm 1.5mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
-  .runs b { display: inline-block; min-width: 9mm }
-  .draft { font-weight: 700 }
-  .signs { margin-top: 10mm } .facts th, .facts td { padding: .8mm 2mm }
+  .sa { width: 100%; border-collapse: collapse; table-layout: fixed }
+  .sa th, .sa td { border: .25mm solid #9AA0AA; padding: .7mm 1.5mm; font-size: 8.2pt; line-height: 1.25 }
+  .sa-title { text-align: center; font-size: 13pt; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+    color: {{$accent}}; background: color-mix(in srgb, {{$accent}} 12%, white); border: .3mm solid {{$accent}}; padding: 1.6mm }
+  .facts { margin-top: -.3mm } .facts th { text-align: right; color: {{$accent}}; font-weight: 700; text-transform: uppercase; font-size: 7.4pt }
+  .facts td { font-weight: 600 } .draft { color: #B42318; font-weight: 700 }
+  .counts { margin-top: 2.5mm } .counts th, .counts td { text-align: center; padding: .6mm .5mm }
+  .counts .blk { color: {{$accent}}; background: color-mix(in srgb, {{$accent}} 7%, white) }
+  .counts .sh { background: color-mix(in srgb, {{$accent}} 12%, white); font-weight: 600 }
+  .counts td.has { background: color-mix(in srgb, {{$accent}} 6%, white); font-weight: 600 }
+  .counts td.none { background: #FEF3F2; color: #B42318; font-weight: 600 }
+  .blocks { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4mm; margin-top: 4mm }
+  .blocks .sa th { text-align: center }
+  .blocks .bh { color: {{$accent}}; background: color-mix(in srgb, {{$accent}} 7%, white); font-weight: 700 }
+  .blocks .sh { background: color-mix(in srgb, {{$accent}} 12%, white); font-weight: 600 }
+  .blocks td { text-align: center; height: 5.6mm; padding: .3mm .5mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
+  .blocks td .no { color: {{$accent}}; font-weight: 700 } .blocks td .sec { color: #5B616E; font-size: 6.6pt }
+  .papers { font-size: 8pt; margin: 4mm 0 1.5mm } .papers b { color: {{$accent}} }
+  .signs { margin-top: 10mm }
 </style>
 {{#each rooms}}
 <section class="room">
-  {{#> letterhead}}{{/letterhead}}
-  <div class="doc-title">{{t "exams.print.seating.title" "Seating plan"}}</div>
-  <div class="doc-sub">{{../exam.name}}{{#if (eq ../status "DRAFT")}} · <span class="draft">{{t "exams.print.seating.draft" "Draft"}}</span>{{/if}}</div>
-  <table class="grid facts">
-    <tr><th>{{t "exams.print.door.room" "Room"}}</th><td>{{#if code}}{{code}}{{#if (ne code name)}} · {{name}}{{/if}}{{else}}{{name}}{{/if}}</td>
-        <th>{{t "exams.print.seating.dateTime" "Date & time"}}</th><td>{{date ../session.date}} · {{../session.startTime}}{{#if ../session.endTime}}–{{../session.endTime}}{{/if}}</td></tr>
-    <tr><th>{{t "exams.print.seating.students" "Students"}}</th><td>{{students}}</td>
-        <th>{{t "exams.print.seating.invigilators" "Invigilators"}}</th><td>{{join invigilators ", "}}</td></tr>
+  <div class="sa-title">{{t "exams.print.seating.sheetTitle" "Exam seating arrangement"}}</div>
+  <table class="sa facts">
+    <colgroup><col style="width:38mm"><col><col style="width:22mm"><col></colgroup>
+    <tr><th>{{t "exams.print.seating.centre" "Centre name"}}</th><td colspan="3">{{../institution.name}}</td></tr>
+    {{#if ../centreCode}}<tr><th>{{t "exams.print.seating.centreCode" "Centre code"}}</th><td colspan="3">{{../centreCode}}</td></tr>{{/if}}
+    <tr><th>{{t "exams.print.seating.exam" "Exam"}}</th><td colspan="3">{{../exam.name}}{{#if (eq ../status "DRAFT")}} · <span class="draft">{{t "exams.print.seating.draft" "Draft"}}</span>{{/if}}</td></tr>
+    <tr><th>{{t "exams.print.seating.dateTime" "Date & time"}}</th><td colspan="3">{{date ../session.date}} · {{../session.startTime}}{{#if ../session.endTime}}–{{../session.endTime}}{{/if}}</td></tr>
+    <tr><th>{{t "exams.print.seating.candidates" "Total candidates"}}</th><td>{{students}}</td>
+        <th>{{t "exams.print.door.room" "Room"}}</th><td>{{#if code}}{{code}}{{#if (ne code name)}} · {{name}}{{/if}}{{else}}{{name}}{{/if}}</td></tr>
+    <tr><th>{{t "exams.print.seating.rollNos" "Roll numbers"}}</th><td colspan="3">{{#each runs}}{{section}}{{#if from}} {{from}}{{#if (ne from to)}} to {{to}}{{/if}}{{/if}}{{#unless @last}} · {{/unless}}{{/each}}</td></tr>
+    {{#if invigilators.length}}<tr><th>{{t "exams.print.seating.invigilators" "Invigilators"}}</th><td colspan="3">{{join invigilators ", "}}</td></tr>{{/if}}
   </table>
-  <div class="board">{{t "exams.print.seating.front" "Front · board"}}</div>
-  <div class="plan">
-    {{#each rows}}
-    <div class="row" style="grid-template-columns: repeat({{../columns}}, minmax(0, 1fr))">
-      {{#each benches}}
-      <div class="bench">
-        {{#each seats}}
-        {{#if empty}}<div class="seat empty"><div class="no">{{label}}</div></div>
-        {{else if ../../../compact}}<div class="seat"><div class="no">{{label}}</div><div class="nm">{{section}}{{#if rollNo}}/{{rollNo}}{{/if}}</div></div>
-        {{else}}<div class="seat"><div class="no">{{label}} · {{section}}{{#if rollNo}}/{{rollNo}}{{/if}}</div><div class="nm">{{name}}</div></div>{{/if}}
-        {{/each}}
-      </div>
+
+  {{!-- how many sit in each seat column --}}
+  <table class="sa counts">
+    <tr>{{#each blocks}}<th class="blk" colspan="{{seats.length}}">{{t "exams.print.seating.column" "Column"}} {{n}}</th>{{/each}}</tr>
+    <tr>{{#each blocks}}{{#each seats}}<th class="sh">{{t "exams.print.seating.seat" "Seat"}} {{n}}</th>{{/each}}{{/each}}</tr>
+    <tr>{{#each blocks}}{{#each seats}}<td class="{{#if count}}has{{else}}none{{/if}}">{{count}}</td>{{/each}}{{/each}}</tr>
+  </table>
+
+  {{!-- each column of benches, front to back --}}
+  <div class="blocks">
+    {{#each blocks}}
+    <table class="sa">
+      <tr><th class="bh" colspan="{{seats.length}}">{{t "exams.print.seating.column" "Column"}} {{n}}</th></tr>
+      <tr>{{#each seats}}<th class="sh">{{t "exams.print.seating.seat" "Seat"}} {{n}}</th>{{/each}}</tr>
+      {{#each lines}}
+      <tr>{{#each cells}}<td>{{#unless empty}}<span class="no">{{#if rollNo}}{{rollNo}}{{else}}{{label}}{{/if}}</span> <span class="sec">{{section}}</span>{{/unless}}</td>{{/each}}</tr>
       {{/each}}
-    </div>
+    </table>
     {{/each}}
   </div>
+
   <div class="papers"><b>{{t "exams.print.seating.papers" "Papers"}}:</b> {{#each ../classes}}{{name}}{{#if subject}} — {{subject}}{{/if}}{{#unless @last}} · {{/unless}}{{/each}}</div>
-  <div class="runs">{{#each runs}}<div><b>{{section}}</b> {{#if from}}{{t "exams.print.seating.rollRange" "Roll"}} {{from}}{{#if (ne from to)}}–{{to}}{{/if}}{{/if}} ({{count}})</div>{{/each}}</div>
   <div class="signs no-break"><div>{{t "exams.print.seating.invigilatorSign" "Invigilator(s)"}}</div><div>{{t "exams.print.seating.inchargeSign" "Controller / Exam in-charge"}}</div></div>
 </section>
 {{/each}}
