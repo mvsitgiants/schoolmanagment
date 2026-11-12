@@ -35,6 +35,7 @@ import canteenRoutes from './routes/canteen.js'
 import surveysRoutes from './routes/surveys.js'
 import websiteRoutes from './routes/website.js'
 import homeworkRoutes from './routes/homework.js'
+import teachingRoutes from './routes/teaching.js'
 import certificateRoutes from './routes/certificates.js'
 import dashboardRoutes from './routes/dashboard.js'
 import scanRoutes from './routes/scan.js'
@@ -191,6 +192,7 @@ export function createApp() {
   app.use('/api/v1/surveys', surveysRoutes)
   app.use('/api/v1/website', websiteRoutes)
   app.use('/api/v1/homework', homeworkRoutes)
+  app.use('/api/v1/teaching', teachingRoutes) // Subject hub
   app.use('/api/v1/certificates', certificateRoutes)
   app.use('/api/v1/dashboard', dashboardRoutes)
   app.use('/api/v1/scan', scanRoutes)

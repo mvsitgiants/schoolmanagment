@@ -220,7 +220,17 @@
       "linkTitle": "Add a link",
       "linkLabel": "Web address",
       "linkPlaceholder": "https://…",
-      "badLink": "Use a web address that starts with https:// (or an email address)."
+      "badLink": "Use a web address that starts with https:// (or an email address).",
+      "heading": "Heading",
+      "subheading": "Small heading",
+      "picture": "Add a picture",
+      "video": "Add a video",
+      "videoTitle": "Add a video",
+      "videoLabel": "YouTube or Vimeo link",
+      "videoPlaceholder": "https://www.youtube.com/watch?v=…",
+      "badVideo": "Use a YouTube or Vimeo link.",
+      "videoText": "Video: {{url}}",
+      "videoPlayer": "Video"
     },
     "content": {
       "types": {
@@ -259,6 +269,7 @@
       "chosenCount_other": "{{count}} students chosen",
       "by": "Shared by {{name}}",
       "noTopic": "No topic",
+      "hubChip": "Subject hub",
       "open": "Open",
       "edit": "Edit",
       "delete": "Delete",

@@ -269,7 +269,11 @@
       "join": "Join",
       "joinHint": "Join opens a few minutes before the class starts.",
       "recordings": "Recordings",
-      "nothingMore": "Nothing more to open — tick it when it’s done."
+      "nothingMore": "Nothing more to open — tick it when it’s done.",
+      "practice": "Practice",
+      "practiceN_one": "{{count}} practice question",
+      "practiceN_other": "{{count}} practice questions",
+      "showAnswer": "Show the answer"
     },
     "tests": {
       "none": "No online tests yet.",

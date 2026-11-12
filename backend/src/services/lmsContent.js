@@ -1,4 +1,4 @@
-import { CONTENT_TYPES, contentStatus, contentTypeOfKind, isWebUrl, sanitizeHtml, htmlToText, videoEmbed } from '@schoolgiant/shared'
+import { CONTENT_TYPES, contentStatus, contentTypeOfKind, hasRichContent, isWebUrl, sanitizeHtml, htmlToText, videoEmbed } from '@schoolgiant/shared'
 import { Section, Subject } from '../models/academics.js'
 import { Attachment } from '../models/engines.js'
 import { Syllabus } from '../models/homework.js'
@@ -198,6 +198,7 @@ async function present(rows, auth) {
       createdBy: i.createdBy ?? null, createdById: i.createdById ? String(i.createdById) : null, createdAt: i.createdAt ?? i._id.getTimestamp(),
       files: files.filter((f) => f.entityId === String(i._id)).map((f) => ({ id: String(f._id), name: f.fileName, mime: f.mime, size: f.size })),
       canEdit: mayChangeItem(auth, i, 'edit'), canDelete: mayChangeItem(auth, i, 'delete'),
+      hub: !!i.hub, // a topic's Subject hub content (edited in the hub)
     }
   })
 }
@@ -248,4 +249,138 @@ export async function topicContentCount(topicId, auth) {
     { $count: 'n' },
   ])
   return { count: r?.n ?? 0 }
+}
+
+// ───────────────────────────────────────────────────────── Subject hub (services/teachingHub.js)
+//
+// The hub keeps ONE item per syllabus topic (and per sub-topic) holding what students read: kind NOTE, `hub: true`,
+// `topicId` (+ `subTopicId`), in the class + subject course of the year, in the unit named after the syllabus unit.
+// A draft is `published: false`; publishing sets it visible (now or from `publishAt`) to all or chosen students.
+// The caller (the hub service) has already checked the person works with this class and subject.
+
+const sameId = (a, b) => String(a ?? '') === String(b ?? '')
+const isHubItem = (i, topicId, subTopicId) => i.hub && sameId(i.topicId, topicId) && sameId(i.subTopicId, subTopicId)
+
+/** The class + subject courses of the year that hold hub items for any of these topics. */
+const hubCourses = ({ yearId, classId, subjectId, topicIds }) => Course.find({ academicYearId: yearId, classId, subjectId, 'units.items': { $elemMatch: { hub: true, topicId: { $in: topicIds.map(oid) } } } })
+
+/** The hub items of these topics, each with its files: Map `${topicId}:${subTopicId ?? ''}` → item. */
+export async function hubItems({ yearId, classId, subjectId, topicIds }) {
+  const ids = topicIds.filter(isOid)
+  if (!ids.length) return new Map()
+  const [courses, tz] = await Promise.all([hubCourses({ yearId, classId, subjectId, topicIds: ids }).lean(), timeZoneOf()])
+  const items = courses.flatMap((c) => c.units.flatMap((u) => u.items.filter((i) => i.hub && ids.includes(String(i.topicId))).map((i) => ({ ...i, courseId: c._id, unit: u.title }))))
+  const files = items.length ? await Attachment.find({ entityType: 'lms_item', entityId: { $in: items.map((i) => String(i._id)) }, 'deleted.at': null }).select('entityId fileName mime size createdAt').sort({ createdAt: 1 }).lean() : []
+  const now = new Date()
+  return new Map(items.map((i) => [`${i.topicId}:${i.subTopicId ?? ''}`, {
+    id: String(i._id), courseId: String(i.courseId), html: i.descriptionHtml ? sanitizeHtml(i.descriptionHtml) : '',
+    published: i.published !== false, status: i.published === false ? 'DRAFT' : contentStatus(i, now), publishAt: i.publishAt ?? null,
+    publishDate: i.publishAt ? ymdIn(i.publishAt, tz) : null, publishTime: i.publishAt ? hhmmIn(i.publishAt, tz) : null,
+    visibility: i.visibility ?? 'ALL', studentIds: (i.studentIds ?? []).map(String), views: i.views ?? 0, updatedAt: i.updatedAt ?? null,
+    files: files.filter((f) => f.entityId === String(i._id)).map((f) => ({ id: String(f._id), name: f.fileName, mime: f.mime, size: f.size })),
+  }]))
+}
+
+/**
+ * Create or update the hub item of a topic / sub-topic. A missing item is made (as a draft) only when there is
+ * something to keep or `create` is set (files are about to be added). Returns the item id, or null.
+ */
+export async function saveHubItem({ yearId, classId, subjectId, unitName, topicId, subTopicId, title, html, create = false }, auth) {
+  const clean = html === undefined ? undefined : sanitizeHtml(html ?? '')
+  let c = (await hubCourses({ yearId, classId, subjectId, topicIds: [String(topicId)] })).find((x) => x.units.some((u) => u.items.some((i) => isHubItem(i, topicId, subTopicId))))
+  const fields = { title: title.trim().slice(0, 200), updatedAt: new Date(), ...(clean !== undefined && { descriptionHtml: clean || undefined, body: htmlToText(clean).slice(0, 20000) || undefined }) }
+  if (me(auth) && c && !c.teacherIds.some((x) => sameId(x, auth.userId))) c.teacherIds.push(me(auth)) // they may add files to it
+  if (!c) {
+    if (!create && !clean) return null
+    c = await holderCourse({ yearId, classId, subjectId }, auth)
+    if (me(auth) && !c.teacherIds.some((x) => sameId(x, auth.userId))) c.teacherIds.push(me(auth))
+    const unit = unitIn(c, unitName)
+    unit.items.push({ kind: 'NOTE', ...fields, hub: true, topicId, subTopicId: subTopicId || undefined, published: false, visibility: 'ALL', views: 0, createdBy: auth.user?.name, createdById: me(auth) ?? undefined, createdAt: new Date() })
+    const id = String(unit.items[unit.items.length - 1]._id)
+    await c.save()
+    return id
+  }
+  const unit = c.units.find((u) => u.items.some((i) => isHubItem(i, topicId, subTopicId)))
+  const item = unit.items.find((i) => isHubItem(i, topicId, subTopicId))
+  item.set(fields)
+  if (unit.title.trim().toLowerCase() !== unitName.trim().toLowerCase()) { // the syllabus unit was renamed or the topic moved: follow it
+    const moved = item.toObject()
+    unit.items.pull(item._id)
+    unitIn(c, unitName).items.push(moved)
+  }
+  await c.save()
+  return String(item._id)
+}
+
+/**
+ * Publish (or take back to draft) the hub items of a unit's topics. `order` lists `${topicId}:${subTopicId ?? ''}` keys in
+ * syllabus order: the items follow it in the course unit. Items with nothing in them stay drafts.
+ */
+export async function publishHubItems({ yearId, classId, subjectId, topicIds, order = [], publish, publishAt = null, visibility = 'ALL', studentIds }) {
+  if (publish && visibility === 'STUDENTS') {
+    const ids = [...new Set((studentIds ?? []).map(String))].filter(isOid)
+    const sections = await Section.find({ classId }).select('_id').lean()
+    const ok = ids.length ? await Student.countDocuments({ _id: { $in: ids }, sectionId: { $in: sections.map((s) => s._id) } }) : 0
+    if (!ids.length) throw fieldsError({ studentIds: 'Pick the students' })
+    if (ok !== ids.length) throw fieldsError({ studentIds: 'Students of this class only' })
+    studentIds = ids
+  }
+  const courses = await hubCourses({ yearId, classId, subjectId, topicIds })
+  if (!courses.length) return { published: 0, drafts: 0 }
+  const want = new Set(topicIds.map(String))
+  const rank = new Map(order.map((k, i) => [k, i]))
+  const itemIds = courses.flatMap((c) => c.units.flatMap((u) => u.items.filter((i) => i.hub && want.has(String(i.topicId))).map((i) => String(i._id))))
+  const withFiles = new Set((await Attachment.distinct('entityId', { entityType: 'lms_item', entityId: { $in: itemIds }, 'deleted.at': null })).map(String))
+  let published = 0
+  let drafts = 0
+  for (const c of courses) {
+    for (const u of c.units) {
+      let touched = false
+      for (const i of u.items) {
+        if (!i.hub || !want.has(String(i.topicId))) continue
+        touched = true
+        const has = withFiles.has(String(i._id)) || hasRichContent(i.descriptionHtml)
+        const on = !!publish && has
+        i.published = on
+        if (on) {
+          i.publishAt = publishAt
+          i.visibility = visibility === 'STUDENTS' ? 'STUDENTS' : 'ALL'
+          i.studentIds = visibility === 'STUDENTS' ? studentIds : undefined
+          published += 1
+        } else drafts += 1
+      }
+      if (touched && rank.size) { // hub items in syllabus order; the unit's other items keep theirs, after them
+        const key = (i) => (i.hub ? rank.get(`${i.topicId}:${i.subTopicId ?? ''}`) ?? 1e6 : 2e6)
+        const sorted = [...u.items].map((i, n) => ({ i, n })).sort((a, b) => (key(a.i) - key(b.i)) || (a.n - b.n)).map((x) => x.i.toObject())
+        u.items = sorted
+      }
+    }
+    await c.save()
+  }
+  return { published, drafts }
+}
+
+/** Remove the hub items of topics (or only of these sub-topics); their files are hidden with them. */
+export async function removeHubItems({ yearId, classId, subjectId, topicIds, subTopicIds }, auth) {
+  const want = new Set(topicIds.map(String))
+  const subs = subTopicIds ? new Set(subTopicIds.map(String)) : null
+  const gone = []
+  for (const c of await hubCourses({ yearId, classId, subjectId, topicIds })) {
+    for (const u of c.units) {
+      const drop = u.items.filter((i) => i.hub && want.has(String(i.topicId)) && (!subs || (i.subTopicId && subs.has(String(i.subTopicId)))))
+      for (const i of drop) { gone.push(String(i._id)); u.items.pull(i._id) }
+    }
+    await c.save()
+  }
+  if (gone.length) await Attachment.updateMany({ entityType: 'lms_item', entityId: { $in: gone }, 'deleted.at': null }, { $set: { deleted: { at: new Date(), by: auth.user?.name, reason: 'The topic was removed from the syllabus' } } })
+  return gone.length
+}
+
+/** Copy another item's files onto a hub item (Add from library): new file records over the same stored bytes. */
+export async function copyItemFiles(fromItemId, toItemId, auth) {
+  await locate(fromItemId, auth) // the caller can see the source
+  const files = await Attachment.find({ entityType: 'lms_item', entityId: String(fromItemId), 'deleted.at': null }).lean()
+  if (!files.length) return 0
+  await Attachment.insertMany(files.map(({ _id, createdAt, updatedAt, deleted, ...f }) => ({ ...f, entityId: String(toItemId), uploadedById: me(auth) ?? undefined, uploadedBy: auth.user?.name })))
+  return files.length
 }

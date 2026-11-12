@@ -1137,6 +1137,72 @@ async function fillAllTopicMaterial(admin) {
   return filled ? `${filled} topics given teaching material` : 'already there'
 }
 
+// Subject hub: student-facing lesson content for a few classes' first two units (topic text, sub-topics on the first
+// topic, questions tagged class / homework / exam), then each unit published to its students. Skips topics with content.
+const esc = (x) => String(x).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]))
+function hubHtml({ topic, subject, unit }) {
+  const t = esc(topic)
+  const maths = /math/i.test(subject)
+  const science = /science|physics|chemistry|biology|evs/i.test(subject)
+  const ideas = maths
+    ? [`What ${t} means, with a picture or number line`, 'The rule / formula, written in words first', 'Where we use it in daily life']
+    : science
+      ? [`What ${t} is, in simple words`, 'What we observe in the activity and why', 'One real-life example and one safety point']
+      : [`The main idea of “${t}”`, 'New words and their meanings', 'How to answer questions on it in your own words']
+  const example = maths
+    ? `<p><strong>Worked example:</strong> Read the question twice, write what is given and what is asked, then solve step by step. Check your answer by putting it back into the question.</p>`
+    : science
+      ? `<p><strong>Try at home:</strong> Look around your home for one example of ${t.toLowerCase()} and write two lines about it in your notebook.</p>`
+      : `<p><strong>Read aloud:</strong> Read the lesson once silently and once aloud. Underline five new words and find their meanings.</p>`
+  return `<h2>${t}</h2><p>In this lesson of <em>${esc(unit)}</em> we learn about <strong>${t}</strong>. Read this before the class and again after it.</p><h3>Key ideas</h3><ul>${ideas.map((x) => `<li>${x}</li>`).join('')}</ul>${example}<p>Do the practice questions below. Ask your teacher in the next class if anything is not clear.</p>`
+}
+function hubQuestions(topic, existing = []) {
+  const t = topic
+  const keep = existing.map((q, i) => ({ ...q, use: q.use === 'EXAM' ? 'EXAM' : q.kind === 'LONG' ? 'HOMEWORK' : i === 0 ? 'CLASS' : q.use || 'CLASS' }))
+  if (keep.some((q) => q.use === 'EXAM')) return keep
+  return [...keep,
+    { question: `Define “${t}” and give one example.`, answer: 'A correct definition with a suitable example (2 marks).', kind: 'SHORT', use: 'EXAM' },
+    { question: `Explain “${t}” in detail with a diagram or worked example where possible.`, answer: 'Explanation with key points, example / diagram and conclusion (5 marks).', kind: 'LONG', use: 'EXAM' },
+  ]
+}
+
+async function fillSubjectHub(admin) {
+  const classes = (await admin.get('/academics/classes')).classes
+  const picks = ['C5', 'C8', 'U10', 'U11'].map((code) => classes.find((c) => c.code === code)).filter(Boolean)
+  let topicsDone = 0
+  let unitsPublished = 0
+  for (const c of picks) {
+    for (const subj of (c.subjects ?? []).filter((x) => /math|science|english/i.test(x.name)).slice(0, 3)) {
+      const first = await admin.get('/teaching/hub', { classId: c.id, subjectId: subj.id }).catch(() => null)
+      for (const u of (first?.units ?? []).slice(0, 2)) {
+        const hub = await admin.get('/teaching/hub', { classId: c.id, subjectId: subj.id, unitId: u.id }).catch(() => null)
+        if (!hub?.topics?.length) continue
+        let wrote = false
+        for (const [i, t] of hub.topics.entries()) {
+          const has = t.content && (t.content.html || t.content.descriptionHtml || t.content.contentHtml || t.content.hasContent)
+          if (has) continue
+          await admin.put(`/teaching/hub/topics/${t.id}`, {
+            classId: c.id, subjectId: subj.id,
+            contentHtml: hubHtml({ topic: t.name, subject: subj.name, unit: u.name }),
+            questions: hubQuestions(t.name, t.questions).map(({ id, ...q }) => ({ ...(id && { id }), ...q })),
+            ...(i === 0 && !t.subTopics?.length ? { subTopics: [
+              { name: `Basics of ${t.name}`, contentHtml: `<p>Start here: the simple meaning of <strong>${esc(t.name)}</strong>, with one example from daily life.</p>` },
+              { name: `${t.name} — practice`, contentHtml: '<p>Try the textbook examples first, then the exercise questions. Check each answer.</p>' },
+            ] } : {}),
+          })
+          topicsDone++
+          wrote = true
+        }
+        if (wrote || hub.unit?.status === 'DRAFT' || hub.unit?.status === 'MIXED') {
+          await admin.post(`/teaching/hub/units/${u.id}/publish`, { classId: c.id, subjectId: subj.id, publish: true, when: 'NOW', visibility: 'ALL' })
+          unitsPublished++
+        }
+      }
+    }
+  }
+  return topicsDone || unitsPublished ? `${topicsDone} topics given student content, ${unitsPublished} units published` : 'already there'
+}
+
 async function fillTeachingPlanner(admin) {
   const classes = (await admin.get('/academics/classes')).classes
   const picks = [classes.find((c) => c.code === 'C8'), classes.find((c) => c.code === 'C5')].filter(Boolean)
@@ -1789,6 +1855,7 @@ async function main() {
   await step('Syllabus for the junior classes', () => fillPrimarySyllabus(admin))
   await step('Teaching planner (topic material, revision, extra class)', () => fillTeachingPlanner(admin))
   await step('Teaching material on every syllabus topic', () => fillAllTopicMaterial(admin))
+  await step('Subject hub (lesson content, published)', () => fillSubjectHub(admin))
   await step('Admissions 2027-28', () => fillAdmissions(admin))
   await step('Notices', () => fillNotices(admin))
   await step('Events, meetings, gallery', () => fillEvents(admin))

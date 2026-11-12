@@ -10,7 +10,7 @@ import { fetchHomeworkLookup, fetchTeachDay } from '../../api/homework'
 import { useSnackbar } from '../../context/SnackbarContext'
 import { useFormat } from '../../context/SettingsContext'
 import { useWeekdayLabel } from '../../components/homework/HomeworkKit'
-import { ProgressStrip, TopicActions, TopicMaterial, TopicStatusPill, bookLine } from '../../components/homework/TopicKit'
+import { ProgressStrip, TopicActions, TopicMaterial, TopicStatusPill, TopicStudentContent, bookLine } from '../../components/homework/TopicKit'
 import { HomeworkForm } from './Homework'
 
 /** The homework a topic suggests: the suggestion, then its homework questions. */
@@ -46,6 +46,7 @@ function TopicCard({ topic, subject, sectionId, date, tone, onHomework, onChange
       {open && (
         <div className="border-t border-border px-3 py-3 space-y-4">
           <TopicMaterial topic={topic} />
+          <TopicStudentContent topicId={topic.id} />
           <TopicActions sectionId={sectionId} subjectId={subject.subjectId} row={topic} date={date} canMark={subject.canMark}
             onHomework={() => onHomework(subject, topic)} onChanged={onChanged} />
         </div>

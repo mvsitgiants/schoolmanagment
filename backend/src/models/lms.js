@@ -19,6 +19,9 @@ const itemSchema = new Schema({
   minutes: Number, // roughly how long it takes
   // shared from "Create content" (items made on the course page leave these empty)
   topicId: ObjectId, // the syllabus topic (Syllabus.units.topics._id) of the course's class + subject
+  // Subject hub: the one item that holds a topic's (or a sub-topic's) student content; published false = draft
+  hub: Boolean,
+  subTopicId: ObjectId, // Syllabus.units.topics.subTopics._id
   descriptionHtml: String, // rich text, sanitised (shared richText.js); `body` keeps its words for older screens
   publishAt: Date, // null = shown at once; later = students see it from then
   visibility: { type: String, default: 'ALL' }, // CONTENT_VISIBILITY

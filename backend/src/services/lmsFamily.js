@@ -1,6 +1,7 @@
 import { courseProgress, itemVisibleTo, joinWindow, jitsiUrl, sanitizeHtml, videoEmbed } from '@schoolgiant/shared'
 import { Section, Subject } from '../models/academics.js'
 import { Attachment } from '../models/engines.js'
+import { Syllabus } from '../models/homework.js'
 import { Course, CourseProgress, LiveClass } from '../models/lms.js'
 import { isOid } from '../platform/db.js'
 import { conflict, notFound } from '../platform/errors.js'
@@ -57,9 +58,53 @@ async function courseOf(f, id, courseId) {
   return { s, c }
 }
 
+/**
+ * Pictures in a Subject hub item's text point at the staff files route (/api/v1/files/<id>/content). For the family
+ * app each becomes this item's family file route — only for files of the same item; any other such picture is dropped.
+ */
+function familyPictures(html, { slug, studentId, courseId, itemId, fileIds }) {
+  const path = `/api/v1/family/${encodeURIComponent(String(slug).toLowerCase())}/students/${studentId}/learning/courses/${courseId}/items/${itemId}/files/`
+  return html.replace(/<img src="([^"]*)"([^>]*)>/g, (whole, src, rest) => {
+    // the editor writes the API's address: a same-site path, or the API's own https origin
+    const m = src.match(/^(https:\/\/[^/]+)?\/api\/v1\/files\/([a-f0-9]{24})\/content(?:\?[^"]*)?$/i)
+    if (!m) return /^(https:\/\/[^/]+)?\/api\//i.test(src) ? '' : whole
+    return fileIds.has(m[2]) ? `<img src="${m[1] ?? ''}${path}${m[2]}"${rest}>` : ''
+  })
+}
+
+/**
+ * The course's syllabus order and teacher-made practice: unit name → rank, `${topicId}:${subTopicId ?? ''}` → rank,
+ * topic id → { name, sub-topic names, the questions asked in class (use CLASS) }. Empty when the course has no syllabus.
+ */
+async function syllabusOf(c) {
+  const syl = c.classId && c.subjectId ? await Syllabus.findOne({ academicYearId: c.academicYearId, classId: c.classId, subjectId: c.subjectId }).select('units').lean() : null
+  const unitRank = new Map()
+  const itemRank = new Map()
+  const topics = new Map()
+  let n = 0
+  for (const [k, u] of (syl?.units ?? []).entries()) {
+    unitRank.set(u.name.trim().toLowerCase(), k)
+    for (const t of u.topics ?? []) {
+      itemRank.set(`${t._id}:`, n++)
+      for (const s of t.subTopics ?? []) itemRank.set(`${t._id}:${s._id}`, n++)
+      topics.set(String(t._id), {
+        name: t.name, subs: new Map((t.subTopics ?? []).map((s) => [String(s._id), s.name])),
+        practice: (t.questions ?? []).filter((q) => (q.use ?? 'CLASS') === 'CLASS').map((q) => ({ id: String(q._id), question: q.question, answer: q.answer ?? '', kind: q.kind ?? 'SHORT', options: q.options ?? [] })),
+      })
+    }
+  }
+  return { unitRank, itemRank, topics }
+}
+
 export async function courseView(f, id, courseId) {
   const { s, c } = await courseOf(f, id, courseId)
+  const plan = await syllabusOf(c)
+  // Subject hub content follows the syllabus: units in its order, then topic → sub-topic; other items keep their place after
+  const unitKey = (u) => plan.unitRank.get(u.title.trim().toLowerCase()) ?? 1e6
+  const itemKey = (i) => (i.hub ? plan.itemRank.get(`${i.topicId}:${i.subTopicId ?? ''}`) ?? 1e6 : 2e6)
   const units = unitsFor(c, s._id)
+    .map((u, k) => ({ u: { ...u, items: u.items.map((i, n) => ({ i, n })).sort((a, b) => (itemKey(a.i) - itemKey(b.i)) || (a.n - b.n)).map((x) => x.i) }, k }))
+    .sort((a, b) => (unitKey(a.u) - unitKey(b.u)) || (a.k - b.k)).map((x) => x.u)
   const items = units.flatMap((u) => u.items)
   const [progress, files, subject] = await Promise.all([
     CourseProgress.findOne({ courseId: c._id, studentId: s._id }).lean(),
@@ -67,15 +112,23 @@ export async function courseView(f, id, courseId) {
     Subject.findById(c.subjectId).select('name').lean(),
   ])
   const done = new Set((progress?.done ?? []).map(String))
+  const itemOut = (i) => {
+    const mine = files.filter((x) => x.entityId === String(i._id))
+    const html = i.descriptionHtml ? sanitizeHtml(i.descriptionHtml) : ''
+    const topic = i.hub && i.topicId ? plan.topics.get(String(i.topicId)) : null
+    return {
+      id: String(i._id), kind: i.kind, title: i.title, body: i.body ?? '',
+      html: html && familyPictures(html, { slug: f.slug, studentId: String(s._id), courseId: String(c._id), itemId: String(i._id), fileIds: new Set(mine.map((x) => String(x._id))) }),
+      url: i.url ?? '', embed: i.kind === 'VIDEO' ? videoEmbed(i.url) : null, minutes: i.minutes ?? null, done: done.has(String(i._id)),
+      files: mine.map((x) => ({ id: String(x._id), name: x.fileName, mime: x.mime, size: x.size })),
+      // Subject hub: the topic (or sub-topic, one level in) it belongs to, and the topic's practice questions
+      hub: !!i.hub, topicId: i.topicId ? String(i.topicId) : null, subTopicId: i.subTopicId ? String(i.subTopicId) : null,
+      ...(topic && (i.subTopicId ? { subTitle: topic.subs.get(String(i.subTopicId)) ?? null, topic: topic.name } : { topic: topic.name, practice: topic.practice })),
+    }
+  }
   return {
     id: String(c._id), title: c.title, description: c.description ?? '', subject: subject?.name ?? '', ...courseProgress(units, progress?.done ?? []),
-    units: units.map((u) => ({
-      id: String(u._id), title: u.title,
-      items: u.items.map((i) => ({
-        id: String(i._id), kind: i.kind, title: i.title, body: i.body ?? '', html: i.descriptionHtml ? sanitizeHtml(i.descriptionHtml) : '', url: i.url ?? '', embed: i.kind === 'VIDEO' ? videoEmbed(i.url) : null, minutes: i.minutes ?? null, done: done.has(String(i._id)),
-        files: files.filter((x) => x.entityId === String(i._id)).map((x) => ({ id: String(x._id), name: x.fileName, mime: x.mime, size: x.size })),
-      })),
-    })).filter((u) => u.items.length),
+    units: units.map((u) => ({ id: String(u._id), title: u.title, items: u.items.map(itemOut) })).filter((u) => u.items.length),
   }
 }
 

@@ -141,7 +141,7 @@ export const TOPIC_STATUS = {
 }
 export const TOPIC_STATUSES = Object.keys(TOPIC_STATUS)
 export const QUESTION_KINDS = ['SHORT', 'LONG', 'MCQ']
-export const QUESTION_USES = ['CLASS', 'HOMEWORK']
+export const QUESTION_USES = ['CLASS', 'HOMEWORK', 'EXAM'] // asked in class, set as homework, kept for exam papers
 
 const DAY_CODES = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
 const codeOf = (ymd) => DAY_CODES[new Date(`${ymd}T12:00:00Z`).getUTCDay()]

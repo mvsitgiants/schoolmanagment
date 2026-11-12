@@ -10,6 +10,7 @@ import {
 const ROUTE_ALIASES = [
   { prefix: '/core/all-pages', module: 'core', page: 'roles' },
   { prefix: '/lms/bulk-upload', module: 'lms', page: 'create-content' },
+  { prefix: '/teaching/hub', module: 'homework', page: 'hub' }, // the Subject hub's deep link (/teaching/hub?classId=&subjectId=&unitId=)
   { prefix: '/canteen/token-board', module: 'canteen', page: 'orders' }, // the token board: anyone who can see orders
 ]
 
@@ -25,8 +26,9 @@ const isOn = (user, m) => m.mandatory || enabledSet(user).has(m.id)
  * A page with `menuIf: [permission keys]` is in the menu only for people who hold one of
  * them (e.g. the call log for those who review it — everyone else calls from the dock).
  * It still opens by URL and from global search for anyone with its `view`.
+ * `menu: false` keeps a page out of the menu for everyone (an older screen another page replaced), the same way.
  */
-const inMenu = (user, p) => !p.menuIf?.length || p.menuIf.some((k) => can(user, k))
+const inMenu = (user, p) => p.menu !== false && (!p.menuIf?.length || p.menuIf.some((k) => can(user, k)))
 
 /** Sidebar model: categories → modules → pages the user can open. `all` keeps `menuIf` pages. */
 export function navFor(user, { all = false } = {}) {

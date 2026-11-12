@@ -6,7 +6,7 @@ import { BookOpen, CalendarDays, ChevronDown, ClipboardList, Goal, MessageSquare
 import { LESSON_STATUS } from '@schoolgiant/shared'
 import { Avatar, ColorChip, Drawer, Skeleton, StatusPill, useConfirm } from '../system'
 import Button from '../ui/Button'
-import { TopicMaterial } from './TopicKit'
+import { TopicMaterial, TopicStudentContent } from './TopicKit'
 import { deleteLessonPlan, fetchSyllabusTopic } from '../../api/homework'
 import { useSnackbar } from '../../context/SnackbarContext'
 import { hasPermission } from '../../api/auth'
@@ -32,7 +32,7 @@ function PlanLine({ icon: Icon, label, children }) {
 function TopicCard({ name, q, open, onToggle }) {
   const { t } = useTranslation('homework')
   const topic = q.data
-  const empty = topic && !topic.book?.name && !topic.book?.pages && !topic.howTo && !topic.keyPoints?.length && !topic.questions?.length && !topic.homeworkHint
+  const empty = topic && !topic.book?.name && !topic.book?.pages && !topic.howTo && !topic.keyPoints?.length && !topic.questions?.length && !topic.homeworkHint && !topic.studentContent?.length
   return (
     <div className={`rounded-xl border bg-surface transition ${open ? 'border-brand-200 shadow-sm' : 'border-border'}`}>
       <button type="button" onClick={onToggle} aria-expanded={open} className="w-full flex items-center gap-3 px-4 py-3 text-start">
@@ -49,6 +49,7 @@ function TopicCard({ name, q, open, onToggle }) {
           {q.isLoading ? <Skeleton className="h-24" /> : topic ? (
             <>
               <TopicMaterial topic={topic} />
+              <div className="mt-3"><TopicStudentContent topic={topic} /></div>
               <TopicContentLink topicId={topic.id} className="mt-2" />
               {empty && hasPermission('homework.syllabus.edit') && (
                 <Link to="/homework/syllabus" className="mt-2 inline-block text-sm font-medium text-brand-700 hover:underline">{t('homework.lessons.view.addMaterial')}</Link>

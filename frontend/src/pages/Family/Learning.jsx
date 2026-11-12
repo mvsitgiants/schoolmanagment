@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import clsx from 'clsx'
-import { BookOpen, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, Circle, ExternalLink, FileText, GraduationCap, Link2, Paperclip, PlayCircle, Video } from 'lucide-react'
+import { BookOpen, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, Circle, CornerDownRight, ExternalLink, FileText, GraduationCap, Link2, Paperclip, PlayCircle, Sparkles, Video } from 'lucide-react'
 import { SideNav, SideNavLayout, StatusPill, TONE, hueTone } from '../../components/system'
 import { FCard, FEmpty, FError, FSkeleton, useFamily, useFamilyQuery } from '../../components/family/FamilyKit'
 import { familyCourse, familyItemFileUrl, familyJoinLive, familyLearning, familyMarkItem, familyViewItem } from '../../api/family'
@@ -27,6 +27,33 @@ function SubjectTile({ subject, className }) {
   const words = String(subject ?? '').split(/\s+/).filter(Boolean)
   const letters = words.length > 1 ? words.slice(0, 2).map((w) => w[0]).join('').toUpperCase() : words[0] ? words[0][0].toUpperCase() + (words[0][1] ?? '') : '·'
   return <span className={clsx('flex shrink-0 items-center justify-center rounded-xl border text-sm font-bold', tone.bg, tone.border, tone.text, className)} aria-hidden>{letters}</span>
+}
+
+/** One practice question; its answer shows on a tap. */
+function PracticeRow({ q, n }) {
+  const { t } = useTranslation('family')
+  const [open, setOpen] = useState(false)
+  return (
+    <li className="rounded-xl bg-black/[0.03] px-3 py-2.5">
+      <p className="text-sm text-ink whitespace-pre-line break-words"><span className="me-1 font-semibold text-ink-muted">{n}.</span>{q.question}</p>
+      {q.kind === 'MCQ' && q.options.length > 0 && <ol className="mt-1 list-[lower-alpha] ps-5 text-sm text-ink-muted">{q.options.map((o, i) => <li key={i}>{o}</li>)}</ol>}
+      {q.answer && (open
+        ? <p className="mt-1.5 rounded-lg bg-success-50 px-2.5 py-2 text-sm text-ink whitespace-pre-line break-words">{q.answer}</p>
+        : <button type="button" onClick={() => setOpen(true)} className="mt-1 inline-flex min-h-[40px] items-center text-sm font-medium text-brand-700">{t('family.learning.showAnswer')}</button>)}
+    </li>
+  )
+}
+
+/** The topic's practice questions (the ones its teacher asks in class). */
+function Practice({ questions }) {
+  const { t } = useTranslation('family')
+  if (!questions?.length) return null
+  return (
+    <div className="pt-1">
+      <p className="mb-1.5 flex items-center gap-1.5 text-sm font-semibold text-ink"><Sparkles className="h-4 w-4 text-brand-600" aria-hidden />{t('family.learning.practice')}</p>
+      <ol className="space-y-1.5">{questions.map((q, i) => <PracticeRow key={q.id} q={q} n={i + 1} />)}</ol>
+    </div>
+  )
 }
 
 function CourseView({ courseId, onBack }) {
@@ -70,17 +97,19 @@ function CourseView({ courseId, onBack }) {
               {u.items.map((i) => {
                 const Icon = ICON[i.kind] ?? FileText
                 const expanded = open === i.id
+                const sub = i.hub && i.subTopicId
                 return (
-                  <li key={i.id} className="py-1">
+                  <li key={i.id} className={clsx('py-1', sub && 'ps-6')}>
                     <div className="flex items-center gap-1">
                       <button type="button" aria-label={i.done ? t('family.learning.undo') : t('family.learning.markDone')} aria-pressed={i.done} onClick={() => mark.mutate({ itemId: i.id, done: !i.done })}
                         className="-ms-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-xl hover:bg-black/[0.03]">
                         {i.done ? <CheckCircle2 className="h-6 w-6 text-success-600" /> : <Circle className="h-6 w-6 text-ink-faint" />}
                       </button>
                       <button type="button" onClick={() => toggle(i.id)} aria-expanded={expanded} className="flex min-h-[48px] min-w-0 flex-1 items-center gap-2.5 py-1.5 text-start">
-                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-black/[0.04] text-ink-muted"><Icon className="h-4 w-4" aria-hidden /></span>
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-black/[0.04] text-ink-muted">{sub ? <CornerDownRight className="h-4 w-4" aria-hidden /> : <Icon className="h-4 w-4" aria-hidden />}</span>
                         <span className="min-w-0 flex-1">
-                          <span className={clsx('block text-sm font-medium leading-snug break-words', i.done ? 'text-ink-muted line-through decoration-ink-faint' : 'text-ink')}>{i.title}</span>
+                          <span className={clsx('block text-sm font-medium leading-snug break-words', i.done ? 'text-ink-muted line-through decoration-ink-faint' : 'text-ink')}>{(sub && i.subTitle) || i.title}</span>
+                          {i.practice?.length > 0 && <span className="block text-xs text-ink-faint">{t('family.learning.practiceN', { count: i.practice.length })}</span>}
                           {i.minutes ? <span className="block text-xs text-ink-faint">{t('family.learning.minutes', { count: i.minutes })}</span> : null}
                         </span>
                         <ChevronDown className={clsx('h-4 w-4 shrink-0 text-ink-faint transition-transform', expanded && 'rotate-180')} aria-hidden />
@@ -96,7 +125,8 @@ function CourseView({ courseId, onBack }) {
                             <Paperclip className="h-4 w-4 shrink-0 text-ink-faint" aria-hidden /><span className="min-w-0 flex-1 truncate">{f.name}</span><span className="shrink-0 text-xs text-ink-faint">{size(f.size)}</span>
                           </a>
                         ))}
-                        {!i.body && !i.embed && !i.url && !i.files.length && <p className="text-sm text-ink-faint">{t('family.learning.nothingMore')}</p>}
+                        <Practice questions={i.practice} />
+                        {!i.html && !i.body && !i.embed && !i.url && !i.files.length && !i.practice?.length && <p className="text-sm text-ink-faint">{t('family.learning.nothingMore')}</p>}
                       </div>
                     )}
                   </li>

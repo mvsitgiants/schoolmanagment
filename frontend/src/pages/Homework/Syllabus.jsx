@@ -7,6 +7,7 @@ import { parseSyllabusText, spreadUnits, topicMonth, yearPlan } from '@schoolgia
 import { ColorChip, DataTable, Input, Modal, Note, PageContainer, PageHeader, Panel, PillRow, ProgressBar, SegmentedControl, SideNav, SideNavLayout, StatusPill, Textarea, pillClass, useConfirm } from '../../components/system'
 import { MonthSelect, useMonthLabel } from '../../components/homework/HomeworkKit'
 import { TopicDrawer, TopicStatusPill } from '../../components/homework/TopicKit'
+import HubBanner from '../../components/homework/HubBanner'
 import Button from '../../components/ui/Button'
 import { fetchSyllabus, fetchSyllabusOverview, markSyllabusTopics, saveSyllabus } from '../../api/homework'
 import { hasPermission } from '../../api/auth'
@@ -317,6 +318,7 @@ export default function Syllabus() {
   return (
     <PageContainer>
       <PageHeader icon={ListChecks} title={t('homework.syllabus.title')} subtitle={t('homework.syllabus.subtitle')} />
+      <HubBanner classId={classId} subjectId={subjectId} className="mb-3" />
       {classId && subjectId ? (
         <SideNavLayout nav={subjectNav}>
           <Detail key={`${classId}:${subjectId}`} classId={classId} subjectId={subjectId} initialSection={params.get('section')} onBack={() => setParams({ class: classId })} />

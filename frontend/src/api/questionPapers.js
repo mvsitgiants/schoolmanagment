@@ -21,6 +21,9 @@ export const replaceQuestion = (id, setId, body) => post(`${BASE}/${id}/sets/${s
 export const addFromBank = (id, setId, body) => post(`${BASE}/${id}/sets/${setId}/add`, body)
 export const writeQuestion = (id, setId, body) => post(`${BASE}/${id}/sets/${setId}/write`, body)
 export const fetchPaperBank = (id, params) => get(`${BASE}/${id}/bank`, params)
+/** "Add from syllabus": the exam questions kept on the class + subject's syllabus topics (units → topics → questions). */
+export const fetchPaperSyllabus = (id, params) => get(`${BASE}/${id}/syllabus`, params)
+export const addFromSyllabus = (id, setId, body) => post(`${BASE}/${id}/sets/${setId}/add-syllabus`, body)
 
 export const submitQuestionPaper = (id, note) => post(`${BASE}/${id}/submit`, { note })
 export const recallQuestionPaper = (id) => post(`${BASE}/${id}/recall`)

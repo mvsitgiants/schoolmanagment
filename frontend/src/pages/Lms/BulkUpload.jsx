@@ -6,6 +6,7 @@ import clsx from 'clsx'
 import { FolderOpen, Files, Paperclip, RotateCcw, Send, Users, X } from 'lucide-react'
 import { CONTENT_FILE_MAX_MB, FILE_ACCEPT, addDaysYmd } from '@schoolgiant/shared'
 import { DateInput, FormField, Input, Note, PageContainer, PageHeader, Panel, ProgressBar, SegmentedControl, Select, Skeleton, StatusPill, localIso } from '../../components/system'
+import HubBanner from '../../components/homework/HubBanner'
 import Button from '../../components/ui/Button'
 import { FileDrop, StudentPicker, TopicSelect, fmtSize } from './CreateContent'
 import { createContent, fetchContentTopics, fetchLmsLookup } from '../../api/lms'
@@ -150,6 +151,7 @@ export default function BulkUpload() {
   return (
     <PageContainer>
       <PageHeader icon={Files} title={t('lms.content.bulk.title')} subtitle={t('lms.content.bulk.subtitle')} />
+      <HubBanner classId={f.classId} subjectId={f.subjectId} className="mb-3" />
       {lookLoading ? <Skeleton className="h-96" /> : (
         <div className="space-y-3">
           <Panel title={t('lms.content.bulk.forAll')}>

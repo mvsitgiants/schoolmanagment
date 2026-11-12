@@ -2,13 +2,13 @@ import { useEffect, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import clsx from 'clsx'
-import { ArrowDown, ArrowUp, CheckCircle2, Library, Plus, Search, Trash2 } from 'lucide-react'
+import { ArrowDown, ArrowUp, CheckCircle2, ListChecks, Library, PencilLine, Plus, Search, Trash2 } from 'lucide-react'
 import {
   BLOOM_LEVELS, DIFFICULTY, QP_DIFFICULTIES, QP_SET_LETTERS, QP_SET_MODES, QP_STATUS, QUESTION_TYPES, blueprintTotals, checkBlueprint, checkQuestion, optionLetter,
 } from '@schoolgiant/shared'
 import { ColorChip, DataTable, FormField, Input, Modal, Note, SegmentedControl, Select, Tag, Textarea } from '../system'
 import Button from '../ui/Button'
-import { fetchPaperBank } from '../../api/questionPapers'
+import { fetchPaperBank, fetchPaperSyllabus } from '../../api/questionPapers'
 
 // The pieces of the question paper screen (pages/Exams/QuestionPapers.jsx): labels, the question card body, the
 // target-vs-picked bars, and the forms — blueprint, sets, writing a question, picking from the bank.
@@ -272,15 +272,28 @@ const blankFor = (type) => ({
  * Write a question for a section (its type is the section's), or edit one already in the paper. `canSaveToBank`
  * offers "also save to the question bank" for a new one. `onSave(question, { saveToBank })`.
  */
-export function QuestionForm({ section, initial, chapters = [], canSaveToBank, saving, onClose, onSave }) {
+/** A syllabus question (Add from syllabus) as the question form's starting point for a section of `type`. */
+export function prefillFromSyllabus(q, unit, type) {
+  return {
+    text: q.question, chapter: unit, difficulty: 'MEDIUM',
+    options: ['MCQ', 'MULTI'].includes(type) && q.options.length ? q.options.map((o) => ({ text: o, correct: false })) : undefined,
+    answers: q.answer && ['FILL', 'SHORT', 'LONG'].includes(type) ? [q.answer] : [],
+  }
+}
+
+/** `initial` edits a question in the paper; `prefill` starts a new one filled in (from the syllabus). */
+export function QuestionForm({ section, initial, prefill, chapters = [], canSaveToBank, saving, onClose, onSave }) {
   const { t } = useTranslation(NS)
   const L = useQpLabels()
   const type = section.type
-  const [form, setForm] = useState(() => (initial ? {
-    ...blankFor(type), ...initial, chapter: initial.chapter ?? '', bloom: initial.bloom ?? '', explanation: initial.explanation ?? '',
-    answersText: (initial.answers ?? []).join(type === 'FILL' ? '\n' : '\n\n'),
-    options: initial.options?.length ? initial.options.map((o) => ({ ...o })) : blankFor(type).options,
-  } : blankFor(type)))
+  const [form, setForm] = useState(() => {
+    const start = initial ?? prefill
+    return start ? {
+      ...blankFor(type), ...start, chapter: start.chapter ?? '', bloom: start.bloom ?? '', explanation: start.explanation ?? '',
+      answersText: (start.answers ?? []).join(type === 'FILL' ? '\n' : '\n\n'),
+      options: start.options?.length ? start.options.map((o) => ({ ...o })) : blankFor(type).options,
+    } : blankFor(type)
+  })
   const [saveToBank, setSaveToBank] = useState(false)
   const [tried, setTried] = useState(false)
   const q = {
@@ -438,6 +451,78 @@ export function BankPicker({ paper, section, single, saving, onClose, onPick }) 
           emptyHint={t('questionPapers.bank.emptyHint')}
         />
         {data && data.total > rows.length && <p className="text-xs text-ink-faint">{t('questionPapers.bank.more', { shown: rows.length, total: data.total })}</p>}
+      </div>
+    </Modal>
+  )
+}
+
+/**
+ * Add from syllabus: the exam questions teachers kept on this class and subject's syllabus topics, narrowed by unit and
+ * topic. Short / long answer sections take the ticked ones as they are (`onAdd(ids)`); other sections open the question
+ * form filled in, to mark the right option or give the answer (`onFinish(question, unit)`).
+ */
+export function SyllabusPicker({ paper, section, taken = [], saving, onClose, onAdd, onFinish }) {
+  const { t } = useTranslation(NS)
+  const { data, isLoading, error } = useQuery({ queryKey: ['qp-syllabus', paper.id, section.id], queryFn: () => fetchPaperSyllabus(paper.id, { sectionId: section.id }) })
+  const [unitId, setUnitId] = useState('')
+  const [topicId, setTopicId] = useState('')
+  const [fitsOnly, setFitsOnly] = useState(true)
+  const [picked, setPicked] = useState([])
+  const units = data?.units ?? []
+  const unit = units.find((u) => u.id === unitId)
+  const have = new Set(taken.map((x) => String(x ?? '').trim().toLowerCase()))
+  const rows = (unit ? [unit] : units).flatMap((u) => u.topics.filter((tp) => !topicId || tp.id === topicId)
+    .flatMap((tp) => tp.questions.filter((q) => !fitsOnly || q.fits).map((q) => ({ ...q, unit: u.name, topic: tp.name, inPaper: have.has(q.question.trim().toLowerCase()) }))))
+  const direct = !!data?.direct
+  const toggle = (id) => setPicked((l) => (l.includes(id) ? l.filter((x) => x !== id) : [...l, id]))
+  return (
+    <Modal open onClose={onClose} size="xl" title={t('questionPapers.syllabus.title', { section: section.title })} footer={<>
+      <Button variant="secondary" onClick={onClose}>{t('questionPapers.actions.cancel')}</Button>
+      {direct && <Button icon={ListChecks} loading={saving} disabled={!picked.length} onClick={() => onAdd(picked)}>{t('questionPapers.syllabus.add', { count: picked.length })}</Button>}
+    </>}>
+      <div className="space-y-3">
+        <div className="grid gap-2 sm:grid-cols-3">
+          <Select value={unitId} onChange={(e) => { setUnitId(e.target.value); setTopicId('') }} aria-label={t('questionPapers.syllabus.unit')}>
+            <option value="">{t('questionPapers.syllabus.allUnits')}</option>
+            {units.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
+          </Select>
+          <Select value={topicId} onChange={(e) => setTopicId(e.target.value)} disabled={!unit} aria-label={t('questionPapers.syllabus.topic')}>
+            <option value="">{t('questionPapers.syllabus.allTopics')}</option>
+            {(unit?.topics ?? []).map((tp) => <option key={tp.id} value={tp.id}>{tp.name}</option>)}
+          </Select>
+          <label className="inline-flex min-h-10 items-center gap-2 text-sm text-ink-muted">
+            <input type="checkbox" checked={fitsOnly} onChange={(e) => setFitsOnly(e.target.checked)} className="rounded border-border text-brand-500 focus:ring-brand-500" />
+            {t('questionPapers.syllabus.fitsOnly')}
+          </label>
+        </div>
+        <Note>{direct ? t('questionPapers.syllabus.directHint', { marks: section.marks }) : t('questionPapers.syllabus.finishHint', { marks: section.marks })}</Note>
+        {isLoading ? <p className="text-sm text-ink-faint">{t('questionPapers.loading')}</p> : error ? <Note tone="warning">{error.message}</Note> : !rows.length ? (
+          <p className="py-6 text-center text-sm text-ink-faint">{units.length ? t('questionPapers.syllabus.noneHere') : t('questionPapers.syllabus.none')}</p>
+        ) : (
+          <ul className="max-h-[60vh] space-y-2 overflow-y-auto">
+            {rows.map((q) => {
+              const on = picked.includes(q.id)
+              return (
+                <li key={q.id} className={clsx('flex items-start gap-3 rounded-lg border px-3 py-2.5', on ? 'border-brand-300 bg-brand-50/40' : 'border-border')}>
+                  {direct && <input type="checkbox" checked={on} onChange={() => toggle(q.id)} aria-label={t('questionPapers.syllabus.pick')} className="mt-1 h-4 w-4 shrink-0 rounded border-border text-brand-500 focus:ring-brand-500" />}
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm text-ink whitespace-pre-line break-words">{q.question}</p>
+                    {q.kind === 'MCQ' && q.options.length > 0 && <ol className="mt-1 list-[lower-alpha] ps-5 text-sm text-ink-muted">{q.options.map((o, i) => <li key={i}>{o}</li>)}</ol>}
+                    {q.answer && <p className="mt-1 text-xs text-ink-muted whitespace-pre-line break-words">{t('questionPapers.syllabus.answer', { answer: q.answer })}</p>}
+                    <div className="mt-1.5 flex flex-wrap items-center gap-1">
+                      <Tag>{t(`questionPapers.syllabus.kind.${q.kind}`)}</Tag>
+                      <ColorChip label={q.unit} dot />
+                      <span className="text-xs text-ink-muted">{q.topic}</span>
+                      {!q.fits && <Tag tone="warning">{t('questionPapers.syllabus.otherKind')}</Tag>}
+                      {q.inPaper && <Tag tone="warning">{t('questionPapers.syllabus.inPaper')}</Tag>}
+                    </div>
+                  </div>
+                  {!direct && <Button size="sm" variant="secondary" icon={PencilLine} className="shrink-0" onClick={() => onFinish(q, q.unit)}>{t('questionPapers.syllabus.use')}</Button>}
+                </li>
+              )
+            })}
+          </ul>
+        )}
       </div>
     </Modal>
   )

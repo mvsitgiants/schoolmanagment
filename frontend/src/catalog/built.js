@@ -23,7 +23,7 @@ export const BUILT_PAGES = new Set([
   'fees.structures', 'fees.collect', 'fees.invoices', 'fees.dues', 'fees.concessions', 'fees.refunds', 'fees.day-end', 'fees.online',
   'analytics.academics', 'analytics.fees', 'analytics.campuses', 'ai.assistant', 'ai.question-papers', 'ai.remarks', 'integrations.payments', 'integrations.messaging', 'integrations.devices', 'integrations.logs', 'programs.programs', 'programs.outcomes', 'programs.attainment', 'registration.windows', 'registration.requests', 'coe.marks', 'coe.revaluation', 'coe.grade-cards',
   'exams.schedule', 'exams.hall-tickets', 'exams.seating', 'exams.question-papers', 'exams.marks', 'exams.results', 'exams.report-cards', 'exams.year-results', 'exams.setup',
-  'homework.homework', 'homework.lesson-plans', 'homework.syllabus',
+  'homework.hub', 'homework.homework', 'homework.lesson-plans', 'homework.syllabus',
   'certificates.issue', 'certificates.register',
   'dashboard.live', 'reports.library', 'reports.builder',
   'portal.settings', 'portal.content',

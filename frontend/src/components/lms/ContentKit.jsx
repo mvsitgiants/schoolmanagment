@@ -48,6 +48,7 @@ export function ContentCard({ item, onOpen, onEdit, onDelete, showTeacher = fals
           <ColorChip label={item.className} seed={item.classId} />
           <ColorChip label={item.subject} seed={item.subjectId} dot />
           <span className="text-xs text-ink-muted">{t(`lms.content.types.${item.type}.name`)}</span>
+          {item.hub && <span className="inline-flex items-center rounded-full border border-brand-200 bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-700">{t('lms.content.hubChip')}</span>}
         </div>
         <p className="mt-1 text-xs text-ink-muted break-words">{[item.topic || t('lms.content.noTopic'), showTeacher && item.createdBy && t('lms.content.by', { name: item.createdBy })].filter(Boolean).join(' · ')}</p>
         <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-muted">

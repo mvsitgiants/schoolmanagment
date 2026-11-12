@@ -5,6 +5,8 @@ import { useTranslation } from 'react-i18next'
 import { Files, FolderOpen, Library, Pencil, Plus, Trash2, X } from 'lucide-react'
 import { CONTENT_TYPES } from '@schoolgiant/shared'
 import { EmptyState, HeaderButton, PageContainer, PageHeader, Pagination, Panel, SearchInput, Select, SkeletonRows, useConfirm } from '../../components/system'
+import HubBanner from '../../components/homework/HubBanner'
+import { hasPermission } from '../../api/auth'
 import Button from '../../components/ui/Button'
 import { ContentCard, ContentPreview } from '../../components/lms/ContentKit'
 import useDebouncedValue from '../../hooks/useDebouncedValue'
@@ -49,7 +51,10 @@ export default function ContentBrowser({ mine = false }) {
   const askDelete = async (item) => {
     if (await confirm({ title: t('lms.content.list.deleteConfirm', { title: item.title }), message: t('lms.content.list.deleteHint'), confirmLabel: t('lms.content.delete'), tone: 'danger' })) remove.mutate(item.id)
   }
-  const edit = (item) => navigate(`/lms/create-content?edit=${item.id}`)
+  // a topic's Subject hub content is edited in the hub (opened at that topic); anything else in the content form
+  const edit = (item) => navigate(item.hub && item.topicId && hasPermission('homework.hub.view')
+    ? `/teaching/hub?${new URLSearchParams({ classId: item.classId, subjectId: item.subjectId, topicId: item.topicId })}`
+    : `/lms/create-content?edit=${item.id}`)
   // a topic picked from a syllabus link, before class and subject are chosen here
   const topicOnly = f.topicId && !units.some((u) => u.topics.some((x) => x.id === f.topicId))
   return (
@@ -59,6 +64,7 @@ export default function ContentBrowser({ mine = false }) {
           {mine && <HeaderButton icon={Files} requires="lms.create-content.create" onClick={() => navigate('/lms/bulk-upload')}>{t('lms.content.list.bulk')}</HeaderButton>}
           <HeaderButton icon={Plus} variant="primary" requires="lms.create-content.create" onClick={() => navigate('/lms/create-content')}>{t('lms.content.list.create')}</HeaderButton>
         </>} />
+      <HubBanner classId={f.classId} subjectId={f.subjectId} className="mb-3" />
       <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center">
         <SearchInput value={search} onChange={(v) => { setSearch(v); setPage(0) }} placeholder={t('lms.content.list.search')} className="col-span-2" />
         <Select value={f.classId} onChange={setFilter('classId')} className="sm:w-40">

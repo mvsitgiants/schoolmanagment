@@ -118,7 +118,7 @@ export const unitsDto = (units = []) => units.map((u) => ({
   })),
 }))
 // a topic's teaching material — kept when the syllabus structure is saved (the editor doesn't send it)
-const CONTENT_FIELDS = ['book', 'howTo', 'keyPoints', 'questions', 'homeworkHint', 'contentBy', 'contentAt']
+const CONTENT_FIELDS = ['book', 'howTo', 'keyPoints', 'questions', 'homeworkHint', 'subTopics', 'contentBy', 'contentAt']
 const thisMonth = async () => (await today()).slice(0, 7)
 
 /** Every class × subject the caller works with, and how far each section has got. */

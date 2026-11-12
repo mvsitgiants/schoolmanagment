@@ -278,6 +278,8 @@
       "noClassesTitle": "No classes yet",
       "teachToday": "My teaching day",
       "teachTodayHint": "What to teach in each class today, with the book pages, notes and questions",
+      "hub": "Subject hub",
+      "hubHint": "Build each topic’s lesson: what students read, your notes and the questions",
       "openDay": "Today in this class",
       "revisionN_one": "{{count}} to revise",
       "revisionN_other": "{{count}} to revise"
@@ -295,7 +297,8 @@
       },
       "use": {
         "CLASS": "Ask in class",
-        "HOMEWORK": "For homework"
+        "HOMEWORK": "For homework",
+        "EXAM": "For exams"
       },
       "kindLabel": "Type of question",
       "useLabel": "Where it is used",
@@ -318,6 +321,15 @@
       "homeworkHint": "Homework idea",
       "homeworkHintHelp": "Filled in for you when you give homework on this topic.",
       "noMaterial": "Nothing added for this topic yet.",
+      "studentsSee": "What students see",
+      "contentStatus": {
+        "DRAFT": "Draft — students don’t see it yet",
+        "SCHEDULED": "Scheduled — students see it later",
+        "HIDDEN": "Hidden from students"
+      },
+      "openInHub": "Open in Subject hub",
+      "editInHub": "Edit in Subject hub",
+      "hubHint": "Build this topic in the Subject hub: what students read, your teaching notes and the questions, all in one place.",
       "material": "Teaching material",
       "hasMaterial": "Has teaching material",
       "edit": "Edit material",

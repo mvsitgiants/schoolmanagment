@@ -163,8 +163,9 @@ export const MODULES = [
       pg('reports', 'Attendance reports', 'V X'),
     ] },
   { id: 'homework', name: 'Homework & lessons', category: 'academics', icon: 'NotebookPen', deps: ['students'], phase: 1, scopes: CLASS_SCOPES,
-    desc: 'Lesson plans, syllabus tracking, homework and submissions.',
+    desc: 'Subject hub, lesson plans, syllabus tracking, homework and submissions.',
     pages: [
+      pg('hub', 'Subject hub', 'V C E D'),
       pg('lesson-plans', 'Lesson plans', 'V C E D'),
       pg('syllabus', 'Syllabus tracker', 'V E'),
       pg('homework', 'Homework', 'V C E D'),
@@ -193,7 +194,7 @@ export const MODULES = [
     desc: 'Courses, study material, live classes and assignments.',
     pages: [
       pg('courses', 'Courses & material', 'V C E D'),
-      pg('create-content', 'Create content', 'V C'),
+      pg('create-content', 'Create content', 'V C', { menu: false }), // built in the Subject hub now; still opens by URL, search and the content lists
       pg('my-content', 'My content', 'V E D'),
       pg('content-library', 'Content library', 'V E D'),
       pg('live-classes', 'Live classes', 'V C start'),

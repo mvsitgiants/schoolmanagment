@@ -6,6 +6,7 @@ import clsx from 'clsx'
 import { Eye, FileUp, Files, Paperclip, Search, Send, Share2, Users, X } from 'lucide-react'
 import { CONTENT_FILE_MAX_MB, CONTENT_TYPES, FILE_ACCEPT, addDaysYmd, htmlToText, videoEmbed } from '@schoolgiant/shared'
 import { Attachments, DateInput, FormField, Input, Modal, Note, PageContainer, PageHeader, Panel, SegmentedControl, Select, Skeleton, localIso } from '../../components/system'
+import HubBanner from '../../components/homework/HubBanner'
 import Button from '../../components/ui/Button'
 import { RichTextEditor } from '../../components/lms/RichText'
 import { ContentPreview, TypeIcon } from '../../components/lms/ContentKit'
@@ -22,12 +23,12 @@ const TYPES = Object.keys(CONTENT_TYPES)
 const SHARED = TYPES.filter((k) => CONTENT_TYPES[k].kind)
 export const fmtSize = (n) => (n < 1024 * 1024 ? `${Math.max(1, Math.round(n / 1024))} KB` : `${(n / 1024 / 1024).toFixed(1)} MB`)
 
-/** The class's students with a search, to tick who sees the content. */
-export function StudentPicker({ classId, value, onDone, onClose }) {
+/** The class's students with a search, to tick who sees the content. `fetchRows` swaps the list (the subject hub's own). */
+export function StudentPicker({ classId, value, onDone, onClose, fetchRows, rowsKey }) {
   const { t } = useTranslation('lms')
   const [picked, setPicked] = useState(() => new Set(value))
   const [q, setQ] = useState('')
-  const { data: rows = [], isLoading } = useQuery({ queryKey: ['lms-content-students', classId], queryFn: () => fetchContentStudents(classId), enabled: !!classId })
+  const { data: rows = [], isLoading } = useQuery({ queryKey: rowsKey ?? ['lms-content-students', classId], queryFn: fetchRows ?? (() => fetchContentStudents(classId)), enabled: !!classId })
   const needle = q.trim().toLowerCase()
   const shown = needle ? rows.filter((s) => [s.name, s.admissionNo, s.rollNo, s.section].some((v) => String(v ?? '').toLowerCase().includes(needle))) : rows
   const toggle = (id) => setPicked((p) => { const n = new Set(p); if (n.has(id)) n.delete(id); else n.add(id); return n })
@@ -333,6 +334,7 @@ export default function CreateContent() {
   return (
     <PageContainer>
       <PageHeader icon={Share2} title={editId ? t('lms.content.form.editTitle') : t('lms.content.form.newTitle')} subtitle={t('lms.content.form.subtitle')} />
+      <HubBanner classId={existing?.classId ?? start.classId} subjectId={existing?.subjectId ?? start.subjectId} className="mb-3" />
       {editId && isLoading ? <Skeleton className="h-96" /> : error ? <Note tone="warning">{error.message}</Note> : (
         <ContentForm key={editId ?? 'new'} existing={editId ? existing : null} start={start} />
       )}

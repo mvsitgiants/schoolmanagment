@@ -5,6 +5,7 @@ import {
 import mongoose from 'mongoose'
 import { AcademicYear, ClassLevel, Section, Subject, TeacherAllocation } from '../models/academics.js'
 import { Exam, ExamPaper } from '../models/exams.js'
+import { Syllabus } from '../models/homework.js'
 import { Question } from '../models/lms.js'
 import { QuestionPaper } from '../models/questionPapers.js'
 import { can, moduleEnabled, scopeOf } from '../platform/access.js'
@@ -455,6 +456,61 @@ export async function writeQuestion(id, setId, { sectionId, question, saveToBank
   if (set.letter === 'A') deriveSets(p)
   await p.save()
   await audit({ action: 'UPDATE', module: MODULE, entityType: ENTITY, entityId: String(p._id), entityName: await label(p), summary: `Wrote a question for set ${set.letter}${saveToBank ? ' (also saved to the question bank)' : ''}` }, req)
+  return paperOut(p, auth)
+}
+
+// ───────────────────────────────────────────────────────── from the syllabus
+
+/** Section types a syllabus question of each kind fits (syllabus kinds: SHORT · LONG · MCQ). */
+const KIND_FITS = { SHORT: ['SHORT', 'LONG', 'FILL', 'TRUE_FALSE'], LONG: ['SHORT', 'LONG'], MCQ: ['MCQ', 'MULTI'] }
+/** Section types a picked syllabus question goes into as it is; the others open the question form, filled in, to finish it. */
+const DIRECT_TYPES = ['SHORT', 'LONG']
+
+/** The paper's class + subject syllabus (the exam's year): units → topics → their questions kept for exams (use EXAM). */
+async function examQuestions(p) {
+  const exam = await Exam.findById(p.examId).select('academicYearId').lean()
+  const syl = exam ? await Syllabus.findOne({ academicYearId: exam.academicYearId, classId: p.classId, subjectId: p.subjectId }).select('units').lean() : null
+  return (syl?.units ?? []).map((u) => ({
+    id: String(u._id), name: u.name,
+    topics: (u.topics ?? []).map((t) => ({
+      id: String(t._id), name: t.name,
+      questions: (t.questions ?? []).filter((q) => q.use === 'EXAM').map((q) => ({ id: String(q._id), question: q.question, answer: q.answer ?? '', kind: q.kind ?? 'SHORT', options: q.options ?? [] })),
+    })).filter((t) => t.questions.length),
+  })).filter((u) => u.topics.length)
+}
+
+/**
+ * "Add from syllabus": the exam questions teachers kept on the syllabus topics of this class and subject, by unit and
+ * topic; with `sectionId`, each says whether it fits the section's type and whether it goes in as it is (`direct`).
+ */
+export async function syllabusQuestions(id, { sectionId } = {}, auth) {
+  const p = await paperFor(id, auth)
+  const section = sectionId ? p.sections.find((s) => String(s._id) === String(sectionId)) : null
+  const units = await examQuestions(p)
+  return {
+    direct: section ? DIRECT_TYPES.includes(section.type) : false,
+    units: units.map((u) => ({ ...u, topics: u.topics.map((t) => ({ ...t, questions: t.questions.map((q) => ({ ...q, fits: !section || (KIND_FITS[q.kind] ?? []).includes(section.type) })) })) })),
+  }
+}
+
+/** Put picked syllabus questions (short / long answer sections) into a section, as written questions: the unit is the chapter. */
+export async function addFromSyllabus(id, setId, { sectionId, questionIds, index, part }, auth, req) {
+  const p = await draftFor(id, auth)
+  const set = editableSet(p, setId)
+  const section = p.sections.find((s) => String(s._id) === String(sectionId))
+  if (!section) throw notFound('Section')
+  if (!DIRECT_TYPES.includes(section.type)) throw conflict(`${section.title} needs each question finished in the question form (its options or answer).`)
+  const found = new Map()
+  for (const u of await examQuestions(p)) for (const t of u.topics) for (const q of t.questions) found.set(q.id, { q, unit: u.name })
+  const picked = questionIds.map((x) => found.get(String(x))).filter(Boolean)
+  if (!picked.length) throw notFound('Question')
+  const raw = picked.map(({ q, unit }) => ({ text: q.question, answers: q.answer ? [q.answer] : [], chapter: unit.slice(0, 120), difficulty: 'MEDIUM' }))
+  const { items, errors } = tidyItems({ ...section.toObject(), choice: false, count: raw.length }, raw, 'question')
+  if (Object.keys(errors).length) throw fieldsError(errors, Object.values(errors)[0])
+  place(p, set, sectionId, index !== undefined ? items.slice(0, 1) : items, { index, part })
+  if (set.letter === 'A') deriveSets(p)
+  await p.save()
+  await audit({ action: 'UPDATE', module: MODULE, entityType: ENTITY, entityId: String(p._id), entityName: await label(p), summary: `Added ${items.length} question(s) from the syllabus to set ${set.letter}` }, req)
   return paperOut(p, auth)
 }
 

@@ -3,8 +3,8 @@ import { BLOOM_LEVELS, QP_SET_LETTERS, QP_SET_MODES, QUESTION_TYPES } from '@sch
 import { authenticate, requireModule, requirePermission, subscriptionGate, tenantOnly } from '../platform/middleware.js'
 import { objectId, optionalText, z } from '../platform/validate.js'
 import {
-  addFromBank, approvePaper, autoPickSet, bankList, board, createPaper, deletePaper, getPaper, makeSets, recallPaper, replaceQuestion,
-  saveBlueprint, saveQuestions, sendBackPaper, submitPaper, unlockPaper, writeQuestion,
+  addFromBank, addFromSyllabus, approvePaper, autoPickSet, bankList, board, createPaper, deletePaper, getPaper, makeSets, recallPaper, replaceQuestion,
+  saveBlueprint, saveQuestions, sendBackPaper, submitPaper, syllabusQuestions, unlockPaper, writeQuestion,
 } from '../services/questionPapers.js'
 
 // Exams › Question papers: /api/v1/exams/question-papers/*
@@ -93,6 +93,15 @@ router.post('/:id/sets/:setId/add', requirePermission(...CHANGE), async (req, re
 router.post('/:id/sets/:setId/write', requirePermission(...CHANGE), async (req, res) => {
   const body = z.object({ sectionId: objectId, question, saveToBank: z.boolean().optional(), ...slot }).parse(req.body)
   res.json({ data: await writeQuestion(id(req), setId(req), body, req.auth, req) })
+})
+// "Add from syllabus": exam questions kept on the class + subject's syllabus topics
+router.get('/:id/syllabus', requirePermission(P('view')), async (req, res) => {
+  const q = z.object({ sectionId: objectId.optional() }).parse(Object.fromEntries(Object.entries(req.query).filter(([, v]) => v !== '')))
+  res.json({ data: await syllabusQuestions(id(req), q, req.auth) })
+})
+router.post('/:id/sets/:setId/add-syllabus', requirePermission(...CHANGE), async (req, res) => {
+  const body = z.object({ sectionId: objectId, questionIds: z.array(objectId).min(1).max(100), ...slot }).parse(req.body)
+  res.json({ data: await addFromSyllabus(id(req), setId(req), body, req.auth, req) })
 })
 router.get('/:id/bank', requirePermission(P('view')), async (req, res) => {
   const q = z.object({

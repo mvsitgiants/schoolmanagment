@@ -1,13 +1,15 @@
-import { QUESTION_KINDS, TOPIC_STATUS, nextTeachingDay, topicProgress, topicSchedule, weekdayCode } from '@schoolgiant/shared'
+import { QUESTION_KINDS, QUESTION_USES, TOPIC_STATUS, nextTeachingDay, topicProgress, topicSchedule, weekdayCode } from '@schoolgiant/shared'
 import { SectionTopicPlan, Syllabus, SyllabusDone } from '../models/homework.js'
 import { Holiday } from '../models/hrms.js'
 import { Substitution, Timetable, TimetableEntry } from '../models/timetable.js'
+import { moduleEnabled } from '../platform/access.js'
 import { audit } from '../platform/audit.js'
 import { isOid } from '../platform/db.js'
 import { forbidden, notFound } from '../platform/errors.js'
 import { institutionNow } from '../platform/time.js'
 import { getSettings } from '../platform/settings.js'
 import { currentYear } from './academics.js'
+import { hubItems } from './lmsContent.js'
 import { homeworkLookup, mayTeach, myPairs, requireYear, sectionFor, subjectNames, tick, topicIdsOf, unitsDto, wide } from './homework.js'
 
 // Topics per section (module `homework`): the teaching material on each syllabus topic, each section's
@@ -167,8 +169,20 @@ async function findTopic(topicId, year) {
   throw notFound('Topic')
 }
 
-/** One topic with its teaching material, if the caller works with that class and subject. */
-export async function getTopic(topicId, auth) {
+/**
+ * What students read for a topic (its Subject hub content, and each sub-topic's), drafts included and marked:
+ * [{ id, subTopicId, title, html, files, status }] — only the ones with something in them. Empty when LMS is off.
+ */
+async function studentContent(syl, topic, auth) {
+  if (!moduleEnabled(auth, 'lms')) return []
+  const items = await hubItems({ yearId: syl.academicYearId, classId: syl.classId, subjectId: syl.subjectId, topicIds: [String(topic._id)] })
+  const parts = [{ key: `${topic._id}:`, title: topic.name, subTopicId: null }, ...(topic.subTopics ?? []).map((s) => ({ key: `${topic._id}:${s._id}`, title: s.name, subTopicId: String(s._id) }))]
+  return parts.map((x) => ({ x, i: items.get(x.key) })).filter(({ i }) => i && (i.html || i.files.length))
+    .map(({ x, i }) => ({ id: i.id, subTopicId: x.subTopicId, title: x.title, html: i.html, files: i.files, status: i.status }))
+}
+
+/** One topic with its teaching material (and, unless `content` is off, what students read for it), if the caller works with that class and subject. */
+export async function getTopic(topicId, auth, { content = true } = {}) {
   const year = await requireYear()
   const { syl, unit, topic } = await findTopic(topicId, year)
   const look = await homeworkLookup(auth)
@@ -180,12 +194,14 @@ export async function getTopic(topicId, auth) {
     id: String(topic._id), name: topic.name, unitId: String(unit._id), unit: unit.name, periods: topic.periods ?? null, month: topic.month ?? null,
     classId: cls.id, className: cls.name, subjectId: subject.id, subject: subject.name,
     ...contentDto(topic), canEdit: wide(auth) || teaches,
+    subTopics: (topic.subTopics ?? []).map((x) => ({ id: String(x._id), name: x.name })),
+    ...(content && { studentContent: await studentContent(syl, topic, auth) }),
   }
 }
 
 /** Save a topic's material (book, how to teach, key points, questions, homework suggestion). */
 export async function saveTopic(topicId, input, auth, req) {
-  const current = await getTopic(topicId, auth)
+  const current = await getTopic(topicId, auth, { content: false })
   if (!current.canEdit) throw forbidden('You can’t change this topic.')
   const year = await requireYear()
   const doc = await Syllabus.findOne({ academicYearId: year._id, classId: current.classId, subjectId: current.subjectId })
@@ -198,7 +214,7 @@ export async function saveTopic(topicId, input, auth, req) {
   topic.homeworkHint = input.homeworkHint || undefined
   topic.questions = (input.questions ?? []).filter((q) => q.question?.trim()).map((q) => ({
     ...(q.id && keep.has(q.id) && { _id: q.id }), question: q.question.trim(), answer: q.answer || undefined,
-    kind: QUESTION_KINDS.includes(q.kind) ? q.kind : 'SHORT', options: q.kind === 'MCQ' ? (q.options ?? []).map((o) => o.trim()).filter(Boolean) : undefined, use: q.use === 'HOMEWORK' ? 'HOMEWORK' : 'CLASS',
+    kind: QUESTION_KINDS.includes(q.kind) ? q.kind : 'SHORT', options: q.kind === 'MCQ' ? (q.options ?? []).map((o) => o.trim()).filter(Boolean) : undefined, use: QUESTION_USES.includes(q.use) ? q.use : 'CLASS',
   }))
   topic.contentBy = auth.user?.name
   topic.contentAt = new Date()
@@ -209,7 +225,7 @@ export async function saveTopic(topicId, input, auth, req) {
 
 /** For Files: a topic's name, if the caller works with its class and subject. */
 export async function syllabusTopicRecord(id, auth) {
-  const t = await getTopic(id, auth)
+  const t = await getTopic(id, auth, { content: false })
   return { name: `${t.name} (${t.className} · ${t.subject})`, canAdd: t.canEdit }
 }
 

@@ -1,12 +1,15 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { BookOpen, Check, CheckCheck, ChevronDown, ChevronUp, CircleDashed, Lightbulb, MessageCircleQuestion, NotebookPen, Pencil, Plus, Presentation, RotateCcw, Save, SkipForward, Trash2, X } from 'lucide-react'
+import { ArrowRight, BookOpen, Check, CheckCheck, ChevronDown, ChevronUp, CircleDashed, Eye, LayoutPanelTop, Lightbulb, Paperclip, MessageCircleQuestion, NotebookPen, Pencil, Plus, Presentation, RotateCcw, Save, SkipForward, Trash2, X } from 'lucide-react'
 import { QUESTION_KINDS, QUESTION_USES, TOPIC_STATUS } from '@schoolgiant/shared'
 import { DateInput, Attachments, Drawer, FormField, Input, Modal, Note, ProgressBar, Select, StatusPill, Textarea } from '../system'
 import Button from '../ui/Button'
 import { fetchSyllabusTopic, saveSyllabusTopic, updateTopicPlan } from '../../api/homework'
 import { hasPermission } from '../../api/auth'
+import { apiUrl } from '../../api/client'
+import { RichTextView } from '../lms/RichText'
 import { useSnackbar } from '../../context/SnackbarContext'
 import { TopicContentLink } from '../lms/ContentKit'
 import { useFormat } from '../../context/SettingsContext'
@@ -114,6 +117,67 @@ export function TopicMaterial({ topic, files = true }) {
           <ul className="grid gap-2 md:grid-cols-2">{topic.questions.map((q, i) => <QuestionRow key={q.id ?? i} q={q} n={i + 1} />)}</ul>
         </div>
       )}
+    </div>
+  )
+}
+
+/** The Subject hub, opened at a topic (needs the topic's class, subject and unit). */
+export const hubLink = (tp) => `/teaching/hub?${new URLSearchParams({ classId: tp.classId, subjectId: tp.subjectId, unitId: tp.unitId, topicId: tp.id })}`
+
+/** "Open in Subject hub" — a link, or (`prominent`) a button-like link. Nothing without the hub's view right. */
+export function OpenInHub({ topic, prominent = false, label, className = '' }) {
+  const { t } = useTranslation('homework')
+  if (!topic?.classId || !topic?.unitId || !hasPermission('homework.hub.view')) return null
+  return (
+    <Link to={hubLink(topic)} className={prominent
+      ? `inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-brand-600 px-4 text-sm font-semibold text-white hover:bg-brand-700 ${className}`
+      : `inline-flex min-h-10 items-center gap-1.5 text-sm font-medium text-brand-700 hover:underline ${className}`}>
+      <LayoutPanelTop className="h-4 w-4 shrink-0" aria-hidden />{label ?? t('homework.topic.openInHub')}{prominent && <ArrowRight className="h-4 w-4 shrink-0 rtl:rotate-180" aria-hidden />}
+    </Link>
+  )
+}
+
+/**
+ * What students read for a topic (its Subject hub content: text, pictures, videos, files — of the topic and each
+ * sub-topic), under "What students see", with the link to the hub. `topic` is a loaded topic (api fetchSyllabusTopic);
+ * without it the topic is loaded by `topicId`.
+ */
+export function TopicStudentContent({ topic: given, topicId, hubLinkToo = true }) {
+  const { t } = useTranslation('homework')
+  const { data } = useQuery({ queryKey: ['syllabus-topic', topicId], queryFn: () => fetchSyllabusTopic(topicId), staleTime: 60_000, enabled: !given && !!topicId })
+  const topic = given ?? data
+  if (!topic) return null
+  const parts = topic.studentContent ?? []
+  return (
+    <div className="space-y-2">
+      {parts.length > 0 && (
+        <div className="rounded-lg border border-border px-3 py-2.5 space-y-3">
+          <p className="flex items-center gap-1.5 text-[13px] font-semibold text-ink"><Eye className="w-4 h-4 text-brand-600" aria-hidden />{t('homework.topic.studentsSee')}</p>
+          {parts.map((x) => (
+            <div key={x.id} className="space-y-1.5 min-w-0">
+              {(x.subTopicId || x.status !== 'PUBLISHED') && (
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {x.subTopicId && <p className="text-sm font-semibold text-ink">{x.title}</p>}
+                  {x.status !== 'PUBLISHED' && <StatusPill tone="neutral" dot={false}>{t(`homework.topic.contentStatus.${x.status}`)}</StatusPill>}
+                </div>
+              )}
+              {x.html && <RichTextView html={x.html} />}
+              {x.files.length > 0 && (
+                <ul className="flex flex-wrap gap-1.5">
+                  {x.files.map((f) => (
+                    <li key={f.id} className="max-w-full">
+                      <a href={apiUrl(`/v1/files/${f.id}/content`)} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-9 max-w-full items-center gap-1.5 rounded-full border border-border px-2.5 text-xs text-ink hover:bg-black/[0.03]">
+                        <Paperclip className="h-3.5 w-3.5 shrink-0 text-ink-faint" aria-hidden /><span className="min-w-0 truncate">{f.name}</span>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+      {hubLinkToo && <OpenInHub topic={topic} />}
     </div>
   )
 }
@@ -329,11 +393,18 @@ export function TopicDrawer({ topicId, subjectId, section, onClose, onChanged })
           )}
           {editing ? <TopicEditor topic={topic} onDone={() => setEditing(false)} /> : (
             <>
+              {hasPermission('homework.hub.view') && (
+                <div className="flex flex-col gap-2 rounded-xl border border-brand-200 bg-brand-50/40 p-3 sm:flex-row sm:items-center">
+                  <p className="min-w-0 flex-1 text-sm text-ink">{t('homework.topic.hubHint')}</p>
+                  <OpenInHub topic={topic} prominent label={canEdit ? t('homework.topic.editInHub') : t('homework.topic.openInHub')} className="shrink-0" />
+                </div>
+              )}
               <div className="flex items-center justify-between gap-2">
                 <p className="text-sm font-semibold text-ink">{t('homework.topic.material')}</p>
-                {canEdit && <Button size="sm" variant="secondary" icon={Pencil} onClick={() => setEditing(true)}>{t('homework.topic.edit')}</Button>}
+                {canEdit && <Button size="sm" variant="ghost" icon={Pencil} onClick={() => setEditing(true)}>{t('homework.topic.edit')}</Button>}
               </div>
               <TopicMaterial topic={topic} />
+              <TopicStudentContent topic={topic} hubLinkToo={false} />
               <TopicContentLink topicId={topic.id} />
               {topic.contentBy && <p className="text-xs text-ink-faint inline-flex items-center gap-1"><MessageCircleQuestion className="w-3.5 h-3.5" aria-hidden />{t('homework.topic.updatedBy', { name: topic.contentBy })}</p>}
             </>

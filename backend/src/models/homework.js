@@ -31,6 +31,8 @@ const topicSchema = new Schema({
   keyPoints: { type: [String], default: undefined },
   questions: { type: [questionSchema], default: undefined },
   homeworkHint: String,
+  // Subject hub: optional sub-topics; each one's student content is an LMS item (subTopicId), like the topic's own
+  subTopics: { type: [new Schema({ name: { type: String, required: true, trim: true } })], default: undefined },
   contentBy: String, contentAt: Date,
 })
 const unitSchema = new Schema({ name: { type: String, required: true, trim: true }, fromMonth: ym, toMonth: ym, topics: { type: [topicSchema], default: [] } })

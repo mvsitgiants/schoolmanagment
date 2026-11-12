@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next'
 import clsx from 'clsx'
 import {
   ArrowDown, ArrowUp, BadgeCheck, CalendarClock, ChevronLeft, CircleDashed, ClipboardCheck, Copy, Eye, FilePen, FileStack, FileText, History, KeyRound,
-  Layers, Library, Lock, LockOpen, PencilLine, Plus, Printer, RefreshCw, Send, Shuffle, Sparkles, Timer, Trash2, Undo2, Wand2,
+  Layers, Library, ListChecks, Lock, LockOpen, PencilLine, Plus, Printer, RefreshCw, Send, Shuffle, Sparkles, Timer, Trash2, Undo2, Wand2,
 } from 'lucide-react'
 import { DIFFICULTY, QP_DIFFICULTIES, answerText, blueprintTotals, marksMix } from '@schoolgiant/shared'
 import {
@@ -14,10 +14,10 @@ import {
 } from '../../components/system'
 import Button from '../../components/ui/Button'
 import {
-  BankPicker, BlueprintForm, MixBars, QuestionBody, QuestionChips, QuestionForm, SetsForm, statusTone, useQpLabels,
+  BankPicker, BlueprintForm, MixBars, QuestionBody, QuestionChips, QuestionForm, SetsForm, SyllabusPicker, prefillFromSyllabus, statusTone, useQpLabels,
 } from '../../components/exams/QuestionPaperKit'
 import {
-  addFromBank, approveQuestionPaper, autoPickSet, deleteQuestionPaper, fetchPaperBoard, fetchQuestionPaper, makeSets, recallQuestionPaper, replaceQuestion,
+  addFromBank, addFromSyllabus, approveQuestionPaper, autoPickSet, deleteQuestionPaper, fetchPaperBoard, fetchQuestionPaper, makeSets, recallQuestionPaper, replaceQuestion,
   saveBlueprint, saveSetQuestions, sendBackQuestionPaper, startQuestionPaper, submitQuestionPaper, unlockQuestionPaper, writeQuestion,
 } from '../../api/questionPapers'
 import { hasPermission } from '../../api/auth'
@@ -239,7 +239,7 @@ function PaperEditor({ id, onBack }) {
   const { data: paper, isLoading, error, refetch } = useQuery({ queryKey: key, queryFn: () => fetchQuestionPaper(id) })
   const [setId, setSetId] = useState(null)
   const [view, setView] = useState('questions')
-  const [modal, setModal] = useState(null) // { kind: 'blueprint' | 'sets' | 'form' | 'bank', section, index, part, initial }
+  const [modal, setModal] = useState(null) // { kind: 'blueprint' | 'sets' | 'form' | 'bank' | 'syllabus', section, index, part, initial, prefill }
   const [busy, setBusy] = useState(false)
 
   const set = paper?.sets.find((s) => s.id === setId) ?? paper?.sets[0]
@@ -287,6 +287,10 @@ function PaperEditor({ id, onBack }) {
   const pickFromBank = async (ids) => {
     const { section, index, part } = modal
     const out = await run(() => addFromBank(paper.id, set.id, { sectionId: section.id, questionIds: ids, index, part }), t('questionPapers.bank.added', { count: ids.length }))
+    if (out) setModal(null)
+  }
+  const pickFromSyllabus = async (ids) => {
+    const out = await run(() => addFromSyllabus(paper.id, set.id, { sectionId: modal.section.id, questionIds: ids }), t('questionPapers.syllabus.added', { count: ids.length }))
     if (out) setModal(null)
   }
   const workflow = {
@@ -430,6 +434,7 @@ function PaperEditor({ id, onBack }) {
                       <span className="text-sm text-ink-muted">{t('questionPapers.section.free', { count: free })}</span>
                       {editable && <div className="flex flex-wrap gap-1">
                         <Button size="sm" variant="ghost" icon={Library} disabled={busy} onClick={() => setModal({ kind: 'bank', section: s })}>{t('questionPapers.section.pick')}</Button>
+                        <Button size="sm" variant="ghost" icon={ListChecks} disabled={busy} onClick={() => setModal({ kind: 'syllabus', section: s })}>{t('questionPapers.section.fromSyllabus')}</Button>
                         <Button size="sm" variant="ghost" icon={PencilLine} disabled={busy} onClick={() => setModal({ kind: 'form', section: s })}>{t('questionPapers.section.write')}</Button>
                       </div>}
                     </div>
@@ -496,8 +501,11 @@ function PaperEditor({ id, onBack }) {
           const out = await run(() => makeSets(paper.id, body), (o) => (o.short?.length ? t('questionPapers.sets.short', { sets: o.short.map((x) => x.letter).join(', ') }) : t('questionPapers.sets.made', { count: body.count })))
           if (out) setModal(null)
         }} />}
-      {modal?.kind === 'form' && <QuestionForm section={modal.section} initial={modal.initial} chapters={paper.bank.chapters} canSaveToBank={paper.can.saveToBank} saving={busy}
+      {modal?.kind === 'form' && <QuestionForm section={modal.section} initial={modal.initial} prefill={modal.prefill} chapters={paper.bank.chapters} canSaveToBank={paper.can.saveToBank} saving={busy}
         onClose={() => setModal(null)} onSave={saveForm} />}
+      {modal?.kind === 'syllabus' && <SyllabusPicker paper={paper} section={modal.section} saving={busy} onClose={() => setModal(null)} onAdd={pickFromSyllabus}
+        taken={set.sections.flatMap((x) => x.items.flatMap((it) => [it.text, it.or?.text]))}
+        onFinish={(q, unit) => setModal({ kind: 'form', section: modal.section, prefill: prefillFromSyllabus(q, unit, modal.section.type) })} />}
       {modal?.kind === 'bank' && <BankPicker paper={paper} section={modal.section} single={modal.index !== undefined} saving={busy}
         onClose={() => setModal(null)} onPick={pickFromBank} />}
       {busy && <span className="sr-only" aria-live="polite">{t('questionPapers.loading')}</span>}

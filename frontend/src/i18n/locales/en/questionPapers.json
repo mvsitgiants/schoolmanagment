@@ -100,6 +100,7 @@
       "free_one": "{{count}} more question to set",
       "free_other": "{{count}} more questions to set",
       "pick": "Pick from bank",
+      "fromSyllabus": "Add from syllabus",
       "write": "Write"
     },
     "card": {
@@ -235,6 +236,32 @@
         "marks": "Give it marks",
         "type": "Pick the type",
         "negative": "Between 0 and the marks"
+      }
+    },
+    "syllabus": {
+      "title": "Add from syllabus · {{section}}",
+      "unit": "Unit",
+      "allUnits": "All units",
+      "topic": "Topic",
+      "allTopics": "All topics",
+      "fitsOnly": "Only questions that suit this section",
+      "directHint": "Questions teachers kept for exams on this class and subject’s syllabus topics. Tick the ones you want; each gets this section’s {{marks}} mark(s).",
+      "finishHint": "Questions teachers kept for exams on this class and subject’s syllabus topics. Pick one to open it in the question form — mark the right answer there, then add it. It gets this section’s {{marks}} mark(s).",
+      "none": "No exam questions on this subject’s syllabus yet. Teachers add them in the Subject hub (a question’s “Use” set to Exam).",
+      "noneHere": "No questions here. Try another unit or topic, or show every kind.",
+      "pick": "Pick this question",
+      "use": "Use this",
+      "answer": "Answer: {{answer}}",
+      "otherKind": "Different kind",
+      "inPaper": "Already in this set",
+      "add_one": "Add {{count}} question",
+      "add_other": "Add {{count}} questions",
+      "added_one": "{{count}} question added from the syllabus.",
+      "added_other": "{{count}} questions added from the syllabus.",
+      "kind": {
+        "SHORT": "Short answer",
+        "LONG": "Long answer",
+        "MCQ": "Multiple choice"
       }
     },
     "bank": {
