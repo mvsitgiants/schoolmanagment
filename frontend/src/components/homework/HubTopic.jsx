@@ -100,7 +100,7 @@ export function ContentBlock({ html, onChange, files, itemId, getItemId, onFiles
         ))}
       </div>
       <div className="min-w-0 space-y-2">
-        <RichTextEditor ref={editor} value={html} onChange={onChange} placeholder={placeholder ?? t('hub.content.placeholder')} headings videos tall
+        <RichTextEditor ref={editor} value={html} onChange={onChange} placeholder={placeholder ?? t('hub.content.placeholder')} headings videos tall maths textFromFile
           onPickImage={disabled ? undefined : () => picInput.current?.click()} />
         <FileChips files={files} onRemove={disabled ? undefined : remove} disabled={busy} />
         <div className="hidden lg:block"><FileDrop disabled={disabled || busy} onFiles={(l) => upload(l)} /></div>

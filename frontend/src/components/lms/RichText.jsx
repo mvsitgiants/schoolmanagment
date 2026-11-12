@@ -1,10 +1,14 @@
-import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react'
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import clsx from 'clsx'
-import { AlignCenter, AlignLeft, AlignRight, Bold, Heading2, Heading3, ImagePlus, Italic, Link2, List, ListOrdered, PlayCircle, Underline } from 'lucide-react'
+import { AlignCenter, AlignLeft, AlignRight, Bold, Heading2, Heading3, ImagePlus, Italic, Link2, List, ListOrdered, PlayCircle, ScanText, Sigma, Underline } from 'lucide-react'
 import { safeHref, sanitizeHtml, videoEmbed } from '@schoolgiant/shared'
 import { usePrompt } from '../system'
 import { useSnackbar } from '../../context/SnackbarContext'
+import TextFromFile from './TextFromFile'
+
+// one tap each: the maths the editor can't draw (no equation layout), as ordinary characters
+const MATHS = ['²', '³', 'ⁿ', '√', '∛', 'π', '½', '¼', '¾', '⅓', '×', '÷', '±', '=', '≠', '≈', '<', '>', '≤', '≥', '∞', '°', '∠', '⊥', '∥', '△', 'θ', 'α', 'β', 'Δ', '∑', '∴', '∵', '→', '₁', '₂', '₃']
 
 // Rich text: bold, italic, underline, headings, lists, links, alignment, pictures and video placeholders. What it saves
 // is cleaned by the shared allow-list (packages/shared/src/richText.js); the server cleans it again, and the views clean
@@ -38,14 +42,18 @@ export function RichTextView({ html, className, players = true }) {
  *   onPickImage  show the picture button; called to pick and upload one — then call ref.insertImage(src, alt)
  *   videos       show the video button (a YouTube / Vimeo link students see as the player)
  *   tall         a taller writing area (phones: at least 40% of the screen)
+ *   maths        the maths symbols button (x², √, π, ½, ≤ … one tap each)
+ *   textFromFile the "Get text from a photo or PDF" button (read on the device, then checked and added at the caret)
  * The ref offers focus(), insertHtml(html) and insertImage(src, alt), at the caret (or the end).
  */
-export const RichTextEditor = forwardRef(function RichTextEditor({ value, onChange, placeholder, id, headings = false, onPickImage, videos = false, tall = false }, outer) {
+export const RichTextEditor = forwardRef(function RichTextEditor({ value, onChange, placeholder, id, headings = false, onPickImage, videos = false, tall = false, maths = false, textFromFile = false }, outer) {
   const { t } = useTranslation('lms')
   const { showError } = useSnackbar()
   const prompt = usePrompt()
   const ref = useRef(null)
   const saved = useRef(null) // the caret, kept so a picture added after a dialog lands where the teacher was
+  const [symbols, setSymbols] = useState(false)
+  const [reading, setReading] = useState(false)
   useEffect(() => { if (ref.current) ref.current.innerHTML = sanitizeHtml(value ?? '') }, []) // eslint-disable-line react-hooks/exhaustive-deps
   const emit = () => onChange?.(sanitizeHtml(ref.current?.innerHTML ?? ''))
   const keep = () => {
@@ -65,6 +73,7 @@ export const RichTextEditor = forwardRef(function RichTextEditor({ value, onChan
     insertHtml,
     insertImage: (src, alt = '') => insertHtml(`<p><img src="${esc(src)}" alt="${esc(alt)}"></p><p><br></p>`),
   }))
+  const typeText = (s) => { restore(); document.execCommand('insertText', false, s); keep(); emit() }
   const exec = (cmd, arg) => { ref.current?.focus(); document.execCommand(cmd, false, arg); emit() }
   const heading = (tag) => {
     const block = document.queryCommandValue('formatBlock')?.toLowerCase()
@@ -103,6 +112,8 @@ export const RichTextEditor = forwardRef(function RichTextEditor({ value, onChan
     { icon: Link2, label: t('lms.rich.link'), run: addLink },
     ...(onPickImage ? [{ icon: ImagePlus, label: t('lms.rich.picture'), run: () => { keep(); onPickImage() } }] : []),
     ...(videos ? [{ icon: PlayCircle, label: t('lms.rich.video'), run: addVideo }] : []),
+    ...(maths ? [{ icon: Sigma, label: t('lms.rich.maths'), run: () => { keep(); setSymbols((x) => !x) }, on: symbols }] : []),
+    ...(textFromFile ? [{ icon: ScanText, label: t('lms.rich.textFromFile'), run: () => { keep(); setReading(true) } }] : []),
     { sep: true },
     { icon: AlignLeft, label: t('lms.rich.left'), run: () => exec('justifyLeft') },
     { icon: AlignCenter, label: t('lms.rich.center'), run: () => exec('justifyCenter') },
@@ -113,15 +124,25 @@ export const RichTextEditor = forwardRef(function RichTextEditor({ value, onChan
       <div className="scroll-thin flex flex-nowrap items-center gap-0.5 overflow-x-auto border-b border-border px-1.5 py-1" role="toolbar" aria-label={t('lms.rich.toolbar')}>
         {tools.map((x, i) => (x.sep ? <span key={i} className="mx-1 h-4 w-px shrink-0 bg-border" aria-hidden /> : (
           <button key={i} type="button" title={x.label} aria-label={x.label} onMouseDown={(e) => e.preventDefault()} onClick={x.run}
-            className="grid h-8 w-8 shrink-0 place-items-center rounded-md text-ink-muted hover:bg-black/[0.04] hover:text-ink [@media(pointer:coarse)]:h-10 [@media(pointer:coarse)]:w-10">
+            aria-pressed={x.on ?? undefined}
+            className={clsx('grid h-8 w-8 shrink-0 place-items-center rounded-md hover:bg-black/[0.04] hover:text-ink [@media(pointer:coarse)]:h-10 [@media(pointer:coarse)]:w-10', x.on ? 'bg-brand-50 text-brand-700' : 'text-ink-muted')}>
             <x.icon className="h-4 w-4" aria-hidden />
           </button>
         )))}
       </div>
+      {symbols && (
+        <div className="flex flex-wrap gap-1 border-b border-border bg-bg/60 px-1.5 py-1.5" role="toolbar" aria-label={t('lms.rich.mathsBar')}>
+          {MATHS.map((m) => (
+            <button key={m} type="button" title={m} onMouseDown={(e) => e.preventDefault()} onClick={() => typeText(m)}
+              className="grid h-8 min-w-8 place-items-center rounded-md border border-border bg-surface px-1.5 text-sm text-ink hover:border-brand-500 hover:text-brand-700 [@media(pointer:coarse)]:h-10 [@media(pointer:coarse)]:min-w-10">{m}</button>
+          ))}
+        </div>
+      )}
       <div id={id} ref={ref} contentEditable suppressContentEditableWarning role="textbox" aria-multiline="true" data-placeholder={placeholder}
         onInput={() => { keep(); emit() }} onBlur={() => { keep(); emit() }} onKeyUp={keep} onMouseUp={keep}
         onPaste={(e) => { e.preventDefault(); document.execCommand('insertText', false, e.clipboardData.getData('text/plain')); emit() }}
         className={clsx(RICH, 'overflow-y-auto px-3 py-2 outline-none empty:before:text-ink-faint empty:before:content-[attr(data-placeholder)]', tall ? 'min-h-[40vh] max-h-[70vh] lg:min-h-[260px]' : 'min-h-[120px] max-h-[360px]')} />
+      {reading && <TextFromFile onClose={() => setReading(false)} onAdd={(html) => insertHtml((ref.current?.textContent.trim() ? '<p><br></p>' : '') + html)} />}
     </div>
   )
 })

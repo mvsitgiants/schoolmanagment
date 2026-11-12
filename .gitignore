@@ -11,3 +11,6 @@ coverage/
 
 # local translation helper scripts and work files (not part of the app)
 scratch/
+
+# OCR files copied from node_modules by frontend/scripts/copy-ocr-assets.mjs
+frontend/public/ocr/

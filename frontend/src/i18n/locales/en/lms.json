@@ -230,7 +230,10 @@
       "videoPlaceholder": "https://www.youtube.com/watch?v=…",
       "badVideo": "Use a YouTube or Vimeo link.",
       "videoText": "Video: {{url}}",
-      "videoPlayer": "Video"
+      "videoPlayer": "Video",
+      "maths": "Maths symbols",
+      "mathsBar": "Maths symbols — tap one to add it",
+      "textFromFile": "Get text from a photo or PDF"
     },
     "content": {
       "types": {
@@ -420,6 +423,44 @@
         "retry_one": "Try {{count}} again",
         "retry_other": "Try {{count}} again"
       }
+    },
+    "ocr": {
+      "title": "Get text from a photo or PDF",
+      "help": "Choose a PDF, or photos of book pages. The text is read on this device — free, and nothing is sent anywhere. You then check it and add it to the content.",
+      "language": "Language on the page",
+      "languageHint": "Pick only what is on the page — it reads faster and makes fewer mistakes.",
+      "langs": {
+        "hin+eng": "Hindi and English",
+        "eng": "English",
+        "hin": "Hindi"
+      },
+      "choose": "Choose PDF or photos",
+      "camera": "Take a photo",
+      "tipPdf": "A typed PDF gives exact text, maths symbols included. Old Hindi PDFs in the Kruti Dev font are turned into proper Hindi.",
+      "tipPhoto": "For photos and scanned pages: hold the page flat, in good light, and fill the frame. Printed text works best; handwriting is often wrong.",
+      "tipMaths": "Maths in photos is often misread (x² becomes x2). Fix it with the Σ maths symbols button in the editor.",
+      "tipFirstTime": "The first time, this device downloads the reading tools (about 8 MB). After that it starts at once.",
+      "wrongType": "Choose a PDF, or photos (JPG, PNG or WebP).",
+      "failed": "The file could not be read. Try a clearer photo, or another PDF.",
+      "firstPages": "Only the first {{count}} of {{total}} pages were read. Add the rest in another go.",
+      "opening": "Opening the file…",
+      "readingPage": "Reading page {{page}} of {{of}}…",
+      "readingHint": "You can check the pages already read below while the rest are read.",
+      "check": "Check the text against each page before adding it — words in photos, Hindi vowel signs and maths are sometimes read wrong.",
+      "page": "Page {{n}}",
+      "textOf": "Text of page {{n}}",
+      "how": {
+        "TEXT": "text copied from the PDF",
+        "SCAN": "read from the scanned page",
+        "PHOTO": "read from the photo",
+        "REPAIRED": "read from the page — the PDF’s own text was damaged"
+      },
+      "kruti": "Old Hindi font (Kruti Dev) — convert to Hindi",
+      "removePage": "Leave out",
+      "again": "Start again",
+      "add": "Add to content",
+      "cancel": "Cancel",
+      "useCopied": "Use the PDF’s own text instead (exact English and maths, damaged Hindi)"
     }
   }
 }

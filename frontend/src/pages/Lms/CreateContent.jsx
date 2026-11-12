@@ -274,7 +274,7 @@ function ContentForm({ existing, start }) {
             </FormField>
           )}
           <FormField label={t('lms.content.form.description')}>
-            <RichTextEditor value={f.descriptionHtml} onChange={(html) => setF((v) => ({ ...v, descriptionHtml: html }))} placeholder={t('lms.content.form.descriptionPlaceholder')} />
+            <RichTextEditor maths textFromFile value={f.descriptionHtml} onChange={(html) => setF((v) => ({ ...v, descriptionHtml: html }))} placeholder={t('lms.content.form.descriptionPlaceholder')} />
           </FormField>
           <div>
             <p className="mb-1.5 text-sm font-medium text-ink">{t('lms.content.form.attach')}</p>

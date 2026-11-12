@@ -34,6 +34,8 @@ const pwa = VitePWA({
   },
   workbox: {
     globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
+    // the text-reading files (about 8 MB, public/ocr) download only when a teacher uses "Get text from a photo or PDF"
+    globIgnores: ['ocr/**', 'static/ocr-*.js'],
     maximumFileSizeToCacheInBytes: 6 * 1024 * 1024,
     navigateFallback: '/index.html',
     // the API, live updates, public links and printed documents are never answered from the app shell
@@ -80,5 +82,11 @@ export default defineConfig({
     chunkSizeWarningLimit: 900,
     // built files go under /static/ so they can't collide with app routes such as /inventory/assets
     assetsDir: 'static',
+    rollupOptions: {
+      output: {
+        // the PDF reader and the text reader get fixed names, so the offline cache can leave them out (globIgnores)
+        manualChunks: (id) => (id.includes('/node_modules/pdfjs-dist/') ? 'ocr-pdf' : id.includes('/node_modules/tesseract.js/') ? 'ocr-reader' : undefined),
+      },
+    },
   },
 })
