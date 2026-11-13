@@ -742,7 +742,13 @@
       "saved": "Photo saved.",
       "removed": "Photo removed.",
       "wrongType": "Use a PNG, JPG or WebP picture.",
-      "tooBig": "That picture is too large even after shrinking. Try another."
+      "tooBig": "That picture is too large even after shrinking. Try another.",
+      "take": "Take photo",
+      "upload": "Upload a photo",
+      "cameraTitle": "Student photo",
+      "cameraHint": "Stand the student against a plain wall in good light, facing the camera.",
+      "cameraFrame": "Keep the face and shoulders inside the square, then take the photo.",
+      "cameraUse": "Use this photo"
     },
     "idCards": {
       "title": "ID cards",

@@ -1,0 +1,121 @@
+{
+  "geo": {
+    "sites": {
+      "siteFallback": "Site",
+      "notInUseName": "{{name}} (not in use)",
+      "locationErrors": {
+        "DENIED": "Location access is blocked for this site. Allow it from the lock or location icon next to the address bar (on a phone: Settings › Location › your browser), then try again.",
+        "UNAVAILABLE": "Your device could not work out where you are. Switch on location — and Wi-Fi, which makes it more precise — then try again.",
+        "TIMEOUT": "Finding your location took too long. Step near a window or outside and try again.",
+        "UNSUPPORTED": "This browser cannot share its location here (it needs a secure https page). Try another browser, or use the biometric device."
+      },
+      "title": "Attendance sites",
+      "subtitle": "Where staff and students of this campus may mark themselves in and out when the geofence is on. Add one per building or campus — a circle, or an outline for an odd-shaped campus.",
+      "addSite": "Add site",
+      "noSites": "No sites — staff of this campus are checked against the other campuses’ sites, if any.",
+      "siteName": "Site name",
+      "siteNamePlaceholder": "Main block, OPD annexe…",
+      "shape": "Shape",
+      "outline": "Outline",
+      "latitude": "Latitude",
+      "longitude": "Longitude",
+      "radius": "Radius (m)",
+      "radiusDefault": "Default {{m}} m",
+      "useMyLocation": "Use my location",
+      "corners": "Corners",
+      "cornersError": "One “latitude, longitude” per line",
+      "cornersHint": "In order around the campus, one per line (3 to {{max}}). Click them on the map, walk to each corner and press “Add my location”, or paste them from a maps app.",
+      "addCorner": "Add my location as a corner",
+      "markCorners": "Mark at least three corners.",
+      "standHint": "Stand at the building and press “Use my location”, or paste the coordinates from a maps app.",
+      "cornerCount_one": "{{count}} corner",
+      "cornerCount_other": "{{count}} corners",
+      "fixAccurate": "Fix accurate to ±{{distance}}",
+      "fixAccuratePoor": "Fix accurate to ±{{distance}} — try again outdoors for a better one",
+      "inUse": "उपयोग में",
+      "removeSite": "Remove site"
+    },
+    "siteMap": {
+      "hintPolygon": "Click the map to add corners in order around the campus; drag a corner to move it, click it to remove it.",
+      "hintCircle": "Click the map or drag the pin to set the centre; the slider sets the radius.",
+      "dragCentre": "Drag to move the centre",
+      "cornerTitle": "Corner {{n}} — drag to move, click to remove",
+      "radius": "Radius",
+      "radiusAria": "Radius in metres",
+      "maxCorners": "{{max}} corners is the most an outline can have.",
+      "undoCorner": "Undo last corner",
+      "locateMe": "Locate me",
+      "centreOnSite": "Centre on site",
+      "badCorners": "A line in the corner list below is not “latitude, longitude” — fix it to see and edit the outline on the map.",
+      "blueDot": " The blue dot is you (±{{distance}})."
+    },
+    "maps": {
+      "loading": "Loading map…",
+      "siteFailed": "The map could not load — type the coordinates below instead.",
+      "punchFailed": "The map could not load."
+    },
+    "common": {
+      "clear": "साफ़ करें"
+    },
+    "location": {
+      "DENIED": "Location access is blocked for this site. Allow it from the lock or location icon next to the address bar (on a phone: Settings › Location › your browser), then try again.",
+      "UNAVAILABLE": "Your device could not work out where you are. Switch on location — and Wi-Fi, which makes it more precise — then try again.",
+      "TIMEOUT": "Finding your location took too long. Step near a window or outside and try again.",
+      "UNSUPPORTED": "This browser cannot share its location here (it needs a secure https page). Try another browser."
+    },
+    "self": {
+      "title": "Punch in & punch out",
+      "studentTitle": "Check in at school",
+      "checkIn": "Check in",
+      "checkOut": "Check out",
+      "doneIn": "Punched in at {{time}}.",
+      "doneOut": "Punched out at {{time}}.",
+      "onCampus": "Works only on the campus — your location is checked once, when you press the button. Nothing is tracked.",
+      "anywhere": "You can mark from anywhere.",
+      "noSites": "The campus location isn't set up yet — ask the office.",
+      "dir": {
+        "IN": "In",
+        "OUT": "Out"
+      },
+      "phone": "phone",
+      "flagged": "Outside the campus — the office will check it",
+      "parentLogin": "Students check in from their own login on the student app — not from a parent's phone.",
+      "subtitle": "Mark the time you arrive and leave.",
+      "subtitleGeo": "Mark the time you arrive and leave — from the campus.",
+      "punchIn": "Punch in",
+      "punchInHint": "Mark the time you arrive",
+      "punchOut": "Punch out",
+      "punchOutHint": "Mark the time you leave",
+      "punchedIn": "Punched in",
+      "punchedOut": "Punched out",
+      "timeNow": "Time now",
+      "site": "परिसर",
+      "sitesN": "{{count}} campuses",
+      "checkMe": "Show where I am",
+      "recheck": "Check again",
+      "radius": "Area: {{distance}} around the campus",
+      "accuracy": "your location ±{{distance}}",
+      "daySummary": "Today: in {{in}} · out {{out}}",
+      "todayTitle": "आज",
+      "nothingYet": "No punches yet today.",
+      "viaDevice": "{{device}}",
+      "privacy": "Your location is read only when you punch or tap “Show where I am”. Nothing is tracked.",
+      "where": {
+        "anywhere": "You can punch from anywhere",
+        "anywhereSub": "No campus check for you",
+        "noSites": "Campus location not set up",
+        "noSitesSub": "Ask the office to add it",
+        "checking": "Finding you…",
+        "checkingSub": "This takes a few seconds",
+        "off": "Location is off",
+        "offSub": "Allow location to punch in",
+        "inside": "Inside the campus",
+        "insideSub": "At {{site}}",
+        "outside": "Outside the campus",
+        "outsideSub": "{{distance}} from {{site}}",
+        "unknown": "Location not checked yet",
+        "unknownSub": "It is checked when you punch"
+      }
+    }
+  }
+}

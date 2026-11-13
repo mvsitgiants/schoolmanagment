@@ -485,7 +485,7 @@
       "on": "On — attendance, fees, homework and school messages pop up on this phone.",
       "off": "Off — turn on to get school messages as phone notifications.",
       "blocked": "Blocked in this browser’s settings. Allow notifications for this app there.",
-      "unsupported": ""
+      "unsupported": "Push notifications are not supported on this browser or device."
     },
     "passes": {
       "show": "Show pass",

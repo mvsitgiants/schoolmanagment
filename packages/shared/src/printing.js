@@ -76,9 +76,9 @@ export const SIGNATORIES = [
   { value: 'CONTROLLER', label: 'Controller of examinations' },
   { value: 'SECRETARY', label: 'Secretary / trustee' },
 ]
-// documents printed in bulk carry the printed signature and seal by default; the rest are signed by hand
-const PRINTED_SIGN = new Set(['FEE_RECEIPT', 'FEE_INVOICE', 'STORE_SALE_RECEIPT', 'DONATION_RECEIPT', 'STUDENT_ID_CARD', 'STAFF_ID_CARD', 'HALL_TICKET', 'REPORT_CARD', 'YEAR_REPORT_CARD', 'PAYSLIP'])
-export const defaultSignMode = (docType) => (PRINTED_SIGN.has(docType) ? 'PRINTED' : 'HAND')
+// every document prints the uploaded seal and signature by default (an empty seal box until they are uploaded);
+// a template can be switched to "sign by hand" or "no signature" in Print templates
+export const defaultSignMode = () => 'PRINTED'
 
 /** Registration numbers the letterhead can show, from the institution profile. */
 export const LETTERHEAD_IDS = [

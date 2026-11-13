@@ -31,7 +31,7 @@
       "TIME": "Time up",
       "PROCTOR": "Left the test too often",
       "CLOSED": "The test closed",
-      "undefined": ""
+      "undefined": "Reason unspecified"
     },
     "qtypes": {
       "MCQ": "Multiple choice (one answer)",

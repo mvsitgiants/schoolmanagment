@@ -1,0 +1,276 @@
+{
+  "ai": {
+    "common": {
+      "loadFailed": "Couldn’t check whether AI is set up. Try again in a moment.",
+      "poweredBy": "Powered by Claude"
+    },
+    "unavailable": {
+      "title": "AI is not set up yet",
+      "body": "These AI tools need a connection to the AI service, and your institution doesn’t have one yet. Everything else in SchoolGiant works as usual.",
+      "howTitle": "How to switch it on",
+      "how": "Ask SchoolGiant support to switch it on, or — if you look after settings — enter your institution’s own Claude API key below. The page comes alive on its own; nothing to install.",
+      "privacyTitle": "Your data stays yours",
+      "privacy": "Only what a task needs is sent — first names, classes and marks. Never phone numbers, addresses or ID numbers. Every request is logged in your usage.",
+      "assistant": {
+        "p1": "Ask about attendance, fee dues, exam results, staff leave, the calendar and timetables in plain words.",
+        "p2": "Answers come from your own data, through your role’s permissions — it can’t see what you can’t.",
+        "p3": "Each answer shows what it looked up, so you can check the figures."
+      },
+      "questionPapers": {
+        "p1": "Pick an exam paper, the chapters and how many questions of each type.",
+        "p2": "Get draft questions with answers and marking schemes in seconds.",
+        "p3": "Keep the good ones: they go to the question bank and straight into your draft paper."
+      },
+      "remarks": {
+        "p1": "Pick an exam and a section; each student’s marks, attendance and progress are gathered for you.",
+        "p2": "Get a one- or two-sentence remark per student in your school’s tone.",
+        "p3": "Edit, redo any row, and save them all onto the report cards at once."
+      }
+    },
+    "usage": {
+      "title": "AI use this month",
+      "requests": "Requests",
+      "tokens": "Tokens",
+      "allowance": "Monthly allowance",
+      "ofCap": "{{used}} of {{cap}}",
+      "features": {
+        "ASSISTANT": "Assistant",
+        "QUESTION_PAPERS": "Question papers",
+        "REMARKS": "Report card remarks"
+      }
+    },
+    "assistant": {
+      "title": "AI assistant",
+      "subtitle": "Ask about your school’s attendance, fees, results, leave, calendar and timetable — answered from your own data.",
+      "chatTitle": "Chat",
+      "chatSubtitle": "Answers use your role’s access",
+      "newChat": "New chat",
+      "hello": "Hello, {{name}}",
+      "there": "there",
+      "intro": "Ask a question about your institution. Here are a few to start with:",
+      "placeholder": "Ask about attendance, fees, results, leave…",
+      "cannotAsk": "Your role can see this page but not ask questions.",
+      "send": "भेजें",
+      "stop": "स्टॉप",
+      "thinking": "Thinking…",
+      "noAnswer": "No answer came back. Try asking again.",
+      "failed": "The assistant couldn’t answer. Try again.",
+      "refused": "The assistant declined this one. Try putting it another way.",
+      "truncated": "The answer was cut short. Ask a narrower question for the rest.",
+      "stopped": "Stopped.",
+      "disclaimer": "AI can make mistakes. Check important figures on the screen they come from.",
+      "canLookUp": "What it can look up",
+      "privacy": "It sees only what your role can see, and never phone numbers, addresses or ID numbers.",
+      "toolDenied": "{{label}} — not allowed for your role",
+      "suggestions": {
+        "attendance": "How was attendance this week, class by class?",
+        "dues": "Which classes have the most overdue fees?",
+        "results": "How did the latest exam go, section by section?",
+        "leave": "Who is on leave today?",
+        "events": "What’s coming up on the calendar this month?",
+        "periods": "What are my periods today?"
+      },
+      "tools": {
+        "attendance_summary": {
+          "name": "उपस्थिति",
+          "all": "Looked up attendance",
+          "for": "Looked up attendance for {{what}}"
+        },
+        "fee_dues": {
+          "name": "Fee dues",
+          "all": "Looked up fee dues",
+          "for": "Looked up fee dues for {{what}}"
+        },
+        "exam_results": {
+          "name": "Exam results",
+          "all": "Looked up exam results",
+          "for": "Looked up results for {{what}}"
+        },
+        "student_lookup": {
+          "name": "Find a student",
+          "all": "Looked up students",
+          "for": "Looked up students named {{what}}"
+        },
+        "staff_on_leave": {
+          "name": "Staff on leave",
+          "all": "Looked up staff on leave today",
+          "for": "Looked up staff on leave on {{what}}"
+        },
+        "upcoming_events": {
+          "name": "Calendar and events",
+          "all": "Looked up the calendar",
+          "for": "Looked up the calendar for {{what}}"
+        },
+        "timetable_today": {
+          "name": "समय सारिणी",
+          "all": "Looked up today’s timetable",
+          "for": "Looked up the timetable for {{what}}"
+        }
+      }
+    },
+    "qp": {
+      "title": "Question paper generator",
+      "subtitle": "Pick an exam paper and what to cover — AI drafts questions with answers; you keep the good ones.",
+      "openPapers": "Exams › Question papers",
+      "setupTitle": "What to draft",
+      "step1": "Exam paper",
+      "step1Hint": "The exam, class and subject the questions are for.",
+      "step2": "Questions",
+      "step2Hint": "Chapters, question types and the difficulty mix.",
+      "exam": "परीक्षा",
+      "class": "कक्षा",
+      "subject": "विषय",
+      "examsOff": "Exams is not switched on, so there are no exam papers to draft for.",
+      "noExams": "No exams this year yet. Make one in Exams › Schedule first.",
+      "noPapers": "This exam has no marked papers you set questions for.",
+      "outOf": "Out of {{n}}",
+      "inBank_one": "{{count}} in the question bank",
+      "inBank_other": "{{count}} in the question bank",
+      "chapters": "Chapters",
+      "chaptersHint": "From the syllabus and the question bank. None picked: the class’s usual syllabus.",
+      "noChapters": "No syllabus or bank chapters yet — type the chapters to cover.",
+      "addChapter": "Add a chapter",
+      "add": "जोड़ें",
+      "topics": "Topics and notes",
+      "topicsHint": "Anything to focus on or avoid. Optional.",
+      "topicsPlaceholder": "e.g. Focus on tenses and active–passive voice; include one passage-based question.",
+      "questions": "Question types",
+      "fromBlueprint": "From the paper’s blueprint",
+      "type": "Question type",
+      "count": "How many",
+      "marksEach": "Marks each",
+      "removeRow": "हटाएँ",
+      "addRow": "Add a type",
+      "totals_one": "{{count}} question · {{marks}} marks",
+      "totals_other": "{{count}} questions · {{marks}} marks",
+      "tooMany": "At most {{max}} questions at a time.",
+      "mix": "Difficulty mix (%)",
+      "blooms": "Bloom’s levels (optional)",
+      "generate_one": "Draft {{count}} question",
+      "generate_other": "Draft {{count}} questions",
+      "regenerate_one": "Draft {{count}} new question",
+      "regenerate_other": "Draft {{count}} new questions",
+      "viewOnly": "Your role can look but not draft.",
+      "reviewTitle": "Review the drafts",
+      "reviewHint": "Accept, edit or discard each question.",
+      "reviewCounts": "{{accepted}} accepted · {{pending}} to review · {{total}} in all",
+      "acceptAll": "Accept all",
+      "drafting_one": "Drafting {{count}} question…",
+      "drafting_other": "Drafting {{count}} questions with answers…",
+      "emptyTitle": "Your drafts appear here",
+      "emptyHint": "Pick the paper and the questions on the left, then press Draft.",
+      "marks_one": "{{count}} mark",
+      "marks_other": "{{count}} marks",
+      "accept": "Accept",
+      "unaccept": "पूर्ववत करें",
+      "edit": "संपादित करें",
+      "discard": "Discard",
+      "restore": "Bring back",
+      "edited": "Edited",
+      "state": {
+        "ACCEPTED": "Accepted",
+        "DISCARDED": "Discarded",
+        "SAVED": "In the bank"
+      },
+      "needsFix": "Fix before accepting: {{what}}.",
+      "problems": {
+        "type": "the type",
+        "text": "the question",
+        "marks": "the marks",
+        "options": "the options",
+        "answers": "the answer",
+        "negative": "the negative marks"
+      },
+      "sendToPaper": "Also add them to this paper’s draft question paper",
+      "noPaperYet": "Start this paper’s question paper in Exams to add them straight in.",
+      "save_one": "Save {{count}} to the question bank",
+      "save_other": "Save {{count}} to the question bank",
+      "savedToast_one": "{{count}} question saved to the question bank.",
+      "savedToast_other": "{{count}} questions saved to the question bank.",
+      "savedNote_one": "{{count}} question is in the question bank, tagged “ai”.",
+      "savedNote_other": "{{count}} questions are in the question bank, tagged “ai”.",
+      "addedToPaper_one": "{{count}} went into the draft question paper.",
+      "addedToPaper_other": "{{count}} went into the draft question paper.",
+      "skipped_one": "{{count}} didn’t fit the paper’s sections.",
+      "skipped_other": "{{count}} didn’t fit the paper’s sections.",
+      "notAdded": {
+        "NO_PAPER": "This paper’s question paper isn’t started yet, so they are in the bank only.",
+        "NOT_DRAFT": "The question paper is submitted or approved, so they are in the bank only.",
+        "NOT_ALLOWED": "Your role can’t change this question paper, so they are in the bank only.",
+        "NO_ROOM": "The paper’s sections of these types are full, so they are in the bank only.",
+        "CONFLICT": "Some didn’t fit the paper, so they are in the bank only."
+      }
+    },
+    "remarks": {
+      "title": "Report card remarks",
+      "subtitle": "AI drafts a remark for each student from their results, attendance and progress. You edit and save.",
+      "exam": "परीक्षा",
+      "section": "अनुभाग",
+      "rank": "रैंक",
+      "rankOn": "Mention top 3",
+      "rankOff": "Leave out",
+      "tones": {
+        "WARM": "Warm",
+        "FORMAL": "Formal"
+      },
+      "lengths": {
+        "SHORT": "One sentence",
+        "MEDIUM": "Two sentences"
+      },
+      "examsOff": "Exams is not switched on, so there are no results to remark on.",
+      "noExams": "No scheduled exams yet. Remarks come once an exam is scheduled and marks are in.",
+      "stats": {
+        "students": "छात्र",
+        "average": "Class average",
+        "passFail": "{{passed}} passed · {{failed}} failed",
+        "saved": "Remarks saved",
+        "drafts": "AI drafts to check",
+        "unsaved_one": "{{count}} change not saved",
+        "unsaved_other": "{{count}} changes not saved",
+        "allSaved": "Everything is saved"
+      },
+      "how": "Drafts use each student’s first name, marks, attendance and change since the last exam — nothing else. Nothing reaches the report card until you save.",
+      "tableTitle": "छात्र",
+      "notePlaceholder": "Anything to stress? (optional)",
+      "draftAll_one": "Draft for {{count}} student",
+      "draftAll_other": "Draft for all {{count}}",
+      "saveAll_one": "Save {{count}} remark",
+      "saveAll_other": "Save {{count}} remarks",
+      "drafted_one": "{{count}} remark drafted. Check it and save.",
+      "drafted_other": "{{count}} remarks drafted. Check them and save.",
+      "saved_one": "{{count}} remark saved to the report cards.",
+      "saved_other": "{{count}} remarks saved to the report cards.",
+      "replaceTitle": "Replace the remarks already written?",
+      "replaceMessage_one": "{{count}} student already has a remark. Drafting replaces it on screen; nothing is saved until you press Save.",
+      "replaceMessage_other": "{{count}} students already have a remark. Drafting replaces them on screen; nothing is saved until you press Save.",
+      "replace": "Draft anyway",
+      "cols": {
+        "roll": "रोल",
+        "student": "छात्र",
+        "result": "परिणाम",
+        "attendance": "उपस्थिति",
+        "subjects": "Best · needs work",
+        "remark": "Remark"
+      },
+      "changeHint": "Change in overall % since the previous exam",
+      "strongest": "Strongest subject",
+      "weakest": "Needs the most work",
+      "placeholder": "Write a remark, or let AI draft one",
+      "aiDraft": "AI draft",
+      "unsaved": "Not saved",
+      "savedBy": "Saved · {{name}}",
+      "redraft": "Draft this one again",
+      "empty": "No students in this section",
+      "pickFirst": "Pick an exam and a section",
+      "emptyHint": "Students appear once the exam is scheduled for their class."
+    },
+    "key": {
+      "label": "Your institution’s Claude API key",
+      "hint": "From console.anthropic.com › API keys. Kept encrypted; only the last 4 characters are shown again.",
+      "saved4": "A key ending in {{last4}} is saved.",
+      "save": "Save the key",
+      "replace": "Replace the key",
+      "saved": "API key saved."
+    }
+  }
+}

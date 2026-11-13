@@ -79,7 +79,7 @@
   <div class="note terms">{{t "inventory.print.sale.noReturn" "Goods once sold will not be taken back."}}{{#if gst.taxInvoice}} {{t "inventory.print.sale.reverseCharge" "Tax payable on reverse charge: No."}}{{/if}}</div>
   <div class="signs">
     <div>{{t "inventory.print.sale.customerSign" "Received by (parent / student)"}}</div>
-    <div><span class="for">{{t "inventory.print.sale.forName" "For {{name}}" name=institution.name}}</span>{{t "inventory.print.sale.signature" "Authorised signatory"}}{{#if sale.by}}<span class="by">{{t "inventory.print.sale.by" "Received by {{name}}" name=sale.by}}</span>{{/if}}</div>
+    <div>{{> seal role="ACCOUNTANT" label=(t "inventory.print.sale.seal" "Seal")}}<span class="for">{{t "inventory.print.sale.forName" "For {{name}}" name=institution.name}}</span>{{t "inventory.print.sale.signature" "Authorised signatory"}}{{#if sale.by}}<span class="by">{{t "inventory.print.sale.by" "Received by {{name}}" name=sale.by}}</span>{{/if}}</div>
   </div>
 </div>
 {{> footer}}

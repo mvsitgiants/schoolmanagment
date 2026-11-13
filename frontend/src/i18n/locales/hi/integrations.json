@@ -1,0 +1,386 @@
+{
+  "integrations": {
+    "mode": {
+      "SANDBOX": "Sandbox / test",
+      "LIVE": "Live"
+    },
+    "health": {
+      "UNKNOWN": "Not checked",
+      "OK": "Connected",
+      "DEGRADED": "Errors lately",
+      "DOWN": "Not connecting"
+    },
+    "providers": {
+      "RAZORPAY": {
+        "label": "Razorpay",
+        "desc": "Cards, UPI, net banking and wallets. Fee payment links and checkout in the parent app.",
+        "fields": {
+          "keyId": {
+            "label": "Key id"
+          }
+        },
+        "secrets": {
+          "keySecret": {
+            "label": "Key secret"
+          },
+          "webhookSecret": {
+            "label": "Webhook secret",
+            "hint": "The secret you typed when adding the webhook in the Razorpay dashboard."
+          }
+        }
+      },
+      "PAYU": {
+        "label": "PayU",
+        "desc": "Coming later."
+      },
+      "CASHFREE": {
+        "label": "Cashfree",
+        "desc": "Coming later."
+      },
+      "MESSAGING": {
+        "label": "Delivery reports",
+        "desc": "Receives delivery and read receipts from the SMS and WhatsApp providers.",
+        "secrets": {
+          "metaAppSecret": {
+            "label": "Meta app secret",
+            "hint": "Signs WhatsApp webhooks (X-Hub-Signature-256)."
+          },
+          "metaVerifyToken": {
+            "label": "Meta webhook verify token",
+            "hint": "Any long random text; type the same in the Meta app’s webhook setup."
+          }
+        }
+      }
+    },
+    "bits": {
+      "somethingWrong": "Something went wrong.",
+      "copy": "Copy",
+      "copied": "Copied",
+      "copyLink": "Copy link",
+      "secretSaved": "Saved (ends {{last4}}). Leave blank to keep it.",
+      "savedIt": "I’ve saved it",
+      "copyNow": "Copy it now. It is stored only as a hash (or encrypted) and will not be shown again.",
+      "providerSaved": "{{name}} saved.",
+      "useProvider": "Use {{name}}",
+      "liveWarning": "Live mode uses real money and real family data. Test in sandbox first.",
+      "undoChanges": "Undo changes",
+      "saveFirst": "Save first",
+      "testConnection": "Test connection",
+      "ms": "{{ms}} ms",
+      "lastChangedBy": "Last changed by {{name}}"
+    },
+    "messaging": {
+      "msg91Title": "SMS — MSG91",
+      "msg91Subtitle": "MSG91 posts delivery reports to this address. Add it in MSG91 › Settings › Delivery report webhook.",
+      "reportUrl": "Delivery report URL",
+      "reportUrlHint": "The random part of the address is the password — keep it private.",
+      "notMsg91": "SMS isn’t sent with MSG91",
+      "testMsg91": "Test MSG91 key",
+      "waTitle": "WhatsApp Cloud API",
+      "waSubtitle": "Meta sends sent / delivered / read / failed for every message. Meta app › WhatsApp › Configuration › Webhook.",
+      "callbackUrl": "Callback URL",
+      "subscribeNote": "Subscribe the webhook to the <code>messages</code> field. Every call is checked against the app secret (X-Hub-Signature-256); calls that don’t match are refused and logged.",
+      "notCloudApi": "WhatsApp isn’t sent with the Cloud API",
+      "testWa": "Test WhatsApp token",
+      "title": "SMS & WhatsApp",
+      "subtitle": "How family messages are sent — MSG91 or any SMS gateway, the WhatsApp Cloud API, SMTP email — and what the providers report back.",
+      "smsSent": "SMS sent (7 days)",
+      "confirmedDelivered_one": "{{count}} confirmed delivered",
+      "confirmedDelivered_other": "{{count}} confirmed delivered",
+      "waDelivered": "WhatsApp delivered / read",
+      "readCount_one": "{{count}} read",
+      "readCount_other": "{{count}} read",
+      "failed7": "Failed (7 days)",
+      "providers": "Providers",
+      "reports": "Delivery reports",
+      "sameSettings": "The same settings as Administration › <link>Notification rules</link> › Delivery. What each event says, and the {{sms}} DLT template ids, are set there.",
+      "healthTile": "Delivery reports",
+      "sendsWith": "SMS: {{sms}} · WhatsApp: {{wa}}",
+      "templates": "Templates",
+      "sends": "Recent sends",
+      "noUrlsYet": "The delivery-report addresses haven’t been made yet. Make them, then paste them into MSG91 and the Meta app.",
+      "makeUrls": "Make the addresses",
+      "webhookSaved": "Delivery report settings saved.",
+      "templatesNote": "Which approved template each family message goes out with — the SMS DLT template id and the WhatsApp template name. Change them in Administration › <link>Notification rules</link>.",
+      "senderIs": "SMS sender id: {{id}}.",
+      "missingTemplates_one": "{{count}} message is switched on without the template its provider needs — it won’t be delivered.",
+      "missingTemplates_other": "{{count}} messages are switched on without the template their provider needs — they won’t be delivered.",
+      "message": "संदेश",
+      "smsTemplate": "SMS · DLT template id",
+      "waTemplate": "WhatsApp template",
+      "notSet": "Not set",
+      "noTemplates": "No family messages for the modules switched on",
+      "searchSends": "Search number, student or text",
+      "channelCol": "Channel",
+      "to": "अंतिम",
+      "testMessage": "Test message",
+      "sendStatus": "Sent",
+      "deliveryCol": "Delivery report",
+      "noReport": "No report yet",
+      "noSends": "No messages yet",
+      "noSendsHint": "Messages to families appear here once they are sent, with what the provider reported back.",
+      "channel": {
+        "SMS": "SMS",
+        "WHATSAPP": "WhatsApp",
+        "EMAIL": "ईमेल"
+      },
+      "status": {
+        "QUEUED": "Queued",
+        "SENDING": "Sending",
+        "SENT": "Sent",
+        "FAILED": "विफल",
+        "SKIPPED": "Not sent"
+      },
+      "delivery": {
+        "DELIVERED": "Delivered",
+        "READ": "Read",
+        "FAILED": "Not delivered"
+      },
+      "provider": {
+        "SMS": {
+          "NONE": "बंद",
+          "TEST": "Test mode",
+          "HTTP": "SMS gateway",
+          "MSG91": "MSG91"
+        },
+        "WHATSAPP": {
+          "NONE": "बंद",
+          "TEST": "Test mode",
+          "META": "Cloud API",
+          "HTTP": "HTTP provider"
+        },
+        "EMAIL": {
+          "NONE": "बंद",
+          "TEST": "Test mode",
+          "SMTP": "SMTP"
+        }
+      }
+    },
+    "common": {
+      "all": "सभी",
+      "cancel": "रद्द करें",
+      "edit": "संपादित करें",
+      "save": "सहेजें",
+      "remove": "हटाएँ",
+      "on": "चालू",
+      "off": "बंद",
+      "status": "स्थिति",
+      "when": "समय"
+    },
+    "payments": {
+      "title": "Payment gateway",
+      "subtitle": "The institution’s own Razorpay account: keys, test or live mode, the webhook and how it is doing. Families pay into it from the app and from payment links.",
+      "toFees": "Online payments in Fees",
+      "health": "Connection",
+      "notChecked": "Not checked yet",
+      "modeTile": "Mode",
+      "noKey": "No key id saved",
+      "webhooks24": "Webhooks (24 h)",
+      "failedCount_one": "{{count}} failed or refused",
+      "failedCount_other": "{{count}} failed or refused",
+      "received30": "Received online (30 days)",
+      "paymentsCount_one": "{{count}} payment receipted",
+      "paymentsCount_other": "{{count}} payments receipted",
+      "webhookUrl": "Webhook URL",
+      "webhookHint": "Razorpay dashboard › Account & Settings › Webhooks › Add new webhook: paste this URL, type a secret and save the same secret above.",
+      "events": "Tick these events in Razorpay:",
+      "lastWebhooks": "Last 10 webhooks",
+      "event": "कार्यक्रम",
+      "reference": "Reference",
+      "noWebhooks": "No webhooks yet",
+      "noWebhooksHint": "Razorpay calls this institution’s webhook URL when a family pays, a link expires or a refund is processed."
+    },
+    "devices": {
+      "title": "Devices",
+      "subtitle": "Biometric and face devices for staff attendance, RFID card readers at the gate and on the bus, and bus GPS trackers. Each device pushes with its own key.",
+      "add": "Register device",
+      "addTitle": "Register a device",
+      "editTitle": "{{name}} को संपादित करें",
+      "addAndGetKey": "Register and get the key",
+      "name": "नाम",
+      "namePlaceholder": "e.g. Main gate reader, Staff room biometric",
+      "kindCol": "प्रकार",
+      "usedForCol": "Used for",
+      "vehicle": "वाहन",
+      "pickVehicle": "Pick the bus…",
+      "campus": "परिसर",
+      "anyCampus": "Any campus",
+      "location": "Location",
+      "locationPlaceholder": "e.g. Main gate, Staff room",
+      "locationGps": "e.g. Under the driver’s seat",
+      "serialNo": "Serial no.",
+      "serialGpsHint": "The tracker’s IMEI or id, for your records.",
+      "notes": "टिप्पणियाँ",
+      "autoMark": "Mark students present from the gate",
+      "autoMarkShort": "Marks present",
+      "autoMarkHint": "With attendance taken once a day: a child’s first card IN before the “mark by” time marks them present in today’s register (an unmarked or absent child only). The class teacher still opens and saves the register — a device never starts one.",
+      "staffNote": "Punches are matched by employee code. The first IN of the day is the in time, the last OUT the out time, in Staff & HR › Staff attendance (late after the HR setting). Approved leave isn’t touched.",
+      "studentsNote": "Punches are matched by the student’s card code or admission number and kept in the punch log (gate and bus).",
+      "kind": {
+        "BIOMETRIC": "Biometric attendance device",
+        "RFID": "RFID card reader / gate",
+        "FACE": "Face recognition camera",
+        "GPS": "Bus GPS tracker",
+        "PHONE": "Phone / tablet scanner (camera or scanner gun)",
+        "GEO": "Phone check-in on campus (made by the system)"
+      },
+      "usedFor": {
+        "STAFF": "Staff attendance",
+        "STUDENTS": "Students (gate / bus)"
+      },
+      "status": {
+        "OK": "Online",
+        "IDLE": "Quiet",
+        "ERROR": "Errors",
+        "NEVER": "Never connected",
+        "DISABLED": "Switched off"
+      },
+      "outcome": {
+        "ATTENDANCE": "Staff attendance",
+        "GATE": "Gate log",
+        "MARKED_PRESENT": "Marked present",
+        "POSITION": "Bus position",
+        "UNKNOWN": "Unknown code",
+        "SKIPPED": "Not saved",
+        "DUPLICATE": "Already received",
+        "TEST": "Test"
+      },
+      "dir": {
+        "IN": "In",
+        "OUT": "Out"
+      },
+      "source": {
+        "DEVICE": "From the tracker",
+        "PHONE": "From the driver’s phone"
+      },
+      "devices": "Devices",
+      "onlineCount_one": "{{count}} online",
+      "onlineCount_other": "{{count}} online",
+      "punchesToday": "Punches today",
+      "needAttention": "Need attention",
+      "neverCount_one": "{{count}} never connected",
+      "neverCount_other": "{{count}} never connected",
+      "busTrackers": "Bus GPS trackers",
+      "liveCount_one": "{{count}} reporting",
+      "liveCount_other": "{{count}} reporting",
+      "tabDevices": "Devices",
+      "tabPunches": "Punch log",
+      "tabGps": "Bus GPS",
+      "device": "Device",
+      "lastSeen": "Last seen",
+      "today": "आज",
+      "empty": "No devices registered",
+      "emptyHint": "Register a biometric or RFID device to get its key. It then posts punches to {{url}}",
+      "key": "Key",
+      "keyIssued": "Key issued",
+      "receivedAcceptedRejected": "Received / accepted / refused",
+      "endpoint": "Push address",
+      "endpointHint": "The device (or the small bridge next to it) posts JSON here; the last part is the device’s own key, shown once when it was registered.",
+      "formatStaff": "code = employee code · at = ISO 8601 time (a time without a zone is read on the institution’s clock) · direction = IN or OUT (optional). Up to 500 a call; re-sending a punch adds nothing.",
+      "formatStudents": "code = card code or admission number · at = ISO 8601 time · direction = IN or OUT (optional). Up to 500 a call; re-sending a punch adds nothing.",
+      "formatGps": "lat, lng, speed (km/h), heading and at (ISO 8601). Positions go to the bus this tracker is on (Transport).",
+      "newKey": "New key",
+      "newKeyTitle": "New key for {{name}}?",
+      "newKeyMsg": "The old key stops working at once. Put the new key into the device straight away.",
+      "issueKey": "Issue a new key",
+      "keyFor": "Key for {{name}}",
+      "newKeyFor": "New key for {{name}}",
+      "pushTo": "Push address with the key",
+      "putKey": "Set this address in the device or its bridge. Keep it private — anyone with it can post punches as this device.",
+      "disable": "Switch off",
+      "enable": "Switch on",
+      "enabled": "Device switched on.",
+      "disabled": "Device switched off — its key is refused until it is switched on again.",
+      "removeTitle": "{{name}} को हटाएँ?",
+      "removeMsg": "Its key stops working. The punches it already sent stay in the punch log.",
+      "removed": "Device removed.",
+      "saved": "Device saved.",
+      "neverNote": "This device hasn’t called in yet. Set the push address with its key in the device, or send a test punch to check the set-up here.",
+      "testTitle": "Send a test punch",
+      "testHint": "Runs the device’s path end to end — the code, the time, the direction — and shows what would happen. Attendance and the gate log are not changed.",
+      "testGpsHint": "Checks a position for the tracker’s bus. The bus’s position is not changed.",
+      "cardOrAdmission": "Card code or admission no.",
+      "employeeCode": "Employee code",
+      "anyone": "Anyone (first match)",
+      "direction": "Direction",
+      "sendTest": "Send test punch",
+      "testOk": "The device’s punch would be accepted:",
+      "testFailed": "The punch would be refused:",
+      "noPunchesToday": "No punches from this device today.",
+      "searchPunches": "Search name, code or device",
+      "date": "दिनांक",
+      "who": "कौन",
+      "staff": "कर्मचारी (Staff)",
+      "students": "छात्र",
+      "staffOne": "कर्मचारी (Staff)",
+      "student": "छात्र",
+      "person": "व्यक्ति",
+      "unknownPerson": "Unknown",
+      "outcomeCol": "परिणाम",
+      "noPunches": "No punches",
+      "noPunchesHint": "Punches from biometric and RFID devices appear here as they arrive.",
+      "gpsNote": "Bus GPS trackers are set on the vehicle in <b>Transport › Vehicles</b> (the tracker id / IMEI) and post to the address below, or register a tracker here as a device of kind “Bus GPS tracker” to give it its own key.",
+      "gpsUrl": "GPS address for the trackers",
+      "gpsUrlHint": "Generic JSON { deviceId, lat, lng, speed, at }, or the OsmAnd / Traccar Client protocol most trackers speak (?id=&lat=&lon=&timestamp=).",
+      "makeGpsUrl": "Make the GPS address",
+      "showGpsUrl": "Show the GPS address",
+      "trackerId": "Tracker id",
+      "lastPosition": "Last position",
+      "noTrackers": "No bus has a GPS tracker",
+      "noTrackersHint": "Add the tracker’s id to the vehicle in Transport › Vehicles.",
+      "phoneNote": "No key needed: sign in on the phone or tablet with a staff login and open Scan › Gate scanner (or /scan/gate). Each card it scans counts as this device's punch. Students: whoever scans needs “Mark attendance”; staff: “Staff attendance › Edit”."
+    },
+    "logs": {
+      "title": "Integration logs",
+      "subtitle": "Every call to and from the payment gateway, SMS and WhatsApp providers, devices, bus GPS and outbound webhooks — and how each provider is doing today.",
+      "callsToday": "calls today",
+      "failures": "failed",
+      "avgMs": "avg ms",
+      "lastError": "Last error",
+      "noErrors": "No errors in the last 7 days.",
+      "redactedNote": "Only an outline of each call is kept: secrets, one-time codes and family contact details are masked. Entries are deleted after {{days}} days.",
+      "search": "Search operation, reference or error",
+      "providerCol": "Provider",
+      "directionCol": "Direction",
+      "operation": "Operation",
+      "providerRef": "Reference",
+      "time": "समय",
+      "canRetry": "Can be tried again",
+      "empty": "Nothing logged in this period",
+      "emptyHint": "Calls appear here as soon as a provider, device or webhook is used.",
+      "entry": "Log entry",
+      "incoming": "Incoming",
+      "outgoing": "Outgoing",
+      "httpStatus": "HTTP status",
+      "timeTaken": "Time taken",
+      "attempts": "Attempts",
+      "requestId": "Request id",
+      "record": "Record",
+      "outline": "Request / response outline",
+      "outlineHint": "Masked: secrets, codes and contact details never reach the log.",
+      "redeliver": "Send the webhook again",
+      "testAgain": "Test the connection again",
+      "requeued": "Queued to be sent again.",
+      "retryOk": "It works now.",
+      "retryFailed": "It still fails.",
+      "direction": {
+        "OUT": "Outgoing",
+        "IN": "Incoming"
+      },
+      "status": {
+        "OK": "OK",
+        "ERROR": "Error",
+        "REJECTED": "अस्वीकृत",
+        "DUPLICATE": "Duplicate"
+      },
+      "provider": {
+        "RAZORPAY": "Razorpay",
+        "GPS": "Bus GPS",
+        "MSG91": "MSG91",
+        "WHATSAPP": "WhatsApp Cloud API",
+        "DEVICE": "Devices",
+        "WEBHOOK": "Outbound webhooks"
+      }
+    }
+  }
+}

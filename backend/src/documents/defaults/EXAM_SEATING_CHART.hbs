@@ -27,7 +27,7 @@
   .blocks td { text-align: center; height: 5.6mm; padding: .3mm .5mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
   .blocks td .no { color: {{$accent}}; font-weight: 700 } .blocks td .sec { color: #5B616E; font-size: 6.6pt }
   .papers { font-size: 8pt; margin: 4mm 0 1.5mm } .papers b { color: {{$accent}} }
-  .signs { margin-top: 10mm }
+  .signs { margin-top: 26mm }
 </style>
 {{#each rooms}}
 <section class="room">
@@ -65,6 +65,6 @@
   </div>
 
   <div class="papers"><b>{{t "exams.print.seating.papers" "Papers"}}:</b> {{#each ../classes}}{{name}}{{#if subject}} — {{subject}}{{/if}}{{#unless @last}} · {{/unless}}{{/each}}</div>
-  <div class="signs no-break"><div>{{t "exams.print.seating.invigilatorSign" "Invigilator(s)"}}</div><div>{{t "exams.print.seating.inchargeSign" "Controller / Exam in-charge"}}</div></div>
+  <div class="signs no-break"><div>{{t "exams.print.seating.invigilatorSign" "Invigilator(s)"}}</div><div>{{> seal role="CONTROLLER" label=(t "exams.print.seating.seal" "School seal")}}{{t "exams.print.seating.inchargeSign" "Controller / Exam in-charge"}}</div></div>
 </section>
 {{/each}}

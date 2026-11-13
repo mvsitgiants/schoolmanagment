@@ -80,6 +80,10 @@
   <div class="small"><div><b>{{t "payroll.print.fnf" "Full and final settlement"}}</b> — {{t "payroll.print.lastDay" "last working day"}} {{date fnf.lastWorkingDate}} · {{t "payroll.print.service" "service {{years}} year(s)" years=fnf.serviceYears}}{{#if fnf.note}} · {{fnf.note}}{{/if}}</div></div>
   {{/if}}
 
+  {{#if (eq @root.$layout.sign.mode "NONE")}}
   <div class="computer">{{t "payroll.print.computerGenerated" "This is a computer-generated payslip and does not require a signature."}}</div>
+  {{else}}
+  <div class="signs no-break" style="margin-top:26mm"><div>{{t "payroll.print.employeeSign" "Employee's signature"}}</div><div>{{> seal role="PRINCIPAL" label=(t "payroll.print.seal" "School seal")}}{{t "payroll.print.authorisedSign" "Principal / Authorised signatory"}}</div></div>
+  {{/if}}
 </div>
 {{> footer}}

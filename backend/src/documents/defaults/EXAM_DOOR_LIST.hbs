@@ -10,7 +10,7 @@
   table.grid td.c { text-align: center; width: 22mm; font-weight: 600 }
   .run { display: inline-block; margin: .3mm 5mm .3mm 0; white-space: nowrap } .run b { font-weight: 700 }
   .draft { font-weight: 700 }
-  .signs { margin-top: 18mm }
+  .signs { margin-top: 26mm }
 </style>
 {{#> letterhead}}{{/letterhead}}
 <div class="doc-title">{{t "exams.print.door.title" "Examination seating arrangement"}}</div>
@@ -33,5 +33,5 @@
   </tbody>
 </table>
 <p class="note">{{t "exams.print.door.how" "Find your class and roll number, then go to that room. Numbers in brackets are how many students of the class sit there."}}</p>
-<div class="signs no-break"><div style="flex:0 0 40%; margin-left:auto">{{t "exams.print.seating.inchargeSign" "Controller / Exam in-charge"}}</div></div>
+<div class="signs no-break"><div style="flex:0 0 40%; margin-left:auto">{{> seal role="CONTROLLER" label=(t "exams.print.seating.seal" "School seal")}}{{t "exams.print.seating.inchargeSign" "Controller / Exam in-charge"}}</div></div>
 {{> footer}}

@@ -1,0 +1,271 @@
+{
+  "certificates": {
+    "all": "सभी",
+    "loading": "लोड हो रहा है…",
+    "kinds": {
+      "BONAFIDE": {
+        "label": "Bonafide certificate",
+        "hint": "That the student studies here this year."
+      },
+      "CHARACTER": {
+        "label": "Character certificate",
+        "hint": "The student’s conduct while here."
+      },
+      "STUDY": {
+        "label": "Study certificate",
+        "hint": "The classes and years the student studied here — for former students too."
+      },
+      "FEE": {
+        "label": "Fee paid certificate",
+        "hint": "Fees paid in a financial year, tuition shown separately (income tax, section 80C)."
+      },
+      "MERIT": {
+        "label": "Merit / participation certificate",
+        "hint": "An achievement or event. Can be issued to many students at once."
+      }
+    },
+    "status": {
+      "ISSUED": "जारी",
+      "CANCELLED": "रद्द"
+    },
+    "purposes": {
+      "Passport": "Passport",
+      "Bankaccount": "Bank account",
+      "Scholarship": "Scholarship",
+      "Incometax80C": "Income tax (80C)",
+      "Busrailconcession": "Bus / rail concession",
+      "Visa": "Visa",
+      "Aadhaar": "Aadhaar",
+      "Competitionsports": "Competition / sports",
+      "Other": "अन्य"
+    },
+    "conducts": {
+      "Excellent": "Excellent",
+      "Verygood": "Very good",
+      "Good": "Good",
+      "Satisfactory": "Satisfactory"
+    },
+    "issue": {
+      "title": "Issue certificates",
+      "subtitle": "Bonafide, character, study, fee paid and merit certificates — numbered, printed and verifiable by QR.",
+      "which": "प्रमाण पत्र",
+      "student": "छात्र",
+      "students": "छात्र",
+      "class": "कक्षा",
+      "pickClass": "Pick a class",
+      "picked_one": "{{count}} picked",
+      "picked_other": "{{count}} picked",
+      "pickAll": "Pick all",
+      "details": "विवरण",
+      "conduct": "Conduct",
+      "fromClass": "First class here",
+      "toClass": "Last class here",
+      "classHint": "Leave blank to use the student’s record",
+      "fy": "Financial year",
+      "fyLabel": "April–March {{fy}}",
+      "event": "Event or achievement",
+      "eventPlaceholder": "e.g. Annual Sports Meet 2026",
+      "achievement": "Position / award",
+      "achievementHint": "Leave blank for a participation certificate",
+      "achievementPlaceholder": "e.g. First place, 100 m",
+      "eventDate": "Held on",
+      "purpose": "Purpose",
+      "noPurpose": "Not stated",
+      "purposeText": "Say what for",
+      "remarks": "Remarks",
+      "remarksHint": "Printed at the end of the certificate",
+      "issue": "Issue and print",
+      "issueMany_one": "Issue {{count}} and print",
+      "issueMany_other": "Issue {{count}} and print",
+      "numberHint": "Each certificate gets the next number (Settings › Number series) and a QR code to verify it.",
+      "issued": "प्रमाण पत्र {{no}} जारी किया गया।",
+      "issuedMany_one": "{{count}} certificate issued.",
+      "issuedMany_other": "{{count}} certificates issued.",
+      "preparing": "Preparing the certificates…",
+      "earlier": "Earlier certificates"
+    },
+    "preview": {
+      "title": "What it will say",
+      "pickStudent": "Pick a student to see what the certificate will say.",
+      "pickStudents": "Pick a class and tick the students.",
+      "many": "{{count}} certificates for “{{event}}”.",
+      "name": "नाम",
+      "admissionNo": "प्रवेश सं.",
+      "class": "कक्षा",
+      "parent": "अभिभावक",
+      "dob": "जन्म तिथि",
+      "conduct": "Conduct",
+      "from": "प्रारंभिक",
+      "to": "अंतिम",
+      "tillDate": "Till date",
+      "classes": "कक्षाएं",
+      "refunded": "Less: refunded",
+      "total": "Total paid in {{fy}}",
+      "tuition": "Of which tuition"
+    },
+    "register": {
+      "title": "Certificate register",
+      "subtitle": "Every certificate issued.",
+      "count_one": "{{count}} certificate",
+      "count_other": "{{count}} certificates",
+      "search": "Number, student, admission no. or purpose",
+      "from": "प्रारंभिक",
+      "to": "अंतिम",
+      "no": "प्रमाण पत्र",
+      "date": "दिनांक",
+      "kind": "प्रकार",
+      "student": "छात्र",
+      "purpose": "Purpose",
+      "by": "Issued by",
+      "prints_one": "printed {{count}} time",
+      "prints_other": "printed {{count}} times",
+      "status": "स्थिति",
+      "print": "प्रिंट",
+      "copyLink": "Copy verify link",
+      "copied": "Verify link copied.",
+      "cancel": "Cancel certificate",
+      "cancelReason": "Why?",
+      "cancelConfirm": {
+        "title": "Cancel {{no}}?",
+        "message": "Anyone who scans its QR will see it as cancelled. Issue a new one if it needs correcting."
+      },
+      "cancelled": "Certificate cancelled.",
+      "empty": "No certificates issued yet",
+      "noMatch": "No certificates match these filters"
+    },
+    "verify": {
+      "validTitle": "This certificate is genuine",
+      "valid": "Issued by {{institution}} and still valid.",
+      "cancelledTitle": "This certificate was cancelled",
+      "cancelled": "{{institution}} cancelled it on {{date}}. Don’t accept it; ask the institution for a new one.",
+      "notFoundTitle": "Certificate not found",
+      "notFound": "No certificate has the code {{code}}. Check the code, or contact the institution that issued it.",
+      "certificate": "प्रमाण पत्र",
+      "no": "Number",
+      "issued": "Issued on",
+      "name": "Issued to",
+      "class": "कक्षा",
+      "event": "के लिए",
+      "institution": "Institution",
+      "compare": "Compare these details with the paper you were given."
+    },
+    "print": {
+      "stampCancelled": "CANCELLED",
+      "title": {
+        "BONAFIDE": "Bonafide certificate",
+        "CHARACTER": "Character certificate",
+        "STUDY": "Study certificate",
+        "FEE": "Fee paid certificate",
+        "MERIT": "Certificate of merit"
+      },
+      "no": "Certificate No.",
+      "date": "दिनांक",
+      "childOf": {
+        "m": "son of",
+        "f": "daughter of",
+        "x": "ward of"
+      },
+      "he": {
+        "m": "he",
+        "f": "she",
+        "x": "he/she"
+      },
+      "His": {
+        "m": "His",
+        "f": "Her",
+        "x": "His/Her"
+      },
+      "bonafide": {
+        "text": "This is to certify that <b>{{name}}</b>{{rel}}, Admission No. {{admissionNo}}, is a bonafide student of {{school}}, studying in <b>{{cls}}</b> during the academic year <b>{{year}}</b>."
+      },
+      "dobLine": "{{His}} date of birth as per the school records is <b>{{dob}}</b> ({{words}}).",
+      "character": {
+        "textIs": "This is to certify that <b>{{name}}</b>{{rel}}, Admission No. {{admissionNo}}, is a bonafide student of {{school}} since {{from}} and is at present studying in <b>{{cls}}</b>.",
+        "textWas": "This is to certify that <b>{{name}}</b>{{rel}}, Admission No. {{admissionNo}}, was a bonafide student of {{school}} from {{from}} to {{to}}.",
+        "conduct": "During this period {{his}} conduct and character have been found to be <b>{{conduct}}</b>. To the best of our knowledge {{he}} bears a good moral character and has not taken part in any activity against the discipline of the institution.",
+        "wish": "We wish {{him}} every success in life."
+      },
+      "study": {
+        "textIs": "This is to certify that <b>{{name}}</b>{{rel}}, Admission No. {{admissionNo}}, has been studying in {{school}} since {{from}} and is at present in <b>{{toClass}}</b>.",
+        "textWas": "This is to certify that <b>{{name}}</b>{{rel}}, Admission No. {{admissionNo}}, studied in {{school}} from <b>{{fromClass}}</b> to <b>{{toClass}}</b> ({{from}} to {{to}}).",
+        "tableIntro": "The classes {{he}} studied in this institution are:",
+        "year": "शैक्षणिक वर्ष",
+        "class": "Class studied",
+        "school": "Name of the school"
+      },
+      "fee": {
+        "text": "This is to certify that <b>{{name}}</b>{{rel}}, Admission No. {{admissionNo}}, studying in <b>{{cls}}</b> of {{school}}, has paid the following fees during the financial year <b>{{fy}}</b> ({{from}} to {{to}}):",
+        "refunded": "Less: refunded",
+        "total": "Total paid",
+        "tuition": "Of the above, the <b>tuition fee</b> paid is <b>{{amount}}</b> ({{words}}).",
+        "head": "Fee head",
+        "amount": "राशि (₹)",
+        "totalWords": "Total amount paid: <b>{{amount}}</b> ({{words}}).",
+        "note": "Certified that the amount shown as tuition fee is the tuition fee only. It does not include development fee, donation, capitation fee, transport, hostel or any other charges. Issued for claiming deduction under section 80C of the Income-tax Act, 1961."
+      },
+      "merit": {
+        "intro": "This is to certify that",
+        "ofClass": "of {{cls}}",
+        "for": "for",
+        "in": "in",
+        "participation": "has taken part in",
+        "on": "held on {{date}}",
+        "title": "प्रमाण पत्र",
+        "ofMerit": "of merit",
+        "ofParticipation": "of participation",
+        "admNo": "Admission No. {{no}}",
+        "has": "has secured",
+        "wish": "We congratulate {{him}} and wish {{him}} every success."
+      },
+      "purpose": "This certificate is issued on {{his}} request for the purpose of {{purpose}}.",
+      "scan": "Scan to verify",
+      "coordinator": "Teacher in charge",
+      "signature": "Principal",
+      "cancelledNote": "Cancelled: {{reason}}",
+      "words": {
+        "he": {
+          "m": "he",
+          "f": "she",
+          "x": "he/she"
+        },
+        "He": {
+          "m": "He",
+          "f": "She",
+          "x": "He/She"
+        },
+        "his": {
+          "m": "his",
+          "f": "her",
+          "x": "his/her"
+        },
+        "His": {
+          "m": "His",
+          "f": "Her",
+          "x": "His/Her"
+        },
+        "him": {
+          "m": "him",
+          "f": "her",
+          "x": "him/her"
+        },
+        "title": {
+          "m": "Master",
+          "f": "Kumari"
+        },
+        "rel": {
+          "m": "S/o",
+          "f": "D/o",
+          "x": "S/o / D/o"
+        },
+        "child": {
+          "m": "son",
+          "f": "daughter",
+          "x": "ward"
+        }
+      },
+      "seal": "School seal",
+      "sl": "Sl. No.",
+      "place": "Place"
+    }
+  }
+}

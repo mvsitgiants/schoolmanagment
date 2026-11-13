@@ -8,7 +8,7 @@
 
 export const SUPPORTED_LANGUAGES = [
   { code: 'en', name: 'English', nativeName: 'English', script: 'Latin', dir: 'ltr', font: 'Inter, sans-serif' },
-  // { code: 'hi', name: 'Hindi', nativeName: 'हिन्दी', script: 'Devanagari', dir: 'ltr', font: "'Noto Sans Devanagari', sans-serif" },
+  { code: 'hi', name: 'Hindi', nativeName: 'हिन्दी', script: 'Devanagari', dir: 'ltr', font: "'Noto Sans Devanagari', sans-serif" },
   // { code: 'mr', name: 'Marathi', nativeName: 'मराठी', script: 'Devanagari', dir: 'ltr', font: "'Noto Sans Devanagari', sans-serif" },
   // { code: 'gu', name: 'Gujarati', nativeName: 'ગુજરાતી', script: 'Gujarati', dir: 'ltr', font: "'Noto Sans Gujarati', sans-serif" },
   // { code: 'ta', name: 'Tamil', nativeName: 'தமிழ்', script: 'Tamil', dir: 'ltr', font: "'Noto Sans Tamil', sans-serif" },

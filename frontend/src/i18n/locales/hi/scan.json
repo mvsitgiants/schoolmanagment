@@ -1,0 +1,190 @@
+{
+  "scan": {
+    "title": "Scan",
+    "hint": "Point the camera at the code, or use a scanner gun — it types the code into the box below.",
+    "anyHint": "Scan a student or staff ID card, a library book, a fee receipt or a certificate.",
+    "typePlaceholder": "Or type the code / scan with a scanner gun",
+    "typeLabel": "कोड",
+    "go": "Look up",
+    "useGun": "Scanner gun / type",
+    "useCamera": "Use the camera",
+    "done": "पूर्ण",
+    "again": "Scan another",
+    "looking": "Looking it up…",
+    "openGate": "Open the gate scanner",
+    "unknownHint": "Nothing you can see matches this code. It may belong to another school, or to a class or module you don't work with.",
+    "camera": {
+      "starting": "Starting the camera…",
+      "denied": "The camera is blocked for this site. Allow it in the browser's settings, or use a scanner gun / type the code.",
+      "none": "No camera found on this device — use a scanner gun or type the code.",
+      "error": "The camera couldn't start. Use a scanner gun or type the code."
+    },
+    "kind": {
+      "STUDENT": "छात्र",
+      "STAFF": "Staff member",
+      "BOOK": "Library book",
+      "RECEIPT": "Fee receipt",
+      "CERTIFICATE": "प्रमाण पत्र",
+      "UNKNOWN": "Not found",
+      "HALL_TICKET": "प्रवेश पत्र (Hall ticket)",
+      "TC": "Transfer certificate",
+      "EVENT_PASS": "Event pass",
+      "MEETING_PASS": "Meeting pass",
+      "PICKUP_PASS": "Early-pickup pass",
+      "VISITOR": "आगंतुक",
+      "ASSET": "संपत्ति",
+      "GATE_PASS": "गेट पास",
+      "CANTEEN_TOKEN": "Canteen token"
+    },
+    "status": {
+      "CANCELLED": "रद्द",
+      "ISSUED": "जारी",
+      "AVAILABLE": "On the shelf",
+      "LOST": "Lost",
+      "DAMAGED": "Damaged",
+      "WITHDRAWN": "वापस लिया गया",
+      "LEFT": "Left the school",
+      "PASSED_OUT": "Passed out",
+      "TRANSFERRED": "Transferred",
+      "INACTIVE": "निष्क्रिय",
+      "EXITED": "Left",
+      "NOTICE": "On notice",
+      "REQUESTED": "Requested, not issued",
+      "USED": "Used",
+      "ACTIVE": "Valid today",
+      "IN_STORE": "In store",
+      "UNDER_REPAIR": "Under repair",
+      "DISPOSED": "Disposed"
+    },
+    "action": {
+      "profile": "Open student profile",
+      "collectFee": "Collect fee",
+      "library": "Library — issue / return",
+      "issueReturn": "Issue / return this book",
+      "register": "Open the certificate register",
+      "verify": "Check the certificate",
+      "staffProfile": "Open staff profile",
+      "open": "Open the link",
+      "hallTickets": "Open hall tickets",
+      "results": "Open results",
+      "tcRegister": "Open the TC register",
+      "checkIn": "Check in",
+      "arrived": "Mark arrived",
+      "handOver": "Hand the child over",
+      "gatePassLeft": "Mark left on the gate pass",
+      "visitorOut": "Check the visitor out",
+      "verifyAsset": "Verify — seen here",
+      "assets": "Open assets",
+      "outpassOut": "Mark out on the outpass",
+      "outpassIn": "Mark back in",
+      "canteenReady": "Mark ready",
+      "canteenCollected": "Mark collected — hand it over"
+    },
+    "gate": {
+      "title": "Gate scanner",
+      "subtitle": "Scan ID cards as students or staff come in and go out. Each scan goes to the gate log; the family hears when a child reaches school.",
+      "pick": "Scanner",
+      "none": "No gate scanner set up yet. Add one in Integrations › Devices as a “Phone / tablet scanner” — then open this screen on that phone.",
+      "in": "Coming in",
+      "out": "Going out",
+      "start": "Start scanning",
+      "students": "छात्र",
+      "staff": "कर्मचारी (Staff)",
+      "marksPresent": "A child's first scan before the “mark by” time marks them present.",
+      "scanned_one": "{{count}} scan today on this screen",
+      "scanned_other": "{{count}} scans today on this screen",
+      "outcome": {
+        "GATE": "In the gate log",
+        "MARKED_PRESENT": "Marked present",
+        "ATTENDANCE": "Staff attendance",
+        "DUPLICATE": "Already scanned",
+        "UNKNOWN": "Unknown card",
+        "TEST": "Test"
+      },
+      "recent": "Last scans",
+      "emptyRecent": "Nothing scanned yet.",
+      "offline": "Couldn't reach the server — this scan wasn't saved. Scan again."
+    },
+    "punch": {
+      "title": "My attendance code",
+      "hint": "Show this at the staff gate scanner to mark yourself in or out. It changes every 30 seconds, so a photo of it won't work later.",
+      "refreshesIn": "New code in {{s}} s",
+      "button": "My attendance code"
+    },
+    "receipt": {
+      "validTitle": "Genuine receipt",
+      "cancelledTitle": "This receipt was cancelled",
+      "valid": "{{school}} issued this receipt and it is valid.",
+      "cancelled": "{{school}} issued this receipt but later cancelled it — it no longer counts as paid.",
+      "notFoundTitle": "Receipt not found",
+      "notFound": "No receipt matches this code. It may have been altered — ask the school's fee office.",
+      "no": "Receipt no.",
+      "date": "दिनांक",
+      "amount": "राशि",
+      "refunded": "Refunded",
+      "student": "छात्र",
+      "compare": "Check these match the printed receipt."
+    },
+    "exam": {
+      "roomSeat": "Room {{room}} · Seat {{seat}}",
+      "notSeated": "No seat published",
+      "notToday": "No paper today — the next is on {{date}}.",
+      "noMore": "No more papers in this exam.",
+      "validTitle": "Genuine hall ticket / report card",
+      "notFoundTitle": "Not found",
+      "notFound": "No hall ticket or report card matches this code. It may have been altered — ask the school.",
+      "valid": "{{school}} issued this for the exam below.",
+      "student": "छात्र",
+      "class": "कक्षा",
+      "exam": "परीक्षा",
+      "result": "परिणाम",
+      "resultLine": "{{pct}}% · Grade {{grade}}",
+      "notPublished": "Results not published yet",
+      "compare": "Check these match the printed document."
+    },
+    "tc": {
+      "validTitle": "Genuine transfer certificate",
+      "cancelledTitle": "This TC was cancelled",
+      "valid": "{{school}} issued this transfer certificate and it is valid.",
+      "cancelled": "{{school}} issued this TC but later cancelled it — it is no longer valid.",
+      "notFoundTitle": "TC not found",
+      "notFound": "No issued transfer certificate matches this code. It may have been altered — ask the school that issued it.",
+      "no": "TC no.",
+      "issued": "Issued on",
+      "leaving": "Date of leaving",
+      "student": "छात्र",
+      "dob": "जन्म तिथि",
+      "compare": "Check these match the printed TC."
+    },
+    "pass": {
+      "valid": {
+        "EVENT_PASS": "Valid pass — not checked in yet",
+        "MEETING_PASS": "Booked — not arrived yet",
+        "PICKUP_PASS": "Valid for today — check the person, then hand over"
+      },
+      "notValid": "Not valid — used, cancelled or for another day",
+      "checkedIn": "Checked in at {{time}}",
+      "handedOver": "Handed over at {{time}} by {{by}}",
+      "collectedBy": "To be collected by",
+      "checkId": "Ask for photo ID and match the name before handing over."
+    },
+    "gatePass": {
+      "approved": "Approved gate pass {{no}} for today",
+      "left": "Left on the gate pass at {{time}}",
+      "with": "With {{name}} {{relation}}"
+    },
+    "visitor": {
+      "inSince": "In since {{time}} · badge {{badge}}",
+      "out": "Checked out at {{time}}"
+    },
+    "asset": {
+      "verified": "Last seen in an audit on {{when}} by {{by}}",
+      "never": "Not verified in an audit yet"
+    },
+    "outpass": {
+      "approved": "Approved outpass {{no}}",
+      "out": "Out on outpass {{no}} since {{time}}",
+      "returnBy": "Back by {{when}}"
+    }
+  }
+}

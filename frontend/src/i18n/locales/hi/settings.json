@@ -1,0 +1,608 @@
+{
+  "settings": {
+    "page": {
+      "title": "सेटिंग्स",
+      "subtitle": "How each module behaves in your institution. Only modules you have switched on are listed.",
+      "module": "Module",
+      "sections": "Settings sections",
+      "find": "Find a setting…",
+      "noMatch": "No setting matches “{{q}}”.",
+      "count_one": "{{count}} setting",
+      "count_other": "{{count}} settings",
+      "save": "Save {{name}} settings",
+      "saved": "{{name}} settings saved.",
+      "unsaved_one": "{{count}} unsaved change",
+      "unsaved_other": "{{count}} unsaved changes",
+      "leaveTitle": "Leave without saving?",
+      "leaveMessage": "Your changes to {{name}} settings will be lost.",
+      "discard": "Discard changes"
+    },
+    "defs": {
+      "core": {
+        "institutionType": {
+          "label": "Type of institution",
+          "help": "Sets the words the app uses (class or semester, principal or dean) and the default report formats.",
+          "options": {
+            "SCHOOL": "School (K-12)",
+            "COLLEGE": "College / university",
+            "COACHING": "Coaching / tuition institute"
+          }
+        },
+        "academicYearStartMonth": {
+          "label": "Academic year starts in",
+          "help": "April for most Indian schools, June or July for many colleges.",
+          "options": {
+            "1": "जनवरी",
+            "2": "फ़रवरी",
+            "3": "मार्च",
+            "4": "अप्रैल",
+            "5": "मई",
+            "6": "जून",
+            "7": "जुलाई",
+            "8": "अगस्त",
+            "9": "सितंबर",
+            "10": "अक्टूबर",
+            "11": "नवंबर",
+            "12": "दिसंबर"
+          }
+        },
+        "defaultAppLanguage": {
+          "label": "Default language",
+          "help": "Interface language for staff and the parent app, unless a user picks another.",
+          "options": {
+            "en": "English"
+          }
+        },
+        "enabledLanguages": {
+          "label": "Languages offered",
+          "help": "Which languages appear in the language picker.",
+          "options": {
+            "en": "English"
+          }
+        },
+        "sessionIdleMinutes": {
+          "label": "Default sign-out after inactivity (minutes)",
+          "help": "Roles can set their own value."
+        },
+        "familyMessageLanguage": {
+          "label": "Send family messages in their language",
+          "help": "SMS, WhatsApp and email use the family’s preferred language for the standard texts; a text you have edited in Notification rules is sent as written."
+        },
+        "familyLinkDays": {
+          "label": "Links sent to families work for (days)",
+          "help": "Report cards, receipts and notices sent by WhatsApp, SMS or email."
+        },
+        "weekStartsOn": {
+          "label": "Week starts on",
+          "options": {
+            "MONDAY": "सोमवार",
+            "SUNDAY": "रविवार"
+          }
+        },
+        "workingDays": {
+          "label": "Working days",
+          "help": "Attendance and timetables skip the other days.",
+          "options": {
+            "MON": "सोम",
+            "TUE": "मंगल",
+            "WED": "बुध",
+            "THU": "गुरु",
+            "FRI": "शुक्र",
+            "SAT": "शनि",
+            "SUN": "रवि"
+          }
+        }
+      },
+      "students": {
+        "admissionNoPrefix": {
+          "label": "Admission number prefix",
+          "help": "Shown before the running number, e.g. GV. The pattern itself is set in Number series."
+        },
+        "requiredFields": {
+          "label": "Required at admission",
+          "help": "Name and class are always required.",
+          "options": {
+            "dob": "जन्म तिथि",
+            "gender": "लिंग",
+            "guardianMobile": "Guardian mobile",
+            "guardianEmail": "Guardian email",
+            "address": "पता",
+            "aadhaar": "Aadhaar",
+            "apaar": "APAAR ID",
+            "photo": "Photo"
+          }
+        },
+        "idCardOrientation": {
+          "label": "Student ID card layout",
+          "help": "Both are the standard bank-card size (CR80) that fits card holders, lanyards and card printers.",
+          "options": {
+            "PORTRAIT": "Portrait — upright, 54 × 85.6 mm",
+            "LANDSCAPE": "Landscape — sideways, 85.6 × 54 mm"
+          }
+        },
+        "idCardTitle": {
+          "label": "Heading on the student ID card",
+          "help": "Printed in the coloured band, e.g. Student ID card or Identity card."
+        },
+        "idCardColor": {
+          "label": "Student ID card colour",
+          "help": "A colour code like #0E7C86. Leave it blank to use the brand colour from the institution profile."
+        },
+        "idCardFields": {
+          "label": "Shown on the student ID card",
+          "help": "The name, class and admission number are always printed.",
+          "options": {
+            "PHOTO": "Photo",
+            "ROLL": "Roll number",
+            "DOB": "जन्म तिथि",
+            "BLOOD_GROUP": "रक्त समूह",
+            "GUARDIAN": "माता-पिता / अभिभावक",
+            "GUARDIAN_PHONE": "Parent’s phone",
+            "ADDRESS": "Home address",
+            "VALID_UNTIL": "Valid until (end of the academic year)",
+            "QR": "QR code (check the card online)"
+          }
+        },
+        "idCardBack": {
+          "label": "Print a back side on student ID cards",
+          "help": "Each card’s back follows its front, so double-sided printing lines up."
+        },
+        "idCardBackText": {
+          "label": "Rules printed on the back of the card"
+        },
+        "idCardReturnText": {
+          "label": "Return note on the back of the card",
+          "help": "Followed by the institution’s name, address and phone number."
+        },
+        "idCardSignatory": {
+          "label": "Caption under the signature line",
+          "help": "e.g. Principal or Headmistress."
+        }
+      },
+      "admissions": {
+        "onlineApplication": {
+          "label": "Families can apply online",
+          "help": "The application page at <app>/apply/<your school>; the mobile number is checked with a one-time code."
+        },
+        "websiteEnquiry": {
+          "label": "Take enquiries from the website",
+          "help": "A short enquiry form on the same page, for families not ready to apply."
+        },
+        "ageCutoff": {
+          "label": "Age is counted on (day-month)",
+          "help": "The day of the admission year on which a child’s age is counted for eligibility."
+        },
+        "followUpDays": {
+          "label": "Follow up a new enquiry within (days)"
+        },
+        "offerDays": {
+          "label": "Days a family has to accept an offered seat"
+        }
+      },
+      "hrms": {
+        "weeklyOffDays": {
+          "label": "Staff weekly off",
+          "help": "A staff record can have its own weekly off.",
+          "options": {
+            "MON": "सोम",
+            "TUE": "मंगल",
+            "WED": "बुध",
+            "THU": "गुरु",
+            "FRI": "शुक्र",
+            "SAT": "शनि",
+            "SUN": "रवि"
+          }
+        },
+        "saturdaysOff": {
+          "label": "Saturdays off",
+          "help": "For example the 2nd and 4th Saturday of every month.",
+          "options": {
+            "1": "1st",
+            "2": "2nd",
+            "3": "3rd",
+            "4": "4th",
+            "5": "5th"
+          }
+        },
+        "leaveYearStartMonth": {
+          "label": "Leave year starts in",
+          "help": "Yearly leave is credited, and unused leave carried forward, at this month.",
+          "options": {
+            "1": "जनवरी",
+            "2": "फ़रवरी",
+            "3": "मार्च",
+            "4": "अप्रैल",
+            "5": "मई",
+            "6": "जून",
+            "7": "जुलाई",
+            "8": "अगस्त",
+            "9": "सितंबर",
+            "10": "अक्टूबर",
+            "11": "नवंबर",
+            "12": "दिसंबर"
+          }
+        },
+        "lateAfter": {
+          "label": "Late after (HH:MM)",
+          "help": "Arriving after this is marked late. Leave empty to not track late arrival."
+        },
+        "attendanceEditDays": {
+          "label": "Staff attendance can be corrected up to (days back)"
+        },
+        "selfLeave": {
+          "label": "Staff apply for leave themselves",
+          "help": "In My workspace. Otherwise HR applies on their behalf."
+        },
+        "selfAttendance": {
+          "label": "Staff can mark themselves in and out from their phone (My workspace)",
+          "help": "Off: HR, the biometric device or a gate scanner marks staff attendance. They can check in and out several times a day; the first in and last out make the day."
+        },
+        "geofence": {
+          "label": "Where staff may mark themselves in and out",
+          "help": "Checks the phone’s location against the attendance sites of the person’s campus (Administration › Campuses). The location is read only at the moment they mark attendance — never tracked. HR can exempt field staff on their staff record.",
+          "options": {
+            "OFF": "Off — anywhere",
+            "WARN": "Allow, but flag punches outside an attendance site",
+            "REQUIRED": "Block — only within an attendance site"
+          }
+        },
+        "geofenceMaxAccuracyM": {
+          "label": "Refuse a staff location rougher than (metres)",
+          "help": "Phones indoors can be off by a few hundred metres; the punch is refused (or flagged) when the location is less accurate than this."
+        }
+      },
+      "transport": {
+        "alertNear": {
+          "label": "Tell families when the bus is near their stop"
+        },
+        "nearMetres": {
+          "label": "Near means within (metres)"
+        },
+        "arriveMetres": {
+          "label": "At the stop means within (metres)"
+        },
+        "alertRide": {
+          "label": "Tell families when their child gets on and off"
+        },
+        "docWarnDays": {
+          "label": "Warn about vehicle papers this many days before expiry"
+        }
+      },
+      "library": {
+        "studentLimit": {
+          "label": "Books a student can have at once"
+        },
+        "staffLimit": {
+          "label": "Books a staff member can have at once"
+        },
+        "studentDays": {
+          "label": "Loan period for students (days)"
+        },
+        "staffDays": {
+          "label": "Loan period for staff (days)"
+        },
+        "renewals": {
+          "label": "Times a loan can be renewed"
+        },
+        "finePerDay": {
+          "label": "Late fine a day (₹)",
+          "help": "0: no late fines."
+        },
+        "fineMax": {
+          "label": "Most a late fine can be for one book (₹)",
+          "help": "0: no limit."
+        },
+        "graceDays": {
+          "label": "Days late before a fine starts"
+        },
+        "staffFines": {
+          "label": "Charge late fines to staff"
+        },
+        "blockWithFines": {
+          "label": "No new books while a fine is unpaid"
+        },
+        "blockOverdue": {
+          "label": "No new books while one is overdue"
+        },
+        "remindDaysBefore": {
+          "label": "Remind families this many days before a book is due",
+          "help": "0: no reminder before the due date."
+        },
+        "overdueEveryDays": {
+          "label": "Remind about an overdue book every (days)",
+          "help": "0: no overdue reminders."
+        }
+      },
+      "canteen": {
+        "lowBalanceRs": {
+          "label": "Tell the family when the wallet falls below (₹)"
+        },
+        "minTopUpRs": {
+          "label": "Smallest top-up (₹)"
+        },
+        "maxTopUpRs": {
+          "label": "Largest single top-up (₹)"
+        },
+        "maxBalanceRs": {
+          "label": "Most a wallet can hold (₹)"
+        },
+        "preorderDays": {
+          "label": "Families can pre-order this many days ahead"
+        },
+        "preorderCutoff": {
+          "label": "Same-day pre-orders close at (HH:MM)"
+        },
+        "tokens": {
+          "label": "Give every order a token number",
+          "help": "Tokens start at 1 each day on each campus. A counter sale is then made first and called out by its token on the token board: Preparing, Ready, Collected. Off: a counter sale is served at once."
+        },
+        "tokenPrint": {
+          "label": "Print the token slip after each counter sale",
+          "help": "Prints on the 80 mm receipt printer at the counter. Only when tokens are on."
+        }
+      },
+      "frontoffice": {
+        "complaintSlaDays": {
+          "label": "Resolve a complaint within (days)",
+          "help": "Sets the due day of every new complaint (an urgent one is due the next day). Past it, the complaint shows as overdue."
+        },
+        "gatePassApproval": {
+          "label": "Gate passes need approval",
+          "help": "The class teacher, or someone allowed to approve, approves before a student is handed over at the gate. Off: a pass is ready as soon as it is written."
+        }
+      },
+      "placements": {
+        "offerPolicy": {
+          "label": "Offers a student may hold",
+          "help": "Checked when students register for a drive and when an offer is accepted. Accepting a dream offer releases the earlier one.",
+          "options": {
+            "ONE": "One offer — a placed student applies no more",
+            "DREAM": "Dream offer — once placed, only drives paying the dream CTC or more",
+            "OPEN": "No limit"
+          }
+        },
+        "dreamCtcLakhs": {
+          "label": "Dream offer: CTC from (₹ lakh a year)"
+        },
+        "familyRegistration": {
+          "label": "Students and parents register for drives in the app",
+          "help": "Off: only the placement office registers students."
+        },
+        "notifyEligible": {
+          "label": "Tell eligible students when a drive opens"
+        }
+      },
+      "hostel": {
+        "lateGraceMinutes": {
+          "label": "Minutes after the return time before an outpass counts as late"
+        },
+        "familyOutpass": {
+          "label": "Parents can ask for an outpass in the family app"
+        },
+        "alertOutpass": {
+          "label": "Tell the guardian when an outpass is approved or rejected, and when the student leaves and comes back"
+        }
+      },
+      "events": {
+        "remindDayBefore": {
+          "label": "Remind families the day before an event",
+          "help": "Only for events that ask for it (the box on the event)."
+        },
+        "calendarHolidays": {
+          "label": "Show holidays from Staff & HR on the calendar"
+        },
+        "calendarExams": {
+          "label": "Show exam dates on the calendar"
+        },
+        "weekStartsSunday": {
+          "label": "Calendar weeks start on Sunday"
+        },
+        "ptmSlotMinutes": {
+          "label": "Parent–teacher meeting slot (minutes)"
+        },
+        "ptmReminder": {
+          "label": "Remind families of their meeting slot the day before"
+        }
+      },
+      "finance": {
+        "autoPost": {
+          "label": "Post fees, refunds and payroll to the books on their own",
+          "help": "Fee receipts, refunds, cancelled receipts and paid payroll make their vouchers as they happen."
+        },
+        "onlineToGateway": {
+          "label": "Online fee payments go to “Payment gateway in transit”",
+          "help": "On: a contra voucher moves them to the bank when the gateway settles. Off: straight to the main bank account."
+        },
+        "expenseAutoApproveUpTo": {
+          "label": "Expenses up to this amount need no approval (₹)",
+          "help": "0: every expense is approved before it is paid."
+        },
+        "matchWindowDays": {
+          "label": "Bank matching window (days)",
+          "help": "A statement line matches a book entry of the same amount this many days apart."
+        }
+      },
+      "attendance": {
+        "mode": {
+          "label": "Attendance is taken",
+          "help": "Every period: the day’s attendance is worked out from the periods (see below). Both: the class teacher’s daily register stays the day’s attendance; the periods give subject-wise attendance.",
+          "options": {
+            "DAILY": "Once a day, by the class teacher",
+            "PERIOD": "Every period, by the subject teacher",
+            "BOTH": "Both — once a day by the class teacher, and every period by the subject teacher"
+          }
+        },
+        "dayFrom": {
+          "label": "With every period: the day’s attendance comes from",
+          "options": {
+            "FIRST": "The first period marked that day",
+            "SHARE": "The share of periods attended"
+          }
+        },
+        "dayMinPct": {
+          "label": "Present for the day when at least this % of periods are attended",
+          "help": "Used when the day comes from the share of periods."
+        },
+        "periodMarkers": {
+          "label": "Who marks a period",
+          "help": "Staff who see attendance for the whole campus or institution (principal, coordinator, office) can always mark any period.",
+          "options": {
+            "TIMETABLE": "Its teacher in the published timetable (or the substitute), and the class teacher",
+            "ANYONE": "Anyone who may mark attendance for the class"
+          }
+        },
+        "absentAlert": {
+          "label": "Tell parents when their child is absent",
+          "help": "By the channels set for “Absence alert” in Notification rules."
+        },
+        "markBefore": {
+          "label": "Attendance to be marked by (HH:MM)",
+          "help": "Classes not marked by then show on the principal’s dashboard."
+        },
+        "minimumPct": {
+          "label": "Minimum attendance required (%)",
+          "help": "Students below it are flagged in reports."
+        },
+        "editDays": {
+          "label": "Teachers can correct attendance up to (days back)"
+        },
+        "studentSelfCheckIn": {
+          "label": "Students check themselves in from the student app",
+          "help": "Only from a student’s own login (not a parent’s), and only inside an attendance site of their campus (Administration › Campuses). They can check in and out several times; teachers can always mark or correct the register by hand.",
+          "options": {
+            "OFF": "Off — the class teacher marks attendance",
+            "LOG": "Students check in on the campus; it goes to the gate log (the teacher still marks the register)",
+            "PRESENT": "Students check in on the campus; a check-in before the “mark by” time marks them present"
+          }
+        },
+        "studentGeofenceMaxAccuracyM": {
+          "label": "Refuse a student location rougher than (metres)"
+        }
+      },
+      "exams": {
+        "roundMarks": {
+          "label": "Round totals to whole marks"
+        },
+        "showRank": {
+          "label": "Show class rank on report cards"
+        },
+        "yearCombine": {
+          "label": "Several exams of one type in the year result",
+          "help": "For example three unit tests: their average, or only the best, counts towards the unit-test share.",
+          "options": {
+            "AVERAGE": "Average them",
+            "BEST": "Take the best one"
+          }
+        },
+        "yearPassPct": {
+          "label": "Pass mark for the year result (%)",
+          "help": "A subject whose final % is below this needs to improve."
+        },
+        "compartmentMax": {
+          "label": "Compartment: up to this many subjects below the pass mark",
+          "help": "0: no compartment — any subject below the pass mark is \"needs to improve\"."
+        },
+        "lockAfterDays": {
+          "label": "Lock marks entry this many days after the exam",
+          "help": "0: marks stay open until someone locks them."
+        }
+      },
+      "fees": {
+        "lateFeePerDay": {
+          "label": "Late fee per day (₹)",
+          "help": "0 turns the late fee off. Fee structures can set their own."
+        },
+        "graceDays": {
+          "label": "Days after the due date before the late fee starts"
+        },
+        "remindDaysBefore": {
+          "label": "Remind parents this many days before the due date",
+          "help": "0 turns the reminder off. Uses “Fee due reminder” in Notification rules."
+        },
+        "allowPartial": {
+          "label": "Accept part payments"
+        },
+        "upiId": {
+          "label": "UPI ID for QR payments at the counter",
+          "help": "e.g. greenvalley@okaxis — the counter shows a QR with the exact amount."
+        },
+        "receiptFormat": {
+          "label": "Receipt printer",
+          "options": {
+            "A5": "A5 sheet",
+            "THERMAL": "80 mm thermal roll"
+          }
+        },
+        "receiptFooter": {
+          "label": "Footer on receipts"
+        }
+      },
+      "portal": {
+        "enabled": {
+          "label": "Parents and students can sign in to the app",
+          "help": "With a one-time code to the mobile number on the student’s record."
+        },
+        "studentLogins": {
+          "label": "Students get their own sign-in",
+          "help": "Usually on for senior classes and colleges. Off: only parents sign in."
+        },
+        "showFees": {
+          "label": "Show fees and online payment in the app"
+        },
+        "showMarks": {
+          "label": "Show marks and report cards in the app",
+          "help": "Only results that have been published."
+        },
+        "chat": {
+          "label": "Families can message teachers in the app",
+          "help": "The class teacher and the subject teachers of the child’s class. Needs the Communication hub."
+        }
+      },
+      "comms": {
+        "reRingMinutes": {
+          "label": "Ring again when nobody has answered for (minutes)"
+        },
+        "maxRings": {
+          "label": "Ring each person at most (times)",
+          "help": "After that the call shows as missed for them."
+        },
+        "escalateMinutes": {
+          "label": "Escalate when nobody is on the way after (minutes)",
+          "help": "Counted from the call, then again from each escalation."
+        },
+        "escalateTo": {
+          "label": "Normal and urgent calls escalate to",
+          "help": "The next step goes one level wider (head of department → whole department).",
+          "options": {
+            "DEPARTMENT_HEAD": "Head of the department",
+            "DEPARTMENT": "The whole department"
+          }
+        },
+        "maxEscalations": {
+          "label": "Escalation steps at most",
+          "help": "0 turns escalation off."
+        },
+        "codeEscalateTo": {
+          "label": "Unanswered emergency alerts escalate to",
+          "options": {
+            "EVERYONE": "Everyone on the campus",
+            "DEPARTMENT": "The whole department",
+            "NONE": "Do not escalate (keep ringing)"
+          }
+        },
+        "autoCloseMinutes": {
+          "label": "Close normal and urgent calls left open after (minutes)",
+          "help": "Emergency alerts never close on their own — someone gives the all clear."
+        },
+        "chatAnnouncementsOnly": {
+          "label": "Whole-staff chat is for announcements only",
+          "help": "On: only people who can moderate chat post in the whole-staff and campus chats; everyone still reads them."
+        },
+        "chatRetentionDays": {
+          "label": "Keep staff chat messages for (days)",
+          "help": "0 keeps them. Older messages and their attachments are removed by an hourly job."
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,69 @@
+{
+  "portal": {
+    "loading": "लोड हो रहा है…",
+    "features": {
+      "ATTENDANCE": "Attendance and leave",
+      "HOMEWORK": "गृहकार्य",
+      "TIMETABLE": "Class timetable",
+      "LEARNING": "Study material and live classes",
+      "TESTS": "Online tests",
+      "BUS": "School bus and live tracking",
+      "LIBRARY": "Library books and e-library",
+      "EVENTS": "Calendar, parent–teacher meetings and photos",
+      "FEES": "Fees and receipts",
+      "RESULTS": "Results and report cards",
+      "CERTIFICATES": "प्रमाण पत्र",
+      "NOTICES": "Notices and circulars",
+      "CHAT": "Messages with teachers",
+      "HOSTEL": "Hostel room, outpasses and mess menu",
+      "HEALTH": "Health card: allergies, vaccinations, sick-room visits",
+      "PLACEMENTS": "Placement drives and offers",
+      "COMPLAINTS": "Complaints and concerns",
+      "SURVEYS": "Surveys and feedback",
+      "CANTEEN": "Canteen wallet and pre-orders"
+    },
+    "settings": {
+      "title": "App settings",
+      "subtitle": "The parent & student app: switch it on, choose what it shows, and share its address with families.",
+      "what": "What families can do",
+      "shows": "The app shows",
+      "moduleOff": "module not switched on",
+      "saved": "सहेजा गया।",
+      "signInHint": "Families sign in with the mobile number on the student’s record and a code by SMS (your SMS account in Integrations, or the platform’s). Only their own children are shown, and only finished things: published results, issued certificates, valid receipts.",
+      "address": "The app’s address",
+      "copy": "Copy link",
+      "copied": "Link copied.",
+      "poster": "Print a notice",
+      "open": "खुला",
+      "offNote": "The app is switched off — families who open this address see “not available”."
+    },
+    "poster": {
+      "title": "Our school app",
+      "steps": "Scan the code or open the address below on your phone. Sign in with your mobile number — the one the school has for you — and the code we send by SMS."
+    },
+    "content": {
+      "title": "App content",
+      "subtitle": "What families see in the app: a welcome line, how to reach you, office hours.",
+      "save": "सहेजें",
+      "saved": "App content saved.",
+      "welcomeTitle": "Welcome and help",
+      "welcome": "Welcome line",
+      "welcomeHint": "Shown on the sign-in screen.",
+      "help": "Help text",
+      "helpHint": "Shown under More › Need help? — e.g. who to call about fees or transport.",
+      "contactTitle": "Contact",
+      "phone": "Office phone",
+      "whatsapp": "WhatsApp number",
+      "email": "ईमेल",
+      "address": "पता",
+      "addressHint": "Leave blank to use the address in the institution profile.",
+      "mapUrl": "Map link",
+      "timingsTitle": "Office timings",
+      "timingsHint": "e.g. Fee counter · Mon–Sat 8:30–1:00",
+      "timingLabel": "What",
+      "timingHours": "समय",
+      "addTiming": "Add a line",
+      "remove": "हटाएँ"
+    }
+  }
+}

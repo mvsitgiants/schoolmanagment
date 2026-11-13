@@ -84,7 +84,7 @@
       "modeNote": {
         "PERIOD": "Attendance is taken every period; the day’s attendance comes from {{rule}}.",
         "BOTH": "The class teacher marks the day; subject teachers mark their periods for subject-wise attendance.",
-        "DAILY": ""
+        "DAILY": "Attendance is marked once for the entire day."
       },
       "dayFrom": {
         "FIRST": "the first period marked",

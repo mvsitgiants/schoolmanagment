@@ -429,7 +429,7 @@
       "on": "On — approvals and alerts pop up here even when SchoolGiant is closed.",
       "off": "Off — turn on to get approvals and alerts as phone / desktop notifications.",
       "blocked": "Blocked in this browser’s site settings. Allow notifications there to turn them on.",
-      "unsupported": ""
+      "unsupported": "Push notifications are not supported on this browser or device."
     },
     "datePicker": {
       "open": "Open calendar",
@@ -480,6 +480,20 @@
       "pickDay": "Pick a day to see what is on it.",
       "empty": "Nothing this month.",
       "add": "Add on this day"
+    },
+    "camera": {
+      "title": "Take a photo",
+      "hint": "Hold the paper flat in good light and take a clear photo.",
+      "open": "Open camera",
+      "choose": "Choose a photo",
+      "noCamera": "We couldn’t open the camera on this computer. You can choose a photo instead.",
+      "frame": "Fit the whole page in the frame, then take the photo.",
+      "snap": "Take photo",
+      "retake": "Take again",
+      "rotate": "Turn",
+      "add": "Add photo",
+      "preview": "The photo",
+      "fileName": "photo"
     }
   }
 }

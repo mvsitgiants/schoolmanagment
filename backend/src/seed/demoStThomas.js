@@ -931,6 +931,139 @@ async function fillQuestionPapers(admin) {
   return `${ut.name} · ${row.className} · ${row.subject}: approved, sets A and B`
 }
 
+// Section A (choose the correct option) of the papers below, by subject
+const opts = (right, ...wrong) => [{ text: right, correct: true }, ...wrong.map((text) => ({ text }))]
+const PAPER_MCQ = {
+  math: [
+    { text: 'The value of 3/4 + 1/8 is', options: opts('7/8', '4/12', '1/2', '5/8') },
+    { text: 'Which of these is a prime number?', options: opts('29', '21', '27', '33') },
+    { text: 'The perimeter of a square of side 6 cm is', options: opts('24 cm', '36 cm', '12 cm', '18 cm') },
+    { text: '25% of 360 is', options: opts('90', '25', '75', '120') },
+    { text: 'The sum of the angles of a triangle is', options: opts('180°', '90°', '270°', '360°') },
+    { text: 'The HCF of 12 and 18 is', options: opts('6', '3', '36', '2') },
+    { text: 'If x + 7 = 15, then x is', options: opts('8', '22', '7', '15') },
+    { text: '0.25 written as a fraction is', options: opts('1/4', '1/25', '2/5', '25/10') },
+  ],
+  science: [
+    { text: 'Plants make their food by', options: opts('photosynthesis', 'respiration', 'digestion', 'transpiration') },
+    { text: 'The SI unit of force is', options: opts('newton', 'joule', 'watt', 'pascal') },
+    { text: 'Which gas do we breathe out more of?', options: opts('Carbon dioxide', 'Oxygen', 'Nitrogen', 'Hydrogen') },
+    { text: 'Water boils at (at sea level)', options: opts('100 °C', '0 °C', '50 °C', '212 °C') },
+    { text: 'Which of these is a good conductor of electricity?', options: opts('Copper', 'Rubber', 'Wood', 'Plastic') },
+    { text: 'The basic unit of life is the', options: opts('cell', 'tissue', 'organ', 'atom') },
+    { text: 'Which vitamin do we get from sunlight?', options: opts('Vitamin D', 'Vitamin A', 'Vitamin C', 'Vitamin K') },
+    { text: 'Light travels fastest in', options: opts('a vacuum', 'water', 'glass', 'air') },
+  ],
+  english: [
+    { text: 'Choose the noun: “The children played in the park.”', options: opts('park', 'played', 'the', 'in') },
+    { text: 'The past tense of “write” is', options: opts('wrote', 'writed', 'written', 'writes') },
+    { text: 'The opposite of “ancient” is', options: opts('modern', 'old', 'early', 'past') },
+    { text: 'Choose the correct article: “She is ___ honest girl.”', options: opts('an', 'a', 'the', 'no article') },
+    { text: 'Which word is an adverb?', options: opts('quickly', 'quick', 'quickness', 'quicker') },
+    { text: '“As brave as a lion” is an example of a', options: opts('simile', 'metaphor', 'personification', 'pun') },
+    { text: 'The plural of “child” is', options: opts('children', 'childs', 'childes', 'childrens') },
+    { text: 'Choose the correctly spelt word.', options: opts('necessary', 'neccessary', 'necesary', 'neccesary') },
+  ],
+  social: [
+    { text: 'The capital of Uttar Pradesh is', options: opts('Lucknow', 'Kanpur', 'Prayagraj', 'Varanasi') },
+    { text: 'The Constitution of India came into force on', options: opts('26 January 1950', '15 August 1947', '26 November 1949', '2 October 1950') },
+    { text: 'The longest river of India is the', options: opts('Ganga', 'Yamuna', 'Godavari', 'Narmada') },
+    { text: 'The Revolt of 1857 began at', options: opts('Meerut', 'Lucknow', 'Delhi', 'Kanpur') },
+    { text: 'Lines of latitude run', options: opts('east to west', 'north to south', 'only at the poles', 'diagonally') },
+    { text: 'The head of a gram panchayat is the', options: opts('sarpanch', 'collector', 'mayor', 'governor') },
+    { text: 'Which is a renewable resource?', options: opts('Solar energy', 'Coal', 'Petroleum', 'Natural gas') },
+    { text: 'The Lok Sabha is elected for', options: opts('5 years', '6 years', '4 years', '3 years') },
+  ],
+}
+const mcqGroup = (name) => (/math/i.test(name) ? 'math' : /science|physics|chem|bio/i.test(name) ? 'science' : /english/i.test(name) ? 'english' : /social|history|geog|civics/i.test(name) ? 'social' : null)
+
+/** Marks split for a paper of `max` marks: A one-mark MCQs (at most 8), B two-mark short answers, C five-mark long answers. */
+function paperPlan(max) {
+  const c = Math.max(1, Math.floor((max * 0.4) / 5))
+  let a = Math.min(8, Math.max(2, Math.round(max * 0.2)))
+  let rest = max - 5 * c - a
+  if (rest % 2) { a += 1; rest -= 1 }
+  return { a, b: Math.max(1, rest / 2), c, max: a + 2 * Math.max(1, rest / 2) + 5 * c }
+}
+
+const STAGES = ['APPROVED', 'APPROVED', 'SUBMITTED', 'SENT_BACK', 'DRAFT', 'PART', 'APPROVED', 'SUBMITTED']
+const SEND_BACK = ['Section C has two questions from the same chapter — take one from chapter 3.', 'Too many easy questions; make two of Section B application-based.', 'Add marks against each question and check the spelling in Section A.']
+
+/**
+ * More question papers for the next exam, each set by the teacher of that class and subject, at every stage: approved
+ * (sets A and B), waiting for approval, sent back with a note, a finished draft and a half-done draft. Section A is written
+ * from PAPER_MCQ; Sections B and C come from the exam questions on the class's syllabus ("Add from syllabus").
+ */
+async function fillMoreQuestionPapers(admin) {
+  const first = await admin.get('/exams/question-papers/board')
+  const exam = first.exam
+  if (!exam) return 'no exams'
+  if (first.rows.filter((r) => r.paper).length >= 6) return 'already there'
+  const made = { APPROVED: 0, SUBMITTED: 0, SENT_BACK: 0, DRAFT: 0, PART: 0 }
+  let n = 0
+  const taken = new Set()
+  for (const [, email] of TEACHER_LOGINS) {
+    if (n >= 16) break
+    const teacher = await signIn(email, 'Demo@123').catch(() => null)
+    if (!teacher) continue
+    const mine = await teacher.get('/exams/question-papers/board', { examId: exam.id }).catch(() => null)
+    const rows = (mine?.rows ?? []).filter((r) => r.status === 'NOT_STARTED' && mcqGroup(r.subject) && !taken.has(r.examPaperId)).slice(0, 2)
+    for (const row of rows) {
+      taken.add(row.examPaperId)
+      const stage = STAGES[n % STAGES.length]
+      const plan = paperPlan(row.maxMarks || 25)
+      let paper = await teacher.post('/exams/question-papers', { examPaperId: row.examPaperId }, { quiet: [400, 403, 409] })
+      if (!paper) continue
+      paper = await teacher.put(`/exams/question-papers/${paper.id}/blueprint`, {
+        durationMin: paper.durationMin ?? (plan.max >= 60 ? 180 : 90), maxMarks: plan.max,
+        instructions: 'All questions are compulsory.\nMarks are shown against each section.\nWrite neatly; draw diagrams wherever needed.',
+        sections: [
+          { title: 'Section A', instructions: 'Choose the correct option.', type: 'MCQ', count: plan.a, marks: 1 },
+          { title: 'Section B', instructions: 'Answer in 30–40 words.', type: 'SHORT', count: plan.b, marks: 2 },
+          { title: 'Section C', instructions: 'Answer in 80–100 words.', type: 'LONG', count: plan.c, marks: 5 },
+        ],
+        difficulty: { EASY: 30, MEDIUM: 50, HARD: 20 },
+      })
+      const setA = () => paper.sets[0]
+      const items = (sid) => setA().sections.find((x) => x.sectionId === sid)?.items ?? []
+      const [A, B, C] = paper.sections
+      // A · one-mark MCQs, written in (rotated so classes don't all get the same order)
+      const mcqs = PAPER_MCQ[mcqGroup(row.subject)]
+      for (let i = 0; i < A.count; i++) {
+        const q = mcqs[(i + n) % mcqs.length]
+        paper = await teacher.post(`/exams/question-papers/${paper.id}/sets/${setA().id}/write`, { sectionId: A.id, question: { ...q, chapter: 'General', difficulty: i % 3 ? 'EASY' : 'MEDIUM' } })
+      }
+      // B and C · the syllabus's exam questions, spread over the units (2-mark ones to B, 5-mark ones to C)
+      const syl = await teacher.get(`/exams/question-papers/${paper.id}/syllabus`).catch(() => ({ units: [] }))
+      const all = syl.units.flatMap((u) => u.topics.flatMap((t) => t.questions.map((q) => ({ ...q, unit: u.name, topic: t.name }))))
+      const isLong = (q) => q.kind === 'LONG' || /5 (marks|अंक)/.test(q.answer)
+      const spread = (list, k) => { const out = []; const step = Math.max(1, Math.floor(list.length / Math.max(1, k))); for (let i = 0; i < list.length && out.length < k; i += step) out.push(list[i].id); return out }
+      const fill = async (sec, list, want) => {
+        const ids = spread(list, want)
+        if (ids.length) paper = await teacher.post(`/exams/question-papers/${paper.id}/sets/${setA().id}/add-syllabus`, { sectionId: sec.id, questionIds: ids })
+        // too few on the syllabus: write the rest from the topic names
+        const topics = [...new Set(all.map((q) => q.topic))]
+        for (let i = 0; items(sec.id).length < want && i < Math.max(topics.length, want); i++) {
+          const topic = topics[i % Math.max(1, topics.length)] ?? row.subject
+          const text = sec.type === 'LONG' ? `Explain “${topic}” in detail with a suitable example.` : `Write two important points about “${topic}”.`
+          paper = await teacher.post(`/exams/question-papers/${paper.id}/sets/${setA().id}/write`, { sectionId: sec.id, question: { text, answers: [sec.type === 'LONG' ? 'Explanation, example and conclusion (5 marks)' : 'Two correct points (2 marks)'], chapter: topic.slice(0, 120), difficulty: 'MEDIUM' } })
+        }
+      }
+      await fill(B, all.filter((q) => !isLong(q)), stage === 'PART' ? Math.ceil(B.count / 2) : B.count)
+      if (stage !== 'PART') await fill(C, all.filter(isLong), C.count)
+      if (stage === 'PART' || stage === 'DRAFT') { made[stage]++; n++; continue }
+      if (stage === 'APPROVED') paper = await teacher.post(`/exams/question-papers/${paper.id}/sets`, { count: 2, mode: 'SHUFFLE', shuffleOptions: true })
+      const sent = await teacher.post(`/exams/question-papers/${paper.id}/submit`, { note: 'Ready for checking.' }, { quiet: [409] })
+      if (!sent) { made.DRAFT++; n++; continue }
+      if (stage === 'APPROVED') await admin.post(`/exams/question-papers/${paper.id}/approve`, { note: 'Checked against the syllabus — fine to print.' })
+      if (stage === 'SENT_BACK') await admin.post(`/exams/question-papers/${paper.id}/send-back`, { note: SEND_BACK[n % SEND_BACK.length] })
+      made[stage]++
+      n++
+    }
+  }
+  return `${exam.name}: ${n} papers — ${made.APPROVED} approved, ${made.SUBMITTED} waiting for approval, ${made.SENT_BACK} sent back, ${made.DRAFT + made.PART} drafts`
+}
+
 // ───────────────────────────────────────────────────────── homework
 
 const HOMEWORK = {
@@ -1877,6 +2010,7 @@ async function main() {
   await step('Teaching planner (topic material, revision, extra class)', () => fillTeachingPlanner(admin))
   await step('Teaching material on every syllabus topic', () => fillAllTopicMaterial(admin))
   await step('Subject hub (lesson content, published)', () => fillSubjectHub(admin))
+  await step('More question papers (every stage)', () => fillMoreQuestionPapers(admin))
   await step('Admissions 2027-28', () => fillAdmissions(admin))
   await step('Notices', () => fillNotices(admin))
   await step('Events, meetings, gallery', () => fillEvents(admin))

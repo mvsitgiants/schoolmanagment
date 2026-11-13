@@ -1,0 +1,357 @@
+{
+  "canteen": {
+    "categories": {
+      "SNACK": "Snack",
+      "MEAL": "Meal",
+      "BEVERAGE": "Beverage"
+    },
+    "marks": {
+      "VEG": "Veg",
+      "NON_VEG": "Non-veg",
+      "EGG": "Contains egg"
+    },
+    "tags": {
+      "FRIED": "Fried",
+      "SUGARY": "Sugary",
+      "CAFFEINE": "Caffeine",
+      "SPICY": "Spicy",
+      "PACKAGED": "Packaged"
+    },
+    "days": {
+      "MON": "सोम",
+      "TUE": "मंगल",
+      "WED": "बुध",
+      "THU": "गुरु",
+      "FRI": "शुक्र",
+      "SAT": "शनि",
+      "SUN": "रवि"
+    },
+    "txn": {
+      "TOP_UP": "Top-up",
+      "PURCHASE": "Purchase",
+      "REFUND": "Refund to family",
+      "ADJUSTMENT": "Adjustment"
+    },
+    "orderStatus": {
+      "PLACED": "Placed",
+      "READY": "Ready",
+      "COLLECTED": "संगृहीत",
+      "SERVED": "Served",
+      "CANCELLED": "रद्द"
+    },
+    "payModes": {
+      "WALLET": "वॉलेट",
+      "CASH": "नकद"
+    },
+    "modes": {
+      "CASH": "नकद",
+      "UPI": "UPI",
+      "ONLINE": "Online",
+      "BANK": "Bank transfer"
+    },
+    "sources": {
+      "COUNTER": "Counter",
+      "PREORDER": "Pre-order"
+    },
+    "topupStatus": {
+      "CREATED": "Waiting for payment",
+      "APPLIED": "Added to wallet",
+      "FAILED": "विफल",
+      "NEEDS_REVIEW": "Needs review"
+    },
+    "menu": {
+      "title": "मेनू",
+      "subtitle": "What the canteen sells, on which days, and today's sold-out switches.",
+      "new": "New item",
+      "newTitle": "New menu item",
+      "editTitle": "Edit menu item",
+      "name": "नाम",
+      "priceRs": "Price (₹)",
+      "category": "श्रेणी",
+      "mark": "Food mark",
+      "tags": "What it is",
+      "tagsHint": "Parents can rule these out for their child (no fried food, no caffeine…).",
+      "days": "Sold on",
+      "daysHint": "Leave all off to sell it every day.",
+      "description": "विवरण",
+      "activeLabel": "On the menu",
+      "deleteTitle": "{{name}} को हटाएँ?",
+      "deleteHint": "An item that has been ordered before is taken off the menu instead, so past orders keep it.",
+      "saved": "Menu saved",
+      "all": "सभी",
+      "allMarks": "सभी",
+      "categories": "श्रेणियाँ",
+      "offMenu": "Off the menu",
+      "search": "Search the menu",
+      "onMenu": "On the menu",
+      "soldOutToday": "Sold out today",
+      "vegShare": "Vegetarian",
+      "everyDay": "Sold every day",
+      "everyDaySub": "No days picked",
+      "everyDayShort": "Every day",
+      "sold30_one": "{{count}} sold in 30 days",
+      "sold30_other": "{{count}} sold in 30 days",
+      "inStock": "In stock",
+      "soldOut": "Sold out",
+      "special": "Special",
+      "emptyHint": "Nothing on the menu yet. Add the first item with “New item”.",
+      "noMatch": "No item matches."
+    },
+    "specials": {
+      "title": "Specials this week",
+      "subtitle": "Today's special shows first at the counter and in the parents' app — optionally at a special price.",
+      "today": "आज",
+      "add": "जोड़ें",
+      "newTitle": "Add a special",
+      "date": "Day",
+      "item": "वस्तु",
+      "pick": "Pick an item",
+      "priceRs": "Special price (₹)",
+      "priceHint": "Leave empty to sell at the menu price ({{price}}).",
+      "note": "टिप्पणी",
+      "notePlaceholder": "e.g. Chef's favourite",
+      "remove": "Remove special",
+      "removed": "Special removed",
+      "saved": "Special added"
+    },
+    "counter": {
+      "findPlaceholder": "Tap the ID card, or type admission no / name",
+      "findHint": "A card reader types the card's code and presses Enter. Walk-in customers pay cash without a student.",
+      "noMatch": "No current student matches.",
+      "walkIn": "No student picked — cash sale",
+      "clear": "Next customer",
+      "cart": "ऑर्डर",
+      "cartEmpty": "Tap items to add them.",
+      "emptyCart": "Empty the order",
+      "less": "One less",
+      "more": "One more",
+      "total": "कुल",
+      "short": "Not enough in the wallet — {{amount}} short.",
+      "overLimit": "Over the family's daily limit — {{left}} left for the day.",
+      "payWallet": "वॉलेट",
+      "payCash": "नकद",
+      "sold": "Order {{no}} — {{amount}}",
+      "blockedByFamily": "Blocked by the family",
+      "noTag": "No {{tag}}",
+      "itemsBlocked_one": "{{count}} item blocked",
+      "itemsBlocked_other": "{{count}} items blocked",
+      "nothingToday": "Nothing is on sale today. Check the menu's days.",
+      "scanCamera": "Scan the ID card with the camera",
+      "result": {
+        "title": "Order placed",
+        "order": "Order {{no}} · {{amount}}",
+        "print": "Print token",
+        "next": "Next order",
+        "hint": "Read the token out and hand it over. It is called on the token board when the food is ready."
+      }
+    },
+    "wallet": {
+      "balance": "Wallet balance",
+      "spentToday": "Spent today {{spent}}",
+      "limit": "Limit {{limit}}",
+      "noLimitSpent": "Spent today {{spent}} · no daily limit"
+    },
+    "topup": {
+      "button": "Top up",
+      "title": "Top up {{name}}'s wallet",
+      "amountRs": "राशि (₹)",
+      "mode": "भुगतान माध्यम",
+      "reference": "UPI reference",
+      "save": "Add to wallet",
+      "done": "Topped up — balance {{balance}}"
+    },
+    "refund": {
+      "button": "Refund",
+      "title": "Refund from {{name}}'s wallet",
+      "hint": "Money given back to the family leaves the wallet. Balance now {{balance}}.",
+      "amountRs": "राशि (₹)",
+      "mode": "Given back by",
+      "reference": "Bank reference",
+      "reason": "कारण",
+      "reasonPlaceholder": "e.g. Student leaving, balance returned",
+      "save": "Refund",
+      "done": "Refunded — balance {{balance}}"
+    },
+    "adjust": {
+      "button": "Adjust",
+      "title": "Adjust {{name}}'s wallet",
+      "hint": "The ledger is never edited: a correction is a new adjustment row with a reason.",
+      "add": "Add to wallet",
+      "take": "Take from wallet",
+      "amountRs": "राशि (₹)",
+      "reason": "कारण",
+      "save": "Save adjustment",
+      "done": "Adjusted — balance {{balance}}"
+    },
+    "controls": {
+      "button": "Controls",
+      "title": "Canteen controls for {{name}}",
+      "limitRs": "Daily spend limit (₹)",
+      "limitHint": "Leave empty for no limit. Counter purchases and pre-orders for the day both count.",
+      "tags": "Never sell",
+      "items": "Blocked items",
+      "saved": "Controls saved"
+    },
+    "orders": {
+      "title": "ऑर्डर",
+      "subtitle": "The counter, the day's pre-orders from parents, and the day's takings.",
+      "day": "Day",
+      "tabs": {
+        "counter": "Counter",
+        "preorders": "Pre-orders",
+        "summary": "Day summary",
+        "tokens": "Tokens"
+      },
+      "walkIn": "Walk-in",
+      "no": "ऑर्डर",
+      "student": "छात्र",
+      "items": "वस्तुएं",
+      "paid": "भुगतान माध्यम",
+      "total": "कुल",
+      "status": "स्थिति"
+    },
+    "preorders": {
+      "toMake": "To make",
+      "toMakeSub_one": "From {{count}} pre-order not ready yet",
+      "toMakeSub_other": "From {{count}} pre-orders not ready yet",
+      "none": "No pre-orders",
+      "ready": "Ready",
+      "collected": "संगृहीत"
+    },
+    "summary": {
+      "sales": "Sales",
+      "orders_one": "{{count}} order",
+      "orders_other": "{{count}} orders",
+      "topUps": "Wallet top-ups",
+      "topUpsSub_one": "{{count}} top-up",
+      "topUpsSub_other": "{{count}} top-ups",
+      "cashInHand": "Cash in hand",
+      "cashInHandSub": "Cash sales + cash top-ups − cash refunds",
+      "preorders": "Pre-orders",
+      "noPreorders": "None today",
+      "byItem": "Sales by item",
+      "byItemSub": "Amount, with quantity",
+      "qtyByItem": "Quantity by item",
+      "nothingSold": "Nothing sold yet",
+      "noOrders": "No orders on this day"
+    },
+    "wallets": {
+      "title": "Wallets",
+      "subtitle": "Every student's canteen balance, the family's controls and the ledger.",
+      "wallet": "वॉलेट",
+      "held": "Held in wallets",
+      "heldSub_one": "{{count}} wallet",
+      "heldSub_other": "{{count}} wallets",
+      "low": "Low balance",
+      "lowSub": "Below {{amount}}",
+      "today": "Topped up today",
+      "review": "Online top-ups to check",
+      "reviewSub": "Paid but not added",
+      "filters": {
+        "ALL": "सभी",
+        "LOW": "Low balance",
+        "LIMITED": "With controls"
+      },
+      "search": "Search name, admission no or card",
+      "student": "छात्र",
+      "todaySpend": "आज",
+      "controls": "Family controls",
+      "empty": "No wallets yet",
+      "emptyHint": "A wallet starts with the first top-up. Search a student to see theirs.",
+      "online": "Online top-ups",
+      "recheck": "Check with Razorpay",
+      "ledger": "Ledger",
+      "noLedger": "No wallet entries yet",
+      "after": "balance {{balance}}",
+      "orders": "Recent orders"
+    },
+    "family": {
+      "amount": "Amount in ₹",
+      "topupNow": "Top up {{amount}}",
+      "topupHint": "Paid securely to the school through Razorpay. {{min}} to {{max}} at a time.",
+      "topupAtCounter": "Top up the wallet with cash at the canteen counter.",
+      "toppedUp": "Added to the wallet. Balance {{balance}}.",
+      "topupReview": "Payment received — the school will add it to the wallet shortly.",
+      "checkoutFailed": "Couldn't open the payment window. Check your connection and try again.",
+      "payFailed": "The payment didn't go through.",
+      "low": "The balance is low (under {{amount}}). Top up so your child isn't turned away.",
+      "preorderTitle": "Pre-order food",
+      "preorderHint": "Paid from the wallet. Orders for today close at {{time}}.",
+      "today": "आज",
+      "noDays": "Pre-orders are closed for now.",
+      "noMenu": "Nothing on the menu that day.",
+      "yourOrder": "Order for {{date}}",
+      "place": "Pre-order for {{amount}}",
+      "placed": "Pre-order {{no}} placed for {{date}}.",
+      "myPreorders": "Pre-orders",
+      "cancel": "Cancel pre-order",
+      "controlsTitle": "Your controls",
+      "noLimit": "No limit",
+      "controlsSaved": "Saved. The canteen counter follows these from now on.",
+      "ledger": "Wallet history",
+      "tokenStatus": {
+        "PLACED": "Being prepared",
+        "READY": "Ready to collect"
+      },
+      "showCode": "Show code",
+      "codeTitle": "Token {{token}}",
+      "codeHint": "Show this at the canteen counter to collect the order."
+    },
+    "tokens": {
+      "token": "Token",
+      "tokenN": "Token {{token}}",
+      "all": "सभी",
+      "status": {
+        "PLACED": "Preparing",
+        "READY": "Ready",
+        "COLLECTED": "संगृहीत"
+      },
+      "markReady": "Ready",
+      "markCollected": "संगृहीत",
+      "none": "No orders with a token on this day."
+    },
+    "board": {
+      "title": "Token board",
+      "live": "Updates as soon as an order is made, ready or collected.",
+      "polling": "Refreshes every 20 seconds.",
+      "campus": "परिसर",
+      "preparing": "Preparing",
+      "ready": "Ready — please collect",
+      "nonePreparing": "Nothing is being made right now.",
+      "noneReady": "No tokens are ready yet.",
+      "chimeOn": "Chime on",
+      "chimeOff": "Chime off",
+      "fullScreen": "Full screen",
+      "exitFullScreen": "Leave full screen",
+      "off": "Tokens are switched off. Turn them on in Settings › Canteen to call out orders here."
+    },
+    "print": {
+      "token": {
+        "canteen": "कैंटीन",
+        "token": "Token",
+        "order": "Order {{no}}",
+        "total": "कुल",
+        "paidBy": "Paid by {{mode}}",
+        "wait": "Please wait for your token to be called",
+        "scan": "Show this at the counter to collect"
+      }
+    },
+    "scan": {
+      "button": "Scan to collect",
+      "title": "Scan to collect",
+      "hint": "Scan the token slip, or the code in the parent app — or type today’s token number. Each scan hands the order over.",
+      "empty": "Nothing scanned yet.",
+      "collected": "संगृहीत",
+      "notFound": "No order with this token today.",
+      "notToken": "This isn’t a canteen token.",
+      "otherDay": "This token is for {{date}}, not today.",
+      "alreadyCollected": "Already collected at {{time}} by {{by}}.",
+      "alreadyCollectedAt": "Already collected at {{time}}.",
+      "served": "Already served at the counter.",
+      "cancelled": "This pre-order was cancelled.",
+      "noPermission": "You can look at orders but not hand them over.",
+      "placedAt": "Ordered at {{time}}",
+      "total": "कुल"
+    }
+  }
+}
