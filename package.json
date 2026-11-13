@@ -19,7 +19,8 @@
     "test": "npm test --workspace @schoolgiant/backend --",
     "build": "npm run build --workspace @schoolgiant/frontend",
     "lint:pages": "npm run lint:pages --workspace @schoolgiant/frontend",
-    "lint:i18n": "npm run lint:i18n --workspace @schoolgiant/frontend"
+    "lint:i18n": "npm run lint:i18n --workspace @schoolgiant/frontend",
+    "i18n:progress": "npm run i18n:progress --workspace @schoolgiant/frontend --"
   },
   "engines": {
     "node": ">=20"

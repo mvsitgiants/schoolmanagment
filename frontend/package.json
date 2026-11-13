@@ -12,7 +12,8 @@
     "lint:pages": "node scripts/lint-pages.mjs",
     "lint:pages:update": "node scripts/lint-pages.mjs --update",
     "lint:i18n": "node scripts/lint-i18n.mjs",
-    "gen:locales": "node scripts/gen-locales.mjs"
+    "gen:locales": "node scripts/gen-locales.mjs",
+    "i18n:progress": "node scripts/hindi-progress.mjs"
   },
   "dependencies": {
     "@schoolgiant/shared": "*",

@@ -33,7 +33,7 @@ Product plan: https://claude.ai/artifact/7pWLPDqtDcypPDESqt8fNy. Reference codeb
 
 ## Commands
 
-`npm run dev` (db + seed + api + web) · `npm test` · `npm run build` · `npm run lint:i18n` · `npm run lint:pages` ·
+`npm run dev` (db + seed + api + web) · `npm test` · `npm run build` · `npm run lint:i18n` · `npm run i18n:progress` (how much is in Hindi, phase by phase; `-- --detail` per screen group) · `npm run lint:pages` ·
 `npm run dev:db` / `dev:api` / `dev:web` · `npm run seed -- --reset` · `npm run seed:demo` (fills St. Thomas School — CBSE and UP Board campuses — with data in every module through the API; re-runnable, skips what's there — extend `backend/src/seed/demoStThomas.js` when a module is added) ·
 `npm run seed:demo:content` (clears every St. Thomas syllabus, lesson plan and topic content, then refills all classes and subjects; templates in `backend/src/seed/demoContent.js`)
 Dev ports: MongoDB 27018, API 4100, web 5190.
