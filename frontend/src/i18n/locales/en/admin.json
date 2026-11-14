@@ -1443,7 +1443,7 @@
       "newBranch": "New campus",
       "addBranch": "Add campus",
       "branchName": "Campus name",
-      "namePlaceholder": "e.g. City Care – Whitefield",
+      "namePlaceholder": "e.g. St. Thomas – Gomti Nagar",
       "code": "Code",
       "codeHint": "Used in document numbers",
       "address": "Address",
@@ -1538,7 +1538,7 @@
       "editTitle": "Edit {{name}}",
       "newDepartment": "New department",
       "addDepartment": "Add department",
-      "namePlaceholder": "e.g. Cardiology",
+      "namePlaceholder": "e.g. Science",
       "code": "Code",
       "type": "Type",
       "types": {

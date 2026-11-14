@@ -2,35 +2,35 @@
   "settings": {
     "page": {
       "title": "सेटिंग्स",
-      "subtitle": "How each module behaves in your institution. Only modules you have switched on are listed.",
-      "module": "Module",
-      "sections": "Settings sections",
-      "find": "Find a setting…",
-      "noMatch": "No setting matches “{{q}}”.",
-      "count_one": "{{count}} setting",
-      "count_other": "{{count}} settings",
-      "save": "Save {{name}} settings",
-      "saved": "{{name}} settings saved.",
-      "unsaved_one": "{{count}} unsaved change",
-      "unsaved_other": "{{count}} unsaved changes",
-      "leaveTitle": "Leave without saving?",
-      "leaveMessage": "Your changes to {{name}} settings will be lost.",
-      "discard": "Discard changes"
+      "subtitle": "आपके संस्थान में प्रत्येक मॉड्यूल कैसे काम करता है। केवल वे मॉड्यूल दिखाए गए हैं जिन्हें आपने चालू किया है।",
+      "module": "मॉड्यूल",
+      "sections": "सेटिंग्स के खंड",
+      "find": "सेटिंग खोजें…",
+      "noMatch": "“{{q}}” से मेल खाती कोई सेटिंग नहीं मिली।",
+      "count_one": "{{count}} सेटिंग",
+      "count_other": "{{count}} सेटिंग्स",
+      "save": "{{name}} सेटिंग्स सहेजें",
+      "saved": "{{name}} सेटिंग्स सहेजी गईं।",
+      "unsaved_one": "{{count}} बदलाव सहेजा नहीं गया",
+      "unsaved_other": "{{count}} बदलाव सहेजे नहीं गए",
+      "leaveTitle": "बिना सहेजे बाहर जाएँ?",
+      "leaveMessage": "{{name}} सेटिंग्स में किए गए आपके बदलाव खो जाएँगे।",
+      "discard": "बदलाव खारिज करें"
     },
     "defs": {
       "core": {
         "institutionType": {
-          "label": "Type of institution",
-          "help": "Sets the words the app uses (class or semester, principal or dean) and the default report formats.",
+          "label": "संस्थान का प्रकार",
+          "help": "इससे ऐप में प्रयुक्त शब्द (कक्षा या सेमेस्टर, प्रधानाचार्य या डीन) और डिफ़ॉल्ट रिपोर्ट प्रारूप तय होते हैं।",
           "options": {
-            "SCHOOL": "School (K-12)",
-            "COLLEGE": "College / university",
-            "COACHING": "Coaching / tuition institute"
+            "SCHOOL": "विद्यालय (K-12)",
+            "COLLEGE": "कॉलेज / विश्वविद्यालय",
+            "COACHING": "कोचिंग / ट्यूशन संस्थान"
           }
         },
         "academicYearStartMonth": {
-          "label": "Academic year starts in",
-          "help": "April for most Indian schools, June or July for many colleges.",
+          "label": "शैक्षणिक वर्ष किस माह से प्रारंभ होता है",
+          "help": "अधिकांश भारतीय विद्यालयों में अप्रैल, और कई कॉलेजों में जून या जुलाई।",
           "options": {
             "1": "जनवरी",
             "2": "फ़रवरी",
@@ -47,41 +47,41 @@
           }
         },
         "defaultAppLanguage": {
-          "label": "Default language",
-          "help": "Interface language for staff and the parent app, unless a user picks another.",
+          "label": "डिफ़ॉल्ट भाषा",
+          "help": "कर्मचारियों और अभिभावक ऐप के इंटरफ़ेस की भाषा, जब तक उपयोगकर्ता कोई दूसरी भाषा न चुने।",
           "options": {
-            "en": "English"
+            "en": "अंग्रेज़ी"
           }
         },
         "enabledLanguages": {
-          "label": "Languages offered",
-          "help": "Which languages appear in the language picker.",
+          "label": "उपलब्ध भाषाएँ",
+          "help": "भाषा चुनने की सूची में कौन-सी भाषाएँ दिखें।",
           "options": {
-            "en": "English"
+            "en": "अंग्रेज़ी"
           }
         },
         "sessionIdleMinutes": {
-          "label": "Default sign-out after inactivity (minutes)",
-          "help": "Roles can set their own value."
+          "label": "निष्क्रियता के बाद डिफ़ॉल्ट साइन आउट (मिनट)",
+          "help": "भूमिकाएँ अपना अलग मान रख सकती हैं।"
         },
         "familyMessageLanguage": {
-          "label": "Send family messages in their language",
-          "help": "SMS, WhatsApp and email use the family’s preferred language for the standard texts; a text you have edited in Notification rules is sent as written."
+          "label": "परिवारों को उनकी भाषा में संदेश भेजें",
+          "help": "SMS, WhatsApp और ईमेल में मानक संदेश परिवार की पसंदीदा भाषा में भेजे जाते हैं; अधिसूचना नियम में आपके द्वारा संपादित संदेश ठीक वैसा ही भेजा जाता है जैसा लिखा गया है।"
         },
         "familyLinkDays": {
-          "label": "Links sent to families work for (days)",
-          "help": "Report cards, receipts and notices sent by WhatsApp, SMS or email."
+          "label": "परिवारों को भेजे गए लिंक कितने दिन चलें",
+          "help": "WhatsApp, SMS या ईमेल से भेजे गए रिपोर्ट कार्ड, रसीदें और सूचनाएं।"
         },
         "weekStartsOn": {
-          "label": "Week starts on",
+          "label": "सप्ताह किस दिन से प्रारंभ होता है",
           "options": {
             "MONDAY": "सोमवार",
             "SUNDAY": "रविवार"
           }
         },
         "workingDays": {
-          "label": "Working days",
-          "help": "Attendance and timetables skip the other days.",
+          "label": "कार्य दिवस",
+          "help": "उपस्थिति और समय सारिणी में अन्य दिन छोड़ दिए जाते हैं।",
           "options": {
             "MON": "सोम",
             "TUE": "मंगल",
@@ -95,94 +95,94 @@
       },
       "students": {
         "admissionNoPrefix": {
-          "label": "Admission number prefix",
-          "help": "Shown before the running number, e.g. GV. The pattern itself is set in Number series."
+          "label": "प्रवेश संख्या का उपसर्ग",
+          "help": "क्रमांक से पहले दिखाया जाता है, जैसे GV। पूरा प्रारूप क्रमांक शृंखला में तय होता है।"
         },
         "requiredFields": {
-          "label": "Required at admission",
-          "help": "Name and class are always required.",
+          "label": "प्रवेश के समय अनिवार्य",
+          "help": "नाम और कक्षा हमेशा अनिवार्य हैं।",
           "options": {
             "dob": "जन्म तिथि",
             "gender": "लिंग",
-            "guardianMobile": "Guardian mobile",
-            "guardianEmail": "Guardian email",
+            "guardianMobile": "अभिभावक का मोबाइल",
+            "guardianEmail": "अभिभावक का ईमेल",
             "address": "पता",
-            "aadhaar": "Aadhaar",
-            "apaar": "APAAR ID",
-            "photo": "Photo"
+            "aadhaar": "आधार",
+            "apaar": "APAAR ID संख्या",
+            "photo": "फ़ोटो"
           }
         },
         "idCardOrientation": {
-          "label": "Student ID card layout",
-          "help": "Both are the standard bank-card size (CR80) that fits card holders, lanyards and card printers.",
+          "label": "छात्र पहचान पत्र का लेआउट",
+          "help": "दोनों ही मानक बैंक-कार्ड आकार (CR80) के हैं, जो कार्ड होल्डर, लैनयार्ड और कार्ड प्रिंटर में फ़िट होता है।",
           "options": {
-            "PORTRAIT": "Portrait — upright, 54 × 85.6 mm",
-            "LANDSCAPE": "Landscape — sideways, 85.6 × 54 mm"
+            "PORTRAIT": "पोर्ट्रेट — खड़ा, 54 × 85.6 मिमी",
+            "LANDSCAPE": "लैंडस्केप — आड़ा, 85.6 × 54 मिमी"
           }
         },
         "idCardTitle": {
-          "label": "Heading on the student ID card",
-          "help": "Printed in the coloured band, e.g. Student ID card or Identity card."
+          "label": "छात्र पहचान पत्र पर शीर्षक",
+          "help": "रंगीन पट्टी में छपता है, जैसे छात्र पहचान पत्र या पहचान पत्र।"
         },
         "idCardColor": {
-          "label": "Student ID card colour",
-          "help": "A colour code like #0E7C86. Leave it blank to use the brand colour from the institution profile."
+          "label": "छात्र पहचान पत्र का रंग",
+          "help": "#0E7C86 जैसा रंग कोड। संस्थान प्रोफ़ाइल का ब्रांड रंग उपयोग करने के लिए इसे खाली छोड़ दें।"
         },
         "idCardFields": {
-          "label": "Shown on the student ID card",
-          "help": "The name, class and admission number are always printed.",
+          "label": "छात्र पहचान पत्र पर क्या दिखे",
+          "help": "नाम, कक्षा और प्रवेश संख्या हमेशा छपते हैं।",
           "options": {
-            "PHOTO": "Photo",
-            "ROLL": "Roll number",
+            "PHOTO": "फ़ोटो",
+            "ROLL": "अनुक्रमांक",
             "DOB": "जन्म तिथि",
             "BLOOD_GROUP": "रक्त समूह",
             "GUARDIAN": "माता-पिता / अभिभावक",
-            "GUARDIAN_PHONE": "Parent’s phone",
-            "ADDRESS": "Home address",
-            "VALID_UNTIL": "Valid until (end of the academic year)",
-            "QR": "QR code (check the card online)"
+            "GUARDIAN_PHONE": "अभिभावक का फ़ोन",
+            "ADDRESS": "घर का पता",
+            "VALID_UNTIL": "वैधता तिथि (शैक्षणिक वर्ष का अंत)",
+            "QR": "QR कोड (कार्ड की ऑनलाइन जाँच)"
           }
         },
         "idCardBack": {
-          "label": "Print a back side on student ID cards",
-          "help": "Each card’s back follows its front, so double-sided printing lines up."
+          "label": "छात्र पहचान पत्र का पिछला भाग भी छापें",
+          "help": "हर कार्ड का पिछला भाग उसके अगले भाग के ठीक बाद आता है, ताकि दोनों ओर की छपाई सही मिले।"
         },
         "idCardBackText": {
-          "label": "Rules printed on the back of the card"
+          "label": "कार्ड के पीछे छपने वाले नियम"
         },
         "idCardReturnText": {
-          "label": "Return note on the back of the card",
-          "help": "Followed by the institution’s name, address and phone number."
+          "label": "कार्ड के पीछे लौटाने संबंधी सूचना",
+          "help": "इसके बाद संस्थान का नाम, पता और फ़ोन नंबर छपता है।"
         },
         "idCardSignatory": {
-          "label": "Caption under the signature line",
-          "help": "e.g. Principal or Headmistress."
+          "label": "हस्ताक्षर पंक्ति के नीचे लिखा पद",
+          "help": "जैसे प्रधानाचार्य या प्रधानाध्यापिका।"
         }
       },
       "admissions": {
         "onlineApplication": {
-          "label": "Families can apply online",
-          "help": "The application page at <app>/apply/<your school>; the mobile number is checked with a one-time code."
+          "label": "परिवार ऑनलाइन आवेदन कर सकते हैं",
+          "help": "आवेदन पृष्ठ <app>/apply/<your school> पर है; मोबाइल नंबर की पुष्टि एक बार के कोड से होती है।"
         },
         "websiteEnquiry": {
-          "label": "Take enquiries from the website",
-          "help": "A short enquiry form on the same page, for families not ready to apply."
+          "label": "वेबसाइट से पूछताछ लें",
+          "help": "उसी पृष्ठ पर एक छोटा पूछताछ फ़ॉर्म, उन परिवारों के लिए जो अभी आवेदन के लिए तैयार नहीं हैं।"
         },
         "ageCutoff": {
-          "label": "Age is counted on (day-month)",
-          "help": "The day of the admission year on which a child’s age is counted for eligibility."
+          "label": "आयु की गणना की तिथि (दिन-माह)",
+          "help": "प्रवेश वर्ष का वह दिन, जिस पर पात्रता के लिए बच्चे की आयु गिनी जाती है।"
         },
         "followUpDays": {
-          "label": "Follow up a new enquiry within (days)"
+          "label": "नई पूछताछ पर इतने दिनों के भीतर संपर्क करें"
         },
         "offerDays": {
-          "label": "Days a family has to accept an offered seat"
+          "label": "प्रस्तावित सीट स्वीकार करने के लिए परिवार को कितने दिन मिलें"
         }
       },
       "hrms": {
         "weeklyOffDays": {
-          "label": "Staff weekly off",
-          "help": "A staff record can have its own weekly off.",
+          "label": "कर्मचारियों का साप्ताहिक अवकाश",
+          "help": "किसी कर्मचारी के रिकॉर्ड में उसका अपना अलग साप्ताहिक अवकाश रखा जा सकता है।",
           "options": {
             "MON": "सोम",
             "TUE": "मंगल",
@@ -194,19 +194,19 @@
           }
         },
         "saturdaysOff": {
-          "label": "Saturdays off",
-          "help": "For example the 2nd and 4th Saturday of every month.",
+          "label": "अवकाश वाले शनिवार",
+          "help": "उदाहरण के लिए, हर माह का दूसरा और चौथा शनिवार।",
           "options": {
-            "1": "1st",
-            "2": "2nd",
-            "3": "3rd",
-            "4": "4th",
-            "5": "5th"
+            "1": "पहला",
+            "2": "दूसरा",
+            "3": "तीसरा",
+            "4": "चौथा",
+            "5": "पाँचवाँ"
           }
         },
         "leaveYearStartMonth": {
-          "label": "Leave year starts in",
-          "help": "Yearly leave is credited, and unused leave carried forward, at this month.",
+          "label": "अवकाश वर्ष किस माह से प्रारंभ होता है",
+          "help": "इसी माह में वार्षिक अवकाश जमा होता है और बचा हुआ अवकाश आगे ले जाया जाता है।",
           "options": {
             "1": "जनवरी",
             "2": "फ़रवरी",
@@ -223,384 +223,384 @@
           }
         },
         "lateAfter": {
-          "label": "Late after (HH:MM)",
-          "help": "Arriving after this is marked late. Leave empty to not track late arrival."
+          "label": "इस समय के बाद विलंब (HH:MM)",
+          "help": "इस समय के बाद आने पर विलंब दर्ज होता है। विलंब से आना दर्ज न करना हो तो इसे खाली छोड़ दें।"
         },
         "attendanceEditDays": {
-          "label": "Staff attendance can be corrected up to (days back)"
+          "label": "कर्मचारी उपस्थिति में कितने दिन पीछे तक सुधार हो सकता है"
         },
         "selfLeave": {
-          "label": "Staff apply for leave themselves",
-          "help": "In My workspace. Otherwise HR applies on their behalf."
+          "label": "कर्मचारी स्वयं अवकाश हेतु आवेदन करें",
+          "help": "मेरा वर्कस्पेस में। अन्यथा HR उनकी ओर से आवेदन करता है।"
         },
         "selfAttendance": {
-          "label": "Staff can mark themselves in and out from their phone (My workspace)",
-          "help": "Off: HR, the biometric device or a gate scanner marks staff attendance. They can check in and out several times a day; the first in and last out make the day."
+          "label": "कर्मचारी अपने फ़ोन से स्वयं आगमन और प्रस्थान दर्ज कर सकते हैं (मेरा वर्कस्पेस)",
+          "help": "बंद: कर्मचारी उपस्थिति HR, बायोमेट्रिक मशीन या गेट स्कैनर से दर्ज होती है। कर्मचारी दिन में कई बार आगमन और प्रस्थान दर्ज कर सकते हैं; पहला आगमन और अंतिम प्रस्थान ही उस दिन की उपस्थिति बनाते हैं।"
         },
         "geofence": {
-          "label": "Where staff may mark themselves in and out",
-          "help": "Checks the phone’s location against the attendance sites of the person’s campus (Administration › Campuses). The location is read only at the moment they mark attendance — never tracked. HR can exempt field staff on their staff record.",
+          "label": "कर्मचारी कहाँ से स्वयं आगमन और प्रस्थान दर्ज कर सकते हैं",
+          "help": "फ़ोन के स्थान को व्यक्ति के परिसर के उपस्थिति स्थलों (प्रशासन › परिसर) से मिलाया जाता है। स्थान केवल उपस्थिति दर्ज करते समय पढ़ा जाता है — कभी ट्रैक नहीं किया जाता। HR फ़ील्ड कर्मचारियों को उनके कर्मचारी रिकॉर्ड में इससे छूट दे सकता है।",
           "options": {
-            "OFF": "Off — anywhere",
-            "WARN": "Allow, but flag punches outside an attendance site",
-            "REQUIRED": "Block — only within an attendance site"
+            "OFF": "बंद — कहीं से भी",
+            "WARN": "अनुमति दें, पर उपस्थिति स्थल के बाहर की प्रविष्टियाँ चिह्नित करें",
+            "REQUIRED": "रोकें — केवल उपस्थिति स्थल के भीतर से"
           }
         },
         "geofenceMaxAccuracyM": {
-          "label": "Refuse a staff location rougher than (metres)",
-          "help": "Phones indoors can be off by a few hundred metres; the punch is refused (or flagged) when the location is less accurate than this."
+          "label": "इससे कम सटीक कर्मचारी स्थान अस्वीकार करें (मीटर)",
+          "help": "भवन के अंदर फ़ोन का स्थान कुछ सौ मीटर तक गलत हो सकता है; जब स्थान इससे कम सटीक हो, तो प्रविष्टि अस्वीकार (या चिह्नित) की जाती है।"
         }
       },
       "transport": {
         "alertNear": {
-          "label": "Tell families when the bus is near their stop"
+          "label": "बस स्टॉप के पास पहुँचने पर परिवारों को सूचित करें"
         },
         "nearMetres": {
-          "label": "Near means within (metres)"
+          "label": "पास का अर्थ है इतने मीटर के भीतर"
         },
         "arriveMetres": {
-          "label": "At the stop means within (metres)"
+          "label": "स्टॉप पर पहुँचने का अर्थ है इतने मीटर के भीतर"
         },
         "alertRide": {
-          "label": "Tell families when their child gets on and off"
+          "label": "बच्चे के बस में चढ़ने और उतरने पर परिवारों को सूचित करें"
         },
         "docWarnDays": {
-          "label": "Warn about vehicle papers this many days before expiry"
+          "label": "वाहन के कागज़ात की समाप्ति से इतने दिन पहले चेतावनी दें"
         }
       },
       "library": {
         "studentLimit": {
-          "label": "Books a student can have at once"
+          "label": "एक छात्र एक साथ कितनी पुस्तकें रख सकता है"
         },
         "staffLimit": {
-          "label": "Books a staff member can have at once"
+          "label": "एक कर्मचारी एक साथ कितनी पुस्तकें रख सकता है"
         },
         "studentDays": {
-          "label": "Loan period for students (days)"
+          "label": "छात्रों के लिए निर्गम अवधि (दिन)"
         },
         "staffDays": {
-          "label": "Loan period for staff (days)"
+          "label": "कर्मचारियों के लिए निर्गम अवधि (दिन)"
         },
         "renewals": {
-          "label": "Times a loan can be renewed"
+          "label": "एक निर्गम कितनी बार नवीनीकृत हो सकता है"
         },
         "finePerDay": {
-          "label": "Late fine a day (₹)",
-          "help": "0: no late fines."
+          "label": "प्रतिदिन विलंब जुर्माना (₹)",
+          "help": "0: कोई विलंब जुर्माना नहीं।"
         },
         "fineMax": {
-          "label": "Most a late fine can be for one book (₹)",
-          "help": "0: no limit."
+          "label": "एक पुस्तक पर अधिकतम विलंब जुर्माना (₹)",
+          "help": "0: कोई सीमा नहीं।"
         },
         "graceDays": {
-          "label": "Days late before a fine starts"
+          "label": "जुर्माना शुरू होने से पहले अनुग्रह अवधि (दिन)"
         },
         "staffFines": {
-          "label": "Charge late fines to staff"
+          "label": "कर्मचारियों से भी विलंब जुर्माना लें"
         },
         "blockWithFines": {
-          "label": "No new books while a fine is unpaid"
+          "label": "जुर्माना बकाया रहने तक कोई नई पुस्तक न दें"
         },
         "blockOverdue": {
-          "label": "No new books while one is overdue"
+          "label": "कोई पुस्तक अतिदेय रहने तक नई पुस्तक न दें"
         },
         "remindDaysBefore": {
-          "label": "Remind families this many days before a book is due",
-          "help": "0: no reminder before the due date."
+          "label": "पुस्तक की देय तिथि से इतने दिन पहले परिवारों को याद दिलाएँ",
+          "help": "0: देय तिथि से पहले कोई अनुस्मारक नहीं।"
         },
         "overdueEveryDays": {
-          "label": "Remind about an overdue book every (days)",
-          "help": "0: no overdue reminders."
+          "label": "अतिदेय पुस्तक के लिए हर इतने दिन में याद दिलाएँ",
+          "help": "0: अतिदेय पुस्तकों के लिए कोई अनुस्मारक नहीं।"
         }
       },
       "canteen": {
         "lowBalanceRs": {
-          "label": "Tell the family when the wallet falls below (₹)"
+          "label": "वॉलेट की शेष राशि इससे कम होने पर परिवार को सूचित करें (₹)"
         },
         "minTopUpRs": {
-          "label": "Smallest top-up (₹)"
+          "label": "न्यूनतम टॉप अप (₹)"
         },
         "maxTopUpRs": {
-          "label": "Largest single top-up (₹)"
+          "label": "एक बार में अधिकतम टॉप अप (₹)"
         },
         "maxBalanceRs": {
-          "label": "Most a wallet can hold (₹)"
+          "label": "वॉलेट में अधिकतम राशि (₹)"
         },
         "preorderDays": {
-          "label": "Families can pre-order this many days ahead"
+          "label": "परिवार इतने दिन पहले तक अग्रिम ऑर्डर दे सकते हैं"
         },
         "preorderCutoff": {
-          "label": "Same-day pre-orders close at (HH:MM)"
+          "label": "उसी दिन के अग्रिम ऑर्डर इस समय बंद हों (HH:MM)"
         },
         "tokens": {
-          "label": "Give every order a token number",
-          "help": "Tokens start at 1 each day on each campus. A counter sale is then made first and called out by its token on the token board: Preparing, Ready, Collected. Off: a counter sale is served at once."
+          "label": "हर ऑर्डर को टोकन नंबर दें",
+          "help": "हर परिसर में टोकन प्रतिदिन 1 से शुरू होते हैं। तब काउंटर बिक्री पहले तैयार की जाती है और टोकन बोर्ड पर उसके टोकन से पुकारी जाती है: तैयार हो रहा है, तैयार, संगृहीत। बंद: काउंटर बिक्री तुरंत परोसी जाती है।"
         },
         "tokenPrint": {
-          "label": "Print the token slip after each counter sale",
-          "help": "Prints on the 80 mm receipt printer at the counter. Only when tokens are on."
+          "label": "हर काउंटर बिक्री के बाद टोकन पर्ची प्रिंट करें",
+          "help": "काउंटर के 80 मिमी रसीद प्रिंटर पर छपती है। केवल तब, जब टोकन चालू हों।"
         }
       },
       "frontoffice": {
         "complaintSlaDays": {
-          "label": "Resolve a complaint within (days)",
-          "help": "Sets the due day of every new complaint (an urgent one is due the next day). Past it, the complaint shows as overdue."
+          "label": "शिकायत का समाधान इतने दिनों के भीतर करें",
+          "help": "इससे हर नई शिकायत की देय तिथि तय होती है (अत्यावश्यक शिकायत अगले दिन देय होती है)। इसके बाद शिकायत अतिदेय दिखती है।"
         },
         "gatePassApproval": {
-          "label": "Gate passes need approval",
-          "help": "The class teacher, or someone allowed to approve, approves before a student is handed over at the gate. Off: a pass is ready as soon as it is written."
+          "label": "गेट पास के लिए स्वीकृति आवश्यक",
+          "help": "गेट पर छात्र को सौंपने से पहले कक्षा शिक्षक, या स्वीकृति देने का अधिकार रखने वाला कोई व्यक्ति, पास स्वीकृत करता है। बंद: पास लिखते ही तैयार हो जाता है।"
         }
       },
       "placements": {
         "offerPolicy": {
-          "label": "Offers a student may hold",
-          "help": "Checked when students register for a drive and when an offer is accepted. Accepting a dream offer releases the earlier one.",
+          "label": "एक छात्र कितने ऑफ़र रख सकता है",
+          "help": "छात्रों के किसी ड्राइव के लिए पंजीकरण करते समय और ऑफ़र स्वीकार करते समय इसकी जाँच होती है। ड्रीम ऑफ़र स्वीकार करने पर पहले वाला ऑफ़र छोड़ दिया जाता है।",
           "options": {
-            "ONE": "One offer — a placed student applies no more",
-            "DREAM": "Dream offer — once placed, only drives paying the dream CTC or more",
-            "OPEN": "No limit"
+            "ONE": "एक ऑफ़र — प्लेसमेंट हो चुका छात्र आगे आवेदन नहीं कर सकता",
+            "DREAM": "ड्रीम ऑफ़र — प्लेसमेंट के बाद केवल ड्रीम CTC या उससे अधिक देने वाली ड्राइव",
+            "OPEN": "कोई सीमा नहीं"
           }
         },
         "dreamCtcLakhs": {
-          "label": "Dream offer: CTC from (₹ lakh a year)"
+          "label": "ड्रीम ऑफ़र: न्यूनतम CTC (₹ लाख प्रति वर्ष)"
         },
         "familyRegistration": {
-          "label": "Students and parents register for drives in the app",
-          "help": "Off: only the placement office registers students."
+          "label": "छात्र और अभिभावक ऐप में ड्राइव के लिए पंजीकरण करें",
+          "help": "बंद: केवल प्लेसमेंट कार्यालय छात्रों का पंजीकरण करता है।"
         },
         "notifyEligible": {
-          "label": "Tell eligible students when a drive opens"
+          "label": "ड्राइव खुलने पर पात्र छात्रों को सूचित करें"
         }
       },
       "hostel": {
         "lateGraceMinutes": {
-          "label": "Minutes after the return time before an outpass counts as late"
+          "label": "लौटने के निर्धारित समय के कितने मिनट बाद आउटपास विलंबित माना जाए"
         },
         "familyOutpass": {
-          "label": "Parents can ask for an outpass in the family app"
+          "label": "अभिभावक परिवार ऐप में आउटपास माँग सकते हैं"
         },
         "alertOutpass": {
-          "label": "Tell the guardian when an outpass is approved or rejected, and when the student leaves and comes back"
+          "label": "आउटपास स्वीकृत या अस्वीकृत होने पर, और छात्र के जाने और लौटने पर अभिभावक को सूचित करें"
         }
       },
       "events": {
         "remindDayBefore": {
-          "label": "Remind families the day before an event",
-          "help": "Only for events that ask for it (the box on the event)."
+          "label": "कार्यक्रम से एक दिन पहले परिवारों को याद दिलाएँ",
+          "help": "केवल उन कार्यक्रमों के लिए जिनमें यह चुना गया है (कार्यक्रम पर दिया गया बॉक्स)।"
         },
         "calendarHolidays": {
-          "label": "Show holidays from Staff & HR on the calendar"
+          "label": "कर्मचारी एवं मानव संसाधन (HR) की छुट्टियाँ कैलेंडर पर दिखाएँ"
         },
         "calendarExams": {
-          "label": "Show exam dates on the calendar"
+          "label": "परीक्षा की तिथियाँ कैलेंडर पर दिखाएँ"
         },
         "weekStartsSunday": {
-          "label": "Calendar weeks start on Sunday"
+          "label": "कैलेंडर में सप्ताह रविवार से शुरू हो"
         },
         "ptmSlotMinutes": {
-          "label": "Parent–teacher meeting slot (minutes)"
+          "label": "अभिभावक-शिक्षक बैठक का स्लॉट (मिनट)"
         },
         "ptmReminder": {
-          "label": "Remind families of their meeting slot the day before"
+          "label": "परिवारों को एक दिन पहले उनकी बैठक के स्लॉट की याद दिलाएँ"
         }
       },
       "finance": {
         "autoPost": {
-          "label": "Post fees, refunds and payroll to the books on their own",
-          "help": "Fee receipts, refunds, cancelled receipts and paid payroll make their vouchers as they happen."
+          "label": "शुल्क, रिफ़ंड और वेतन अपने-आप खातों में पोस्ट करें",
+          "help": "शुल्क रसीदें, रिफ़ंड, रद्द रसीदें और भुगतान किया गया वेतन होते ही उनके वाउचर अपने-आप बन जाते हैं।"
         },
         "onlineToGateway": {
-          "label": "Online fee payments go to “Payment gateway in transit”",
-          "help": "On: a contra voucher moves them to the bank when the gateway settles. Off: straight to the main bank account."
+          "label": "ऑनलाइन शुल्क भुगतान “भुगतान गेटवे — राशि मार्ग में” खाते में जाते हैं",
+          "help": "चालू: गेटवे से राशि मिलने पर एक कॉन्ट्रा वाउचर उन्हें बैंक में ले जाता है। बंद: सीधे मुख्य बैंक खाते में।"
         },
         "expenseAutoApproveUpTo": {
-          "label": "Expenses up to this amount need no approval (₹)",
-          "help": "0: every expense is approved before it is paid."
+          "label": "इस राशि तक के व्यय के लिए स्वीकृति आवश्यक नहीं (₹)",
+          "help": "0: हर व्यय भुगतान से पहले स्वीकृत होता है।"
         },
         "matchWindowDays": {
-          "label": "Bank matching window (days)",
-          "help": "A statement line matches a book entry of the same amount this many days apart."
+          "label": "बैंक मिलान की अवधि (दिन)",
+          "help": "स्टेटमेंट की कोई पंक्ति उसी राशि की उस खाता प्रविष्टि से मिलाई जाती है जो अधिकतम इतने दिनों के अंतर पर हो।"
         }
       },
       "attendance": {
         "mode": {
-          "label": "Attendance is taken",
-          "help": "Every period: the day’s attendance is worked out from the periods (see below). Both: the class teacher’s daily register stays the day’s attendance; the periods give subject-wise attendance.",
+          "label": "उपस्थिति कैसे ली जाती है",
+          "help": "हर पीरियड में: दिन की उपस्थिति पीरियडों से निकाली जाती है (नीचे देखें)। दोनों: कक्षा शिक्षक का दैनिक रजिस्टर ही दिन की उपस्थिति रहता है; पीरियडों से विषयवार उपस्थिति मिलती है।",
           "options": {
-            "DAILY": "Once a day, by the class teacher",
-            "PERIOD": "Every period, by the subject teacher",
-            "BOTH": "Both — once a day by the class teacher, and every period by the subject teacher"
+            "DAILY": "दिन में एक बार, कक्षा शिक्षक द्वारा",
+            "PERIOD": "हर पीरियड में, विषय शिक्षक द्वारा",
+            "BOTH": "दोनों — दिन में एक बार कक्षा शिक्षक द्वारा, और हर पीरियड में विषय शिक्षक द्वारा"
           }
         },
         "dayFrom": {
-          "label": "With every period: the day’s attendance comes from",
+          "label": "हर पीरियड में उपस्थिति लेने पर दिन की उपस्थिति किससे तय हो",
           "options": {
-            "FIRST": "The first period marked that day",
-            "SHARE": "The share of periods attended"
+            "FIRST": "उस दिन दर्ज पहला पीरियड",
+            "SHARE": "उपस्थित पीरियडों का अनुपात"
           }
         },
         "dayMinPct": {
-          "label": "Present for the day when at least this % of periods are attended",
-          "help": "Used when the day comes from the share of periods."
+          "label": "कम से कम इतने % पीरियडों में उपस्थित होने पर दिन के लिए उपस्थित",
+          "help": "तब लागू होता है जब दिन की उपस्थिति पीरियडों के अनुपात से तय हो।"
         },
         "periodMarkers": {
-          "label": "Who marks a period",
-          "help": "Staff who see attendance for the whole campus or institution (principal, coordinator, office) can always mark any period.",
+          "label": "पीरियड की उपस्थिति कौन दर्ज करे",
+          "help": "पूरे परिसर या संस्थान की उपस्थिति देखने वाले कर्मचारी (प्रधानाचार्य, समन्वयक, कार्यालय) कोई भी पीरियड हमेशा दर्ज कर सकते हैं।",
           "options": {
-            "TIMETABLE": "Its teacher in the published timetable (or the substitute), and the class teacher",
-            "ANYONE": "Anyone who may mark attendance for the class"
+            "TIMETABLE": "प्रकाशित समय सारिणी में उस पीरियड के शिक्षक (या प्रतिस्थापन शिक्षक), और कक्षा शिक्षक",
+            "ANYONE": "कक्षा की उपस्थिति दर्ज करने की अनुमति रखने वाला कोई भी व्यक्ति"
           }
         },
         "absentAlert": {
-          "label": "Tell parents when their child is absent",
-          "help": "By the channels set for “Absence alert” in Notification rules."
+          "label": "बच्चे के अनुपस्थित होने पर अभिभावकों को सूचित करें",
+          "help": "अधिसूचना नियम में “अनुपस्थिति सूचना” के लिए तय माध्यमों से।"
         },
         "markBefore": {
-          "label": "Attendance to be marked by (HH:MM)",
-          "help": "Classes not marked by then show on the principal’s dashboard."
+          "label": "उपस्थिति इस समय तक दर्ज हो (HH:MM)",
+          "help": "तब तक जिन कक्षाओं की उपस्थिति दर्ज नहीं होती, वे प्रधानाचार्य के डैशबोर्ड पर दिखती हैं।"
         },
         "minimumPct": {
-          "label": "Minimum attendance required (%)",
-          "help": "Students below it are flagged in reports."
+          "label": "न्यूनतम आवश्यक उपस्थिति (%)",
+          "help": "इससे कम उपस्थिति वाले छात्र रिपोर्ट में चिह्नित किए जाते हैं।"
         },
         "editDays": {
-          "label": "Teachers can correct attendance up to (days back)"
+          "label": "शिक्षक कितने दिन पीछे तक उपस्थिति में सुधार कर सकते हैं"
         },
         "studentSelfCheckIn": {
-          "label": "Students check themselves in from the student app",
-          "help": "Only from a student’s own login (not a parent’s), and only inside an attendance site of their campus (Administration › Campuses). They can check in and out several times; teachers can always mark or correct the register by hand.",
+          "label": "छात्र, छात्र ऐप से स्वयं चेक इन करें",
+          "help": "केवल छात्र के अपने लॉगिन से (अभिभावक के लॉगिन से नहीं), और केवल उनके परिसर के किसी उपस्थिति स्थल के भीतर से (प्रशासन › परिसर)। छात्र कई बार चेक इन और चेक आउट कर सकते हैं; शिक्षक रजिस्टर में हमेशा हाथ से उपस्थिति दर्ज कर सकते हैं या सुधार सकते हैं।",
           "options": {
-            "OFF": "Off — the class teacher marks attendance",
-            "LOG": "Students check in on the campus; it goes to the gate log (the teacher still marks the register)",
-            "PRESENT": "Students check in on the campus; a check-in before the “mark by” time marks them present"
+            "OFF": "बंद — कक्षा शिक्षक उपस्थिति दर्ज करते हैं",
+            "LOG": "छात्र परिसर में चेक इन करते हैं; यह गेट लॉग में जाता है (रजिस्टर फिर भी शिक्षक ही भरते हैं)",
+            "PRESENT": "छात्र परिसर में चेक इन करते हैं; उपस्थिति दर्ज करने के अंतिम समय से पहले चेक इन करने पर वे उपस्थित दर्ज हो जाते हैं"
           }
         },
         "studentGeofenceMaxAccuracyM": {
-          "label": "Refuse a student location rougher than (metres)"
+          "label": "इससे कम सटीक छात्र स्थान अस्वीकार करें (मीटर)"
         }
       },
       "exams": {
         "roundMarks": {
-          "label": "Round totals to whole marks"
+          "label": "कुल अंकों को पूर्ण अंकों में पूर्णांकित करें"
         },
         "showRank": {
-          "label": "Show class rank on report cards"
+          "label": "रिपोर्ट कार्ड पर कक्षा में रैंक दिखाएँ"
         },
         "yearCombine": {
-          "label": "Several exams of one type in the year result",
-          "help": "For example three unit tests: their average, or only the best, counts towards the unit-test share.",
+          "label": "वार्षिक परिणाम में एक ही प्रकार की कई परीक्षाएँ",
+          "help": "उदाहरण के लिए तीन इकाई परीक्षाएँ: इकाई परीक्षा के भारांश में उनका औसत, या केवल सर्वश्रेष्ठ, गिना जाता है।",
           "options": {
-            "AVERAGE": "Average them",
-            "BEST": "Take the best one"
+            "AVERAGE": "उनका औसत लें",
+            "BEST": "केवल सर्वश्रेष्ठ लें"
           }
         },
         "yearPassPct": {
-          "label": "Pass mark for the year result (%)",
-          "help": "A subject whose final % is below this needs to improve."
+          "label": "वार्षिक परिणाम के लिए उत्तीर्णांक (%)",
+          "help": "जिस विषय का अंतिम % इससे कम है, उसमें सुधार की आवश्यकता है।"
         },
         "compartmentMax": {
-          "label": "Compartment: up to this many subjects below the pass mark",
-          "help": "0: no compartment — any subject below the pass mark is \"needs to improve\"."
+          "label": "पूरक: उत्तीर्णांक से कम अधिकतम इतने विषयों तक",
+          "help": "0: कोई पूरक नहीं — उत्तीर्णांक से कम हर विषय “सुधार की आवश्यकता” में आता है।"
         },
         "lockAfterDays": {
-          "label": "Lock marks entry this many days after the exam",
-          "help": "0: marks stay open until someone locks them."
+          "label": "परीक्षा के इतने दिन बाद अंक प्रविष्टि लॉक करें",
+          "help": "0: अंक तब तक खुले रहते हैं जब तक कोई उन्हें लॉक न करे।"
         }
       },
       "fees": {
         "lateFeePerDay": {
-          "label": "Late fee per day (₹)",
-          "help": "0 turns the late fee off. Fee structures can set their own."
+          "label": "प्रतिदिन विलंब शुल्क (₹)",
+          "help": "0 रखने पर विलंब शुल्क बंद हो जाता है। शुल्क संरचनाएं अपना अलग विलंब शुल्क रख सकती हैं।"
         },
         "graceDays": {
-          "label": "Days after the due date before the late fee starts"
+          "label": "देय तिथि के बाद विलंब शुल्क शुरू होने से पहले अनुग्रह अवधि (दिन)"
         },
         "remindDaysBefore": {
-          "label": "Remind parents this many days before the due date",
-          "help": "0 turns the reminder off. Uses “Fee due reminder” in Notification rules."
+          "label": "देय तिथि से इतने दिन पहले अभिभावकों को याद दिलाएँ",
+          "help": "0 रखने पर अनुस्मारक बंद हो जाता है। अधिसूचना नियम के “देय शुल्क अनुस्मारक” का उपयोग होता है।"
         },
         "allowPartial": {
-          "label": "Accept part payments"
+          "label": "आंशिक भुगतान स्वीकार करें"
         },
         "upiId": {
-          "label": "UPI ID for QR payments at the counter",
-          "help": "e.g. greenvalley@okaxis — the counter shows a QR with the exact amount."
+          "label": "काउंटर पर QR भुगतान के लिए UPI ID",
+          "help": "जैसे greenvalley@okaxis — काउंटर पर सटीक राशि वाला QR दिखता है।"
         },
         "receiptFormat": {
-          "label": "Receipt printer",
+          "label": "रसीद प्रिंटर",
           "options": {
-            "A5": "A5 sheet",
-            "THERMAL": "80 mm thermal roll"
+            "A5": "A5 शीट",
+            "THERMAL": "80 मिमी थर्मल रोल"
           }
         },
         "receiptFooter": {
-          "label": "Footer on receipts"
+          "label": "रसीदों के नीचे छपने वाला पाठ"
         }
       },
       "portal": {
         "enabled": {
-          "label": "Parents and students can sign in to the app",
-          "help": "With a one-time code to the mobile number on the student’s record."
+          "label": "अभिभावक और छात्र ऐप में साइन इन कर सकते हैं",
+          "help": "छात्र के रिकॉर्ड में दर्ज मोबाइल नंबर पर भेजे गए एक बार के कोड से।"
         },
         "studentLogins": {
-          "label": "Students get their own sign-in",
-          "help": "Usually on for senior classes and colleges. Off: only parents sign in."
+          "label": "छात्रों को अपना अलग साइन इन मिले",
+          "help": "आमतौर पर वरिष्ठ कक्षाओं और कॉलेजों के लिए चालू रहता है। बंद: केवल अभिभावक साइन इन करते हैं।"
         },
         "showFees": {
-          "label": "Show fees and online payment in the app"
+          "label": "ऐप में शुल्क और ऑनलाइन भुगतान दिखाएँ"
         },
         "showMarks": {
-          "label": "Show marks and report cards in the app",
-          "help": "Only results that have been published."
+          "label": "ऐप में अंक और रिपोर्ट कार्ड दिखाएँ",
+          "help": "केवल प्रकाशित परिणाम।"
         },
         "chat": {
-          "label": "Families can message teachers in the app",
-          "help": "The class teacher and the subject teachers of the child’s class. Needs the Communication hub."
+          "label": "परिवार ऐप में शिक्षकों को संदेश भेज सकते हैं",
+          "help": "बच्चे की कक्षा के कक्षा शिक्षक और विषय शिक्षक। इसके लिए संचार केंद्र आवश्यक है।"
         }
       },
       "comms": {
         "reRingMinutes": {
-          "label": "Ring again when nobody has answered for (minutes)"
+          "label": "कोई उत्तर न मिलने पर इतने मिनट बाद फिर से घंटी बजाएँ"
         },
         "maxRings": {
-          "label": "Ring each person at most (times)",
-          "help": "After that the call shows as missed for them."
+          "label": "हर व्यक्ति के लिए अधिकतम इतनी बार घंटी बजाएँ",
+          "help": "इसके बाद उनके लिए कॉल छूटी हुई दिखती है।"
         },
         "escalateMinutes": {
-          "label": "Escalate when nobody is on the way after (minutes)",
-          "help": "Counted from the call, then again from each escalation."
+          "label": "इतने मिनट तक कोई रास्ते में न हो तो आगे भेजें",
+          "help": "कॉल के समय से गिना जाता है, फिर हर बार आगे भेजने के बाद दोबारा।"
         },
         "escalateTo": {
-          "label": "Normal and urgent calls escalate to",
-          "help": "The next step goes one level wider (head of department → whole department).",
+          "label": "सामान्य और अत्यावश्यक कॉल किसे आगे भेजी जाएँ",
+          "help": "हर अगला चरण एक स्तर आगे तक जाता है (विभागाध्यक्ष → पूरा विभाग)।",
           "options": {
-            "DEPARTMENT_HEAD": "Head of the department",
-            "DEPARTMENT": "The whole department"
+            "DEPARTMENT_HEAD": "विभागाध्यक्ष",
+            "DEPARTMENT": "पूरा विभाग"
           }
         },
         "maxEscalations": {
-          "label": "Escalation steps at most",
-          "help": "0 turns escalation off."
+          "label": "आगे भेजने के अधिकतम चरण",
+          "help": "0 रखने पर आगे भेजना बंद हो जाता है।"
         },
         "codeEscalateTo": {
-          "label": "Unanswered emergency alerts escalate to",
+          "label": "अनुत्तरित आपातकालीन अलर्ट किसे आगे भेजे जाएँ",
           "options": {
-            "EVERYONE": "Everyone on the campus",
-            "DEPARTMENT": "The whole department",
-            "NONE": "Do not escalate (keep ringing)"
+            "EVERYONE": "परिसर में सभी",
+            "DEPARTMENT": "पूरा विभाग",
+            "NONE": "आगे न भेजें (घंटी बजती रहे)"
           }
         },
         "autoCloseMinutes": {
-          "label": "Close normal and urgent calls left open after (minutes)",
-          "help": "Emergency alerts never close on their own — someone gives the all clear."
+          "label": "खुली रह गई सामान्य और अत्यावश्यक कॉल इतने मिनट बाद बंद करें",
+          "help": "आपातकालीन अलर्ट अपने-आप कभी बंद नहीं होते — कोई व्यक्ति “सब सुरक्षित” की घोषणा करता है।"
         },
         "chatAnnouncementsOnly": {
-          "label": "Whole-staff chat is for announcements only",
-          "help": "On: only people who can moderate chat post in the whole-staff and campus chats; everyone still reads them."
+          "label": "सभी कर्मचारियों की चैट केवल घोषणाओं के लिए",
+          "help": "चालू: सभी कर्मचारियों की चैट और परिसर की चैट में केवल चैट मॉडरेट करने वाले पोस्ट करते हैं; बाकी सभी उन्हें पढ़ सकते हैं।"
         },
         "chatRetentionDays": {
-          "label": "Keep staff chat messages for (days)",
-          "help": "0 keeps them. Older messages and their attachments are removed by an hourly job."
+          "label": "कर्मचारी चैट के संदेश इतने दिन रखें",
+          "help": "0 रखने पर संदेश हमेशा रखे जाते हैं। पुराने संदेश और उनके संलग्नक हर घंटे चलने वाली एक प्रक्रिया द्वारा हटा दिए जाते हैं।"
         }
       }
     }

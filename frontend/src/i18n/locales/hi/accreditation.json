@@ -42,66 +42,66 @@
       "count": "{{value}}",
       "pct": "{{value}} %",
       "ratio": "{{value}} : 1",
-      "lakh": "₹ {{value}} lakh",
-      "years": "{{value}} years",
-      "perTeacher": "{{value}} per teacher",
-      "days": "{{value}} days",
-      "perDay": "{{value}} a day"
+      "lakh": "₹ {{value}} लाख",
+      "years": "{{value}} वर्ष",
+      "perTeacher": "प्रति शिक्षक {{value}}",
+      "days": "{{value}} दिन",
+      "perDay": "प्रतिदिन {{value}}"
     },
     "unitHints": {
-      "count": "A number",
-      "pct": "A percentage, e.g. 72.5",
-      "ratio": "Students per one, e.g. 18",
-      "lakh": "₹ lakh, e.g. 12.5",
-      "years": "Years",
-      "perTeacher": "Per teacher, e.g. 0.6",
-      "days": "Days",
-      "perDay": "A day"
+      "count": "एक संख्या",
+      "pct": "प्रतिशत, उदा. 72.5",
+      "ratio": "प्रति एक पर छात्रों की संख्या, उदा. 18",
+      "lakh": "₹ लाख में, उदा. 12.5",
+      "years": "वर्ष",
+      "perTeacher": "प्रति शिक्षक, उदा. 0.6",
+      "days": "दिन",
+      "perDay": "प्रतिदिन"
     },
     "detail": {
-      "programs": "Programmes",
-      "programsCbcs": "With electives (CBCS)",
-      "courses": "Courses",
-      "projectCourses": "Project courses",
-      "admitted": "Admitted this year",
-      "intake": "Sanctioned intake",
-      "reservedAdmitted": "From reserved categories",
+      "programs": "कार्यक्रम",
+      "programsCbcs": "वैकल्पिक विषयों सहित (CBCS)",
+      "courses": "पाठ्यक्रम",
+      "projectCourses": "परियोजना वाले पाठ्यक्रम",
+      "admitted": "इस वर्ष प्रवेशित",
+      "intake": "स्वीकृत प्रवेश क्षमता",
+      "reservedAdmitted": "आरक्षित श्रेणियों से",
       "students": "छात्र",
-      "phdScholars": "Ph.D. scholars",
-      "fullTimeTeachers": "Full-time teachers",
-      "teachers": "All teachers",
-      "mentees": "Students with a mentor",
-      "mentors": "Mentors",
-      "teachersPhd": "With a Ph.D.",
-      "passed": "Passed",
-      "appeared": "Appeared (final year)",
-      "revaluations": "Revaluation requests",
-      "papers": "Papers",
-      "womenStudents": "Women students",
-      "projects": "Projects sanctioned",
-      "receivedLakh": "Received (₹ lakh)",
-      "guides": "Research guides",
-      "departmentsFunded": "Departments with projects",
-      "departments": "Academic departments",
-      "registered": "Registered this year",
-      "booksChapters": "Books, chapters, conference papers",
-      "indexed": "Scopus / WoS indexed",
-      "copies": "Copies bought",
-      "loans": "Loans",
-      "days": "Days the desk issued",
-      "placed": "Students placed",
-      "outgoing": "Outgoing students"
+      "phdScholars": "Ph.D. शोधार्थी",
+      "fullTimeTeachers": "पूर्णकालिक शिक्षक",
+      "teachers": "सभी शिक्षक",
+      "mentees": "मार्गदर्शक से जुड़े छात्र",
+      "mentors": "मार्गदर्शक",
+      "teachersPhd": "Ph.D. धारक",
+      "passed": "उत्तीर्ण",
+      "appeared": "परीक्षा में सम्मिलित (अंतिम वर्ष)",
+      "revaluations": "पुनर्मूल्यांकन अनुरोध",
+      "papers": "शोध पत्र",
+      "womenStudents": "छात्राएँ",
+      "projects": "स्वीकृत परियोजनाएँ",
+      "receivedLakh": "प्राप्त राशि (₹ लाख)",
+      "guides": "शोध निर्देशक",
+      "departmentsFunded": "परियोजनाओं वाले विभाग",
+      "departments": "शैक्षणिक विभाग",
+      "registered": "इस वर्ष पंजीकृत",
+      "booksChapters": "पुस्तकें, अध्याय, सम्मेलन शोध पत्र",
+      "indexed": "Scopus / WoS में अनुक्रमित",
+      "copies": "खरीदी गई प्रतियाँ",
+      "loans": "जारी की गई पुस्तकें",
+      "days": "पुस्तकें जारी होने के दिन",
+      "placed": "प्लेसमेंट पाने वाले छात्र",
+      "outgoing": "उत्तीर्ण होकर जाने वाले छात्र"
     },
     "narrative": {
-      "bold": "Bold",
-      "heading": "Heading",
-      "bullet": "Bullet list",
+      "bold": "बोल्ड",
+      "heading": "शीर्षक",
+      "bullet": "बुलेट सूची",
       "preview": "पूर्वावलोकन",
-      "write": "Write",
-      "text": "text",
-      "placeholder": "Describe what the institution does, with numbers and examples. Use “## ” for a heading and “- ” for a bullet.",
-      "words_one": "{{count}} / {{max}} word",
-      "words_other": "{{count}} / {{max}} words"
+      "write": "लिखें",
+      "text": "टेक्स्ट",
+      "placeholder": "संस्थान क्या करता है, इसका वर्णन संख्याओं एवं उदाहरणों सहित करें। शीर्षक के लिए “## ” और बुलेट के लिए “- ” का उपयोग करें।",
+      "words_one": "{{count}} / {{max}} शब्द",
+      "words_other": "{{count}} / {{max}} शब्द"
     },
     "reports": {
       "pageTitle": "प्रत्यायन रिपोर्ट (Accreditation Reports)",
@@ -109,41 +109,41 @@
       "export": "CSV निर्यात करें",
       "print": "सारांश प्रिंट करें",
       "criteria": "मानदंड (Criteria)",
-      "weight": "Weightage {{weight}}",
+      "weight": "भारांक {{weight}}",
       "completion": "पूर्ण",
-      "valuesReady": "Values ready",
-      "computedN_one": "{{count}} computed from records",
-      "computedN_other": "{{count}} computed from records",
-      "narratives": "Narratives written",
-      "evidence": "Evidence items",
-      "criterionDone": "{{done}} of {{total}} complete · {{draft}} in draft",
+      "valuesReady": "तैयार मान",
+      "computedN_one": "{{count}} अभिलेखों से संगणित",
+      "computedN_other": "{{count}} अभिलेखों से संगणित",
+      "narratives": "लिखे गए विवरण",
+      "evidence": "साक्ष्य प्रविष्टियाँ",
+      "criterionDone": "{{total}} में से {{done}} पूर्ण · {{draft}} ड्राफ़्ट में",
       "all": "सभी",
       "pending": "अपूर्ण",
       "auto": "संगणित (Computed)",
       "entered": "दर्ज किया गया",
       "toEnter": "दर्ज करने हेतु",
-      "noNarrative": "Not written yet.",
-      "noneHere": "No metrics match",
-      "noRecordsHint": "Nothing could be computed for this year yet. Values come from Programs, Exam controller results, Staff & HR, Research, Library and Placements; enter the rest by hand with a note.",
-      "rangeNote": "The year runs {{from}} – {{to}} (the academic year of that name in Academic setup, else June to May). Publications count by the calendar year it starts in.",
+      "noNarrative": "अभी लिखा नहीं गया।",
+      "noneHere": "कोई मीट्रिक मेल नहीं खाता",
+      "noRecordsHint": "इस वर्ष के लिए अभी कुछ भी संगणित नहीं हो सका। मान कार्यक्रम, परीक्षा नियंत्रक (CoE) के परिणाम, कर्मचारी एवं मानव संसाधन (HR), अनुसंधान, पुस्तकालय और प्लेसमेंट से आते हैं; शेष मान टिप्पणी सहित हाथ से दर्ज करें।",
+      "rangeNote": "यह वर्ष {{from}} – {{to}} तक चलता है (शैक्षणिक सेटअप में इसी नाम का शैक्षणिक वर्ष, अन्यथा जून से मई)। प्रकाशन उस कैलेंडर वर्ष के अनुसार गिने जाते हैं जिसमें यह वर्ष शुरू होता है।",
       "status": "स्थिति",
-      "computed": "Computed from records",
-      "noData": "No data for this year",
-      "notComputed": "Not computed — enter it",
-      "manualValue": "Value to report",
-      "manualHint": "Enter the value from your records.",
-      "manualHintAuto": "Leave empty to report the computed value; enter one to override it.",
-      "clearManual": "Use the computed value",
+      "computed": "अभिलेखों से संगणित",
+      "noData": "इस वर्ष का कोई डेटा नहीं",
+      "notComputed": "संगणित नहीं — इसे दर्ज करें",
+      "manualValue": "रिपोर्ट किया जाने वाला मान",
+      "manualHint": "अपने अभिलेखों से मान दर्ज करें।",
+      "manualHintAuto": "संगणित मान रिपोर्ट करने के लिए इसे खाली छोड़ें; उसके स्थान पर अन्य मान देने के लिए वह मान दर्ज करें।",
+      "clearManual": "संगणित मान का उपयोग करें",
       "reported": "रिपोर्ट किया गया",
       "note": "टिप्पणी",
-      "noteHint": "Where the value comes from, what it counts — the peer team reads this.",
-      "evidenceN_one": "{{count}} evidence item · {{files}} files",
-      "evidenceN_other": "{{count}} evidence items · {{files}} files",
-      "checklistN": "DVV documents {{done}}/{{total}}",
+      "noteHint": "मान कहाँ से आया है और यह क्या गिनता है — पीयर टीम इसे पढ़ती है।",
+      "evidenceN_one": "{{count}} साक्ष्य प्रविष्टि · {{files}} फ़ाइलें",
+      "evidenceN_other": "{{count}} साक्ष्य प्रविष्टियाँ · {{files}} फ़ाइलें",
+      "checklistN": "DVV दस्तावेज़ {{done}}/{{total}}",
       "openEvidence": "साक्ष्य खोलें",
       "save": "मीट्रिक सहेजें",
       "saved": "मीट्रिक सहेजा गया",
-      "updated": "Last changed by {{by}}, {{at}}"
+      "updated": "अंतिम परिवर्तन {{by}} द्वारा, {{at}}"
     },
     "evidence": {
       "pageTitle": "साक्ष्य रिपॉजिटरी (Evidence Repository)",
@@ -155,42 +155,42 @@
       "saved": "साक्ष्य सहेजा गया",
       "deleted": "साक्ष्य हटाया गया",
       "deleteConfirm": "“{{title}}” को हटाएँ?",
-      "deleteHint": "Its files stay in the record’s history.",
+      "deleteHint": "इसकी फ़ाइलें अभिलेख के इतिहास में बनी रहेंगी।",
       "criteria": "मानदंड",
       "search": "साक्ष्य खोजें",
-      "docsDone": "DVV documents {{done}}/{{total}}",
-      "itemsTotal": "Evidence items",
-      "filesN_one": "{{count}} file",
-      "filesN_other": "{{count}} files",
-      "covered": "Metrics with evidence",
-      "checklistDone": "DVV documents in place",
+      "docsDone": "DVV दस्तावेज़ {{done}}/{{total}}",
+      "itemsTotal": "साक्ष्य प्रविष्टियाँ",
+      "filesN_one": "{{count}} फ़ाइल",
+      "filesN_other": "{{count}} फ़ाइलें",
+      "covered": "साक्ष्य वाले मीट्रिक",
+      "checklistDone": "उपलब्ध DVV दस्तावेज़",
       "verified": "सत्यापित",
-      "clarifyN_one": "{{count}} needs clarification",
-      "clarifyN_other": "{{count}} need clarification",
-      "emptyHint": "Add each document once and link it to the metrics it backs. Tick the DVV documents it answers; a checklist line is done when its evidence has a file or a link.",
-      "noChecklist": "No DVV checklist for this metric",
-      "itemsN_one": "{{count}} item",
-      "itemsN_other": "{{count}} items",
+      "clarifyN_one": "{{count}} में स्पष्टीकरण आवश्यक",
+      "clarifyN_other": "{{count}} में स्पष्टीकरण आवश्यक",
+      "emptyHint": "प्रत्येक दस्तावेज़ एक बार जोड़ें और उसे उन मीट्रिक से जोड़ें जिनका वह समर्थन करता है। जिन DVV दस्तावेज़ों की वह पूर्ति करता है, उन पर सही का निशान लगाएँ; चेकलिस्ट की कोई पंक्ति तब पूर्ण होती है जब उसके साक्ष्य में फ़ाइल या लिंक हो।",
+      "noChecklist": "इस मीट्रिक के लिए कोई DVV चेकलिस्ट नहीं",
+      "itemsN_one": "{{count}} प्रविष्टि",
+      "itemsN_other": "{{count}} प्रविष्टियाँ",
       "checklist": "DVV चेकलिस्ट",
       "items": "साक्ष्य",
-      "noneForMetric": "No evidence for this metric yet",
-      "addFor": "Add evidence for {{code}}",
+      "noneForMetric": "इस मीट्रिक के लिए अभी कोई साक्ष्य नहीं",
+      "addFor": "{{code}} के लिए साक्ष्य जोड़ें",
       "title": "शीर्षक",
-      "titlePlaceholder": "e.g. DST sanction letter 2025",
-      "metrics": "Metrics it backs",
-      "addMetric": "Link a metric…",
-      "unlink": "Unlink",
-      "answers": "DVV documents it answers",
+      "titlePlaceholder": "उदा. DST स्वीकृति पत्र 2025",
+      "metrics": "जिन मीट्रिक का यह समर्थन करता है",
+      "addMetric": "कोई मीट्रिक जोड़ें…",
+      "unlink": "अलग करें",
+      "answers": "जिन DVV दस्तावेज़ों की यह पूर्ति करता है",
       "year": "वर्ष",
-      "yearHint": "Leave empty when it holds for every year (a policy, a committee order).",
-      "anyYear": "Every year",
+      "yearHint": "जब यह प्रत्येक वर्ष के लिए मान्य हो (जैसे कोई नीति या समिति आदेश), तो इसे खाली छोड़ें।",
+      "anyYear": "प्रत्येक वर्ष",
       "link": "लिंक",
-      "linkHint": "A page on the institution’s website, when the evidence lives there.",
+      "linkHint": "संस्थान की वेबसाइट का पृष्ठ, जब साक्ष्य वहीं उपलब्ध हो।",
       "description": "विवरण",
-      "filesAfter": "Save first, then add the files (PDF, images, Word) to the evidence.",
+      "filesAfter": "पहले सहेजें, फिर साक्ष्य में फ़ाइलें (PDF, चित्र, Word) जोड़ें।",
       "files": "फ़ाइलें",
-      "addedOn": "Added {{at}}",
-      "forYear": "For {{year}}",
+      "addedOn": "{{at}} को जोड़ा गया",
+      "forYear": "{{year}} के लिए",
       "verify": "सत्यापित चिह्नित करें",
       "clarify": "स्पष्टीकरण आवश्यक",
       "clarifyTitle": "क्या स्पष्टीकरण आवश्यक है?",
@@ -207,12 +207,12 @@
       "value": "मान",
       "status": "स्थिति",
       "words": "शब्द",
-      "noNarrative": "Not written yet.",
+      "noNarrative": "अभी लिखा नहीं गया।",
       "institution": "संस्थान का नाम",
       "ids": "संबद्धता / पंजीकरण",
-      "criterion": "Criterion {{code}}",
-      "done": "complete",
-      "iqac": "IQAC Coordinator",
+      "criterion": "मानदंड {{code}}",
+      "done": "पूर्ण",
+      "iqac": "IQAC समन्वयक",
       "seal": "मुहर",
       "head": "प्राचार्य / संस्थान प्रमुख"
     },
@@ -228,366 +228,366 @@
           "C7": "संस्थागत मूल्य एवं सर्वोत्तम प्रथाएं (Institutional values and best practices)"
         },
         "m": {
-          "1_1_1": "Effective curriculum planning and delivery",
-          "1_1_3": "Teachers participating in curriculum development and assessment",
-          "1_2_1": "Programmes with CBCS / elective course system",
-          "1_2_2": "Add-on / certificate programmes offered",
-          "1_2_3": "Students enrolled in add-on / certificate programmes",
-          "1_3_1": "Cross-cutting issues: gender, environment, human values, professional ethics",
-          "1_3_2": "Courses with experiential learning (project, field work, internship)",
-          "1_3_3": "Students undertaking project work / field work / internships",
-          "1_4_1": "Feedback on the syllabus from stakeholders",
-          "1_4_2": "Feedback process (collected, analysed, action taken, on website)",
-          "2_1_1": "Enrolment percentage (admitted against sanctioned intake)",
-          "2_1_2": "Seats filled against reserved categories",
-          "2_2_1": "Assessing learning levels; programmes for advanced and slow learners",
-          "2_2_2": "Student – full-time teacher ratio",
-          "2_3_1": "Student-centric methods: experiential, participative, problem-solving",
-          "2_3_2": "Teachers using ICT-enabled tools",
-          "2_3_3": "Ratio of students to mentor",
-          "2_4_1": "Full-time teachers against sanctioned posts",
-          "2_4_2": "Full-time teachers with Ph.D.",
-          "2_4_3": "Average teaching experience of full-time teachers",
-          "2_5_1": "Days from the last semester-end exam to the declaration of results",
-          "2_5_2": "Student complaints / grievances about evaluation",
-          "2_6_1": "Programme and course outcomes stated and communicated",
-          "2_6_2": "Attainment of programme and course outcomes",
-          "2_6_3": "Pass percentage of final-year students",
-          "2_7_1": "Online student satisfaction survey (SSS)",
-          "3_1_1": "Grants received for research projects (₹ lakh)",
-          "3_1_2": "Teachers recognised as research guides",
-          "3_1_3": "Departments with funded research projects",
-          "3_2_1": "Ecosystem for innovations, incubation and knowledge transfer",
-          "3_2_2": "Workshops / seminars on research methodology, IPR and entrepreneurship",
-          "3_3_1": "Ph.D.s registered per eligible teacher",
-          "3_3_2": "Research papers per teacher in UGC-CARE journals",
-          "3_3_3": "Books, chapters and conference papers per teacher",
-          "3_4_1": "Extension activities in the neighbourhood community",
-          "3_4_2": "Awards and recognition for extension activities",
-          "3_4_3": "Extension and outreach programmes conducted",
-          "3_4_4": "Students participating in extension activities",
-          "3_5_1": "Collaborative activities (research, internship, exchange)",
-          "3_5_2": "Functional MoUs with institutions and industries",
-          "4_1_1": "Adequate facilities for teaching–learning",
-          "4_1_2": "Facilities for cultural activities, sports and games",
-          "4_1_3": "Classrooms and seminar halls with ICT facilities",
-          "4_1_4": "Expenditure on infrastructure augmentation, excluding salary (₹ lakh)",
-          "4_2_1": "Library automated with an integrated library management system",
-          "4_2_2": "E-resources subscribed / e-books in the library",
-          "4_2_3": "Expenditure on books and journals (₹ lakh)",
-          "4_2_4": "Library usage per day (loans)",
-          "4_3_1": "IT facilities and Wi-Fi, updated regularly",
-          "4_3_2": "Student – computer ratio",
-          "4_3_3": "Bandwidth of the internet connection (Mbps)",
-          "4_4_1": "Expenditure on maintenance of infrastructure (₹ lakh)",
-          "5_1_1": "Students benefited by government scholarships and freeships",
-          "5_1_2": "Students benefited by institution / non-government scholarships",
-          "5_1_3": "Capacity building and skills enhancement initiatives",
-          "5_1_4": "Students benefited by guidance for competitive exams and career counselling",
-          "5_1_5": "Grievance redressal (sexual harassment, ragging) mechanism",
-          "5_2_1": "Placement of outgoing students",
-          "5_2_2": "Outgoing students progressing to higher education",
-          "5_2_3": "Students qualifying state / national exams (NET, SLET, GATE, CAT …)",
-          "5_3_1": "Awards / medals in sports and cultural activities",
-          "5_3_2": "Active student council and student representation",
-          "5_3_3": "Sports and cultural events organised",
-          "5_4_1": "Registered alumni association and its contribution",
-          "6_1_1": "Governance reflecting the vision and mission",
-          "6_2_1": "Perspective / strategic plan deployed; functioning of institutional bodies",
-          "6_2_2": "E-governance in administration, finance, admissions and examinations",
-          "6_3_1": "Welfare measures for teaching and non-teaching staff",
-          "6_3_2": "Teachers given financial support for conferences / workshops",
-          "6_3_3": "Professional development / administrative training programmes organised",
-          "6_3_4": "Teachers undergoing faculty development programmes (FDP)",
-          "6_4_1": "Internal and external financial audits",
-          "6_4_2": "Funds received from non-government bodies and philanthropists (₹ lakh)",
-          "6_5_1": "IQAC’s contribution to institutionalising quality assurance",
-          "6_5_3": "Quality assurance initiatives (AQAR, audits, NIRF, ISO)",
-          "7_1_1": "Measures for the promotion of gender equity",
-          "7_1_2": "Facilities for alternate sources of energy and energy conservation",
-          "7_1_3": "Facilities for the management of degradable and non-degradable waste",
-          "7_1_4": "Water conservation facilities",
-          "7_1_6": "Quality audits on environment and energy",
-          "7_1_7": "Disabled-friendly, barrier-free environment",
-          "7_1_8": "Inclusive environment: tolerance and harmony",
-          "7_1_9": "Sensitisation to constitutional obligations",
-          "7_2_1": "Two best practices of the institution",
-          "7_3_1": "Institutional distinctiveness"
+          "1_1_1": "पाठ्यक्रम की प्रभावी योजना एवं क्रियान्वयन",
+          "1_1_3": "पाठ्यक्रम निर्माण एवं मूल्यांकन में भाग लेने वाले शिक्षक",
+          "1_2_1": "CBCS / वैकल्पिक पाठ्यक्रम प्रणाली वाले कार्यक्रम",
+          "1_2_2": "संचालित ऐड-ऑन / प्रमाण पत्र कार्यक्रम",
+          "1_2_3": "ऐड-ऑन / प्रमाण पत्र कार्यक्रमों में नामांकित छात्र",
+          "1_3_1": "व्यापक विषय: लैंगिक समानता, पर्यावरण, मानवीय मूल्य, व्यावसायिक नैतिकता",
+          "1_3_2": "अनुभवात्मक अधिगम वाले पाठ्यक्रम (परियोजना, क्षेत्र कार्य, इंटर्नशिप)",
+          "1_3_3": "परियोजना कार्य / क्षेत्र कार्य / इंटर्नशिप करने वाले छात्र",
+          "1_4_1": "हितधारकों से पाठ्यक्रम पर फ़ीडबैक",
+          "1_4_2": "फ़ीडबैक प्रक्रिया (संग्रह, विश्लेषण, की गई कार्रवाई, वेबसाइट पर उपलब्धता)",
+          "2_1_1": "नामांकन प्रतिशत (स्वीकृत प्रवेश क्षमता के सापेक्ष प्रवेश)",
+          "2_1_2": "आरक्षित श्रेणियों के सापेक्ष भरी गई सीटें",
+          "2_2_1": "अधिगम स्तर का आकलन; प्रतिभाशाली एवं धीमी गति से सीखने वाले छात्रों हेतु कार्यक्रम",
+          "2_2_2": "छात्र – पूर्णकालिक शिक्षक अनुपात",
+          "2_3_1": "छात्र-केंद्रित विधियाँ: अनुभवात्मक, सहभागी, समस्या-समाधान आधारित",
+          "2_3_2": "ICT-सक्षम साधनों का उपयोग करने वाले शिक्षक",
+          "2_3_3": "छात्र – मार्गदर्शक अनुपात",
+          "2_4_1": "स्वीकृत पदों के सापेक्ष पूर्णकालिक शिक्षक",
+          "2_4_2": "Ph.D. धारक पूर्णकालिक शिक्षक",
+          "2_4_3": "पूर्णकालिक शिक्षकों का औसत शिक्षण अनुभव",
+          "2_5_1": "अंतिम सेमेस्टर-अंत परीक्षा से परिणाम घोषित होने तक के दिन",
+          "2_5_2": "मूल्यांकन संबंधी छात्रों की शिकायतें",
+          "2_6_1": "कार्यक्रम एवं पाठ्यक्रम परिणाम निर्धारित एवं सूचित",
+          "2_6_2": "कार्यक्रम एवं पाठ्यक्रम परिणामों की उपलब्धि",
+          "2_6_3": "अंतिम वर्ष के छात्रों का उत्तीर्ण प्रतिशत",
+          "2_7_1": "ऑनलाइन छात्र संतुष्टि सर्वेक्षण (SSS)",
+          "3_1_1": "अनुसंधान परियोजनाओं हेतु प्राप्त अनुदान (₹ लाख)",
+          "3_1_2": "शोध निर्देशक के रूप में मान्यता प्राप्त शिक्षक",
+          "3_1_3": "वित्तपोषित अनुसंधान परियोजनाओं वाले विभाग",
+          "3_2_1": "नवाचार, इन्क्यूबेशन एवं ज्ञान हस्तांतरण हेतु तंत्र",
+          "3_2_2": "अनुसंधान पद्धति, बौद्धिक संपदा अधिकार (IPR) एवं उद्यमिता पर कार्यशालाएँ / संगोष्ठियाँ",
+          "3_3_1": "प्रति पात्र शिक्षक पंजीकृत Ph.D.",
+          "3_3_2": "UGC-CARE जर्नलों में प्रति शिक्षक शोध पत्र",
+          "3_3_3": "प्रति शिक्षक पुस्तकें, अध्याय एवं सम्मेलन शोध पत्र",
+          "3_4_1": "आस-पास के समुदाय में विस्तार गतिविधियाँ",
+          "3_4_2": "विस्तार गतिविधियों हेतु पुरस्कार एवं मान्यता",
+          "3_4_3": "आयोजित विस्तार एवं आउटरीच कार्यक्रम",
+          "3_4_4": "विस्तार गतिविधियों में भाग लेने वाले छात्र",
+          "3_5_1": "सहयोगात्मक गतिविधियाँ (अनुसंधान, इंटर्नशिप, आदान-प्रदान)",
+          "3_5_2": "संस्थानों एवं उद्योगों के साथ क्रियाशील MoU",
+          "4_1_1": "शिक्षण-अधिगम हेतु पर्याप्त सुविधाएँ",
+          "4_1_2": "सांस्कृतिक गतिविधियों, खेलकूद एवं क्रीड़ा हेतु सुविधाएँ",
+          "4_1_3": "ICT सुविधायुक्त कक्षा-कक्ष एवं सेमिनार हॉल",
+          "4_1_4": "वेतन को छोड़कर बुनियादी ढांचे के विस्तार पर व्यय (₹ लाख)",
+          "4_2_1": "एकीकृत पुस्तकालय प्रबंधन प्रणाली द्वारा स्वचालित पुस्तकालय",
+          "4_2_2": "पुस्तकालय में सदस्यता वाले ई-संसाधन / ई-पुस्तकें",
+          "4_2_3": "पुस्तकों एवं जर्नलों पर व्यय (₹ लाख)",
+          "4_2_4": "पुस्तकालय का प्रतिदिन उपयोग (जारी की गई पुस्तकें)",
+          "4_3_1": "IT सुविधाएँ एवं Wi-Fi, नियमित रूप से अद्यतन",
+          "4_3_2": "छात्र – कंप्यूटर अनुपात",
+          "4_3_3": "इंटरनेट कनेक्शन की बैंडविड्थ (Mbps)",
+          "4_4_1": "बुनियादी ढांचे के रखरखाव पर व्यय (₹ लाख)",
+          "5_1_1": "सरकारी छात्रवृत्ति एवं शुल्क माफ़ी से लाभान्वित छात्र",
+          "5_1_2": "संस्थान / गैर-सरकारी छात्रवृत्ति से लाभान्वित छात्र",
+          "5_1_3": "क्षमता निर्माण एवं कौशल संवर्धन पहल",
+          "5_1_4": "प्रतियोगी परीक्षाओं हेतु मार्गदर्शन एवं करियर परामर्श से लाभान्वित छात्र",
+          "5_1_5": "शिकायत निवारण तंत्र (यौन उत्पीड़न, रैगिंग)",
+          "5_2_1": "उत्तीर्ण होकर जाने वाले छात्रों का प्लेसमेंट",
+          "5_2_2": "उच्च शिक्षा की ओर अग्रसर होने वाले उत्तीर्ण छात्र",
+          "5_2_3": "राज्य / राष्ट्रीय परीक्षाएँ उत्तीर्ण करने वाले छात्र (NET, SLET, GATE, CAT …)",
+          "5_3_1": "खेलकूद एवं सांस्कृतिक गतिविधियों में पुरस्कार / पदक",
+          "5_3_2": "सक्रिय छात्र परिषद एवं छात्र प्रतिनिधित्व",
+          "5_3_3": "आयोजित खेलकूद एवं सांस्कृतिक कार्यक्रम",
+          "5_4_1": "पंजीकृत पूर्व छात्र संघ एवं उसका योगदान",
+          "6_1_1": "विज़न एवं मिशन को प्रतिबिंबित करने वाला शासन",
+          "6_2_1": "परिप्रेक्ष्य / रणनीतिक योजना का क्रियान्वयन; संस्थागत निकायों की कार्यप्रणाली",
+          "6_2_2": "प्रशासन, वित्त, प्रवेश एवं परीक्षाओं में ई-गवर्नेंस",
+          "6_3_1": "शिक्षण एवं गैर-शिक्षण कर्मचारियों हेतु कल्याणकारी उपाय",
+          "6_3_2": "सम्मेलनों / कार्यशालाओं हेतु वित्तीय सहायता प्राप्त शिक्षक",
+          "6_3_3": "आयोजित व्यावसायिक विकास / प्रशासनिक प्रशिक्षण कार्यक्रम",
+          "6_3_4": "संकाय विकास कार्यक्रमों (FDP) में भाग लेने वाले शिक्षक",
+          "6_4_1": "आंतरिक एवं बाह्य वित्तीय लेखा परीक्षा",
+          "6_4_2": "गैर-सरकारी निकायों एवं दानदाताओं से प्राप्त निधि (₹ लाख)",
+          "6_5_1": "गुणवत्ता आश्वासन को संस्थागत बनाने में IQAC का योगदान",
+          "6_5_3": "गुणवत्ता आश्वासन पहल (AQAR, लेखा परीक्षा, NIRF, ISO)",
+          "7_1_1": "लैंगिक समानता को बढ़ावा देने हेतु उपाय",
+          "7_1_2": "ऊर्जा के वैकल्पिक स्रोतों एवं ऊर्जा संरक्षण हेतु सुविधाएँ",
+          "7_1_3": "जैव-अपघटनीय एवं गैर-जैव-अपघटनीय अपशिष्ट के प्रबंधन हेतु सुविधाएँ",
+          "7_1_4": "जल संरक्षण सुविधाएँ",
+          "7_1_6": "पर्यावरण एवं ऊर्जा पर गुणवत्ता लेखा परीक्षा",
+          "7_1_7": "दिव्यांगजन-अनुकूल, बाधा-मुक्त वातावरण",
+          "7_1_8": "समावेशी वातावरण: सहिष्णुता एवं सद्भाव",
+          "7_1_9": "संवैधानिक दायित्वों के प्रति जागरूकता",
+          "7_2_1": "संस्थान की दो सर्वोत्तम प्रथाएं",
+          "7_3_1": "संस्थागत विशिष्टता"
         },
         "dvv": {
           "1_1_3": {
-            "0": "Letters of nomination to BoS / academic council",
-            "1": "Minutes of the meetings"
+            "0": "अध्ययन मंडल (BoS) / विद्या परिषद में नामांकन पत्र",
+            "1": "बैठकों के कार्यवृत्त"
           },
           "1_2_1": {
-            "0": "Minutes of the academic council approving CBCS",
-            "1": "Course structure of each programme"
+            "0": "CBCS को स्वीकृति देने वाली विद्या परिषद बैठक के कार्यवृत्त",
+            "1": "प्रत्येक कार्यक्रम की पाठ्यक्रम संरचना"
           },
           "1_2_2": {
-            "0": "Brochure or notice of each programme",
-            "1": "List of students enrolled"
+            "0": "प्रत्येक कार्यक्रम की विवरणिका या सूचना",
+            "1": "नामांकित छात्रों की सूची"
           },
           "1_2_3": {
-            "0": "List of students with programme",
-            "1": "Certificates issued (sample)"
+            "0": "कार्यक्रम सहित छात्रों की सूची",
+            "1": "जारी प्रमाण पत्र (नमूना)"
           },
           "1_3_2": {
-            "0": "Syllabus marking the experiential courses"
+            "0": "अनुभवात्मक पाठ्यक्रम चिह्नित किया हुआ पाठ्यक्रम (Syllabus)"
           },
           "1_3_3": {
-            "0": "List of students with project / internship",
-            "1": "Completion certificates (sample)"
+            "0": "परियोजना / इंटर्नशिप सहित छात्रों की सूची",
+            "1": "पूर्णता प्रमाण पत्र (नमूना)"
           },
           "1_4_1": {
-            "0": "Feedback forms",
-            "1": "Action taken report"
+            "0": "फ़ीडबैक प्रपत्र",
+            "1": "की गई कार्रवाई की रिपोर्ट"
           },
           "1_4_2": {
-            "0": "Feedback analysis report",
-            "1": "Website link of the feedback"
+            "0": "फ़ीडबैक विश्लेषण रिपोर्ट",
+            "1": "फ़ीडबैक का वेबसाइट लिंक"
           },
           "2_1_1": {
-            "0": "Sanctioned intake letter from the university / regulator",
-            "1": "List of students admitted, programme-wise"
+            "0": "विश्वविद्यालय / नियामक निकाय से स्वीकृत प्रवेश क्षमता का पत्र",
+            "1": "कार्यक्रमवार प्रवेशित छात्रों की सूची"
           },
           "2_1_2": {
-            "0": "Reservation policy letter",
-            "1": "Category-wise admission list"
+            "0": "आरक्षण नीति पत्र",
+            "1": "श्रेणीवार प्रवेश सूची"
           },
           "2_2_2": {
-            "0": "List of full-time teachers with appointment letters",
-            "1": "Students on roll, programme-wise"
+            "0": "नियुक्ति पत्रों सहित पूर्णकालिक शिक्षकों की सूची",
+            "1": "कार्यक्रमवार नामांकित छात्र"
           },
           "2_3_3": {
-            "0": "Mentor allotment list",
-            "1": "Mentoring records (sample)"
+            "0": "मार्गदर्शक आवंटन सूची",
+            "1": "परामर्श अभिलेख (नमूना)"
           },
           "2_4_1": {
-            "0": "Sanctioned posts letter",
-            "1": "List of full-time teachers"
+            "0": "स्वीकृत पदों का पत्र",
+            "1": "पूर्णकालिक शिक्षकों की सूची"
           },
           "2_4_2": {
-            "0": "Ph.D. degree certificates of the teachers"
+            "0": "शिक्षकों के Ph.D. उपाधि प्रमाण पत्र"
           },
           "2_4_3": {
-            "0": "List of teachers with date of joining and experience"
+            "0": "कार्यग्रहण तिथि एवं अनुभव सहित शिक्षकों की सूची"
           },
           "2_5_1": {
-            "0": "Exam timetable",
-            "1": "Result notification with date"
+            "0": "परीक्षा समय सारिणी",
+            "1": "दिनांक सहित परिणाम अधिसूचना"
           },
           "2_5_2": {
-            "0": "Revaluation applications and outcomes"
+            "0": "पुनर्मूल्यांकन आवेदन एवं उनके परिणाम"
           },
           "2_6_3": {
-            "0": "Result sheets of the final-year students",
-            "1": "Annual report of the controller of examinations"
+            "0": "अंतिम वर्ष के छात्रों की परिणाम पत्रिकाएँ",
+            "1": "परीक्षा नियंत्रक की वार्षिक रिपोर्ट"
           },
           "2_7_1": {
-            "0": "Database of all currently enrolled students"
+            "0": "वर्तमान में नामांकित सभी छात्रों का डेटाबेस"
           },
           "3_1_1": {
-            "0": "Sanction letters from the funding agencies",
-            "1": "Utilisation certificates",
-            "2": "Audited statements of the grants"
+            "0": "वित्तपोषण एजेंसियों के स्वीकृति पत्र",
+            "1": "उपयोगिता प्रमाण पत्र",
+            "2": "अनुदानों के लेखा-परीक्षित विवरण"
           },
           "3_1_2": {
-            "0": "Recognition letters of the guides from the university"
+            "0": "विश्वविद्यालय से शोध निर्देशकों के मान्यता पत्र"
           },
           "3_1_3": {
-            "0": "List of departments with project sanction letters"
+            "0": "परियोजना स्वीकृति पत्रों सहित विभागों की सूची"
           },
           "3_2_2": {
-            "0": "Brochures and reports of each event",
-            "1": "Geo-tagged photos"
+            "0": "प्रत्येक कार्यक्रम की विवरणिका एवं रिपोर्ट",
+            "1": "जियो-टैग फ़ोटो"
           },
           "3_3_1": {
-            "0": "Ph.D. registration letters",
-            "1": "List of scholars with guides"
+            "0": "Ph.D. पंजीकरण पत्र",
+            "1": "शोध निर्देशकों सहित शोधार्थियों की सूची"
           },
           "3_3_2": {
-            "0": "First page of each paper with the journal’s name",
-            "1": "UGC-CARE list entry of the journals"
+            "0": "जर्नल के नाम सहित प्रत्येक शोध पत्र का पहला पृष्ठ",
+            "1": "जर्नलों की UGC-CARE सूची प्रविष्टि"
           },
           "3_3_3": {
-            "0": "Cover page, contents and ISBN page of each book",
-            "1": "First page of each conference paper"
+            "0": "प्रत्येक पुस्तक का आवरण पृष्ठ, विषय-सूची एवं ISBN पृष्ठ",
+            "1": "प्रत्येक सम्मेलन शोध पत्र का पहला पृष्ठ"
           },
           "3_4_2": {
-            "0": "Award letters"
+            "0": "पुरस्कार पत्र"
           },
           "3_4_3": {
-            "0": "Reports of each programme",
-            "1": "Geo-tagged photos"
+            "0": "प्रत्येक कार्यक्रम की रिपोर्ट",
+            "1": "जियो-टैग फ़ोटो"
           },
           "3_4_4": {
-            "0": "Attendance of students in each activity"
+            "0": "प्रत्येक गतिविधि में छात्रों की उपस्थिति"
           },
           "3_5_1": {
-            "0": "Collaboration documents",
-            "1": "Activity reports"
+            "0": "सहयोग संबंधी दस्तावेज़",
+            "1": "गतिविधि रिपोर्ट"
           },
           "3_5_2": {
-            "0": "Copies of the MoUs",
-            "1": "Activities under each MoU"
+            "0": "MoU की प्रतियाँ",
+            "1": "प्रत्येक MoU के अंतर्गत गतिविधियाँ"
           },
           "4_1_3": {
-            "0": "List of ICT rooms with geo-tagged photos"
+            "0": "जियो-टैग फ़ोटो सहित ICT कक्षों की सूची"
           },
           "4_1_4": {
-            "0": "Audited income and expenditure statement"
+            "0": "लेखा-परीक्षित आय एवं व्यय विवरण"
           },
           "4_2_2": {
-            "0": "Subscription receipts of the e-resources"
+            "0": "ई-संसाधनों की सदस्यता रसीदें"
           },
           "4_2_3": {
-            "0": "Audited statement of library purchases",
-            "1": "Accession register (extract)"
+            "0": "पुस्तकालय खरीद का लेखा-परीक्षित विवरण",
+            "1": "परिग्रहण रजिस्टर (अंश)"
           },
           "4_2_4": {
-            "0": "Library footfall / issue register (extract)"
+            "0": "पुस्तकालय आगंतुक / निर्गम रजिस्टर (अंश)"
           },
           "4_3_2": {
-            "0": "Stock register of computers",
-            "1": "Purchase bills"
+            "0": "कंप्यूटरों का स्टॉक रजिस्टर",
+            "1": "खरीद बिल"
           },
           "4_3_3": {
-            "0": "Bill of the internet provider"
+            "0": "इंटरनेट सेवा प्रदाता का बिल"
           },
           "4_4_1": {
-            "0": "Audited income and expenditure statement"
+            "0": "लेखा-परीक्षित आय एवं व्यय विवरण"
           },
           "5_1_1": {
-            "0": "Sanction letters of the scholarships",
-            "1": "List of beneficiaries"
+            "0": "छात्रवृत्तियों के स्वीकृति पत्र",
+            "1": "लाभार्थियों की सूची"
           },
           "5_1_2": {
-            "0": "List of beneficiaries with amounts"
+            "0": "राशि सहित लाभार्थियों की सूची"
           },
           "5_1_3": {
-            "0": "Reports of each initiative"
+            "0": "प्रत्येक पहल की रिपोर्ट"
           },
           "5_1_4": {
-            "0": "Attendance and reports of the sessions"
+            "0": "सत्रों की उपस्थिति एवं रिपोर्ट"
           },
           "5_1_5": {
-            "0": "Committee constitution orders",
-            "1": "Minutes of meetings"
+            "0": "समिति गठन आदेश",
+            "1": "बैठकों के कार्यवृत्त"
           },
           "5_2_1": {
-            "0": "Offer letters of the placed students",
-            "1": "List of students placed with employer and package"
+            "0": "प्लेसमेंट पाने वाले छात्रों के प्रस्ताव पत्र",
+            "1": "नियोक्ता एवं पैकेज सहित प्लेसमेंट पाने वाले छात्रों की सूची"
           },
           "5_2_2": {
-            "0": "Admission proof of each student"
+            "0": "प्रत्येक छात्र का प्रवेश प्रमाण"
           },
           "5_2_3": {
-            "0": "Score cards / qualifying certificates"
+            "0": "स्कोर कार्ड / उत्तीर्णता प्रमाण पत्र"
           },
           "5_3_1": {
-            "0": "Award certificates"
+            "0": "पुरस्कार प्रमाण पत्र"
           },
           "5_3_3": {
-            "0": "Reports of the events"
+            "0": "कार्यक्रमों की रिपोर्ट"
           },
           "6_2_2": {
-            "0": "ERP document and screenshots",
-            "1": "Annual e-governance report"
+            "0": "ERP दस्तावेज़ एवं स्क्रीनशॉट",
+            "1": "वार्षिक ई-गवर्नेंस रिपोर्ट"
           },
           "6_3_2": {
-            "0": "Policy document",
-            "1": "Receipts of the support given"
+            "0": "नीति दस्तावेज़",
+            "1": "दी गई सहायता की रसीदें"
           },
           "6_3_3": {
-            "0": "Reports and attendance of each programme"
+            "0": "प्रत्येक कार्यक्रम की रिपोर्ट एवं उपस्थिति"
           },
           "6_3_4": {
-            "0": "FDP certificates"
+            "0": "FDP प्रमाण पत्र"
           },
           "6_4_2": {
-            "0": "Audited statements of the grants"
+            "0": "अनुदानों के लेखा-परीक्षित विवरण"
           },
           "6_5_3": {
-            "0": "AQARs submitted",
-            "1": "Minutes of IQAC meetings"
+            "0": "जमा किए गए AQAR",
+            "1": "IQAC बैठकों के कार्यवृत्त"
           },
           "7_1_2": {
-            "0": "Geo-tagged photos",
-            "1": "Purchase bills"
+            "0": "जियो-टैग फ़ोटो",
+            "1": "खरीद बिल"
           },
           "7_1_4": {
-            "0": "Geo-tagged photos"
+            "0": "जियो-टैग फ़ोटो"
           },
           "7_1_6": {
-            "0": "Audit reports",
+            "0": "लेखा परीक्षा रिपोर्ट",
             "1": "प्रमाण पत्र"
           },
           "7_1_7": {
-            "0": "Geo-tagged photos",
-            "1": "Bills of the facilities"
+            "0": "जियो-टैग फ़ोटो",
+            "1": "सुविधाओं के बिल"
           }
         }
       },
       "NIRF": {
         "c": {
-          "TLR": "Teaching, learning and resources",
-          "RP": "Research and professional practice",
-          "GO": "Graduation outcomes",
-          "OI": "Outreach and inclusivity",
-          "PR": "Perception"
+          "TLR": "शिक्षण, अधिगम एवं संसाधन",
+          "RP": "अनुसंधान एवं व्यावसायिक अभ्यास",
+          "GO": "स्नातक परिणाम",
+          "OI": "आउटरीच एवं समावेशिता",
+          "PR": "धारणा"
         },
         "m": {
-          "SS": "Student strength including doctoral students",
-          "FSR": "Faculty–student ratio (students per faculty)",
-          "FQE": "Faculty with Ph.D. and experience",
-          "FRU": "Financial resources and their utilisation (₹ lakh)",
-          "PU": "Publications (last three years)",
-          "QP": "Quality of publications (citations)",
-          "IPR": "Patents published and granted",
-          "FPPP": "Sponsored research and consultancy (₹ lakh)",
-          "GPH": "Placement and higher studies",
-          "GUE": "Students graduating in the stipulated time",
-          "MS": "Median salary of placed graduates (₹ lakh a year)",
-          "GPHD": "Ph.D. students graduated",
-          "RD": "Students from other states and countries",
-          "WD": "Women students and faculty",
-          "ESCS": "Economically and socially challenged students",
-          "PCS": "Facilities for physically challenged students",
-          "PR": "Peer and employer perception"
+          "SS": "डॉक्टरेट छात्रों सहित छात्र संख्या",
+          "FSR": "संकाय–छात्र अनुपात (प्रति संकाय सदस्य छात्र)",
+          "FQE": "Ph.D. एवं अनुभव वाले संकाय सदस्य",
+          "FRU": "वित्तीय संसाधन एवं उनका उपयोग (₹ लाख)",
+          "PU": "प्रकाशन (पिछले तीन वर्ष)",
+          "QP": "प्रकाशनों की गुणवत्ता (उद्धरण)",
+          "IPR": "प्रकाशित एवं स्वीकृत पेटेंट",
+          "FPPP": "प्रायोजित अनुसंधान एवं परामर्श सेवा (₹ लाख)",
+          "GPH": "प्लेसमेंट एवं उच्च अध्ययन",
+          "GUE": "निर्धारित समय में स्नातक होने वाले छात्र",
+          "MS": "प्लेसमेंट पाने वाले स्नातकों का माध्यिका वेतन (₹ लाख प्रति वर्ष)",
+          "GPHD": "Ph.D. पूर्ण करने वाले छात्र",
+          "RD": "अन्य राज्यों एवं देशों के छात्र",
+          "WD": "छात्राएँ एवं महिला संकाय सदस्य",
+          "ESCS": "आर्थिक एवं सामाजिक रूप से वंचित छात्र",
+          "PCS": "दिव्यांग छात्रों हेतु सुविधाएँ",
+          "PR": "समकक्ष एवं नियोक्ता की धारणा"
         },
         "dvv": {
           "FRU": {
-            "0": "Audited capital and operational expenditure"
+            "0": "लेखा-परीक्षित पूंजीगत एवं परिचालन व्यय"
           },
           "FPPP": {
-            "0": "Sanction letters",
-            "1": "Audited statements"
+            "0": "स्वीकृति पत्र",
+            "1": "लेखा-परीक्षित विवरण"
           },
           "GPH": {
-            "0": "Offer letters",
-            "1": "Higher-studies admission proofs"
+            "0": "प्रस्ताव पत्र",
+            "1": "उच्च अध्ययन में प्रवेश के प्रमाण"
           }
         }
       },
       "AISHE": {
         "c": {
-          "A1": "Basic details and programmes",
+          "A1": "मूल विवरण एवं कार्यक्रम",
           "A2": "छात्र",
           "A3": "कर्मचारी (Staff)",
-          "A4": "Infrastructure and finance"
+          "A4": "बुनियादी ढांचा एवं वित्त"
         },
         "m": {
-          "1_1": "Institution details (AISHE code, address, affiliation, type, management)",
-          "1_2": "Programmes offered",
-          "2_1": "Students enrolled",
-          "2_2": "Women students enrolled",
-          "2_3": "Ph.D. scholars",
-          "2_4": "Students passed out (final year)",
-          "3_1": "Teaching staff",
-          "3_2": "Non-teaching staff",
-          "4_1": "Infrastructure (classrooms, labs, hostels, library)",
-          "4_2": "Scholarships awarded",
-          "4_3": "Income and expenditure (₹ lakh)"
+          "1_1": "संस्थान का विवरण (AISHE कोड, पता, संबद्धता, प्रकार, प्रबंधन)",
+          "1_2": "संचालित कार्यक्रम",
+          "2_1": "नामांकित छात्र",
+          "2_2": "नामांकित छात्राएँ",
+          "2_3": "Ph.D. शोधार्थी",
+          "2_4": "उत्तीर्ण छात्र (अंतिम वर्ष)",
+          "3_1": "शिक्षण कर्मचारी",
+          "3_2": "गैर-शिक्षण कर्मचारी",
+          "4_1": "बुनियादी ढांचा (कक्षा-कक्ष, प्रयोगशालाएँ, छात्रावास, पुस्तकालय)",
+          "4_2": "प्रदत्त छात्रवृत्तियाँ",
+          "4_3": "आय एवं व्यय (₹ लाख)"
         },
         "dvv": {}
       }

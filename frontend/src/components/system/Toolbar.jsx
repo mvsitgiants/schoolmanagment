@@ -55,7 +55,7 @@ export default function Toolbar({
         {children}
       </div>
       {/* may shrink to the card's width so filter chips wrap onto the next line instead of running off the edge */}
-      {right && <div className="min-w-0 max-w-full">{right}</div>}
+      {right && <div className="flex items-center gap-2 flex-wrap min-w-0 max-w-full">{right}</div>}
     </div>
   )
 }

@@ -220,6 +220,8 @@
       "tab": "Receipts",
       "search": "Receipt no., reference or student",
       "from": "From",
+      "anyDate": "Any date",
+      "dates": "Receipt dates",
       "to": "To",
       "no": "Receipt",
       "student": "Student",

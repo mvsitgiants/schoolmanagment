@@ -1,42 +1,42 @@
 {
   "reports": {
-    "title": "Report library",
-    "subtitle": "Standard reports for every module you use — run, filter, export.",
+    "title": "रिपोर्ट लाइब्रेरी",
+    "subtitle": "आपके उपयोग वाले हर मॉड्यूल के लिए मानक रिपोर्ट — चलाएँ, छाँटें, निर्यात करें।",
     "loading": "लोड हो रहा है…",
-    "search": "Find a report",
-    "noneAvailable": "No reports for your role yet. Reports appear for the modules your role can see.",
-    "run": "Run",
-    "runAgain": "Run again",
-    "saveAs": "Save as…",
+    "search": "रिपोर्ट खोजें",
+    "noneAvailable": "आपकी भूमिका के लिए अभी कोई रिपोर्ट नहीं है। रिपोर्ट उन्हीं मॉड्यूल के लिए दिखती हैं जिन्हें आपकी भूमिका देख सकती है।",
+    "run": "चलाएँ",
+    "runAgain": "फिर से चलाएँ",
+    "saveAs": "इस रूप में सहेजें…",
     "save": "सहेजें",
-    "saved": "Report saved.",
-    "saveTitle": "Save this report",
+    "saved": "रिपोर्ट सहेजी गई।",
+    "saveTitle": "यह रिपोर्ट सहेजें",
     "name": "नाम",
-    "saveHint": "Saved reports keep these inputs and columns. Date ranges like “This month” move on by themselves. Find them in Reports › Report builder, where they can be shared and sent on a schedule.",
-    "cantRun": "Your role can see reports but not run them.",
-    "noInputs": "This report needs no inputs.",
-    "columnsPick": "Columns ({{shown}} of {{total}})",
-    "ranAt": "Ran {{at}} · {{count}} rows",
+    "saveHint": "सहेजी गई रिपोर्ट में ये इनपुट और कॉलम बने रहते हैं। “इस महीने” जैसी तिथि-सीमाएँ अपने आप आगे बढ़ती हैं। इन्हें रिपोर्ट्स › रिपोर्ट निर्माता में पाएँ, जहाँ इन्हें साझा किया जा सकता है और निर्धारित समय पर भेजा जा सकता है।",
+    "cantRun": "आपकी भूमिका रिपोर्ट देख सकती है, पर उन्हें चला नहीं सकती।",
+    "noInputs": "इस रिपोर्ट के लिए किसी इनपुट की आवश्यकता नहीं है।",
+    "columnsPick": "कॉलम ({{total}} में से {{shown}})",
+    "ranAt": "{{at}} को चलाई गई · {{count}} पंक्तियाँ",
     "total": "कुल",
-    "chartView": "Chart visualization",
-    "tableView": "Table view",
-    "visualInsights": "Visual Insights",
-    "noRows": "No rows for these inputs",
+    "chartView": "चार्ट दृश्य",
+    "tableView": "तालिका दृश्य",
+    "visualInsights": "दृश्य विश्लेषण",
+    "noRows": "इन इनपुट के लिए कोई पंक्ति नहीं",
     "from": "प्रारंभिक",
     "to": "अंतिम",
-    "pick": "Pick one",
+    "pick": "एक चुनें",
     "allClasses": "सभी कक्षाएं",
-    "thisMonth": "This month",
-    "alwaysToday": "Blank = today, whenever it runs",
+    "thisMonth": "इस महीने",
+    "alwaysToday": "खाली = हर बार चलाने पर आज की तिथि",
     "ranges": {
       "today": "आज",
       "yesterday": "कल (बीता)",
-      "thisWeek": "This week",
-      "lastWeek": "Last week",
-      "thisMonth": "This month",
-      "lastMonth": "Last month",
-      "thisYear": "This financial year",
-      "custom": "Pick dates…"
+      "thisWeek": "इस सप्ताह",
+      "lastWeek": "पिछले सप्ताह",
+      "thisMonth": "इस महीने",
+      "lastMonth": "पिछले महीने",
+      "thisYear": "इस वित्तीय वर्ष",
+      "custom": "तिथियाँ चुनें…"
     },
     "months": {
       "1": "जनवरी",
@@ -61,84 +61,84 @@
       "certificates": "प्रमाण पत्र"
     },
     "frequency": {
-      "DAILY": "Every day",
-      "WEEKLY": "Every week (Monday)",
-      "MONTHLY": "Every month (1st)"
+      "DAILY": "हर दिन",
+      "WEEKLY": "प्रत्येक सप्ताह (सोमवार)",
+      "MONTHLY": "प्रत्येक माह (पहली तारीख)"
     },
     "list": {
       "students.strength": {
-        "label": "Class strength",
-        "desc": "Students in each section, by gender."
+        "label": "कक्षा की छात्र संख्या",
+        "desc": "हर अनुभाग में छात्र, लिंग के अनुसार।"
       },
       "students.admissions": {
         "label": "प्रवेश",
-        "desc": "Students admitted between two dates."
+        "desc": "दो तिथियों के बीच प्रवेश पाए छात्र।"
       },
       "students.contacts": {
-        "label": "Guardian contact list",
-        "desc": "Every student of a section with the primary guardian’s phone and email."
+        "label": "अभिभावक संपर्क सूची",
+        "desc": "किसी अनुभाग के सभी छात्र, मुख्य अभिभावक के फ़ोन और ईमेल के साथ।"
       },
       "students.birthdays": {
-        "label": "Birthdays",
-        "desc": "Students whose birthday falls in a month."
+        "label": "जन्मदिन",
+        "desc": "वे छात्र जिनका जन्मदिन चुने गए माह में है।"
       },
       "attendance.daily": {
-        "label": "Daily attendance",
-        "desc": "Each section on a day: present, absent, late, on leave — and which sections were not marked."
+        "label": "दैनिक उपस्थिति",
+        "desc": "किसी दिन हर अनुभाग में उपस्थित, अनुपस्थित, विलंब, अवकाश पर — और किन अनुभागों में उपस्थिति दर्ज नहीं हुई।"
       },
       "attendance.defaulters": {
-        "label": "Low attendance",
-        "desc": "Students below a percentage over a period."
+        "label": "कम उपस्थिति",
+        "desc": "किसी अवधि में तय प्रतिशत से कम उपस्थिति वाले छात्र।"
       },
       "fees.collection": {
-        "label": "Fee collection",
-        "desc": "Money received each day, by payment mode."
+        "label": "शुल्क संग्रह",
+        "desc": "हर दिन प्राप्त राशि, भुगतान के माध्यम के अनुसार।"
       },
       "fees.headwise": {
-        "label": "Collection by fee head",
-        "desc": "What the money received was for — tuition, transport, lab … — over a period."
+        "label": "शुल्क मद के अनुसार संग्रह",
+        "desc": "किसी अवधि में प्राप्त राशि किस मद के लिए थी — ट्यूशन, परिवहन, प्रयोगशाला …"
       },
       "fees.classDues": {
-        "label": "Dues by class",
-        "desc": "Billed, collected and outstanding for each section this year."
+        "label": "कक्षावार बकाया",
+        "desc": "इस वर्ष हर अनुभाग का कुल देय, संगृहीत और बकाया।"
       },
       "fees.concessions": {
-        "label": "Concessions given",
-        "desc": "Approved concessions and how much they took off this year’s invoices."
+        "label": "दी गई छूट",
+        "desc": "स्वीकृत छूट, और उनसे इस वर्ष के चालानों में कितनी राशि कम हुई।"
       },
       "exams.toppers": {
-        "label": "Toppers",
-        "desc": "The top students of each section in an exam."
+        "label": "मेधावी छात्र",
+        "desc": "किसी परीक्षा में हर अनुभाग के शीर्ष छात्र।"
       },
       "exams.subjects": {
-        "label": "Subject analysis",
-        "desc": "For each section and subject of an exam: average, highest, lowest and pass rate."
+        "label": "विषयवार विश्लेषण",
+        "desc": "किसी परीक्षा के हर अनुभाग और विषय के लिए: औसत, सर्वोच्च, न्यूनतम और उत्तीर्ण दर।"
       },
       "homework.summary": {
-        "label": "Homework set",
-        "desc": "Homework set over a period, by teacher and subject, and how much was handed in."
+        "label": "दिया गया गृहकार्य",
+        "desc": "किसी अवधि में दिया गया गृहकार्य, शिक्षक और विषय के अनुसार, और उसमें से कितना जमा किया गया।"
       },
       "certificates.issued": {
-        "label": "Certificates issued",
-        "desc": "Certificates issued over a period, by kind."
+        "label": "जारी प्रमाण पत्र",
+        "desc": "किसी अवधि में जारी प्रमाण पत्र, प्रकार के अनुसार।"
       }
     },
     "params": {
       "students.admissions": {
-        "range": "Admitted between"
+        "range": "प्रवेश की अवधि"
       },
       "students.contacts": {
         "sectionId": "कक्षा"
       },
       "students.birthdays": {
-        "month": "Month"
+        "month": "माह"
       },
       "attendance.daily": {
         "date": "दिनांक"
       },
       "attendance.defaulters": {
         "range": "पीरियड",
-        "below": "Below (%)",
+        "below": "इससे कम (%)",
         "sectionId": "कक्षा"
       },
       "fees.collection": {
@@ -149,29 +149,29 @@
       },
       "exams.toppers": {
         "examId": "परीक्षा",
-        "top": "How many per class"
+        "top": "प्रति कक्षा कितने"
       },
       "exams.subjects": {
         "examId": "परीक्षा"
       },
       "homework.summary": {
-        "range": "Set between"
+        "range": "दिए जाने की अवधि"
       },
       "certificates.issued": {
-        "range": "Issued between"
+        "range": "जारी होने की अवधि"
       }
     },
     "columns": {
       "students.strength": {
         "class": "कक्षा",
         "section": "अनुभाग",
-        "boys": "Boys",
-        "girls": "Girls",
+        "boys": "छात्र",
+        "girls": "छात्राएं",
         "other": "अन्य",
         "total": "कुल"
       },
       "students.admissions": {
-        "admissionDate": "Admitted on",
+        "admissionDate": "प्रवेश तिथि",
         "admissionNo": "प्रवेश संख्या",
         "name": "छात्र",
         "class": "कक्षा",
@@ -184,33 +184,33 @@
         "name": "छात्र",
         "admissionNo": "प्रवेश संख्या",
         "guardian": "अभिभावक",
-        "relation": "Relation",
+        "relation": "संबंध",
         "mobile": "मोबाइल",
         "email": "ईमेल"
       },
       "students.birthdays": {
-        "day": "Day",
+        "day": "दिन",
         "name": "छात्र",
         "class": "कक्षा",
         "dob": "जन्म तिथि",
-        "age": "Turns"
+        "age": "होने वाली आयु"
       },
       "attendance.daily": {
         "class": "कक्षा",
-        "strength": "Strength",
+        "strength": "छात्र संख्या",
         "present": "उपस्थित",
         "absent": "अनुपस्थित",
         "late": "विलंब (Late)",
         "leave": "अवकाश पर",
         "pct": "उपस्थिति",
-        "takenBy": "Marked by"
+        "takenBy": "किसने दर्ज की"
       },
       "attendance.defaulters": {
         "class": "कक्षा",
         "rollNo": "रोल",
         "name": "छात्र",
-        "days": "Days marked",
-        "attended": "Attended",
+        "days": "दर्ज दिन",
+        "attended": "उपस्थित",
         "absent": "अनुपस्थित",
         "pct": "उपस्थिति",
         "guardian": "अभिभावक",
@@ -220,25 +220,25 @@
         "date": "दिनांक",
         "receipts": "रसीदें",
         "CASH": "नकद",
-        "UPI": "UPI",
-        "CARD": "Card",
-        "CHEQUE": "Cheque / DD",
-        "BANK_TRANSFER": "Bank transfer",
-        "ONLINE": "Online",
-        "refunds": "Refunds",
-        "net": "Net"
+        "UPI": "UPI भुगतान",
+        "CARD": "कार्ड (Card)",
+        "CHEQUE": "चेक / DD",
+        "BANK_TRANSFER": "बैंक ट्रांसफ़र",
+        "ONLINE": "ऑनलाइन",
+        "refunds": "रिफ़ंड",
+        "net": "शुद्ध"
       },
       "fees.headwise": {
-        "head": "Fee head",
+        "head": "शुल्क मद",
         "amount": "संगृहीत",
-        "share": "Share"
+        "share": "हिस्सा"
       },
       "fees.classDues": {
         "class": "कक्षा",
-        "students": "Students with dues",
-        "billed": "Billed",
+        "students": "बकाया वाले छात्र",
+        "billed": "कुल देय",
         "paid": "संगृहीत",
-        "due": "Outstanding",
+        "due": "बकाया",
         "overdue": "अतिदेय",
         "pct": "संगृहीत"
       },
@@ -246,27 +246,27 @@
         "name": "छात्र",
         "class": "कक्षा",
         "reason": "कारण",
-        "value": "Concession",
-        "amount": "Taken off",
-        "approvedBy": "Approved by"
+        "value": "छूट",
+        "amount": "कम की गई राशि",
+        "approvedBy": "स्वीकृतकर्ता"
       },
       "exams.toppers": {
         "class": "कक्षा",
         "rank": "रैंक",
         "name": "छात्र",
         "total": "कुल",
-        "max": "Out of",
-        "pct": "Percentage",
+        "max": "पूर्णांक",
+        "pct": "प्रतिशत",
         "grade": "ग्रेड"
       },
       "exams.subjects": {
         "class": "कक्षा",
         "subject": "विषय",
         "students": "छात्र",
-        "average": "Average %",
-        "highest": "Highest",
-        "lowest": "Lowest",
-        "passPct": "Passed",
+        "average": "औसत %",
+        "highest": "सर्वोच्च",
+        "lowest": "न्यूनतम",
+        "passPct": "उत्तीर्ण",
         "absent": "अनुपस्थित"
       },
       "homework.summary": {
@@ -274,47 +274,47 @@
         "subject": "विषय",
         "class": "कक्षा",
         "count": "गृहकार्य",
-        "handedIn": "Handed in"
+        "handedIn": "जमा किया गया"
       },
       "certificates.issued": {
         "issueDate": "दिनांक",
-        "certificateNo": "Number",
+        "certificateNo": "संख्या",
         "kind": "प्रकार",
         "name": "छात्र",
         "class": "कक्षा",
-        "purpose": "Purpose",
+        "purpose": "प्रयोजन",
         "status": "स्थिति"
       }
     },
     "builder": {
-      "title": "Report builder",
-      "subtitle": "Your saved reports — share them with roles, or have them sent on a schedule.",
-      "new": "New saved report",
-      "newTitle": "New saved report",
-      "editTitle": "Edit saved report",
-      "namePlaceholder": "e.g. Monday attendance check",
-      "report": "Report",
-      "columns": "Columns",
-      "shareWith": "Share with roles",
-      "shareHint": "People with these roles see it in their list. Each still sees only what their role allows.",
-      "sendOnSchedule": "Send it on a schedule",
-      "frequency": "How often",
-      "at": "At",
-      "people": "People (a notification in their bell)",
-      "emails": "Also email to",
-      "emailsHint": "Separate addresses with commas. The email has the first rows and a link to the full report.",
-      "owner": "Saved by",
-      "you": "You",
-      "schedule": "Schedule",
-      "notScheduled": "Not scheduled",
-      "lastSent": "Last sent {{at}} · {{count}} rows",
+      "title": "रिपोर्ट निर्माता",
+      "subtitle": "आपकी सहेजी गई रिपोर्ट — इन्हें भूमिकाओं के साथ साझा करें, या निर्धारित समय पर भिजवाएँ।",
+      "new": "नई सहेजी गई रिपोर्ट",
+      "newTitle": "नई सहेजी गई रिपोर्ट",
+      "editTitle": "सहेजी गई रिपोर्ट संपादित करें",
+      "namePlaceholder": "उदा. सोमवार की उपस्थिति जाँच",
+      "report": "रिपोर्ट",
+      "columns": "कॉलम",
+      "shareWith": "भूमिकाओं के साथ साझा करें",
+      "shareHint": "इन भूमिकाओं वाले लोग इसे अपनी सूची में देखते हैं। फिर भी हर व्यक्ति केवल वही देखता है, जिसकी अनुमति उसकी भूमिका देती है।",
+      "sendOnSchedule": "इसे निर्धारित समय पर भेजें",
+      "frequency": "कितनी बार",
+      "at": "समय",
+      "people": "लोग (उनकी घंटी में सूचना)",
+      "emails": "इन्हें भी ईमेल करें",
+      "emailsHint": "पतों को अल्पविराम से अलग करें। ईमेल में पहली कुछ पंक्तियाँ और पूरी रिपोर्ट का लिंक होता है।",
+      "owner": "किसने सहेजी",
+      "you": "आप",
+      "schedule": "समय-निर्धारण",
+      "notScheduled": "निर्धारित नहीं",
+      "lastSent": "पिछली बार {{at}} को भेजी गई · {{count}} पंक्तियाँ",
       "edit": "संपादित करें",
       "delete": "हटाएँ",
-      "deleteConfirm": "Delete “{{name}}”?",
-      "deleted": "Saved report deleted.",
-      "back": "Back to saved reports",
-      "empty": "No saved reports yet",
-      "emptyHint": "Run a report in the library and use “Save as…”, or make one here."
+      "deleteConfirm": "“{{name}}” हटाएँ?",
+      "deleted": "सहेजी गई रिपोर्ट हटाई गई।",
+      "back": "सहेजी गई रिपोर्ट पर वापस जाएँ",
+      "empty": "अभी तक कोई सहेजी गई रिपोर्ट नहीं",
+      "emptyHint": "लाइब्रेरी में कोई रिपोर्ट चलाएँ और “इस रूप में सहेजें…” का उपयोग करें, या यहाँ नई बनाएं।"
     }
   }
 }

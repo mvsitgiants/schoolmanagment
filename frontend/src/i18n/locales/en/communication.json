@@ -135,6 +135,8 @@
       },
       "search": "Number, student or text",
       "from": "From",
+      "anyDate": "Any date",
+      "dates": "Dates sent",
       "to": "To",
       "channel": "Channel",
       "when": "When",

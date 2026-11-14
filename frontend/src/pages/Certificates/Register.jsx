@@ -3,7 +3,7 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tansta
 import { useTranslation } from 'react-i18next'
 import { BookMarked, Link2, Printer, XCircle } from 'lucide-react'
 import { CERTIFICATE_KINDS, CERTIFICATE_STATUS } from '@schoolgiant/shared'
-import { DateInput, CodeBadge, ControlChip, DataTable, DateCell, PageContainer, PageHeader, PersonCell, StackCell, StatusPill, Toolbar, usePrompt } from '../../components/system'
+import { DateRangeInput, CodeBadge, ControlChip, DataTable, DateCell, PageContainer, PageHeader, PersonCell, StackCell, StatusPill, Toolbar, ViewControls, usePrompt } from '../../components/system'
 import Button from '../../components/ui/Button'
 import useDebouncedValue from '../../hooks/useDebouncedValue'
 import { cancelCertificate, fetchCertificates } from '../../api/certificates'
@@ -52,12 +52,14 @@ export default function Register() {
         error={error}
         onRetry={refetch}
         exportable={hasPermission('certificates.register.export')} exportName="certificate-register"
-        toolbar={<Toolbar search={search} onSearch={(v) => { setSearch(v); setPage(1) }} searchPlaceholder={t('certificates.register.search')} right={<>
-          <DateInput className="w-36" value={from} max={to || undefined} onChange={(e) => { setFrom(e.target.value); setPage(1) }} aria-label={t('certificates.register.from')} />
-          <DateInput className="w-36" value={to} min={from || undefined} onChange={(e) => { setTo(e.target.value); setPage(1) }} aria-label={t('certificates.register.to')} />
-          <ControlChip label={t('certificates.register.kind')} value={kindLabel(kind)} active={!!kind} options={KINDS.map(kindLabel)} onChange={(v) => { setKind(KINDS.find((k) => kindLabel(k) === v) ?? ''); setPage(1) }} />
-          <ControlChip label={t('certificates.register.status')} value={statusLabel(status)} active={!!status} options={STATUSES.map(statusLabel)} onChange={(v) => { setStatus(STATUSES.find((s) => statusLabel(s) === v) ?? ''); setPage(1) }} />
-        </>} />}
+        toolbar={<Toolbar search={search} onSearch={(v) => { setSearch(v); setPage(1) }} searchPlaceholder={t('certificates.register.search')} right={(
+          <ViewControls>
+            <DateRangeInput className="w-60 !h-8 !rounded-full !text-[13px]" value={{ from, to }} placeholder={t('certificates.register.anyDate')} aria-label={t('certificates.register.dates')}
+              onChange={(r) => { setFrom(r.from); setTo(r.to); setPage(1) }} />
+            <ControlChip label={t('certificates.register.kind')} value={kindLabel(kind)} active={!!kind} options={KINDS.map(kindLabel)} onChange={(v) => { setKind(KINDS.find((k) => kindLabel(k) === v) ?? ''); setPage(1) }} />
+            <ControlChip label={t('certificates.register.status')} value={statusLabel(status)} active={!!status} options={STATUSES.map(statusLabel)} onChange={(v) => { setStatus(STATUSES.find((s) => statusLabel(s) === v) ?? ''); setPage(1) }} />
+          </ViewControls>
+        )} />}
         columns={[
           { key: 'certificateNo', header: t('certificates.register.no'), nowrap: true, render: (v, r) => <CodeBadge tone={r.status === 'CANCELLED' ? 'neutral' : 'success'} className={r.status === 'CANCELLED' ? 'line-through' : undefined}>{v}</CodeBadge> },
           { key: 'issueDate', header: t('certificates.register.date'), nowrap: true, render: (v) => <DateCell value={v} /> },

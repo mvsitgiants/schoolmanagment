@@ -105,6 +105,8 @@
     },
     "register": {
       "title": "Certificate register",
+      "anyDate": "Any date",
+      "dates": "Issue dates",
       "subtitle": "Every certificate issued.",
       "count_one": "{{count}} certificate",
       "count_other": "{{count}} certificates",
