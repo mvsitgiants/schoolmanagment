@@ -172,7 +172,15 @@
       "maxMarks": "Out of",
       "up": "Move up",
       "down": "Move down",
-      "description": "About the drive"
+      "description": "About the drive",
+      "drive": "Company and dates",
+      "driveHint": "Which company is coming, what the drive is called, and when and where it happens.",
+      "rolesHint": "Each job on offer with its openings and yearly pay in lakh rupees.",
+      "registrationHint": "The days students can sign up. Left empty, sign-up stays open until you close it.",
+      "whoMayApplyHint": "Students who meet all of these can register. Leave a box empty if it does not apply.",
+      "roundsHint": "The selection steps in order. Results are entered round by round after the drive.",
+      "roundKind": "Kind of round",
+      "descriptionHint": "Shown to students with the drive: the job, the place of work, any bond, what to bring."
     },
     "drives": {
       "title": "Placement drives",
@@ -357,6 +365,24 @@
         "REJECTED": "Not selected",
         "SELECTED": "Selected",
         "WITHDRAWN": "Withdrawn"
+      }
+    },
+    "newDrive": {
+      "subtitle": "Plan a company’s visit: the roles and package, the sign-up days, who may apply and the selection rounds.",
+      "allDrives": "All drives",
+      "save": "Save drive",
+      "requiredNote": "Needed: the company and a name for the drive. The drive is saved as a draft and opens on the Drives page — open registration from there when you are ready, and eligible students are told.",
+      "history": {
+        "title": "Earlier drives",
+        "pick": "Pick the company — its earlier drives show up here, with how many students registered and how many were selected.",
+        "with": "Earlier drives with {{company}}",
+        "first": "This is the first drive with this company.",
+        "outcome_one": "{{selected}} selected of {{count}} registered",
+        "outcome_other": "{{selected}} selected of {{count}} registered"
+      },
+      "sameDays": {
+        "title": "Other drives on these days",
+        "none": "No other drive is planned on these days."
       }
     }
   }

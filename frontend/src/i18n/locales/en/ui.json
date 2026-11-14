@@ -52,6 +52,9 @@
       "loadOlder": "Load older"
     },
     "form": {
+      "saveShortcut": "{{key}} + Enter to save",
+      "fixFields_one": "Please fix the highlighted field.",
+      "fixFields_other": "Please fix the {{count}} highlighted fields.",
       "noMatches": "No matches.",
       "noMatchesFor": "No matches for \"{{query}}\"."
     },

@@ -1,119 +1,25 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Award, Banknote, Briefcase, CalendarRange, FlaskConical, GraduationCap, HandCoins, Plus, Trash2, UserRound, Users, Wallet } from 'lucide-react'
 import {
-  RESEARCH_AGENCIES, RESEARCH_PROJECT_STATUS, RESEARCH_SCHOLAR_MODES, RESEARCH_SCHOLAR_STATUS, projectUtilisation,
+  RESEARCH_AGENCIES, RESEARCH_PROJECT_STATUS, RESEARCH_SCHOLAR_MODES, RESEARCH_SCHOLAR_STATUS,
 } from '@schoolgiant/shared'
 import {
   DateInput, ColorChip, DataTable, FormField, HeaderButton, Input, KanbanBoard, KanbanCard, Modal, Money, Note, PageContainer, PageHeader, PersonCell, PillRow, RankBars,
-  SearchInput, Select, StackedBar, StatCardRow, Tabs, Textarea, pillClass, useConfirm,
+  SearchInput, Select, StackedBar, StatCardRow, Tabs, pillClass, useConfirm,
 } from '../../components/system'
 import Button from '../../components/ui/Button'
-import { deleteProject, deleteScholar, fetchProjects, fetchScholars, saveProject, saveScholar } from '../../api/research'
+import { deleteProject, deleteScholar, fetchProjects, fetchScholars, saveScholar } from '../../api/research'
 import { hasPermission } from '../../api/auth'
 import useDebouncedValue from '../../hooks/useDebouncedValue'
 import { useSnackbar } from '../../context/SnackbarContext'
 import { useFormat } from '../../context/SettingsContext'
-import {
-  PeopleStack, ProjectPill, StaffChips, StaffSelect, paiseOf, rupeesOf, useResearchLabels, useResearchMeta,
-} from '../../components/research/ResearchKit'
+import { PeopleStack, ProjectPill, StaffSelect, useResearchLabels, useResearchMeta } from '../../components/research/ResearchKit'
+import ProjectForm, { UtilisationBar } from '../../components/research/ProjectForm'
 
 const PRJ = 'research.projects'
-
-/** Received and utilised against what was sanctioned, as one bar: utilised (solid) inside received (light). */
-function UtilisationBar({ p }) {
-  const { t } = useTranslation('research')
-  if (!p.sanctioned) return <span className="text-ink-faint">—</span>
-  const rec = Math.min(100, (p.received / p.sanctioned) * 100)
-  const used = Math.min(100, (p.utilised / p.sanctioned) * 100)
-  return (
-    <span className="inline-flex w-36 flex-col gap-1" title={t('research.projects.utilisationTip', { received: p.receivedPct, utilised: p.utilisedPct })}>
-      <span className="relative h-2 w-full overflow-hidden rounded-full bg-black/[0.06]">
-        <span className="absolute inset-y-0 start-0 rounded-full bg-brand-200" style={{ width: `${rec}%` }} />
-        <span className="absolute inset-y-0 start-0 rounded-full bg-brand-500" style={{ width: `${used}%` }} />
-      </span>
-      <span className="flex justify-between text-[11px] tabular-nums text-ink-faint">
-        <span>{t('research.projects.usedPct', { pct: p.utilisedPct })}</span>
-        <span>{t('research.projects.recPct', { pct: p.receivedPct })}</span>
-      </span>
-    </span>
-  )
-}
-
-function ProjectForm({ project, onClose, onSaved }) {
-  const { t } = useTranslation('research')
-  const L = useResearchLabels()
-  const { showError } = useSnackbar()
-  const { data: meta } = useResearchMeta()
-  const [form, setForm] = useState({
-    title: project?.title ?? '', piId: project?.piId ?? '', coPiIds: project?.coPiIds ?? [], agency: project?.agency ?? 'DST', agencyName: project?.agencyName ?? '',
-    scheme: project?.scheme ?? '', referenceNo: project?.referenceNo ?? '', departmentId: project?.departmentId ?? '',
-    sanctioned: rupeesOf(project?.sanctioned), received: rupeesOf(project?.received), utilised: rupeesOf(project?.utilised),
-    appliedOn: project?.appliedOn ?? '', sanctionedOn: project?.sanctionedOn ?? '', startDate: project?.startDate ?? '', endDate: project?.endDate ?? '',
-    status: project?.status ?? 'APPLIED', notes: project?.notes ?? '',
-  })
-  const [errors, setErrors] = useState({})
-  const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }))
-  const money = { sanctioned: paiseOf(form.sanctioned), received: paiseOf(form.received), utilised: paiseOf(form.utilised) }
-  const u = projectUtilisation(money)
-  const save = useMutation({
-    mutationFn: () => saveProject(project?.id, { ...form, ...money, departmentId: form.departmentId || null, coPiIds: form.coPiIds }),
-    onSuccess: onSaved,
-    onError: (e) => { setErrors(e.details?.fields ?? {}); showError(e.message) },
-  })
-  const staff = meta?.staff ?? []
-  return (
-    <Modal open onClose={onClose} size="lg" title={project ? t('research.projects.editTitle') : t('research.projects.newTitle')} footer={<>
-      <Button variant="secondary" onClick={onClose}>{t('actions.cancel')}</Button>
-      <Button loading={save.isPending} disabled={form.title.trim().length < 3 || !form.piId} onClick={() => save.mutate()}>{t('research.projects.save')}</Button>
-    </>}>
-      <div className="space-y-4">
-        <FormField label={t('research.projects.title')} required error={errors.title}><Input value={form.title} onChange={set('title')} /></FormField>
-        <PillRow>
-          {Object.keys(RESEARCH_PROJECT_STATUS).map((s) => (
-            <button key={s} type="button" aria-pressed={form.status === s} className={pillClass(form.status === s)} onClick={() => setForm((f) => ({ ...f, status: s }))}>{L.project(s)}</button>
-          ))}
-        </PillRow>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <FormField label={t('research.projects.pi')} required error={errors.piId}>
-            <StaffSelect value={form.piId} staff={staff} exclude={form.coPiIds} placeholder={t('research.projects.pickPi')} onChange={(piId) => setForm((f) => ({ ...f, piId: piId ?? '' }))} />
-          </FormField>
-          <FormField label={t('research.projects.department')} error={errors.departmentId} hint={project ? undefined : t('research.projects.departmentHint')}>
-            <Select value={form.departmentId} onChange={set('departmentId')}>
-              <option value="">{t('research.projects.piDepartment')}</option>
-              {(meta?.departments ?? []).map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
-            </Select>
-          </FormField>
-          <FormField label={t('research.projects.coPis')} error={errors.coPiIds} className="sm:col-span-2">
-            <StaffChips value={form.coPiIds} staff={staff} exclude={form.piId ? [form.piId] : []} placeholder={t('research.projects.addCoPi')} onChange={(coPiIds) => setForm((f) => ({ ...f, coPiIds }))} />
-          </FormField>
-          <FormField label={t('research.projects.agency')} required>
-            <Select value={form.agency} onChange={set('agency')}>{RESEARCH_AGENCIES.map((a) => <option key={a.value} value={a.value}>{L.agency(a.value)}</option>)}</Select>
-          </FormField>
-          <FormField label={t('research.projects.agencyName')} hint={t('research.projects.agencyNameHint')}><Input value={form.agencyName} onChange={set('agencyName')} /></FormField>
-          <FormField label={t('research.projects.scheme')}><Input value={form.scheme} onChange={set('scheme')} /></FormField>
-          <FormField label={t('research.projects.referenceNo')}><Input value={form.referenceNo} onChange={set('referenceNo')} /></FormField>
-        </div>
-        <div className="rounded-xl border border-border p-3 space-y-3">
-          <div className="grid gap-3 sm:grid-cols-3">
-            <FormField label={t('research.projects.sanctioned')} error={errors.sanctioned}><Input type="number" min="0" step="0.01" value={form.sanctioned} onChange={set('sanctioned')} /></FormField>
-            <FormField label={t('research.projects.received')} error={errors.received}><Input type="number" min="0" step="0.01" value={form.received} onChange={set('received')} /></FormField>
-            <FormField label={t('research.projects.utilised')} error={errors.utilised}><Input type="number" min="0" step="0.01" value={form.utilised} onChange={set('utilised')} /></FormField>
-          </div>
-          {money.sanctioned > 0 && <UtilisationBar p={{ ...money, ...u }} />}
-        </div>
-        <div className="grid gap-3 sm:grid-cols-4">
-          <FormField label={t('research.projects.appliedOn')}><DateInput value={form.appliedOn} onChange={set('appliedOn')} /></FormField>
-          <FormField label={t('research.projects.sanctionedOn')}><DateInput value={form.sanctionedOn} onChange={set('sanctionedOn')} /></FormField>
-          <FormField label={t('research.projects.startDate')}><DateInput value={form.startDate} onChange={set('startDate')} /></FormField>
-          <FormField label={t('research.projects.endDate')} error={errors.endDate}><DateInput value={form.endDate} onChange={set('endDate')} /></FormField>
-        </div>
-        <FormField label={t('research.projects.notes')}><Textarea rows={2} value={form.notes} onChange={set('notes')} /></FormField>
-      </div>
-    </Modal>
-  )
-}
 
 function ProjectsTab({ onEdit }) {
   const { t } = useTranslation('research')
@@ -312,6 +218,7 @@ function ScholarsTab({ onEdit }) {
 export default function Projects() {
   const { t } = useTranslation('research')
   const qc = useQueryClient()
+  const navigate = useNavigate()
   const { showSuccess } = useSnackbar()
   const [tab, setTab] = useState('projects')
   const [project, setProject] = useState(null)
@@ -321,14 +228,14 @@ export default function Projects() {
     <PageContainer>
       <PageHeader icon={FlaskConical} title={t('research.projects.pageTitle')} subtitle={t('research.projects.pageSubtitle')}
         actions={tab === 'projects'
-          ? <HeaderButton icon={Plus} variant="primary" requires={`${PRJ}.create`} onClick={() => setProject('new')}>{t('research.projects.new')}</HeaderButton>
+          ? <HeaderButton icon={Plus} variant="primary" requires={`${PRJ}.create`} onClick={() => navigate('/research/projects/new')}>{t('research.projects.new')}</HeaderButton>
           : <HeaderButton icon={GraduationCap} variant="primary" requires={`${PRJ}.create`} onClick={() => setScholar('new')}>{t('research.scholars.new')}</HeaderButton>} />
       <Tabs value={tab} onChange={setTab} tabs={[
         { value: 'projects', label: t('research.projects.tab') },
         { value: 'scholars', label: t('research.scholars.tab') },
       ]} />
       {tab === 'projects' ? <ProjectsTab onEdit={(r) => setProject(r)} /> : <ScholarsTab onEdit={(r) => setScholar(r)} />}
-      {project && <ProjectForm project={project === 'new' ? null : project} onClose={() => setProject(null)}
+      {project && <ProjectForm project={project} onClose={() => setProject(null)}
         onSaved={() => { setProject(null); refresh(); showSuccess(t('research.projects.saved')) }} />}
       {scholar && <ScholarForm scholar={scholar === 'new' ? null : scholar} onClose={() => setScholar(null)}
         onSaved={() => { setScholar(null); refresh(); showSuccess(t('research.scholars.saved')) }} />}

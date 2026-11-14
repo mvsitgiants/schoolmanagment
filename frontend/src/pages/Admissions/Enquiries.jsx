@@ -1,15 +1,14 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import clsx from 'clsx'
 import { CalendarDays, ClipboardList, Footprints, Globe, Megaphone, MoreHorizontal, Newspaper, Phone, PhoneCall, Plus, Share2, Trash2, UserPlus, Users } from 'lucide-react'
-import { ENQUIRY_SOURCES, ENQUIRY_STAGES, FOLLOWUP_TYPES, GENDERS, LOST_REASONS, addDaysYmd } from '@schoolgiant/shared'
-import { DateInput, ColorChip, ContactCell, ControlChip, DataTable, DateCell, Drawer, FormField, HeaderButton, Input, Modal, PageContainer, PageHeader, PersonCell, PhoneLink, Select, StatusPill, Textarea, Timeline, Toolbar, localIso, useConfirm } from '../../components/system'
+import { ENQUIRY_SOURCES, ENQUIRY_STAGES, FOLLOWUP_TYPES, LOST_REASONS, addDaysYmd } from '@schoolgiant/shared'
+import { DateInput, ColorChip, ContactCell, ControlChip, DataTable, DateCell, Drawer, FormField, HeaderButton, PageContainer, PageHeader, PersonCell, PhoneLink, Select, StatusPill, Textarea, Timeline, Toolbar, localIso, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
 import useDebouncedValue from '../../hooks/useDebouncedValue'
-import { fetchAcademicLookup } from '../../api/academics'
-import { addFollowUp, createEnquiry, deleteEnquiry, fetchEnquiries, fetchEnquiry, updateEnquiry } from '../../api/admissions'
+import { addFollowUp, deleteEnquiry, fetchEnquiries, fetchEnquiry, updateEnquiry } from '../../api/admissions'
 import { hasPermission } from '../../api/auth'
 import { useSnackbar } from '../../context/SnackbarContext'
 import { useFormat } from '../../context/SettingsContext'
@@ -19,38 +18,6 @@ const reasonKey = (r) => r.replace(/[^A-Za-z]/g, '')
 // each enquiry source's icon in the table
 const SOURCE_ICON = { WALK_IN: Footprints, PHONE: Phone, WEBSITE: Globe, SOCIAL: Share2, REFERRAL: Users, NEWSPAPER: Newspaper, HOARDING: Megaphone, EVENT: CalendarDays, OTHER: MoreHorizontal }
 const STAGE_ORDER = Object.entries(ENQUIRY_STAGES).sort((a, b) => a[1].order - b[1].order).map(([k]) => k)
-
-function NewEnquiry({ onClose, onSaved }) {
-  const { t } = useTranslation('admissions')
-  const { showError } = useSnackbar()
-  const { data: lookup } = useQuery({ queryKey: ['academic-lookup'], queryFn: fetchAcademicLookup })
-  const [form, setForm] = useState({ childName: '', dob: '', gender: '', parentName: '', mobile: '', email: '', classId: '', source: 'WALK_IN', locality: '', currentSchool: '', note: '' })
-  const [errors, setErrors] = useState({})
-  const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }))
-  const save = useMutation({ mutationFn: () => createEnquiry(form), onSuccess: onSaved, onError: (e) => { setErrors(e.response?.data?.details?.fields ?? {}); showError(e.message) } })
-  return (
-    <Modal open onClose={onClose} size="lg" title={t('admissions.enquiries.newTitle')} footer={<>
-      <Button variant="secondary" onClick={onClose}>{t('actions.cancel')}</Button>
-      <Button loading={save.isPending} disabled={form.childName.trim().length < 2 || form.mobile.replace(/\D/g, '').length < 10} onClick={() => save.mutate()}>{t('admissions.enquiries.save')}</Button>
-    </>}>
-      <div className="grid sm:grid-cols-2 gap-4">
-        <FormField label={t('admissions.enquiries.child')} required error={errors.childName}><Input value={form.childName} onChange={set('childName')} /></FormField>
-        <FormField label={t('admissions.form.class')}>
-          <Select value={form.classId} onChange={set('classId')}><option value="">{t('admissions.form.pick')}</option>{(lookup?.classes ?? []).map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</Select>
-        </FormField>
-        <FormField label={t('admissions.form.dob')}><DateInput value={form.dob} onChange={set('dob')} /></FormField>
-        <FormField label={t('admissions.form.gender')}><Select value={form.gender} onChange={set('gender')}><option value="">—</option>{GENDERS.map((g) => <option key={g.value} value={g.value}>{t(`admissions.genders.${g.value}`, g.label)}</option>)}</Select></FormField>
-        <FormField label={t('admissions.form.parentName')}><Input value={form.parentName} onChange={set('parentName')} /></FormField>
-        <FormField label={t('admissions.form.mobile')} required error={errors.mobile}><Input inputMode="numeric" value={form.mobile} onChange={set('mobile')} /></FormField>
-        <FormField label={t('admissions.form.email')}><Input type="email" value={form.email} onChange={set('email')} /></FormField>
-        <FormField label={t('admissions.enquiries.source')}><Select value={form.source} onChange={set('source')}>{ENQUIRY_SOURCES.map((s) => <option key={s.value} value={s.value}>{t(`admissions.sources.${s.value}`, s.label)}</option>)}</Select></FormField>
-        <FormField label={t('admissions.enquiries.locality')}><Input value={form.locality} onChange={set('locality')} /></FormField>
-        <FormField label={t('admissions.enquiries.currentSchool')}><Input value={form.currentSchool} onChange={set('currentSchool')} /></FormField>
-        <div className="sm:col-span-2"><FormField label={t('admissions.enquiries.note')}><Textarea rows={2} value={form.note} onChange={set('note')} /></FormField></div>
-      </div>
-    </Modal>
-  )
-}
 
 function EnquiryDrawer({ id, onClose }) {
   const { t } = useTranslation('admissions')
@@ -104,7 +71,7 @@ function EnquiryDrawer({ id, onClose }) {
                   <Button size="sm" variant="ghost" disabled={!lost} loading={markLost.isPending} onClick={() => markLost.mutate()}>{t('admissions.enquiries.markLost')}</Button>
                 </div>
                 <div className="flex gap-2">
-                  {hasPermission('admissions.applications.create') && <Button size="sm" variant="secondary" icon={UserPlus} onClick={() => navigate(`/admissions/applications?enquiry=${e.id}`)}>{t('admissions.enquiries.makeApplication')}</Button>}
+                  {hasPermission('admissions.applications.create') && <Button size="sm" variant="secondary" icon={UserPlus} onClick={() => navigate(`/admissions/applications/new?enquiry=${e.id}`)}>{t('admissions.enquiries.makeApplication')}</Button>}
                   <Button size="sm" icon={PhoneCall} loading={log.isPending} disabled={!fu.note.trim()} onClick={() => log.mutate()}>{t('admissions.enquiries.log')}</Button>
                 </div>
               </div>
@@ -124,15 +91,20 @@ function EnquiryDrawer({ id, onClose }) {
 
 export default function Enquiries() {
   const { t } = useTranslation('admissions')
-  const qc = useQueryClient()
-  const { showSuccess } = useSnackbar()
+  const navigate = useNavigate()
+  const [urlParams, setUrlParams] = useSearchParams()
   const [search, setSearch] = useUrlSearch()
   const [stage, setStage] = useState('')
   const [source, setSource] = useState('')
   const [due, setDue] = useState(false)
   const [page, setPage] = useState(1)
-  const [adding, setAdding] = useState(false)
-  const [openId, setOpenId] = useState(null)
+  // ?open=<id> opens that enquiry (the New enquiry page lands here after saving)
+  const [openId, setOpenId] = useState(() => urlParams.get('open'))
+  useEffect(() => {
+    if (!urlParams.get('open')) return
+    setOpenId(urlParams.get('open'))
+    setUrlParams((p) => { const n = new URLSearchParams(p); n.delete('open'); return n }, { replace: true })
+  }, [urlParams, setUrlParams])
   const q = useDebouncedValue(search.trim(), 250)
   const params = { search: q || undefined, stage: stage || undefined, source: source || undefined, due: due ? '1' : undefined, open: !stage && !due && !q ? '1' : undefined, page, pageSize: 50 } // a search looks at every enquiry, closed ones too
   const { data, isLoading, error, refetch } = useQuery({ queryKey: ['enquiries', params], queryFn: () => fetchEnquiries(params), placeholderData: keepPreviousData })
@@ -144,7 +116,7 @@ export default function Enquiries() {
   return (
     <PageContainer>
       <PageHeader icon={ClipboardList} title={t('admissions.enquiries.title')} subtitle={t('admissions.enquiries.subtitle')}
-        actions={<HeaderButton icon={Plus} variant="primary" requires="admissions.enquiries.create" onClick={() => setAdding(true)}>{t('admissions.enquiries.new')}</HeaderButton>} />
+        actions={<HeaderButton icon={Plus} variant="primary" requires="admissions.enquiries.create" onClick={() => navigate('/admissions/enquiries/new')}>{t('admissions.enquiries.new')}</HeaderButton>} />
       <div className="flex flex-wrap gap-2 mb-4">
         <button type="button" onClick={() => { setDue(true); setStage(''); setPage(1) }} className={clsx('rounded-full border px-3 py-1.5 text-sm', due ? 'border-danger-300 bg-danger-50 text-danger-700' : 'border-border hover:bg-bg')}>
           {t('admissions.enquiries.dueToday', { count: meta?.dueToday ?? 0 })}
@@ -180,7 +152,6 @@ export default function Enquiries() {
         pagination={meta && meta.totalPages > 1 && { page: meta.page - 1, size: meta.pageSize, totalElements: meta.total, totalPages: meta.totalPages, onPageChange: (p) => setPage(p + 1) }}
         emptyIcon={ClipboardList} emptyTitle={t('admissions.enquiries.empty')}
       />
-      {adding && <NewEnquiry onClose={() => setAdding(false)} onSaved={(e) => { qc.invalidateQueries({ queryKey: ['enquiries'] }); setAdding(false); setOpenId(e.id); showSuccess(t('admissions.enquiries.saved', { no: e.enquiryNo })) }} />}
       {openId && <EnquiryDrawer id={openId} onClose={() => setOpenId(null)} />}
     </PageContainer>
   )

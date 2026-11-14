@@ -3,21 +3,17 @@ import { useNavigate } from 'react-router-dom'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { Briefcase, Bus, CreditCard, Download, Presentation, ShieldCheck, UserPlus, Users, UsersRound, Wrench } from 'lucide-react'
-import { EMPLOYEE_CATEGORIES, EMPLOYEE_STATUSES, EMPLOYMENT_TYPES, GENDERS } from '@schoolgiant/shared'
-import { DateInput, ColorChip, ContactCell, ControlChip, DataTable, DateCell, FormField, PersonCell, StackCell, HeaderButton, ImportExportButtons, Input, Modal, PageContainer, PageHeader, Select, StatCardRow, StatusPill, Textarea, Toolbar, useConfirm } from '../../components/system'
-import Button from '../../components/ui/Button'
+import { EMPLOYEE_CATEGORIES, EMPLOYEE_STATUSES } from '@schoolgiant/shared'
+import { ColorChip, ContactCell, ControlChip, DataTable, DateCell, PersonCell, StackCell, HeaderButton, ImportExportButtons, PageContainer, PageHeader, StatCardRow, StatusPill, Toolbar, useConfirm } from '../../components/system'
 import useDebouncedValue from '../../hooks/useDebouncedValue'
-import { createEmployee, exportEmployees, fetchEmployees, importEmployees, recordsFromLogins, updateEmployee } from '../../api/hrms'
-import { fetchRoles } from '../../api/core'
+import { exportEmployees, fetchEmployees, importEmployees, recordsFromLogins } from '../../api/hrms'
 import { hasPermission } from '../../api/auth'
 import { useSnackbar } from '../../context/SnackbarContext'
 import { printDocuments } from '../../components/print/printDocument'
 import { useFormat } from '../../context/SettingsContext'
 import { readSheet } from '../../utils/readSheet'
-import { useHrLabels, useHrMeta } from '../../components/hrms/HrKit'
-import PrintImageField from '../../components/print/PrintImageField'
+import { useHrLabels } from '../../components/hrms/HrKit'
 
-const WEEK = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN']
 // each staff category's icon and colour, on the tiles and in the table
 const CATEGORY_LOOK = {
   TEACHING: { icon: Presentation, tone: 'brand' },
@@ -26,157 +22,6 @@ const CATEGORY_LOOK = {
   TRANSPORT: { icon: Bus, tone: 'info' },
   SECURITY: { icon: ShieldCheck, tone: 'pink' },
   OTHER: { icon: UsersRound, tone: 'sky' },
-}
-
-/** New staff record, or edit one (personal and job details; salary and ids are on the profile). */
-export function EmployeeForm({ employee, onClose, onSaved }) {
-  const { t } = useTranslation('hrms')
-  const L = useHrLabels()
-  const { showError } = useSnackbar()
-  const { data: meta } = useHrMeta()
-  const canUsers = hasPermission('core.users.create')
-  const { data: roles = [] } = useQuery({ queryKey: ['roles'], queryFn: fetchRoles, enabled: !employee && canUsers })
-  const e0 = employee ?? {}
-  const [form, setForm] = useState({
-    name: e0.name ?? '', employeeCode: e0.employeeCode ?? '', designation: e0.designation ?? '', category: e0.category ?? 'TEACHING', employmentType: e0.employmentType ?? 'PERMANENT',
-    departmentId: e0.departmentId ?? '', branchId: e0.branchId ?? '', reportingManagerId: e0.reportingManagerId ?? '', joiningDate: e0.joiningDate ?? '', confirmationDate: e0.confirmationDate ?? '',
-    photo: e0.photo ?? '', gender: e0.gender ?? '', dob: e0.dob ?? '', bloodGroup: e0.bloodGroup ?? '', mobile: e0.mobile ?? '', email: e0.email ?? '',
-    qualifications: e0.qualifications ?? '', experienceYears: e0.experienceYears ?? '', subjects: (e0.subjects ?? []).join(', '),
-    weeklyOffDays: e0.weeklyOffDays ?? [], notes: e0.notes ?? '', changeNote: '', geofenceExempt: !!e0.geofenceExempt,
-    login: 'none', userId: '', loginEmail: '', roleId: '',
-  })
-  const [errors, setErrors] = useState({})
-  const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }))
-  const body = () => {
-    const b = {
-      name: form.name, employeeCode: form.employeeCode, designation: form.designation, category: form.category, employmentType: form.employmentType,
-      departmentId: form.departmentId || null, branchId: form.branchId || null, reportingManagerId: form.reportingManagerId || null,
-      joiningDate: form.joiningDate, confirmationDate: form.confirmationDate, photo: form.photo, gender: form.gender, dob: form.dob, bloodGroup: form.bloodGroup,
-      mobile: form.mobile, email: form.email, qualifications: form.qualifications, experienceYears: form.experienceYears,
-      subjects: form.subjects.split(',').map((s) => s.trim()).filter(Boolean), weeklyOffDays: form.weeklyOffDays, notes: form.notes, geofenceExempt: form.geofenceExempt,
-    }
-    if (employee) return { ...b, changeNote: form.changeNote }
-    if (form.login === 'link') b.userId = form.userId || null
-    if (form.login === 'new') b.login = { email: form.loginEmail || form.email, roleIds: form.roleId ? [form.roleId] : [], invite: true }
-    return b
-  }
-  const save = useMutation({
-    mutationFn: () => (employee ? updateEmployee(employee.id, body()) : createEmployee(body())),
-    onSuccess: onSaved,
-    onError: (e) => { setErrors(e.response?.data?.details?.fields ?? {}); showError(e.message) },
-  })
-  const managers = (meta?.staff ?? []).filter((s) => s.id !== employee?.id)
-  return (
-    <Modal open onClose={onClose} size="xl" title={employee ? t('hrms.employees.editTitle') : t('hrms.employees.newTitle')} footer={<>
-      <Button variant="secondary" onClick={onClose}>{t('actions.cancel')}</Button>
-      <Button loading={save.isPending} disabled={form.name.trim().length < 2 || !form.joiningDate} onClick={() => save.mutate()}>{t('hrms.employees.save')}</Button>
-    </>}>
-      <div className="space-y-5">
-        <section className="grid sm:grid-cols-3 gap-4">
-          <div className="sm:col-span-2"><FormField label={t('hrms.employees.name')} required error={errors.name}><Input value={form.name} onChange={set('name')} /></FormField></div>
-          <div className="sm:col-span-2"><PrintImageField label={t('hrms.employees.photo')} hint={t('hrms.employees.photoHint')} value={form.photo} onChange={(v) => setForm((f) => ({ ...f, photo: v }))} error={errors.photo} /></div>
-          <FormField label={t('hrms.employees.code')} hint={employee ? undefined : t('hrms.employees.codeHint')} error={errors.employeeCode}><Input value={form.employeeCode} onChange={(e) => setForm((f) => ({ ...f, employeeCode: e.target.value.toUpperCase() }))} /></FormField>
-          <FormField label={t('hrms.employees.designation')} error={errors.designation}><Input value={form.designation} onChange={set('designation')} placeholder={t('hrms.employees.designationPlaceholder')} /></FormField>
-          <FormField label={t('hrms.employees.category')} required>
-            <Select value={form.category} onChange={set('category')}>{EMPLOYEE_CATEGORIES.map((c) => <option key={c.value} value={c.value}>{L.category(c.value)}</option>)}</Select>
-          </FormField>
-          <FormField label={t('hrms.employees.employmentType')} required>
-            <Select value={form.employmentType} onChange={set('employmentType')}>{EMPLOYMENT_TYPES.map((c) => <option key={c.value} value={c.value}>{L.employment(c.value)}</option>)}</Select>
-          </FormField>
-          <FormField label={t('hrms.employees.department')}>
-            <Select value={form.departmentId} onChange={set('departmentId')}>
-              <option value="">{t('hrms.none')}</option>
-              {(meta?.departments ?? []).map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
-            </Select>
-          </FormField>
-          {(meta?.branches ?? []).length > 1 && (
-            <FormField label={t('hrms.employees.branch')}>
-              <Select value={form.branchId} onChange={set('branchId')}>
-                <option value="">{t('hrms.employees.mainCampus')}</option>
-                {meta.branches.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
-              </Select>
-            </FormField>
-          )}
-          <FormField label={t('hrms.employees.manager')} hint={t('hrms.employees.managerHint')} error={errors.reportingManagerId}>
-            <Select value={form.reportingManagerId} onChange={set('reportingManagerId')}>
-              <option value="">{t('hrms.none')}</option>
-              {managers.map((m) => <option key={m.id} value={m.id}>{m.designation ? `${m.name} · ${m.designation}` : m.name}</option>)}
-            </Select>
-          </FormField>
-          <FormField label={t('hrms.employees.joiningDate')} required error={errors.joiningDate}><DateInput value={form.joiningDate} onChange={set('joiningDate')} /></FormField>
-          <FormField label={t('hrms.employees.confirmationDate')} error={errors.confirmationDate}><DateInput value={form.confirmationDate} onChange={set('confirmationDate')} /></FormField>
-        </section>
-
-        <section className="grid sm:grid-cols-3 gap-4">
-          <FormField label={t('hrms.employees.mobile')} error={errors.mobile}><Input value={form.mobile} onChange={set('mobile')} inputMode="tel" /></FormField>
-          <FormField label={t('hrms.employees.email')} error={errors.email}><Input type="email" value={form.email} onChange={set('email')} /></FormField>
-          <FormField label={t('hrms.employees.gender')}>
-            <Select value={form.gender} onChange={set('gender')}>
-              <option value="">{t('hrms.none')}</option>
-              {GENDERS.map((g) => <option key={g.value} value={g.value}>{t(`hrms.genders.${g.value}`)}</option>)}
-            </Select>
-          </FormField>
-          <FormField label={t('hrms.employees.dob')} error={errors.dob}><DateInput value={form.dob} onChange={set('dob')} /></FormField>
-          <FormField label={t('hrms.employees.qualifications')}><Input value={form.qualifications} onChange={set('qualifications')} placeholder={t('hrms.employees.qualificationsPlaceholder')} /></FormField>
-          <FormField label={t('hrms.employees.experience')}><Input type="number" min="0" value={form.experienceYears} onChange={set('experienceYears')} /></FormField>
-          {form.category === 'TEACHING' && <div className="sm:col-span-3"><FormField label={t('hrms.employees.subjects')} hint={t('hrms.employees.subjectsHint')}><Input value={form.subjects} onChange={set('subjects')} /></FormField></div>}
-        </section>
-
-        <section>
-          <p className="text-xs font-medium text-ink-muted mb-2">{t('hrms.employees.weeklyOff')}</p>
-          <div className="flex flex-wrap gap-2">
-            {WEEK.map((d) => (
-              <label key={d} className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-sm cursor-pointer hover:bg-bg">
-                <input type="checkbox" checked={form.weeklyOffDays.includes(d)} onChange={() => setForm((f) => ({ ...f, weeklyOffDays: f.weeklyOffDays.includes(d) ? f.weeklyOffDays.filter((x) => x !== d) : [...f.weeklyOffDays, d] }))} className="rounded border-border text-brand-500 focus:ring-brand-500" />
-                {L.day(d)}
-              </label>
-            ))}
-          </div>
-          <p className="text-xs text-ink-faint mt-1">{t('hrms.employees.weeklyOffHint')}</p>
-        </section>
-
-        {!employee && (
-          <section className="space-y-3">
-            <p className="text-sm font-medium text-ink">{t('hrms.employees.loginTitle')}</p>
-            <div className="flex flex-wrap gap-2">
-              {['none', 'link', ...(canUsers ? ['new'] : [])].map((k) => (
-                <label key={k} className="inline-flex items-center gap-1.5 text-sm">
-                  <input type="radio" name="login" checked={form.login === k} onChange={() => setForm((f) => ({ ...f, login: k }))} className="border-border text-brand-500 focus:ring-brand-500" />
-                  {t(`hrms.employees.login.${k}`)}
-                </label>
-              ))}
-            </div>
-            {form.login === 'link' && (
-              <FormField label={t('hrms.employees.pickLogin')} error={errors.userId}>
-                <Select value={form.userId} onChange={set('userId')}>
-                  <option value="">{t('hrms.employees.pickLogin')}</option>
-                  {(meta?.unlinkedUsers ?? []).map((u) => <option key={u.id} value={u.id}>{`${u.name} · ${u.email}`}</option>)}
-                </Select>
-              </FormField>
-            )}
-            {form.login === 'new' && (
-              <div className="grid sm:grid-cols-2 gap-4">
-                <FormField label={t('hrms.employees.loginEmail')} hint={t('hrms.employees.loginEmailHint')}><Input type="email" value={form.loginEmail} onChange={set('loginEmail')} placeholder={form.email} /></FormField>
-                <FormField label={t('hrms.employees.role')} required>
-                  <Select value={form.roleId} onChange={set('roleId')}>
-                    <option value="">{t('hrms.employees.pickRole')}</option>
-                    {roles.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
-                  </Select>
-                </FormField>
-              </div>
-            )}
-          </section>
-        )}
-
-        {employee && <FormField label={t('hrms.employees.changeNote')} hint={t('hrms.employees.changeNoteHint')}><Input value={form.changeNote} onChange={set('changeNote')} /></FormField>}
-        <label className="flex items-start gap-2.5 rounded-lg border border-border px-3 py-2.5 text-sm text-ink">
-          <input type="checkbox" checked={form.geofenceExempt} onChange={(e) => setForm((f) => ({ ...f, geofenceExempt: e.target.checked }))} className="mt-0.5 rounded border-border text-brand-500 focus:ring-brand-500" />
-          <span><span className="font-medium">{t('hrms.employees.geofenceExempt')}</span><span className="block text-xs text-ink-muted">{t('hrms.employees.geofenceExemptHint')}</span></span>
-        </label>
-        <FormField label={t('hrms.employees.notes')}><Textarea rows={2} value={form.notes} onChange={set('notes')} /></FormField>
-      </div>
-    </Modal>
-  )
 }
 
 /** Staff & HR › Staff: everyone on the staff, with or without a login. */
@@ -194,7 +39,6 @@ export default function Employees() {
   const [page, setPage] = useState(1)
   // staff picked for ID cards (none picked: the cards of everyone on this page)
   const [picked, setPicked] = useState([])
-  const [adding, setAdding] = useState(false)
   const q = useDebouncedValue(search.trim(), 250)
   const params = { search: q || undefined, status, category: category || undefined, page, pageSize: 50 }
   const { data, isLoading, error, refetch } = useQuery({ queryKey: ['employees', params], queryFn: () => fetchEmployees(params), placeholderData: keepPreviousData })
@@ -223,7 +67,7 @@ export default function Employees() {
             const r = await printDocuments('STAFF_ID_CARD', ids, { preparing: t('hrms.employees.idCardsPreparing') })
             if (r?.error) showError(r.error)
           }}>{picked.length ? t('hrms.employees.idCardsPicked', { count: picked.length }) : t('hrms.employees.idCards')}</HeaderButton>}
-          <HeaderButton icon={UserPlus} variant="primary" requires="hrms.employees.create" onClick={() => setAdding(true)}>{t('hrms.employees.new')}</HeaderButton>
+          <HeaderButton icon={UserPlus} variant="primary" requires="hrms.employees.create" onClick={() => navigate('/hrms/employees/new')}>{t('hrms.employees.new')}</HeaderButton>
         </>} />
       {Object.keys(counts).length > 0 && (
         <StatCardRow className="mb-4" items={EMPLOYEE_CATEGORIES.filter((c) => counts[c.value]).map((c) => ({
@@ -261,7 +105,6 @@ export default function Employees() {
         emptyTitle={q || category || status !== 'CURRENT' ? t('hrms.employees.noMatch') : t('hrms.employees.emptyTitle')}
         emptyHint={q || category ? undefined : t('hrms.employees.emptyHint')}
       />
-      {adding && <EmployeeForm onClose={() => setAdding(false)} onSaved={(e) => { setAdding(false); refresh(); showSuccess(t('hrms.employees.saved')); navigate(`/hrms/employees/${e.id}`) }} />}
     </PageContainer>
   )
 }

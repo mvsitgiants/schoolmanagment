@@ -164,7 +164,11 @@
       "admissions": {
         "onlineApplication": {
           "label": "Families can apply online",
-          "help": "The application page at <app>/apply/<your school>; the mobile number is checked with a one-time code."
+          "help": "The application page at <app>/apply/<your school>, and the “Scan to apply” QR in Admissions › Settings."
+        },
+        "applyNeedsCode": {
+          "label": "Ask for a one-time code before applying",
+          "help": "Off: a parent scans the QR or opens the link and fills the form straight away. On: they first confirm their mobile number with a code sent by SMS — turn it on if fake applications come in. Checking an application or accepting a seat always asks for the code."
         },
         "websiteEnquiry": {
           "label": "Take enquiries from the website",

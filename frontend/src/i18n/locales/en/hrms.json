@@ -138,7 +138,35 @@
       "idCardsPicked": "Print {{count}} ID cards",
       "idCardsPreparing": "Making the ID cards…",
       "photo": "Photo",
-      "photoHint": "Passport-size photo — printed on the staff ID card."
+      "photoHint": "Passport-size photo — printed on the staff ID card.",
+      "form": {
+        "person": "About them",
+        "personHint": "Name, contact details and photo, as on their documents.",
+        "job": "Job",
+        "jobHint": "Their post, when they joined and whom they report to.",
+        "background": "Qualifications and experience",
+        "backgroundHint": "Their education and work before joining.",
+        "attendance": "Attendance",
+        "attendanceHint": "Their weekly off and where they may mark attendance from.",
+        "loginHint": "Whether they can sign in, and with which role.",
+        "notesHint": "Anything else worth keeping on the record."
+      },
+      "add": {
+        "subtitle": "Add a teacher, office or support staff member. Their profile opens after saving.",
+        "list": "Staff list",
+        "save": "Add staff member",
+        "requiredNote": "Needed to save: full name and joining date. Salary, bank details, ID numbers and documents are added on the staff member’s profile, which opens after saving.",
+        "check": {
+          "title": "Already on the staff?",
+          "checking": "Checking…",
+          "empty": "Type the name, mobile number or email — staff already on the record, including those who have left, show up here.",
+          "by": {
+            "mobile": "Same mobile number:",
+            "email": "Same email:",
+            "name": "Staff with this name:"
+          }
+        }
+      }
     },
     "profile": {
       "back": "Back",

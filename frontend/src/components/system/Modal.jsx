@@ -1,7 +1,8 @@
-import { useEffect, useId, useRef, useCallback } from 'react'
+import { useEffect, useId, useRef, useCallback, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import { X } from 'lucide-react'
+import { InOverlayContext, SaveShortcutHint, isSaveShortcut } from './SaveShortcut'
 
 // Shared overlay stack. Only the top-most overlay reacts to Escape / backdrop
 // clicks, and the body scroll-lock is released only once the last overlay
@@ -21,6 +22,8 @@ const popOverlay = (id) => {
   if (overlayStack.length === 0) document.body.style.overflow = ''
 }
 const isTopOverlay = (id) => overlayStack[overlayStack.length - 1] === id
+/** True while any pop-up / drawer is open — a full-page form's Ctrl + Enter steps aside for it. */
+export const anyOverlayOpen = () => overlayStack.length > 0
 
 /**
  * Registers a stacked overlay while `open` is true and returns a stable
@@ -85,12 +88,49 @@ export function useFocusTrap(active, containerRef, isTop) {
   }, [active, containerRef, isTop])
 }
 
+const FIELD = 'input:not([type=hidden]):not([type=checkbox]):not([type=radio]):not([disabled]),textarea:not([disabled]),select:not([disabled])'
+const SAVE_BUTTON = 'button[data-variant="primary"],button[data-variant="danger"]'
+
+/**
+ * Ctrl / ⌘ + Enter inside a pop-up or drawer presses its footer's main button (the last primary one) —
+ * only when the pop-up has fields to fill, so a plain "Are you sure?" is never confirmed by accident.
+ * Returns whether to show the "Ctrl + Enter to save" hint.
+ */
+export function useFooterSaveShortcut(open, isTop, panelRef, footerRef) {
+  const [hint, setHint] = useState(false)
+  const saveButton = () => {
+    const btns = footerRef.current ? Array.from(footerRef.current.querySelectorAll(SAVE_BUTTON)) : []
+    return btns[btns.length - 1] ?? null
+  }
+  // re-checked after every render: fields can appear once data loads
+  useEffect(() => {
+    const show = !!(open && panelRef.current?.querySelector(FIELD) && saveButton())
+    if (show !== hint) setHint(show)
+  })
+  useEffect(() => {
+    if (!open) return undefined
+    const onKey = (e) => {
+      if (!isSaveShortcut(e) || e.defaultPrevented || !isTop()) return
+      if (!panelRef.current?.querySelector(FIELD)) return
+      const btn = saveButton()
+      if (!btn) return
+      e.preventDefault()
+      setTimeout(() => { if (!btn.disabled && btn.isConnected) btn.click() }, 0)
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [open, isTop]) // eslint-disable-line react-hooks/exhaustive-deps
+  return hint
+}
+
 export default function Modal({ open, onClose, title, children, footer, size = 'md' }) {
   const { t } = useTranslation('ui')
   const isTop = useOverlayLayer(open)
   const panelRef = useRef(null)
   const titleId = useId() // the dialog is named by its title for screen readers
+  const footerRef = useRef(null)
   useFocusTrap(open, panelRef, isTop)
+  const shortcutHint = useFooterSaveShortcut(open, isTop, panelRef, footerRef)
 
   useEffect(() => {
     if (!open) return undefined
@@ -120,8 +160,13 @@ export default function Modal({ open, onClose, title, children, footer, size = '
             <X className="w-4 h-4" />
           </button>
         </div>
-        <div className="px-4 sm:px-5 py-4 overflow-y-auto scroll-thin">{children}</div>
-        {footer && <div className="px-4 sm:px-5 py-3.5 sm:py-4 border-t border-border flex justify-end gap-2">{footer}</div>}
+        <div className="px-4 sm:px-5 py-4 overflow-y-auto scroll-thin"><InOverlayContext.Provider value>{children}</InOverlayContext.Provider></div>
+        {footer && (
+          <div ref={footerRef} className="px-4 sm:px-5 py-3.5 sm:py-4 border-t border-border flex items-center justify-end gap-2">
+            {shortcutHint && <SaveShortcutHint className="me-auto" />}
+            {footer}
+          </div>
+        )}
       </div>
     </div>,
     document.body

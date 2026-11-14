@@ -65,7 +65,7 @@ export default function Button({
   if (to) return <Link to={to} className={cls} aria-disabled={disabled || loading || undefined} {...props}>{inner}</Link>
 
   return (
-    <button type={type} disabled={disabled || loading} className={cls} {...props}>
+    <button type={type} disabled={disabled || loading} className={cls} data-variant={variant} {...props}>
       {inner}
     </button>
   )

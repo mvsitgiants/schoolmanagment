@@ -16,7 +16,7 @@ import { hasPermission } from '../../api/auth'
 import { useSnackbar } from '../../context/SnackbarContext'
 import { useFormat } from '../../context/SettingsContext'
 import { useHrLabels, useHrMeta } from '../../components/hrms/HrKit'
-import { EmployeeForm } from './Employees'
+import { EmployeeEditModal } from '../../components/hrms/EmployeeForm'
 import { StaffOverview, StaffRail } from '../../components/hrms/StaffRail'
 
 function SalaryForm({ emp, onClose, onSaved }) {
@@ -328,7 +328,7 @@ export default function EmployeeProfile() {
       </div>
       </div>
 
-      {modal === 'edit' && <EmployeeForm employee={emp} onClose={() => setModal(null)} onSaved={done(t('hrms.employees.saved'))} />}
+      {modal === 'edit' && <EmployeeEditModal employee={emp} onClose={() => setModal(null)} onSaved={done(t('hrms.employees.saved'))} />}
       {modal === 'salary' && <SalaryForm emp={emp} onClose={() => setModal(null)} onSaved={done(t('hrms.profile.salarySaved'))} />}
       {modal === 'ids' && <IdsForm emp={emp} onClose={() => setModal(null)} onSaved={() => { qc.removeQueries({ queryKey: ['employee-sensitive', id] }); setReveal(false); done(t('hrms.profile.idsSaved'))() }} />}
       {modal === 'exit' && <ExitForm emp={emp} onClose={() => setModal(null)} onSaved={done(t('hrms.profile.exitSaved'))} />}

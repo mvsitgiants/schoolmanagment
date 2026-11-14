@@ -148,7 +148,26 @@
       "printBadges_other": "Print {{count}} cards",
       "deleteTitle": "Delete the visit of {{name}}?",
       "deleteHint": "Use this only for an entry made by mistake. Only today's entries can be deleted; older visits stay in the log.",
-      "deleted": "Visit deleted"
+      "deleted": "Visit deleted",
+      "add": {
+        "log": "Visitor log",
+        "who": "Visitor",
+        "whoHint": "Who they are, why they came and the badge you hand them.",
+        "more": "More details",
+        "moreHint": "All optional — fill in what the gate needs.",
+        "requiredNote": "Needed to check in: the visitor’s name, and whom they are meeting when they came to meet a staff member. Leave the badge empty to number it for you. After check-in the visitor shows under “In the building now” until they check out.",
+        "earlier": {
+          "title": "Visited before?",
+          "checking": "Checking…",
+          "empty": "Type the mobile number — earlier visits on the same number show here, and the name fills in.",
+          "first": "First visit — no earlier visits on this number.",
+          "stillInside": "Still checked in from an earlier visit (badge {{badge}}). Check that visit out first."
+        },
+        "inside": {
+          "more_one": "and {{count}} more",
+          "more_other": "and {{count}} more"
+        }
+      }
     },
     "passes": {
       "title": "Gate passes",

@@ -123,12 +123,35 @@ export default function Thing() {
 |---|---|
 | `DataTable` | any list. `sortable` per column, `maxHeight` for sticky-scroll, `title`/`toolbar` strip, `exportable`, `emptyAction`, `onSelect` for row-click |
 | `Drawer` | view/edit **one** record — right slide-over. Not a modal-in-a-modal, not a new route |
-| `Modal` | short create/edit forms and confirmations |
+| `Modal` | short create/edit forms (up to ~10 fields) and confirmations |
+| `FormPage` + `FormSection` | a big "new record" form — a full page at `/<module>/<page>/new` (see **Big forms** below) |
 | `useConfirm()` | `await confirm({ title, message, tone: 'danger'\|'default', confirmLabel })` → `boolean` |
 | `Toolbar` / `ControlChip` / `ViewControls` | search + filter row above a table |
 | `Attachments` | file/image uploads on any record: `<Attachments module="lms" entityType="course" entityId={id} />` |
 | `useFormat()` | `.date` `.dateTime` `.time` `.number` `.currencyValue` — respects tenant settings |
 | `useBrand()` | `companyName`, `logoUrl`, `primaryColor` with defaults |
+
+## Big forms
+
+A form with more than ~10 fields, or several groups of fields, is a **full page**, not a pop-up —
+the same shape on every such screen (reference: `pages/Students/Admit.jsx`):
+
+- `FormPage` — page header; section cards on the left (two thirds); helper panels on the right
+  (`aside`); a save bar that stays at the bottom of the screen; a "please fix N fields" note when
+  `errors` is non-empty; Ctrl / ⌘ + Enter saves. Route `/<module>/<page>/new` sits under the list page,
+  so the list page's permissions apply (pass `requires="create"` to the save button via `requires`).
+- `FormSection title hint` — one card per group of fields, with a one-line plain-language hint.
+  Fields in `grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4` (or `xl:grid-cols-3`), wide fields
+  spanning columns. Inside a `Modal` / `Drawer` the same `FormSection` drops its card on its own, so
+  one form component serves both the New page and the Edit pop-up.
+- `aside` — something that helps the person filling the form: a check for an existing record as they
+  type (Admit student: "Already in the school?"), what was added today, or a `Note` saying what is
+  required and what happens after saving. Never empty decoration.
+- The list page's "New" button goes to the page (`<HeaderButton onClick={() => navigate('…/new')}>`); after
+  saving, go to the new record (or back to the list) with a success message.
+
+Pop-ups and drawers get Ctrl / ⌘ + Enter for free: it presses the footer's last primary button when
+the pop-up has fields, and the footer shows the hint.
 
 ## Make data visual
 
@@ -151,6 +174,8 @@ Have the list API return a `summary` for the whole filtered set rather than coun
 Reference: `pages/Students/Directory.jsx`, `pages/Fees/Invoices.jsx`, `pages/Hrms/Employees.jsx`.
 
 ## Reference pages
+
+- Big form as a full page: `pages/Students/Admit.jsx` (+ `components/students/StudentForm.jsx`)
 
 - List + Drawer + sort + export: `Manufacturing/features/WorkOrders.jsx`
 - List + create Modal + confirm: `DMS/features/RecycleBin.jsx`, `LMS/features/Instructors.jsx`

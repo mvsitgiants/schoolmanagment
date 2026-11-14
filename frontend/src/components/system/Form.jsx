@@ -3,6 +3,7 @@ import { Children, Fragment, cloneElement, forwardRef, isValidElement, useEffect
 import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import { ChevronDown } from 'lucide-react'
+import { isSaveShortcut } from './SaveShortcut'
 
 // An Input is full width unless the caller gives it one (`w-20`): without tailwind-merge both classes
 // would apply and `w-full` wins, squeezing whatever sits beside it in a row to nothing.
@@ -128,6 +129,7 @@ export const Select = forwardRef(function Select({ className, error, children, v
 
   const onKeyDown = (e) => {
     if (disabled) return
+    if (isSaveShortcut(e)) { if (open) { setOpen(false); setQuery('') } return } // the form's save shortcut
     if (!open) {
       if (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openPanel() }
       return

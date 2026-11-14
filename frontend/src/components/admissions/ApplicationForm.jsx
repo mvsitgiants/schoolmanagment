@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { BLOOD_GROUPS, GENDERS, GUARDIAN_RELATIONS } from '@schoolgiant/shared'
-import { DateInput, FormField, Input, Select } from '../system'
+import { DateInput, FormField, FormSection, Input, Select } from '../system'
 import FormRenderer from '../forms/FormRenderer'
 
 export const emptyApplication = (cycle) => ({
@@ -18,9 +18,12 @@ export function applicationBody(v) {
   return strip(v)
 }
 
+const GRID = 'grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4'
+
 /**
- * The application: the cycle and class, the child, the parents, the address and the cycle's extra questions.
- * Used at the admission desk and on the public application page. `cycles` carry their classes and extra form.
+ * The application: the cycle and class, the child, the parents, the address and the cycle's extra questions —
+ * each a FormSection card. Used on the admission desk's New application page and on the public application page.
+ * `cycles` carry their classes and extra form.
  */
 export default function ApplicationForm({ cycles = [], value, onChange, errors = {}, lockMobile = false }) {
   const { t } = useTranslation('admissions')
@@ -37,74 +40,79 @@ export default function ApplicationForm({ cycles = [], value, onChange, errors =
     <Select {...field(path)}>{GUARDIAN_RELATIONS.map((r) => <option key={r.value} value={r.value}>{t(`admissions.relations.${r.value}`, r.label)}</option>)}</Select>
   )
   return (
-    <div className="space-y-6">
-      <section className="grid sm:grid-cols-2 gap-4">
-        {cycles.length > 1 && (
-          <FormField label={t('admissions.form.cycle')} required error={err('cycleId')}>
-            <Select value={value.cycleId} onChange={(e) => onChange({ ...value, cycleId: e.target.value, classId: '', answers: {} })}>
+    <div className="space-y-5">
+      <FormSection title={t('admissions.form.sections.place')} hint={cycle ? t('admissions.form.sections.placeHintCycle', { cycle: cycle.name }) : t('admissions.form.sections.placeHint')}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {cycles.length > 1 && (
+            <FormField label={t('admissions.form.cycle')} required error={err('cycleId')}>
+              <Select value={value.cycleId} onChange={(e) => onChange({ ...value, cycleId: e.target.value, classId: '', answers: {} })}>
+                <option value="">{t('admissions.form.pick')}</option>
+                {cycles.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </Select>
+            </FormField>
+          )}
+          <FormField label={t('admissions.form.class')} required error={err('classId')}>
+            <Select value={value.classId} onChange={(e) => set('classId', e.target.value)}>
               <option value="">{t('admissions.form.pick')}</option>
-              {cycles.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+              {(cycle?.classes ?? []).map((c) => <option key={c.classId} value={c.classId}>{c.className}{c.minAge || c.maxAge ? ` (${t('admissions.form.ages', { min: c.minAge ?? 0, max: c.maxAge ?? '…' })})` : ''}</option>)}
             </Select>
           </FormField>
-        )}
-        <FormField label={t('admissions.form.class')} required error={err('classId')}>
-          <Select value={value.classId} onChange={(e) => set('classId', e.target.value)}>
-            <option value="">{t('admissions.form.pick')}</option>
-            {(cycle?.classes ?? []).map((c) => <option key={c.classId} value={c.classId}>{c.className}{c.minAge || c.maxAge ? ` (${t('admissions.form.ages', { min: c.minAge ?? 0, max: c.maxAge ?? '…' })})` : ''}</option>)}
-          </Select>
-        </FormField>
-      </section>
+        </div>
+      </FormSection>
 
-      <section>
-        <h3 className="text-sm font-semibold text-ink mb-3">{t('admissions.form.child')}</h3>
-        <div className="grid sm:grid-cols-3 gap-4">
+      <FormSection title={t('admissions.form.child')} hint={t('admissions.form.sections.childHint')}>
+        <div className={GRID}>
           <FormField label={t('admissions.form.firstName')} required error={err('child.firstName')}><Input {...field('child.firstName')} /></FormField>
-          <FormField label={t('admissions.form.middleName')}><Input {...field('child.middleName')} /></FormField>
-          <FormField label={t('admissions.form.lastName')}><Input {...field('child.lastName')} /></FormField>
+          <FormField label={t('admissions.form.middleName')} error={err('child.middleName')}><Input {...field('child.middleName')} /></FormField>
+          <FormField label={t('admissions.form.lastName')} error={err('child.lastName')}><Input {...field('child.lastName')} /></FormField>
           <FormField label={t('admissions.form.dob')} required error={err('child.dob')}><DateInput {...field('child.dob')} /></FormField>
           <FormField label={t('admissions.form.gender')} required error={err('child.gender')}>
             <Select {...field('child.gender')}><option value="">{t('admissions.form.pick')}</option>{GENDERS.map((g) => <option key={g.value} value={g.value}>{t(`admissions.genders.${g.value}`, g.label)}</option>)}</Select>
           </FormField>
-          <FormField label={t('admissions.form.bloodGroup')}>
+          <FormField label={t('admissions.form.bloodGroup')} error={err('child.bloodGroup')}>
             <Select {...field('child.bloodGroup')}><option value="">—</option>{BLOOD_GROUPS.map((b) => <option key={b} value={b}>{b}</option>)}</Select>
           </FormField>
-          <FormField label={t('admissions.form.previousSchool')}><Input {...field('child.previousSchool.name')} /></FormField>
-          <FormField label={t('admissions.form.board')}><Input {...field('child.previousSchool.board')} placeholder="CBSE / ICSE / State" /></FormField>
-          <FormField label={t('admissions.form.lastClass')}><Input {...field('child.previousSchool.lastClass')} /></FormField>
         </div>
-      </section>
+      </FormSection>
 
-      <section>
-        <h3 className="text-sm font-semibold text-ink mb-3">{t('admissions.form.parent')}</h3>
-        <div className="grid sm:grid-cols-3 gap-4">
-          <FormField label={t('admissions.form.parentName')} required error={err('parent.name')}><Input {...field('parent.name')} /></FormField>
-          <FormField label={t('admissions.form.relation')}>{relation('parent.relation')}</FormField>
-          <FormField label={t('admissions.form.mobile')} required error={err('parent.mobile')} hint={lockMobile ? t('admissions.form.mobileVerified') : undefined}><Input inputMode="numeric" disabled={lockMobile} {...field('parent.mobile')} /></FormField>
-          <FormField label={t('admissions.form.email')}><Input type="email" {...field('parent.email')} /></FormField>
-          <FormField label={t('admissions.form.occupation')}><Input {...field('parent.occupation')} /></FormField>
+      <FormSection title={t('admissions.form.sections.school')} hint={t('admissions.form.sections.schoolHint')}>
+        <div className={GRID}>
+          <div className="sm:col-span-2"><FormField label={t('admissions.form.schoolName')} error={err('child.previousSchool.name')}><Input {...field('child.previousSchool.name')} /></FormField></div>
+          <FormField label={t('admissions.form.board')} error={err('child.previousSchool.board')}><Input {...field('child.previousSchool.board')} placeholder={t('admissions.form.boardExample')} /></FormField>
+          <FormField label={t('admissions.form.lastClass')} error={err('child.previousSchool.lastClass')}><Input {...field('child.previousSchool.lastClass')} /></FormField>
         </div>
-        <div className="grid sm:grid-cols-3 gap-4 mt-4">
-          <FormField label={t('admissions.form.otherParent')}><Input {...field('otherParent.name')} /></FormField>
-          <FormField label={t('admissions.form.relation')}>{relation('otherParent.relation')}</FormField>
-          <FormField label={t('admissions.form.mobile')}><Input inputMode="numeric" {...field('otherParent.mobile')} /></FormField>
-        </div>
-      </section>
+      </FormSection>
 
-      <section>
-        <h3 className="text-sm font-semibold text-ink mb-3">{t('admissions.form.address')}</h3>
-        <div className="grid sm:grid-cols-4 gap-4">
-          <div className="sm:col-span-2"><FormField label={t('admissions.form.addressLine')}><Input {...field('address.line')} /></FormField></div>
-          <FormField label={t('admissions.form.city')}><Input {...field('address.city')} /></FormField>
-          <FormField label={t('admissions.form.pincode')}><Input inputMode="numeric" {...field('address.pincode')} /></FormField>
+      <FormSection title={t('admissions.form.parent')} hint={t('admissions.form.sections.parentHint')}>
+        <div className="space-y-4">
+          <div className={GRID}>
+            <div className="sm:col-span-2"><FormField label={t('admissions.form.parentName')} required error={err('parent.name')}><Input {...field('parent.name')} /></FormField></div>
+            <FormField label={t('admissions.form.relation')} error={err('parent.relation')}>{relation('parent.relation')}</FormField>
+            <FormField label={t('admissions.form.mobile')} required error={err('parent.mobile')} hint={lockMobile ? t('admissions.form.mobileVerified') : undefined}><Input inputMode="numeric" disabled={lockMobile} {...field('parent.mobile')} /></FormField>
+            <div className="sm:col-span-2"><FormField label={t('admissions.form.email')} error={err('parent.email')}><Input type="email" {...field('parent.email')} /></FormField></div>
+            <FormField label={t('admissions.form.occupation')} error={err('parent.occupation')}><Input {...field('parent.occupation')} /></FormField>
+          </div>
+          <div className={`${GRID} border-t border-border pt-4`}>
+            <div className="sm:col-span-2"><FormField label={t('admissions.form.otherParent')} error={err('otherParent.name')}><Input {...field('otherParent.name')} /></FormField></div>
+            <FormField label={t('admissions.form.relation')} error={err('otherParent.relation')}>{relation('otherParent.relation')}</FormField>
+            <FormField label={t('admissions.form.mobile')} error={err('otherParent.mobile')}><Input inputMode="numeric" {...field('otherParent.mobile')} /></FormField>
+          </div>
         </div>
-      </section>
+      </FormSection>
+
+      <FormSection title={t('admissions.form.address')} hint={t('admissions.form.sections.addressHint')}>
+        <div className={GRID}>
+          <div className="sm:col-span-2"><FormField label={t('admissions.form.addressLine')} error={err('address.line')}><Input {...field('address.line')} /></FormField></div>
+          <FormField label={t('admissions.form.city')} error={err('address.city')}><Input {...field('address.city')} /></FormField>
+          <FormField label={t('admissions.form.pincode')} error={err('address.pincode')}><Input inputMode="numeric" {...field('address.pincode')} /></FormField>
+        </div>
+      </FormSection>
 
       {cycle?.form?.definition && (
-        <section>
-          <h3 className="text-sm font-semibold text-ink mb-3">{cycle.form.name}</h3>
+        <FormSection title={cycle.form.name} hint={t('admissions.form.sections.extraHint')}>
           <FormRenderer definition={cycle.form.definition} values={value.answers ?? {}} onChange={(answers) => onChange({ ...value, answers })}
             errors={Object.fromEntries(Object.entries(errors).filter(([k]) => k.startsWith('answers.')).map(([k, v]) => [k.slice(8), v]))} />
-        </section>
+        </FormSection>
       )}
     </div>
   )

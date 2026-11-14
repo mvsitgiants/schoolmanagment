@@ -1,15 +1,15 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { BadgeCheck, CalendarRange, QrCode, Clock, ConciergeBell, DoorOpen, LogOut, Phone, Search, Trash2, UserPlus, Users } from 'lucide-react'
-import { FO_ID_TYPES, FO_VISIT_PURPOSES, foDurationLabel } from '@schoolgiant/shared'
+import { CalendarRange, QrCode, Clock, ConciergeBell, DoorOpen, LogOut, Phone, Search, Trash2, UserPlus, Users } from 'lucide-react'
+import { FO_VISIT_PURPOSES, foDurationLabel } from '@schoolgiant/shared'
 import {
   DateInput, CodeBadge, ColumnBars, DataTable, Drawer, EmptyState, FactGrid, FormField, Input, Modal, Note, PageContainer, PageHeader, Panel, PersonCell,
   SearchInput, SegmentedControl, Select, StatCardRow, StatusPill, Tabs, Textarea, useConfirm,
 } from '../../components/system'
 import Button from '../../components/ui/Button'
-import { ChipPicker, Face, PhotoCapture, PurposeChip, StaffSelect, StudentFinder, useFoLabels } from '../../components/frontoffice/FoKit'
-import { checkInVisitor, checkOutVisitor, deleteVisitor, enquiryFromVisit, fetchAllVisitors, fetchVisitor, fetchVisitorDesk, fetchVisitors, lookupVisitor } from '../../api/frontOffice'
+import { Face, PurposeChip, useFoLabels } from '../../components/frontoffice/FoKit'
+import { checkOutVisitor, deleteVisitor, enquiryFromVisit, fetchAllVisitors, fetchVisitor, fetchVisitorDesk, fetchVisitors } from '../../api/frontOffice'
 import { fetchAcademicLookup } from '../../api/academics'
 import { hasPermission } from '../../api/auth'
 import useDebouncedValue from '../../hooks/useDebouncedValue'
@@ -17,75 +17,9 @@ import { useFormat } from '../../context/SettingsContext'
 import { useSnackbar } from '../../context/SnackbarContext'
 import { printQrCards } from '../../components/scan/printPoster'
 import useUrlSearch from '../../hooks/useUrlSearch'
-import { useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 
-const EMPTY = { name: '', mobile: '', purpose: 'MEET_STAFF', purposeNote: '', from: '', people: 1, hostId: '', student: null, idType: '', idNumber: '', photo: '', badgeNo: '', vehicleNo: '', note: '' }
 const PAGE = 50
-const fieldsOf = (e) => e?.response?.data?.details?.fields ?? {}
-
-/** The check-in form: mobile first (a returning visitor fills in), purpose, whom to meet, ID and a photo. */
-function CheckInDrawer({ open, onClose }) {
-  const { t } = useTranslation('frontoffice')
-  const L = useFoLabels()
-  const qc = useQueryClient()
-  const { showError, showSuccess } = useSnackbar()
-  const [f, setF] = useState(EMPTY)
-  const [errors, setErrors] = useState({})
-  const [known, setKnown] = useState(null)
-  useEffect(() => { if (open) { setF(EMPTY); setErrors({}); setKnown(null) } }, [open])
-  const set = (k, v) => setF((x) => ({ ...x, [k]: v }))
-  const lookup = async () => {
-    if (String(f.mobile).replace(/\D/g, '').length < 10) return
-    try {
-      const v = await lookupVisitor(f.mobile)
-      setKnown(v)
-      if (v) setF((x) => ({ ...x, name: x.name || v.name, from: x.from || v.from || '', idType: x.idType || v.idType || '', idNumber: x.idNumber || v.idNumber || '' }))
-    } catch { /* a lookup is only a help */ }
-  }
-  const save = useMutation({
-    mutationFn: () => checkInVisitor({
-      name: f.name, mobile: f.mobile, purpose: f.purpose, purposeNote: f.purposeNote, from: f.from, people: Number(f.people) || 1,
-      hostId: f.hostId || undefined, studentId: f.student?.id, idType: f.idType, idNumber: f.idNumber, photo: f.photo, badgeNo: f.badgeNo, vehicleNo: f.vehicleNo, note: f.note,
-    }),
-    onSuccess: (v) => { qc.invalidateQueries({ queryKey: ['frontoffice', 'visitors'] }); showSuccess(t('frontoffice.visitors.checkedIn', { name: v.name, badge: v.badgeNo })); onClose() },
-    onError: (e) => { setErrors(fieldsOf(e)); showError(e.message) },
-  })
-  const needsHost = ['MEET_STAFF', 'PARENT_MEETING'].includes(f.purpose)
-  return (
-    <Drawer open={open} onClose={onClose} title={t('frontoffice.visitors.checkInTitle')} subtitle={t('frontoffice.visitors.checkInSubtitle')} size="lg"
-      footer={<><Button variant="secondary" onClick={onClose}>{t('frontoffice.common.cancel')}</Button><Button icon={BadgeCheck} loading={save.isPending} disabled={f.name.trim().length < 2} onClick={() => save.mutate()}>{t('frontoffice.visitors.checkIn')}</Button></>}>
-      <div className="space-y-4">
-        <div className="grid gap-3 sm:grid-cols-2">
-          <FormField label={t('frontoffice.visitors.mobile')} error={errors.mobile} hint={known ? t('frontoffice.visitors.knownVisitor', { count: known.visits, date: known.lastDate }) : undefined}>
-            <Input inputMode="tel" value={f.mobile} onChange={(e) => set('mobile', e.target.value)} onBlur={lookup} placeholder={t('frontoffice.visitors.mobilePlaceholder')} />
-          </FormField>
-          <FormField label={t('frontoffice.visitors.name')} required error={errors.name}><Input value={f.name} onChange={(e) => set('name', e.target.value)} /></FormField>
-        </div>
-        <ChipPicker label={t('frontoffice.visitors.purpose')} required options={FO_VISIT_PURPOSES.map((p) => ({ value: p.value, label: L.purpose(p.value) }))} value={f.purpose} onChange={(v) => set('purpose', v)} />
-        {f.purpose === 'ADMISSION_ENQUIRY' && <Note tone="info">{t('frontoffice.visitors.enquiryHint')}</Note>}
-        {(f.purpose === 'OTHER' || f.purpose === 'VENDOR') && (
-          <FormField label={t('frontoffice.visitors.purposeNote')}><Input value={f.purposeNote} onChange={(e) => set('purposeNote', e.target.value)} /></FormField>
-        )}
-        {needsHost && <StaffSelect label={t('frontoffice.visitors.host')} required={f.purpose === 'MEET_STAFF'} error={errors.hostId} value={f.hostId} onChange={(v) => set('hostId', v)} />}
-        {f.purpose === 'PARENT_MEETING' && <StudentFinder label={t('frontoffice.visitors.parentOf')} value={f.student} onChange={(s) => set('student', s)} />}
-        <div className="grid gap-3 sm:grid-cols-3">
-          <FormField label={t('frontoffice.visitors.from')} className="sm:col-span-2"><Input value={f.from} onChange={(e) => set('from', e.target.value)} placeholder={t('frontoffice.visitors.fromPlaceholder')} /></FormField>
-          <FormField label={t('frontoffice.visitors.people')}><Input type="number" min={1} max={50} value={f.people} onChange={(e) => set('people', e.target.value)} /></FormField>
-        </div>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <FormField label={t('frontoffice.visitors.idType')}>
-            <Select value={f.idType} onChange={(e) => set('idType', e.target.value)}><option value="">{t('frontoffice.visitors.noId')}</option>{FO_ID_TYPES.map((x) => <option key={x.value} value={x.value}>{L.idType(x.value)}</option>)}</Select>
-          </FormField>
-          <FormField label={t('frontoffice.visitors.idNumber')}><Input value={f.idNumber} onChange={(e) => set('idNumber', e.target.value)} disabled={!f.idType} /></FormField>
-          <FormField label={t('frontoffice.visitors.badge')} hint={t('frontoffice.visitors.badgeHint')} error={errors.badgeNo}><Input value={f.badgeNo} onChange={(e) => set('badgeNo', e.target.value)} /></FormField>
-          <FormField label={t('frontoffice.visitors.vehicle')}><Input value={f.vehicleNo} onChange={(e) => set('vehicleNo', e.target.value.toUpperCase())} /></FormField>
-        </div>
-        <PhotoCapture value={f.photo} onChange={(v) => set('photo', v)} label={t('frontoffice.visitors.photo')} />
-        <FormField label={t('frontoffice.visitors.note')}><Textarea rows={2} value={f.note} onChange={(e) => set('note', e.target.value)} /></FormField>
-      </div>
-    </Drawer>
-  )
-}
 
 /** An admission-enquiry visit → an enquiry in Admissions. */
 function EnquiryModal({ visitor, onClose }) {
@@ -238,7 +172,7 @@ export default function FrontOfficeVisitors() {
   const qc = useQueryClient()
   const confirm = useConfirm()
   const { showError, showSuccess } = useSnackbar()
-  const [adding, setAdding] = useState(false)
+  const navigate = useNavigate()
   const [open, setOpen] = useState(null)
   const { data: desk, isLoading, error, refetch } = useQuery({ queryKey: ['frontoffice', 'visitors', 'desk'], queryFn: fetchVisitorDesk, refetchInterval: 60_000 })
   // the log, a page at a time (today's, or a search across dates); a new tab, range, purpose or search starts at page 1
@@ -280,7 +214,7 @@ export default function FrontOfficeVisitors() {
       <PageHeader icon={ConciergeBell} title={t('frontoffice.visitors.title')} subtitle={t('frontoffice.visitors.subtitle')}
         actions={<>
           {hasPermission('frontoffice.visitors.create') && <Button variant="secondary" icon={QrCode} onClick={() => setBadges(true)}>{t('frontoffice.visitors.badgeCards')}</Button>}
-          {hasPermission('frontoffice.visitors.create') && <Button icon={UserPlus} onClick={() => setAdding(true)}>{t('frontoffice.visitors.checkIn')}</Button>}
+          {hasPermission('frontoffice.visitors.create') && <Button icon={UserPlus} onClick={() => navigate('/frontoffice/visitors/new')}>{t('frontoffice.visitors.checkIn')}</Button>}
         </>} />
       {badges && <BadgeCards onClose={() => setBadges(false)} />}
       {error && <EmptyState error={error} onRetry={refetch} />}
@@ -313,7 +247,6 @@ export default function FrontOfficeVisitors() {
           </>
         )}
       </div>
-      <CheckInDrawer open={adding} onClose={() => setAdding(false)} />
       <VisitorDrawer id={open} today={desk?.date} onClose={() => setOpen(null)} onCheckOut={async (v) => { await checkOut(v); setOpen(null) }} onDelete={del} />
     </PageContainer>
   )

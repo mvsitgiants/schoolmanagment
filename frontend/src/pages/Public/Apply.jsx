@@ -45,7 +45,8 @@ function ApplyTab({ slug, info }) {
   const [form, setForm] = useState(() => emptyApplication(info.cycles[0]))
   const [errors, setErrors] = useState({})
   const [done, setDone] = useState(null)
-  const submit = useMutation({ mutationFn: () => publicApply(slug, { ...applicationBody(form), pass }), onSuccess: setDone, onError: (e) => { setErrors(e.fields ?? {}); window.scrollTo({ top: 0, behavior: 'smooth' }) } })
+  const [trap, setTrap] = useState('') // hidden from people; bots fill it in
+  const submit = useMutation({ mutationFn: () => publicApply(slug, { ...applicationBody(form), pass: pass ?? undefined, website: trap || undefined }), onSuccess: setDone, onError: (e) => { setErrors(e.fields ?? {}); window.scrollTo({ top: 0, behavior: 'smooth' }) } })
   if (!info.onlineApplication || !info.cycles.length) return <Card><p className="text-sm text-ink-muted">{t('admissions.public.notOpen')}</p></Card>
   if (done) return (
     <Card className="text-center">
@@ -56,16 +57,20 @@ function ApplyTab({ slug, info }) {
       <p className="mt-2 text-xs text-ink-faint">{t('admissions.public.keepNumber')}</p>
     </Card>
   )
-  if (!pass) return <MobileCheck slug={slug} title={t('admissions.public.applyTitle')} onPass={(p, m) => { setPass(p); setForm((f) => ({ ...f, parent: { ...f.parent, mobile: m } })) }} />
+  if (info.applyNeedsCode && !pass) return <MobileCheck slug={slug} title={t('admissions.public.applyTitle')} onPass={(p, m) => { setPass(p); setForm((f) => ({ ...f, parent: { ...f.parent, mobile: m } })) }} />
   const cycle = info.cycles.find((c) => c.id === form.cycleId)
+  // the form's sections are cards of their own; the instructions sit above them and the submit button below
   return (
-    <Card>
-      {cycle?.instructions && <Note className="mb-4"><span className="whitespace-pre-line">{cycle.instructions}</span></Note>}
-      {submit.error && <Note tone="danger" className="mb-4">{submit.error.message}</Note>}
-      <ApplicationForm cycles={info.cycles} value={form} onChange={setForm} errors={errors} lockMobile />
-      <Button className="w-full mt-6" size="lg" loading={submit.isPending} disabled={!form.classId || !form.child.firstName || !form.child.dob || !form.child.gender || !form.parent.name} onClick={() => submit.mutate()}>{t('admissions.public.submit')}</Button>
-      <p className="mt-2 text-xs text-ink-faint text-center">{t('admissions.public.documentsHint')}</p>
-    </Card>
+    <div className="space-y-4">
+      {cycle?.instructions && <Note><span className="whitespace-pre-line">{cycle.instructions}</span></Note>}
+      {submit.error && <Note tone="danger">{submit.error.message}</Note>}
+      <ApplicationForm cycles={info.cycles} value={form} onChange={setForm} errors={errors} lockMobile={!!pass} />
+      <div className="hidden" aria-hidden="true"><Input tabIndex={-1} autoComplete="off" value={trap} onChange={(e) => setTrap(e.target.value)} /></div>
+      <Card>
+        <Button className="w-full" size="lg" loading={submit.isPending} disabled={!form.classId || !form.child.firstName || !form.child.dob || !form.child.gender || !form.parent.name || String(form.parent.mobile ?? '').replace(/\D/g, '').length < 10} onClick={() => submit.mutate()}>{t('admissions.public.submit')}</Button>
+        <p className="mt-2 text-xs text-ink-faint text-center">{t('admissions.public.documentsHint')}</p>
+      </Card>
+    </div>
   )
 }
 
@@ -134,7 +139,7 @@ export default function Apply({ track = false }) {
   const { t } = useTranslation('admissions')
   const { slug } = useParams()
   const { data: info, isLoading, error } = useQuery({ queryKey: ['public-admissions', slug], queryFn: () => publicAdmissions(slug), retry: false })
-  // a poster's QR opens straight on the enquiry form (?tab=enquire)
+  // a poster's QR opens straight on its form: ?tab=enquire the enquiry, ?tab=apply (or none) the application
   const [tab, setTab] = useState(() => (track ? 'TRACK' : new URLSearchParams(window.location.search).get('tab') === 'enquire' ? 'ENQUIRE' : 'APPLY'))
   const s = info?.school
   useEffect(() => {

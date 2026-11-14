@@ -105,7 +105,20 @@
       "address": "Address",
       "addressLine": "House, street, area",
       "city": "City",
-      "pincode": "PIN code"
+      "pincode": "PIN code",
+      "schoolName": "School name",
+      "boardExample": "CBSE, ICSE, State Board",
+      "sections": {
+        "place": "Class applied for",
+        "placeHint": "The class the child will join next session.",
+        "childHint": "As written on the birth certificate.",
+        "school": "Present or previous school",
+        "schoolHint": "Leave this blank if the child has not been to school yet.",
+        "parentHint": "The parent the school will call about this application.",
+        "addressHint": "Where the family lives now.",
+        "extraHint": "A few more questions the school asks this year.",
+        "placeHintCycle": "Admissions for {{cycle}}: the class the child will join."
+      }
     },
     "enquiries": {
       "title": "Enquiries",
@@ -145,7 +158,30 @@
       "noHistory": "No follow-ups yet.",
       "deleteTitle": "Delete the enquiry for {{name}}?",
       "deleteHint": "Use this for a duplicate or an entry made by mistake. Its follow-up notes go with it. An enquiry that has become an application can't be deleted.",
-      "deleted": "Enquiry deleted"
+      "deleted": "Enquiry deleted",
+      "childName": "Child’s name",
+      "page": {
+        "subtitle": "Note down a family that has asked about admission, so the school can follow up.",
+        "list": "All enquiries",
+        "clear": "Clear",
+        "requiredNote": "Needed: the child’s name and the parent’s 10-digit mobile number. After saving, the enquiry gets its number, is marked New with a follow-up date, and opens so you can log the first follow-up.",
+        "childHint": "Only the name is needed now; add the rest if the family tells you.",
+        "classWanted": "Class wanted",
+        "parentHint": "The school follows up on this mobile number.",
+        "about": "About the enquiry",
+        "aboutHint": "How the family heard of the school, and anything they asked about.",
+        "source": "How they heard of us",
+        "note": "What they asked about",
+        "notePlaceholder": "Fees, transport, a school visit…",
+        "check": {
+          "title": "Asked before?",
+          "checking": "Checking…",
+          "empty": "Type the child’s name or the parent’s mobile number — earlier enquiries from the same family show up here, so the family is not entered twice.",
+          "found": "Asked before?",
+          "byMobile": "Enquiries with the same mobile number:",
+          "byName": "Enquiries for a child with this name:"
+        }
+      }
     },
     "applications": {
       "title": "Applications",
@@ -208,7 +244,26 @@
       },
       "classesNav": "Classes",
       "allClasses": "All classes",
-      "seatsFilled": "{{admitted}} of {{seats}} seats filled"
+      "seatsFilled": "{{admitted}} of {{seats}} seats filled",
+      "page": {
+        "title": "New application",
+        "subtitle": "Fill in an application at the admission desk for a family that has come to apply.",
+        "list": "All applications",
+        "clear": "Clear",
+        "requiredNote": "Needed: the class, the child’s first name, date of birth and gender, and a parent’s name and 10-digit mobile number. After saving, the application gets its number and opens, so you can add documents, set the entrance test and make an offer. An open enquiry with the same mobile number is linked to it.",
+        "check": {
+          "title": "Applied before?",
+          "checking": "Checking…",
+          "empty": "Type the parent’s mobile number or the child’s first name — applications already made by this family show up here.",
+          "found": "Applied before?",
+          "byMobile": "Applications with the same mobile number — a brother or sister, or the same child:",
+          "byName": "Applications for a child with this name:"
+        },
+        "fromEnquiry": {
+          "title": "From an enquiry",
+          "body": "The child’s and parent’s details from the enquiry are filled in. Saving marks the enquiry as applied."
+        }
+      }
     },
     "tests": {
       "title": "Entrance tests",
@@ -323,7 +378,19 @@
       "posterHint": "Put it on banners, flyers and the gate: parents scan it and land on the enquiry form — each enquiry comes into Admissions › Enquiries.",
       "printPoster": "Print a poster",
       "posterHeading": "Admissions open — scan to enquire",
-      "posterText": "Point your phone camera at the code, fill in a short form, and our admissions team will call you back."
+      "posterText": "Point your phone camera at the code, fill in a short form, and our admissions team will call you back.",
+      "applyQrTitle": "“Scan to apply” QR",
+      "applyQrHint": "Parents scan it and the admission form opens on their phone — they fill it in there and it comes into Admissions › Applications. Show it on a screen at the front desk, or print it.",
+      "showOnScreen": "Show on screen",
+      "applyPosterHeading": "Admissions open — scan to apply",
+      "applyPosterText": "Point your phone camera at the code and fill in the admission form on your phone. It takes about five minutes.",
+      "desk": {
+        "heading": "Scan to fill the admission form",
+        "step1": "Open your phone camera and point it at the code.",
+        "step2": "Tap the link that appears.",
+        "step3": "Fill in the form on your phone and press Submit.",
+        "close": "Close"
+      }
     },
     "public": {
       "title": "Admissions",

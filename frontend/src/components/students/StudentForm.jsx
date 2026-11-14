@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { Plus, Star, X } from 'lucide-react'
 import { BLOOD_GROUPS, GENDERS, GUARDIAN_RELATIONS, STUDENT_CATEGORIES } from '@schoolgiant/shared'
-import { DateInput, FormField, Input, Panel, Select } from '../system'
+import { DateInput, FormField, FormSection, Input, Select } from '../system'
 import Button from '../ui/Button'
 import { fetchAcademicLookup } from '../../api/academics'
 
@@ -60,9 +60,9 @@ export default function StudentForm({ value: f, onChange, errors = {}, editing =
 
   const remove = (i) => onChange({ ...f, guardians: f.guardians.filter((_, j) => j !== i) })
   return (
-    <div className="space-y-4">
-      <Panel title={t('students.form.placement')} subtitle={lookup?.currentYear ? t('students.form.placementHint', { year: lookup.currentYear.name }) : undefined}>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+    <div className="space-y-5">
+      <FormSection title={t('students.form.placement')} hint={lookup?.currentYear ? t('students.form.placementHint', { year: lookup.currentYear.name }) : undefined}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
           <div className="sm:col-span-2">
             <FormField label={t('students.form.section')} required error={errors.sectionId}>
               <Select value={f.sectionId} onChange={set('sectionId')}>
@@ -76,11 +76,11 @@ export default function StudentForm({ value: f, onChange, errors = {}, editing =
           {!editing && <FormField label={t('students.form.admissionNo')} error={errors.admissionNo} hint={t('students.form.admissionNoHint')}><Input value={f.admissionNo} onChange={set('admissionNo')} maxLength={30} /></FormField>}
           <FormField label={t('students.form.admissionDate')} error={errors.admissionDate} hint={editing ? undefined : t('students.form.admissionDateHint')}><DateInput value={f.admissionDate} onChange={set('admissionDate')} /></FormField>
         </div>
-      </Panel>
+      </FormSection>
 
-      <Panel title={t('students.form.student')}
+      <FormSection title={t('students.form.student')} hint={t('students.form.studentHint')}
         actions={!more && <Button size="sm" variant="ghost" icon={Plus} onClick={() => setMore(true)}>{t('students.form.moreDetails')}</Button>}>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
           <FormField label={t('students.form.firstName')} required error={errors.firstName}><Input value={f.firstName} onChange={set('firstName')} /></FormField>
           <FormField label={t('students.form.middleName')} error={errors.middleName}><Input value={f.middleName} onChange={set('middleName')} /></FormField>
           <FormField label={t('students.form.lastName')} error={errors.lastName}><Input value={f.lastName} onChange={set('lastName')} /></FormField>
@@ -107,15 +107,15 @@ export default function StudentForm({ value: f, onChange, errors = {}, editing =
             </>
           )}
         </div>
-      </Panel>
+      </FormSection>
 
-      <Panel title={t('students.form.guardians')} subtitle={t('students.form.guardiansHint')} bodyClassName="!p-0"
+      <FormSection title={t('students.form.guardians')} hint={t('students.form.guardiansHint')} bodyClassName="!p-0"
         actions={<Button size="sm" variant="ghost" icon={Plus} disabled={f.guardians.length >= 6} onClick={() => onChange({ ...f, guardians: [...f.guardians, { ...blankGuardian }] })}>{t('students.form.addGuardian')}</Button>}>
         {errors.guardians && <p className="text-sm text-danger-600 px-4 pt-3">{errors.guardians}</p>}
         <div className="divide-y divide-border">
           {f.guardians.map((g, i) => (
             <div key={i} className="px-4 py-3">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1.3fr_1fr_auto] gap-3 lg:items-end">
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:items-end">
                 <FormField label={t('students.form.guardianName')} error={errors[`guardians.${i}.name`]}><Input value={g.name} onChange={setG(i, 'name')} /></FormField>
                 <FormField label={t('students.form.relation')}>
                   <Select value={g.relation ?? ''} onChange={setG(i, 'relation')}><option value="">{t('students.notSet')}</option>{GUARDIAN_RELATIONS.map((r) => <option key={r.value} value={r.value}>{t(`students.relations.${r.value}`, r.label)}</option>)}</Select>
@@ -123,7 +123,7 @@ export default function StudentForm({ value: f, onChange, errors = {}, editing =
                 <FormField label={t('students.form.mobile')} error={errors[`guardians.${i}.mobile`]}><Input value={g.mobile ?? ''} onChange={setG(i, 'mobile')} inputMode="tel" placeholder="98450 12345" /></FormField>
                 <FormField label={t('students.form.email')} error={errors[`guardians.${i}.email`]}><Input type="email" value={g.email ?? ''} onChange={setG(i, 'email')} /></FormField>
                 <FormField label={t('students.form.occupation')}><Input value={g.occupation ?? ''} onChange={setG(i, 'occupation')} /></FormField>
-                <div className="flex items-center gap-1 h-9 sm:col-span-2 lg:col-span-1">
+                <div className="flex items-center gap-1 h-9">
                   <button type="button" onClick={() => makePrimary(i)} disabled={g.isPrimary} title={g.isPrimary ? t('students.form.primary') : t('students.form.makePrimary')} aria-label={g.isPrimary ? t('students.form.primary') : t('students.form.makePrimary')}
                     className={g.isPrimary ? 'inline-flex items-center gap-1 h-8 px-2 rounded-md text-xs font-medium text-brand-700 bg-brand-50 border border-brand-200' : 'inline-flex items-center gap-1 h-8 px-2 rounded-md text-xs font-medium text-ink-muted hover:bg-black/[0.04]'}>
                     <Star className={g.isPrimary ? 'w-3.5 h-3.5 fill-current' : 'w-3.5 h-3.5'} /><span className="lg:sr-only">{g.isPrimary ? t('students.form.primary') : t('students.form.makePrimary')}</span>
@@ -134,34 +134,32 @@ export default function StudentForm({ value: f, onChange, errors = {}, editing =
             </div>
           ))}
         </div>
-      </Panel>
+      </FormSection>
 
-      <Panel title={t('students.form.addressOnly')}>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-          <div className="sm:col-span-2"><FormField label={t('students.form.addressLine')}><Input value={f.address.line} onChange={setIn('address', 'line')} /></FormField></div>
+      <FormSection title={t('students.form.addressOnly')} hint={t('students.form.addressHint')}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+          <div className="sm:col-span-2 xl:col-span-4"><FormField label={t('students.form.addressLine')}><Input value={f.address.line} onChange={setIn('address', 'line')} /></FormField></div>
           <FormField label={t('students.form.city')}><Input value={f.address.city} onChange={setIn('address', 'city')} /></FormField>
           <FormField label={t('students.form.state')}><Input value={f.address.state} onChange={setIn('address', 'state')} /></FormField>
           <FormField label={t('students.form.pincode')}><Input value={f.address.pincode} onChange={setIn('address', 'pincode')} inputMode="numeric" maxLength={10} /></FormField>
         </div>
-      </Panel>
+      </FormSection>
 
-      <div className="grid lg:grid-cols-2 gap-4">
-        <Panel title={t('students.form.previousSchool')}>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div className="sm:col-span-3"><FormField label={t('students.form.schoolName')}><Input value={f.previousSchool.name} onChange={setIn('previousSchool', 'name')} /></FormField></div>
-            <FormField label={t('students.form.board')}><Input value={f.previousSchool.board} onChange={setIn('previousSchool', 'board')} placeholder="CBSE" /></FormField>
-            <FormField label={t('students.form.lastClass')}><Input value={f.previousSchool.lastClass} onChange={setIn('previousSchool', 'lastClass')} /></FormField>
-            <FormField label={t('students.form.tcNo')}><Input value={f.previousSchool.tcNo} onChange={setIn('previousSchool', 'tcNo')} /></FormField>
-          </div>
-        </Panel>
-        <Panel title={t('students.form.medical')}>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <FormField label={t('students.form.allergies')}><Input value={f.medical.allergies} onChange={setIn('medical', 'allergies')} /></FormField>
-            <FormField label={t('students.form.conditions')}><Input value={f.medical.conditions} onChange={setIn('medical', 'conditions')} /></FormField>
-            <div className="sm:col-span-2"><FormField label={t('students.form.medicalNotes')}><Input value={f.medical.notes} onChange={setIn('medical', 'notes')} /></FormField></div>
-          </div>
-        </Panel>
-      </div>
+      <FormSection title={t('students.form.previousSchool')} hint={t('students.form.previousSchoolHint')}>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="sm:col-span-3"><FormField label={t('students.form.schoolName')}><Input value={f.previousSchool.name} onChange={setIn('previousSchool', 'name')} /></FormField></div>
+          <FormField label={t('students.form.board')}><Input value={f.previousSchool.board} onChange={setIn('previousSchool', 'board')} placeholder="CBSE" /></FormField>
+          <FormField label={t('students.form.lastClass')}><Input value={f.previousSchool.lastClass} onChange={setIn('previousSchool', 'lastClass')} /></FormField>
+          <FormField label={t('students.form.tcNo')}><Input value={f.previousSchool.tcNo} onChange={setIn('previousSchool', 'tcNo')} /></FormField>
+        </div>
+      </FormSection>
+      <FormSection title={t('students.form.medical')} hint={t('students.form.medicalHint')}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <FormField label={t('students.form.allergies')}><Input value={f.medical.allergies} onChange={setIn('medical', 'allergies')} /></FormField>
+          <FormField label={t('students.form.conditions')}><Input value={f.medical.conditions} onChange={setIn('medical', 'conditions')} /></FormField>
+          <div className="sm:col-span-2"><FormField label={t('students.form.medicalNotes')}><Input value={f.medical.notes} onChange={setIn('medical', 'notes')} /></FormField></div>
+        </div>
+      </FormSection>
     </div>
   )
 }

@@ -170,7 +170,33 @@
       "endDate": "Ends",
       "period": "Period",
       "status": "Status",
-      "notes": "Notes"
+      "notes": "Notes",
+      "form": {
+        "subtitle": "Add a research project the faculty have applied for or been given money for. Money and dates can be filled in as the project moves along.",
+        "allProjects": "All projects",
+        "project": "Project",
+        "projectHint": "The title as on the proposal or the sanction letter, and where the project stands now.",
+        "team": "Investigators",
+        "teamHint": "The teacher who leads the project and the colleagues who work on it.",
+        "funding": "Funding",
+        "fundingHint": "Who pays for the project, under which scheme, and the number on the sanction order.",
+        "money": "Money",
+        "moneyHint": "Amounts in rupees. Update what was received and used as the money comes in and is spent.",
+        "dates": "Dates and notes",
+        "datesHint": "When the proposal was sent, when it was approved, and when the work starts and ends.",
+        "requiredNote": "Needed: the project title and the principal investigator. Everything else can be added later by opening the project from the list. After saving, you go back to the list of projects."
+      },
+      "check": {
+        "title": "Already added?",
+        "empty": "Type the project title or the sanction order number — projects already added with a similar title show up here.",
+        "found": "Projects with a similar title or the same sanction order number:"
+      },
+      "piCheck": {
+        "title": "Projects of {{name}}",
+        "none": "No other projects yet.",
+        "running_one": "{{count}} of these is sanctioned or ongoing.",
+        "running_other": "{{count}} of these are sanctioned or ongoing."
+      }
     },
     "scholars": {
       "tab": "Ph.D. scholars",

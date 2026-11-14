@@ -1,13 +1,12 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { useNavigate } from 'react-router-dom'
-import { AlarmClock, BookCopy, ClipboardCheck, BookMarked, BookOpen, BookUp, Disc3, Download, GraduationCap, Library, Newspaper, Pencil, Plus, Printer, ScanSearch, ScrollText, TabletSmartphone, Trash2 } from 'lucide-react'
+import { useLocation, useNavigate } from 'react-router-dom'
+import { AlarmClock, BookCopy, ClipboardCheck, BookMarked, BookOpen, BookUp, Disc3, Download, GraduationCap, Library, Newspaper, Pencil, Plus, Printer, ScrollText, TabletSmartphone, Trash2 } from 'lucide-react'
 import { COPY_SOURCES, COPY_STATUS, ITEM_TYPES, hasCopies, toPaise, toRupees } from '@schoolgiant/shared'
 import { DateInput, Attachments, CodeBadge, ColorChip, DataTable, Drawer, FormField, HeaderButton, ImportExportButtons, Input, LevelBar, Modal, Money, Note, PageContainer, PageHeader, Panel, PersonCell, SearchInput, Select, StatCardRow, Textarea, useConfirm, usePrompt } from '../../components/system'
 import Button from '../../components/ui/Button'
-import { addCopies, deleteCopy, deleteTitle, exportCatalogue, fetchTitle, fetchTitles, importCatalogue, lookupIsbn, saveTitle, updateCopy } from '../../api/library'
-import { fetchAcademicLookup } from '../../api/academics'
+import { addCopies, deleteCopy, deleteTitle, exportCatalogue, fetchTitle, fetchTitles, importCatalogue, saveTitle, updateCopy } from '../../api/library'
 import { hasPermission } from '../../api/auth'
 import { printDocuments } from '../../components/print/printDocument'
 import useDebouncedValue from '../../hooks/useDebouncedValue'
@@ -15,6 +14,7 @@ import { readSheet } from '../../utils/readSheet'
 import { useSnackbar } from '../../context/SnackbarContext'
 import { useFormat } from '../../context/SettingsContext'
 import { CopyPill, LoanPill, useLibraryLabels, useLibraryMeta } from '../../components/library/LibraryKit'
+import TitleForm, { titleBody, titleFormValues } from '../../components/library/TitleForm'
 import useUrlSearch from '../../hooks/useUrlSearch'
 
 // each item type's icon in the catalogue table
@@ -22,99 +22,23 @@ const TYPE_ICON = { BOOK: BookOpen, REFERENCE: BookMarked, TEXTBOOK: GraduationC
 
 const PAGE = 50
 
-function TitleForm({ title, onClose, onSaved }) {
+/** Edit a title in a pop-up — the same form as the Add title page (its sections go plain inside the pop-up). */
+function EditTitle({ title, onClose, onSaved }) {
   const { t } = useTranslation('library')
-  const L = useLibraryLabels()
-  const { showError, showSuccess } = useSnackbar()
-  const { data: meta } = useLibraryMeta()
-  const { data: lookup } = useQuery({ queryKey: ['academics', 'lookup'], queryFn: fetchAcademicLookup })
-  const [form, setForm] = useState({
-    title: title?.title ?? '', subtitle: title?.subtitle ?? '', authors: (title?.authors ?? []).join(', '), isbn: title?.isbn ?? '', publisher: title?.publisher ?? '',
-    year: title?.year ?? '', edition: title?.edition ?? '', language: title?.language ?? '', type: title?.type ?? 'BOOK', category: title?.category ?? '', callNo: title?.callNo ?? '',
-    description: title?.description ?? '', ebookUrl: title?.ebookUrl ?? '', forFamilies: title?.forFamilies ?? false, classIds: title?.classIds ?? [],
-    count: 1, price: '', shelf: '',
-  })
+  const { showError } = useSnackbar()
+  const [form, setForm] = useState(() => titleFormValues(title))
   const [errors, setErrors] = useState({})
-  const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.type === 'checkbox' ? e.target.checked : e.target.value }))
-  const fill = useMutation({
-    mutationFn: () => lookupIsbn(form.isbn),
-    onSuccess: (r) => {
-      if (r.existing && r.existing.id !== title?.id) showError(t('library.titles.isbnExists', { title: r.existing.title }))
-      if (!r.found) { showError(t('library.titles.isbnNotFound')); return }
-      const d = r.data
-      setForm((f) => ({ ...f, isbn: r.isbn, title: f.title || d.title || '', subtitle: f.subtitle || d.subtitle || '', authors: f.authors || (d.authors ?? []).join(', '), publisher: f.publisher || d.publisher || '', year: f.year || d.year || '', category: f.category || d.category || '' }))
-      showSuccess(t('library.titles.isbnFilled'))
-    },
-    onError: (e) => { setErrors(e.details?.fields ?? {}); showError(e.message) },
-  })
-  const ebook = form.type === 'EBOOK'
   const save = useMutation({
-    mutationFn: () => saveTitle(title?.id, {
-      title: form.title, subtitle: form.subtitle, authors: form.authors.split(/[,;]/).map((x) => x.trim()).filter(Boolean), isbn: form.isbn, publisher: form.publisher,
-      year: form.year === '' ? null : Number(form.year), edition: form.edition, language: form.language, type: form.type, category: form.category, callNo: form.callNo,
-      description: form.description, ebookUrl: form.ebookUrl, forFamilies: form.forFamilies, classIds: form.classIds,
-      ...(!title && hasCopies(form.type) && Number(form.count) > 0 && { copies: { count: Number(form.count), price: form.price === '' ? null : toPaise(form.price), shelf: form.shelf } }),
-    }),
+    mutationFn: () => saveTitle(title.id, titleBody(form, { editing: true })),
     onSuccess: onSaved,
     onError: (e) => { setErrors(e.details?.fields ?? {}); showError(e.message) },
   })
-  const toggleClass = (id) => setForm((f) => ({ ...f, classIds: f.classIds.includes(id) ? f.classIds.filter((x) => x !== id) : [...f.classIds, id] }))
   return (
-    <Modal open onClose={onClose} size="lg" title={title ? t('library.titles.editTitle') : t('library.titles.newTitle')} footer={<>
+    <Modal open onClose={onClose} size="xl" title={t('library.titles.editTitle')} footer={<>
       <Button variant="secondary" onClick={onClose}>{t('actions.cancel')}</Button>
       <Button loading={save.isPending} disabled={!form.title.trim()} onClick={() => save.mutate()}>{t('library.titles.save')}</Button>
     </>}>
-      <div className="space-y-4">
-        <div className="grid sm:grid-cols-[1fr_auto] gap-2 items-end">
-          <FormField label={t('library.titles.isbn')} error={errors.isbn} hint={t('library.titles.isbnHint')}><Input value={form.isbn} onChange={set('isbn')} placeholder="978…" inputMode="numeric" /></FormField>
-          <Button variant="secondary" icon={ScanSearch} loading={fill.isPending} disabled={form.isbn.replace(/\D/g, '').length < 10} onClick={() => fill.mutate()}>{t('library.titles.fill')}</Button>
-        </div>
-        <div className="grid sm:grid-cols-2 gap-3">
-          <FormField label={t('library.titles.title')} required error={errors.title} className="sm:col-span-2"><Input value={form.title} onChange={set('title')} /></FormField>
-          <FormField label={t('library.titles.subtitle')} className="sm:col-span-2"><Input value={form.subtitle} onChange={set('subtitle')} /></FormField>
-          <FormField label={t('library.titles.authors')} hint={t('library.titles.authorsHint')} className="sm:col-span-2"><Input value={form.authors} onChange={set('authors')} /></FormField>
-          <FormField label={t('library.titles.type')}><Select value={form.type} onChange={set('type')}>{ITEM_TYPES.map((x) => <option key={x.value} value={x.value}>{L.type(x.value)}</option>)}</Select></FormField>
-          <FormField label={t('library.titles.category')}>
-            <Input value={form.category} onChange={set('category')} list="library-categories" />
-            <datalist id="library-categories">{(meta?.categories ?? []).map((c) => <option key={c} value={c} />)}</datalist>
-          </FormField>
-          <FormField label={t('library.titles.publisher')}><Input value={form.publisher} onChange={set('publisher')} /></FormField>
-          <div className="grid grid-cols-2 gap-3">
-            <FormField label={t('library.titles.year')}><Input type="number" min="1400" max="2100" value={form.year} onChange={set('year')} /></FormField>
-            <FormField label={t('library.titles.edition')}><Input value={form.edition} onChange={set('edition')} /></FormField>
-          </div>
-          <FormField label={t('library.titles.language')}><Input value={form.language} onChange={set('language')} /></FormField>
-          <FormField label={t('library.titles.callNo')} hint={t('library.titles.callNoHint')}><Input value={form.callNo} onChange={set('callNo')} /></FormField>
-        </div>
-        <FormField label={t('library.titles.description')}><Textarea rows={2} value={form.description} onChange={set('description')} /></FormField>
-        {ebook && (
-          <div className="space-y-3 rounded-xl border border-border p-3">
-            <FormField label={t('library.titles.ebookUrl')} error={errors.ebookUrl} hint={t('library.titles.ebookUrlHint')}><Input type="url" value={form.ebookUrl} onChange={set('ebookUrl')} placeholder="https://" /></FormField>
-            <label className="inline-flex items-center gap-2 text-sm text-ink"><input type="checkbox" checked={form.forFamilies} onChange={set('forFamilies')} className="rounded border-border text-brand-500" />{t('library.titles.forFamilies')}</label>
-            {form.forFamilies && (lookup?.classes ?? []).length > 0 && (
-              <div>
-                <p className="text-xs font-medium text-ink-muted mb-1.5">{t('library.titles.classes')}</p>
-                <div className="flex flex-wrap gap-2">
-                  {lookup.classes.map((c) => (
-                    <label key={c.id} className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-sm">
-                      <input type="checkbox" checked={form.classIds.includes(c.id)} onChange={() => toggleClass(c.id)} className="rounded border-border text-brand-500" />{c.name}
-                    </label>
-                  ))}
-                </div>
-                <p className="text-xs text-ink-faint mt-1">{t('library.titles.classesHint')}</p>
-              </div>
-            )}
-          </div>
-        )}
-        {!title && hasCopies(form.type) && (
-          <div className="grid grid-cols-3 gap-3 rounded-xl border border-border p-3">
-            <FormField label={t('library.titles.copiesCount')}><Input type="number" min="0" max="200" value={form.count} onChange={set('count')} /></FormField>
-            <FormField label={t('library.copies.price')}><Input type="number" min="0" value={form.price} onChange={set('price')} /></FormField>
-            <FormField label={t('library.copies.shelf')}><Input value={form.shelf} onChange={set('shelf')} /></FormField>
-            <p className="col-span-3 text-xs text-ink-faint">{t('library.titles.copiesHint')}</p>
-          </div>
-        )}
-      </div>
+      <TitleForm value={form} onChange={setForm} errors={errors} onErrors={setErrors} editing titleId={title.id} />
     </Modal>
   )
 }
@@ -246,6 +170,7 @@ function TitleDrawer({ id, onClose, onEdit, onChanged }) {
 /** Library › Catalogue: titles and their copies (each with its accession number / barcode), e-books, import and labels. */
 export default function Catalogue() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { t } = useTranslation('library')
   const L = useLibraryLabels()
   const qc = useQueryClient()
@@ -258,7 +183,7 @@ export default function Catalogue() {
   const [category, setCategory] = useState('')
   const [page, setPage] = useState(1)
   const [editing, setEditing] = useState(null)
-  const [open, setOpen] = useState(null)
+  const [open, setOpen] = useState(() => location.state?.open ?? null) // a title just added opens here
   const params = { search: q || undefined, type: type || undefined, category: category || undefined, page, pageSize: PAGE }
   const { data, isLoading } = useQuery({ queryKey: ['library', 'titles', params], queryFn: () => fetchTitles(params) })
   const refresh = () => qc.invalidateQueries({ queryKey: ['library'] })
@@ -275,7 +200,7 @@ export default function Catalogue() {
             onDone={refresh} />}
           {hasPermission('library.catalogue.export') && <HeaderButton icon={Download} onClick={() => exportCatalogue().catch((e) => showError(e.message))}>{t('library.titles.export')}</HeaderButton>}
           <HeaderButton icon={ClipboardCheck} onClick={() => navigate('/library/stock-check')}>{t('library.stock.button')}</HeaderButton>
-          <HeaderButton icon={Plus} variant="primary" requires="library.catalogue.create" onClick={() => setEditing('new')}>{t('library.titles.new')}</HeaderButton>
+          <HeaderButton icon={Plus} variant="primary" requires="library.catalogue.create" onClick={() => navigate('/library/catalogue/new')}>{t('library.titles.new')}</HeaderButton>
         </>} />
       <div className="space-y-4">
         {tot && <StatCardRow items={[
@@ -307,7 +232,7 @@ export default function Catalogue() {
           pagination={data && data.total > PAGE ? { page: page - 1, size: PAGE, totalElements: data.total, totalPages: Math.ceil(data.total / PAGE), onPageChange: (p) => setPage(p + 1) } : undefined} />
       </div>
       {open && <TitleDrawer id={open} onClose={() => setOpen(null)} onEdit={(x) => { setOpen(null); setEditing(x) }} onChanged={() => {}} />}
-      {editing && <TitleForm title={editing === 'new' ? null : editing} onClose={() => setEditing(null)}
+      {editing && <EditTitle title={editing} onClose={() => setEditing(null)}
         onSaved={(r) => { setEditing(null); refresh(); showSuccess(r.added ? t('library.titles.savedWithCopies', { count: r.added }) : t('library.titles.saved')); if (!r.id) return; setOpen(r.id) }} />}
     </PageContainer>
   )

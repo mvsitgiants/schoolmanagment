@@ -43,6 +43,17 @@
       "READMITTED": "Back to studying"
     },
     "admit": {
+      "directory": "Student directory",
+      "clear": "Clear",
+      "requiredNote": "Needed to admit: first name, class and section, and at least one parent or guardian. Everything else can be added later from the student’s profile.",
+      "check": {
+        "title": "Already in the school?",
+        "checking": "Checking…",
+        "empty": "Type the student’s first name or a parent’s mobile number — students already in the school show up here.",
+        "found": "Already in the school?",
+        "byMobile": "Same parent mobile number — a brother or sister, or the same child:",
+        "byName": "Students with this name:"
+      },
       "title": "New admission",
       "subtitle": "Admit a student into a class and section. The admission number comes from the number series unless you type one.",
       "save": "Admit student",
@@ -87,6 +98,10 @@
       "sectionN": "Section {{name}}"
     },
     "form": {
+      "studentHint": "Name as on the birth certificate.",
+      "addressHint": "Where the student lives now.",
+      "previousSchoolHint": "Only if the student is coming from another school.",
+      "medicalHint": "Anything the school should know in an emergency.",
       "placement": "Class and admission",
       "placementHint": "Sections of {{year}}",
       "section": "Class and section",

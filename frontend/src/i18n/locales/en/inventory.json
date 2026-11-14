@@ -469,7 +469,28 @@
       "evApproved": "Approved",
       "evReceived": "Goods received ({{no}})",
       "evCancelled": "Cancelled",
-      "invoiceShort": "invoice {{no}}"
+      "invoiceShort": "invoice {{no}}",
+      "form": {
+        "subtitle": "Pick the vendor, list the items with the rates agreed, and save it as a draft to send for approval.",
+        "clear": "Clear",
+        "supplier": "Vendor and dates",
+        "supplierHint": "Who the order goes to, and when the goods should arrive.",
+        "dateHint": "Leave empty for today.",
+        "linesHint": "Pick each item and how many. The rate fills in from the last price paid — change it to the rate agreed with the vendor.",
+        "taxTerms": "Tax and terms",
+        "taxTermsHint": "Printed on the order the vendor receives.",
+        "totalTitle": "Order total",
+        "itemsN": "Items",
+        "itemsQty_one": "{{lines}} item · {{qty}} in all",
+        "itemsQty_other": "{{lines}} items · {{qty}} in all",
+        "subtotal": "Before tax",
+        "unpriced": "Items without a rate are priced at the item’s last rate when the order is saved.",
+        "recentTitle": "Earlier orders",
+        "recentPick": "Pick a vendor to see their last few orders — handy for checking rates and terms.",
+        "recentFrom": "Earlier orders from {{name}}",
+        "recentNone": "No orders to this vendor yet.",
+        "requiredNote": "Needed: the vendor and at least one item. The order is saved as a draft — open it to send it for approval. Once approved, goods are received against it and the store stock goes up."
+      }
     },
     "sales": {
       "pageTitle": "Uniform & book sales",
@@ -592,7 +613,35 @@
       "disposed": "Asset disposed",
       "disposedNote": "{{method}} on {{date}}: {{reason}}",
       "printLabels_one": "Print {{count}} label",
-      "printLabels_other": "Print {{count}} labels"
+      "printLabels_other": "Print {{count}} labels",
+      "form": {
+        "subtitle": "Add a piece of furniture, a computer or any equipment the school keeps — where it is, who has it and what it cost.",
+        "save": "Add asset",
+        "clear": "Clear",
+        "what": "What it is",
+        "whatHint": "Name it the way people in school know it, and pick the closest category.",
+        "where": "Where it is",
+        "whereHint": "The room or place it is kept, and the person who looks after it.",
+        "purchase": "Purchase and warranty",
+        "purchaseHint": "From the bill. The cost and purchase date work out its value today.",
+        "noVendor": "Not recorded",
+        "condition": "Condition and value",
+        "conditionHint": "How it is now, and how many years it is expected to last.",
+        "requiredNote": "Only the name is needed. The tag is given automatically (the next number for the category) unless you type one. After saving, the asset opens in the register, where you can log repairs and service visits."
+      },
+      "check": {
+        "title": "Already in the register?",
+        "checking": "Checking…",
+        "empty": "Type the serial number or the name — assets already in the register show up here, so the same one is not added twice.",
+        "foundSerial": "Same serial number",
+        "serialHint": "This serial number is already in the register. Open it to check before adding it again.",
+        "foundName": "Similar assets",
+        "nameHint": "Assets with a similar name. That is fine if this is another piece — each one gets its own tag.",
+        "inCategory": "{{category}} now",
+        "lastTag": "Last tag given",
+        "firstInCategory": "Nothing in this category yet — this will be the first.",
+        "lifeNote": "Usually lasts {{n}} years; its value goes down evenly over that time."
+      }
     }
   }
 }

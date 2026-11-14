@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { ArrowRightLeft, BookMarked, GraduationCap, Layers, Pencil, Plus, Scale, Trash2, UserPlus, Users } from 'lucide-react'
 import { ENROLMENT_STATUS, PROGRAM_COURSE_TYPES } from '@schoolgiant/shared'
@@ -232,11 +233,12 @@ export default function Programs() {
   const qc = useQueryClient()
   const { showSuccess } = useSnackbar()
   const [tab, setTab] = useState('programs')
-  const [editing, setEditing] = useState(null) // program form
+  const navigate = useNavigate()
+  const [editing, setEditing] = useState(null) // program being edited (a new one has its own page)
   const [regEditing, setRegEditing] = useState(null)
   const { programs, programId, setProgramId, isLoading, error, refetch } = useProgramList()
   const { data: regs = [] } = useQuery({ queryKey: ['regulations'], queryFn: fetchRegulations })
-  const start = () => (regs.length ? setEditing('new') : setRegEditing('new'))
+  const start = () => (regs.length ? navigate('/programs/programs/new') : setRegEditing('new'))
 
   return (
     <PageContainer>
@@ -255,13 +257,13 @@ export default function Programs() {
           {programId && <ProgramDetail programId={programId} onEdit={setEditing} onDeleted={() => { setProgramId(''); qc.invalidateQueries({ queryKey: ['programs'] }) }} />}
         </SideNavLayout>
       )}
-      {editing && <ProgramForm program={editing === 'new' ? null : editing} onClose={() => setEditing(null)}
+      {editing && <ProgramForm program={editing} onClose={() => setEditing(null)}
         onSaved={(p) => { setEditing(null); showSuccess(t('programs.programs.saved')); qc.invalidateQueries({ queryKey: ['programs'] }); qc.invalidateQueries({ queryKey: ['program', p.id] }); setProgramId(p.id) }} />}
       {regEditing && <RegulationForm regulation={regEditing === 'new' ? null : regEditing} onClose={() => setRegEditing(null)}
         onSaved={() => {
           const first = !regs.length
           setRegEditing(null); showSuccess(t('programs.regulations.saved')); qc.invalidateQueries({ queryKey: ['regulations'] })
-          if (first && tab === 'programs') setEditing('new')
+          if (first && tab === 'programs') navigate('/programs/programs/new')
         }} />}
     </PageContainer>
   )

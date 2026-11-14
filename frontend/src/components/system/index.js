@@ -40,6 +40,8 @@ export { default as MetricCard } from './MetricCard'
 
 // Forms — the canonical modal + field set. (ui/Modal and ui/Input now re-export these.)
 export { default as Modal, useOverlayLayer } from './Modal'
+export { default as FormPage, FormSection, FormActionBar, useSaveShortcut } from './FormPage'
+export { SaveShortcutHint, isSaveShortcut, useInOverlay } from './SaveShortcut'
 export { Label, Input, Select, Textarea, FormField } from './Form'
 export { default as DateInput, DateRangeInput } from './DateInput'
 

@@ -522,7 +522,7 @@ export async function publicAdmissions(tenant) {
     out.push({ id: String(c._id), name: c.name, yearName: c.yearName ?? null, closesOn: c.closesOn ?? null, instructions: c.instructions ?? null, form: form ? { name: form.name, definition: form.definition } : null, classes: cycleDto(c, cls).classes.map((x) => ({ classId: x.classId, className: x.className, minAge: x.minAge ?? null, maxAge: x.maxAge ?? null, testRequired: !!x.testRequired })) })
   }
   const p = tenant.profile ?? {}
-  return { school: { name: tenant.name, city: p.city ?? null, logoUrl: p.logoUrl ?? null, primaryColor: p.primaryColor ?? null, phone: p.phone ?? null }, onlineApplication: !!cfg.onlineApplication, websiteEnquiry: cfg.websiteEnquiry !== false, ageCutoff: cfg.ageCutoff, cycles: out, enquiryClasses: [...cls.values()].sort((a, b) => a.order - b.order).map((c) => ({ id: String(c._id), name: c.name })) }
+  return { school: { name: tenant.name, city: p.city ?? null, logoUrl: p.logoUrl ?? null, primaryColor: p.primaryColor ?? null, phone: p.phone ?? null }, onlineApplication: !!cfg.onlineApplication, applyNeedsCode: !!cfg.applyNeedsCode, websiteEnquiry: cfg.websiteEnquiry !== false, ageCutoff: cfg.ageCutoff, cycles: out, enquiryClasses: [...cls.values()].sort((a, b) => a.order - b.order).map((c) => ({ id: String(c._id), name: c.name })) }
 }
 
 /** A family's applications on their (verified) mobile number. */

@@ -76,7 +76,7 @@ function Thread({ id }) {
       {c.mine && !c.closed && hasPermission('communication.chat.create') ? (
         <div className="border-t border-border p-3 flex gap-2 items-end">
           <Textarea rows={2} className="flex-1" value={text} maxLength={CHAT_MAX} onChange={(e) => setText(e.target.value)} placeholder={t('communication.chat.placeholder')}
-            onKeyDown={(e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey) && text.trim()) reply.mutate() }} />
+            onKeyDown={(e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); if (text.trim()) reply.mutate() } }} />
           <Button icon={Send} loading={reply.isPending} disabled={!text.trim()} onClick={() => reply.mutate()} aria-label={t('communication.chat.send')} />
         </div>
       ) : <p className="border-t border-border p-3 text-xs text-ink-muted">{c.closed ? t('communication.chat.closedNote') : t('communication.chat.readOnly')}</p>}

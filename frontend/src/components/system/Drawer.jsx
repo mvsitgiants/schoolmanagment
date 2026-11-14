@@ -2,7 +2,8 @@ import { useEffect, useId, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import { X } from 'lucide-react'
-import { useOverlayLayer, useFocusTrap } from './Modal'
+import { useOverlayLayer, useFocusTrap, useFooterSaveShortcut } from './Modal'
+import { InOverlayContext, SaveShortcutHint } from './SaveShortcut'
 
 const WIDTH = { sm: 'sm:max-w-sm', md: 'sm:max-w-md', lg: 'sm:max-w-lg', xl: 'sm:max-w-2xl', '2xl': 'sm:max-w-3xl' }
 
@@ -22,7 +23,9 @@ export default function Drawer({ open, onClose, title, subtitle, children, foote
   const isTop = useOverlayLayer(open)
   const panelRef = useRef(null)
   const titleId = useId()
+  const footerRef = useRef(null)
   useFocusTrap(open, panelRef, isTop)
+  const shortcutHint = useFooterSaveShortcut(open, isTop, panelRef, footerRef)
 
   useEffect(() => {
     if (!open) return undefined
@@ -64,8 +67,13 @@ export default function Drawer({ open, onClose, title, subtitle, children, foote
             <X className="w-4 h-4" />
           </button>
         </div>
-        <div className="flex-1 overflow-y-auto scroll-thin px-4 sm:px-5 py-4">{children}</div>
-        {footer && <div className="px-4 sm:px-5 py-3.5 sm:py-4 border-t border-border flex justify-end gap-2 shrink-0">{footer}</div>}
+        <div className="flex-1 overflow-y-auto scroll-thin px-4 sm:px-5 py-4"><InOverlayContext.Provider value>{children}</InOverlayContext.Provider></div>
+        {footer && (
+          <div ref={footerRef} className="px-4 sm:px-5 py-3.5 sm:py-4 border-t border-border flex items-center justify-end gap-2 shrink-0">
+            {shortcutHint && <SaveShortcutHint className="me-auto" />}
+            {footer}
+          </div>
+        )}
       </div>
       <style>{`
         @keyframes drawerIn { from { transform: translateX(16px); opacity: .6 } to { transform: translateX(0); opacity: 1 } }

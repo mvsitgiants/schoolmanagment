@@ -72,7 +72,41 @@
       "studentsTab": "Students",
       "saved": "Program saved.",
       "deleted": "Program deleted.",
-      "deleteConfirm": "Delete {{name}}?"
+      "deleteConfirm": "Delete {{name}}?",
+      "form": {
+        "subtitle": "Set up a degree or diploma program. After saving, it opens so you can add its courses semester by semester and enrol students.",
+        "allPrograms": "All programs",
+        "save": "Save program",
+        "about": "About the program",
+        "aboutHint": "The full name and the short code used on mark sheets, reports and timetables.",
+        "codeHint": "Short and unique, for example BTCSE.",
+        "study": "Length and rules",
+        "studyHint": "How long the program runs, how many students join each year, and the regulation for credits, grades and passing.",
+        "intakeHint": "Seats each year. Leave empty if there is no limit.",
+        "runBy": "Who runs it",
+        "runByHint": "The department and campus that offer the program, and the teacher who looks after it.",
+        "requiredNote": "Needed: the program name and its code. Everything else can be changed later with Edit. After saving, the program opens so you can add its courses and enrol students."
+      },
+      "check": {
+        "title": "Already set up?",
+        "empty_one": "{{count}} program is already set up. Type a name or code — a program with the same code or a similar name shows up here.",
+        "empty_other": "{{count}} programs are already set up. Type a name or code — a program with the same code or a similar name shows up here.",
+        "none": "This will be the first program.",
+        "codeTaken": "The code {{code}} is already used by this program. Pick a different code.",
+        "byName": "Programs with a similar name:",
+        "students_one": "{{count}} student",
+        "students_other": "{{count}} students"
+      },
+      "glance": {
+        "title": "At a glance",
+        "toGraduate": "To graduate",
+        "credits_one": "{{count}} credit",
+        "credits_other": "{{count}} credits",
+        "perSemester": "About {{n}} credits a semester — within the regulation’s {{min}} to {{max}}.",
+        "perSemesterOff": "About {{n}} credits a semester — outside the regulation’s {{min}} to {{max}}. Check the number of semesters or the regulation.",
+        "passRule": "To pass a course: {{rule}}",
+        "noRegulation": "No regulation yet. You can save the program without one and pick it later with Edit."
+      }
     },
     "regulations": {
       "tab": "Regulations",

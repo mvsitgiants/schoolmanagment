@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { Ban, CheckCircle2, ClipboardList, Download, PackageCheck, Pencil, Plus, Printer, Send, ShoppingBag, Trash2, Truck, Undo2, Users } from 'lucide-react'
-import { PO_STATUS, STORE_CATEGORIES, formatINR } from '@schoolgiant/shared'
+import { STORE_CATEGORIES, formatINR } from '@schoolgiant/shared'
 import {
   DateInput, CodeBadge, ColorChip, DataTable, DateCell, Drawer, Fact, FactGrid, FormField, HeaderButton, Input, LevelBar, Modal, Money, Note, PageContainer, PageHeader, Panel,
-  PersonCell, SearchInput, Select, SideNav, SideNavLayout, Tabs, Textarea, Timeline, useConfirm, usePrompt,
+  PersonCell, SearchInput, SideNav, SideNavLayout, Tabs, Textarea, Timeline, useConfirm, usePrompt,
 } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { approvePo, cancelPo, deleteVendor, exportPos, fetchPo, fetchPos, fetchVendors, receivePo, savePo, saveVendor, sendBackPo, submitPo } from '../../api/inventory'
@@ -14,7 +15,8 @@ import { printDocument } from '../../components/print/printDocument'
 import useDebouncedValue from '../../hooks/useDebouncedValue'
 import { useSnackbar } from '../../context/SnackbarContext'
 import { useFormat } from '../../context/SettingsContext'
-import { CampusSelect, ItemLines, PoPill, paiseOf, rupeesOf, useInventoryLabels, useInventoryMeta, useItemOptions } from '../../components/inventory/InventoryKit'
+import { CampusSelect, PoPill, useInventoryLabels, useInventoryMeta, useItemOptions } from '../../components/inventory/InventoryKit'
+import PoForm, { poBody, poFormValues, poReady, poTotals } from '../../components/inventory/PoForm'
 
 const STATUS_ORDER = ['DRAFT', 'SUBMITTED', 'APPROVED', 'PARTIAL', 'RECEIVED', 'CANCELLED']
 
@@ -94,53 +96,25 @@ function Vendors() {
   )
 }
 
-function PoForm({ po, onClose, onSaved }) {
+/** Edit a draft order in a pop-up — the same form as the New purchase order page (its sections go plain inside the pop-up). */
+function EditPo({ po, onClose, onSaved }) {
   const { t } = useTranslation('inventory')
   const { showError } = useSnackbar()
   const { data: meta } = useInventoryMeta()
-  const { data: items = [] } = useItemOptions()
-  const [form, setForm] = useState({
-    vendorId: po?.vendorId ?? '', branchId: po?.branchId ?? meta?.myBranchId ?? '', date: po?.date ?? '', expectedOn: po?.expectedOn ?? '',
-    tax: rupeesOf(po?.tax || null), terms: po?.terms ?? '', note: po?.note ?? '',
-  })
-  const [lines, setLines] = useState(po?.lines?.length ? po.lines.map((l) => ({ itemId: l.itemId, size: l.size ?? '', qty: l.qty, rate: rupeesOf(l.rate) })) : [{ itemId: '', size: '', qty: 1, rate: '' }])
+  const [form, setForm] = useState(() => poFormValues(po, meta))
   const [errors, setErrors] = useState({})
-  const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }))
-  const subtotal = lines.reduce((s, l) => s + (Number(l.qty) || 0) * (paiseOf(l.rate) ?? 0), 0)
-  const total = subtotal + (paiseOf(form.tax) ?? 0)
   const save = useMutation({
-    mutationFn: () => savePo(po?.id, {
-      vendorId: form.vendorId, branchId: form.branchId || undefined, date: form.date || undefined, expectedOn: form.expectedOn || undefined, tax: paiseOf(form.tax) ?? 0, terms: form.terms, note: form.note,
-      lines: lines.filter((l) => l.itemId).map((l) => ({ itemId: l.itemId, size: l.size, qty: Number(l.qty), ...(l.rate !== '' && { rate: paiseOf(l.rate) }) })),
-    }),
+    mutationFn: () => savePo(po.id, poBody(form)),
     onSuccess: onSaved,
     onError: (e) => { setErrors(e.details?.fields ?? {}); showError(e.message) },
   })
   return (
-    <Modal open onClose={onClose} size="xl" title={po ? t('inventory.po.editTitle', { no: po.poNo }) : t('inventory.po.newTitle')} footer={<>
-      <span className="me-auto text-sm text-ink-muted">{t('inventory.po.totalIs')} <b className="text-ink">{formatINR(total)}</b></span>
+    <Modal open onClose={onClose} size="xl" title={t('inventory.po.editTitle', { no: po.poNo })} footer={<>
+      <span className="me-auto text-sm text-ink-muted">{t('inventory.po.totalIs')} <b className="text-ink">{formatINR(poTotals(form).total)}</b></span>
       <Button variant="secondary" onClick={onClose}>{t('actions.cancel')}</Button>
-      <Button loading={save.isPending} disabled={!form.vendorId || !lines.some((l) => l.itemId)} onClick={() => save.mutate()}>{t('inventory.po.saveDraft')}</Button>
+      <Button loading={save.isPending} disabled={!poReady(form)} onClick={() => save.mutate()}>{t('inventory.po.saveDraft')}</Button>
     </>}>
-      <div className="space-y-4">
-        <div className="grid gap-3 sm:grid-cols-4">
-          <FormField label={t('inventory.po.vendor')} required error={errors.vendorId} className="sm:col-span-2">
-            <Select value={form.vendorId} onChange={set('vendorId')}><option value="">{t('inventory.po.pickVendor')}</option>{(meta?.vendors ?? []).map((v) => <option key={v.id} value={v.id}>{v.name}</option>)}</Select>
-          </FormField>
-          <FormField label={t('inventory.po.date')}><DateInput value={form.date} onChange={set('date')} /></FormField>
-          <FormField label={t('inventory.po.expectedOn')}><DateInput value={form.expectedOn} onChange={set('expectedOn')} /></FormField>
-          {(meta?.branches ?? []).length > 1 && !meta?.branchLocked && (
-            <FormField label={t('inventory.po.deliverTo')} className="sm:col-span-2"><Select value={form.branchId} onChange={set('branchId')}>{meta.branches.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}</Select></FormField>
-          )}
-        </div>
-        {(meta?.vendors ?? []).length === 0 && <Note tone="warning">{t('inventory.po.noVendors')}</Note>}
-        <ItemLines lines={lines} onChange={setLines} items={items} withRate errors={errors} />
-        <div className="grid gap-3 sm:grid-cols-[10rem_1fr]">
-          <FormField label={t('inventory.po.tax')} hint={t('inventory.po.taxHint')}><Input type="number" min="0" step="0.01" value={form.tax} onChange={set('tax')} /></FormField>
-          <FormField label={t('inventory.po.terms')}><Textarea rows={2} value={form.terms} onChange={set('terms')} placeholder={t('inventory.po.termsPlaceholder')} /></FormField>
-        </div>
-        <FormField label={t('inventory.po.note')}><Input value={form.note} onChange={set('note')} /></FormField>
-      </div>
+      <PoForm value={form} onChange={setForm} errors={errors} />
     </Modal>
   )
 }
@@ -256,6 +230,8 @@ function PoDrawer({ id, onClose, onEdit, onChanged }) {
 
 function Orders() {
   const { t } = useTranslation('inventory')
+  const navigate = useNavigate()
+  const location = useLocation()
   const L = useInventoryLabels()
   const qc = useQueryClient()
   const { showSuccess, showError } = useSnackbar()
@@ -265,7 +241,7 @@ function Orders() {
   const q = useDebouncedValue(search.trim(), 300)
   const [page, setPage] = useState(1)
   const [editing, setEditing] = useState(null)
-  const [open, setOpen] = useState(null)
+  const [open, setOpen] = useState(() => location.state?.open ?? null) // an order just raised opens here
   const params = { status, branchId: branchId || undefined, search: q || undefined, page, pageSize: 50 }
   const { data, isLoading } = useQuery({ queryKey: ['inventory', 'pos', params], queryFn: () => fetchPos(params) })
   const tot = data?.totals ?? {}
@@ -281,7 +257,7 @@ function Orders() {
         <CampusSelect value={branchId} onChange={(v) => { setBranchId(v); setPage(1) }} />
         <span className="ms-auto flex gap-2">
           <Button variant="secondary" icon={Download} onClick={() => exportPos(params).catch((e) => showError(e.message))}>{t('inventory.export')}</Button>
-          {hasPermission('inventory.purchase-orders.create') && <Button icon={Plus} onClick={() => setEditing('new')}>{t('inventory.po.new')}</Button>}
+          {hasPermission('inventory.purchase-orders.create') && <Button icon={Plus} onClick={() => navigate('/inventory/purchase-orders/new')}>{t('inventory.po.new')}</Button>}
         </span>
       </div>
       <DataTable rows={data?.data ?? []} loading={isLoading} onRowClick={(r) => setOpen(r.id)} rowTone={(r) => (r.status === 'SUBMITTED' ? 'warning' : undefined)} columns={[
@@ -294,7 +270,7 @@ function Orders() {
       ]} emptyTitle={t('inventory.po.empty')}
         pagination={data && data.total > 50 ? { page: page - 1, size: 50, totalElements: data.total, totalPages: Math.ceil(data.total / 50), onPageChange: (p) => setPage(p + 1) } : undefined} />
       {open && <PoDrawer id={open} onClose={() => setOpen(null)} onEdit={(po) => { setOpen(null); setEditing(po) }} onChanged={() => {}} />}
-      {editing && <PoForm po={editing === 'new' ? null : editing} onClose={() => setEditing(null)}
+      {editing && <EditPo po={editing} onClose={() => setEditing(null)}
         onSaved={(po) => { setEditing(null); qc.invalidateQueries({ queryKey: ['inventory'] }); showSuccess(t('inventory.po.saved', { no: po.poNo })); setOpen(po.id) }} />}
     </SideNavLayout>
   )

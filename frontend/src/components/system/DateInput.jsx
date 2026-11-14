@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import { CalendarDays, ChevronDown, ChevronLeft, ChevronRight, X } from 'lucide-react'
 import { fieldBase } from './Form'
+import { isSaveShortcut } from './SaveShortcut'
 import { useSettings } from '../../context/SettingsContext'
 import { getFormatConfig } from '../../utils/format'
 
@@ -413,6 +414,7 @@ const DateInput = forwardRef(function DateInput({
   const handleKey = (e) => {
     onKeyDown?.(e)
     if (e.defaultPrevented || locked) return
+    if (isSaveShortcut(e)) { if (text !== null) commitText(); if (open) close(); return } // the form's save shortcut, typed date kept
     if (!open) {
       if (e.key === 'ArrowDown' || (e.key === 'Enter' && text === null) || (e.key === ' ' && phone)) { e.preventDefault(); openPanel() }
       else if (e.key === 'Enter') { e.preventDefault(); commitText() }
@@ -549,6 +551,7 @@ export const DateRangeInput = forwardRef(function DateRangeInput({
 
   const handleKey = (e) => {
     if (disabled) return
+    if (isSaveShortcut(e)) { if (open) close(); return } // the form's save shortcut
     if (!open) {
       if (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openPanel() }
       return

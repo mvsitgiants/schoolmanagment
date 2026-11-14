@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Award, CalendarDays, ClipboardList, Filter, GraduationCap, ListChecks, MapPin, Pencil, Plus, Rocket, Trophy, UserMinus, UserPlus, Users } from 'lucide-react'
 import { DRIVE_FLOW, DRIVE_STATUS, formatLpa } from '@schoolgiant/shared'
@@ -222,8 +223,11 @@ export default function PlacementsDrives() {
   const [status, setStatus] = useState('')
   const [search, setSearch] = useState('')
   const q = useDebouncedValue(search.trim(), 300)
-  const [id, setId] = useState(null)
-  const [editing, setEditing] = useState(null)
+  const navigate = useNavigate()
+  // `?drive=` opens that drive — the New drive page comes back here with the one it saved
+  const [urlParams] = useSearchParams()
+  const [id, setId] = useState(() => urlParams.get('drive'))
+  const [editing, setEditing] = useState(null) // drive being edited (a new one has its own page)
   const params = { status: status || undefined, search: q || undefined }
   const { data, isLoading } = useQuery({ queryKey: ['placements', 'drives', params], queryFn: () => fetchDrives(params) })
   const drives = useMemo(() => data?.data ?? [], [data])
@@ -232,7 +236,7 @@ export default function PlacementsDrives() {
   return (
     <PageContainer>
       <PageHeader icon={Rocket} title={t('placements.drives.title')} subtitle={t('placements.drives.subtitle')}
-        actions={<HeaderButton icon={Plus} variant="primary" requires="placements.drives.create" onClick={() => setEditing('new')}>{t('placements.drives.new')}</HeaderButton>} />
+        actions={<HeaderButton icon={Plus} variant="primary" requires="placements.drives.create" onClick={() => navigate('/placements/drives/new')}>{t('placements.drives.new')}</HeaderButton>} />
       <div className="flex flex-wrap items-center gap-2">
         <SegmentedControl value={status} onChange={setStatus} options={[{ value: '', label: t('placements.drives.all') }, ...Object.keys(DRIVE_STATUS).map((s) => ({ value: s, label: `${L.drive(s)}${sc[s] ? ` · ${sc[s]}` : ''}` }))]} />
         <div className="w-full sm:w-64"><SearchInput value={search} onChange={setSearch} placeholder={t('placements.drives.search')} /></div>
@@ -248,7 +252,7 @@ export default function PlacementsDrives() {
           {id && <DriveView key={id} id={id} onEdit={setEditing} />}
         </SideNavLayout>
       )}
-      {editing && <DriveForm drive={editing === 'new' ? null : editing} onClose={() => setEditing(null)} onSaved={(d) => { setEditing(null); qc.invalidateQueries({ queryKey: ['placements'] }); setId(d.id); showSuccess(t('placements.drives.saved')) }} />}
+      {editing && <DriveForm drive={editing} onClose={() => setEditing(null)} onSaved={(d) => { setEditing(null); qc.invalidateQueries({ queryKey: ['placements'] }); setId(d.id); showSuccess(t('placements.drives.saved')) }} />}
     </PageContainer>
   )
 }

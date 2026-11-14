@@ -1,49 +1,21 @@
 import { useEffect, useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { BadgeCheck, FileText, GraduationCap, Hourglass, Monitor, Plus, School, Store } from 'lucide-react'
 import { APPLICATION_STATUS } from '@schoolgiant/shared'
 import { Attachments, CodeBadge, ColorChip, ContactCell, ControlChip, DataTable, DateCell, Drawer, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, PersonCell, Select, SideNav, SideNavLayout, StatCardRow, StatusPill, Toolbar, usePrompt } from '../../components/system'
 import Button from '../../components/ui/Button'
-import ApplicationForm, { applicationBody, emptyApplication } from '../../components/admissions/ApplicationForm'
 import FormRenderer from '../../components/forms/FormRenderer'
 import useCycle from '../../components/admissions/useCycle'
 import useDebouncedValue from '../../hooks/useDebouncedValue'
 import { fetchClasses } from '../../api/academics'
-import { admitApplicant, createApplication, fetchApplication, fetchApplications, fetchEnquiry, setApplicationStatus, updateApplication } from '../../api/admissions'
+import { admitApplicant, fetchApplication, fetchApplications, setApplicationStatus, updateApplication } from '../../api/admissions'
 import { hasPermission } from '../../api/auth'
 import { useSnackbar } from '../../context/SnackbarContext'
 import { useFormat } from '../../context/SettingsContext'
 import { useIsMobile } from '../../hooks/useMediaQuery'
 import useUrlSearch from '../../hooks/useUrlSearch'
-
-function NewApplication({ cycles, cycle, enquiryId, onClose, onSaved }) {
-  const { t } = useTranslation('admissions')
-  const { showError } = useSnackbar()
-  const [form, setForm] = useState(() => emptyApplication(cycle))
-  const [errors, setErrors] = useState({})
-  const { data: enquiry } = useQuery({ queryKey: ['enquiry', enquiryId], queryFn: () => fetchEnquiry(enquiryId), enabled: !!enquiryId })
-  useEffect(() => {
-    if (!enquiry) return
-    const [firstName, ...rest] = enquiry.childName.split(' ')
-    setForm((f) => ({ ...f, classId: enquiry.classId ?? f.classId, child: { ...f.child, firstName, lastName: rest.join(' '), dob: enquiry.dob ?? '', gender: enquiry.gender ?? '' }, parent: { ...f.parent, name: enquiry.parentName ?? '', mobile: enquiry.mobile, email: enquiry.email ?? '' } }))
-  }, [enquiry])
-  const save = useMutation({
-    mutationFn: () => createApplication({ ...applicationBody(form), enquiryId: enquiryId || undefined }),
-    onSuccess: onSaved,
-    onError: (e) => { setErrors(e.response?.data?.details?.fields ?? {}); showError(e.message) },
-  })
-  const open = cycles.filter((c) => c.status !== 'CLOSED')
-  return (
-    <Modal open onClose={onClose} size="xl" title={t('admissions.applications.newTitle')} footer={<>
-      <Button variant="secondary" onClick={onClose}>{t('actions.cancel')}</Button>
-      <Button loading={save.isPending} disabled={!form.cycleId || !form.classId || !form.child.firstName || !form.child.dob || !form.parent.name} onClick={() => save.mutate()}>{t('admissions.applications.submit')}</Button>
-    </>}>
-      {open.length ? <ApplicationForm cycles={open} value={form} onChange={setForm} errors={errors} /> : <Note tone="warning">{t('admissions.applications.noCycle')}</Note>}
-    </Modal>
-  )
-}
 
 function AdmitModal({ app, cycle, onClose, onDone }) {
   const { t } = useTranslation('admissions')
@@ -146,17 +118,20 @@ function ApplicationDrawer({ id, cycles, onClose }) {
 
 export default function Applications() {
   const { t } = useTranslation('admissions')
-  const qc = useQueryClient()
-  const { showSuccess } = useSnackbar()
+  const navigate = useNavigate()
   const [params, setParams] = useSearchParams()
   const { cycles, cycle, chip, isLoading: cyclesLoading } = useCycle()
   const [search, setSearch] = useUrlSearch()
   const [pickedClassId, setClassId] = useState('')
   const [status, setStatus] = useState('')
   const [page, setPage] = useState(1)
-  const [adding, setAdding] = useState(() => (params.get('enquiry') ? { enquiryId: params.get('enquiry') } : null))
-  const [openId, setOpenId] = useState(null)
-  useEffect(() => { if (params.get('enquiry')) setParams({}, { replace: true }) }, [params, setParams])
+  // ?open=<id> opens that application (the New application page lands here after saving)
+  const [openId, setOpenId] = useState(() => params.get('open'))
+  useEffect(() => {
+    // an older link with ?enquiry=<id> goes to the New application page, filled from that enquiry
+    if (params.get('enquiry')) navigate(`/admissions/applications/new?enquiry=${params.get('enquiry')}`, { replace: true })
+    else if (params.get('open')) { setOpenId(params.get('open')); setParams((p) => { const n = new URLSearchParams(p); n.delete('open'); return n }, { replace: true }) }
+  }, [params, setParams, navigate])
   const q = useDebouncedValue(search.trim(), 250)
   const classes = cycle?.classes ?? []
   // a class picked in another cycle doesn't carry over when the cycle is switched
@@ -175,7 +150,7 @@ export default function Applications() {
   return (
     <PageContainer>
       <PageHeader icon={FileText} title={t('admissions.applications.title')} subtitle={t('admissions.applications.subtitle')}
-        actions={<HeaderButton icon={Plus} variant="primary" requires="admissions.applications.create" onClick={() => setAdding({})}>{t('admissions.applications.new')}</HeaderButton>} />
+        actions={<HeaderButton icon={Plus} variant="primary" requires="admissions.applications.create" onClick={() => navigate('/admissions/applications/new')}>{t('admissions.applications.new')}</HeaderButton>} />
       {!cycles.length && !cyclesLoading && <Note tone="warning" className="mb-4">{t('admissions.noCycles')}</Note>}
       <SideNavLayout nav={classes.length > 1 && (
         // the cycle's classes: applications each, and the seats filled so far (red when the class is full)
@@ -232,7 +207,6 @@ export default function Applications() {
         emptyIcon={FileText} emptyTitle={t('admissions.applications.empty')}
       />
       </SideNavLayout>
-      {adding && <NewApplication cycles={cycles} cycle={cycle} enquiryId={adding.enquiryId} onClose={() => setAdding(null)} onSaved={(a) => { qc.invalidateQueries({ queryKey: ['applications'] }); setAdding(null); setOpenId(a.id); showSuccess(t('admissions.applications.saved', { no: a.applicationNo })) }} />}
       {openId && <ApplicationDrawer id={openId} cycles={cycles} onClose={() => setOpenId(null)} />}
     </PageContainer>
   )

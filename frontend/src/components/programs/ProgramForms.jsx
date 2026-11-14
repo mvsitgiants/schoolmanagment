@@ -5,12 +5,12 @@ import { Plus, Search, X } from 'lucide-react'
 import {
   PROGRAM_COURSE_TYPES, PROGRAM_LEVELS, UGC_CBCS_REGULATION, checkGradeScale, creditsFromLtp,
 } from '@schoolgiant/shared'
-import { DataTable, FormField, Input, Modal, PersonCell, Select } from '../system'
+import { DataTable, FormField, FormSection, Input, Modal, PersonCell, Select } from '../system'
 import Button from '../ui/Button'
 import { Switch } from '../app/Controls'
 import { fetchBranches, fetchDepartments } from '../../api/core'
 import {
-  createCourse, createProgram, createRegulation, enrolStudents, fetchEnrolmentCandidates, fetchProgramStaff, fetchRegulations,
+  createCourse, createRegulation, enrolStudents, fetchEnrolmentCandidates, fetchProgramStaff, fetchRegulations,
   updateCourse, updateEnrolment, updateProgram, updateRegulation,
 } from '../../api/programs'
 import { useSnackbar } from '../../context/SnackbarContext'
@@ -134,78 +134,114 @@ export function RegulationForm({ regulation, onClose, onSaved }) {
 
 // ───────────────────────────────────────────────────────── program
 
-export function ProgramForm({ program, onClose, onSaved }) {
+/** The program form's starting values: from a program (edit) or blank (new). */
+export function programFormValues(program) {
+  return {
+    name: '', code: '', level: 'UG', durationYears: 4, semesters: 8, intake: '', regulationId: '',
+    departmentId: '', branchId: '', coordinatorId: '', active: true,
+    ...Object.fromEntries(Object.entries(program ?? {}).map(([k, v]) => [k, v ?? ''])),
+  }
+}
+
+/** The regulation the program will follow: the one picked, else the active one. */
+export const programRegulationId = (form, regs = []) => form.regulationId || regs.find((r) => r.active)?.id || ''
+
+/** What the API takes from the form. `editing` also sends the active switch. */
+export function programBody(form, regs, { editing = false } = {}) {
+  const regulationId = programRegulationId(form, regs)
+  return {
+    name: form.name, code: form.code, level: form.level, durationYears: Number(form.durationYears), semesters: Number(form.semesters),
+    intake: numOrNull(form.intake), regulationId: regulationId || null, departmentId: form.departmentId || null, branchId: form.branchId || null,
+    coordinatorId: form.coordinatorId || null, ...(editing && { active: !!form.active }),
+  }
+}
+
+/**
+ * The program's fields in three sections — the New program page and the Edit pop-up both use it.
+ * Controlled: `value` + `onChange(next)`. Picking a level fills the usual duration on a new program.
+ */
+export function ProgramFields({ value: form, onChange, errors = {}, editing = false }) {
   const { t } = useTranslation('programs')
-  const { showError } = useSnackbar()
   const { data: regs = [] } = useQuery({ queryKey: ['regulations'], queryFn: fetchRegulations })
   const { data: depts = [] } = useQuery({ queryKey: ['departments'], queryFn: fetchDepartments })
   const { data: branches = [] } = useQuery({ queryKey: ['branches'], queryFn: fetchBranches })
   const { data: staff = [] } = useQuery({ queryKey: ['program-staff'], queryFn: fetchProgramStaff })
-  const [form, setForm] = useState(() => ({
-    name: '', code: '', level: 'UG', durationYears: 4, semesters: 8, intake: '', regulationId: regs[0]?.id ?? '',
-    departmentId: '', branchId: '', coordinatorId: '', active: true,
-    ...Object.fromEntries(Object.entries(program ?? {}).map(([k, v]) => [k, v ?? ''])),
-  }))
-  const [errors, setErrors] = useState({})
-  const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e?.target ? e.target.value : e }))
-  const regulationId = form.regulationId || regs.find((r) => r.active)?.id || ''
-  const save = useMutation({
-    mutationFn: () => {
-      const body = {
-        name: form.name, code: form.code, level: form.level, durationYears: Number(form.durationYears), semesters: Number(form.semesters),
-        intake: numOrNull(form.intake), regulationId: regulationId || null, departmentId: form.departmentId || null, branchId: form.branchId || null,
-        coordinatorId: form.coordinatorId || null, ...(program && { active: !!form.active }),
-      }
-      return program ? updateProgram(program.id, body) : createProgram(body)
-    },
-    onSuccess: onSaved,
-    onError: (e) => { setErrors(fieldErrors(e)); showError(e.message) },
-  })
+  const set = (k) => (e) => onChange({ ...form, [k]: e?.target ? e.target.value : e })
+  const regulationId = programRegulationId(form, regs)
   const setLevel = (e) => {
     const level = e.target.value
     const years = PROGRAM_LEVELS[level]?.years ?? 3
-    setForm((f) => ({ ...f, level, ...(!program && { durationYears: years, semesters: years * 2 }) }))
+    onChange({ ...form, level, ...(!editing && { durationYears: years, semesters: years * 2 }) })
   }
   return (
-    <Modal open onClose={onClose} size="lg" title={program ? t('programs.programs.editTitle', { name: program.name }) : t('programs.programs.new')} footer={<>
+    <div className="space-y-5">
+      <FormSection title={t('programs.programs.form.about')} hint={t('programs.programs.form.aboutHint')}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+          <div className="sm:col-span-2"><FormField label={t('programs.programs.name')} required error={errors.name}><Input value={form.name} onChange={set('name')} placeholder={t('programs.programs.namePlaceholder')} /></FormField></div>
+          <FormField label={t('programs.programs.code')} required error={errors.code} hint={t('programs.programs.form.codeHint')}><Input value={form.code} onChange={set('code')} maxLength={12} placeholder="BTCSE" /></FormField>
+          <FormField label={t('programs.programs.level')}>
+            <Select value={form.level} onChange={setLevel}>{Object.keys(PROGRAM_LEVELS).map((k) => <option key={k} value={k}>{t(`programs.levels.${k}`)}</option>)}</Select>
+          </FormField>
+        </div>
+      </FormSection>
+      <FormSection title={t('programs.programs.form.study')} hint={t('programs.programs.form.studyHint')}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+          <FormField label={t('programs.programs.years')} error={errors.durationYears}><Input type="number" min="1" value={form.durationYears} onChange={set('durationYears')} /></FormField>
+          <FormField label={t('programs.programs.semesters')} error={errors.semesters}><Input type="number" min="1" value={form.semesters} onChange={set('semesters')} /></FormField>
+          <FormField label={t('programs.programs.intake')} error={errors.intake} hint={t('programs.programs.form.intakeHint')}><Input type="number" min="0" value={form.intake} onChange={set('intake')} /></FormField>
+          <FormField label={t('programs.programs.regulation')} error={errors.regulationId}>
+            <Select value={regulationId} onChange={set('regulationId')}>
+              <option value="">{t('programs.none')}</option>
+              {regs.map((r) => <option key={r.id} value={r.id}>{r.code}{r.name ? ` · ${r.name}` : ''}</option>)}
+            </Select>
+          </FormField>
+        </div>
+      </FormSection>
+      <FormSection title={t('programs.programs.form.runBy')} hint={t('programs.programs.form.runByHint')}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+          <FormField label={t('programs.programs.department')} error={errors.departmentId}>
+            <Select value={form.departmentId} onChange={set('departmentId')}>
+              <option value="">{t('programs.none')}</option>
+              {depts.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
+            </Select>
+          </FormField>
+          <FormField label={t('programs.programs.campus')} error={errors.branchId}>
+            <Select value={form.branchId} onChange={set('branchId')}>
+              <option value="">{t('programs.allCampuses')}</option>
+              {branches.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
+            </Select>
+          </FormField>
+          <div className="sm:col-span-2"><FormField label={t('programs.programs.coordinator')} error={errors.coordinatorId}>
+            <Select value={form.coordinatorId} onChange={set('coordinatorId')}>
+              <option value="">{t('programs.none')}</option>
+              {staff.map((u) => <option key={u.id} value={u.id}>{u.name}{u.designation ? ` · ${u.designation}` : ''}</option>)}
+            </Select>
+          </FormField></div>
+          {editing && <div className="flex items-center gap-2 text-sm text-ink-muted"><Switch checked={!!form.active} onChange={set('active')} label={t('programs.active')} />{t('programs.active')}</div>}
+        </div>
+      </FormSection>
+    </div>
+  )
+}
+
+/** Edit a program in a pop-up (a new program has its own page: pages/Programs/NewProgram.jsx). */
+export function ProgramForm({ program, onClose, onSaved }) {
+  const { t } = useTranslation('programs')
+  const { showError } = useSnackbar()
+  const { data: regs = [] } = useQuery({ queryKey: ['regulations'], queryFn: fetchRegulations })
+  const [form, setForm] = useState(() => programFormValues(program))
+  const [errors, setErrors] = useState({})
+  const save = useMutation({
+    mutationFn: () => updateProgram(program.id, programBody(form, regs, { editing: true })),
+    onSuccess: onSaved,
+    onError: (e) => { setErrors(fieldErrors(e)); showError(e.message) },
+  })
+  return (
+    <Modal open onClose={onClose} size="xl" title={t('programs.programs.editTitle', { name: program.name })} footer={<>
       <Button variant="secondary" onClick={onClose}>{t('actions.cancel')}</Button>
       <Button loading={save.isPending} disabled={!form.name || !form.code} onClick={() => save.mutate()}>{t('actions.save')}</Button>
     </>}>
-      <div className="grid sm:grid-cols-3 gap-4">
-        <div className="sm:col-span-2"><FormField label={t('programs.programs.name')} required error={errors.name}><Input value={form.name} onChange={set('name')} placeholder={t('programs.programs.namePlaceholder')} /></FormField></div>
-        <FormField label={t('programs.programs.code')} required error={errors.code}><Input value={form.code} onChange={set('code')} maxLength={12} placeholder="BTCSE" /></FormField>
-        <FormField label={t('programs.programs.level')}>
-          <Select value={form.level} onChange={setLevel}>{Object.keys(PROGRAM_LEVELS).map((k) => <option key={k} value={k}>{t(`programs.levels.${k}`)}</option>)}</Select>
-        </FormField>
-        <FormField label={t('programs.programs.years')} error={errors.durationYears}><Input type="number" value={form.durationYears} onChange={set('durationYears')} /></FormField>
-        <FormField label={t('programs.programs.semesters')} error={errors.semesters}><Input type="number" value={form.semesters} onChange={set('semesters')} /></FormField>
-        <FormField label={t('programs.programs.regulation')} error={errors.regulationId}>
-          <Select value={regulationId} onChange={set('regulationId')}>
-            <option value="">{t('programs.none')}</option>
-            {regs.map((r) => <option key={r.id} value={r.id}>{r.code}{r.name ? ` · ${r.name}` : ''}</option>)}
-          </Select>
-        </FormField>
-        <FormField label={t('programs.programs.intake')} error={errors.intake}><Input type="number" value={form.intake} onChange={set('intake')} /></FormField>
-        <FormField label={t('programs.programs.department')}>
-          <Select value={form.departmentId} onChange={set('departmentId')}>
-            <option value="">{t('programs.none')}</option>
-            {depts.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
-          </Select>
-        </FormField>
-        <FormField label={t('programs.programs.campus')}>
-          <Select value={form.branchId} onChange={set('branchId')}>
-            <option value="">{t('programs.allCampuses')}</option>
-            {branches.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
-          </Select>
-        </FormField>
-        <div className="sm:col-span-2"><FormField label={t('programs.programs.coordinator')}>
-          <Select value={form.coordinatorId} onChange={set('coordinatorId')}>
-            <option value="">{t('programs.none')}</option>
-            {staff.map((u) => <option key={u.id} value={u.id}>{u.name}{u.designation ? ` · ${u.designation}` : ''}</option>)}
-          </Select>
-        </FormField></div>
-        {program && <div className="flex items-end gap-2 pb-2 text-sm text-ink-muted"><Switch checked={!!form.active} onChange={set('active')} label={t('programs.active')} />{t('programs.active')}</div>}
-      </div>
+      <ProgramFields value={form} onChange={setForm} errors={errors} editing />
     </Modal>
   )
 }

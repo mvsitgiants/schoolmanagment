@@ -52,6 +52,9 @@
       "loadOlder": "पुराने लोड करें"
     },
     "form": {
+      "saveShortcut": "सहेजने के लिए {{key}} + Enter दबाएँ",
+      "fixFields_one": "कृपया चिह्नित फ़ील्ड ठीक करें।",
+      "fixFields_other": "कृपया {{count}} चिह्नित फ़ील्ड ठीक करें।",
       "noMatches": "कोई परिणाम नहीं मिला।",
       "noMatchesFor": "\"{{query}}\" के लिए कोई परिणाम नहीं मिला।"
     },

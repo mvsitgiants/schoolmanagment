@@ -82,7 +82,7 @@ export function ConfirmProvider({ children }) {
               value={value}
               placeholder={state.placeholder}
               onChange={(e) => setValue(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey) && !disabled) submit() }}
+              onKeyDown={(e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); if (!disabled) submit() } }}
             />
           </FormField>
         )}

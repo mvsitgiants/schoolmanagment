@@ -121,7 +121,29 @@
       "copiesCount": "Copies to add",
       "copiesHint": "Each copy gets the next accession number. Books that already carry numbers: add them from the title afterwards.",
       "history": "Lent to",
-      "pageSubtitle": "Every book, textbook and e-resource the library holds, and how many copies are on the shelf."
+      "pageSubtitle": "Every book, textbook and e-resource the library holds, and how many copies are on the shelf.",
+      "form": {
+        "subtitle": "Type the ISBN to fill in the details, check them, and say how many copies have come in.",
+        "toCatalogue": "Catalogue",
+        "clear": "Clear",
+        "book": "The book",
+        "bookHint": "Type the ISBN printed on the back cover and press “Fill from ISBN” — or type the details yourself.",
+        "details": "Publisher and shelf",
+        "detailsHint": "Not required, but they help people find the book and put it back in the right place.",
+        "ebookHint": "Where the e-book is read, and whether families can see it.",
+        "copies": "Copies",
+        "requiredNote": "Only the title is needed. When you save, each copy gets the next accession number and the book opens in the catalogue, where you can print spine labels or add more copies."
+      },
+      "check": {
+        "title": "Already in the catalogue?",
+        "checking": "Checking…",
+        "empty": "Type the ISBN or the title — books already in the catalogue show up here, so the same book is not added twice.",
+        "found": "Already in the catalogue",
+        "byIsbn": "A book with this ISBN:",
+        "byTitle": "Books with a similar title:",
+        "noCopies": "No copies",
+        "addCopiesHint": "Same book? Open it and add the new copies there instead of adding the book again."
+      }
     },
     "copies": {
       "title_one": "{{count}} copy",

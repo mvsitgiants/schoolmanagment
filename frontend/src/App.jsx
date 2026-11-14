@@ -81,6 +81,7 @@ const IntMessaging = lazy(() => import('./pages/Integrations/Messaging'))
 const IntDevices = lazy(() => import('./pages/Integrations/Devices'))
 const IntLogs = lazy(() => import('./pages/Integrations/Logs'))
 const ProgPrograms = lazy(() => import('./pages/Programs/Programs'))
+const ProgNewProgram = lazy(() => import('./pages/Programs/NewProgram'))
 const ProgOutcomes = lazy(() => import('./pages/Programs/Outcomes'))
 const ProgAttainment = lazy(() => import('./pages/Programs/Attainment'))
 const RegWindows = lazy(() => import('./pages/Registration/Windows'))
@@ -115,6 +116,8 @@ const PublicApply = lazy(() => import('./pages/Public/Apply'))
 // Admissions
 const AdmEnquiries = lazy(() => import('./pages/Admissions/Enquiries'))
 const AdmApplications = lazy(() => import('./pages/Admissions/Applications'))
+const AdmNewEnquiry = lazy(() => import('./pages/Admissions/NewEnquiry'))
+const AdmNewApplication = lazy(() => import('./pages/Admissions/NewApplication'))
 const AdmTests = lazy(() => import('./pages/Admissions/Tests'))
 const AdmMerit = lazy(() => import('./pages/Admissions/Merit'))
 const AdmSettings = lazy(() => import('./pages/Admissions/Settings'))
@@ -124,6 +127,7 @@ const TtSubstitutions = lazy(() => import('./pages/Timetable/Substitutions'))
 const TtRooms = lazy(() => import('./pages/Timetable/Rooms'))
 // Staff & HR
 const HrEmployees = lazy(() => import('./pages/Hrms/Employees'))
+const HrNewEmployee = lazy(() => import('./pages/Hrms/NewEmployee'))
 const HrEmployeeProfile = lazy(() => import('./pages/Hrms/EmployeeProfile'))
 const HrAttendance = lazy(() => import('./pages/Hrms/Attendance'))
 const HrLeave = lazy(() => import('./pages/Hrms/Leave'))
@@ -158,6 +162,7 @@ const TrVehicles = lazy(() => import('./pages/Transport/Vehicles'))
 const TrAssignments = lazy(() => import('./pages/Transport/Assignments'))
 const TrTracking = lazy(() => import('./pages/Transport/Tracking'))
 const LibCatalogue = lazy(() => import('./pages/Library/Catalogue'))
+const LibNewTitle = lazy(() => import('./pages/Library/NewTitle'))
 const LibCirculation = lazy(() => import('./pages/Library/Circulation'))
 const LibFines = lazy(() => import('./pages/Library/Fines'))
 const EvCalendar = lazy(() => import('./pages/Events/Calendar'))
@@ -184,15 +189,18 @@ const CommsCodes = lazy(() => import('./pages/Comms/Codes'))
 
 // A module page that isn't built yet shows its catalog entry; unknown paths show NotFound.
 const FrontOfficeVisitors = lazy(() => import('./pages/FrontOffice/Visitors'))
+const FrontOfficeNewVisitor = lazy(() => import('./pages/FrontOffice/NewVisitor'))
 const FrontOfficeGatePasses = lazy(() => import('./pages/FrontOffice/GatePasses'))
 const FrontOfficeComplaints = lazy(() => import('./pages/FrontOffice/Complaints'))
 const AccreditationReports = lazy(() => import('./pages/Accreditation/Reports'))
 const AccreditationEvidence = lazy(() => import('./pages/Accreditation/Evidence'))
 const PlacementsCompanies = lazy(() => import('./pages/Placements/Companies'))
 const PlacementsDrives = lazy(() => import('./pages/Placements/Drives'))
+const PlacementsNewDrive = lazy(() => import('./pages/Placements/NewDrive'))
 const PlacementsOffers = lazy(() => import('./pages/Placements/Offers'))
 const ResearchPublications = lazy(() => import('./pages/Research/Publications'))
 const ResearchProjects = lazy(() => import('./pages/Research/Projects'))
+const ResearchNewProject = lazy(() => import('./pages/Research/NewProject'))
 const AlumniDirectory = lazy(() => import('./pages/Alumni/Directory'))
 const AlumniDonations = lazy(() => import('./pages/Alumni/Donations'))
 const HostelRooms = lazy(() => import('./pages/Hostel/Rooms'))
@@ -202,8 +210,10 @@ const HostelMess = lazy(() => import('./pages/Hostel/Mess'))
 const InventoryItems = lazy(() => import('./pages/Inventory/Items'))
 const InventoryStock = lazy(() => import('./pages/Inventory/Stock'))
 const InventoryPurchaseOrders = lazy(() => import('./pages/Inventory/PurchaseOrders'))
+const InventoryNewPurchaseOrder = lazy(() => import('./pages/Inventory/NewPurchaseOrder'))
 const InventorySales = lazy(() => import('./pages/Inventory/Sales'))
 const InventoryAssets = lazy(() => import('./pages/Inventory/Assets'))
+const InventoryNewAsset = lazy(() => import('./pages/Inventory/NewAsset'))
 const HealthRecords = lazy(() => import('./pages/Health/Records'))
 const HealthVisits = lazy(() => import('./pages/Health/Visits'))
 const HealthIncidents = lazy(() => import('./pages/Health/Incidents'))
@@ -321,6 +331,8 @@ export default function App() {
           <Route path="admissions" element={<Navigate to="/admissions/enquiries" replace />} />
           <Route path="admissions/enquiries" element={<AdmEnquiries />} />
           <Route path="admissions/applications" element={<AdmApplications />} />
+          <Route path="admissions/enquiries/new" element={<AdmNewEnquiry />} />
+          <Route path="admissions/applications/new" element={<AdmNewApplication />} />
           <Route path="admissions/tests" element={<AdmTests />} />
           <Route path="admissions/merit" element={<AdmMerit />} />
           <Route path="admissions/settings" element={<AdmSettings />} />
@@ -330,6 +342,7 @@ export default function App() {
           <Route path="timetable/rooms" element={<TtRooms />} />
           <Route path="hrms" element={<Navigate to="/hrms/employees" replace />} />
           <Route path="hrms/employees" element={<HrEmployees />} />
+          <Route path="hrms/employees/new" element={<HrNewEmployee />} />
           <Route path="hrms/employees/:id" element={<HrEmployeeProfile />} />
           <Route path="hrms/attendance" element={<HrAttendance />} />
           <Route path="hrms/leave" element={<HrLeave />} />
@@ -369,6 +382,7 @@ export default function App() {
           <Route path="scan/gate" element={<ScanGate />} />
           <Route path="library" element={<Navigate to="/library/circulation" replace />} />
           <Route path="library/catalogue" element={<LibCatalogue />} />
+          <Route path="library/catalogue/new" element={<LibNewTitle />} />
           <Route path="library/circulation" element={<LibCirculation />} />
           <Route path="library/stock-check" element={<LibStockCheck />} />
           <Route path="library/fines" element={<LibFines />} />
@@ -408,6 +422,7 @@ export default function App() {
           <Route path="integrations/logs" element={<IntLogs />} />
           <Route path="programs" element={<Navigate to="/programs/programs" replace />} />
           <Route path="programs/programs" element={<ProgPrograms />} />
+          <Route path="programs/programs/new" element={<ProgNewProgram />} />
           <Route path="programs/outcomes" element={<ProgOutcomes />} />
           <Route path="programs/attainment" element={<ProgAttainment />} />
           <Route path="registration" element={<Navigate to="/registration/windows" replace />} />
@@ -455,6 +470,7 @@ export default function App() {
           <Route path="comms/codes" element={<CommsCodes />} />
           <Route path="frontoffice" element={<Navigate to="/frontoffice/visitors" replace />} />
           <Route path="frontoffice/visitors" element={<FrontOfficeVisitors />} />
+          <Route path="frontoffice/visitors/new" element={<FrontOfficeNewVisitor />} />
           <Route path="frontoffice/gate-pass" element={<FrontOfficeGatePasses />} />
           <Route path="frontoffice/complaints" element={<FrontOfficeComplaints />} />
           <Route path="accreditation" element={<Navigate to="/accreditation/reports" replace />} />
@@ -463,10 +479,12 @@ export default function App() {
           <Route path="placements" element={<Navigate to="/placements/companies" replace />} />
           <Route path="placements/companies" element={<PlacementsCompanies />} />
           <Route path="placements/drives" element={<PlacementsDrives />} />
+          <Route path="placements/drives/new" element={<PlacementsNewDrive />} />
           <Route path="placements/offers" element={<PlacementsOffers />} />
           <Route path="research" element={<Navigate to="/research/publications" replace />} />
           <Route path="research/publications" element={<ResearchPublications />} />
           <Route path="research/projects" element={<ResearchProjects />} />
+          <Route path="research/projects/new" element={<ResearchNewProject />} />
           <Route path="alumni" element={<Navigate to="/alumni/directory" replace />} />
           <Route path="alumni/directory" element={<AlumniDirectory />} />
           <Route path="alumni/donations" element={<AlumniDonations />} />
@@ -479,8 +497,10 @@ export default function App() {
           <Route path="inventory/items" element={<InventoryItems />} />
           <Route path="inventory/stock" element={<InventoryStock />} />
           <Route path="inventory/purchase-orders" element={<InventoryPurchaseOrders />} />
+          <Route path="inventory/purchase-orders/new" element={<InventoryNewPurchaseOrder />} />
           <Route path="inventory/sales" element={<InventorySales />} />
           <Route path="inventory/assets" element={<InventoryAssets />} />
+          <Route path="inventory/assets/new" element={<InventoryNewAsset />} />
           <Route path="health" element={<Navigate to="/health/records" replace />} />
           <Route path="health/records" element={<HealthRecords />} />
           <Route path="health/visits" element={<HealthVisits />} />

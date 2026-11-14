@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
+import { useLocation, useNavigate } from 'react-router-dom'
 import clsx from 'clsx'
 import { Archive, DoorOpen, IndianRupee, LayoutGrid, List, Package, Pencil, Plus, ShieldCheck, Trash2, Wrench, Printer } from 'lucide-react'
-import { ASSET_CATEGORIES, ASSET_CONDITIONS, ASSET_DISPOSAL_METHODS, ASSET_MAINTENANCE_KINDS, ASSET_STATUS, formatINR } from '@schoolgiant/shared'
+import { ASSET_CATEGORIES, ASSET_DISPOSAL_METHODS, ASSET_MAINTENANCE_KINDS, ASSET_STATUS, formatINR } from '@schoolgiant/shared'
 import {
   DateInput, CodeBadge, ColorChip, DataTable, DateCell, Drawer, EmptyState, Fact, FactGrid, FormField, HeaderButton, Input, LevelBar, Modal, Money, Note, PageContainer, PageHeader, Panel,
   PersonCell, SearchInput, SegmentedControl, Select, SideNav, SideNavLayout, Skeleton, StatCardRow, TONE, Textarea, Timeline, hueTone, useConfirm,
@@ -14,85 +15,29 @@ import { hasPermission } from '../../api/auth'
 import useDebouncedValue from '../../hooks/useDebouncedValue'
 import { useSnackbar } from '../../context/SnackbarContext'
 import { useFormat } from '../../context/SettingsContext'
-import { ASSET_ICON, AssetPill, CampusSelect, ConditionPill, paiseOf, rupeesOf, useInventoryLabels, useInventoryMeta } from '../../components/inventory/InventoryKit'
+import { ASSET_ICON, AssetPill, CampusSelect, ConditionPill, paiseOf, useInventoryLabels } from '../../components/inventory/InventoryKit'
+import AssetForm, { assetBody, assetFormValues } from '../../components/inventory/AssetForm'
 import { printDocuments } from '../../components/print/printDocument'
 
 const STATUS_DOT = { IN_USE: 'bg-emerald-500', IN_STORE: 'bg-blue-500', UNDER_REPAIR: 'bg-amber-500', DISPOSED: 'bg-slate-400' }
 
-function AssetForm({ asset, onClose, onSaved }) {
+/** Edit an asset in a pop-up — the same form as the New asset page (its sections go plain inside the pop-up). */
+function EditAsset({ asset, onClose, onSaved }) {
   const { t } = useTranslation('inventory')
-  const L = useInventoryLabels()
   const { showError } = useSnackbar()
-  const { data: meta } = useInventoryMeta()
-  const [form, setForm] = useState({
-    assetTag: asset?.assetTag ?? '', name: asset?.name ?? '', category: asset?.category ?? 'FURNITURE', make: asset?.make ?? '', model: asset?.model ?? '', serialNo: asset?.serialNo ?? '',
-    branchId: asset?.branchId ?? '', roomId: asset?.roomId ?? '', location: asset?.location ?? '', assignedToId: asset?.assignedTo?.userId ?? '',
-    vendorId: asset?.vendorId ?? '', purchaseDate: asset?.purchase?.date ?? '', cost: rupeesOf(asset?.purchase?.cost), invoiceNo: asset?.purchase?.invoiceNo ?? '',
-    warrantyEnd: asset?.warrantyEnd ?? '', lifeYears: asset?.depreciation?.lifeYears ?? '', salvagePct: asset?.depreciation?.salvagePct ?? '',
-    condition: asset?.condition ?? 'GOOD', status: asset?.status ?? 'IN_USE', note: asset?.note ?? '',
-  })
+  const [form, setForm] = useState(() => assetFormValues(asset))
   const [errors, setErrors] = useState({})
-  const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }))
-  const life = ASSET_CATEGORIES.find((c) => c.value === form.category)?.lifeYears
   const save = useMutation({
-    mutationFn: () => saveAsset(asset?.id, {
-      ...form, cost: paiseOf(form.cost), lifeYears: form.lifeYears === '' ? null : Number(form.lifeYears), salvagePct: form.salvagePct === '' ? null : Number(form.salvagePct),
-      branchId: form.branchId || undefined, assetTag: form.assetTag || undefined,
-    }),
+    mutationFn: () => saveAsset(asset.id, assetBody(form)),
     onSuccess: onSaved,
     onError: (e) => { setErrors(e.details?.fields ?? {}); showError(e.message) },
   })
-  const rooms = (meta?.rooms ?? []).filter((r) => !form.branchId || !r.branchId || r.branchId === form.branchId)
   return (
-    <Modal open onClose={onClose} size="lg" title={asset ? t('inventory.assets.editTitle', { tag: asset.assetTag }) : t('inventory.assets.newTitle')} footer={<>
+    <Modal open onClose={onClose} size="xl" title={t('inventory.assets.editTitle', { tag: asset.assetTag })} footer={<>
       <Button variant="secondary" onClick={onClose}>{t('actions.cancel')}</Button>
       <Button loading={save.isPending} disabled={!form.name.trim()} onClick={() => save.mutate()}>{t('actions.save')}</Button>
     </>}>
-      <div className="space-y-4">
-        <div className="grid gap-3 sm:grid-cols-[1fr_10rem]">
-          <FormField label={t('inventory.assets.name')} required error={errors.name}><Input value={form.name} onChange={set('name')} placeholder={t('inventory.assets.namePlaceholder')} /></FormField>
-          <FormField label={t('inventory.assets.tag')} error={errors.assetTag} hint={asset ? undefined : t('inventory.assets.tagHint')}><Input value={form.assetTag} onChange={set('assetTag')} className="font-mono uppercase" /></FormField>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {ASSET_CATEGORIES.map((c) => {
-            const Icon = ASSET_ICON[c.value]
-            const on = form.category === c.value
-            return (
-              <button key={c.value} type="button" onClick={() => setForm((f) => ({ ...f, category: c.value }))}
-                className={clsx('inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm', on ? 'border-brand-300 bg-brand-50 text-brand-700' : 'border-border text-ink-muted hover:bg-black/[0.03]')}>
-                <Icon className="h-4 w-4" aria-hidden />{L.assetCat(c.value)}
-              </button>
-            )
-          })}
-        </div>
-        <div className="grid gap-3 sm:grid-cols-3">
-          <FormField label={t('inventory.assets.make')}><Input value={form.make} onChange={set('make')} /></FormField>
-          <FormField label={t('inventory.assets.model')}><Input value={form.model} onChange={set('model')} /></FormField>
-          <FormField label={t('inventory.assets.serialNo')}><Input value={form.serialNo} onChange={set('serialNo')} /></FormField>
-        </div>
-        <div className="grid gap-3 rounded-xl border border-border p-3 sm:grid-cols-2">
-          {(meta?.branches ?? []).length > 1 && !meta?.branchLocked && (
-            <FormField label={t('inventory.campus')}><Select value={form.branchId} onChange={set('branchId')}><option value="">{t('inventory.myCampus')}</option>{meta.branches.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}</Select></FormField>
-          )}
-          <FormField label={t('inventory.assets.room')} error={errors.roomId}><Select value={form.roomId} onChange={set('roomId')}><option value="">{t('inventory.assets.noRoom')}</option>{rooms.map((r) => <option key={r.id} value={r.id}>{r.code ? `${r.name} · ${r.code}` : r.name}</option>)}</Select></FormField>
-          <FormField label={t('inventory.assets.location')}><Input value={form.location} onChange={set('location')} placeholder={t('inventory.assets.locationPlaceholder')} /></FormField>
-          <FormField label={t('inventory.assets.assignedTo')} error={errors.assignedToId}><Select value={form.assignedToId} onChange={set('assignedToId')}><option value="">{t('inventory.assets.nobody')}</option>{(meta?.staff ?? []).map((u) => <option key={u.id} value={u.id}>{u.designation ? `${u.name} · ${u.designation}` : u.name}</option>)}</Select></FormField>
-        </div>
-        <div className="grid gap-3 sm:grid-cols-4">
-          <FormField label={t('inventory.assets.purchaseDate')}><DateInput value={form.purchaseDate} onChange={set('purchaseDate')} /></FormField>
-          <FormField label={t('inventory.assets.cost')}><Input type="number" min="0" step="0.01" value={form.cost} onChange={set('cost')} /></FormField>
-          <FormField label={t('inventory.assets.vendor')}><Select value={form.vendorId} onChange={set('vendorId')}><option value="">—</option>{(meta?.vendors ?? []).map((v) => <option key={v.id} value={v.id}>{v.name}</option>)}</Select></FormField>
-          <FormField label={t('inventory.assets.invoiceNo')}><Input value={form.invoiceNo} onChange={set('invoiceNo')} /></FormField>
-          <FormField label={t('inventory.assets.warrantyEnd')}><DateInput value={form.warrantyEnd} onChange={set('warrantyEnd')} /></FormField>
-          <FormField label={t('inventory.assets.lifeYears')} hint={t('inventory.assets.lifeHint', { n: life })}><Input type="number" min="1" max="60" value={form.lifeYears} onChange={set('lifeYears')} placeholder={String(life ?? '')} /></FormField>
-          <FormField label={t('inventory.assets.salvagePct')}><Input type="number" min="0" max="100" value={form.salvagePct} onChange={set('salvagePct')} placeholder="0" /></FormField>
-          <FormField label={t('inventory.assets.condition')}><Select value={form.condition} onChange={set('condition')}>{Object.keys(ASSET_CONDITIONS).map((c) => <option key={c} value={c}>{L.cond(c)}</option>)}</Select></FormField>
-        </div>
-        <div className="grid gap-3 sm:grid-cols-[12rem_1fr]">
-          <FormField label={t('inventory.assets.status')}><Select value={form.status} onChange={set('status')}>{Object.keys(ASSET_STATUS).filter((s) => s !== 'DISPOSED').map((s) => <option key={s} value={s}>{L.assetStatus(s)}</option>)}</Select></FormField>
-          <FormField label={t('inventory.assets.note')}><Input value={form.note} onChange={set('note')} /></FormField>
-        </div>
-      </div>
+      <AssetForm value={form} onChange={setForm} errors={errors} editing />
     </Modal>
   )
 }
@@ -239,6 +184,8 @@ function AssetChip({ a, onOpen }) {
 /** Store › Asset register: every asset by place (a room board) or as a list, with book value, upkeep and disposal. */
 export default function Assets() {
   const { t } = useTranslation('inventory')
+  const navigate = useNavigate()
+  const location = useLocation()
   const L = useInventoryLabels()
   const qc = useQueryClient()
   const { showSuccess } = useSnackbar()
@@ -249,7 +196,7 @@ export default function Assets() {
   const [search, setSearch] = useState(() => new URLSearchParams(window.location.search).get('search') ?? '') // a scanned tag opens here
   const q = useDebouncedValue(search.trim(), 300)
   const [editing, setEditing] = useState(null)
-  const [open, setOpen] = useState(null)
+  const [open, setOpen] = useState(() => location.state?.open ?? null) // an asset just added opens here
   const params = { branchId: branchId || undefined, category: category || undefined, status, search: q || undefined }
   const { data, isLoading } = useQuery({ queryKey: ['inventory', 'assets', params], queryFn: () => fetchAssets(params) })
   const rows = data?.data ?? []
@@ -268,7 +215,7 @@ export default function Assets() {
         actions={<>
           <CampusSelect value={branchId} onChange={setBranchId} />
           {rows.length > 0 && <HeaderButton icon={Printer} onClick={() => printDocuments('ASSET_LABEL', rows.slice(0, 300).map((a) => a.id))}>{t('inventory.assets.printLabels', { count: Math.min(rows.length, 300) })}</HeaderButton>}
-          <HeaderButton icon={Plus} variant="primary" requires="inventory.assets.create" onClick={() => setEditing('new')}>{t('inventory.assets.new')}</HeaderButton>
+          <HeaderButton icon={Plus} variant="primary" requires="inventory.assets.create" onClick={() => navigate('/inventory/assets/new')}>{t('inventory.assets.new')}</HeaderButton>
         </>} />
       <SideNavLayout nav={<SideNav title={t('inventory.assets.categories')} value={category} onChange={(v) => setCategory(v ?? '')} items={[
         { id: '', label: t('inventory.assets.allCategories'), icon: Package, count: sum?.count ?? 0 },
@@ -315,7 +262,7 @@ export default function Assets() {
         )}
       </SideNavLayout>
       {open && <AssetDrawer id={open} onClose={() => setOpen(null)} onEdit={(a) => { setOpen(null); setEditing(a) }} />}
-      {editing && <AssetForm asset={editing === 'new' ? null : editing} onClose={() => setEditing(null)} onSaved={(a) => { setEditing(null); qc.invalidateQueries({ queryKey: ['inventory'] }); showSuccess(t('inventory.assets.saved')); setOpen(a.id) }} />}
+      {editing && <EditAsset asset={editing} onClose={() => setEditing(null)} onSaved={(a) => { setEditing(null); qc.invalidateQueries({ queryKey: ['inventory'] }); showSuccess(t('inventory.assets.saved')); setOpen(a.id) }} />}
     </PageContainer>
   )
 }

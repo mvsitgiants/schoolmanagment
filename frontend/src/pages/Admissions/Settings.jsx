@@ -1,8 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { Copy, DoorOpen, ExternalLink, Plus, Printer, Settings2, X } from 'lucide-react'
+import { Copy, DoorOpen, ExternalLink, Maximize2, Plus, Printer, Settings2, X } from 'lucide-react'
 import QrCode from '../../components/scan/QrCode'
 import { printQrPoster } from '../../components/scan/printPoster'
 import { CYCLE_STATUS, MERIT_BASES } from '@schoolgiant/shared'
@@ -75,6 +75,36 @@ function CycleForm({ cycle, onClose, onSaved }) {
   )
 }
 
+/**
+ * The "Scan to apply" QR filling the screen — for a tablet or monitor at the front desk: a walk-in parent points their
+ * phone camera at it and the admission form opens on their phone. Esc or the close button goes back.
+ */
+function DeskQr({ url, school, onClose }) {
+  const { t } = useTranslation('admissions')
+  useEffect(() => {
+    const el = document.documentElement
+    el.requestFullscreen?.().catch(() => {}) // full screen where the browser allows it; the card covers the page anyway
+    const key = (e) => { if (e.key === 'Escape') onClose() }
+    window.addEventListener('keydown', key)
+    return () => { window.removeEventListener('keydown', key); if (document.fullscreenElement) document.exitFullscreen?.().catch(() => {}) }
+  }, [onClose])
+  return (
+    <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center gap-5 bg-white p-6 text-center" role="dialog" aria-modal="true" aria-label={t('admissions.settings.desk.heading')}>
+      <button type="button" onClick={onClose} className="absolute end-4 top-4 inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-sm text-ink-muted hover:text-ink">
+        <X className="h-4 w-4" aria-hidden />{t('admissions.settings.desk.close')}
+      </button>
+      {school && <p className="text-lg font-semibold text-brand-700 sm:text-xl">{school}</p>}
+      <h2 className="font-display text-3xl font-semibold text-ink sm:text-5xl">{t('admissions.settings.desk.heading')}</h2>
+      <QrCode value={url} size={Math.min(window.innerWidth - 64, window.innerHeight - 320, 520)} label={t('admissions.settings.desk.heading')} className="rounded-2xl bg-white p-3 shadow-card ring-1 ring-border" />
+      <ol className="space-y-1 text-base text-ink-muted sm:text-lg">
+        <li>1. {t('admissions.settings.desk.step1')}</li>
+        <li>2. {t('admissions.settings.desk.step2')}</li>
+        <li>3. {t('admissions.settings.desk.step3')}</li>
+      </ol>
+    </div>
+  )
+}
+
 export default function AdmissionSettings() {
   const { t } = useTranslation('admissions')
   const qc = useQueryClient()
@@ -87,10 +117,12 @@ export default function AdmissionSettings() {
   const canEdit = hasPermission('admissions.settings.edit')
   const slug = getCurrentUser()?.tenant?.slug
   const link = slug ? `${window.location.origin}/apply/${slug}` : null
+  const [desk, setDesk] = useState(false) // the "Scan to apply" QR, full screen at the front desk
   const copy = async () => { try { await navigator.clipboard.writeText(link); showSuccess(t('admissions.settings.copied')) } catch { showError(link) } }
 
   return (
     <PageContainer>
+      {desk && link && <DeskQr url={`${link}?tab=apply`} school={getCurrentUser()?.tenant?.name ?? ''} onClose={() => setDesk(false)} />}
       <PageHeader icon={Settings2} title={t('admissions.settings.title')} subtitle={t('admissions.settings.subtitle')}
         actions={<HeaderButton icon={Plus} variant="primary" requires="admissions.settings.edit" onClick={() => setEditing('new')}>{t('admissions.settings.new')}</HeaderButton>} />
       {link && (
@@ -101,7 +133,20 @@ export default function AdmissionSettings() {
             <a href={link} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-sm text-brand-600 hover:underline"><ExternalLink size={14} />{t('admissions.settings.open')}</a>
           </div>
           <p className="text-xs text-ink-muted mt-2">{t('admissions.settings.publicHint')} {hasPermission('core.settings.view') && <Link to="/core/settings" className="text-brand-600 hover:underline">{t('admissions.settings.goSettings')}</Link>}</p>
-          <div className="mt-4 flex flex-col sm:flex-row items-center gap-4 rounded-xl border border-border bg-bg p-4">
+          <div className="mt-4 grid gap-3 lg:grid-cols-2">
+          <div className="flex flex-col sm:flex-row items-center gap-4 rounded-xl border border-border bg-bg p-4">
+            <QrCode value={`${link}?tab=apply`} size={132} label={t('admissions.settings.applyQrTitle')} className="rounded-lg bg-white p-1.5 shrink-0" />
+            <div className="min-w-0 text-center sm:text-start">
+              <p className="font-semibold text-ink">{t('admissions.settings.applyQrTitle')}</p>
+              <p className="text-sm text-ink-muted mt-0.5">{t('admissions.settings.applyQrHint')}</p>
+              <div className="mt-2 flex flex-wrap justify-center gap-2 sm:justify-start">
+                <Button size="sm" icon={Maximize2} onClick={() => setDesk(true)}>{t('admissions.settings.showOnScreen')}</Button>
+                <Button size="sm" variant="secondary" icon={Printer}
+                  onClick={() => printQrPoster({ title: t('admissions.settings.applyPosterHeading'), text: t('admissions.settings.applyPosterText'), url: `${link}?tab=apply` })}>{t('admissions.settings.printPoster')}</Button>
+              </div>
+            </div>
+          </div>
+          <div className="flex flex-col sm:flex-row items-center gap-4 rounded-xl border border-border bg-bg p-4">
             <QrCode value={`${link}?tab=enquire`} size={132} label={t('admissions.settings.posterTitle')} className="rounded-lg bg-white p-1.5 shrink-0" />
             <div className="min-w-0 text-center sm:text-start">
               <p className="font-semibold text-ink">{t('admissions.settings.posterTitle')}</p>
@@ -109,6 +154,7 @@ export default function AdmissionSettings() {
               <Button size="sm" variant="secondary" icon={Printer} className="mt-2"
                 onClick={() => printQrPoster({ title: t('admissions.settings.posterHeading'), text: t('admissions.settings.posterText'), url: `${link}?tab=enquire` })}>{t('admissions.settings.printPoster')}</Button>
             </div>
+          </div>
           </div>
         </Panel>
       )}
