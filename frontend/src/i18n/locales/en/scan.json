@@ -140,7 +140,9 @@
       "result": "Result",
       "resultLine": "{{pct}}% · Grade {{grade}}",
       "notPublished": "Results not published yet",
-      "compare": "Check these match the printed document."
+      "compare": "Check these match the printed document.",
+      "held": "This student’s admit card is on hold — check with the office before letting them in.",
+      "resultHeld": "On hold — ask the school"
     },
     "tc": {
       "validTitle": "Genuine transfer certificate",

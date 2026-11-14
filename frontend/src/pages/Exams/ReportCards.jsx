@@ -7,6 +7,7 @@ import { BulkActionBar, ColorChip, DataTable, DateCell, Input, LevelBar, Note, P
 import Button from '../../components/ui/Button'
 import useExamPick from '../../components/exams/useExamPick'
 import { fetchCandidates, saveRemarks, sendReportCards } from '../../api/exams'
+import { HoldActions, HoldPill } from '../../components/exams/HoldKit'
 import { hasPermission } from '../../api/auth'
 import { printDocument, printDocuments } from '../../components/print/printDocument'
 import { useSnackbar } from '../../context/SnackbarContext'
@@ -40,14 +41,18 @@ export default function ReportCards() {
   })
   const send = useMutation({
     mutationFn: (resend) => sendReportCards(examId, { sectionId, resend }),
-    onSuccess: (r) => { qc.invalidateQueries({ queryKey: ['exam-candidates'] }); showSuccess(t('exams.reportCards.sent', { count: r.sent })) },
+    onSuccess: (r) => { qc.invalidateQueries({ queryKey: ['exam-candidates'] }); showSuccess(r.held ? t('exams.holds.sentSkipped', { count: r.sent, held: r.held }) : t('exams.reportCards.sent', { count: r.sent })) },
     onError: (e) => showError(e.message),
   })
   const print = async (ids) => {
     const r = await printDocuments('REPORT_CARD', ids, { preparing: t('exams.reportCards.preparing') })
     if (r?.error) showError(r.error)
   }
-  const unsent = rows.filter((r) => !r.notifiedAt).length
+  // a result on hold: no report card prints or goes to the family (the server leaves it out too)
+  const isHeld = (r) => !!r.hold?.result?.held
+  const printable = rows.filter((r) => !isHeld(r))
+  const held = rows.length - printable.length
+  const unsent = printable.filter((r) => !r.notifiedAt).length
 
   return (
     <PageContainer>
@@ -56,10 +61,11 @@ export default function ReportCards() {
       <SideNavLayout nav={nav}>
         {sectionPills}
         {exam && !published && <Note tone="warning">{t('exams.reportCards.notPublished')}</Note>}
+        {held > 0 && <Note tone="warning">{t('exams.holds.resultsHeld', { count: held })}</Note>}
         {rows.length > 0 && (
           <div className="flex flex-wrap items-center justify-end gap-2">
             {canRemark && changed.length > 0 && <Button icon={Save} loading={save.isPending} onClick={() => save.mutate()}>{t('exams.reportCards.saveRemarks', { count: changed.length })}</Button>}
-            {canPrint && rows.length > 0 && <Button variant="secondary" icon={Printer} onClick={() => print(rows.map((r) => r.id))}>{t('exams.reportCards.printAll')}</Button>}
+            {canPrint && printable.length > 0 && <Button variant="secondary" icon={Printer} onClick={() => print(printable.map((r) => r.id))}>{t('exams.reportCards.printAll')}</Button>}
             {canSend && published && rows.length > 0 && <Button variant="secondary" icon={Send} loading={send.isPending}
               onClick={async () => {
                 const resend = unsent === 0
@@ -68,7 +74,8 @@ export default function ReportCards() {
           </div>
         )}
         <BulkActionBar count={selected.length} onClear={() => setSelected([])}>
-          {canPrint && <Button size="sm" icon={Printer} onClick={() => print(selected)}>{t('exams.reportCards.printSelected')}</Button>}
+          {canPrint && <Button size="sm" icon={Printer} onClick={() => print(selected.filter((id) => !isHeld(rows.find((r) => r.id === id) ?? {})))}>{t('exams.reportCards.printSelected')}</Button>}
+          {(canSend || canPrint) && <HoldActions examId={examId} ids={selected} part="result" onDone={() => setSelected([])} />}
         </BulkActionBar>
         <DataTable
           rows={rows}
@@ -76,7 +83,7 @@ export default function ReportCards() {
           error={error}
           onRetry={refetch}
           title={exam && section ? `${exam.name} · ${section.label}` : undefined}
-          selectable={canPrint} selectedIds={selected} onSelectionChange={setSelected}
+          selectable={canPrint || canSend} selectedIds={selected} onSelectionChange={setSelected}
           columns={[
             { key: 'rollNo', header: t('exams.roll'), width: 60, render: (v) => <span className="font-mono-num">{v ?? '—'}</span> },
             { key: 'name', header: t('exams.student'), mobileTitle: true, render: (v, r) => <PersonCell name={v} sub={r.admissionNo} /> },
@@ -87,12 +94,12 @@ export default function ReportCards() {
                 {r.grade && <ColorChip label={r.grade} seed={`grade-${r.grade}`} mono />}
               </div>
             )) },
-            { key: 'result', header: t('exams.results.result'), mobileTrail: true, render: (v) => (v ? <StatusPill tone={RESULT_STATUS[v]?.tone}>{t(`exams.result.${v}`, RESULT_STATUS[v]?.label)}</StatusPill> : '—') },
+            { key: 'result', header: t('exams.results.result'), mobileTrail: true, render: (v, r) => (isHeld(r) ? <HoldPill hold={r.hold} part="result" /> : v ? <StatusPill tone={RESULT_STATUS[v]?.tone}>{t(`exams.result.${v}`, RESULT_STATUS[v]?.label)}</StatusPill> : '—') },
             { key: 'remark', header: t('exams.reportCards.remark'), clamp: false, render: (_, r) => (canRemark
               ? <div onClick={(e) => e.stopPropagation()}><Input value={remarks[r.id] ?? ''} maxLength={300} onChange={(e) => setRemarks((x) => ({ ...x, [r.id]: e.target.value }))} placeholder={t('exams.reportCards.remarkPlaceholder')} aria-label={t('exams.reportCards.remark')} /></div>
               : <span className="text-sm text-ink-muted">{r.remark || '—'}</span>) },
             { key: 'notifiedAt', header: t('exams.reportCards.sentCol'), render: (v) => (v ? <DateCell value={v} time /> : <span className="text-xs text-ink-faint">{t('exams.reportCards.notSent')}</span>) },
-            { key: 'id', header: '', align: 'right', width: 60, render: (id) => canPrint && <Button size="sm" variant="ghost" icon={Printer} aria-label={t('exams.reportCards.print')} title={t('exams.reportCards.print')} onClick={() => printDocument('REPORT_CARD', id)}><span className="md:hidden">{t('exams.reportCards.print')}</span></Button> },
+            { key: 'id', header: '', align: 'right', width: 60, render: (id, r) => canPrint && !isHeld(r) && <Button size="sm" variant="ghost" icon={Printer} aria-label={t('exams.reportCards.print')} title={t('exams.reportCards.print')} onClick={() => printDocument('REPORT_CARD', id)}><span className="md:hidden">{t('exams.reportCards.print')}</span></Button> },
           ]}
           emptyIcon={FileBadge} emptyTitle={exam ? t('exams.reportCards.empty') : t('exams.pick.pickFirst')}
         />

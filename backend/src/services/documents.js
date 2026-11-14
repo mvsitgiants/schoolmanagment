@@ -137,14 +137,48 @@ async function loadMany(docType, ids, auth) {
   return def.load(ids, auth)
 }
 
+/**
+ * Documents made one record at a time (admit cards, report cards), several at once: each record's own page, one after
+ * the other in one print. A record that may not print (an admit card or result on hold) is left out and counted.
+ */
+async function renderEach(docType, ids, auth, opts) {
+  const pages = []
+  let skipped = 0
+  let shell = null
+  for (const id of ids) {
+    let html
+    try { html = await renderDocument(docType, id, auth, { ...opts, autoPrint: false }) } catch (e) {
+      if (e?.code === 'ON_HOLD') { skipped++; continue }
+      throw e
+    }
+    const start = html.indexOf('<div class="page">')
+    const end = html.lastIndexOf('</div></body>')
+    if (start < 0 || end < 0) { skipped++; continue }
+    shell ??= html
+    pages.push(html.slice(start + '<div class="page">'.length, end))
+  }
+  if (!shell) throw new AppError(409, 'Nothing to print: every one of them is on hold.', { code: 'ON_HOLD' })
+  const start = shell.indexOf('<div class="page">')
+  const end = shell.lastIndexOf('</div></body>')
+  const body = pages.map((p, i) => `<div class="page"${i < pages.length - 1 ? ' style="break-after:page"' : ''}>${p}</div>`).join('')
+  const auto = opts.autoPrint === false ? '' : '<script>window.onload = () => setTimeout(() => window.print(), 250)</script>'
+  return { html: `${shell.slice(0, start)}${body}${auto}</body></html>`, skipped }
+}
+
 /** Several records' document, ready to print, and how many of them were left out (people who have left). */
 export async function renderDocuments(docType, ids, auth, opts = {}) {
+  if (docOf(docType).each) {
+    if (!ids.length || !ids.every(isOid) || ids.length > 200) throw notFound('Record')
+    return renderEach(docType, ids, auth, opts)
+  }
   const p = await renderPrint(docType, await loadMany(docType, ids, auth), opts)
   return { html: p.html, skipped: p.skipped }
 }
 
 /** Several records' document as a PDF; 409 PDF_UNAVAILABLE as for one record. */
 export async function renderDocumentsPdf(docType, ids, auth, opts = {}) {
+  // one-page-each documents print together, but not as one PDF: the screen offers Print instead
+  if (docOf(docType).each) throw new AppError(409, 'PDF download isn’t available for several at once — use Print instead.', { code: 'PDF_UNAVAILABLE' })
   const out = await printToPdf(docType, await loadMany(docType, ids, auth), opts)
   if (!out) throw new AppError(409, 'PDF download isn’t available just now — use Print instead.', { code: 'PDF_UNAVAILABLE' })
   return out

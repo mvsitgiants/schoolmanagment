@@ -48,8 +48,8 @@ export default function FamilyHome() {
               title={d.fees.due ? t('family.home.feesDue', { amount: formatINR(d.fees.due, { decimals: 0 }) }) : t('family.home.feesClear')}
               subtitle={d.fees.overdue ? t('family.home.overdue', { amount: formatINR(d.fees.overdue, { decimals: 0 }) }) : d.fees.nextDue && d.fees.due ? t('family.home.nextDue', { date: date(d.fees.nextDue) }) : undefined} />}
             {d.nextExam && <FRow to={`/app/${slug}/results`} icon={CalendarClock} title={d.nextExam.name} subtitle={t('family.home.examFrom', { date: date(d.nextExam.startDate) })} />}
-            {d.result && has('RESULTS') && <FRow to={`/app/${slug}/results`} icon={Trophy} tone={d.result.result === 'FAIL' ? 'danger' : 'success'}
-              title={t('family.home.result', { exam: d.result.exam })} subtitle={[d.result.pct !== null ? `${d.result.pct}%` : null, d.result.grade, t(`family.result.${d.result.result}`, d.result.resultLabel)].filter(Boolean).join(' · ')} />}
+            {d.result && has('RESULTS') && <FRow to={`/app/${slug}/results`} icon={Trophy} tone={d.result.held ? 'warning' : d.result.result === 'FAIL' ? 'danger' : 'success'}
+              title={t('family.home.result', { exam: d.result.exam })} subtitle={d.result.held ? t('family.hold.result') : [d.result.pct !== null ? `${d.result.pct}%` : null, d.result.grade, t(`family.result.${d.result.result}`, d.result.resultLabel)].filter(Boolean).join(' · ')} />}
           </div>
         </FCard>
       )}

@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import { authenticate, requireModule, requirePermission, subscriptionGate, tenantOnly } from '../platform/middleware.js'
 import { objectId, optionalText, z } from '../platform/validate.js'
+import { holdCandidates, releaseCandidates } from '../services/examHolds.js'
 import {
   deleteExam, deleteType, getExam, getMarkSheet, listCandidates, listExams, listResults, listTypes, lockMarkSheet, marksBoard, publishResults, saveExam,
   saveMarkSheet, savePapers, saveRemarks, saveType, scheduleExam, sendReportCards, suggestPapers, unlockMarkSheet, unpublishResults, unscheduleExam,
@@ -144,6 +145,19 @@ router.put('/:id/remarks', requirePermission('exams.marks.create', 'exams.report
 router.post('/:id/report-cards/send', requirePermission('exams.report-cards.publish'), async (req, res) => {
   const input = z.object({ sectionId: objectId.optional(), resend: z.boolean().optional() }).parse(req.body ?? {})
   res.json({ data: await sendReportCards(id(req), input, req.auth, req) })
+})
+
+// holding a student's admit card and/or result (services/examHolds.js) — by hand; rules are in Settings › Exams
+const holdBody = z.object({
+  candidateIds: z.array(objectId).min(1, 'Pick at least one student').max(500), admitCard: z.boolean().optional(), result: z.boolean().optional(),
+  reason: optionalText(200), showReason: z.boolean().optional(),
+})
+const HOLDERS = ['exams.hall-tickets.print', 'exams.results.publish', 'exams.report-cards.publish']
+router.post('/:id/holds', requirePermission(...HOLDERS), async (req, res) => {
+  res.json({ data: await holdCandidates(id(req), holdBody.parse(req.body), req.auth, req) })
+})
+router.post('/:id/holds/release', requirePermission(...HOLDERS), async (req, res) => {
+  res.json({ data: await releaseCandidates(id(req), holdBody.omit({ reason: true, showReason: true }).parse(req.body), req.auth, req) })
 })
 
 export default router

@@ -116,6 +116,13 @@ export const SETTINGS = [
   { module: 'exams', key: 'yearPassPct', type: 'number', label: 'Pass mark for the year result (%)', default: 33, min: 0, max: 100, help: 'A subject whose final % is below this needs to improve.' },
   { module: 'exams', key: 'compartmentMax', type: 'number', label: 'Compartment: up to this many subjects below the pass mark', default: 2, min: 0, max: 5, help: '0: no compartment — any subject below the pass mark is "needs to improve".' },
   { module: 'exams', key: 'lockAfterDays', type: 'number', label: 'Lock marks entry this many days after the exam', default: 15, min: 0, max: 120, help: '0: marks stay open until someone locks them.' },
+  // holding a student's admit card or result automatically — off until the school turns a rule on (Exams › Hall tickets / Report cards hold by hand)
+  { module: 'exams', key: 'holdFeesOverdue', type: 'bool', label: 'Hold for overdue fees', default: false, help: 'A student with fees past their due date gets their admit card and/or result held. The hold lifts by itself once the fees are paid.' },
+  { module: 'exams', key: 'holdFeesMinimum', type: 'number', label: 'Only when the overdue amount is at least (₹)', default: 0, min: 0, max: 10000000, help: '0 holds for any overdue amount.' },
+  { module: 'exams', key: 'holdAttendance', type: 'bool', label: 'Hold for low attendance', default: false, help: 'A student whose attendance this year is below the percentage set below gets their admit card and/or result held.' },
+  { module: 'exams', key: 'holdAttendanceBelow', type: 'number', label: 'Attendance below (%)', default: 75, min: 1, max: 100 },
+  { module: 'exams', key: 'holdAutoWhat', type: 'select', label: 'What these rules hold', default: 'BOTH', options: [{ value: 'BOTH', label: 'Admit card and result' }, { value: 'ADMIT_CARD', label: 'Admit card only' }, { value: 'RESULT', label: 'Result only' }] },
+  { module: 'exams', key: 'holdAutoShowReason', type: 'bool', label: 'Tell the family the reason', default: false, help: 'Off: the family app only says it is on hold and to contact the school office. On: it also says why (fees overdue, low attendance).' },
 
   // ── Fees
   { module: 'fees', key: 'lateFeePerDay', type: 'number', label: 'Late fee per day (₹)', default: 0, min: 0, max: 10000, help: '0 turns the late fee off. Fee structures can set their own.' },

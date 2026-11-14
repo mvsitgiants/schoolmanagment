@@ -1,9 +1,29 @@
 import { useTranslation } from 'react-i18next'
 import clsx from 'clsx'
-import { Award, CalendarClock, ChevronRight, Ticket, Trophy } from 'lucide-react'
+import { Award, CalendarClock, ChevronRight, Lock, Ticket, Trophy } from 'lucide-react'
 import { FCard, FEmpty, FError, FSkeleton, useFamily, useFamilyQuery } from '../../components/family/FamilyKit'
 import { familyDocUrl, familyResults } from '../../api/family'
 import { useFormat } from '../../context/SettingsContext'
+
+/** Why something is on hold, in plain words — only the reasons the school lets the family see. */
+function useWhy() {
+  const { t } = useTranslation('family')
+  const { currencyValue } = useFormat()
+  return (reasons = []) => reasons.map((r) => (r.kind === 'FEES' ? t('family.hold.why.FEES', { amount: currencyValue(r.amount / 100) })
+    : r.kind === 'ATTENDANCE' ? t('family.hold.why.ATTENDANCE', { pct: r.pct, below: r.below }) : r.text)).filter(Boolean).join(' · ')
+}
+
+/** "On hold — please contact the school office", and why when the school says so. */
+function OnHold({ what, reasons }) {
+  const { t } = useTranslation('family')
+  const why = useWhy()(reasons)
+  return (
+    <div className="flex items-start gap-3 rounded-xl bg-amber-50 px-3 py-2.5 text-sm text-amber-900">
+      <Lock className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+      <span>{t(`family.hold.${what}`)}{why && <span className="mt-0.5 block text-xs text-amber-800">{why}</span>}</span>
+    </div>
+  )
+}
 
 export default function FamilyResults() {
   const { t } = useTranslation('family')
@@ -17,7 +37,8 @@ export default function FamilyResults() {
     <>
       {d.year && <YearCard y={d.year} href={familyDocUrl(slug, 'YEAR_REPORT_CARD', studentId)} />}
       {d.upcoming.map((e) => (
-        <FCard key={e.candidateId} title={e.exam} action={<a href={familyDocUrl(slug, 'HALL_TICKET', e.candidateId)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-sm font-medium text-brand-600 min-h-[44px]"><Ticket className="w-4 h-4" />{t('family.results.hallTicket')}</a>}>
+        <FCard key={e.candidateId} title={e.exam} action={!e.admitCard?.held && <a href={familyDocUrl(slug, 'HALL_TICKET', e.candidateId)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-sm font-medium text-brand-600 min-h-[44px]"><Ticket className="w-4 h-4" />{t('family.results.hallTicket')}</a>}>
+          {e.admitCard?.held && <div className="mb-3"><OnHold what="admitCard" reasons={e.admitCard.reasons} /></div>}
           <div className="divide-y divide-border -my-2">
             {e.papers.map((p) => (
               <div key={`${p.subject}-${p.date}`} className="py-2.5 flex items-center gap-3 text-sm">
@@ -34,6 +55,12 @@ export default function FamilyResults() {
         {d.results.length ? (
           <div className="divide-y divide-border -my-2">
             {d.results.map((r) => {
+              if (r.held) return (
+                <div key={r.candidateId} className="space-y-2 px-1 py-3">
+                  <p className="text-[15px] font-medium leading-snug text-ink break-words">{r.exam}</p>
+                  <OnHold what="result" reasons={r.reasons} />
+                </div>
+              )
               const fail = r.result === 'FAIL'
               const has = r.pct !== null && r.pct !== undefined
               return (

@@ -601,6 +601,39 @@
       "preparing": "Preparing the report cards…",
       "empty": "No students with marks here yet",
       "below": "Below the pass mark: {{subjects}}"
+    },
+    "holds": {
+      "col": "Hold",
+      "onHold": "On hold",
+      "released": "Let through",
+      "releasedHint": "A rule would hold this, but it was let through for this exam.",
+      "hold": "Hold",
+      "release": "Release",
+      "cancel": "Cancel",
+      "title_one": "Hold for {{count}} student",
+      "title_other": "Hold for {{count}} students",
+      "what": "What to hold",
+      "admitCard": "Admit card",
+      "result": "Result",
+      "reason": "Reason",
+      "reasonHint": "For the school’s own record — e.g. “Fees for October not paid”.",
+      "reasonPlaceholder": "Why is it held?",
+      "showReason": "Tell the family the reason",
+      "showReasonHint": "Off: the family app only says it is on hold and to contact the school office.",
+      "heldN_one": "Held for {{count}} student.",
+      "heldN_other": "Held for {{count}} students.",
+      "releasedN_one": "Released for {{count}} student.",
+      "releasedN_other": "Released for {{count}} students.",
+      "admitCardsHeld_one": "{{count}} admit card is on hold — it isn’t printed and the family can’t open it. Pick the student and press Release to let it through.",
+      "admitCardsHeld_other": "{{count}} admit cards are on hold — they aren’t printed and the families can’t open them. Pick the students and press Release to let them through.",
+      "resultsHeld_one": "{{count}} result is on hold — its report card isn’t printed or sent, and the family sees only that it is on hold.",
+      "resultsHeld_other": "{{count}} results are on hold — their report cards aren’t printed or sent, and the families see only that they are on hold.",
+      "sentSkipped": "{{count}} report card(s) sent; {{held}} on hold, not sent.",
+      "why": {
+        "MANUAL": "Held by the school",
+        "FEES": "Fees overdue: {{amount}}",
+        "ATTENDANCE": "Attendance {{pct}}% (below {{below}}%)"
+      }
     }
   }
 }

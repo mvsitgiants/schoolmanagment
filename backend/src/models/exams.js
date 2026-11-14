@@ -104,6 +104,10 @@ const candidateSchema = new Schema({
   remark: String, remarkBy: String,
   notifiedAt: Date, // report card sent to the family
   verifyCode: { type: String, default: newCandidateCode },
+  // held by hand (services/examHolds.js): the admit card and/or the result, why, and whether the family is told why
+  hold: { admitCard: Boolean, result: Boolean, reason: String, showReason: Boolean, by: String, at: Date },
+  // let through although a rule (fees overdue, low attendance) would hold it
+  released: { admitCard: Boolean, result: Boolean, by: String, at: Date },
 }, { timestamps: true })
 candidateSchema.plugin(tenantPlugin)
 candidateSchema.index({ verifyCode: 1 }, { unique: true, partialFilterExpression: { verifyCode: { $type: 'string' } } })

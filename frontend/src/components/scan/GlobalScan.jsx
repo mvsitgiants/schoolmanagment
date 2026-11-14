@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { Award, BookCopy, Boxes, CalendarHeart, DoorClosed, CheckCircle2, DoorOpen, HandHelping, HelpCircle, Receipt, ScanQrCode, ShieldAlert, Ticket, UserRound, UsersRound, Utensils } from 'lucide-react'
-import { Modal, PhoneLink, StatusPill } from '../system'
+import { Modal, Note, PhoneLink, StatusPill } from '../system'
 import Button from '../ui/Button'
 import { fetchGates, resolveCode } from '../../api/scan'
 import api from '../../api/client'
@@ -75,6 +75,7 @@ export default function GlobalScan() {
                   {result.status && <StatusPill tone="warning" className="mt-1">{t(`scan.status.${result.status}`, result.status)}</StatusPill>}
                 </div>
               </div>
+              {result.kind === 'HALL_TICKET' && result.admitCardHeld && <Note tone="danger">{t('scan.exam.held')}</Note>}
               {result.kind === 'HALL_TICKET' && (result.papers?.length ? (
                 <ul className="divide-y divide-border rounded-lg border border-border">
                   {result.papers.map((p) => (

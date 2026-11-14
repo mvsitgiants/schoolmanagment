@@ -176,7 +176,7 @@ async function examResult(code, auth) {
   if (!c) return null
   return {
     kind: 'HALL_TICKET', id: c.candidateId, title: c.student, subtitle: [c.exam, c.class].filter(Boolean).join(' · '),
-    papers: c.today, nextDate: c.nextDate,
+    papers: c.today, nextDate: c.nextDate, admitCardHeld: !!c.admitCardHeld,
     actions: [
       on(auth, 'exams', 'exams.hall-tickets.view') && { key: 'hallTickets', link: '/exams/hall-tickets' },
       c.examStatus === 'PUBLISHED' && on(auth, 'exams', 'exams.results.view') && { key: 'results', link: '/exams/results' },

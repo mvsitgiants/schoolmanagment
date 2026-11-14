@@ -202,6 +202,7 @@ export const DOCS = {
   },
   HALL_TICKET: {
     perms: ['exams.hall-tickets.view', 'exams.hall-tickets.print'],
+    each: true, // several at once: one page each (services/documents.js renderDocuments)
     load: (id, auth) => hallTicketData(id, auth),
     model: hallTicketModel,
     title: (m) => `Hall ticket · ${m.exam.name} · ${m.student.name}`,
@@ -210,6 +211,7 @@ export const DOCS = {
   },
   REPORT_CARD: {
     perms: ['exams.report-cards.view', 'exams.report-cards.print'],
+    each: true,
     load: (id, auth) => reportCardData(id, auth),
     model: reportCardModel,
     title: (m) => `Report card · ${m.exam.name} · ${m.student.name}`,

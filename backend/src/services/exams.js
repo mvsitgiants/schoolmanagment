@@ -5,7 +5,8 @@ import { AcademicYear, ClassLevel, GradingScheme, Section, Subject, TeacherAlloc
 import { AttendanceSheet } from '../models/attendance.js'
 import { Exam, ExamCandidate, ExamPaper, ExamType, MarkSheet, newCandidateCode } from '../models/exams.js'
 import { Tenant } from '../models/platform.js'
-import { runAsSystem } from '../platform/context.js'
+import { runAsSystem, runAsTenant } from '../platform/context.js'
+import { holdOf, holdsOf, onHold } from './examHolds.js'
 import { ExamSeatPlan } from '../models/examSeating.js'
 import { hallAbsentees } from './examSeating.js'
 import { Student, studentName } from '../models/students.js'
@@ -338,6 +339,7 @@ export async function listCandidates(examId, sectionId, auth) {
   const sec = await sectionInExam(e, sectionId, auth)
   await ensureCandidates(e)
   const rows = await ExamCandidate.find({ examId: e._id, sectionId: sec._id }).lean()
+  const holds = await holdsOf(e, rows)
   const students = new Map((await Student.find({ _id: { $in: rows.map((r) => r.studentId) } }).select('firstName middleName lastName admissionNo rollNo status').lean()).map((s) => [String(s._id), s]))
   return rows
     .map((r) => {
@@ -346,6 +348,7 @@ export async function listCandidates(examId, sectionId, auth) {
         id: String(r._id), studentId: String(r.studentId), name: s ? studentName(s) : '?', admissionNo: s?.admissionNo, rollNo: s?.rollNo ?? r.rollNo ?? null, studentStatus: s?.status,
         total: r.total ?? null, max: r.max ?? null, pct: r.pct ?? null, grade: r.grade ?? null, rank: r.rank ?? null, result: r.result ?? null,
         resultLabel: RESULT_STATUS[r.result]?.label ?? null, remark: r.remark ?? '', remarkBy: r.remarkBy ?? null, notifiedAt: r.notifiedAt ?? null,
+        hold: holds.get(String(r._id)) ?? null,
       }
     })
     .sort((a, b) => String(a.rollNo ?? '').localeCompare(String(b.rollNo ?? ''), 'en', { numeric: true }) || a.name.localeCompare(b.name))
@@ -364,8 +367,9 @@ export async function candidateInScope(id, auth) {
   return c
 }
 
-export async function hallTicketData(candidateId, auth) {
+export async function hallTicketData(candidateId, auth, { ignoreHold = false } = {}) {
   const c = await candidateInScope(candidateId, auth)
+  if (!ignoreHold && (await holdOf(c)).admitCard.held) throw onHold('admitCard')
   const [exam, student, section] = await Promise.all([Exam.findById(c.examId).lean(), Student.findById(c.studentId).lean(), Section.findById(c.sectionId).lean()])
   const cls = await ClassLevel.findById(c.classId).lean()
   const [papers, year] = await Promise.all([papersOf(c.examId, [c.classId]), AcademicYear.findById(exam.academicYearId).select('name').lean()])
@@ -668,7 +672,10 @@ export async function sendReportCards(examId, { sectionId, resend = false }, aut
   const e = await examById(examId)
   if (e.status !== 'PUBLISHED') throw conflict('Publish the results first.')
   const sections = sectionId ? [await sectionInExam(e, sectionId, auth)] : await examSections(e, auth)
-  const rows = await ExamCandidate.find({ examId: e._id, sectionId: { $in: sections.map((s) => s._id) }, ...(!resend && { notifiedAt: null }) }).lean()
+  const all = await ExamCandidate.find({ examId: e._id, sectionId: { $in: sections.map((s) => s._id) }, ...(!resend && { notifiedAt: null }) }).lean()
+  const holds = await holdsOf(e, all)
+  const rows = all.filter((r) => !holds.get(String(r._id))?.result.held)
+  const held = all.length - rows.length
   const active = new Set((await Student.find({ _id: { $in: rows.map((r) => r.studentId) }, status: 'ACTIVE' }).select('_id').lean()).map((s) => String(s._id)))
   const label = new Map(sections.map((s) => [String(s._id), s.short]))
   let sent = 0
@@ -679,13 +686,14 @@ export async function sendReportCards(examId, { sectionId, resend = false }, aut
     sent++
   }
   if (rows.length) await ExamCandidate.updateMany({ _id: { $in: rows.map((r) => r._id) } }, { $set: { notifiedAt: new Date() } })
-  await audit({ action: 'SEND', module: 'exams', entityType: 'exam', entityId: String(e._id), entityName: e.name, summary: `Sent ${sent} report card(s) of ${e.name} to families` }, req)
-  return { sent }
+  await audit({ action: 'SEND', module: 'exams', entityType: 'exam', entityId: String(e._id), entityName: e.name, summary: `Sent ${sent} report card(s) of ${e.name} to families${held ? ` (${held} on hold, not sent)` : ''}` }, req)
+  return { sent, held }
 }
 
 /** Everything a report card prints: marks per subject, co-scholastic grades, attendance, remark. */
 export async function reportCardData(candidateId, auth) {
   const c = await candidateInScope(candidateId, auth)
+  if ((await holdOf(c)).result.held) throw onHold('result')
   const exam = await Exam.findById(c.examId).lean()
   const [student, section, cls, year, cfg] = await Promise.all([
     Student.findById(c.studentId).lean(), Section.findById(c.sectionId).lean(), ClassLevel.findById(c.classId).lean(),
@@ -734,8 +742,10 @@ export async function verifyExamCode(code) {
       ClassLevel.findById(c.classId).setOptions({ allTenants: true }).select('name code').lean(),
       Tenant.findById(c.tenantId).select('name profile.city').lean(),
     ])
-    const published = exam?.status === 'PUBLISHED' && c.computedAt
+    const resultHeld = exam?.status === 'PUBLISHED' ? await runAsTenant(String(c.tenantId), async () => (await holdOf(c, await Exam.findById(c.examId).select('academicYearId').lean())).result.held) : false
+    const published = exam?.status === 'PUBLISHED' && c.computedAt && !resultHeld
     return {
+      held: !!resultHeld,
       found: true, exam: { name: exam?.name ?? '', startDate: exam?.startDate ?? null, endDate: exam?.endDate ?? null }, published: !!published,
       student: { name: student ? studentName(student) : '', admissionNo: student?.admissionNo ?? null, class: section ? sectionLabel(cls, section) : null },
       result: published ? { pct: c.pct ?? null, grade: c.grade ?? null, result: c.result ?? null, total: c.total ?? null, max: c.max ?? null } : null,
@@ -750,9 +760,10 @@ export async function candidateAtDoor(code, auth) {
   if (!c) return null
   const allowed = await sectionsInScope(auth, 'exams')
   if (allowed && !allowed.includes(String(c.sectionId))) return null
-  const d = await hallTicketData(c._id, auth)
+  const d = await hallTicketData(c._id, auth, { ignoreHold: true })
   const today = (await institutionNow()).date
   return {
+    admitCardHeld: (await holdOf(c)).admitCard.held,
     candidateId: String(c._id), studentId: String(c.studentId), examId: String(c.examId), exam: d.exam.name, examStatus: d.exam.status, student: studentName(d.student), class: d.place,
     today: d.papers.filter((p) => p.date === today).map((p) => ({ subject: p.subject, startTime: p.startTime, endTime: p.endTime, room: p.seat?.room ?? null, seat: p.seat?.seat ?? null })),
     nextDate: d.papers.map((p) => p.date).filter((x) => x && x >= today).sort()[0] ?? null,

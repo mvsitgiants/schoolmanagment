@@ -507,6 +507,14 @@
       "create": "Make the pass",
       "close": "Close",
       "cancel": "Cancel the pass"
+    },
+    "hold": {
+      "admitCard": "The admit card is on hold. Please contact the school office.",
+      "result": "The result is on hold. Please contact the school office.",
+      "why": {
+        "FEES": "Fees overdue: {{amount}}",
+        "ATTENDANCE": "Attendance {{pct}}% (below {{below}}%)"
+      }
     }
   }
 }

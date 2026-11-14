@@ -9,6 +9,7 @@ import { AttendanceSheet, StudentLeave } from '../models/attendance.js'
 import { Certificate } from '../models/certificates.js'
 import { Attachment } from '../models/engines.js'
 import { Exam, ExamCandidate, ExamPaper } from '../models/exams.js'
+import { forFamily, holdOf } from './examHolds.js'
 import { FeeInvoice, FeePayment } from '../models/fees.js'
 import { Homework } from '../models/homework.js'
 import { Tenant } from '../models/platform.js'
@@ -104,7 +105,10 @@ export async function homeFor(f, id) {
     const cand = exams.length ? await ExamCandidate.findOne({ studentId: s._id, examId: { $in: exams.map((e) => e._id) } }).sort({ updatedAt: -1 }).lean() : null
     if (cand) {
       const e = exams.find((x) => String(x._id) === String(cand.examId))
-      out.result = { candidateId: String(cand._id), exam: e?.name, pct: cand.pct ?? null, grade: cand.grade ?? null, result: cand.result, resultLabel: RESULT_STATUS[cand.result]?.label }
+      const held = forFamily((await holdOf(cand, e)).result)
+      out.result = held.held
+        ? { candidateId: String(cand._id), exam: e?.name, held: true, reasons: held.reasons }
+        : { candidateId: String(cand._id), exam: e?.name, pct: cand.pct ?? null, grade: cand.grade ?? null, result: cand.result, resultLabel: RESULT_STATUS[cand.result]?.label }
     }
   }
   if (f.features.includes('NOTICES')) {
@@ -257,12 +261,15 @@ export async function resultsFor(f, id) {
   const upcoming = []
   for (const e of exams) {
     const c = cands.find((x) => String(x.examId) === String(e._id))
-    if (e.status === 'PUBLISHED' && showResults) {
+    const hold = await holdOf(c, e)
+    if (e.status === 'PUBLISHED' && showResults && hold.result.held) {
+      results.push({ candidateId: String(c._id), exam: e.name, term: e.term ?? null, publishedAt: e.publishedAt, held: true, reasons: forFamily(hold.result).reasons })
+    } else if (e.status === 'PUBLISHED' && showResults) {
       results.push({ candidateId: String(c._id), exam: e.name, term: e.term ?? null, publishedAt: e.publishedAt, total: c.total, max: c.max, pct: c.pct, grade: c.grade, rank: cfg.showRank ? c.rank : null, result: c.result, resultLabel: RESULT_STATUS[c.result]?.label })
     } else if (e.status === 'SCHEDULED' && (e.endDate ?? t) >= t) {
       const papers = await ExamPaper.find({ examId: e._id, classId: s.classId }).sort({ date: 1, startTime: 1 }).lean()
       const subjects = await subjectNames(papers.map((p) => p.subjectId))
-      upcoming.push({ candidateId: String(c._id), exam: e.name, statusLabel: EXAM_STATUS[e.status]?.label, startDate: e.startDate, endDate: e.endDate, papers: papers.map((p) => ({ subject: subjects.get(String(p.subjectId)) ?? '', date: p.date, startTime: p.startTime ?? null, endTime: p.endTime ?? null })) })
+      upcoming.push({ candidateId: String(c._id), exam: e.name, admitCard: forFamily(hold.admitCard), statusLabel: EXAM_STATUS[e.status]?.label, startDate: e.startDate, endDate: e.endDate, papers: papers.map((p) => ({ subject: subjects.get(String(p.subjectId)) ?? '', date: p.date, startTime: p.startTime ?? null, endTime: p.endTime ?? null })) })
     }
   }
   // the year-end result, once the school has published it for the child's class

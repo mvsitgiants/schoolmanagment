@@ -511,6 +511,33 @@
         "lockAfterDays": {
           "label": "Lock marks entry this many days after the exam",
           "help": "0: marks stay open until someone locks them."
+        },
+        "holdFeesOverdue": {
+          "label": "Hold for overdue fees",
+          "help": "A student with fees past their due date gets their admit card and/or result held. The hold lifts by itself once the fees are paid."
+        },
+        "holdFeesMinimum": {
+          "label": "Only when the overdue amount is at least (₹)",
+          "help": "0 holds for any overdue amount."
+        },
+        "holdAttendance": {
+          "label": "Hold for low attendance",
+          "help": "A student whose attendance this year is below the percentage set below gets their admit card and/or result held."
+        },
+        "holdAttendanceBelow": {
+          "label": "Attendance below (%)"
+        },
+        "holdAutoWhat": {
+          "label": "What these rules hold",
+          "options": {
+            "BOTH": "Admit card and result",
+            "ADMIT_CARD": "Admit card only",
+            "RESULT": "Result only"
+          }
+        },
+        "holdAutoShowReason": {
+          "label": "Tell the family the reason",
+          "help": "Off: the family app only says it is on hold and to contact the school office. On: it also says why (fees overdue, low attendance)."
         }
       },
       "fees": {

@@ -35,7 +35,7 @@ export default function VerifyExam() {
             {data.student.class && <><dt className="text-ink-muted">{t('scan.exam.class')}</dt><dd className="text-ink">{data.student.class}</dd></>}
             <dt className="text-ink-muted">{t('scan.exam.exam')}</dt><dd className="text-ink">{data.exam.name}</dd>
             <dt className="text-ink-muted">{t('scan.exam.result')}</dt>
-            <dd className="text-ink">{data.result ? <b>{t('scan.exam.resultLine', { pct: data.result.pct ?? '—', grade: data.result.grade ?? '—' })}</b> : <span className="text-ink-faint">{t('scan.exam.notPublished')}</span>}</dd>
+            <dd className="text-ink">{data.result ? <b>{t('scan.exam.resultLine', { pct: data.result.pct ?? '—', grade: data.result.grade ?? '—' })}</b> : <span className="text-ink-faint">{data.held ? t('scan.exam.resultHeld') : t('scan.exam.notPublished')}</span>}</dd>
           </dl>
           <p className="text-xs text-ink-faint mt-3">{t('scan.exam.compare')}</p>
         </>
