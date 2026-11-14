@@ -4,9 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "node --watch --env-file-if-exists=.env src/server.js",
-    "start": "node ../scripts/dev.mjs api",
-    "start:prod": "node --env-file-if-exists=.env src/server.js",
+    "dev": "node ../scripts/dev.mjs api",
+    "api": "node --watch --env-file-if-exists=.env src/server.js",
+    "start": "node --env-file-if-exists=.env src/server.js",
     "db": "node src/dev/devdb.js",
     "seed": "node --env-file-if-exists=.env src/seed/seed.js",
     "seed:demo": "node --env-file-if-exists=.env src/seed/demoStThomas.js",

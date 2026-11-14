@@ -62,12 +62,12 @@ Ctrl+C stops what it started.
 To run the backend and frontend separately, each in its own terminal:
 
 ```bash
-cd backend  && npm start   # MongoDB (:27018, started if not running) + demo data + API (:4100)
-cd frontend && npm start   # web app (:5190)
+cd backend  && npm run dev   # MongoDB (:27018, started if not running) + demo data + API (:4100)
+cd frontend && npm run dev   # web app (:5190)
 ```
 
-The same from the project folder: `npm run start:api` and `npm run start:web`. The backend's
-plain production start (no database, no reload) is `npm run start:prod` in `backend/`. `npm run seed -- --reset` wipes the database
+The same from the project folder: `npm run dev:api` and `npm run dev:web`. `npm start` in
+`backend/` is the plain production start (no database, no reload). `npm run seed -- --reset` wipes the database
 and recreates the demo data.
 
 Ports differ from Hospital Samadhan (27017 / 4000 / 5180), so both can run side by side.

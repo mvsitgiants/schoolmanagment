@@ -6,8 +6,8 @@
 // Output is prefixed [db] [api] [web]. Anything already running on its port is reused.
 //
 // One half only, each in its own terminal:
-//   cd backend  && npm start   →  node scripts/dev.mjs api   (database + demo data + API)
-//   cd frontend && npm start   →  node scripts/dev.mjs web   (web app only)
+//   cd backend  && npm run dev   →  node scripts/dev.mjs api   (database + demo data + API)
+//   cd frontend && npm run dev   →  vite                        (web app only)
 // Ctrl+C stops everything this script started.
 import { spawn } from 'node:child_process'
 import net from 'node:net'
@@ -82,10 +82,11 @@ if (wantApi) {
 }
 
 // 3 — API and web app (one already running in another terminal is reused, not started twice)
-const PARTS = [['api', 4100, '@schoolgiant/backend'], ['web', 5190, '@schoolgiant/frontend']].filter(([name]) => !ONLY || name === ONLY)
-for (const [name, port, workspace] of PARTS) {
+// [name, port, workspace, script] — the backend's `dev` is this launcher, so it runs its `api` script here
+const PARTS = [['api', 4100, '@schoolgiant/backend', 'api'], ['web', 5190, '@schoolgiant/frontend', 'dev']].filter(([name]) => !ONLY || name === ONLY)
+for (const [name, port, workspace, script] of PARTS) {
   if (await portOpen(port)) console.log(`${tag(name)} already running on :${port} — using it`)
-  else run(name, 'npm', ['run', 'dev', '--silent', '--workspace', workspace])
+  else run(name, 'npm', ['run', script, '--silent', '--workspace', workspace])
 }
 const urls = { web: 'App:  http://localhost:5190', api: 'API: http://localhost:4100' }
 console.log(`\n  ${PARTS.map(([name]) => urls[name]).join('     ')}     Ctrl+C to stop\n`)
