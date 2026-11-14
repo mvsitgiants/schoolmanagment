@@ -97,14 +97,12 @@
       "status": {
         "PLANNED": "Planned",
         "DONE": "Taught",
-        "SKIPPED": "Not taken"
+        "SKIPPED": "Not taken",
+        "PARTLY": "Partly taught"
       },
       "markDone": "Mark taught",
       "doneConfirm": {
-        "title": "Mark “{{title}}” as taught?",
-        "message": "How did it go? (optional)",
-        "withTopics_one": "Its {{count}} topic is ticked off in the syllabus. How did it go? (optional)",
-        "withTopics_other": "Its {{count}} topics are ticked off in the syllabus. How did it go? (optional)"
+        "title": "Mark “{{title}}” as taught?"
       },
       "reflection": "How it went",
       "markedDone": "Marked as taught.",
@@ -173,6 +171,16 @@
         "items_one": "{{count}} item",
         "items_other": "{{count}} items",
         "close": "Close"
+      },
+      "markedPartly": "Marked partly taught — its topics stay open.",
+      "doneAsk": {
+        "which": "Was all of it taught, or only part of it?",
+        "taughtHint_one": "Taught — its topic is ticked off in the syllabus.",
+        "taughtHint_other": "Taught — its {{count}} topics are ticked off in the syllabus.",
+        "taughtHintNone": "Taught — the lesson is done.",
+        "partlyHint": "Partly taught — its topics stay open and are marked partly taught, to finish later.",
+        "partlyHintNone": "Partly taught — the lesson was held, but not all of it was covered.",
+        "optional": "Optional"
       }
     },
     "syllabus": {

@@ -420,7 +420,7 @@ export async function createOutpass(input, auth, req, { family = null } = {}) {
     const to = (await usersWith('hostel.outpass.approve')).filter((u) => u !== String(auth?.userId ?? ''))
     await notifyUsers(to, { event: 'hostel.outpass_request', title: `Outpass asked: ${studentName(s)}`, message: `${when(o.leaveDate, o.leaveTime)} to ${when(o.returnDate, o.returnTime)} — ${o.reason}`, link: '/hostel/outpass', tone: 'info', entityType: 'hostel_outpass', entityId: String(o._id) })
   } else if ((await hostelSettings()).alertOutpass) {
-    await tellFamily('hostel.outpass_decided', o, { status: 'approved', note: '' })
+    await tellFamily('hostel.outpass_decided', o, { status: 'approved', statusCode: 'APPROVED', note: '' })
   }
   await audit({ action: 'CREATE', module: 'hostel', entityType: 'hostel_outpass', entityId: String(o._id), entityName: o.outpassNo, studentId: s._id, summary: `Outpass ${o.outpassNo} for ${studentName(s)}, ${o.leaveDate} ${o.leaveTime} to ${o.returnDate} ${o.returnTime}${family ? ` (asked by ${family})` : ''}${approveNow ? ', approved' : ''}` }, req)
   return outpassOut(o.toObject())
@@ -432,7 +432,7 @@ export async function decideOutpass(id, { approve, note }, auth, req) {
   if (!approve && !note) throw fieldsError({ note: 'Say why' })
   Object.assign(o, { status: approve ? 'APPROVED' : 'REJECTED', decidedBy: auth.user?.name, decidedAt: new Date(), decisionNote: note })
   await o.save()
-  if ((await hostelSettings()).alertOutpass) await tellFamily('hostel.outpass_decided', o, { status: approve ? 'approved' : 'not approved', note: note ?? '' })
+  if ((await hostelSettings()).alertOutpass) await tellFamily('hostel.outpass_decided', o, { status: approve ? 'approved' : 'not approved', statusCode: approve ? 'APPROVED' : 'NOT_APPROVED', note: note ?? '' })
   await audit({ action: approve ? 'APPROVE' : 'REJECT', module: 'hostel', entityType: 'hostel_outpass', entityId: String(o._id), entityName: o.outpassNo, studentId: o.studentId, summary: `Outpass ${o.outpassNo} ${approve ? 'approved' : 'rejected'}${note ? `: ${note}` : ''}` }, req)
   return outpassOut(o.toObject())
 }

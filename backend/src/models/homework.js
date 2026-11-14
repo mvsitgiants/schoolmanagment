@@ -99,6 +99,7 @@ const lessonPlanSchema = new Schema({
   status: { type: String, default: 'PLANNED' }, // LESSON_STATUS
   reflection: String, // how it went
   doneAt: Date,
+  partly: Boolean, // taught, but only partly: its topics are marked "partly taught", not ticked
   teacherId: { type: ObjectId, ref: 'User' },
   teacher: String,
 }, { timestamps: true })

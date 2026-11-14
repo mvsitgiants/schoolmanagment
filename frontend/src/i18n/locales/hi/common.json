@@ -241,7 +241,8 @@
     "mode": "मोड",
     "class": "कक्षा",
     "admissionNo": "प्रवेश सं.",
-    "guardian": "अभिभावक"
+    "guardian": "अभिभावक",
+    "printedOn": "मुद्रित: {{when}}"
   },
   "signOut": "साइन आउट",
   "notFound": {

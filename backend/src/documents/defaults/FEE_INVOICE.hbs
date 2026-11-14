@@ -57,7 +57,7 @@
       <table class="kv">
         <tr><td class="k">{{t "fees.print.challan.no" "Challan No."}}</td><td class="v mono">{{@root.invoice.no}}</td><td class="k">{{t "fees.print.challan.issued" "Date"}}</td><td class="v">{{date @root.invoice.issued}}</td></tr>
         <tr><td class="k">{{t "fees.print.challan.studentName" "Student"}}</td><td class="v upper" colspan="3">{{@root.student.name}}</td></tr>
-        <tr><td class="k">{{#if @root.student.parent}}{{@root.student.relation}}{{else}}{{t "fees.print.challan.fathersName" "Father's name"}}{{/if}}</td><td class="v" colspan="3">{{#if @root.student.parent}}{{@root.student.parent}}{{else}}<span class="fill">&nbsp;</span>{{/if}}</td></tr>
+        <tr><td class="k">{{#if @root.student.parent}}{{tc "fees.print.relation" @root.student.relationCode @root.student.relation}}{{else}}{{t "fees.print.challan.fathersName" "Father's name"}}{{/if}}</td><td class="v" colspan="3">{{#if @root.student.parent}}{{@root.student.parent}}{{else}}<span class="fill">&nbsp;</span>{{/if}}</td></tr>
         <tr><td class="k">{{t "fees.print.challan.admissionNo" "Adm. No."}}</td><td class="v mono">{{@root.student.admissionNo}}</td><td class="k">{{t "fees.print.challan.classSection" "Class"}}</td><td class="v">{{#if @root.student.className}}{{@root.student.className}}{{#if @root.student.section}} – {{@root.student.section}}{{/if}}{{else}}{{@root.student.class}}{{/if}}{{#if @root.student.rollNo}} · {{t "fees.print.challan.roll" "Roll {{no}}" no=@root.student.rollNo}}{{/if}}</td></tr>
         <tr><td class="k">{{t "fees.print.challan.for" "Fees for"}}</td><td class="v">{{@root.invoice.installment}}{{#if @root.invoice.year}} · {{@root.invoice.year}}{{/if}}</td><td class="k">{{t "fees.print.challan.dueDate" "Due date"}}</td><td class="v">{{date @root.invoice.dueDate}}</td></tr>
       </table>
@@ -99,7 +99,7 @@
       </div>
       <div class="signs">
         <div>{{t "fees.print.challan.depositor" "Depositor's signature"}}</div>
-        <div>{{> seal role="ACCOUNTANT" label="Seal"}}{{t "fees.print.challan.cashier" "Cashier (with seal)"}}</div>
+        <div>{{> seal role="ACCOUNTANT" label=(t "fees.print.seal" "Seal")}}{{t "fees.print.challan.cashier" "Cashier (with seal)"}}</div>
       </div>
     </div>
   </div>

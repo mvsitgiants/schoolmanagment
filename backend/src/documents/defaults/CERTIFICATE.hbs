@@ -31,6 +31,8 @@
   .merit .m-title { text-align: center; font-family: "Noto Serif", Georgia, "Times New Roman", serif; color: {{$accent}}; margin-top: 10mm }
   .merit .m-title .big { font-size: 30pt; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; line-height: 1.1 }
   .merit .m-title .of { font-size: 13pt; font-style: italic; letter-spacing: .2em; text-transform: uppercase; margin-top: 1mm }
+  /* spacing letters apart breaks Hindi (and other Indian scripts): only for English */
+  html:not([lang="en"]) .merit .m-title .big, html:not([lang="en"]) .merit .m-title .of { letter-spacing: 0 }
   .merit .m-rule { width: 60mm; margin: 5mm auto 0; border-top: 0.6mm double {{$accent}} }
   .merit .m-body { text-align: center; font-family: "Noto Serif", Georgia, "Times New Roman", serif; font-size: 13pt; line-height: 2.1; margin: 12mm 4mm 0 }
   .merit .m-name { display: inline-block; min-width: 110mm; font-size: 21pt; font-style: italic; font-weight: 700; border-bottom: 0.3mm solid #333; line-height: 1.5; margin: 2mm 0 }
@@ -51,7 +53,7 @@
     <div>{{t "certificates.print.merit.intro" "This is to certify that"}}</div>
     <div class="m-name">{{student.titleName}}</div>
     <div>{{#if student.class}}{{t "certificates.print.merit.ofClass" "of {{cls}}" cls=student.class}}{{/if}}{{#if student.admissionNo}} ({{t "certificates.print.merit.admNo" "Admission No. {{no}}" no=student.admissionNo}}){{/if}}</div>
-    <div>{{#if student.achievement}}{{t "certificates.print.merit.has" "has secured"}} <span class="m-what">{{student.achievement}}</span> {{t "certificates.print.merit.in" "in"}}{{else}}{{t "certificates.print.merit.participation" "has taken part in"}}{{/if}} <span class="m-what">{{student.event}}</span></div>
+    <div class="m-line">{{#if student.achievement}}{{t "certificates.print.merit.secured" "has secured <b>{{what}}</b> in <b>{{event}}</b>" what=student.achievement event=student.event}}{{else}}{{t "certificates.print.merit.tookPart" "has taken part in <b>{{event}}</b>" event=student.event}}{{/if}}</div>
     {{#if student.eventDate}}<div>{{t "certificates.print.merit.on" "held on {{date}}" date=(date student.eventDate)}}</div>{{/if}}
     {{#if certificate.remarks}}<div>{{certificate.remarks}}</div>{{/if}}
     <div style="margin-top:3mm;font-style:italic">{{t "certificates.print.merit.wish" "We congratulate {{him}} and wish {{him}} every success." him=student.p.him}}</div>
@@ -76,14 +78,14 @@
   <div class="doc-title">{{tc "certificates.print.title" certificate.kind certificate.kindLabel}}</div>
   <div class="body">
   {{#if certificate.bonafide}}
-    <p>{{t "certificates.print.bonafide.text" "This is to certify that <b>{{name}}</b>{{rel}}, Admission No. {{admissionNo}}, is a bonafide student of {{school}}, studying in <b>{{cls}}</b> during the academic year <b>{{year}}</b>." name=student.titleName rel=student.relPhrase admissionNo=student.admissionNo school=institution.name cls=student.class year=student.yearName}}</p>
-    {{#if student.dob}}<p>{{t "certificates.print.dobLine" "{{His}} date of birth as per the school records is <b>{{dob}}</b> ({{words}})." His=student.p.His dob=(date student.dob) words=student.dobWords}}</p>{{/if}}
+    <p>{{t "certificates.print.bonafide.text" "This is to certify that <b>{{name}}</b>{{rel}}, Admission No. {{admissionNo}}, is a bonafide {{pupil}} of {{school}}, studying in <b>{{cls}}</b> during the academic year <b>{{year}}</b>." pupil=student.p.pupil name=student.titleName rel=student.relPhrase admissionNo=student.admissionNo school=institution.name cls=student.class year=student.yearName}}</p>
+    {{#if student.dob}}<p>{{t "certificates.print.dobLine" "{{His}} date of birth as per the school records is <b>{{dob}}</b> ({{words}})." His=student.p.His dob=(date student.dob) words=(dateWords student.dob)}}</p>{{/if}}
   {{/if}}
   {{#if certificate.character}}
     {{#if student.studying}}
-    <p>{{t "certificates.print.character.textIs" "This is to certify that <b>{{name}}</b>{{rel}}, Admission No. {{admissionNo}}, is a bonafide student of {{school}} since {{from}} and is at present studying in <b>{{cls}}</b>." name=student.titleName rel=student.relPhrase admissionNo=student.admissionNo school=institution.name from=(default (date student.from) "—") cls=student.class}}</p>
+    <p>{{t "certificates.print.character.textIs" "This is to certify that <b>{{name}}</b>{{rel}}, Admission No. {{admissionNo}}, is a bonafide {{pupil}} of {{school}} since {{from}} and is at present studying in <b>{{cls}}</b>." pupil=student.p.pupil name=student.titleName rel=student.relPhrase admissionNo=student.admissionNo school=institution.name from=(default (date student.from) "—") cls=student.class}}</p>
     {{else}}
-    <p>{{t "certificates.print.character.textWas" "This is to certify that <b>{{name}}</b>{{rel}}, Admission No. {{admissionNo}}, was a bonafide student of {{school}} from {{from}} to {{to}}." name=student.titleName rel=student.relPhrase admissionNo=student.admissionNo school=institution.name from=(default (date student.from) "—") to=(default (date student.to) "—")}}</p>
+    <p>{{t "certificates.print.character.textWas" "This is to certify that <b>{{name}}</b>{{rel}}, Admission No. {{admissionNo}}, was a bonafide {{pupil}} of {{school}} from {{from}} to {{to}}." pupil=student.p.pupil name=student.titleName rel=student.relPhrase admissionNo=student.admissionNo school=institution.name from=(default (date student.from) "—") to=(default (date student.to) "—")}}</p>
     {{/if}}
     <p>{{t "certificates.print.character.conduct" "During this period {{his}} conduct and character have been found to be <b>{{conduct}}</b>. To the best of our knowledge {{he}} bears a good moral character and has not taken part in any activity against the discipline of the institution." his=student.p.his he=student.p.he conduct=student.conduct}}</p>
     <p>{{t "certificates.print.character.wish" "We wish {{him}} every success in life." him=student.p.him}}</p>
@@ -101,7 +103,7 @@
       <tbody>{{#each student.years}}<tr><td class="sl">{{inc @index}}</td><td>{{year}}</td><td>{{class}}</td><td>{{@root.institution.name}}</td></tr>{{/each}}</tbody>
     </table>
     {{/if}}
-    {{#if student.dob}}<p>{{t "certificates.print.dobLine" "{{His}} date of birth as per the school records is <b>{{dob}}</b> ({{words}})." His=student.p.His dob=(date student.dob) words=student.dobWords}}</p>{{/if}}
+    {{#if student.dob}}<p>{{t "certificates.print.dobLine" "{{His}} date of birth as per the school records is <b>{{dob}}</b> ({{words}})." His=student.p.His dob=(date student.dob) words=(dateWords student.dob)}}</p>{{/if}}
   {{/if}}
   {{#if certificate.fee}}
     <p>{{t "certificates.print.fee.text" "This is to certify that <b>{{name}}</b>{{rel}}, Admission No. {{admissionNo}}, studying in <b>{{cls}}</b> of {{school}}, has paid the following fees during the financial year <b>{{fy}}</b> ({{from}} to {{to}}):" name=student.titleName rel=student.relPhrase admissionNo=student.admissionNo cls=(default student.class "—") school=institution.name fy=fees.fy from=(date fees.from) to=(date fees.to)}}</p>

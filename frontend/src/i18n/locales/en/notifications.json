@@ -457,6 +457,64 @@
           "body": "Dear {{guardian.name}},\n\n{{student.name}}’s canteen wallet has {{canteen.balance}} left (below {{canteen.threshold}}). Top it up in the school app or at the canteen counter.\n\n{{institution.name}}"
         }
       }
+    },
+    "words": {
+      "bus": {
+        "event": {
+          "BOARDED": "got on",
+          "DROPPED": "got off",
+          "ABSENT": "was not at the stop for"
+        },
+        "stop": {
+          "SCHOOL": "school"
+        },
+        "trip": {
+          "PICKUP": "morning pickup",
+          "DROP": "afternoon drop"
+        }
+      },
+      "live": {
+        "status": {
+          "SCHEDULED": "scheduled",
+          "CANCELLED": "is cancelled"
+        }
+      },
+      "outpass": {
+        "status": {
+          "APPROVED": "approved",
+          "NOT_APPROVED": "not approved"
+        }
+      },
+      "incident": {
+        "kind": {
+          "INJURY": "injury",
+          "FALL": "fall",
+          "SPORTS": "sports",
+          "FIGHT": "fight",
+          "ALLERGIC_REACTION": "allergic reaction",
+          "BURN": "burn",
+          "OTHER": "other"
+        },
+        "severity": {
+          "MINOR": "minor",
+          "MODERATE": "moderate",
+          "SERIOUS": "serious",
+          "CRITICAL": "critical"
+        }
+      },
+      "health": {
+        "complaint": {
+          "FEVER": "fever",
+          "HEADACHE": "headache",
+          "STOMACH_ACHE": "stomach ache",
+          "VOMITING": "vomiting",
+          "INJURY": "injury",
+          "COLD_COUGH": "cold cough",
+          "DIZZINESS": "dizziness",
+          "ALLERGY": "allergy",
+          "OTHER": "other"
+        }
+      }
     }
   }
 }

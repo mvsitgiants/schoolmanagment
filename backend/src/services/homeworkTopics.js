@@ -5,12 +5,12 @@ import { Substitution, Timetable, TimetableEntry } from '../models/timetable.js'
 import { moduleEnabled } from '../platform/access.js'
 import { audit } from '../platform/audit.js'
 import { isOid } from '../platform/db.js'
-import { forbidden, notFound } from '../platform/errors.js'
+import { conflict, forbidden, notFound } from '../platform/errors.js'
 import { institutionNow } from '../platform/time.js'
 import { getSettings } from '../platform/settings.js'
 import { currentYear } from './academics.js'
 import { hubItems } from './lmsContent.js'
-import { homeworkLookup, mayTeach, myPairs, requireYear, sectionFor, subjectNames, tick, topicIdsOf, unitsDto, wide } from './homework.js'
+import { homeworkLookup, mayTeach, myPairs, requireYear, sectionFor, subjectNames, tick, topicIdsOf, unitsDto, wide, TAUGHT_STAYS, mayUndoTaught } from './homework.js'
 
 // Topics per section (module `homework`): the teaching material on each syllabus topic, each section's
 // planned date for it, how it went (partly taught, needs revision, extra classes), and the teacher's
@@ -248,6 +248,8 @@ export async function updateTopicPlan(input, auth, req) {
   const plan = await SectionTopicPlan.findOne(key) ?? new SectionTopicPlan({ ...key, academicYearId: year._id })
   const t = await today()
   const said = []
+  // taught stays taught: no going back to not started / partly, and no "not taught on this day", once it is taught
+  if (((input.status && input.status !== 'TAUGHT') || input.notTaughtOn) && !mayUndoTaught(auth) && await SyllabusDone.exists(key)) throw conflict(TAUGHT_STAYS)
   if (input.status) {
     const on = input.date || t
     plan.status = input.status

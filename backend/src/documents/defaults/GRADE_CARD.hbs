@@ -70,7 +70,7 @@
 <div class="scale no-break">
   <div class="cap">{{t "coe.print.gradeCard.scale" "Grading system (UGC 10-point scale)"}}</div>
   <table class="grid">
-    <tr><th>{{t "coe.print.gradeCard.letterGrade" "Letter grade"}}</th>{{#each scale}}<td><b>{{grade}}</b></td>{{/each}}<td><b>Ab</b></td></tr>
+    <tr><th>{{t "coe.print.gradeCard.letterGrade" "Letter grade"}}</th>{{#each scale}}<td><b>{{grade}}</b></td>{{/each}}<td><b>{{t "coe.print.gradeCard.absentShort" "Ab"}}</b></td></tr>
     <tr><th>{{t "coe.print.gradeCard.meaning" "Meaning"}}</th>{{#each scale}}<td>{{label}}</td>{{/each}}<td>{{t "coe.print.gradeCard.absent" "Absent"}}</td></tr>
     <tr><th>{{t "coe.print.gradeCard.points" "Grade point (G)"}}</th>{{#each scale}}<td>{{points}}</td>{{/each}}<td>0</td></tr>
     <tr><th>{{t "coe.print.gradeCard.marksRange" "Marks (%)"}}</th>{{#each scale}}<td>{{range}}</td>{{/each}}<td>—</td></tr>

@@ -269,7 +269,7 @@ async function tellSentHome(v, person) {
   const tz = await timeZoneOf()
   await emit('health.sent_home', {
     studentId: String(v.studentId), entity: { type: 'sick_visit', id: v._id },
-    data: { student: { class: await classOf(person.student ?? await Student.findById(v.studentId).select('sectionId').lean()) }, health: { complaint: words(v.complaint), time: hhmmIn(new Date(), tz), note: v.outcomeNote ?? v.treatment ?? '', pickedUpBy: v.pickedUpBy ?? '' } },
+    data: { student: { class: await classOf(person.student ?? await Student.findById(v.studentId).select('sectionId').lean()) }, health: { complaint: words(v.complaint), complaintCode: v.complaint ?? '', time: hhmmIn(new Date(), tz), note: v.outcomeNote ?? v.treatment ?? '', pickedUpBy: v.pickedUpBy ?? '' } },
   })
   v.guardianNotified = true
 }
@@ -364,7 +364,7 @@ export async function createIncident(input, auth, req) {
   if (input.notifyGuardian && i.studentId) {
     await emit('health.incident', {
       studentId: String(i.studentId), entity: { type: 'health_incident', id: i._id },
-      data: { student: { class: await classOf(person.student) }, incident: { kind: words(i.kind), date: i.date, time: i.time ?? '', place: i.place ?? '', severity: words(i.severity), firstAid: i.firstAid ?? '' } },
+      data: { student: { class: await classOf(person.student) }, incident: { kind: words(i.kind), kindCode: i.kind ?? '', date: i.date, time: i.time ?? '', place: i.place ?? '', severity: words(i.severity), severityCode: i.severity ?? '', firstAid: i.firstAid ?? '' } },
     })
     if (!i.guardianInformed?.at) { i.guardianInformed = { at: new Date(), by: auth.user?.name, how: 'APP' }; await i.save() }
   }

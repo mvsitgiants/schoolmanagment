@@ -232,6 +232,24 @@ async function institutionVars() {
  * for a number being checked. `data.student.class` etc. come from the calling module.
  * Returns the MessageLog rows.
  */
+/**
+ * Words a message gets from the record ("got on", "minor", "approved") are sent in English with their code beside
+ * them — `{ event: 'got on', eventCode: 'BOARDED' }`. For a family reading another language each such word is looked
+ * up as notifications.words.<path>.<code> (bus.event.BOARDED), keeping the English when there is no translation.
+ */
+function wordsIn(vars, lang, path = '') {
+  if (!lang || lang === 'en') return vars
+  const out = { ...vars }
+  for (const [k, v] of Object.entries(vars)) {
+    if (v && typeof v === 'object' && Object.getPrototypeOf(v) === Object.prototype) out[k] = wordsIn(v, lang, `${path}${k}.`)
+    else if (k.endsWith('Code') && typeof v === 'string' && v && typeof vars[k.slice(0, -4)] === 'string') {
+      const base = k.slice(0, -4)
+      out[base] = translateDoc(lang, `notifications.words.${path}${base}.${v}`, vars[base])
+    }
+  }
+  return out
+}
+
 export async function queueFamilyMessages(event, { studentId, to: direct, data = {}, entity, only, pick } = {}) {
   const rule = await ruleFor(event)
   if (!rule || (!studentId && !direct)) return []
@@ -245,14 +263,14 @@ export async function queueFamilyMessages(event, { studentId, to: direct, data =
   const cfg = await messagingConfig()
   const lang = student?.language && (await getSetting('core', 'familyMessageLanguage')) !== false ? langCodeFor(student.language) : null
   const contact = student ? familyContact(student) : { mobile: direct.mobile, email: direct.email }
-  const vars = {
+  const vars = wordsIn({
     ...data,
     ...(student && {
       student: { name: studentName(student), firstName: student.firstName, admissionNo: student.admissionNo, ...data.student },
       guardian: { name: contact.name, ...data.guardian },
     }),
     institution: await institutionVars(),
-  }
+  }, lang)
   if (student && !pick) {
     const r = rule.channels.SMS?.body ? rule.channels.SMS : rule.channels.WHATSAPP?.body ? rule.channels.WHATSAPP : rule.channels.EMAIL
     if (r?.body) {

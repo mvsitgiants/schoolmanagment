@@ -292,7 +292,8 @@
         "marksRange": "Marks (%)",
         "place": "Place",
         "dateOfIssue": "Date of issue",
-        "seal": "Seal"
+        "seal": "Seal",
+        "absentShort": "Ab"
       },
       "transcript": {
         "provisional": "PROVISIONAL",

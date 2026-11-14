@@ -264,6 +264,10 @@ export async function tick({ year, section, subjectId, topicIds, date, lessonPla
   })))
 }
 
+/** A taught topic stays taught — revise it instead. Only someone with full access may undo it, to put a mistake right. */
+export const TAUGHT_STAYS = 'This topic is already taught, and a taught topic stays taught. Mark it for revision instead — or ask the administrator if it was marked by mistake.'
+export const mayUndoTaught = (auth) => !!auth?.fullAccess
+
 /** Tick topics as taught (or untick them) in a section. */
 export async function markTopics({ sectionId, subjectId, topicIds, done = true, date }, auth, req) {
   const year = await requireYear()
@@ -271,6 +275,7 @@ export async function markTopics({ sectionId, subjectId, topicIds, done = true, 
   if (!await mayTeach(auth, section, subjectId)) throw forbidden('You don’t teach this subject in this class.')
   const valid = await topicIdsOf(section.classId, subjectId, year._id)
   if (topicIds.some((id) => !valid.has(String(id)))) throw badRequest('Some topics are not in this syllabus.')
+  if (!done && !mayUndoTaught(auth) && await SyllabusDone.exists({ sectionId: section._id, subjectId, topicId: { $in: topicIds } })) throw conflict(TAUGHT_STAYS)
   if (done) await tick({ year, section, subjectId, topicIds, date: date || await today() }, auth)
   else await SyllabusDone.deleteMany({ sectionId: section._id, subjectId, topicId: { $in: topicIds } })
   const subject = (await subjectNames([subjectId])).get(String(subjectId))
@@ -387,15 +392,32 @@ export async function deletePlan(id, auth, req) {
   return { deleted: true }
 }
 
-/** Taught (its topics are ticked in the syllabus), not taken, or back to planned. */
-export async function setPlanStatus(id, { status, reflection }, auth, req) {
+/**
+ * Taught (its topics are ticked in the syllabus), not taken, or back to planned. `partly` with DONE: the lesson was held
+ * but its topics were only partly covered — they are marked "partly taught" (a topic already taught stays taught).
+ */
+export async function setPlanStatus(id, { status, reflection, partly = false }, auth, req) {
   const year = await requireYear()
   const { p, section } = await planFor(id, auth)
   if (!mayChange(auth, p, section)) throw forbidden('Only the teacher who wrote this plan (or the class teacher) can change it.')
-  Object.assign(p, { status, reflection: reflection || p.reflection, doneAt: status === 'DONE' ? new Date() : undefined })
+  if (p.status === 'DONE' && status !== 'DONE' && !mayUndoTaught(auth)) throw conflict('This lesson is already taught, and a taught lesson stays taught. Ask the administrator if it was marked by mistake.')
+  Object.assign(p, { status, reflection: reflection || p.reflection, doneAt: status === 'DONE' ? new Date() : undefined, partly: status === 'DONE' && partly ? true : undefined })
   await p.save()
-  if (status === 'DONE') await tick({ year, section, subjectId: p.subjectId, topicIds: p.topicIds, date: p.date, lessonPlanId: p._id }, auth)
-  await audit({ action: 'UPDATE', module: 'homework', entityType: 'lesson_plan', entityId: String(p._id), entityName: p.title, summary: `Marked “${p.title}” (${section.short}) as ${LESSON_STATUS[status]?.label.toLowerCase()}` }, req)
+  if (status === 'DONE' && !partly) await tick({ year, section, subjectId: p.subjectId, topicIds: p.topicIds, date: p.date, lessonPlanId: p._id }, auth)
+  if (status === 'DONE' && partly && p.topicIds?.length) {
+    const taught = new Set((await SyllabusDone.find({ sectionId: section._id, subjectId: p.subjectId, topicId: { $in: p.topicIds } }).select('topicId').lean()).map((d) => String(d.topicId)))
+    const open = p.topicIds.filter((tid) => !taught.has(String(tid)))
+    if (open.length) {
+      await SectionTopicPlan.bulkWrite(open.map((topicId) => ({
+        updateOne: {
+          filter: { sectionId: section._id, subjectId: p.subjectId, topicId },
+          update: { $set: { status: 'PARTLY', statusDate: p.date }, $setOnInsert: { academicYearId: year._id } },
+          upsert: true,
+        },
+      })))
+    }
+  }
+  await audit({ action: 'UPDATE', module: 'homework', entityType: 'lesson_plan', entityId: String(p._id), entityName: p.title, summary: `Marked “${p.title}” (${section.short}) as ${status === 'DONE' && partly ? 'partly taught' : LESSON_STATUS[status]?.label.toLowerCase()}` }, req)
   return (await planRows([p.toObject()], auth))[0]
 }
 

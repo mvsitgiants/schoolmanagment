@@ -20,6 +20,8 @@ export function feeStudent(s, place, year) {
     father, mother, guardian, parent, kid,
     // S/o, D/o — or "Ward of" when the child's gender isn't recorded or the name isn't the father's / mother's
     relation: !parent ? null : father || mother ? (kid === 'm' ? 'S/o' : kid === 'f' ? 'D/o' : 'Ward of') : 'Ward of',
+    // the same as a code, so the print can say it in its own language (पुत्र / पुत्री / पाल्य)
+    relationCode: !parent ? null : father || mother ? (kid === 'm' ? 'SON' : kid === 'f' ? 'DAUGHTER' : 'WARD') : 'WARD',
     parentIs: father ? 'FATHER' : mother ? 'MOTHER' : parent ? 'GUARDIAN' : null,
   }
 }

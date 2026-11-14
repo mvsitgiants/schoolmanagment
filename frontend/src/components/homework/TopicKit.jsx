@@ -4,7 +4,7 @@ import { useMutation } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { ArrowRight, BookOpen, CalendarClock, Check, CheckCheck, ChevronDown, ChevronUp, CircleDashed, LayoutPanelTop, Lightbulb, MessageCircleQuestion, NotebookPen, Plus, Presentation, RotateCcw, SkipForward, Trash2 } from 'lucide-react'
 import { TOPIC_STATUS } from '@schoolgiant/shared'
-import { DateInput, Attachments, FormField, Input, Modal, ProgressBar, StatusPill } from '../system'
+import { DateInput, Attachments, FormField, Input, Modal, ProgressBar, StatusPill, Textarea } from '../system'
 import Button from '../ui/Button'
 import { updateTopicPlan } from '../../api/homework'
 import { hasPermission } from '../../api/auth'
@@ -180,6 +180,40 @@ export function useMarkTaught() {
         <Button icon={CheckCheck} onClick={() => answer('TAUGHT')}>{t('homework.topic.markAsk.taught')}</Button>
       </>}>
       <p className="text-sm text-ink-muted">{t('homework.topic.markAsk.message')}</p>
+    </Modal>
+  )
+  return [ask, dialog]
+}
+
+/**
+ * Marking a lesson as held: all of it taught (its topics are ticked off) or only part (they stay open, marked partly
+ * taught), with an optional note on how it went. `const [ask, dialog] = useMarkLessonDone()`; `await ask(lesson)` →
+ * { partly, reflection } or null.
+ */
+export function useMarkLessonDone() {
+  const { t } = useTranslation('homework')
+  const [asking, setAsking] = useState(null) // { lesson, resolve }
+  const [note, setNote] = useState('')
+  const ask = (lesson) => new Promise((resolve) => { setNote(''); setAsking({ lesson, resolve }) })
+  const answer = (v) => { asking?.resolve(v); setAsking(null) }
+  const n = asking?.lesson?.topics?.length ?? 0
+  const dialog = asking && (
+    <Modal open onClose={() => answer(null)} size="md" title={t('homework.lessons.doneConfirm.title', { title: asking.lesson.title })}
+      footer={<>
+        <Button variant="ghost" onClick={() => answer(null)}>{t('homework.topic.markAsk.cancel')}</Button>
+        <Button variant="secondary" icon={CircleDashed} onClick={() => answer({ partly: true, reflection: note.trim() })}>{t('homework.topic.markAsk.partly')}</Button>
+        <Button icon={CheckCheck} onClick={() => answer({ partly: false, reflection: note.trim() })}>{t('homework.topic.markAsk.taught')}</Button>
+      </>}>
+      <div className="space-y-3">
+        <p className="text-sm text-ink">{t('homework.lessons.doneAsk.which')}</p>
+        <ul className="space-y-1 text-sm text-ink-muted">
+          <li className="flex gap-2"><CheckCheck className="mt-0.5 h-4 w-4 shrink-0 text-success-600" aria-hidden />{n ? t('homework.lessons.doneAsk.taughtHint', { count: n }) : t('homework.lessons.doneAsk.taughtHintNone')}</li>
+          <li className="flex gap-2"><CircleDashed className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" aria-hidden />{n ? t('homework.lessons.doneAsk.partlyHint') : t('homework.lessons.doneAsk.partlyHintNone')}</li>
+        </ul>
+        <FormField label={t('homework.lessons.reflection')} hint={t('homework.lessons.doneAsk.optional')}>
+          <Textarea rows={3} value={note} onChange={(e) => setNote(e.target.value)} />
+        </FormField>
+      </div>
     </Modal>
   )
   return [ask, dialog]

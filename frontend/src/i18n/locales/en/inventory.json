@@ -107,7 +107,8 @@
         "signatureFor": "For {{name}} — Authorised signatory",
         "cgstOn": "CGST @ {{rate}}% on {{taxable}}",
         "sgstOn": "SGST @ {{rate}}% on {{taxable}}",
-        "forName": "For {{name}}"
+        "forName": "For {{name}}",
+        "seal": "Seal"
       }
     },
     "campus": "Campus",

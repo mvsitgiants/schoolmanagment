@@ -251,7 +251,7 @@ async function tellFamilies(l, status) {
   const n = await names({ sectionIds: reach, subjectIds: [idStr(l.subjectId)].filter(Boolean) })
   const link = await familyLink('learning')
   for (const s of students) {
-    await emit('lms.live_class', { studentId: String(s._id), entity: { type: 'live_class', id: l._id }, data: { student: { class: n.section.get(String(s.sectionId)) ?? '' }, live: { subject: n.subject.get(String(l.subjectId)) ?? '', title: l.title, date: l.date, time: l.start, status, link } } })
+    await emit('lms.live_class', { studentId: String(s._id), entity: { type: 'live_class', id: l._id }, data: { student: { class: n.section.get(String(s.sectionId)) ?? '' }, live: { subject: n.subject.get(String(l.subjectId)) ?? '', title: l.title, date: l.date, time: l.start, status, statusCode: status === 'is cancelled' ? 'CANCELLED' : 'SCHEDULED', link } } })
   }
   return students.length
 }

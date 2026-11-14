@@ -41,7 +41,7 @@
   <h3>{{t "students.print.admission.secStudent" "1. Particulars of the student"}}</h3>
   <table class="grid">
     <tr><td class="k">{{t "students.print.admission.name" "Name (in capitals)"}}</td><td class="v" colspan="3">{{upper student.name}}</td></tr>
-    <tr><td class="k">{{t "students.print.admission.dob" "Date of birth"}}</td><td class="v" colspan="3">{{#if student.dob}}{{date student.dob}} <span class="w">({{t "students.print.admission.inWords" "in words"}}: {{student.dobWords}})</span>{{/if}}</td></tr>
+    <tr><td class="k">{{t "students.print.admission.dob" "Date of birth"}}</td><td class="v" colspan="3">{{#if student.dob}}{{date student.dob}} <span class="w">({{t "students.print.admission.inWords" "in words"}}: {{dateWords student.dob}})</span>{{/if}}</td></tr>
     <tr><td class="k">{{t "students.print.admission.gender" "Gender"}}</td><td class="v">{{student.gender}}</td><td class="k">{{t "students.print.admission.bloodGroup" "Blood group"}}</td><td class="v">{{student.bloodGroup}}</td></tr>
     <tr><td class="k">{{t "students.print.admission.nationality" "Nationality"}}</td><td class="v">{{student.nationality}}</td><td class="k">{{t "students.print.admission.religion" "Religion"}}</td><td class="v">{{student.religion}}</td></tr>
     <tr><td class="k">{{t "students.print.admission.category" "Category (General / SC / ST / OBC / EWS)"}}</td><td class="v">{{student.category}}</td><td class="k">{{t "students.print.admission.motherTongue" "Mother tongue"}}</td><td class="v">{{student.motherTongue}}</td></tr>

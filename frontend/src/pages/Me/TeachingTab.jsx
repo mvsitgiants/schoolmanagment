@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { BookOpenCheck, CalendarClock, CalendarDays, Check, ChevronRight, CircleAlert, ClipboardList, LayoutPanelTop, ListChecks, NotebookPen, Plus, Presentation, SkipForward } from 'lucide-react'
 import { LESSON_STATUS, addDaysYmd } from '@schoolgiant/shared'
-import { ColorChip, EmptyState, ListRow, ListRows, Note, ProgressBar, SectionCard, StatusPill, usePrompt } from '../../components/system'
+import { ColorChip, EmptyState, ListRow, ListRows, Note, ProgressBar, SectionCard, StatusPill } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { fetchHomeworkLookup, fetchMyTeaching, setLessonPlanStatus } from '../../api/homework'
 import { hasPermission } from '../../api/auth'
@@ -13,6 +13,7 @@ import { useFormat } from '../../context/SettingsContext'
 import { useWeekdayLabel } from '../../components/homework/HomeworkKit'
 import { PlanForm } from '../Homework/LessonPlans'
 import LessonView from '../../components/homework/LessonView'
+import { useMarkLessonDone } from '../../components/homework/TopicKit'
 import { HomeworkDrawer, HomeworkForm } from '../Homework/Homework'
 import { QuietEmpty, Tile } from './shared'
 
@@ -21,19 +22,20 @@ export const MY_TEACHING = ['my-teaching']
 /** Lesson plans of the week, one block per day; today's open. */
 function WeekPlans({ data, onPlan, onAct, onOpen, openId, renderLesson }) {
   const { t } = useTranslation('homework')
-  const prompt = usePrompt()
   const weekday = useWeekdayLabel()
   const { date } = useFormat()
   const canEdit = hasPermission('homework.lesson-plans.edit')
   const days = Array.from({ length: 7 }, (_, i) => addDaysYmd(data.week.from, i))
   const shown = days.filter((d) => d === data.today || data.plans.some((p) => p.date === d))
   const statusLabel = (s) => t(`homework.lessons.status.${s}`, LESSON_STATUS[s]?.label ?? s)
+  const [askDone, doneDialog] = useMarkLessonDone()
   const markDone = async (p) => {
-    const reflection = await prompt({ title: t('homework.lessons.doneConfirm.title', { title: p.title }), message: p.topics.length ? t('homework.lessons.doneConfirm.withTopics', { count: p.topics.length }) : t('homework.lessons.doneConfirm.message'), label: t('homework.lessons.reflection'), required: false })
-    if (reflection !== null) onAct(() => setLessonPlanStatus(p.id, { status: 'DONE', reflection: reflection || undefined }), t('homework.lessons.markedDone'))
+    const a = await askDone(p)
+    if (a) onAct(() => setLessonPlanStatus(p.id, { status: 'DONE', partly: a.partly, reflection: a.reflection || undefined }), t(a.partly ? 'homework.lessons.markedPartly' : 'homework.lessons.markedDone'))
   }
   return (
     <div className="space-y-4">
+      {doneDialog}
       {shown.map((d) => {
         const plans = data.plans.filter((p) => p.date === d)
         return (
@@ -53,7 +55,7 @@ function WeekPlans({ data, onPlan, onAct, onOpen, openId, renderLesson }) {
                         <span className="block truncate text-sm font-medium text-ink">{p.title}</span>
                         <span className="block truncate text-xs text-ink-muted">{[p.section, p.subject].filter(Boolean).join(' · ')}</span>
                       </span>
-                      <StatusPill tone={LESSON_STATUS[p.status]?.tone}>{statusLabel(p.status)}</StatusPill>
+                      <StatusPill tone={p.partly && p.status === 'DONE' ? 'warning' : LESSON_STATUS[p.status]?.tone}>{p.partly && p.status === 'DONE' ? t('homework.lessons.status.PARTLY') : statusLabel(p.status)}</StatusPill>
                     </button>
                     {p.status === 'PLANNED' && p.canChange && canEdit && <>
                       <Button size="sm" variant="ghost" icon={Check} title={t('homework.lessons.markDone')} aria-label={t('homework.lessons.markDone')} onClick={() => markDone(p)} />

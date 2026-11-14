@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url'
 import Handlebars from 'handlebars'
 import QRCode from 'qrcode'
 import bwipjs from 'bwip-js'
+import { amountInWordsHi, classInWords, dateInWords } from './words.js'
 import { LETTERHEAD_IDS, PAPER_BY, amountInWords, fixedPaper, formatINR, pageCss, defaultSignMode } from '@schoolgiant/shared'
 
 const DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), 'defaults')
@@ -98,6 +99,9 @@ function lookupInNs(lang, ns, key) {
   return null
 }
 
+/** The language a helper prints in: the page's, else the student's, else English. */
+const langOf = (opts) => opts?.data?.root?.$lang || opts?.data?.root?.student?.language || opts?.data?.root?.lang || 'en'
+
 const COMMON_LOOKUP_NS = ['common', 'ui']
 
 export function translateDoc(lang, key, fallback) {
@@ -150,7 +154,11 @@ const HELPERS = {
   /** ₹1,234.50 from paise. `{{money total}}`, `{{money total 0}}` for whole rupees. */
   money: (p, decimals, options) => (p === undefined || p === null || p === '' ? '' : formatINR(Number(p), { decimals: typeof decimals === 'number' ? decimals : 2 })),
   num: (n) => (n === undefined || n === null || n === '' ? '' : new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 }).format(Number(n))),
-  words: (p) => (p ? amountInWords(Number(p)) : ''),
+  words: (p, options) => (p ? (langOf(options) === 'hi' ? amountInWordsHi(Number(p)) : amountInWords(Number(p))) : ''),
+  /** A date of birth in words in the print's language: `{{dateWords student.dob}}` (Tenth May … / दस मई …). */
+  dateWords: (ymd, options) => dateInWords(typeof ymd === 'string' ? ymd : '', langOf(options)),
+  /** A class in words in the print's language: `{{classWords tc.lastClass}}` (Eighth / आठवीं). */
+  classWords: (label, options) => classInWords(typeof label === 'string' ? label : '', langOf(options)),
   // paise → "45,000.00" without the ₹ sign (table columns that already say what they hold)
   amount: (p) => (p === undefined || p === null || p === '' ? '' : new Intl.NumberFormat('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(p) / 100)),
   date: (v, options) => (!v ? '' : ymd(v) ? `${v.slice(8, 10)}/${v.slice(5, 7)}/${v.slice(0, 4)}` : parts(v, tz(options))?.date ?? ''),
@@ -195,16 +203,17 @@ hb.registerPartial('letterhead', `{{#if (eq @root.$layout.mode "PREPRINTED")}}<d
  */
 hb.registerHelper('signBlock', (role, label, options) => {
   const sign = options?.data?.root?.$layout?.sign ?? { mode: 'HAND', people: {} }
-  const text = typeof label === 'string' && label ? label : 'School seal'
+  // a label from {{t …}} arrives already escaped (a SafeString); a plain string is escaped below
+  const text = label instanceof hb.SafeString ? String(label) : esc(typeof label === 'string' && label ? label : 'School seal')
   if (sign.mode === 'NONE') return ''
   const who = sign.people?.[typeof role === 'string' && role ? role : 'PRINCIPAL'] ?? {}
   if (sign.mode === 'PRINTED' && (sign.seal || who.img)) {
     return new hb.SafeString(`<div class="signed">${sign.seal ? `<img class="seal-img" src="${esc(sign.seal)}" alt="" />` : ''}${who.img ? `<img class="sign-img" src="${esc(who.img)}" alt="" />` : ''}</div>${who.name ? `<div class="sign-name">${esc(who.name)}</div>` : ''}`)
   }
-  return new hb.SafeString(`<div class="seal">${esc(text)}</div>`)
+  return new hb.SafeString(`<div class="seal">${text}</div>`)
 })
 hb.registerPartial('seal', '{{signBlock role label}}')
-hb.registerPartial('footer', `{{#if (or @root.$layout.footerText fallback @root.$layout.showPrintedOn)}}<div class="doc-foot"><span>{{default @root.$layout.footerText fallback}}</span>{{#if @root.$layout.showPrintedOn}}<span>Printed {{dateTime @root.$now}}</span>{{/if}}</div>{{/if}}`)
+hb.registerPartial('footer', `{{#if (or @root.$layout.footerText fallback @root.$layout.showPrintedOn)}}<div class="doc-foot"><span>{{default @root.$layout.footerText fallback}}</span>{{#if @root.$layout.showPrintedOn}}<span>{{t "common.printedOn" "Printed {{when}}" when=(dateTime @root.$now)}}</span>{{/if}}</div>{{/if}}`)
 
 // ───────────────────────────────────────────────────────── templates
 

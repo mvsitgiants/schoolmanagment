@@ -5,7 +5,7 @@
  *   catalog.json        ← packages/shared/src/catalog.js (categories, modules, pages, actions, scopes, limits)
  *   settings.json       ← settings.js (defs.<module>.<key>.label / help / options)
  *   notifications.json  ← notifications.js (default wording of every family message)
- * Hand-written parts of these files (catalog.modulePage, settings.page) are kept as they are.
+ * Hand-written parts of these files (catalog.modulePage, settings.page, notifications.words) are kept as they are.
  *
  *   npm run gen:locales --workspace @schoolgiant/frontend
  *
@@ -54,13 +54,14 @@ const write = (ns, data) => writeFileSync(join(EN, `${ns}.json`), `${JSON.string
   write('settings', { settings: { page: old.page ?? {}, defs } })
 }
 
-// ── notifications
+// ── notifications (words: the record's words put in a message — "got on", "minor" — by code; hand-written)
 {
+  const old = read('notifications').notifications ?? {}
   const events = {}
   for (const e of NOTIFY_EVENTS) {
     events[e.event.replace(/\./g, '_')] = Object.fromEntries(Object.entries(e.defaults).map(([ch, d]) => [ch, Object.fromEntries(['subject', 'body'].filter((k) => d[k]).map((k) => [k, d[k]]))]))
   }
-  write('notifications', { notifications: { events } })
+  write('notifications', { notifications: { events, words: old.words ?? {} } })
 }
 
 console.log('✓ catalog.json, settings.json and notifications.json regenerated from @schoolgiant/shared')

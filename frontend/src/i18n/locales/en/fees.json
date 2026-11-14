@@ -507,7 +507,13 @@
         "cutHere": "✂ cut here",
         "schoolCopy": "School copy",
         "parentCopy": "Parent copy"
-      }
+      },
+      "relation": {
+        "SON": "S/o",
+        "DAUGHTER": "D/o",
+        "WARD": "Ward of"
+      },
+      "seal": "Seal"
     },
     "online": {
       "title": "Online payments",

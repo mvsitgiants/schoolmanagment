@@ -129,7 +129,7 @@ router.delete('/lesson-plans/:id', requirePermission('homework.lesson-plans.dele
   res.json({ data: await deletePlan(id(req), req.auth, req) })
 })
 router.post('/lesson-plans/:id/status', requirePermission('homework.lesson-plans.edit'), async (req, res) => {
-  const input = z.object({ status: z.enum(['PLANNED', 'DONE', 'SKIPPED']), reflection: optionalText(2000) }).parse(req.body)
+  const input = z.object({ status: z.enum(['PLANNED', 'DONE', 'SKIPPED']), reflection: optionalText(2000), partly: z.boolean().optional() }).parse(req.body)
   res.json({ data: await setPlanStatus(id(req), input, req.auth, req) })
 })
 

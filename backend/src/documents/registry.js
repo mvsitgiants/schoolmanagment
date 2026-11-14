@@ -69,7 +69,7 @@ function tcModel({ tc, student }) {
       concession: tc.concession, workingDays: tc.workingDays ?? null, presentDays: tc.presentDays ?? null, nccScoutGuide: tc.nccScoutGuide, games: tc.games,
     },
     student: {
-      name: sn.name, admissionNo: sn.admissionNo, dob: sn.dob, dobWords: dateInWords(sn.dob), gender: sn.gender, nationality: sn.nationality,
+      name: sn.name, admissionNo: sn.admissionNo, dob: sn.dob, dobWords: dateInWords(sn.dob, student?.language), gender: sn.gender, nationality: sn.nationality,
       category: CATEGORY_LABEL_OF(sn.category), religion: sn.religion, admissionDate: sn.admissionDate, firstClass: sn.firstClass,
       father: sn.father, mother: sn.mother, guardian: sn.guardian, apaarId: sn.apaarId, pen: sn.pen, language: student?.language,
       // SC / ST / OBC row: the category, or "No" for General
@@ -160,7 +160,7 @@ function certificateModel({ certificate: c, verifyUrl }) {
       parentPhrase: sn.father || sn.mother ? `, ${translateDoc(sn.language || 'en', `certificates.print.childOf.${kid}`, kid === 'm' ? 'son of' : kid === 'f' ? 'daughter of' : 'ward of')} ${sn.father || sn.mother}` : '',
       // he / she, his / her, Master / Kumari, S/o / D/o — from the gender, "he/she" when it isn't recorded
       p: Object.fromEntries(Object.entries(pronounsOf(sn.gender)).map(([k, v]) => [k, k === 'kid' ? v : translateDoc(sn.language || 'en', `certificates.print.words.${k}.${kid}`, v)])),
-      dobWords: dateInWords(sn.dob), years: sn.years ?? [], hasYears: (sn.years ?? []).length > 0,
+      dobWords: dateInWords(sn.dob, sn.language), years: sn.years ?? [], hasYears: (sn.years ?? []).length > 0,
       // "Master Aditya Iyer" and ", S/o Suresh Iyer" as Indian certificates write them
       titleName: [translateDoc(sn.language || 'en', `certificates.print.words.title.${kid}`, pronounsOf(sn.gender).title), sn.name].filter(Boolean).join(' '),
       relPhrase: sn.father || sn.mother ? `, ${translateDoc(sn.language || 'en', `certificates.print.words.rel.${kid}`, pronounsOf(sn.gender).rel)} ${sn.father || sn.mother}` : '',

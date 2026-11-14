@@ -306,6 +306,9 @@
       "summary": "{{seen}} of {{expected}} found · {{missing}} missing",
       "newCheck": "Start a new check",
       "none": "No stock checks yet."
+    },
+    "print": {
+      "shelf": "Shelf"
     }
   }
 }

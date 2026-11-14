@@ -340,7 +340,7 @@ export async function recordPosition(vehicle, p, source) {
     for (const n of toTell) {
       const stop = stops.find((s) => s.id === n.id)
       for (const a of await ridersAt(trip.routeId, n.id, trip.kind)) {
-        await emit('transport.near', { studentId: String(a.studentId), entity: { type: 'trip', id: trip._id }, data: { bus: { route: r.name, stop: stop.name, minutes: etaMinutes(n.metres, p.speed), vehicle: v?.regNo ?? '', trip: TRIP_KINDS[trip.kind].label.toLowerCase() } } })
+        await emit('transport.near', { studentId: String(a.studentId), entity: { type: 'trip', id: trip._id }, data: { bus: { route: r.name, stop: stop.name, minutes: etaMinutes(n.metres, p.speed), vehicle: v?.regNo ?? '', trip: TRIP_KINDS[trip.kind].label.toLowerCase(), tripCode: trip.kind } } })
       }
     }
   }
@@ -368,7 +368,7 @@ export async function markRide(tripId, { studentId, event }, auth, req) {
   const v = t.vehicleId ? await Vehicle.findById(t.vehicleId).select('regNo').lean() : null
   if ((await getSettings('transport')).alertRide !== false) {
     const verb = { BOARDED: 'got on', DROPPED: 'got off', ABSENT: 'was not at the stop for' }[event]
-    await emit('transport.ride', { studentId: String(a.studentId), entity: { type: 'trip', id: t._id }, data: { bus: { route: r?.name ?? '', stop: event === 'DROPPED' && t.kind === 'PICKUP' ? 'school' : stop?.name ?? '', event: verb, time: hhmmIn(new Date(), await timeZoneOf()), vehicle: v?.regNo ?? '' } } })
+    await emit('transport.ride', { studentId: String(a.studentId), entity: { type: 'trip', id: t._id }, data: { bus: { route: r?.name ?? '', stop: event === 'DROPPED' && t.kind === 'PICKUP' ? 'school' : stop?.name ?? '', ...(event === 'DROPPED' && t.kind === 'PICKUP' && { stopCode: 'SCHOOL' }), event: verb, eventCode: event, time: hhmmIn(new Date(), await timeZoneOf()), vehicle: v?.regNo ?? '' } } })
   }
   await audit({ action: 'UPDATE', module: 'transport', entityType: 'trip', entityId: String(t._id), studentId: a.studentId, summary: `${RIDE_EVENTS[event].label}: a student on ${r?.name ?? 'a route'}` }, req)
   return tripDetail(tripId)

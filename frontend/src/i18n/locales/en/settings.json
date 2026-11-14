@@ -50,14 +50,16 @@
           "label": "Default language",
           "help": "Interface language for staff and the parent app, unless a user picks another.",
           "options": {
-            "en": "English"
+            "en": "English",
+            "hi": "हिन्दी (Hindi)"
           }
         },
         "enabledLanguages": {
           "label": "Languages offered",
           "help": "Which languages appear in the language picker.",
           "options": {
-            "en": "English"
+            "en": "English",
+            "hi": "हिन्दी (Hindi)"
           }
         },
         "sessionIdleMinutes": {

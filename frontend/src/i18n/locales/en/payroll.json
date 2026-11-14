@@ -417,7 +417,10 @@
       "branch": "Campus",
       "amountRs": "Amount (₹)",
       "inWords": "Net pay in words:",
-      "computerGenerated": "This is a computer-generated payslip and does not require a signature."
+      "computerGenerated": "This is a computer-generated payslip and does not require a signature.",
+      "employeeSign": "Employee's signature",
+      "authorisedSign": "Principal / Authorised signatory",
+      "seal": "School seal"
     }
   }
 }

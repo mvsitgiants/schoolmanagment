@@ -241,7 +241,8 @@
     "mode": "Mode",
     "class": "Class",
     "admissionNo": "Adm. no.",
-    "guardian": "Parent"
+    "guardian": "Parent",
+    "printedOn": "Printed {{when}}"
   },
   "signOut": "Sign out",
   "notFound": {

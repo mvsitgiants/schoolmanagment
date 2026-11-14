@@ -3,7 +3,7 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tansta
 import { useTranslation } from 'react-i18next'
 import { CalendarDays, Check, ChevronLeft, ChevronRight, ClipboardList, List, Plus, SkipForward, Undo2 } from 'lucide-react'
 import { LESSON_STATUS, addDaysYmd, monthGrid, topicMonth, weekOf } from '@schoolgiant/shared'
-import { Calendar, ControlChip, EmptyState, Pagination, Panel, DateInput, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, SegmentedControl, Select, StatusPill, Textarea, localIso, useConfirm, usePrompt } from '../../components/system'
+import { Calendar, ControlChip, EmptyState, Pagination, Panel, DateInput, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, SegmentedControl, Select, StatusPill, Textarea, localIso, useConfirm } from '../../components/system'
 import { MaterialEditor } from '../../components/homework/LessonMaterial'
 import { useMonthLabel, useWeekdayLabel } from '../../components/homework/HomeworkKit'
 import Button from '../../components/ui/Button'
@@ -12,6 +12,7 @@ import { hasPermission } from '../../api/auth'
 import { useSnackbar } from '../../context/SnackbarContext'
 import { useFormat } from '../../context/SettingsContext'
 import LessonView from '../../components/homework/LessonView'
+import { useMarkLessonDone } from '../../components/homework/TopicKit'
 
 const PAGE = 50
 
@@ -103,7 +104,7 @@ export function PlanForm({ lookup, plan, defaultDate, defaults, onClose, onSaved
 function MonthCalendar({ month, setMonth, days, canAdd, onAdd, onOpen, onMore, statusLabel }) {
   const { t } = useTranslation('homework')
   const items = useMemo(() => days.flatMap((d) => (d.plans ?? []).map((r) => ({
-    id: r.id, date: d.date, title: `${r.section} · ${r.title}`, kind: r.subject, sub: statusLabel(r.status),
+    id: r.id, date: d.date, title: `${r.section} · ${r.title}`, kind: r.subject, sub: r.partly && r.status === 'DONE' ? t('homework.lessons.status.PARTLY') : statusLabel(r.status),
     tone: r.status === 'PLANNED' ? 'accent' : 'neutral', muted: r.status === 'SKIPPED', onClick: () => onOpen(r),
   }))), [days, onOpen, statusLabel])
   const totals = useMemo(() => Object.fromEntries(days.map((d) => [d.date, d.total ?? 0])), [days])
@@ -153,7 +154,7 @@ function WeekList({ rows, loading, openId, onToggle, renderLesson, onDone, onSki
                         <span className="block truncate text-xs text-ink-muted">{[r.section, r.subject].filter(Boolean).join(' · ')}<span className="md:hidden">{r.teacher ? ` · ${r.teacher}` : ''}</span></span>
                       </span>
                       <span className="hidden w-44 shrink-0 truncate text-sm text-ink-muted md:block">{r.teacher ?? '—'}</span>
-                      <span className="w-24 shrink-0 text-end"><StatusPill tone={LESSON_STATUS[r.status]?.tone}>{statusLabel(r.status)}</StatusPill></span>
+                      <span className="w-24 shrink-0 text-end"><StatusPill tone={r.partly && r.status === 'DONE' ? 'warning' : LESSON_STATUS[r.status]?.tone}>{r.partly && r.status === 'DONE' ? t('homework.lessons.status.PARTLY') : statusLabel(r.status)}</StatusPill></span>
                     </button>
                     <span className="flex w-[4.5rem] shrink-0 justify-end gap-0.5">
                       {act && r.status === 'PLANNED' && <>
@@ -178,7 +179,7 @@ export default function LessonPlans() {
   const { t } = useTranslation('homework')
   const qc = useQueryClient()
   const confirm = useConfirm()
-  const prompt = usePrompt()
+  const [askDone, doneDialog] = useMarkLessonDone()
   const { date } = useFormat()
   const { showSuccess, showError } = useSnackbar()
   const [anchor, setAnchor] = useState(() => localIso(new Date()))
@@ -265,6 +266,7 @@ export default function LessonPlans() {
 
   return (
     <PageContainer>
+      {doneDialog}
       <PageHeader icon={ClipboardList} title={t('homework.lessons.title')} subtitle={t('homework.lessons.subtitle')}
         actions={<HeaderButton icon={Plus} variant="primary" requires="homework.lesson-plans.create" onClick={() => { setNewOn(null); setEditing('new') }}>{t('homework.lessons.new')}</HeaderButton>} />
       {lookup && !sections.length && <Note tone="warning" className="mb-4">{t('homework.noSections')}</Note>}
@@ -283,7 +285,7 @@ export default function LessonPlans() {
           ) : (
             <WeekList rows={rows} loading={isLoading} statusLabel={statusLabel} openId={viewing?.id} renderLesson={lessonOf}
               onToggle={(r) => setViewing((v) => (v?.id === r.id ? null : r))}
-              onDone={async (r) => { const reflection = await prompt({ title: t('homework.lessons.doneConfirm.title', { title: r.title }), message: r.topics.length ? t('homework.lessons.doneConfirm.withTopics', { count: r.topics.length }) : t('homework.lessons.doneConfirm.message'), label: t('homework.lessons.reflection'), required: false }); if (reflection !== null) act.mutate({ fn: () => setLessonPlanStatus(r.id, { status: 'DONE', reflection: reflection || undefined }), done: t('homework.lessons.markedDone') }) }}
+              onDone={async (r) => { const a = await askDone(r); if (a) act.mutate({ fn: () => setLessonPlanStatus(r.id, { status: 'DONE', partly: a.partly, reflection: a.reflection || undefined }), done: t(a.partly ? 'homework.lessons.markedPartly' : 'homework.lessons.markedDone') }) }}
               onSkip={(r) => act.mutate({ fn: () => setLessonPlanStatus(r.id, { status: 'SKIPPED' }), done: t('homework.lessons.skipped') })}
               onReopen={(r) => act.mutate({ fn: () => setLessonPlanStatus(r.id, { status: 'PLANNED' }), done: t('homework.lessons.reopened') })} />
           )}

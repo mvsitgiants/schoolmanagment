@@ -178,12 +178,12 @@
         "x": "His/Her"
       },
       "bonafide": {
-        "text": "This is to certify that <b>{{name}}</b>{{rel}}, Admission No. {{admissionNo}}, is a bonafide student of {{school}}, studying in <b>{{cls}}</b> during the academic year <b>{{year}}</b>."
+        "text": "This is to certify that <b>{{name}}</b>{{rel}}, Admission No. {{admissionNo}}, is a bonafide {{pupil}} of {{school}}, studying in <b>{{cls}}</b> during the academic year <b>{{year}}</b>."
       },
       "dobLine": "{{His}} date of birth as per the school records is <b>{{dob}}</b> ({{words}}).",
       "character": {
-        "textIs": "This is to certify that <b>{{name}}</b>{{rel}}, Admission No. {{admissionNo}}, is a bonafide student of {{school}} since {{from}} and is at present studying in <b>{{cls}}</b>.",
-        "textWas": "This is to certify that <b>{{name}}</b>{{rel}}, Admission No. {{admissionNo}}, was a bonafide student of {{school}} from {{from}} to {{to}}.",
+        "textIs": "This is to certify that <b>{{name}}</b>{{rel}}, Admission No. {{admissionNo}}, is a bonafide {{pupil}} of {{school}} since {{from}} and is at present studying in <b>{{cls}}</b>.",
+        "textWas": "This is to certify that <b>{{name}}</b>{{rel}}, Admission No. {{admissionNo}}, was a bonafide {{pupil}} of {{school}} from {{from}} to {{to}}.",
         "conduct": "During this period {{his}} conduct and character have been found to be <b>{{conduct}}</b>. To the best of our knowledge {{he}} bears a good moral character and has not taken part in any activity against the discipline of the institution.",
         "wish": "We wish {{him}} every success in life."
       },
@@ -209,15 +209,14 @@
         "intro": "This is to certify that",
         "ofClass": "of {{cls}}",
         "for": "for",
-        "in": "in",
-        "participation": "has taken part in",
         "on": "held on {{date}}",
         "title": "Certificate",
         "ofMerit": "of merit",
         "ofParticipation": "of participation",
         "admNo": "Admission No. {{no}}",
-        "has": "has secured",
-        "wish": "We congratulate {{him}} and wish {{him}} every success."
+        "wish": "We congratulate {{him}} and wish {{him}} every success.",
+        "secured": "has secured <b>{{what}}</b> in <b>{{event}}</b>",
+        "tookPart": "has taken part in <b>{{event}}</b>"
       },
       "purpose": "This certificate is issued on {{his}} request for the purpose of {{purpose}}.",
       "scan": "Scan to verify",
@@ -263,6 +262,11 @@
           "m": "son",
           "f": "daughter",
           "x": "ward"
+        },
+        "pupil": {
+          "m": "student",
+          "f": "student",
+          "x": "student"
         }
       },
       "seal": "School seal",

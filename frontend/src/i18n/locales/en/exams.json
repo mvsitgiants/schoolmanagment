@@ -360,7 +360,8 @@
         "candidates": "Total candidates",
         "rollNos": "Roll numbers",
         "column": "Column",
-        "seat": "Seat"
+        "seat": "Seat",
+        "seal": "School seal"
       },
       "door": {
         "title": "Examination seating arrangement",

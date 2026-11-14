@@ -66,7 +66,7 @@
         <td class="k">{{t "fees.print.receipt.year" "Academic year"}}</td><td class="v">{{default @root.student.year "—"}}</td></tr>
     <tr><td class="k">{{t "fees.print.receipt.studentName" "Student's name"}}</td><td class="v upper">{{@root.student.name}}</td>
         <td class="k">{{t "fees.print.receipt.admissionNo" "Admission No."}}</td><td class="v mono">{{@root.student.admissionNo}}</td></tr>
-    <tr><td class="k">{{#if @root.student.parent}}{{@root.student.relation}}{{else}}{{t "fees.print.receipt.fathersName" "Father's name"}}{{/if}}</td><td class="v">{{#if @root.student.parent}}{{@root.student.parent}}{{#if (eq @root.student.parentIs "MOTHER")}} <span class="muted">({{t "fees.print.receipt.mothersName" "mother"}})</span>{{/if}}{{#if (eq @root.student.parentIs "GUARDIAN")}} <span class="muted">({{t "fees.print.receipt.guardiansName" "guardian"}})</span>{{/if}}{{else}}<span class="fill">&nbsp;</span>{{/if}}</td>
+    <tr><td class="k">{{#if @root.student.parent}}{{tc "fees.print.relation" @root.student.relationCode @root.student.relation}}{{else}}{{t "fees.print.receipt.fathersName" "Father's name"}}{{/if}}</td><td class="v">{{#if @root.student.parent}}{{@root.student.parent}}{{#if (eq @root.student.parentIs "MOTHER")}} <span class="muted">({{t "fees.print.receipt.mothersName" "mother"}})</span>{{/if}}{{#if (eq @root.student.parentIs "GUARDIAN")}} <span class="muted">({{t "fees.print.receipt.guardiansName" "guardian"}})</span>{{/if}}{{else}}<span class="fill">&nbsp;</span>{{/if}}</td>
         <td class="k">{{t "fees.print.receipt.classSection" "Class & Sec."}}</td><td class="v">{{#if @root.student.className}}{{@root.student.className}}{{#if @root.student.section}} – {{@root.student.section}}{{/if}}{{else}}{{@root.student.class}}{{/if}}{{#if @root.student.rollNo}} · {{t "fees.print.receipt.rollNo" "Roll No. {{no}}" no=@root.student.rollNo}}{{/if}}</td></tr>
   </table>
   <table class="grid">
@@ -97,7 +97,7 @@
     {{#if (and @root.receipt.verifyUrl @root.$layout.showQr)}}<div class="qr">{{qr @root.receipt.verifyUrl 13}}<span>{{t "fees.print.receipt.scanToCheck" "Scan to check this receipt"}}</span></div>{{/if}}
     <div class="signs">
       <div>{{t "fees.print.receipt.parentSign" "Signature of Parent"}}</div>
-      <div>{{> seal role="ACCOUNTANT" label="Seal"}}{{t "fees.print.receipt.cashierSign" "Cashier / Accountant"}}{{#if @root.receipt.collectedBy}}<span class="by">{{t "fees.print.receipt.collectedBy" "Received by {{name}}" name=@root.receipt.collectedBy}}</span>{{/if}}</div>
+      <div>{{> seal role="ACCOUNTANT" label=(t "fees.print.seal" "Seal")}}{{t "fees.print.receipt.cashierSign" "Cashier / Accountant"}}{{#if @root.receipt.collectedBy}}<span class="by">{{t "fees.print.receipt.collectedBy" "Received by {{name}}" name=@root.receipt.collectedBy}}</span>{{/if}}</div>
     </div>
   </div>
 </div>

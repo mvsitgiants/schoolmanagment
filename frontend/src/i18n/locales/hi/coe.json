@@ -292,7 +292,8 @@
         "marksRange": "अंक (%)",
         "place": "स्थान",
         "dateOfIssue": "जारी करने की तिथि",
-        "seal": "मुहर"
+        "seal": "मुहर",
+        "absentShort": "अनु."
       },
       "transcript": {
         "provisional": "अनंतिम",

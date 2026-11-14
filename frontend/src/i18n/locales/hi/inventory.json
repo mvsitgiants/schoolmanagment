@@ -107,7 +107,8 @@
         "signatureFor": "{{name}} की ओर से — अधिकृत हस्ताक्षरकर्ता",
         "cgstOn": "{{taxable}} पर CGST @ {{rate}}%",
         "sgstOn": "{{taxable}} पर SGST @ {{rate}}%",
-        "forName": "{{name}} की ओर से"
+        "forName": "{{name}} की ओर से",
+        "seal": "मुहर"
       }
     },
     "campus": "परिसर",

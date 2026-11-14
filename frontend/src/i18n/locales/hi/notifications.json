@@ -457,6 +457,64 @@
           "body": "प्रिय {{guardian.name}},\n\n{{student.name}} के कैंटीन वॉलेट में {{canteen.balance}} शेष हैं ({{canteen.threshold}} से कम)। इसे विद्यालय ऐप में या कैंटीन काउंटर पर टॉप अप करें।\n\n{{institution.name}}"
         }
       }
+    },
+    "words": {
+      "bus": {
+        "event": {
+          "BOARDED": "बस में चढ़े",
+          "DROPPED": "बस से उतरे",
+          "ABSENT": "स्टॉप पर नहीं थे"
+        },
+        "stop": {
+          "SCHOOL": "विद्यालय"
+        },
+        "trip": {
+          "PICKUP": "सुबह की बस",
+          "DROP": "छुट्टी के बाद की बस"
+        }
+      },
+      "live": {
+        "status": {
+          "SCHEDULED": "निर्धारित",
+          "CANCELLED": "रद्द"
+        }
+      },
+      "outpass": {
+        "status": {
+          "APPROVED": "स्वीकृत",
+          "NOT_APPROVED": "अस्वीकृत"
+        }
+      },
+      "incident": {
+        "kind": {
+          "INJURY": "चोट",
+          "FALL": "गिरना",
+          "SPORTS": "खेल के दौरान चोट",
+          "FIGHT": "झगड़ा",
+          "ALLERGIC_REACTION": "एलर्जी की प्रतिक्रिया",
+          "BURN": "जलना",
+          "OTHER": "अन्य"
+        },
+        "severity": {
+          "MINOR": "मामूली",
+          "MODERATE": "मध्यम",
+          "SERIOUS": "गंभीर",
+          "CRITICAL": "अति गंभीर"
+        }
+      },
+      "health": {
+        "complaint": {
+          "FEVER": "बुखार",
+          "HEADACHE": "सिरदर्द",
+          "STOMACH_ACHE": "पेट दर्द",
+          "VOMITING": "उल्टी",
+          "INJURY": "चोट",
+          "COLD_COUGH": "सर्दी-खाँसी",
+          "DIZZINESS": "चक्कर",
+          "ALLERGY": "एलर्जी",
+          "OTHER": "अन्य"
+        }
+      }
     }
   }
 }
