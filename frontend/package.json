@@ -6,6 +6,7 @@
   "scripts": {
     "predev": "node scripts/copy-ocr-assets.mjs",
     "dev": "vite",
+    "start": "node ../scripts/dev.mjs web",
     "prebuild": "node scripts/copy-ocr-assets.mjs",
     "build": "vite build",
     "preview": "vite preview",

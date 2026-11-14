@@ -198,17 +198,18 @@ export function useMarkLessonDone() {
   const answer = (v) => { asking?.resolve(v); setAsking(null) }
   const n = asking?.lesson?.topics?.length ?? 0
   const dialog = asking && (
-    <Modal open onClose={() => answer(null)} size="md" title={t('homework.lessons.doneConfirm.title', { title: asking.lesson.title })}
+    <Modal open onClose={() => answer(null)} size="md" title={t('homework.lessons.doneAsk.title')}
       footer={<>
         <Button variant="ghost" onClick={() => answer(null)}>{t('homework.topic.markAsk.cancel')}</Button>
         <Button variant="secondary" icon={CircleDashed} onClick={() => answer({ partly: true, reflection: note.trim() })}>{t('homework.topic.markAsk.partly')}</Button>
         <Button icon={CheckCheck} onClick={() => answer({ partly: false, reflection: note.trim() })}>{t('homework.topic.markAsk.taught')}</Button>
       </>}>
       <div className="space-y-3">
+        <p className="text-sm font-semibold text-ink">{asking.lesson.title}</p>
         <p className="text-sm text-ink">{t('homework.lessons.doneAsk.which')}</p>
         <ul className="space-y-1 text-sm text-ink-muted">
           <li className="flex gap-2"><CheckCheck className="mt-0.5 h-4 w-4 shrink-0 text-success-600" aria-hidden />{n ? t('homework.lessons.doneAsk.taughtHint', { count: n }) : t('homework.lessons.doneAsk.taughtHintNone')}</li>
-          <li className="flex gap-2"><CircleDashed className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" aria-hidden />{n ? t('homework.lessons.doneAsk.partlyHint') : t('homework.lessons.doneAsk.partlyHintNone')}</li>
+          <li className="flex gap-2"><CircleDashed className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" aria-hidden />{n ? t('homework.lessons.doneAsk.partlyHint', { count: n }) : t('homework.lessons.doneAsk.partlyHintNone')}</li>
         </ul>
         <FormField label={t('homework.lessons.reflection')} hint={t('homework.lessons.doneAsk.optional')}>
           <Textarea rows={3} value={note} onChange={(e) => setNote(e.target.value)} />

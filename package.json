@@ -13,6 +13,8 @@
     "dev:db": "npm run db --workspace @schoolgiant/backend",
     "dev:api": "npm run dev --workspace @schoolgiant/backend",
     "dev:web": "npm run dev --workspace @schoolgiant/frontend",
+    "start:api": "node scripts/dev.mjs api",
+    "start:web": "node scripts/dev.mjs web",
     "seed": "npm run seed --workspace @schoolgiant/backend --",
     "seed:demo": "npm run seed:demo --workspace @schoolgiant/backend",
     "seed:demo:content": "npm run seed:demo:content --workspace @schoolgiant/backend",

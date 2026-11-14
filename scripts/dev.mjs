@@ -4,6 +4,10 @@
 //   2. demo data — `seed` adds whatever is missing (plans, role templates, demo institutions); safe every time
 //   3. API on :4100 and the web app on :5190, both reloading on file changes
 // Output is prefixed [db] [api] [web]. Anything already running on its port is reused.
+//
+// One half only, each in its own terminal:
+//   cd backend  && npm start   →  node scripts/dev.mjs api   (database + demo data + API)
+//   cd frontend && npm start   →  node scripts/dev.mjs web   (web app only)
 // Ctrl+C stops everything this script started.
 import { spawn } from 'node:child_process'
 import net from 'node:net'
@@ -13,6 +17,9 @@ const ROOT = fileURLToPath(new URL('..', import.meta.url))
 const DB_PORT = Number(process.env.MONGO_PORT) || 27018
 const COLORS = { db: 35, seed: 33, api: 36, web: 32 }
 const children = []
+const ONLY = process.argv[2] // 'api' | 'web' | undefined (both)
+if (ONLY && !['api', 'web'].includes(ONLY)) { console.error(`Unknown part "${ONLY}" — use api or web.`); process.exit(1) }
+const wantApi = ONLY !== 'web'
 
 const tag = (name) => `\x1b[${COLORS[name]}m[${name}]\x1b[0m`
 function pipe(name, stream) {
@@ -55,10 +62,10 @@ function stopAll(code = 0) {
 process.on('SIGINT', () => stopAll(0))
 process.on('SIGTERM', () => stopAll(0))
 
-// 1 — database
-if (await portOpen(DB_PORT)) {
+// 1 — database (the web app alone does not need it)
+if (wantApi && await portOpen(DB_PORT)) {
   console.log(`${tag('db')} MongoDB already running on :${DB_PORT} — using it`)
-} else {
+} else if (wantApi) {
   console.log(`${tag('db')} starting embedded MongoDB on :${DB_PORT} (first start downloads it, ~1 minute)…`)
   run('db', 'node', ['backend/src/dev/devdb.js'])
   if (!await waitForPort(DB_PORT, 180)) {
@@ -68,13 +75,17 @@ if (await portOpen(DB_PORT)) {
 }
 
 // 2 — demo data (adds only what is missing; use `npm run seed -- --reset` to start over)
-const seed = run('seed', 'npm', ['run', 'seed', '--silent'], { keep: false })
-const seeded = await new Promise((resolve) => seed.on('exit', (code) => resolve(code === 0)))
-if (!seeded) console.error(`${tag('seed')} seeding failed — the app still starts; see the lines above.`)
+if (wantApi) {
+  const seed = run('seed', 'npm', ['run', 'seed', '--silent'], { keep: false })
+  const seeded = await new Promise((resolve) => seed.on('exit', (code) => resolve(code === 0)))
+  if (!seeded) console.error(`${tag('seed')} seeding failed — the app still starts; see the lines above.`)
+}
 
 // 3 — API and web app (one already running in another terminal is reused, not started twice)
-for (const [name, port, workspace] of [['api', 4100, '@schoolgiant/backend'], ['web', 5190, '@schoolgiant/frontend']]) {
+const PARTS = [['api', 4100, '@schoolgiant/backend'], ['web', 5190, '@schoolgiant/frontend']].filter(([name]) => !ONLY || name === ONLY)
+for (const [name, port, workspace] of PARTS) {
   if (await portOpen(port)) console.log(`${tag(name)} already running on :${port} — using it`)
   else run(name, 'npm', ['run', 'dev', '--silent', '--workspace', workspace])
 }
-console.log(`\n  App:  http://localhost:5190     API: http://localhost:4100     Ctrl+C to stop\n`)
+const urls = { web: 'App:  http://localhost:5190', api: 'API: http://localhost:4100' }
+console.log(`\n  ${PARTS.map(([name]) => urls[name]).join('     ')}     Ctrl+C to stop\n`)

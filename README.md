@@ -57,9 +57,17 @@ npm run dev             # starts MongoDB (:27018), adds demo data, then the API 
 ```
 
 Open http://localhost:5190. `npm run dev` reuses anything already running on those ports, and
-Ctrl+C stops what it started. Run the parts separately if you prefer, each in its own terminal,
-**from the project folder**: `npm run dev:db`, `npm run dev:api`, `npm run dev:web`
-(start `dev:db` first — the API needs the database). `npm run seed -- --reset` wipes the database
+Ctrl+C stops what it started.
+
+To run the backend and frontend separately, each in its own terminal:
+
+```bash
+cd backend  && npm start   # MongoDB (:27018, started if not running) + demo data + API (:4100)
+cd frontend && npm start   # web app (:5190)
+```
+
+The same from the project folder: `npm run start:api` and `npm run start:web`. The backend's
+plain production start (no database, no reload) is `npm run start:prod` in `backend/`. `npm run seed -- --reset` wipes the database
 and recreates the demo data.
 
 Ports differ from Hospital Samadhan (27017 / 4000 / 5180), so both can run side by side.
