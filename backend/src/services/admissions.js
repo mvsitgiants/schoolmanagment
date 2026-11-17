@@ -1,6 +1,7 @@
 import {
-  APPLICATION_STATUS, CYCLE_STATUS, ENQUIRY_SOURCE_LABEL, ENQUIRY_STAGES, LIVE_APPLICATION, OPEN_STAGES, addDaysYmd, ageOn, mobile10, mobileVariants, rankApplicants, validateFormValues,
+  APPLICATION_STATUS, CYCLE_STATUS, ENQUIRY_SOURCE_LABEL, ENQUIRY_STAGES, LIVE_APPLICATION, OPEN_STAGES, DEFAULT_ADMISSION_DOCS, addDaysYmd, ageOn, mobile10, mobileVariants, rankApplicants, validateFormValues,
 } from '@schoolgiant/shared'
+import { createHash, randomBytes } from 'node:crypto'
 import { config } from '../config.js'
 import { AcademicYear, ClassLevel } from '../models/academics.js'
 import { AdmissionCycle, Application, Enquiry, EntranceTest } from '../models/admissions.js'
@@ -14,13 +15,15 @@ import { getContext } from '../platform/context.js'
 import { clean, isOid } from '../platform/db.js'
 import { AppError, badRequest, conflict, notFound } from '../platform/errors.js'
 import { nextNumber } from '../platform/numbering.js'
-import { getSettings } from '../platform/settings.js'
+import { getSetting, getSettings } from '../platform/settings.js'
+import { decrypt, encrypt } from '../platform/crypto.js'
 import { institutionNow } from '../platform/time.js'
 import { escapeRegex, listResponse } from '../platform/validate.js'
 import { formVersion } from './forms.js'
 import { humanDate, queueFamilyMessages } from './notify.js'
 import { admitStudent } from './students.js'
-import { filesToStudent } from './files.js'
+import { filesToStudent, storeFile } from './files.js'
+import { saveLocalNames } from './localNames.js'
 
 // Admissions (module `admissions`). An admission cycle opens classes with seats; enquiries (the CRM pipeline: new →
 // contacted → visit → visited → applied → admitted, or lost) are followed up and turn into applications; applicants
@@ -233,8 +236,9 @@ export async function addFollowUp(id, { type, note, nextOn, stage }, auth, req) 
 
 // ───────────────────────────────────────────────────────── applications
 
-const appDto = (a, cls) => ({
-  ...clean(a), cycleId: String(a.cycleId), classId: String(a.classId), enquiryId: a.enquiryId ? String(a.enquiryId) : null, testId: a.testId ? String(a.testId) : null,
+// never sent out: the encrypted Aadhaar and the upload key
+const appDto = ({ uploadKeyHash, uploadUntil, ...a }, cls) => ({
+  ...clean(a), child: a.child ? (({ aadhaarEnc, ...c }) => c)(a.child) : a.child, cycleId: String(a.cycleId), classId: String(a.classId), enquiryId: a.enquiryId ? String(a.enquiryId) : null, testId: a.testId ? String(a.testId) : null,
   studentId: a.studentId ? String(a.studentId) : null, childName: name3(a.child), className: cls?.get(String(a.classId))?.name ?? '?', statusLabel: APPLICATION_STATUS[a.status]?.label,
 })
 
@@ -311,16 +315,33 @@ export async function createApplication(input, auth, req, { online = false } = {
   input.parent.mobile = mobile
   const { cycle, form, answers } = await checkNew(input, { online })
   const enquiry = input.enquiryId && isOid(input.enquiryId) ? await Enquiry.findById(input.enquiryId) : await Enquiry.findOne({ mobile: { $in: mobileVariants(mobile) }, stage: { $in: OPEN_STAGES } }).sort({ createdAt: -1 })
+  // the Aadhaar number is kept encrypted, with its last four digits to show
+  const { aadhaar, ...child } = input.child
+  const digits = String(aadhaar ?? '').replace(/\D/g, '')
+  // an online family adds the documents right after sending: a one-time key for that, good for two hours
+  const uploadKey = online ? randomBytes(24).toString('base64url') : null
   const a = await Application.create({
     applicationNo: await nextNumber('APPLICATION', { branchId: input.branchId || enquiry?.branchId }), cycleId: cycle._id, classId: input.classId, branchId: input.branchId || enquiry?.branchId || undefined,
-    enquiryId: enquiry?._id, channel: online ? 'ONLINE' : 'DESK', child: input.child, parent: input.parent, otherParent: input.otherParent, address: input.address,
+    enquiryId: enquiry?._id, channel: online ? 'ONLINE' : 'DESK',
+    child: { ...child, ...(digits && { aadhaarEnc: encrypt(digits), aadhaarLast4: digits.slice(-4) }) },
+    parent: input.parent, otherParent: input.otherParent, address: input.address, medical: input.medical, localNames: input.localNames,
+    ...(uploadKey && { uploadKeyHash: hashKey(uploadKey), uploadUntil: new Date(Date.now() + 2 * 3_600_000) }),
     answers, formId: form?.formId, formVersion: form?.version, status: 'SUBMITTED', createdBy: online ? 'Online application' : auth?.user?.name,
   })
   if (enquiry) await Enquiry.updateOne({ _id: enquiry._id }, { $set: { stage: 'APPLIED', applicationId: a._id } })
   const cls = await classNames([a.classId])
   await tellFamily('admissions.application', { mobile, email: a.parent.email, parentName: a.parent.name, childName: name3(a.child), className: cls.get(String(a.classId))?.name ?? '', data: { application: { no: a.applicationNo, link: await statusLink() } }, entity: { type: 'application', id: a._id } })
   await audit({ action: 'CREATE', module: 'admissions', entityType: 'application', entityId: String(a._id), entityName: a.applicationNo, summary: `Application ${a.applicationNo} for ${name3(a.child)} (${cls.get(String(a.classId))?.name})${online ? ' — online' : ''}` }, req)
-  return appDto(a.toObject(), cls)
+  return { ...appDto(a.toObject(), cls), ...(uploadKey && { uploadKey }) }
+}
+
+const hashKey = (key) => createHash('sha256').update(String(key)).digest('hex')
+
+/** A document an online family adds right after sending the application, with the one-time key it was given. */
+export async function publicApplicationFile(id, key, { category, side, title, fileName }, buffer, req) {
+  const a = isOid(id) ? await Application.findById(id).select('applicationNo child uploadKeyHash uploadUntil tenantId').lean() : null
+  if (!a || !key || a.uploadKeyHash !== hashKey(key) || !(a.uploadUntil > new Date())) throw new AppError(403, 'Documents can be added only right after sending the application. Bring them to the school instead.', { code: 'UPLOAD_CLOSED' })
+  return storeFile({ entityType: 'application', entityId: a._id, studentId: null, recordName: `${a.applicationNo} · ${name3(a.child)}`, category, title, side, fileName }, buffer, { tenantId: String(a.tenantId), name: 'Family (online application)' }, req)
 }
 
 export async function updateApplication(id, input, auth, req) {
@@ -357,15 +378,22 @@ export async function setApplicationStatus(id, { status, note }, auth, req) {
 }
 
 /** An offered (or accepted) applicant joins: a student record through Students' admission, in the section picked. */
-export async function admitApplicant(id, { sectionId, admissionNo }, auth, req) {
+export async function admitApplicant(id, { sectionId, admissionNo, mismatchNote }, auth, req) {
   const a = await applicationById(id, auth)
   if (!['OFFERED', 'ACCEPTED'].includes(a.status)) throw conflict('Only an applicant with an offered seat can be admitted.')
+  let aadhaar
+  try { aadhaar = a.child.aadhaarEnc ? decrypt(a.child.aadhaarEnc) : undefined } catch { aadhaar = undefined }
+  const ps = a.child.previousSchool?.toObject?.() ?? a.child.previousSchool
+  const hasPs = ps && Object.values(ps).some(Boolean)
+  const med = a.medical?.toObject?.() ?? a.medical
   const student = await admitStudent({
     firstName: a.child.firstName, middleName: a.child.middleName || undefined, lastName: a.child.lastName || undefined, dob: a.child.dob || undefined, gender: a.child.gender || undefined,
-    bloodGroup: a.child.bloodGroup || undefined, category: a.child.category || undefined, religion: a.child.religion || undefined, motherTongue: a.child.motherTongue || undefined,
+    bloodGroup: a.child.bloodGroup || undefined, category: a.child.category || undefined, religion: a.child.religion || undefined, nationality: a.child.nationality || undefined,
+    motherTongue: a.child.motherTongue || undefined, aadhaar,
     sectionId, admissionNo: admissionNo || undefined,
     address: a.address?.line ? { line: a.address.line, city: a.address.city, state: a.address.state, pincode: a.address.pincode } : undefined,
-    previousSchool: a.child.previousSchool?.name ? a.child.previousSchool : undefined,
+    previousSchool: hasPs ? { ...ps, mismatchNote: mismatchNote || undefined } : undefined,
+    medical: med && Object.values(med).some(Boolean) ? med : undefined,
     guardians: [
       { name: a.parent.name, relation: a.parent.relation || undefined, mobile: a.parent.mobile, email: a.parent.email || undefined, occupation: a.parent.occupation || undefined, isPrimary: true },
       ...(a.otherParent?.name ? [{ name: a.otherParent.name, relation: a.otherParent.relation || undefined, mobile: a.otherParent.mobile || undefined }] : []),
@@ -374,6 +402,7 @@ export async function admitApplicant(id, { sectionId, admissionNo }, auth, req) 
   Object.assign(a, { status: 'ADMITTED', studentId: student.id, admittedAt: new Date(), admittedBy: auth.user?.name })
   await a.save()
   await filesToStudent('application', a._id, student.id) // the applicant's papers show on Student 360 too
+  await namesToGlossary(a, auth, req)
   if (a.enquiryId) await Enquiry.updateOne({ _id: a.enquiryId }, { $set: { stage: 'ADMITTED' } })
   await audit({ action: 'APPROVE', module: 'admissions', entityType: 'application', entityId: String(a._id), entityName: a.applicationNo, studentId: student.id, summary: `Admitted applicant ${a.applicationNo} as ${student.admissionNo}` }, req)
   return { application: await getApplication(id, auth), student: { id: student.id, admissionNo: student.admissionNo, name: student.name } }
@@ -514,6 +543,21 @@ export async function allotSeats(cycleId, classId, auth, req) {
 // ───────────────────────────────────────────────────────── for the family (public /apply/<school>)
 
 /** What the application page shows: the school, the cycles open today with their classes, the extra form. */
+/** The names the family typed in other languages go into Names in other languages, against the English as admitted. */
+async function namesToGlossary(a, auth, req) {
+  const ln = a.localNames ?? {}
+  const byLang = {}
+  const put = (kind, english, texts) => { for (const [lang, value] of Object.entries(texts ?? {})) if (english && value?.trim()) (byLang[lang] ??= { students: [], parents: [] })[kind].push({ english, value }) }
+  put('students', name3(a.child), ln.child)
+  put('parents', a.parent?.name, ln.parent)
+  put('parents', a.otherParent?.name, ln.otherParent)
+  for (const [lang, kinds] of Object.entries(byLang)) {
+    for (const [kind, entries] of Object.entries(kinds)) {
+      if (entries.length) await saveLocalNames({ lang, kind, entries }, auth, req).catch(() => null) // a language since switched off: skip it
+    }
+  }
+}
+
 export async function publicAdmissions(tenant) {
   const cfg = await getSettings('admissions')
   const cycles = cfg.onlineApplication ? await openCycles() : []
@@ -524,12 +568,21 @@ export async function publicAdmissions(tenant) {
     out.push({ id: String(c._id), name: c.name, yearName: c.yearName ?? null, closesOn: c.closesOn ?? null, instructions: c.instructions ?? null, form: form ? { name: form.name, definition: form.definition } : null, classes: cycleDto(c, cls).classes.map((x) => ({ classId: x.classId, className: x.className, minAge: x.minAge ?? null, maxAge: x.maxAge ?? null, testRequired: !!x.testRequired })) })
   }
   const p = tenant.profile ?? {}
-  return { school: { name: tenant.name, city: p.city ?? null, logoUrl: p.logoUrl ?? null, primaryColor: p.primaryColor ?? null, phone: p.phone ?? null }, onlineApplication: !!cfg.onlineApplication, applyNeedsCode: !!cfg.applyNeedsCode, websiteEnquiry: cfg.websiteEnquiry !== false, ageCutoff: cfg.ageCutoff, cycles: out, enquiryClasses: [...cls.values()].sort((a, b) => a.order - b.order).map((c) => ({ id: String(c._id), name: c.name })) }
+  // the main campus's documents list, and the languages names are also kept in (Settings › Also keep names in)
+  const main = await Branch.findOne({ isDefault: true }).select('admissionDocs').lean()
+  const languages = ((await getSetting('core', 'namesAlsoIn')) ?? []).filter((c) => c && c !== 'en')
+  return { school: { name: tenant.name, city: p.city ?? null, logoUrl: p.logoUrl ?? null, primaryColor: p.primaryColor ?? null, phone: p.phone ?? null }, documents: main?.admissionDocs ?? DEFAULT_ADMISSION_DOCS, names: { languages }, onlineApplication: !!cfg.onlineApplication, applyNeedsCode: !!cfg.applyNeedsCode, applyCodeBy: cfg.applyCodeBy ?? 'MOBILE', websiteEnquiry: cfg.websiteEnquiry !== false, ageCutoff: cfg.ageCutoff, cycles: out, enquiryClasses: [...cls.values()].sort((a, b) => a.order - b.order).map((c) => ({ id: String(c._id), name: c.name })) }
 }
 
 /** A family's applications on their (verified) mobile number. */
-export async function familyApplications(mobile) {
-  const rows = await Application.find({ 'parent.mobile': { $in: mobileVariants(mobile10(mobile)) } }).sort({ submittedAt: -1 }).limit(20).lean()
+/** Applications on what the family proved: `{ mobile }` or `{ email }` (a bare string is a mobile). */
+const familyFilter = (who) => {
+  const w = typeof who === 'string' ? { mobile: who } : who ?? {}
+  return w.email ? { 'parent.email': { $regex: `^${escapeRegex(w.email)}$`, $options: 'i' } } : { 'parent.mobile': { $in: mobileVariants(mobile10(w.mobile)) } }
+}
+
+export async function familyApplications(who) {
+  const rows = await Application.find(familyFilter(who)).sort({ submittedAt: -1 }).limit(20).lean()
   const [cls, tests] = await Promise.all([classNames(rows.map((r) => r.classId)), EntranceTest.find({ _id: { $in: rows.map((r) => r.testId).filter(Boolean) } }).lean()])
   return rows.map((a) => {
     const t = tests.find((x) => String(x._id) === String(a.testId))
@@ -542,9 +595,9 @@ export async function familyApplications(mobile) {
 }
 
 /** The family accepts an offered seat (before it runs out). */
-export async function familyAcceptOffer(mobile, applicationId) {
+export async function familyAcceptOffer(who, applicationId) {
   if (!isOid(applicationId)) throw notFound('Application')
-  const a = await Application.findOne({ _id: applicationId, 'parent.mobile': { $in: mobileVariants(mobile10(mobile)) } })
+  const a = await Application.findOne({ _id: applicationId, ...familyFilter(who) })
   if (!a) throw notFound('Application')
   if (a.status !== 'OFFERED') throw conflict('There is no seat offer to accept on this application.')
   if (a.offer?.until && a.offer.until < await today()) throw new AppError(409, 'The time to accept this offer has passed. Please call the school.', { code: 'OFFER_EXPIRED' })

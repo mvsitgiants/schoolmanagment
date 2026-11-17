@@ -6,6 +6,7 @@ import { SUPPORTED_LANGUAGES } from './languages.js'
 import { ID_CARD_ORIENTATIONS, STUDENT_ID_CARD_FIELDS } from './students.js'
 import { GEOFENCE_MODES, STUDENT_SELF_CHECKIN } from './geofence.js'
 import { PAGE_CODE_ESCALATION_TARGETS, PAGE_ESCALATION_TARGETS } from './comms.js'
+import { FAMILY_FEATURES, FAMILY_PROFILE_FIELDS } from './portal.js'
 
 export const SETTING_TYPES = ['bool', 'text', 'number', 'select', 'multi']
 
@@ -31,6 +32,7 @@ export const SETTINGS = [
   { module: 'students', key: 'requiredFields', type: 'multi', label: 'Required at admission', default: ['dob', 'gender', 'guardianMobile'], options: [{ value: 'dob', label: 'Date of birth' }, { value: 'gender', label: 'Gender' }, { value: 'guardianMobile', label: 'Guardian mobile' }, { value: 'guardianEmail', label: 'Guardian email' }, { value: 'address', label: 'Address' }, { value: 'aadhaar', label: 'Aadhaar' }, { value: 'apaar', label: 'APAAR ID' }, { value: 'photo', label: 'Photo' }], help: 'Name and class are always required.' },
   { module: 'admissions', key: 'onlineApplication', type: 'bool', label: 'Families can apply online', default: false, help: 'The application page at <app>/apply/<your school>, and the “Scan to apply” QR in Admissions › Settings.' },
   { module: 'admissions', key: 'applyNeedsCode', type: 'bool', label: 'Ask for a one-time code before applying', default: false, help: 'Off: a parent scans the QR or opens the link and fills the form straight away. On: they first confirm their mobile number with a code sent by SMS — turn it on if fake applications come in. Checking an application or accepting a seat always asks for the code.' },
+  { module: 'admissions', key: 'applyCodeBy', type: 'select', label: 'Families confirm with a code sent to', default: 'MOBILE', options: [{ value: 'MOBILE', label: 'Their mobile (SMS)' }, { value: 'EMAIL', label: 'Their email' }, { value: 'EITHER', label: 'Mobile or email — they choose' }], help: 'For applying (when a code is asked) and for checking an application. Email needs the school’s email set up.' },
   { module: 'admissions', key: 'websiteEnquiry', type: 'bool', label: 'Take enquiries from the website', default: true, help: 'A short enquiry form on the same page, for families not ready to apply.' },
   { module: 'admissions', key: 'ageCutoff', type: 'text', label: 'Age is counted on (day-month)', default: '31-03', pattern: '^(0[1-9]|[12]\\d|3[01])-(0[1-9]|1[0-2])$', patternError: 'Use DD-MM, e.g. 31-03', help: 'The day of the admission year on which a child’s age is counted for eligibility.' },
   { module: 'admissions', key: 'followUpDays', type: 'number', label: 'Follow up a new enquiry within (days)', default: 1, min: 0, max: 14 },
@@ -139,6 +141,10 @@ export const SETTINGS = [
   { module: 'portal', key: 'studentLogins', type: 'bool', label: 'Students get their own sign-in', default: false, help: 'Usually on for senior classes and colleges. Off: only parents sign in.' },
   { module: 'portal', key: 'showFees', type: 'bool', label: 'Show fees and online payment in the app', default: true },
   { module: 'portal', key: 'showMarks', type: 'bool', label: 'Show marks and report cards in the app', default: true, help: 'Only results that have been published.' },
+  { module: 'portal', key: 'hiddenSections', type: 'multi', label: 'Sections hidden from the app', default: [], options: FAMILY_FEATURES.map((f) => ({ value: f.value, label: f.label })), help: 'Hidden for parents and students, even when the module is on.' },
+  { module: 'portal', key: 'parentOnlySections', type: 'multi', label: 'Sections only parents see', default: [], options: FAMILY_FEATURES.map((f) => ({ value: f.value, label: f.label })), help: 'A student signed in on their own does not see these.' },
+  { module: 'portal', key: 'profileFields', type: 'multi', label: 'Child’s details shown in the app', default: FAMILY_PROFILE_FIELDS.map((f) => f.value), options: FAMILY_PROFILE_FIELDS, help: 'The name and class are always shown.' },
+  { module: 'portal', key: 'staffPhones', type: 'bool', label: 'Show staff phone numbers in the app', default: true, help: 'The bus driver’s and attendant’s, and the hostel warden’s. Off: names only.' },
   { module: 'portal', key: 'chat', type: 'bool', label: 'Families can message teachers in the app', default: true, help: 'The class teacher and the subject teachers of the child’s class. Needs the Communication hub.' },
 
   // ── Staff chat & call bell (calls & emergency alerts)

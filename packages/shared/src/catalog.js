@@ -147,13 +147,14 @@ export const MODULES = [
 
   // ───────────────────────────────── Academics
   { id: 'academics', name: 'Academic setup', category: 'academics', icon: 'School', deps: [], phase: 1,
-    desc: 'Academic years, terms, classes and sections, subjects and grading schemes.',
+    desc: 'Academic years, terms, classes and sections, subjects, grading schemes, and each class’s books and uniform list.',
     pages: [
       pg('years', 'Academic years & terms', 'V C E D', { setup: true }),
       pg('classes', 'Classes & sections', 'V C E D I', { setup: true }),
       pg('subjects', 'Subjects', 'V C E D I', { setup: true }),
       pg('grading', 'Grading schemes', 'V C E D', { setup: true }),
       pg('allocation', 'Teacher allocation', 'V E'),
+      pg('books-uniform', 'Books & uniform', 'V C E D'),
     ] },
   { id: 'attendance', name: 'Attendance', category: 'academics', icon: 'CalendarCheck', deps: ['students'], phase: 1, scopes: CLASS_SCOPES,
     desc: 'Daily or period-wise attendance, absence alerts to parents and student leave.',

@@ -1,6 +1,6 @@
 import {
   CERTIFICATE_KIND_BY, EXAM_STATUS, INVOICE_STATUS, LEAVE_STATUS, PAYMENT_MODE_LABEL, RESULT_STATUS, SUBMISSION_STATUS, attendancePct, countMarks,
-  familyPath, liveFamilyFeatures, maskMobile, monthRange, sectionLabel,
+  FAMILY_PROFILE_FIELDS, familyPath, liveFamilyFeatures, maskMobile, monthRange, sectionLabel,
 } from '@schoolgiant/shared'
 import { config } from '../config.js'
 import { qrSvg } from '../documents/engine.js'
@@ -289,10 +289,13 @@ export async function profileFor(f, id) {
   const place = await placeOf(s.sectionId)
   const teacher = place?.section?.classTeacherId ? await User.findById(place.section.classTeacherId).select('name').lean() : null
   const year = place?.section ? await AcademicYear.findById(place.section.academicYearId).select('name').lean() : null
+  // only the details the school shows (Settings › App › profileFields); name and class always
+  const show = new Set(f.settings?.profileFields ?? FAMILY_PROFILE_FIELDS.map((x) => x.value))
+  const pick = (field, v) => (show.has(field) ? v ?? null : null)
   return {
-    id: String(s._id), name: studentName(s), admissionNo: s.admissionNo, rollNo: s.rollNo ?? null, class: place?.label ?? null, year: year?.name ?? null,
-    classTeacher: teacher?.name ?? null, dob: s.dob ?? null, gender: s.gender ?? null, bloodGroup: s.bloodGroup ?? null,
-    guardians: (s.guardians ?? []).map((g) => ({ name: g.name, relation: g.relation ?? null, mobile: g.mobile ? maskMobile(g.mobile) : null, primary: !!g.isPrimary })),
+    id: String(s._id), name: studentName(s), admissionNo: pick('ADMISSION_NO', s.admissionNo), rollNo: pick('ROLL_NO', s.rollNo), class: place?.label ?? null, year: year?.name ?? null,
+    classTeacher: pick('CLASS_TEACHER', teacher?.name), dob: pick('DOB', s.dob), gender: s.gender ?? null, bloodGroup: pick('BLOOD_GROUP', s.bloodGroup),
+    guardians: show.has('GUARDIANS') ? (s.guardians ?? []).map((g) => ({ name: g.name, relation: g.relation ?? null, mobile: g.mobile && show.has('GUARDIAN_MOBILE') ? maskMobile(g.mobile) : null, primary: !!g.isPrimary })) : [],
   }
 }
 
@@ -366,4 +369,4 @@ export async function saveContent(input, req) {
 }
 
 /** For the routes: the features live for this school. */
-export const featuresFor = (settings, enabledModules) => liveFamilyFeatures(settings, enabledModules)
+export const featuresFor = (settings, enabledModules, kind = null) => liveFamilyFeatures(settings, enabledModules, kind)

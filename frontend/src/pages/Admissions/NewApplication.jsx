@@ -6,7 +6,8 @@ import { ClipboardList, FileText, RotateCcw, Send, Users } from 'lucide-react'
 import { APPLICATION_STATUS } from '@schoolgiant/shared'
 import { FormPage, Note, Panel, PersonCell, SectionCard, StatusPill } from '../../components/system'
 import Button from '../../components/ui/Button'
-import ApplicationForm, { applicationBody, emptyApplication } from '../../components/admissions/ApplicationForm'
+import ApplicationForm, { applicationBody, applicationLocalNames, emptyApplication } from '../../components/admissions/ApplicationForm'
+import { useNamesAlsoIn, usePlainLocalNames } from '../../components/localNames/LocalNameField'
 import { createApplication, fetchCycles, fetchApplications, fetchEnquiry } from '../../api/admissions'
 import useDebouncedValue from '../../hooks/useDebouncedValue'
 import { useSnackbar } from '../../context/SnackbarContext'
@@ -84,6 +85,9 @@ export default function NewApplication() {
   const firstCycle = open.find((c) => c.status === 'OPEN') ?? open[0] ?? null
   const [form, setForm] = useState(() => emptyApplication(null))
   const [errors, setErrors] = useState({})
+  // the names in the school's other languages, kept on the application until the child is admitted
+  const langCodes = useNamesAlsoIn().map((l) => l.code)
+  const names = usePlainLocalNames('applicants', langCodes)
 
   // the cycle arrives after the first paint
   useEffect(() => { if (firstCycle && !form.cycleId) setForm((f) => ({ ...f, cycleId: firstCycle.id })) }, [firstCycle, form.cycleId])
@@ -96,7 +100,7 @@ export default function NewApplication() {
   }, [enquiry])
 
   const save = useMutation({
-    mutationFn: () => createApplication({ ...applicationBody(form), enquiryId: enquiryId || undefined }),
+    mutationFn: () => createApplication({ ...applicationBody(form), localNames: applicationLocalNames(names), enquiryId: enquiryId || undefined }),
     onSuccess: (a) => {
       qc.invalidateQueries({ queryKey: ['applications'] })
       qc.invalidateQueries({ queryKey: ['admission-cycles'] })
@@ -126,7 +130,7 @@ export default function NewApplication() {
         <Note icon={FileText}>{t('admissions.applications.page.requiredNote')}</Note>
       </>}
     >
-      {noCycle ? <Note tone="warning">{t('admissions.applications.noCycle')}</Note> : <ApplicationForm cycles={open} value={form} onChange={setForm} errors={errors} />}
+      {noCycle ? <Note tone="warning">{t('admissions.applications.noCycle')}</Note> : <ApplicationForm cycles={open} value={form} onChange={setForm} errors={errors} names={langCodes.length ? names : undefined} />}
     </FormPage>
   )
 }

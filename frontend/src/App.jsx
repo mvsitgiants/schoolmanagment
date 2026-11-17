@@ -45,6 +45,7 @@ const AcademicClasses = lazy(() => import('./pages/Academics/Classes'))
 const AcademicSubjects = lazy(() => import('./pages/Academics/Subjects'))
 const AcademicGrading = lazy(() => import('./pages/Academics/Grading'))
 const AcademicAllocation = lazy(() => import('./pages/Academics/Allocation'))
+const AcademicBooksUniform = lazy(() => import('./pages/Academics/BooksUniform'))
 
 // Students
 const StudentAdmit = lazy(() => import('./pages/Students/Admit'))
@@ -323,6 +324,7 @@ export default function App() {
           <Route path="academics/subjects" element={<AcademicSubjects />} />
           <Route path="academics/grading" element={<AcademicGrading />} />
           <Route path="academics/allocation" element={<AcademicAllocation />} />
+          <Route path="academics/books-uniform" element={<AcademicBooksUniform />} />
           <Route path="students" element={<Navigate to="/students/directory" replace />} />
           <Route path="students/admit" element={<StudentAdmit />} />
           <Route path="students/directory" element={<StudentDirectory />} />

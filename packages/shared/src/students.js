@@ -158,3 +158,16 @@ export function tcMismatch(student, previousSchool) {
   const dob = !!ps.dobOnTc && !!student?.dob && ps.dobOnTc !== student.dob
   return { name, dob, any: name || dob }
 }
+
+// ───────────────────────────────────────────────────────── a class's books, stationery and uniform (Academic setup › Books & uniform)
+
+/** What a class's list holds; families see it in the app under these headings. */
+export const KIT_KINDS = [
+  { value: 'BOOK', label: 'Books' },
+  { value: 'NOTEBOOK', label: 'Notebooks' },
+  { value: 'STATIONERY', label: 'Stationery' },
+  { value: 'UNIFORM', label: 'Uniform' },
+  { value: 'SHOES', label: 'Shoes and socks' },
+  { value: 'OTHER', label: 'Other things to bring' },
+]
+export const KIT_KIND_BY = Object.fromEntries(KIT_KINDS.map((k) => [k.value, k]))

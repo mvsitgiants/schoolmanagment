@@ -29,7 +29,8 @@
       "placements": "Placements",
       "complaints": "Complaints",
       "surveys": "Surveys",
-      "canteen": "Canteen"
+      "canteen": "Canteen",
+      "kit": "Books & uniform"
     },
     "marks": {
       "P": "Present",
@@ -515,6 +516,30 @@
         "FEES": "Fees overdue: {{amount}}",
         "ATTENDANCE": "Attendance {{pct}}% (below {{below}}%)"
       }
+    },
+    "kit": {
+      "none": "No list yet",
+      "noneHint": "The school will share the books and uniform list for the class here before the session starts.",
+      "title": "{{cls}} — books & uniform",
+      "year": "For {{year}}",
+      "print": "Print / save PDF",
+      "files": "Download",
+      "code": "Code {{code}}",
+      "total": "Total at the prices given",
+      "totalHint": "Only items with a price are counted.",
+      "kinds": {
+        "BOOK": "Books",
+        "NOTEBOOK": "Notebooks",
+        "STATIONERY": "Stationery",
+        "UNIFORM": "Uniform",
+        "SHOES": "Shoes and socks",
+        "OTHER": "Other things to bring"
+      },
+      "whereToBuy": "Where to buy",
+      "everything": "Everything on the list",
+      "call": "Call",
+      "map": "Map",
+      "buyAt": "Buy at: {{shops}}"
     }
   }
 }

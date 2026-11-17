@@ -177,6 +177,15 @@
           "label": "Ask for a one-time code before applying",
           "help": "Off: a parent scans the QR or opens the link and fills the form straight away. On: they first confirm their mobile number with a code sent by SMS — turn it on if fake applications come in. Checking an application or accepting a seat always asks for the code."
         },
+        "applyCodeBy": {
+          "label": "Families confirm with a code sent to",
+          "help": "For applying (when a code is asked) and for checking an application. Email needs the school’s email set up.",
+          "options": {
+            "MOBILE": "Their mobile (SMS)",
+            "EMAIL": "Their email",
+            "EITHER": "Mobile or email — they choose"
+          }
+        },
         "websiteEnquiry": {
           "label": "Take enquiries from the website",
           "help": "A short enquiry form on the same page, for families not ready to apply."
@@ -592,6 +601,75 @@
         "showMarks": {
           "label": "Show marks and report cards in the app",
           "help": "Only results that have been published."
+        },
+        "hiddenSections": {
+          "label": "Sections hidden from the app",
+          "help": "Hidden for parents and students, even when the module is on.",
+          "options": {
+            "ATTENDANCE": "Attendance and leave",
+            "HOMEWORK": "Homework",
+            "TIMETABLE": "Class timetable",
+            "LEARNING": "Study material and live classes",
+            "TESTS": "Online tests",
+            "BUS": "School bus",
+            "LIBRARY": "Library books and e-library",
+            "HOSTEL": "Hostel room, outpasses and mess menu",
+            "HEALTH": "Health card: allergies, vaccinations, sick-room visits",
+            "PLACEMENTS": "Placement drives and offers",
+            "COMPLAINTS": "Complaints and concerns",
+            "SURVEYS": "Surveys and feedback",
+            "CANTEEN": "Canteen wallet and pre-orders",
+            "EVENTS": "Calendar, parent–teacher meetings and photos",
+            "FEES": "Fees and receipts",
+            "RESULTS": "Results and report cards",
+            "CERTIFICATES": "Certificates",
+            "KIT": "Books, stationery and uniform list",
+            "NOTICES": "Notices and circulars",
+            "CHAT": "Messages with teachers"
+          }
+        },
+        "parentOnlySections": {
+          "label": "Sections only parents see",
+          "help": "A student signed in on their own does not see these.",
+          "options": {
+            "ATTENDANCE": "Attendance and leave",
+            "HOMEWORK": "Homework",
+            "TIMETABLE": "Class timetable",
+            "LEARNING": "Study material and live classes",
+            "TESTS": "Online tests",
+            "BUS": "School bus",
+            "LIBRARY": "Library books and e-library",
+            "HOSTEL": "Hostel room, outpasses and mess menu",
+            "HEALTH": "Health card: allergies, vaccinations, sick-room visits",
+            "PLACEMENTS": "Placement drives and offers",
+            "COMPLAINTS": "Complaints and concerns",
+            "SURVEYS": "Surveys and feedback",
+            "CANTEEN": "Canteen wallet and pre-orders",
+            "EVENTS": "Calendar, parent–teacher meetings and photos",
+            "FEES": "Fees and receipts",
+            "RESULTS": "Results and report cards",
+            "CERTIFICATES": "Certificates",
+            "KIT": "Books, stationery and uniform list",
+            "NOTICES": "Notices and circulars",
+            "CHAT": "Messages with teachers"
+          }
+        },
+        "profileFields": {
+          "label": "Child’s details shown in the app",
+          "help": "The name and class are always shown.",
+          "options": {
+            "ADMISSION_NO": "Admission number",
+            "ROLL_NO": "Roll number",
+            "CLASS_TEACHER": "Class teacher",
+            "DOB": "Date of birth",
+            "BLOOD_GROUP": "Blood group",
+            "GUARDIANS": "Parents and guardians",
+            "GUARDIAN_MOBILE": "Parents’ mobile numbers (last four digits)"
+          }
+        },
+        "staffPhones": {
+          "label": "Show staff phone numbers in the app",
+          "help": "The bus driver’s and attendant’s, and the hostel warden’s. Off: names only."
         },
         "chat": {
           "label": "Families can message teachers in the app",

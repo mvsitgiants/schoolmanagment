@@ -25,6 +25,7 @@ import { BLOCKED_STATUSES, effectiveStatus } from '../services/subscription.js'
 import { createAppOrder, verifyAppPayment } from '../services/feePayments.js'
 import { courseView, itemFile, joinLive, learningFor, markItem, viewItem } from '../services/lmsFamily.js'
 import { busFor } from '../services/transport.js'
+import { familyKit, familyKitFile } from '../services/classKits.js'
 import { ebookFile, libraryFor } from '../services/libraryFamily.js'
 import { familyCancelPreorder, familyCanteen, familyControls, familyPreorder, familyTopupStart, familyTopupVerify } from '../services/canteenFamily.js'
 import { familyRespond, familySurvey, familySurveys } from '../services/surveysFill.js'
@@ -52,11 +53,15 @@ portalRouter.get('/settings', requirePermission('portal.settings.view'), async (
   res.json({ data: await getSettings('portal') })
 })
 portalRouter.put('/settings', requirePermission('portal.settings.edit'), async (req, res) => {
-  const input = z.object({ enabled: z.boolean(), studentLogins: z.boolean(), showFees: z.boolean(), showMarks: z.boolean(), chat: z.boolean() }).partial().parse(req.body)
+  const list = z.array(z.string().max(40)).max(40)
+  const input = z.object({
+    enabled: z.boolean(), studentLogins: z.boolean(), showFees: z.boolean(), showMarks: z.boolean(), chat: z.boolean(),
+    hiddenSections: list, parentOnlySections: list, profileFields: list, staffPhones: z.boolean(),
+  }).partial().parse(req.body)
   const before = await getSettings('portal')
   const after = await saveSettings('portal', input)
   const changed = Object.keys(input).filter((k) => before[k] !== after[k])
-  if (changed.length) await audit({ action: 'UPDATE', module: 'portal', entityType: 'settings', entityId: 'portal', entityName: 'App settings', summary: `Changed the family app settings: ${changed.map((k) => `${k} → ${after[k] ? 'on' : 'off'}`).join(', ')}` }, req)
+  if (changed.length) await audit({ action: 'UPDATE', module: 'portal', entityType: 'settings', entityId: 'portal', entityName: 'App settings', summary: `Changed the family app settings: ${changed.map((k) => `${k} → ${Array.isArray(after[k]) ? after[k].join(', ') || 'none' : after[k] ? 'on' : 'off'}`).join(', ')}` }, req)
   res.json({ data: after })
 })
 portalRouter.get('/content', requirePermission('portal.content.view'), async (req, res) => {
@@ -106,7 +111,8 @@ async function familySchool(req, res, next) {
 /** A signed-in family of this school; sets the students this request may read. */
 async function requireFamily(req, res, next) {
   const { session, students } = await readFamilySession(req.cookies?.[FAMILY_COOKIE], req.family.tenant._id, { studentLogins: !!req.family.settings.studentLogins })
-  Object.assign(req.family, { session, students })
+  // a student signed in on their own does not see the sections the school keeps for parents
+  Object.assign(req.family, { session, students, features: featuresFor(req.family.settings, req.family.enabledModules, session.kind) })
   getContext().userName = session.kind === 'STUDENT' ? 'Student (family app)' : `Parent ${maskMobile(session.mobile)}`
   next()
 }
@@ -241,7 +247,11 @@ familyRouter.get('/students/:studentId/albums/:albumId/photos/:fileId', async (r
 })
 
 // hostel: room and bed, today's menu, outpasses (ask for one, withdraw one still waiting)
-familyRouter.get('/students/:studentId/hostel', async (req, res) => { res.json({ data: await familyHostel(req.family, sid(req)) }) })
+familyRouter.get('/students/:studentId/hostel', async (req, res) => {
+  const h = await familyHostel(req.family, sid(req))
+  if (h?.warden && req.family.settings.staffPhones === false) h.warden = { ...h.warden, mobile: null }
+  res.json({ data: h })
+})
 familyRouter.post('/students/:studentId/hostel/outpasses', async (req, res) => {
   const body = z.object({
     kind: z.enum(['DAY', 'NIGHT', 'HOME', 'MEDICAL']).default('HOME'),
@@ -290,7 +300,22 @@ familyRouter.get('/students/:studentId/library/ebooks/:titleId/files/:fileId', a
 })
 
 // the school bus: route, stop, today's trips, where the bus is
-familyRouter.get('/students/:studentId/bus', async (req, res) => { res.json({ data: await busFor(req.family, sid(req)) }) })
+familyRouter.get('/students/:studentId/bus', async (req, res) => {
+  const bus = await busFor(req.family, sid(req))
+  // staff phone numbers only when the school shows them (Settings › App)
+  if (bus?.vehicle && req.family.settings.staffPhones === false) bus.vehicle = { ...bus.vehicle, driverMobile: null, attendantMobile: null }
+  res.json({ data: bus })
+})
+// books, stationery and uniform for the child's class, and its files
+familyRouter.get('/students/:studentId/kit', async (req, res) => { res.json({ data: await familyKit(req.family, sid(req)) }) })
+familyRouter.get('/students/:studentId/kit/files/:fileId', async (req, res) => {
+  const { file, stream } = await familyKitFile(req.family, sid(req), req.params.fileId)
+  res.setHeader('Content-Type', file.mime)
+  res.setHeader('Content-Length', String(file.size))
+  res.setHeader('Content-Disposition', `${req.query.download === '1' ? 'attachment' : 'inline'}; filename*=UTF-8''${encodeURIComponent(file.fileName)}`)
+  res.setHeader('Content-Security-Policy', "default-src 'none'; sandbox")
+  await new Promise((resolve, reject) => { stream.on('error', reject); stream.on('end', resolve); stream.pipe(res) })
+})
 
 familyRouter.get('/students/:studentId/tests', async (req, res) => { res.json({ data: await testsFor(req.family, sid(req)) }) })
 familyRouter.post('/students/:studentId/tests/:testId/start', async (req, res) => { res.json({ data: await startTest(req.family, sid(req), req.params.testId) }) })

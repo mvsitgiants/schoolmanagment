@@ -2,6 +2,7 @@ import { createHash, randomUUID } from 'node:crypto'
 import { COMMENT_MAX, FILE_CATEGORY_LABEL, FILE_MAX_MB, FILE_SIDES, FILE_TYPES, FILE_VERIFY_STATUS, RECORD_TYPES } from '@schoolgiant/shared'
 import { Attachment, Comment } from '../models/engines.js'
 import { AdmissionForm, Student, studentName } from '../models/students.js'
+import { ClassKit, ClassLevel } from '../models/academics.js'
 import { homeworkRecord, lessonPlanRecord } from './homework.js'
 import { syllabusTopicRecord } from './homeworkTopics.js'
 import { noticeRecord } from './communication.js'
@@ -42,6 +43,11 @@ const RECORDS = {
     module: 'students', view: ['students.admit.create'], add: ['students.admit.create'],
     load: async (id) => { const f = await AdmissionForm.findById(id).select('childName data status').lean(); return f && { name: `admission form · ${[f.data?.firstName, f.data?.lastName].filter(Boolean).join(' ') || f.childName || ''}`.trim(), locked: f.status === 'ADMITTED' || f.status === 'CANCELLED' } },
     locked: (rec) => (rec.locked ? 'This form is closed; add files to the student’s record instead.' : null),
+  },
+  // A class's books & uniform list files: the publisher's book list (PDF), a uniform picture — families download them in the app.
+  class_kit: {
+    module: 'academics', view: ['academics.books-uniform.view'], add: ['academics.books-uniform.create', 'academics.books-uniform.edit'],
+    load: async (id) => { const k = await ClassKit.findById(id).select('classId').lean(); if (!k) return null; const c = await ClassLevel.findById(k.classId).select('name').lean(); return { name: `the books & uniform list of ${c?.name ?? 'a class'}` } },
   },
   // A homework's worksheet, reference PDF or photos of the board — seen by whoever may see the homework.
   homework: {

@@ -150,7 +150,8 @@
         "classes": "कक्षाएं एवं अनुभाग",
         "subjects": "विषय",
         "grading": "ग्रेडिंग योजनाएं",
-        "allocation": "शिक्षक आवंटन"
+        "allocation": "शिक्षक आवंटन",
+        "books-uniform": "किताबें और वर्दी"
       },
       "attendance": {
         "mark": "उपस्थिति दर्ज करें",

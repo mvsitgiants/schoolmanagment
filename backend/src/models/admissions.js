@@ -79,9 +79,17 @@ const applicationSchema = new Schema({
   channel: { type: String, default: 'DESK' }, // DESK · ONLINE
   child: {
     firstName: { type: String, required: true, trim: true }, middleName: String, lastName: String,
-    dob: ymd, gender: String, bloodGroup: String, category: String, religion: String, motherTongue: String, aadhaarLast4: String,
-    previousSchool: { name: String, board: String, lastClass: String },
+    dob: ymd, gender: String, bloodGroup: String, category: String, religion: String, nationality: String, motherTongue: String,
+    aadhaarEnc: String, aadhaarLast4: String, // the number encrypted (platform/crypto.js), the last four to show
+    // the school the child comes from and its TC as written on it (checked against the child on admission: tcMismatch)
+    previousSchool: { name: String, board: String, lastClass: String, tcNo: String, tcDate: String, nameOnTc: String, dobOnTc: String },
   },
+  medical: { allergies: String, conditions: String, notes: String },
+  // names in the school's other languages as the family typed them: { child: { hi }, parent: { hi }, otherParent: { hi } }
+  // — they go into Names in other languages when the child is admitted
+  localNames: { type: Schema.Types.Mixed, default: undefined },
+  // an online application's documents go up right after it is sent: this one-time key allows that for two hours
+  uploadKeyHash: String, uploadUntil: Date,
   parent: { name: { type: String, required: true }, relation: String, mobile: { type: String, required: true }, email: String, occupation: String },
   otherParent: { name: String, relation: String, mobile: String },
   address: { line: String, city: String, state: String, pincode: String },

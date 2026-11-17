@@ -18,6 +18,7 @@ import FamilyLearning from './Learning'
 import FamilyTests from './Tests'
 import FamilyBus from './Bus'
 import FamilyLibrary from './Library'
+import FamilyKit from './Kit'
 import FamilyCanteen from './Canteen'
 import FamilySurveys from './Surveys'
 import FamilyComplaints from './Complaints'
@@ -134,6 +135,7 @@ export default function FamilyApp() {
               <Route path="tests" element={<FamilyTests />} />
               <Route path="bus" element={<FamilyBus />} />
               <Route path="library" element={<FamilyLibrary />} />
+              <Route path="kit" element={<FamilyKit />} />
               <Route path="canteen" element={<FamilyCanteen />} />
               <Route path="surveys" element={<FamilySurveys />} />
               <Route path="complaints" element={<FamilyComplaints />} />

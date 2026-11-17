@@ -1,13 +1,14 @@
-import { Router } from 'express'
+import express, { Router } from 'express'
+import { FILE_MAX_MB } from '@schoolgiant/shared'
 import rateLimit from 'express-rate-limit'
 import { config } from '../config.js'
 import { Tenant } from '../models/platform.js'
 import { enabledModuleIds } from '../platform/access.js'
 import { getContext } from '../platform/context.js'
 import { AppError } from '../platform/errors.js'
-import { objectId, z } from '../platform/validate.js'
-import { createApplication, createEnquiry, familyAcceptOffer, familyApplications, publicAdmissions } from '../services/admissions.js'
-import { mobilePass, readMobilePass, sendOtp, verifyOtp } from '../services/otp.js'
+import { objectId, optionalText, z } from '../platform/validate.js'
+import { createApplication, createEnquiry, familyAcceptOffer, familyApplications, publicAdmissions, publicApplicationFile } from '../services/admissions.js'
+import { readWhoPass, sendOtp, verifyOtpWho, whoPass } from '../services/otp.js'
 import { BLOCKED_STATUSES, effectiveStatus } from '../services/subscription.js'
 import { getSettings } from '../platform/settings.js'
 import { applicationSchema } from './admissions.js'
@@ -52,17 +53,22 @@ router.post('/enquiry', writeLimiter, async (req, res) => {
   res.status(201).json({ data: { ok: true, enquiryNo: e.enquiryNo } })
 })
 
+// a code to the family's mobile or email — whichever the school allows (Settings › Admissions › applyCodeBy)
 router.post('/otp', writeLimiter, async (req, res) => {
-  const { mobile } = z.object({ mobile: z.string().trim().min(10).max(16) }).parse(req.body)
-  res.json({ data: await sendOtp(mobile, PURPOSE) })
+  const { mobile, email } = z.object({ mobile: z.string().trim().min(10).max(16).optional(), email: z.string().trim().max(120).optional() }).parse(req.body)
+  const by = req.school.settings.applyCodeBy ?? 'MOBILE'
+  if (email && by === 'MOBILE') throw new AppError(400, 'This school confirms with a code to your mobile number.', { code: 'USE_MOBILE' })
+  if (!email && by === 'EMAIL') throw new AppError(400, 'This school confirms with a code to your email address.', { code: 'USE_EMAIL' })
+  res.json({ data: await sendOtp(email ? { email } : { mobile }, PURPOSE) })
 })
 router.post('/verify', writeLimiter, async (req, res) => {
   const { challengeId, code } = z.object({ challengeId: z.string().max(40), code: z.string().max(12) }).parse(req.body)
-  const mobile = await verifyOtp(challengeId, code, PURPOSE)
-  res.json({ data: { pass: mobilePass(mobile, PURPOSE) } })
+  const who = await verifyOtpWho(challengeId, code, PURPOSE)
+  res.json({ data: { pass: whoPass(who, PURPOSE), ...(who.email ? { email: who.email } : { mobile: who.mobile.slice(-10) }) } })
 })
 
-const passOf = (req) => readMobilePass(req.body?.pass, PURPOSE)
+/** What the family proved with the code: `{ mobile }` or `{ email }`. */
+const passOf = (req) => readWhoPass(req.body?.pass, PURPOSE)
 
 router.post('/apply', writeLimiter, async (req, res) => {
   if (!req.school.settings.onlineApplication) throw closed()
@@ -70,10 +76,19 @@ router.post('/apply', writeLimiter, async (req, res) => {
   // hidden from people, filled in by bots: answer as if it went through, keep nothing
   if (!needsCode && req.body?.website) { res.status(201).json({ data: { applicationNo: '—', className: '', childName: '' } }); return }
   const input = applicationSchema.omit({ enquiryId: true, branchId: true }).parse(req.body)
-  // with a code, the parent's number is the one just proven; without, the number they typed
-  const mobile = needsCode ? passOf(req).slice(-10) : input.parent.mobile
-  const a = await createApplication({ ...input, parent: { ...input.parent, mobile } }, null, req, { online: true })
-  res.status(201).json({ data: { applicationNo: a.applicationNo, className: a.className, childName: a.childName } })
+  // with a code, the parent's number (or email) is the one just proven; without, what they typed
+  const who = needsCode ? passOf(req) : {}
+  const parent = { ...input.parent, ...(who.mobile && { mobile: who.mobile.slice(-10) }), ...(who.email && { email: who.email }) }
+  const a = await createApplication({ ...input, parent }, null, req, { online: true })
+  res.status(201).json({ data: { id: a.id, applicationNo: a.applicationNo, className: a.className, childName: a.childName, uploadKey: a.uploadKey } })
+})
+// the documents, right after sending: the file is the body, what it is rides in the query, the one-time key in a header
+router.post('/applications/:id/files', writeLimiter, express.raw({ type: () => true, limit: `${FILE_MAX_MB}mb` }), async (req, res) => {
+  const q = z.object({ category: optionalText(30), title: optionalText(120), side: z.enum(['FRONT', 'BACK']).optional() }).parse(req.query)
+  let fileName = req.get('x-file-name') || 'file'
+  try { fileName = decodeURIComponent(fileName) } catch { /* keep as sent */ }
+  const f = await publicApplicationFile(objectId.parse(req.params.id), req.get('x-upload-key'), { ...q, fileName }, Buffer.isBuffer(req.body) ? req.body : null, req)
+  res.status(201).json({ data: { id: f.id, fileName: f.fileName } })
 })
 router.post('/applications', async (req, res) => {
   res.json({ data: await familyApplications(passOf(req)) })

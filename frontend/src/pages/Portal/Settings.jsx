@@ -1,14 +1,90 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { Copy, ExternalLink, Printer, Smartphone } from 'lucide-react'
-import { FAMILY_FEATURES } from '@schoolgiant/shared'
-import { Note, PageContainer, PageHeader, Panel } from '../../components/system'
+import { FAMILY_FEATURES, FAMILY_PROFILE_FIELDS } from '@schoolgiant/shared'
+import { Note, PageContainer, PageHeader, Panel, SegmentedControl } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { fetchAppLink, fetchAppSettings, saveAppSettings } from '../../api/family'
 import { getCurrentUser, hasPermission } from '../../api/auth'
 import { useSnackbar } from '../../context/SnackbarContext'
 
-const TOGGLES = ['enabled', 'studentLogins', 'showFees', 'showMarks', 'chat']
+// sign-in; what each section shows is set below, section by section
+const TOGGLES = ['enabled', 'studentLogins']
+
+/** A section's place: everyone, parents only, or hidden. Fees, marks and chat keep their own on/off setting. */
+function accessOf(f, s) {
+  if ((f.setting && s?.[f.setting] === false) || (s?.hiddenSections ?? []).includes(f.value)) return 'HIDDEN'
+  return (s?.parentOnlySections ?? []).includes(f.value) ? 'PARENTS' : 'ALL'
+}
+function accessPatch(f, s, to) {
+  const hidden = new Set(s.hiddenSections ?? [])
+  const parents = new Set(s.parentOnlySections ?? [])
+  hidden.delete(f.value)
+  parents.delete(f.value)
+  if (to === 'PARENTS') parents.add(f.value)
+  if (to === 'HIDDEN' && !f.setting) hidden.add(f.value)
+  return { hiddenSections: [...hidden], parentOnlySections: [...parents], ...(f.setting && { [f.setting]: to !== 'HIDDEN' }) }
+}
+
+/** Section by section: who sees it in the app (parents and students, parents only, nobody). */
+function SectionsPanel({ settings, canEdit, save, enabledModules }) {
+  const { t } = useTranslation('portal')
+  const off = !settings.enabled
+  const opts = [
+    { value: 'ALL', label: settings.studentLogins ? t('portal.access.all') : t('portal.access.shown') },
+    ...(settings.studentLogins ? [{ value: 'PARENTS', label: t('portal.access.parents') }] : []),
+    { value: 'HIDDEN', label: t('portal.access.hidden') },
+  ]
+  return (
+    <Panel title={t('portal.access.title')} subtitle={t('portal.access.hint')} flush>
+      <ul className="divide-y divide-border">
+        {FAMILY_FEATURES.map((f) => {
+          const moduleOn = enabledModules.has(f.module)
+          const cur = accessOf(f, settings)
+          return (
+            <li key={f.value} className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-2.5">
+              <span className="min-w-0">
+                <span className={`block text-sm ${moduleOn ? 'text-ink' : 'text-ink-faint'}`}>{t(`portal.features.${f.value}`, f.label)}</span>
+                {!moduleOn && <span className="block text-[11px] text-ink-faint">{t('portal.settings.moduleOff')}</span>}
+              </span>
+              {moduleOn && (
+                <SegmentedControl value={cur === 'PARENTS' && !settings.studentLogins ? 'ALL' : cur} options={opts}
+                  onChange={(to) => { if (canEdit && !off && to !== cur) save.mutate(accessPatch(f, settings, to)) }} />
+              )}
+            </li>
+          )
+        })}
+      </ul>
+    </Panel>
+  )
+}
+
+/** The child's details on the app's profile, and staff phone numbers. */
+function DetailsPanel({ settings, canEdit, save }) {
+  const { t } = useTranslation('portal')
+  const shown = new Set(settings.profileFields ?? FAMILY_PROFILE_FIELDS.map((f) => f.value))
+  const toggle = (v, on) => { const next = new Set(shown); if (on) next.add(v); else next.delete(v); save.mutate({ profileFields: FAMILY_PROFILE_FIELDS.map((f) => f.value).filter((x) => next.has(x)) }) }
+  const box = 'mt-0.5 rounded border-border text-brand-500 focus:ring-brand-500'
+  return (
+    <Panel title={t('portal.details.title')} subtitle={t('portal.details.hint')}>
+      <div className="grid sm:grid-cols-2 gap-x-6 gap-y-2">
+        {FAMILY_PROFILE_FIELDS.map((f) => (
+          <label key={f.value} className="flex items-start gap-2.5 text-sm text-ink cursor-pointer">
+            <input type="checkbox" className={box} checked={shown.has(f.value)} disabled={!canEdit || save.isPending || (f.value === 'GUARDIAN_MOBILE' && !shown.has('GUARDIANS'))} onChange={(e) => toggle(f.value, e.target.checked)} />
+            {t(`portal.details.fields.${f.value}`, f.label)}
+          </label>
+        ))}
+      </div>
+      <label className="mt-4 pt-3 border-t border-border flex items-start gap-2.5 cursor-pointer">
+        <input type="checkbox" className={box} checked={settings.staffPhones !== false} disabled={!canEdit || save.isPending} onChange={(e) => save.mutate({ staffPhones: e.target.checked })} />
+        <span>
+          <span className="block text-sm text-ink">{t('portal.details.staffPhones')}</span>
+          <span className="block text-xs text-ink-muted">{t('portal.details.staffPhonesHint')}</span>
+        </span>
+      </label>
+    </Panel>
+  )
+}
 
 /** App settings: switch the family app on, choose what it shows, and hand families its address. */
 export default function PortalSettings() {
@@ -46,6 +122,7 @@ export default function PortalSettings() {
     <PageContainer>
       <PageHeader icon={Smartphone} title={t('portal.settings.title')} subtitle={t('portal.settings.subtitle')} />
       <div className="grid lg:grid-cols-[1fr_20rem] gap-4 items-start">
+        <div className="space-y-4 min-w-0">
         <Panel title={t('portal.settings.what')}>
           {isLoading || !settings ? <p className="text-sm text-ink-faint">{t('portal.loading')}</p> : (
             <div className="divide-y divide-border">
@@ -61,17 +138,11 @@ export default function PortalSettings() {
               ))}
             </div>
           )}
-          <div className="mt-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-ink-faint mb-2">{t('portal.settings.shows')}</p>
-            <ul className="space-y-1 text-sm">
-              {FAMILY_FEATURES.map((f) => {
-                const on = enabledModules.has(f.module) && (!f.setting || settings?.[f.setting] !== false)
-                return <li key={f.value} className={on ? 'text-ink' : 'text-ink-faint line-through'}>{t(`portal.features.${f.value}`, f.label)}{!enabledModules.has(f.module) ? ` — ${t('portal.settings.moduleOff')}` : ''}</li>
-              })}
-            </ul>
-          </div>
           <Note className="mt-4">{t('portal.settings.signInHint')}</Note>
         </Panel>
+        {settings && <SectionsPanel settings={settings} canEdit={canEdit} save={save} enabledModules={enabledModules} />}
+        {settings && <DetailsPanel settings={settings} canEdit={canEdit} save={save} />}
+        </div>
         <Panel title={t('portal.settings.address')}>
           {link ? (
             <div className="space-y-3 text-center">

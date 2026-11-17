@@ -60,6 +60,7 @@ export const RECORD_TYPES = {
   notice: 'Notice',
   application: 'Admission application',
   admission_form: 'Admission form filled by a family',
+  class_kit: 'Books & uniform list',
   employee: 'Staff record',
   candidate: 'Job candidate',
   library_title: 'Library e-book',

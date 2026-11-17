@@ -51,8 +51,14 @@ open.interceptors.response.use((r) => r, (err) => Promise.reject(Object.assign(e
 const pb = (slug) => `/v1/public/admissions/${encodeURIComponent(String(slug).toLowerCase())}`
 export const publicAdmissions = async (slug) => (await open.get(pb(slug))).data.data
 export const publicEnquiry = async (slug, body) => (await open.post(`${pb(slug)}/enquiry`, body)).data.data
-export const publicSendCode = async (slug, mobile) => (await open.post(`${pb(slug)}/otp`, { mobile })).data.data
+/** A one-time code to `{ mobile }` or `{ email }` (a bare string is a mobile). */
+export const publicSendCode = async (slug, to) => (await open.post(`${pb(slug)}/otp`, typeof to === 'string' ? { mobile: to } : to)).data.data
 export const publicVerify = async (slug, challengeId, code) => (await open.post(`${pb(slug)}/verify`, { challengeId, code })).data.data
 export const publicApply = async (slug, body) => (await open.post(`${pb(slug)}/apply`, body)).data.data
 export const publicMyApplications = async (slug, pass) => (await open.post(`${pb(slug)}/applications`, { pass })).data.data
 export const publicAcceptOffer = async (slug, pass, id) => (await open.post(`${pb(slug)}/applications/${id}/accept`, { pass })).data.data
+/** A document added right after an online application is sent, with the one-time key the school gave back. */
+export const publicApplicationFile = async (slug, id, key, file, { category, side, title } = {}) => (await open.post(`${pb(slug)}/applications/${id}/files`, file, {
+  params: { category, side: side || undefined, title: title || undefined },
+  headers: { 'Content-Type': file.type || 'application/octet-stream', 'X-File-Name': encodeURIComponent(file.name || 'file'), 'X-Upload-Key': key },
+})).data.data

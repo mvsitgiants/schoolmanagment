@@ -60,7 +60,7 @@
       "admissions": "Enquiry CRM, online application, entrance test, merit list and seat allotment.",
       "certificates": "Bonafide, character, leaving and transfer certificates with QR verification.",
       "frontoffice": "Visitor log, gate passes, call log and complaints.",
-      "academics": "Academic years, terms, classes and sections, subjects and grading schemes.",
+      "academics": "Academic years, terms, classes and sections, subjects, grading schemes, and each class’s books and uniform list.",
       "attendance": "Daily or period-wise attendance, absence alerts to parents and student leave.",
       "homework": "Teaching hub, lesson plans, syllabus tracking, homework and submissions.",
       "exams": "Exam schedule, seating and invigilation, question papers, hall tickets, marks entry, results and report cards.",
@@ -150,7 +150,8 @@
         "classes": "Classes & sections",
         "subjects": "Subjects",
         "grading": "Grading schemes",
-        "allocation": "Teacher allocation"
+        "allocation": "Teacher allocation",
+        "books-uniform": "Books & uniform"
       },
       "attendance": {
         "mark": "Mark attendance",

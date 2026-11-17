@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { APPLICATION_STATUS, ENQUIRY_SOURCES, ENQUIRY_STAGES, FOLLOWUP_TYPES, GENDERS, GUARDIAN_RELATIONS, MERIT_BASES } from '@schoolgiant/shared'
+import { APPLICATION_STATUS, ENQUIRY_SOURCES, ENQUIRY_STAGES, FOLLOWUP_TYPES, GENDERS, GUARDIAN_RELATIONS, MERIT_BASES, isValidAadhaar } from '@schoolgiant/shared'
 import { authenticate, requireModule, requirePermission, subscriptionGate, tenantOnly } from '../platform/middleware.js'
 import { email, objectId, optionalText, pageParams, z } from '../platform/validate.js'
 import {
@@ -83,9 +83,15 @@ export const applicationSchema = z.object({
   cycleId: objectId, classId: objectId, enquiryId: optId, branchId: optId,
   child: z.object({
     firstName: z.string().trim().min(1, 'Enter the first name').max(60), middleName: optionalText(60), lastName: optionalText(60), dob: ymd,
-    gender: z.enum(values(GENDERS)), bloodGroup: optionalText(5), category: optionalText(20), religion: optionalText(40), motherTongue: optionalText(40),
-    previousSchool: z.object({ name: optionalText(120), board: optionalText(40), lastClass: optionalText(40) }).optional(),
+    gender: z.enum(values(GENDERS)), bloodGroup: optionalText(5), category: optionalText(20), religion: optionalText(40), nationality: optionalText(40), motherTongue: optionalText(40),
+    aadhaar: z.string().trim().max(20).optional().refine((v) => !v || isValidAadhaar(v), 'Check the Aadhaar number — 12 digits'),
+    previousSchool: z.object({
+      name: optionalText(120), board: optionalText(40), lastClass: optionalText(40),
+      tcNo: optionalText(30), tcDate: optYmd, nameOnTc: optionalText(120), dobOnTc: optYmd,
+    }).optional(),
   }),
+  medical: z.object({ allergies: optionalText(200), conditions: optionalText(200), notes: optionalText(500) }).optional(),
+  localNames: z.record(z.enum(['child', 'parent', 'otherParent']), z.record(z.string().max(5), z.string().max(300))).optional(),
   parent: person,
   otherParent: z.object({ name: optionalText(100), relation: z.enum(values(GUARDIAN_RELATIONS)).optional().or(z.literal('').transform(() => undefined)), mobile: optionalText(16) }).optional(),
   address: z.object({ line: optionalText(200), city: optionalText(60), state: optionalText(60), pincode: optionalText(10) }).optional(),
@@ -113,7 +119,8 @@ router.post('/applications/:id/status', requirePermission('admissions.applicatio
   res.json({ data: await setApplicationStatus(id(req), input, req.auth, req) })
 })
 router.post('/applications/:id/admit', requirePermission('admissions.applications.approve'), async (req, res) => {
-  const input = z.object({ sectionId: objectId, admissionNo: optionalText(30) }).parse(req.body)
+  // mismatchNote: why the TC's name or date of birth differs from the child's, when it does
+  const input = z.object({ sectionId: objectId, admissionNo: optionalText(30), mismatchNote: optionalText(300) }).parse(req.body)
   res.json({ data: await admitApplicant(id(req), input, req.auth, req) })
 })
 

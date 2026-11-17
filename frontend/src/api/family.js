@@ -44,6 +44,7 @@ export const familyFees = (slug, id) => fget(slug, `${st(id)}/fees`)
 export const familyResults = (slug, id) => fget(slug, `${st(id)}/results`)
 export const familyCertificates = (slug, id) => fget(slug, `${st(id)}/certificates`)
 export const familyProfile = (slug, id) => fget(slug, `${st(id)}/profile`)
+export const familyKit = (slug, id) => fget(slug, `${st(id)}/kit`)
 
 /** Links opened in a new tab (the session cookie goes with them). */
 export const familyFileUrl = (slug, id, homeworkId, fileId) => `${API_BASE_URL}${base(slug)}${st(id)}/homework/${homeworkId}/files/${fileId}`
@@ -52,6 +53,7 @@ export const familyPushApi = (slug) => ({
   save: (subscription) => fpost(slug, '/push', { subscription }),
   off: (endpoint) => fpost(slug, '/push/off', { endpoint }),
 })
+export const familyKitFileUrl = (slug, id, fileId) => `${API_BASE_URL}${base(slug)}${st(id)}/kit/files/${fileId}`
 export const familyDocUrl = (slug, docType, recordId) => `${API_BASE_URL}${base(slug)}/doc/${docType}/${recordId}`
 export const familyManifestUrl = (slug) => `${API_BASE_URL}${base(slug)}/manifest.webmanifest`
 

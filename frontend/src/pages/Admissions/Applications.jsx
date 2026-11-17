@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { BadgeCheck, FileText, GraduationCap, Hourglass, Monitor, Plus, School, Store } from 'lucide-react'
-import { APPLICATION_STATUS } from '@schoolgiant/shared'
+import { APPLICATION_STATUS, tcMismatch } from '@schoolgiant/shared'
 import { Attachments, CodeBadge, ColorChip, ContactCell, ControlChip, DataTable, DateCell, Drawer, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, PersonCell, Select, SideNav, SideNavLayout, StatCardRow, StatusPill, Toolbar, usePrompt } from '../../components/system'
 import Button from '../../components/ui/Button'
 import FormRenderer from '../../components/forms/FormRenderer'
@@ -24,11 +24,14 @@ function AdmitModal({ app, cycle, onClose, onDone }) {
   const sections = (data?.classes ?? []).find((c) => c.id === app.classId)?.sections ?? []
   const [sectionId, setSectionId] = useState('')
   const [admissionNo, setAdmissionNo] = useState('')
-  const go = useMutation({ mutationFn: () => admitApplicant(app.id, { sectionId, admissionNo: admissionNo || undefined }), onSuccess: onDone, onError: (e) => showError(e.message) })
+  // the TC's name or date of birth differs from the child's: admitted only with the reason
+  const tc = tcMismatch(app.child, app.child?.previousSchool)
+  const [mismatchNote, setMismatchNote] = useState('')
+  const go = useMutation({ mutationFn: () => admitApplicant(app.id, { sectionId, admissionNo: admissionNo || undefined, mismatchNote: mismatchNote.trim() || undefined }), onSuccess: onDone, onError: (e) => showError(e.message) })
   return (
     <Modal open onClose={onClose} title={t('admissions.applications.admitTitle', { name: app.childName })} footer={<>
       <Button variant="secondary" onClick={onClose}>{t('actions.cancel')}</Button>
-      <Button icon={GraduationCap} loading={go.isPending} disabled={!sectionId} onClick={() => go.mutate()}>{t('admissions.applications.admit')}</Button>
+      <Button icon={GraduationCap} loading={go.isPending} disabled={!sectionId || (tc.any && !mismatchNote.trim())} onClick={() => go.mutate()}>{t('admissions.applications.admit')}</Button>
     </>}>
       <div className="space-y-4">
         <FormField label={t('admissions.applications.section')} required hint={data?.year ? t('admissions.applications.sectionHint', { year: data.year.name }) : undefined}>
@@ -36,6 +39,12 @@ function AdmitModal({ app, cycle, onClose, onDone }) {
         </FormField>
         {!sections.length && <Note tone="warning">{t('admissions.applications.noSections')}</Note>}
         <FormField label={t('admissions.applications.admissionNo')} hint={t('admissions.applications.admissionNoHint')}><Input value={admissionNo} onChange={(e) => setAdmissionNo(e.target.value)} /></FormField>
+        {tc.any && <>
+          <Note tone="warning">
+            {[tc.name && t('admissions.form.tcNameDiffers', { tc: app.child.previousSchool.nameOnTc, name: app.childName }), tc.dob && t('admissions.form.tcDobDiffers')].filter(Boolean).join(' ')}
+          </Note>
+          <FormField label={t('admissions.applications.mismatchNote')} required hint={t('admissions.applications.mismatchNoteHint')}><Input value={mismatchNote} onChange={(e) => setMismatchNote(e.target.value)} maxLength={300} /></FormField>
+        </>}
         <Note>{t('admissions.applications.admitHint')}</Note>
       </div>
     </Modal>
@@ -80,12 +89,16 @@ function ApplicationDrawer({ id, cycles, onClose }) {
               {['OFFERED', 'ACCEPTED'].includes(a.status) && hasPermission('admissions.applications.approve') && <Button size="sm" icon={GraduationCap} onClick={() => setAdmitting(true)}>{t('admissions.applications.admit')}</Button>}
             </div>
           )}
+          {tcMismatch(a.child, a.child.previousSchool).any && a.status !== 'ADMITTED' && <Note tone="warning">{t('admissions.applications.tcDiffers')}</Note>}
           {a.status === 'ADMITTED' && a.studentId && <Note tone="success">{t('admissions.applications.admitted')} <Link className="underline" to={`/students/profile/${a.studentId}`}>{t('admissions.applications.openStudent')}</Link></Note>}
           <div className="grid sm:grid-cols-2 gap-4 text-sm">
             <dl className="grid grid-cols-[7rem_1fr] gap-x-3 gap-y-1.5">
               <dt className="text-ink-muted">{t('admissions.form.dob')}</dt><dd>{a.child.dob ? date(a.child.dob) : '—'}</dd>
               <dt className="text-ink-muted">{t('admissions.form.gender')}</dt><dd>{a.child.gender ? t(`admissions.genders.${a.child.gender}`) : '—'}</dd>
+              {Object.values(a.localNames?.child ?? {}).some(Boolean) && <><dt className="text-ink-muted">{t('admissions.applications.localName')}</dt><dd>{Object.values(a.localNames.child).filter(Boolean).join(' · ')}</dd></>}
+              {a.child.aadhaarLast4 && <><dt className="text-ink-muted">{t('admissions.form.aadhaar')}</dt><dd className="font-mono-num">•••• •••• {a.child.aadhaarLast4}</dd></>}
               {a.child.previousSchool?.name && <><dt className="text-ink-muted">{t('admissions.form.previousSchool')}</dt><dd>{[a.child.previousSchool.name, a.child.previousSchool.lastClass].filter(Boolean).join(' · ')}</dd></>}
+              {(a.child.previousSchool?.tcNo || a.child.previousSchool?.nameOnTc) && <><dt className="text-ink-muted">{t('admissions.form.tcNo')}</dt><dd>{[a.child.previousSchool.tcNo, a.child.previousSchool.tcDate ? date(a.child.previousSchool.tcDate) : null, a.child.previousSchool.nameOnTc].filter(Boolean).join(' · ')}</dd></>}
             </dl>
             <dl className="grid grid-cols-[7rem_1fr] gap-x-3 gap-y-1.5">
               <dt className="text-ink-muted">{t('admissions.form.parentName')}</dt><dd>{a.parent.name}{a.parent.relation ? ` (${t(`admissions.relations.${a.parent.relation}`)})` : ''}</dd>

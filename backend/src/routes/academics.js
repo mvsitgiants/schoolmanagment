@@ -3,6 +3,7 @@ import { CLASS_PRESETS, GRADING_KINDS, SEATING_KINDS, SEATING_LIMITS, SEAT_NUMBE
 import { can } from '../platform/access.js'
 import { authenticate, requireModule, requirePermission, subscriptionGate, tenantOnly } from '../platform/middleware.js'
 import { objectId, optionalText, z } from '../platform/validate.js'
+import { copyKit, deleteKit, getKit, kitStoreItems, listKits, saveKit } from '../services/classKits.js'
 import {
   allocationGrid, classBoard, deleteClass, deleteGrading, deleteSection, deleteSubject, deleteYear, importClasses, importSubjects, listClasses, listGrading,
   listSubjects, listYears, lookup, quickSetup, saveClass, saveGrading, saveSection, saveSubject, saveYear, setAllocation, setCurrentYear,
@@ -20,6 +21,45 @@ const importBody = z.object({ rows: z.array(z.record(z.string(), z.any())).max(5
 const q = (req) => z.object({ yearId: objectId.optional(), classId: objectId.optional() }).parse(req.query)
 
 /** Everything the other screens need to pick a year, class, section or subject. Any signed-in user. */
+// ───────────────────────────────────────────────────────── books & uniform (each class's list for families)
+
+const kitBody = z.object({
+  academicYearId: objectId, classId: objectId, branchId: objectId.nullable().optional().or(z.literal('').transform(() => null)),
+  items: z.array(z.object({
+    kind: z.enum(['BOOK', 'NOTEBOOK', 'STATIONERY', 'UNIFORM', 'SHOES', 'OTHER']), name: z.string().trim().max(160), code: optionalText(60), subject: optionalText(80),
+    publisher: optionalText(120), qty: z.coerce.number().min(1).max(999).optional(), price: z.coerce.number().min(0).max(10_000_000).nullable().optional(),
+    note: optionalText(200), storeItemId: objectId.nullable().optional(),
+  })).max(200).default([]),
+  shops: z.array(z.object({
+    name: z.string().trim().max(120), sells: z.array(z.enum(['BOOK', 'NOTEBOOK', 'STATIONERY', 'UNIFORM', 'SHOES', 'OTHER'])).max(6).default([]),
+    address: optionalText(300), phone: optionalText(30), mapUrl: z.string().trim().max(500).url('Paste the map link as it is').optional().or(z.literal('').transform(() => undefined)), note: optionalText(300),
+  })).max(20).default([]),
+  instructions: optionalText(2000), published: z.boolean().default(false),
+  visibleFrom: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().or(z.literal('').transform(() => undefined)).nullable(),
+})
+router.get('/books-uniform', requirePermission('academics.books-uniform.view'), async (req, res) => {
+  res.json({ data: await listKits({ academicYearId: z.object({ academicYearId: objectId.optional() }).parse(req.query).academicYearId }) })
+})
+router.get('/books-uniform/store-items', requirePermission('academics.books-uniform.create', 'academics.books-uniform.edit'), async (req, res) => {
+  res.json({ data: await kitStoreItems() })
+})
+router.get('/books-uniform/:id', requirePermission('academics.books-uniform.view'), async (req, res) => {
+  res.json({ data: await getKit(objectId.parse(req.params.id), req.auth) })
+})
+router.post('/books-uniform', requirePermission('academics.books-uniform.create'), async (req, res) => {
+  res.status(201).json({ data: await saveKit(kitBody.parse(req.body), req.auth, req) })
+})
+router.put('/books-uniform/:id', requirePermission('academics.books-uniform.edit'), async (req, res) => {
+  res.json({ data: await saveKit(kitBody.parse(req.body), req.auth, req, objectId.parse(req.params.id)) })
+})
+router.post('/books-uniform/:id/copy', requirePermission('academics.books-uniform.create'), async (req, res) => {
+  const input = z.object({ classIds: z.array(objectId).min(1).max(60), academicYearId: objectId.optional(), branchId: objectId.nullable().optional() }).parse(req.body)
+  res.json({ data: await copyKit(objectId.parse(req.params.id), input, req.auth, req) })
+})
+router.delete('/books-uniform/:id', requirePermission('academics.books-uniform.delete'), async (req, res) => {
+  res.json({ data: await deleteKit(objectId.parse(req.params.id), req.auth, req) })
+})
+
 router.get('/lookup', async (req, res) => {
   res.json({ data: await lookup(req.auth) })
 })

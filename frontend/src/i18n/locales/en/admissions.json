@@ -117,8 +117,28 @@
         "parentHint": "The parent the school will call about this application.",
         "addressHint": "Where the family lives now.",
         "extraHint": "A few more questions the school asks this year.",
-        "placeHintCycle": "Admissions for {{cycle}}: the class the child will join."
-      }
+        "placeHintCycle": "Admissions for {{cycle}}: the class the child will join.",
+        "health": "Health",
+        "healthHint": "Anything the school should know in an emergency."
+      },
+      "childFullName": "Child’s full name",
+      "category": "Category",
+      "religion": "Religion",
+      "nationality": "Nationality",
+      "motherTongue": "Mother tongue",
+      "aadhaar": "Child’s Aadhaar number",
+      "aadhaarHint": "Optional. 12 digits; only the last four are shown.",
+      "tcNo": "TC number",
+      "tcDate": "TC date",
+      "nameOnTc": "Name on the TC",
+      "nameOnTcHint": "Exactly as written on the TC.",
+      "dobOnTc": "Date of birth on the TC",
+      "tcNameDiffers": "The TC says “{{tc}}”, but the child’s name here is “{{name}}”.",
+      "tcDobDiffers": "The date of birth on the TC is different from the child’s date of birth here.",
+      "state": "State",
+      "allergies": "Allergies",
+      "conditions": "Medical conditions",
+      "medicalNotes": "Notes for teachers"
     },
     "enquiries": {
       "title": "Enquiries",
@@ -263,7 +283,11 @@
           "title": "From an enquiry",
           "body": "The child’s and parent’s details from the enquiry are filled in. Saving marks the enquiry as applied."
         }
-      }
+      },
+      "mismatchNote": "Why the TC is different",
+      "mismatchNoteHint": "For example: spelling corrected by affidavit. Kept on the student’s record.",
+      "localName": "Name in other language",
+      "tcDiffers": "The TC’s name or date of birth is different from the child’s. You will be asked why when admitting."
     },
     "tests": {
       "title": "Entrance tests",
@@ -425,7 +449,17 @@
       "sendEnquiry": "Send",
       "enquirySent": "Thank you — we will call you soon.",
       "notAvailable": "Admissions aren’t open on this page",
-      "privacy": "Your details are only used by {{name}} for admission."
+      "privacy": "Your details are only used by {{name}} for admission.",
+      "documents": "Documents",
+      "documentsUpload": "Add a PDF or a clear photo of each paper. For Aadhaar, add the front and the back. Papers marked “Can come later” can be brought to the school.",
+      "review": "Check before sending",
+      "reviewHint": "You will see everything once more before it is sent.",
+      "backToForm": "Back to the form",
+      "namesNeeded": "Please also write the names in {{language}}.",
+      "docsFailed": "The application is sent, but these files did not go: {{list}}. Please bring them to the school.",
+      "emailHint": "We send a one-time code to your email to check it is yours.",
+      "byMobile": "Mobile",
+      "byEmail": "Email"
     }
   }
 }

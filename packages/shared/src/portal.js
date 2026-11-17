@@ -27,14 +27,34 @@ export const FAMILY_FEATURES = [
   { value: 'FEES', module: 'fees', label: 'Fees and receipts', setting: 'showFees' },
   { value: 'RESULTS', module: 'exams', label: 'Results and report cards', setting: 'showMarks' },
   { value: 'CERTIFICATES', module: 'certificates', label: 'Certificates' },
+  { value: 'KIT', module: 'academics', label: 'Books, stationery and uniform list' },
   { value: 'NOTICES', module: 'communication', label: 'Notices and circulars' },
   { value: 'CHAT', module: 'communication', label: 'Messages with teachers', setting: 'chat' },
 ]
 
-/** The features live for a school: module on and, where there is one, its setting on. */
-export function liveFamilyFeatures(settings = {}, enabledModules = []) {
-  return FAMILY_FEATURES.filter((f) => enabledModules.includes(f.module) && (!f.setting || settings[f.setting] !== false)).map((f) => f.value)
+/**
+ * The features live for a school: module on, its setting on (where there is one), not hidden by the school
+ * (Settings › App › hiddenSections) and — for a student signed in on their own — not kept for parents
+ * (parentOnlySections). `kind`: the session's PARENT / STUDENT, or none before sign-in.
+ */
+export function liveFamilyFeatures(settings = {}, enabledModules = [], kind = null) {
+  const hidden = new Set(settings.hiddenSections ?? [])
+  const parentsOnly = new Set(kind === 'STUDENT' ? settings.parentOnlySections ?? [] : [])
+  return FAMILY_FEATURES
+    .filter((f) => enabledModules.includes(f.module) && (!f.setting || settings[f.setting] !== false) && !hidden.has(f.value) && !parentsOnly.has(f.value))
+    .map((f) => f.value)
 }
+
+/** The child's details the app's profile can show; the school picks which (Settings › App › profileFields). */
+export const FAMILY_PROFILE_FIELDS = [
+  { value: 'ADMISSION_NO', label: 'Admission number' },
+  { value: 'ROLL_NO', label: 'Roll number' },
+  { value: 'CLASS_TEACHER', label: 'Class teacher' },
+  { value: 'DOB', label: 'Date of birth' },
+  { value: 'BLOOD_GROUP', label: 'Blood group' },
+  { value: 'GUARDIANS', label: 'Parents and guardians' },
+  { value: 'GUARDIAN_MOBILE', label: 'Parents’ mobile numbers (last four digits)' },
+]
 
 /** The last 10 digits of an Indian mobile number, or null. */
 export function mobile10(raw) {

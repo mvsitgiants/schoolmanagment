@@ -116,3 +116,44 @@ allocationSchema.index({ tenantId: 1, sectionId: 1, subjectId: 1 }, { unique: tr
 allocationSchema.index({ tenantId: 1, teacherId: 1, academicYearId: 1 })
 
 export const TeacherAllocation = model('TeacherAllocation', allocationSchema, 'teacher_allocations')
+
+/**
+ * A class's books, notebooks, stationery and uniform for a year (Academic setup › Books & uniform) — for one campus, or
+ * every campus (branchId null). Families see it in the app from `visibleFrom` once it is published, with its files
+ * (the publisher's book list, a uniform picture) as PDF or photos. An item may point at a store item (Store & assets),
+ * whose code and sale price it shows.
+ */
+const kitItemSchema = new Schema({
+  kind: { type: String, default: 'BOOK' }, // KIT_KINDS
+  name: { type: String, required: true, trim: true },
+  code: { type: String, trim: true }, // ISBN, the store's item code, or the shop's
+  subject: { type: String, trim: true },
+  publisher: { type: String, trim: true }, // books: publisher / author
+  qty: { type: Number, default: 1 },
+  price: Number, // paise, per piece — optional
+  note: { type: String, trim: true }, // "Monday to Thursday", "sizes at the store", "cover in brown paper"
+  storeItemId: ObjectId,
+}, { _id: true })
+// a shop the school sends families to (instead of, or besides, its own store): what it sells, where, how to reach it
+const kitShopSchema = new Schema({
+  name: { type: String, required: true, trim: true },
+  sells: { type: [String], default: [] }, // KIT_KINDS it is for; empty = everything on the list
+  address: { type: String, trim: true },
+  phone: { type: String, trim: true },
+  mapUrl: { type: String, trim: true },
+  note: { type: String, trim: true }, // "show the school ID for 10% off", "open 10–7, closed Tuesday"
+}, { _id: true })
+const classKitSchema = new Schema({
+  academicYearId: { type: ObjectId, ref: 'AcademicYear', required: true },
+  classId: { type: ObjectId, ref: 'ClassLevel', required: true },
+  branchId: { type: ObjectId, ref: 'Branch', default: null },
+  items: { type: [kitItemSchema], default: [] },
+  shops: { type: [kitShopSchema], default: [] }, // where to buy
+  instructions: { type: String, trim: true }, // a few lines above the list: where to buy, by when, how to label
+  published: { type: Boolean, default: false },
+  visibleFrom: String, // YYYY-MM-DD: families see it from this day (empty = as soon as it is published)
+  updatedBy: String,
+}, { timestamps: true })
+classKitSchema.plugin(tenantPlugin)
+classKitSchema.index({ tenantId: 1, academicYearId: 1, classId: 1, branchId: 1 }, { unique: true })
+export const ClassKit = model('ClassKit', classKitSchema, 'class_kits')

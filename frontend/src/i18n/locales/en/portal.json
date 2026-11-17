@@ -20,7 +20,8 @@
       "PLACEMENTS": "Placement drives and offers",
       "COMPLAINTS": "Complaints and concerns",
       "SURVEYS": "Surveys and feedback",
-      "CANTEEN": "Canteen wallet and pre-orders"
+      "CANTEEN": "Canteen wallet and pre-orders",
+      "KIT": "Books, stationery and uniform list"
     },
     "settings": {
       "title": "App settings",
@@ -64,6 +65,29 @@
       "timingHours": "When",
       "addTiming": "Add a line",
       "remove": "Remove"
+    },
+    "access": {
+      "title": "Sections in the app",
+      "hint": "Who sees each section. A section whose module is off never shows.",
+      "all": "Parents & students",
+      "shown": "Shown",
+      "parents": "Parents only",
+      "hidden": "Hidden"
+    },
+    "details": {
+      "title": "Child’s details and staff numbers",
+      "hint": "What the child’s profile in the app shows. The name and class are always shown.",
+      "fields": {
+        "ADMISSION_NO": "Admission number",
+        "ROLL_NO": "Roll number",
+        "CLASS_TEACHER": "Class teacher",
+        "DOB": "Date of birth",
+        "BLOOD_GROUP": "Blood group",
+        "GUARDIANS": "Parents and guardians",
+        "GUARDIAN_MOBILE": "Parents’ mobile numbers (last four digits)"
+      },
+      "staffPhones": "Show staff phone numbers",
+      "staffPhonesHint": "The bus driver’s and attendant’s, and the hostel warden’s. Off: only their names, so families call the office."
     }
   }
 }

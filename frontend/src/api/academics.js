@@ -52,3 +52,11 @@ export const resetClassSeats = (id) => del(`${BASE}/sections/${id}/seats`)
 export const fetchAllocation = (classId, yearId) => get(`${BASE}/allocation`, { classId, yearId: yearId || undefined })
 export const saveAllocation = (body) => put(`${BASE}/allocation`, body)
 export const fetchTeachers = () => get(`${BASE}/teachers`)
+
+// books & uniform: each class's list for families
+export const fetchKits = (academicYearId) => get(`${BASE}/books-uniform`, { academicYearId: academicYearId || undefined })
+export const fetchKit = (id) => get(`${BASE}/books-uniform/${id}`)
+export const fetchKitStoreItems = () => get(`${BASE}/books-uniform/store-items`)
+export const saveKit = (id, body) => (id ? put(`${BASE}/books-uniform/${id}`, body) : post(`${BASE}/books-uniform`, body))
+export const copyKit = (id, body) => post(`${BASE}/books-uniform/${id}/copy`, body)
+export const deleteKit = (id) => del(`${BASE}/books-uniform/${id}`)
