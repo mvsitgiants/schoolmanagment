@@ -571,7 +571,10 @@ export async function publicAdmissions(tenant) {
   // the main campus's documents list, and the languages names are also kept in (Settings › Also keep names in)
   const main = await Branch.findOne({ isDefault: true }).select('admissionDocs').lean()
   const languages = ((await getSetting('core', 'namesAlsoIn')) ?? []).filter((c) => c && c !== 'en')
-  return { school: { name: tenant.name, city: p.city ?? null, logoUrl: p.logoUrl ?? null, primaryColor: p.primaryColor ?? null, phone: p.phone ?? null }, documents: main?.admissionDocs ?? DEFAULT_ADMISSION_DOCS, names: { languages }, onlineApplication: !!cfg.onlineApplication, applyNeedsCode: !!cfg.applyNeedsCode, applyCodeBy: cfg.applyCodeBy ?? 'MOBILE', websiteEnquiry: cfg.websiteEnquiry !== false, ageCutoff: cfg.ageCutoff, cycles: out, enquiryClasses: [...cls.values()].sort((a, b) => a.order - b.order).map((c) => ({ id: String(c._id), name: c.name })) }
+  const core = await getSettings('core')
+  return { school: { name: tenant.name, city: p.city ?? null, logoUrl: p.logoUrl ?? null, primaryColor: p.primaryColor ?? null, phone: p.phone ?? null }, documents: main?.admissionDocs ?? DEFAULT_ADMISSION_DOCS, names: { languages },
+    // the page's own language picker: the languages the school offers, and the one to open in
+    ui: { languages: core.enabledLanguages ?? [], defaultLanguage: core.defaultAppLanguage ?? 'en' }, onlineApplication: !!cfg.onlineApplication, applyNeedsCode: !!cfg.applyNeedsCode, applyCodeBy: cfg.applyCodeBy ?? 'MOBILE', websiteEnquiry: cfg.websiteEnquiry !== false, ageCutoff: cfg.ageCutoff, cycles: out, enquiryClasses: [...cls.values()].sort((a, b) => a.order - b.order).map((c) => ({ id: String(c._id), name: c.name })) }
 }
 
 /** A family's applications on their (verified) mobile number. */

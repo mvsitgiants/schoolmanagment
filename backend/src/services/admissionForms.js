@@ -10,7 +10,7 @@ import { audit } from '../platform/audit.js'
 import { getContext } from '../platform/context.js'
 import { decrypt, encrypt } from '../platform/crypto.js'
 import { AppError, badRequest, conflict, notFound } from '../platform/errors.js'
-import { getSetting } from '../platform/settings.js'
+import { getSetting, getSettings } from '../platform/settings.js'
 import { institutionNow } from '../platform/time.js'
 import { listFiles, storeFile } from './files.js'
 import { queueFamilyMessages } from './notify.js'
@@ -207,6 +207,7 @@ export async function publicAdmissionForm(tenant, token) {
     names: { languages: langs, required: !!campus?.localNameRequired && langs.length > 0 },
     documents: campus?.admissionDocs ?? DEFAULT_ADMISSION_DOCS,
     files: await familyFiles(f),
+    ui: await (async () => { const c = await getSettings('core'); return { languages: c.enabledLanguages ?? [], defaultLanguage: c.defaultAppLanguage ?? 'en' } })(),
   }
 }
 

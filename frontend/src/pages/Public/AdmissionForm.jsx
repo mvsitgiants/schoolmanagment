@@ -11,6 +11,7 @@ import AdmissionReview from '../../components/students/AdmissionReview'
 import { usePlainLocalNames } from '../../components/localNames/LocalNameField'
 import { fetchFamilyForm, removeFamilyFile, submitFamilyForm, uploadFamilyFile } from '../../api/admissionForm'
 import { applyBrandRamp } from '../../utils/brandRamp'
+import PublicLanguage from '../../components/ui/PublicLanguage'
 import { useFormat } from '../../context/SettingsContext'
 
 const Card = ({ children, className = '' }) => <section className={`rounded-2xl border border-border bg-surface p-5 ${className}`}>{children}</section>
@@ -132,10 +133,11 @@ export default function AdmissionFormPage() {
         ) : <>
           <header className="flex items-center gap-3">
             {s.logoUrl ? <img src={s.logoUrl} alt="" className="w-12 h-12 rounded-xl object-contain bg-surface border border-border" /> : <span className="w-12 h-12 rounded-xl bg-brand-500 flex items-center justify-center"><School className="w-6 h-6 text-white" /></span>}
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <p className="font-display text-xl font-semibold text-ink">{s.name}</p>
               <p className="text-sm text-ink-muted">{[t('students.familyPage.title'), info.classLabel].filter(Boolean).join(' · ')}</p>
             </div>
+            <PublicLanguage ui={info.ui} className="shrink-0" />
           </header>
           <Filling slug={slug} token={token} info={info} />
           <p className="text-center text-xs text-ink-faint">{t('students.familyPage.privacy', { name: s.name })}{s.phone ? ` ${t('students.familyPage.help', { phone: s.phone })}` : ''}</p>

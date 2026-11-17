@@ -12,6 +12,7 @@ import AdmissionReview from '../../components/students/AdmissionReview'
 import { usePlainLocalNames } from '../../components/localNames/LocalNameField'
 import { publicAcceptOffer, publicAdmissions, publicApplicationFile, publicApply, publicEnquiry, publicMyApplications, publicSendCode, publicVerify } from '../../api/admissions'
 import { applyBrandRamp } from '../../utils/brandRamp'
+import PublicLanguage from '../../components/ui/PublicLanguage'
 import { useFormat } from '../../context/SettingsContext'
 
 const Card = ({ children, className = '' }) => <section className={`rounded-2xl border border-border bg-surface p-5 ${className}`}>{children}</section>
@@ -216,7 +217,8 @@ export default function Apply({ track = false }) {
         ) : <>
           <header className="flex items-center gap-3">
             {s.logoUrl ? <img src={s.logoUrl} alt="" className="w-12 h-12 rounded-xl object-contain bg-surface border border-border" /> : <span className="w-12 h-12 rounded-xl bg-brand-500 flex items-center justify-center"><School className="w-6 h-6 text-white" /></span>}
-            <div><p className="font-display text-xl font-semibold text-ink">{s.name}</p><p className="text-sm text-ink-muted">{t('admissions.public.title')}{s.city ? ` · ${s.city}` : ''}</p></div>
+            <div className="min-w-0 flex-1"><p className="font-display text-xl font-semibold text-ink">{s.name}</p><p className="text-sm text-ink-muted">{t('admissions.public.title')}{s.city ? ` · ${s.city}` : ''}</p></div>
+            <PublicLanguage ui={info.ui} className="shrink-0" />
           </header>
           <SegmentedControl value={tab} onChange={setTab} options={[{ value: 'APPLY', label: t('admissions.public.tabs.apply') }, { value: 'ENQUIRE', label: t('admissions.public.tabs.enquire') }, { value: 'TRACK', label: t('admissions.public.tabs.track') }]} />
           {tab === 'APPLY' && <ApplyTab slug={slug} info={info} />}
