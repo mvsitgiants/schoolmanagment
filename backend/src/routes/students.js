@@ -5,6 +5,7 @@ import { authenticate, requireModule, requirePermission, subscriptionGate, tenan
 import { email, mobile, objectId, optionalText, pageParams, z } from '../platform/validate.js'
 import { getStudentPhoto, idCardList, setStudentPhoto } from '../services/students.js'
 import { studentOverview } from '../services/student360.js'
+import { cancelAdmissionForm, createAdmissionForm, getAdmissionForm, listAdmissionForms, resendAdmissionForm } from '../services/admissionForms.js'
 import {
   admitStudent, cancelTc, getStudent, importStudents, issueTc, listGuardians, listStudents, listTcs, promotionPreview, requestTc,
   runPromotion, setStudentStatus, tcPrefill, updateStudent, updateTc,
@@ -30,7 +31,7 @@ const guardianSchema = z.object({
   isPrimary: z.boolean().optional(),
 })
 
-const studentSchema = z.object({
+export const studentSchema = z.object({
   admissionNo: optionalText(30),
   firstName: z.string().trim().min(1, 'Enter the first name').max(60),
   middleName: optionalText(60),
@@ -52,7 +53,10 @@ const studentSchema = z.object({
   aadhaar: z.string().trim().max(20).optional(),
   apaarId: optionalText(20),
   pen: optionalText(20),
-  previousSchool: z.object({ name: optionalText(120), board: optionalText(40), lastClass: optionalText(30), tcNo: optionalText(30) }).optional(),
+  previousSchool: z.object({
+    name: optionalText(120), board: optionalText(40), lastClass: optionalText(30), tcNo: optionalText(30),
+    tcDate: optYmd, nameOnTc: optionalText(120), dobOnTc: optYmd, mismatchNote: optionalText(300),
+  }).optional(),
   medical: z.object({ allergies: optionalText(200), conditions: optionalText(200), notes: optionalText(500) }).optional(),
   language: optionalText(20),
   consents: z.object({ communication: z.object({ sms: z.boolean(), whatsapp: z.boolean(), email: z.boolean() }).partial() }).optional(),
@@ -64,7 +68,36 @@ router.get('/', requirePermission('students.directory.view', 'students.profile.v
 })
 
 router.post('/', requirePermission('students.admit.create'), async (req, res) => {
-  res.status(201).json({ data: await admitStudent(studentSchema.parse(req.body), req.auth, req) })
+  // fromFormId: the admission form a family filled from a link — its files move to the student, the form closes
+  const { fromFormId, ...body } = studentSchema.extend({ fromFormId: objectId.optional() }).parse(req.body)
+  res.status(201).json({ data: await admitStudent(body, req.auth, req, { fromFormId }) })
+})
+
+// ───────────────────────────────────────────────────────── admission forms sent to families (New admission)
+
+const channelsIn = z.array(z.enum(['SMS', 'WHATSAPP', 'EMAIL'])).max(3).default([])
+router.get('/admission-forms', requirePermission('students.admit.create'), async (req, res) => {
+  const q = z.object({ status: z.enum(['SENT', 'SUBMITTED', 'ADMITTED', 'CANCELLED', 'EXPIRED']).optional() }).parse(req.query)
+  res.json({ data: await listAdmissionForms(q) })
+})
+router.post('/admission-forms', requirePermission('students.admit.create'), async (req, res) => {
+  const input = z.object({
+    childName: optionalText(100), parentName: optionalText(100),
+    mobile: mobile.optional().or(z.literal('').transform(() => undefined)), email: email.optional().or(z.literal('').transform(() => undefined)),
+    sectionId: objectId.optional().or(z.literal('').transform(() => undefined)), branchId: objectId.optional().or(z.literal('').transform(() => undefined)),
+    channels: channelsIn,
+  }).parse(req.body)
+  res.status(201).json({ data: await createAdmissionForm(input, req.auth, req) })
+})
+router.get('/admission-forms/:id', requirePermission('students.admit.create'), async (req, res) => {
+  res.json({ data: await getAdmissionForm(objectId.parse(req.params.id), req.auth) })
+})
+router.post('/admission-forms/:id/resend', requirePermission('students.admit.create'), async (req, res) => {
+  const input = z.object({ channels: channelsIn, mobile: z.string().max(16).optional(), email: z.string().max(120).optional() }).parse(req.body ?? {})
+  res.json({ data: await resendAdmissionForm(objectId.parse(req.params.id), input, req.auth, req) })
+})
+router.post('/admission-forms/:id/cancel', requirePermission('students.admit.create'), async (req, res) => {
+  res.json({ data: await cancelAdmissionForm(objectId.parse(req.params.id), req.auth, req) })
 })
 
 router.post('/import', requirePermission('students.directory.import'), async (req, res) => {

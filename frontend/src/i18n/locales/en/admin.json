@@ -1498,7 +1498,12 @@
         "message": "Only a campus with nothing filed under it can be deleted. If it already has students, classes or other records, make it inactive instead."
       },
       "localNameRequired": "Names in {{language}} needed at admission",
-      "localNameRequiredHint": "Turn on for a campus whose documents print in {{language}}, such as a UP Board campus. A student can be admitted here only with the student's and parents' names also filled in {{language}}."
+      "localNameRequiredHint": "Turn on for a campus whose documents print in {{language}}, such as a UP Board campus. A student can be admitted here only with the student's and parents' names also filled in {{language}}.",
+      "admissionDocs": "Documents at admission",
+      "admissionDocsHint": "What a student joining this campus brings. “Needed to admit” stops the admission until it is added; the rest show as pending on the student’s Documents tab.",
+      "docNotAsked": "Not asked",
+      "docLater": "Can come later",
+      "docNow": "Needed to admit"
     },
     "customFields": {
       "title": "Custom fields",

@@ -1,5 +1,5 @@
 import {
-  CLASS_PRESET_BY, DEFAULT_GRADING_BANDS, SUBJECT_PRESET, academicYearFor, attendancePct, checkGradingBands, checkYearDates, defaultTerms, sectionLabel, sectionNames,
+  CLASS_PRESET_BY, DEFAULT_ADMISSION_DOCS, DEFAULT_GRADING_BANDS, SUBJECT_PRESET, academicYearFor, attendancePct, checkGradingBands, checkYearDates, defaultTerms, sectionLabel, sectionNames,
   defaultSeating, normSeating, placeStudents, seatCapacity, seatPlan, weekdayCode,
 } from '@schoolgiant/shared'
 import { AcademicYear, ClassLevel, GradingScheme, Section, Subject, TeacherAllocation } from '../models/academics.js'
@@ -625,7 +625,7 @@ export async function lookup(auth) {
     ClassLevel.find({ active: true }).select('name code order').sort({ order: 1, name: 1 }).lean(),
     year ? Section.find({ academicYearId: year._id, active: true }).select('classId name branchId classTeacherId').sort({ name: 1 }).lean() : [],
     Subject.find({ active: true }).select('name code type').sort({ name: 1 }).lean(),
-    Branch.find({ active: true }).select('name code localNameRequired').sort({ isDefault: -1, name: 1 }).lean(),
+    Branch.find({ active: true }).select('name code localNameRequired admissionDocs').sort({ isDefault: -1, name: 1 }).lean(),
   ])
   const clsById = new Map(classes.map((c) => [String(c._id), c]))
   const mine = year && auth?.userId ? new Set(await mySectionIds(auth.userId, year._id)) : new Set()
@@ -639,7 +639,7 @@ export async function lookup(auth) {
     })),
     subjects: subjects.map(clean),
     // campuses, for what a section's campus asks of a form (admission: names in other languages required)
-    branches: branches.map((b) => ({ id: String(b._id), name: b.name, code: b.code, localNameRequired: !!b.localNameRequired })),
+    branches: branches.map((b) => ({ id: String(b._id), name: b.name, code: b.code, localNameRequired: !!b.localNameRequired, admissionDocs: b.admissionDocs ?? DEFAULT_ADMISSION_DOCS })),
   }
 }
 

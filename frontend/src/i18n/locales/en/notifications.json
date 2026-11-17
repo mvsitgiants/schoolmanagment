@@ -253,6 +253,18 @@
           "body": "Dear {{guardian.name}},\n\n{{chat.teacher}} has replied to your message about {{student.name}}.\nRead it in the app: {{chat.link}}\n\n{{institution.name}}"
         }
       },
+      "students_admissionForm": {
+        "SMS": {
+          "body": "Please fill {{applicant.name}}’s admission form for {{applicant.class}} by {{form.until}}: {{form.link}} - {{institution.name}}"
+        },
+        "WHATSAPP": {
+          "body": "Dear {{guardian.name}},\nPlease fill in the admission form for {{applicant.name}} ({{applicant.class}}) at {{institution.name}}.\n\nOpen the form: {{form.link}}\nYou can add photos of documents (birth certificate, Aadhaar, TC) from your phone.\nThe link works till {{form.until}}.\n\n{{institution.name}}"
+        },
+        "EMAIL": {
+          "subject": "Admission form for {{applicant.name}} — {{institution.name}}",
+          "body": "Dear {{guardian.name}},\n\nPlease fill in the admission form for {{applicant.name}} ({{applicant.class}}) at {{institution.name}}:\n{{form.link}}\n\nYou can add the documents (birth certificate, Aadhaar, previous school’s TC) as photos or PDF files. The link works till {{form.until}}.\n\n{{institution.name}}"
+        }
+      },
       "admissions_enquiry": {
         "SMS": {
           "body": "Thank you for your enquiry about {{applicant.class}} admission for {{applicant.name}}. We will call you soon. - {{institution.name}}"

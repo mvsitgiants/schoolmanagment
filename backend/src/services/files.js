@@ -1,7 +1,7 @@
 import { createHash, randomUUID } from 'node:crypto'
-import { COMMENT_MAX, FILE_CATEGORY_LABEL, FILE_MAX_MB, FILE_TYPES, RECORD_TYPES } from '@schoolgiant/shared'
+import { COMMENT_MAX, FILE_CATEGORY_LABEL, FILE_MAX_MB, FILE_SIDES, FILE_TYPES, FILE_VERIFY_STATUS, RECORD_TYPES } from '@schoolgiant/shared'
 import { Attachment, Comment } from '../models/engines.js'
-import { Student, studentName } from '../models/students.js'
+import { AdmissionForm, Student, studentName } from '../models/students.js'
 import { homeworkRecord, lessonPlanRecord } from './homework.js'
 import { syllabusTopicRecord } from './homeworkTopics.js'
 import { noticeRecord } from './communication.js'
@@ -35,6 +35,13 @@ const RECORDS = {
   student: {
     module: 'students', view: ['students.profile.view'], add: ['students.profile.edit', 'students.admit.create'],
     load: async (id) => { const st = await Student.findById(id).lean(); return st && { studentId: st._id, name: `${studentName(st)} (${st.admissionNo})` } },
+  },
+  // A family's papers sent with the admission form they filled from a link (New admission › Send form to family);
+  // they move to the student on admission. The family adds them through the link (admissionFormsPublic), not here.
+  admission_form: {
+    module: 'students', view: ['students.admit.create'], add: ['students.admit.create'],
+    load: async (id) => { const f = await AdmissionForm.findById(id).select('childName data status').lean(); return f && { name: `admission form · ${[f.data?.firstName, f.data?.lastName].filter(Boolean).join(' ') || f.childName || ''}`.trim(), locked: f.status === 'ADMITTED' || f.status === 'CANCELLED' } },
+    locked: (rec) => (rec.locked ? 'This form is closed; add files to the student’s record instead.' : null),
   },
   // A homework's worksheet, reference PDF or photos of the board — seen by whoever may see the homework.
   homework: {
@@ -186,14 +193,25 @@ const cleanName = (name) => String(name || 'file').replace(/[\\/\0\r\n"]/g, '_')
 function fileDto(a) {
   return {
     id: String(a._id), entityType: a.entityType, entityId: a.entityId, studentId: a.studentId ? String(a.studentId) : null,
-    category: a.category, categoryLabel: FILE_CATEGORY_LABEL[a.category] ?? a.category, title: a.title, fileName: a.fileName,
+    category: a.category, categoryLabel: FILE_CATEGORY_LABEL[a.category] ?? a.category, title: a.title, side: a.side ?? null, fileName: a.fileName,
+    verification: a.verification?.status ? { status: a.verification.status, note: a.verification.note, by: a.verification.by, at: a.verification.at } : null,
     contentType: a.mime, size: a.size, uploadedBy: a.uploadedBy, uploadedById: a.uploadedById ? String(a.uploadedById) : null,
     uploadedAt: a.createdAt, deleted: a.deleted?.at ? a.deleted : undefined,
   }
 }
 
-export async function uploadFile({ entityType, entityId, category, title, fileName }, buffer, auth, req) {
+export async function uploadFile({ entityType, entityId, category, title, side, fileName }, buffer, auth, req) {
   const rec = await recordFor(entityType, entityId, auth, { adding: true })
+  return storeFile({ entityType, entityId, studentId: rec.studentId, recordName: rec.name, category, title, side, fileName }, buffer, { tenantId: auth.tenantId, userId: auth.userId, name: auth.user.name }, req)
+}
+
+/**
+ * Keep a file on a record whose access is already checked — by uploadFile, or by a family's admission-form link
+ * (no sign-in: `by` is just a name). Checks the content and the size, and that the plan has room.
+ */
+export async function storeFile({ entityType, entityId, studentId, recordName, category, title, side, fileName }, buffer, by, req) {
+  const rec = { studentId, name: recordName }
+  const auth = { tenantId: by.tenantId }
   if (!buffer?.length) throw badRequest('The file is empty.')
   if (buffer.length > FILE_MAX_MB * 1024 * 1024) throw badRequest(`Files can be up to ${FILE_MAX_MB} MB.`)
   const name = cleanName(fileName)
@@ -206,11 +224,42 @@ export async function uploadFile({ entityType, entityId, category, title, fileNa
   await putFile(storageKey, buffer)
   const a = await Attachment.create({
     entityType, entityId: String(entityId), studentId: rec.studentId, category: FILE_CATEGORY_LABEL[category] ? category : 'OTHER',
-    title: title?.trim().slice(0, 120) || undefined, fileName: name, mime, size: buffer.length,
-    sha256: createHash('sha256').update(buffer).digest('hex'), storageKey, uploadedById: auth.userId, uploadedBy: auth.user.name,
+    title: title?.trim().slice(0, 120) || undefined, side: FILE_SIDES.some((x) => x.value === side) ? side : undefined, fileName: name, mime, size: buffer.length,
+    sha256: createHash('sha256').update(buffer).digest('hex'), storageKey, uploadedById: by.userId || undefined, uploadedBy: by.name,
   })
   await audit({ action: 'CREATE', module: RECORDS[entityType].module, entityType: 'attachment', entityId: String(a._id), entityName: name, studentId: rec.studentId, summary: `Added ${FILE_CATEGORY_LABEL[a.category].toLowerCase()} “${name}” to ${rec.name}` }, req)
   return fileDto(a.toObject())
+}
+
+/**
+ * The office checked a personal document against the original: VERIFIED, REJECTED (with why) or back to PENDING.
+ * Whoever may add files to the record may check them; who and when is kept on the file and in the audit log.
+ */
+export async function verifyFile(id, { status, note }, auth, req) {
+  const a = await Attachment.findById(id)
+  if (!a || a.deleted?.at) throw notFound('File')
+  await recordFor(a.entityType, a.entityId, auth, { adding: true })
+  if (!FILE_VERIFY_STATUS[status]) throw badRequest('Pick verified, not accepted or not checked yet.')
+  if (status === 'REJECTED' && !note?.trim()) throw badRequest('Say why it is not accepted.', { fields: { note: 'Say why it is not accepted' } })
+  a.verification = status === 'PENDING' ? undefined : { status, note: note?.trim().slice(0, 300) || undefined, by: auth.user.name, byId: auth.userId, at: new Date() }
+  await a.save()
+  await audit({ action: 'UPDATE', module: RECORDS[a.entityType].module, entityType: 'attachment', entityId: String(a._id), entityName: a.fileName, studentId: a.studentId, summary: `${FILE_VERIFY_STATUS[status].label}: ${FILE_CATEGORY_LABEL[a.category] ?? a.category} “${a.fileName}”${note?.trim() ? ` — ${note.trim()}` : ''}` }, req)
+  return fileDto(a.toObject())
+}
+
+/**
+ * Give a newly admitted student the papers sent before admission. An admission form's files move (the form is done);
+ * an application's are copied, so the application keeps its own (the same stored bytes, nothing uploaded again).
+ */
+export async function filesToStudent(entityType, entityId, studentId) {
+  const filter = { entityType, entityId: String(entityId), 'deleted.at': null }
+  if (entityType === 'admission_form') {
+    await Attachment.updateMany(filter, { $set: { entityType: 'student', entityId: String(studentId), studentId } })
+    return
+  }
+  const rows = await Attachment.find(filter).lean()
+  if (!rows.length) return
+  await Attachment.insertMany(rows.map(({ _id, createdAt, updatedAt, ...a }) => ({ ...a, entityType: 'student', entityId: String(studentId), studentId })))
 }
 
 /** Files on one record, or (studentId) on everything about one student that the caller may see. */

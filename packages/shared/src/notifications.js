@@ -351,6 +351,16 @@ export const NOTIFY_EVENTS = [
     },
   },
   {
+    event: 'students.admissionForm', module: 'students', label: 'Admission form sent to family',
+    when: 'When the office sends a family the link to fill in their child’s admission form (New admission › Send form to family).',
+    vars: ['guardian.name', 'applicant.name', 'applicant.class', 'form.link', 'form.until', ...INSTITUTION],
+    defaults: {
+      SMS: { enabled: true, body: 'Please fill {{applicant.name}}’s admission form for {{applicant.class}} by {{form.until}}: {{form.link}} - {{institution.name}}' },
+      WHATSAPP: { enabled: true, body: 'Dear {{guardian.name}},\nPlease fill in the admission form for {{applicant.name}} ({{applicant.class}}) at {{institution.name}}.\n\nOpen the form: {{form.link}}\nYou can add photos of documents (birth certificate, Aadhaar, TC) from your phone.\nThe link works till {{form.until}}.\n\n{{institution.name}}' },
+      EMAIL: { enabled: true, subject: 'Admission form for {{applicant.name}} — {{institution.name}}', body: 'Dear {{guardian.name}},\n\nPlease fill in the admission form for {{applicant.name}} ({{applicant.class}}) at {{institution.name}}:\n{{form.link}}\n\nYou can add the documents (birth certificate, Aadhaar, previous school’s TC) as photos or PDF files. The link works till {{form.until}}.\n\n{{institution.name}}' },
+    },
+  },
+  {
     event: 'admissions.enquiry', module: 'admissions', label: 'Enquiry received',
     when: 'When an admission enquiry is taken (desk, phone or website).',
     vars: ['guardian.name', 'applicant.name', 'applicant.class', ...INSTITUTION],

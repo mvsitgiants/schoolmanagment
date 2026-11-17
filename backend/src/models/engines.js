@@ -218,7 +218,10 @@ const attachmentSchema = new Schema({
   entityId: { type: String, required: true },
   studentId: ObjectId,
   category: { type: String, default: 'OTHER' },
-  title: String,
+  title: String, // the caption
+  side: String, // FILE_SIDES — a card's front or back (Aadhaar …)
+  // a personal document checked against the original (FILE_VERIFY_STATUS); none = not checked yet
+  verification: { status: String, note: String, by: String, byId: ObjectId, at: Date },
   fileName: { type: String, required: true },
   mime: { type: String, required: true },
   size: { type: Number, required: true },

@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import { FILE_CATEGORIES } from '@schoolgiant/shared'
 import mongoose from 'mongoose'
 import { Branch, DEPARTMENT_TYPES, Department, User } from '../../models/tenant.js'
 import { audit, diffFields } from '../../platform/audit.js'
@@ -24,6 +25,8 @@ const branchSchema = z.object({
   attendanceSites: attendanceSitesInput.optional(),
   // admission needs the names in the other languages too (Hindi on the UP Board campus)
   localNameRequired: z.boolean().optional(),
+  // documents asked for at admission (Campuses › documents at admission)
+  admissionDocs: z.array(z.object({ category: z.enum(FILE_CATEGORIES.map((c) => c.value)), when: z.enum(['NOW', 'LATER']) })).max(30).optional(),
   // printed documents of this campus, when it is its own school on paper (empty = the institution's)
   identity: z.object({
     printName: optionalText(160), board: optionalText(120), affiliationNo: optionalText(60), schoolCode: optionalText(30), udiseCode: optionalText(60),

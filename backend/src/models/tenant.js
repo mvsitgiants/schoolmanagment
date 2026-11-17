@@ -33,6 +33,9 @@ const branchSchema = new Schema({
   // admission asks for the names in the institution's other languages too (Settings › Also keep names in) — e.g. the
   // UP Board campus, whose documents print in Hindi; elsewhere those boxes are optional
   localNameRequired: { type: Boolean, default: false },
+  // documents asked for at admission (FILE_CATEGORIES), each needed to admit or able to come later (ADMISSION_DOC_WHEN);
+  // unset = DEFAULT_ADMISSION_DOCS
+  admissionDocs: { type: [new Schema({ category: String, when: { type: String, default: 'LATER' } }, { _id: false })], default: undefined },
   active: { type: Boolean, default: true },
 }, { timestamps: true })
 branchSchema.plugin(tenantPlugin)

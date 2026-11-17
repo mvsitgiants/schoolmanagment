@@ -3,7 +3,7 @@ import { FILE_MAX_MB, RECORD_TYPES } from '@schoolgiant/shared'
 import { authenticate, subscriptionGate, tenantOnly } from '../platform/middleware.js'
 import { objectId, optionalText, z } from '../platform/validate.js'
 import {
-  addComment, deleteComment, deleteFile, editComment, listComments, listFiles, openFile, uploadFile,
+  addComment, deleteComment, deleteFile, editComment, listComments, listFiles, openFile, uploadFile, verifyFile,
 } from '../services/files.js'
 
 // Files and discussion on records: /api/v1/files, /api/v1/comments (docs/00 §7 E15).
@@ -25,7 +25,7 @@ files.get('/', async (req, res) => {
 
 // The file itself is the request body (any content type); its details ride in the query.
 files.post('/', express.raw({ type: () => true, limit: `${FILE_MAX_MB}mb` }), async (req, res) => {
-  const q = z.object({ entityType: recordType, entityId: objectId, category: optionalText(30), title: optionalText(120) }).parse(req.query)
+  const q = z.object({ entityType: recordType, entityId: objectId, category: optionalText(30), title: optionalText(120), side: z.enum(['FRONT', 'BACK']).optional() }).parse(req.query)
   let fileName = req.get('x-file-name') || 'file'
   try { fileName = decodeURIComponent(fileName) } catch { /* keep as sent */ }
   res.status(201).json({ data: await uploadFile({ ...q, fileName }, Buffer.isBuffer(req.body) ? req.body : null, req.auth, req) })
@@ -43,6 +43,12 @@ files.get('/:id/content', async (req, res) => {
     stream.on('end', resolve)
     stream.pipe(res)
   })
+})
+
+// the office checked a personal document against the original (or found it wrong)
+files.patch('/:id/verify', async (req, res) => {
+  const body = z.object({ status: z.enum(['PENDING', 'VERIFIED', 'REJECTED']), note: optionalText(300) }).parse(req.body ?? {})
+  res.json({ data: await verifyFile(objectId.parse(req.params.id), body, req.auth, req) })
 })
 
 files.delete('/:id', async (req, res) => {

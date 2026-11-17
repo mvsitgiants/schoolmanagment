@@ -70,7 +70,9 @@ const studentSchema = new Schema({
   aadhaarIndex: String, // blindIndex — duplicate check without decrypting
   apaarId: { type: String, trim: true },
   pen: { type: String, trim: true }, // UDISE+ Permanent Education Number
-  previousSchool: { name: String, board: String, lastClass: String, tcNo: String },
+  // the school the student comes from, and its TC as written on it: name and date of birth are checked against the
+  // student's (tcMismatch); a difference is kept with the office's note on why
+  previousSchool: { name: String, board: String, lastClass: String, tcNo: String, tcDate: String, nameOnTc: String, dobOnTc: String, mismatchNote: String },
   medical: { allergies: String, conditions: String, notes: String },
   /** Language messages to this family are written in (SUPPORTED_LANGUAGES name or code). */
   language: { type: String, trim: true },
@@ -155,3 +157,33 @@ export function familyContact(s) {
     email: g?.email || s.email || null,
   }
 }
+
+// ───────────────────────────────────────────────────────── admission forms filled by families
+
+/**
+ * New admission › Send form to family: a link (a random token; only its hash is kept) to fill in the child's admission
+ * form and add the documents from a phone. What the family sends sits here until the office opens it on New admission,
+ * checks it and admits; the files then move to the student.
+ */
+const admissionFormSchema = new Schema({
+  tokenHash: { type: String, required: true },
+  branchId: { type: ObjectId, ref: 'Branch' },
+  sectionId: { type: ObjectId, ref: 'Section' }, // optional: the class and section the office has in mind
+  classLabel: String,
+  childName: { type: String, trim: true }, // as the office typed it, to start the form and the message with
+  parentName: { type: String, trim: true },
+  mobile: String, email: String,
+  channels: { type: [String], default: [] }, // MESSAGE_CHANNELS it was sent on
+  expiresOn: { type: String, required: true }, // YYYY-MM-DD, the last day the link works
+  status: { type: String, default: 'SENT' }, // ADMISSION_FORM_STATUS (EXPIRED is worked out, not kept)
+  data: { type: Schema.Types.Mixed, default: undefined }, // the form as the family filled it (StudentForm's fields)
+  localNames: { type: Schema.Types.Mixed, default: undefined }, // { student: { hi: '…' }, guardians: [{ hi: '…' }] }
+  openedAt: Date, submittedAt: Date, submitCount: { type: Number, default: 0 },
+  studentId: { type: ObjectId, ref: 'Student' }, admittedAt: Date, admittedBy: String,
+  cancelledAt: Date, cancelledBy: String,
+  createdBy: String, createdById: ObjectId,
+}, { timestamps: true, minimize: false })
+admissionFormSchema.plugin(tenantPlugin)
+admissionFormSchema.index({ tenantId: 1, tokenHash: 1 }, { unique: true })
+admissionFormSchema.index({ tenantId: 1, status: 1, createdAt: -1 })
+export const AdmissionForm = model('AdmissionForm', admissionFormSchema, 'admission_forms')

@@ -120,3 +120,41 @@ export const ID_CARD_ORIENTATIONS = [
 /** A photo kept on the record: a small PNG / JPEG / WebP data URL (shrunk in the browser before upload). */
 export const PHOTO_DATA_URL = /^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/]+={0,2}$/
 export const PHOTO_MAX_CHARS = 280_000
+
+// ───────────────────────────────────────────────────────── admission: forms sent to families, documents, incoming TC
+
+/** A form sent to a family to fill in themselves (New admission › Send form to family). */
+export const ADMISSION_FORM_STATUS = {
+  SENT: { label: 'Waiting for the family', tone: 'neutral' },
+  SUBMITTED: { label: 'Filled by the family', tone: 'info' },
+  ADMITTED: { label: 'Admitted', tone: 'success' },
+  CANCELLED: { label: 'Cancelled', tone: 'neutral' },
+  EXPIRED: { label: 'Link expired', tone: 'neutral' }, // shown, never stored: a SENT form past its date
+}
+
+/** When a document on the campus's admission checklist has to be in. */
+export const ADMISSION_DOC_WHEN = [
+  { value: 'NOW', label: 'Needed to admit' },
+  { value: 'LATER', label: 'Can come later' },
+]
+/** A campus without its own checklist (Campuses › documents at admission) asks for these, none blocking admission. */
+export const DEFAULT_ADMISSION_DOCS = [
+  { category: 'BIRTH_CERTIFICATE', when: 'LATER' },
+  { category: 'ID_PROOF', when: 'LATER' },
+  { category: 'PREVIOUS_TC', when: 'LATER' },
+  { category: 'PHOTO', when: 'LATER' },
+]
+
+/** The words a name is compared by: lower case, no dots or extra spaces ("R.K.  Gupta" = "r k gupta"). */
+const nameKey = (s) => String(s ?? '').toLowerCase().replace(/[.,]/g, ' ').replace(/\s+/g, ' ').trim()
+
+/**
+ * Does the previous school's TC agree with the student's name and date of birth? Only what is typed is compared.
+ * { name: true } / { dob: true } = that one differs. A difference can be saved with a note (previousSchool.mismatchNote).
+ */
+export function tcMismatch(student, previousSchool) {
+  const ps = previousSchool ?? {}
+  const name = !!ps.nameOnTc?.trim() && nameKey(ps.nameOnTc) !== nameKey(fullName(student))
+  const dob = !!ps.dobOnTc && !!student?.dob && ps.dobOnTc !== student.dob
+  return { name, dob, any: name || dob }
+}

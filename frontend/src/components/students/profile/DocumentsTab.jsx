@@ -1,7 +1,8 @@
 import { useTranslation } from 'react-i18next'
 import { Award, Camera, FileText, Plus, Printer } from 'lucide-react'
 import { TC_STATUS } from '@schoolgiant/shared'
-import { Attachments, CodeBadge, ColorChip, SectionCard, StatusPill } from '../../system'
+import { CodeBadge, ColorChip, SectionCard, StatusPill } from '../../system'
+import StudentDocuments from './StudentDocuments'
 import Button from '../../ui/Button'
 import StudentPhoto from '../StudentPhoto'
 import { hasPermission } from '../../../api/auth'
@@ -22,8 +23,8 @@ export default function DocumentsTab({ s, o, canEdit }) {
         <StudentPhoto studentId={s.id} name={s.name} canEdit={canEdit || hasPermission('students.id-cards.print')} />
       </SectionCard>
       <div className="flex min-w-0 flex-col gap-6">
-        {/* Attachments draws its own card (title, upload, the list) */}
-        <Attachments entityType="student" entityId={s.id} label={t('students.profile.documents.files')} canAdd={canEdit || hasPermission('students.admit.create')} />
+        {/* the campus's checklist with the files kept on the record, each checked against the original */}
+        <StudentDocuments s={s} canEdit={canEdit || hasPermission('students.admit.create')} />
         {certs && (
           <SectionCard icon={Award} title={t('students.profile.documents.certificates')} count={broken(certs) ? null : list(certs).length || null} flush
             actions={hasPermission('certificates.issue.create') && s.status !== 'LEFT' && <Button size="sm" variant="ghost" className="-my-1" icon={Plus} to={`/certificates/issue?student=${s.id}`}>{t('students.profile.documents.issue')}</Button>}>

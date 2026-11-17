@@ -62,6 +62,13 @@
             "hi": "हिन्दी (Hindi)"
           }
         },
+        "namesAlsoIn": {
+          "label": "Also keep names in",
+          "help": "Forms get a second box beside each name — student, parents, staff, class, subject, exam, fee head, the school and its campuses — to type it in this language too. The English stays as it is; print templates set to this language print these names.",
+          "options": {
+            "hi": "हिन्दी (Hindi)"
+          }
+        },
         "sessionIdleMinutes": {
           "label": "Default sign-out after inactivity (minutes)",
           "help": "Roles can set their own value."

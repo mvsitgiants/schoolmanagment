@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Trans, useTranslation } from 'react-i18next'
 import { Building2, MapPin, Pencil, Plus, Star, Trash2 } from 'lucide-react'
-import { CodeBadge, ColorChip, DataTable, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, StatusPill, TONE, hueTone, useConfirm } from '../../components/system'
+import { CodeBadge, ColorChip, DataTable, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, SegmentedControl, StatusPill, TONE, hueTone, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { Switch, UsageMeter } from '../../components/app/Controls'
 import { createBranch, deleteBranch, fetchBranches, updateBranch } from '../../api/core'
@@ -12,16 +12,20 @@ import useAuthUser from '../../hooks/useAuthUser'
 import { useSnackbar } from '../../context/SnackbarContext'
 import AttendanceSites, { siteIn, siteOut, sitesValid } from '../../components/geo/AttendanceSitesEditor'
 import PrintImageField from '../../components/print/PrintImageField'
-import { metresText } from '@schoolgiant/shared'
+import { DEFAULT_ADMISSION_DOCS, FILE_CATEGORIES, metresText } from '@schoolgiant/shared'
 import LocalNameField, { useLocalNames, useNamesAlsoIn } from '../../components/localNames/LocalNameField'
 
 // signatories a campus can have its own of (the principal has its own fields above)
 const CAMPUS_SIGNERS = ['ACCOUNTANT', 'CONTROLLER', 'SECRETARY']
 
+// office-only papers, never asked of a family joining
+const ADMISSION_DOC_SKIP = ['PAYMENT_PROOF', 'HR_DOCUMENT']
+const DOC_ORDER = FILE_CATEGORIES.map((c) => c.value)
+
 function BranchForm({ branch, onClose, onSaved, onDeleted }) {
   const { t } = useTranslation('admin')
   const confirm = useConfirm()
-  const [form, setForm] = useState(() => ({ name: '', code: '', addressLine: '', city: '', state: '', pincode: '', phone: '', gstin: '', active: true, localNameRequired: false, ...branch, attendanceSites: (branch?.attendanceSites ?? []).map(siteIn), identity: { printName: '', board: '', affiliationNo: '', schoolCode: '', udiseCode: '', email: '', principalName: '', logoUrl: '', sealUrl: '', principalSignUrl: '', ...branch?.identity, signatures: CAMPUS_SIGNERS.map((role) => ({ role, name: '', imageUrl: '', ...(branch?.identity?.signatures ?? []).find((x) => x.role === role) })) } }))
+  const [form, setForm] = useState(() => ({ name: '', code: '', addressLine: '', city: '', state: '', pincode: '', phone: '', gstin: '', active: true, localNameRequired: false, ...branch, admissionDocs: branch?.admissionDocs ?? DEFAULT_ADMISSION_DOCS, attendanceSites: (branch?.attendanceSites ?? []).map(siteIn), identity: { printName: '', board: '', affiliationNo: '', schoolCode: '', udiseCode: '', email: '', principalName: '', logoUrl: '', sealUrl: '', principalSignUrl: '', ...branch?.identity, signatures: CAMPUS_SIGNERS.map((role) => ({ role, name: '', imageUrl: '', ...(branch?.identity?.signatures ?? []).find((x) => x.role === role) })) } }))
   const [ownPrint, setOwnPrint] = useState(() => Object.values(branch?.identity ?? {}).some(Boolean))
   const setId = (k) => (v) => setForm((f) => ({ ...f, identity: { ...f.identity, [k]: v?.target ? v.target.value : v } }))
   const names = useLocalNames('school') // the name in the school's other languages (Settings › Also keep names in)
@@ -33,7 +37,7 @@ function BranchForm({ branch, onClose, onSaved, onDeleted }) {
   const save = useMutation({
     mutationFn: () => {
       const { name, code, addressLine, city, state, pincode, phone, gstin, active, localNameRequired } = form
-      const body = { name, code, addressLine, city, state, pincode, phone, gstin, localNameRequired: !!localNameRequired, attendanceSites: form.attendanceSites.map(siteOut), identity: ownPrint
+      const body = { name, code, addressLine, city, state, pincode, phone, gstin, localNameRequired: !!localNameRequired, admissionDocs: form.admissionDocs, attendanceSites: form.attendanceSites.map(siteOut), identity: ownPrint
         ? { ...form.identity, signatures: form.identity.signatures.filter((x) => x.name?.trim() || x.imageUrl).map(({ role, name, imageUrl }) => ({ role, name, imageUrl })) }
         : { ...Object.fromEntries(Object.keys(form.identity).filter((k) => k !== 'signatures').map((k) => [k, ''])), signatures: [] } }
       return branch ? updateBranch(branch.id, { ...body, active }) : createBranch(body)
@@ -65,6 +69,23 @@ function BranchForm({ branch, onClose, onSaved, onDeleted }) {
         <FormField label="GSTIN" error={errors.gstin} hint={t('admin.branches.gstinHint')}><Input value={form.gstin ?? ''} onChange={(e) => set('gstin')(e.target.value.toUpperCase())} maxLength={15} /></FormField>
       </div>
       {branch && !branch.isDefault && <label className="mt-4 flex items-center justify-between rounded-lg border border-border px-3 py-2.5 text-sm text-ink">{t('status.active')} <Switch checked={form.active} onChange={set('active')} label={t('status.active')} /></label>}
+      {/* the documents a student joining this campus brings: needed to admit, can come later, or not asked */}
+      <div className="mt-5 rounded-xl border border-border p-4">
+        <p className="text-sm font-semibold text-ink">{t('admin.branches.admissionDocs')}</p>
+        <p className="text-xs text-ink-muted mt-0.5">{t('admin.branches.admissionDocsHint')}</p>
+        <ul className="mt-3 divide-y divide-border">
+          {FILE_CATEGORIES.filter((c) => !ADMISSION_DOC_SKIP.includes(c.value)).map((c) => {
+            const cur = form.admissionDocs.find((d) => d.category === c.value)?.when ?? ''
+            const put = (when) => setForm((f) => ({ ...f, admissionDocs: when ? [...f.admissionDocs.filter((d) => d.category !== c.value), { category: c.value, when }].sort((a, b) => DOC_ORDER.indexOf(a.category) - DOC_ORDER.indexOf(b.category)) : f.admissionDocs.filter((d) => d.category !== c.value) }))
+            return (
+              <li key={c.value} className="flex flex-wrap items-center justify-between gap-2 py-2">
+                <span className="text-sm text-ink">{t(`students:students.docs.kinds.${c.value}`, c.label)}</span>
+                <SegmentedControl value={cur} onChange={put} options={[{ value: '', label: t('admin.branches.docNotAsked') }, { value: 'LATER', label: t('admin.branches.docLater') }, { value: 'NOW', label: t('admin.branches.docNow') }]} />
+              </li>
+            )
+          })}
+        </ul>
+      </div>
       {/* only when the school keeps names in another language (Settings › Also keep names in) */}
       {otherLangs && (
         <label className="mt-4 flex items-center justify-between gap-4 rounded-lg border border-border px-3 py-2.5 text-sm text-ink">

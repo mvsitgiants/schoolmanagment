@@ -27,6 +27,13 @@ export const fetchStudent = (id, { reveal = false } = {}) => get(`${BASE}/${id}`
 /** Student 360: the student's school life — a section per module the caller may see (attendance, fees, exams …). */
 export const fetchStudentOverview = (id) => get(`${BASE}/${id}/overview`)
 export const admitStudent = (body) => post(BASE, body)
+
+// admission forms sent to families to fill in themselves (New admission › Send form to family)
+export const fetchAdmissionForms = (status) => get(`${BASE}/admission-forms`, { status })
+export const fetchAdmissionForm = (id) => get(`${BASE}/admission-forms/${id}`)
+export const sendAdmissionForm = (body) => post(`${BASE}/admission-forms`, body)
+export const resendAdmissionForm = (id, body) => post(`${BASE}/admission-forms/${id}/resend`, body)
+export const cancelAdmissionForm = (id) => post(`${BASE}/admission-forms/${id}/cancel`)
 export const updateStudent = (id, body) => patch(`${BASE}/${id}`, body)
 export const setStudentStatus = (id, status) => post(`${BASE}/${id}/status`, { status })
 export const importStudents = (rows, dryRun) => post(`${BASE}/import`, { rows, dryRun })

@@ -1,10 +1,10 @@
 import { randomInt } from 'node:crypto'
-import { HISTORY_EVENTS, LEAVING_REASONS, TC_STATUS, ageYears, countMarks, isValidAadhaar, sectionLabel } from '@schoolgiant/shared'
+import { HISTORY_EVENTS, LEAVING_REASONS, TC_STATUS, ageYears, countMarks, isValidAadhaar, sectionLabel, tcMismatch } from '@schoolgiant/shared'
 import { AcademicYear, ClassLevel, Section, Subject } from '../models/academics.js'
 import { AttendanceSheet } from '../models/attendance.js'
 import { Exam, ExamCandidate } from '../models/exams.js'
 import { Concession, FeeInvoice } from '../models/fees.js'
-import { Student, TransferCertificate, studentName, newTcCode } from '../models/students.js'
+import { AdmissionForm, Student, TransferCertificate, studentName, newTcCode } from '../models/students.js'
 import { Tenant } from '../models/platform.js'
 import { can } from '../platform/access.js'
 import { audit, diffFields } from '../platform/audit.js'
@@ -20,6 +20,7 @@ import { runAsSystem } from '../platform/context.js'
 import { escapeRegex, listResponse } from '../platform/validate.js'
 import { currentYear, sectionsInScope } from './academics.js'
 import { assertWithinLimit } from './subscription.js'
+import { filesToStudent } from './files.js'
 
 // Students (module `students`): admission, the directory, Student 360, guardians, promotion at
 // year end and transfer certificates. Who sees which students follows the role's data scope for
@@ -186,10 +187,20 @@ async function aadhaarFields(raw, exceptId) {
   return { aadhaarEnc: encrypt(v), aadhaarLast4: v.slice(-4), aadhaarIndex: index }
 }
 
-export async function admitStudent(input, auth, req) {
+/** The previous school's TC must agree with the student's name and date of birth — or say why not (tcMismatch). */
+function checkTc(student, previousSchool) {
+  if (tcMismatch(student, previousSchool).any && !previousSchool?.mismatchNote?.trim()) {
+    throw fieldsError({ 'previousSchool.mismatchNote': 'The TC’s name or date of birth differs from the student’s — say why (e.g. corrected by affidavit)' }, 'The TC does not match the student’s details.')
+  }
+}
+
+export async function admitStudent(input, auth, req, { fromFormId } = {}) {
   await assertWithinLimit(auth.tenantId, 'students', 1)
   const { section, year, cls, label } = await placeIn(input.sectionId)
   const { aadhaar, guardians, ...rest } = input
+  checkTc(rest, rest.previousSchool)
+  const fromForm = fromFormId ? await AdmissionForm.findById(fromFormId) : null
+  if (fromFormId && (!fromForm || fromForm.status === 'ADMITTED' || fromForm.status === 'CANCELLED')) throw conflict('This family’s form is already closed — it was admitted or cancelled.')
   const g = guardiansIn(guardians)
   if (!g.length) throw fieldsError({ guardians: 'Add at least one parent or guardian' })
   if (rest.admissionNo && await Student.exists({ admissionNo: rest.admissionNo })) throw fieldsError({ admissionNo: 'Another student has this admission number' })
@@ -204,6 +215,11 @@ export async function admitStudent(input, auth, req) {
   })
   await audit({ action: 'CREATE', module: 'students', entityType: 'student', entityId: String(doc._id), entityName: studentName(doc), studentId: doc._id, summary: `Admitted ${studentName(doc)} (${doc.admissionNo}) to ${label}` }, req)
   await emit('students.admitted', { studentId: String(doc._id), admissionNo: doc.admissionNo, section: label })
+  if (fromForm) {
+    Object.assign(fromForm, { status: 'ADMITTED', studentId: doc._id, admittedAt: new Date(), admittedBy: auth.user?.name })
+    await fromForm.save()
+    await filesToStudent('admission_form', fromForm._id, doc._id)
+  }
   return getStudent(doc._id, auth, null, { quiet: true })
 }
 
@@ -217,7 +233,10 @@ export async function updateStudent(id, input, auth, req) {
   const { aadhaar, guardians, sectionId, address, previousSchool, medical, consents, ...rest } = input
   for (const f of EDIT_FIELDS) if (rest[f] !== undefined) s[f] = rest[f]
   if (address) s.address = { ...before.address, ...address }
-  if (previousSchool) s.previousSchool = { ...before.previousSchool, ...previousSchool }
+  if (previousSchool) {
+    s.previousSchool = { ...before.previousSchool, ...previousSchool }
+    checkTc({ ...before, ...rest }, s.previousSchool)
+  }
   if (medical) s.medical = { ...before.medical, ...medical }
   if (consents) s.consents = { communication: { ...before.consents?.communication, ...consents.communication } }
   if (guardians) {

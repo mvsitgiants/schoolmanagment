@@ -47,6 +47,7 @@ import admissionRoutes from './routes/admissions.js'
 import admissionPublicRoutes from './routes/admissionsPublic.js'
 import websitePublicRoutes from './routes/websitePublic.js'
 import surveyPublicRoutes from './routes/surveysPublic.js'
+import admissionFormPublicRoutes from './routes/admissionFormsPublic.js'
 import timetableRoutes from './routes/timetable.js'
 import hrmsRoutes from './routes/hrms.js'
 import payrollRoutes from './routes/payroll.js'
@@ -157,6 +158,7 @@ export function createApp() {
   app.get('/api/health', ready)
   app.use('/api/v1/public/admissions/:slug', admissionPublicRoutes)
   app.use('/api/v1/public/surveys/:slug', surveyPublicRoutes)
+  app.use('/api/v1/public/admission-form/:slug', admissionFormPublicRoutes)
   app.use('/api/v1/public/site/:slug', websitePublicRoutes)
   app.use('/api/v1/public', publicRoutes)
   app.use('/api/v1/auth', authRoutes)

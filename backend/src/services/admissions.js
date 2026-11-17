@@ -20,6 +20,7 @@ import { escapeRegex, listResponse } from '../platform/validate.js'
 import { formVersion } from './forms.js'
 import { humanDate, queueFamilyMessages } from './notify.js'
 import { admitStudent } from './students.js'
+import { filesToStudent } from './files.js'
 
 // Admissions (module `admissions`). An admission cycle opens classes with seats; enquiries (the CRM pipeline: new →
 // contacted → visit → visited → applied → admitted, or lost) are followed up and turn into applications; applicants
@@ -372,6 +373,7 @@ export async function admitApplicant(id, { sectionId, admissionNo }, auth, req) 
   }, auth, req)
   Object.assign(a, { status: 'ADMITTED', studentId: student.id, admittedAt: new Date(), admittedBy: auth.user?.name })
   await a.save()
+  await filesToStudent('application', a._id, student.id) // the applicant's papers show on Student 360 too
   if (a.enquiryId) await Enquiry.updateOne({ _id: a.enquiryId }, { $set: { stage: 'ADMITTED' } })
   await audit({ action: 'APPROVE', module: 'admissions', entityType: 'application', entityId: String(a._id), entityName: a.applicationNo, studentId: student.id, summary: `Admitted applicant ${a.applicationNo} as ${student.admissionNo}` }, req)
   return { application: await getApplication(id, auth), student: { id: student.id, admissionNo: student.admissionNo, name: student.name } }

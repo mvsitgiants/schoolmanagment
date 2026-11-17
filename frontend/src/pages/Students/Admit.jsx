@@ -1,12 +1,18 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { ClipboardList, Languages, RotateCcw, UserPlus, Users } from 'lucide-react'
-import { FormPage, Note, Panel, PersonCell, SectionCard } from '../../components/system'
+import { ArrowLeft, ClipboardCheck, ClipboardList, FileCheck2, Inbox, Languages, RotateCcw, Send, UserPlus, Users } from 'lucide-react'
+import { DEFAULT_ADMISSION_DOCS, tcMismatch } from '@schoolgiant/shared'
+import { FormPage, FormSection, Note, Panel, PersonCell, SectionCard } from '../../components/system'
 import Button from '../../components/ui/Button'
-import StudentForm, { studentBody, studentFormValues, useLocalNamesRule, useStudentNames } from '../../components/students/StudentForm'
-import { admitStudent, fetchStudents } from '../../api/students'
+import StudentForm, { studentBody, studentFormValues, useCampusOf, useLocalNamesRule, useStudentNames } from '../../components/students/StudentForm'
+import AdmissionDocuments, { missingNow } from '../../components/students/AdmissionDocuments'
+import AdmissionReview from '../../components/students/AdmissionReview'
+import { FamilyFormsPanel, SendFormModal } from '../../components/students/FamilyForms'
+import { admitStudent, fetchAdmissionForm, fetchStudents } from '../../api/students'
+import { fetchAcademicLookup } from '../../api/academics'
+import { deleteFile, downloadFile, uploadFile } from '../../api/files'
 import { hasPermission } from '../../api/auth'
 import useDebouncedValue from '../../hooks/useDebouncedValue'
 import { useSnackbar } from '../../context/SnackbarContext'
@@ -57,7 +63,22 @@ function AlreadyHere({ form }) {
   )
 }
 
-/** New admission: one form, the admission number comes from the number series unless typed. */
+/** Files of a family's form, as the documents list shows them (pictures get a preview). */
+async function familyDocs(files) {
+  const out = []
+  for (const f of files ?? []) {
+    let url = ''
+    if (/^image\//.test(f.contentType)) { try { url = URL.createObjectURL((await downloadFile(f.id)).data) } catch { url = '' } }
+    out.push({ key: `f-${f.id}`, id: f.id, saved: true, category: f.category, side: f.side, title: f.title, fileName: f.fileName, size: f.size, contentType: f.contentType, url, verification: f.verification })
+  }
+  return out
+}
+
+/**
+ * New admission: one form — or one a family filled from a link (Send form to family), opened from the panel — with the
+ * documents the campus asks for, read back on a review step before it is saved. The admission number comes from the
+ * number series unless typed. Files picked here wait in the browser and go up once the student exists.
+ */
 export default function Admit() {
   const { t } = useTranslation('students')
   const navigate = useNavigate()
@@ -65,31 +86,95 @@ export default function Admit() {
   const { showSuccess, showError } = useSnackbar()
   const [form, setForm] = useState(() => studentFormValues(null))
   const [errors, setErrors] = useState({})
+  const [reviewing, setReviewing] = useState(false)
+  const [docs, setDocs] = useState([]) // documents: picked here (file) or sent by the family (saved)
+  const [family, setFamily] = useState(null) // the family's form opened here: { id, name }
+  const [sending, setSending] = useState(false)
   const names = useStudentNames()
+  const campus = useCampusOf(form.sectionId)
+  const checklist = campus?.admissionDocs ?? DEFAULT_ADMISSION_DOCS
+  const urls = useRef([])
+  useEffect(() => () => urls.current.forEach((u) => URL.revokeObjectURL(u)), [])
+  const top = () => document.querySelector('main')?.scrollTo({ top: 0, behavior: 'smooth' })
+
   const save = useMutation({
-    mutationFn: () => admitStudent(studentBody(form)),
+    mutationFn: () => admitStudent({ ...studentBody(form), ...(family && { fromFormId: family.id }) }),
     onSuccess: async (s) => {
       await names.save().catch((e) => showError(e.message))
+      // the documents picked here go up now that the student exists; the family's moved with the form
+      const failed = []
+      for (const d of docs.filter((x) => x.file)) {
+        try { await uploadFile('student', s.id, d.file, { category: d.category, side: d.side, title: d.title }) } catch { failed.push(d.fileName) }
+      }
+      if (failed.length) showError(t('students.docs.someFailed', { list: failed.join(', ') }))
       qc.invalidateQueries({ queryKey: ['students'] })
       qc.invalidateQueries({ queryKey: ['academic-classes'] })
+      qc.invalidateQueries({ queryKey: ['admission-forms'] })
       showSuccess(t('students.admit.done', { name: s.name, no: s.admissionNo }))
       navigate(`/students/profile/${s.id}`)
     },
-    onError: (e) => { setErrors(e.response?.data?.details?.fields ?? {}); showError(e.message) },
+    onError: (e) => { setErrors(e.response?.data?.details?.fields ?? {}); setReviewing(false); showError(e.message) },
   })
+
   const localRule = useLocalNamesRule(form, names)
-  const ready = form.firstName.trim() && form.sectionId && form.guardians.some((g) => g.name.trim()) && !localRule.missing
-  const clear = () => { setForm(studentFormValues(null)); setErrors({}) }
+  const tc = tcMismatch(form, form.previousSchool)
+  const docsMissing = missingNow(checklist, docs)
+  const ready = form.firstName.trim() && form.sectionId && form.guardians.some((g) => g.name.trim())
+    && !localRule.missing && !(tc.any && !form.previousSchool.mismatchNote?.trim()) && !docsMissing.length
+  const clear = () => { setForm(studentFormValues(null)); setErrors({}); setDocs([]); setFamily(null); setReviewing(false) }
+
+  const addDoc = async (file, meta) => {
+    const url = /^image\//.test(file.type) ? URL.createObjectURL(file) : ''
+    if (url) urls.current.push(url)
+    setDocs((d) => [...d, { key: `n-${Date.now()}-${d.length}`, file, ...meta, fileName: file.name, size: file.size, contentType: file.type, url }])
+  }
+  const removeDoc = async (it) => {
+    if (it.saved) {
+      try { await deleteFile(it.id, t('students.docs.removedByOffice')) } catch (e) { showError(e.message); return }
+    }
+    setDocs((d) => d.filter((x) => x.key !== it.key))
+  }
+
+  // a family's form: what they filled goes into the form, their documents into the list — then check and admit
+  const openFamily = async (f) => {
+    try {
+      const full = await fetchAdmissionForm(f.id)
+      const values = studentFormValues({ ...full.data, sectionId: full.sectionId ?? form.sectionId ?? '' })
+      values.aadhaar = full.data?.aadhaar ?? ''
+      setForm(values)
+      setErrors({})
+      setReviewing(false)
+      const ln = full.localNames ?? {}
+      for (const [lang, text] of Object.entries(ln.student ?? {})) if (text) names.student.set('student', lang, text)
+      ;(ln.guardians ?? []).forEach((g, i) => { for (const [lang, text] of Object.entries(g ?? {})) if (text) names.parents.set(`g${i}`, lang, text) })
+      const sent = await familyDocs(full.files)
+      sent.forEach((d) => d.url && urls.current.push(d.url))
+      setDocs(sent)
+      setFamily({ id: full.id, name: full.childName })
+      showSuccess(t('students.familyForm.loaded', { name: full.childName || full.parentName }))
+      top()
+    } catch (e) { showError(e.message) }
+  }
+
+  const g0 = form.guardians.find((g) => g.name.trim()) ?? form.guardians[0]
+  const sendPrefill = { childName: [form.firstName, form.lastName].filter(Boolean).join(' '), parentName: g0?.name, mobile: g0?.mobile, email: g0?.email, sectionId: form.sectionId }
+  const placement = useSectionLabel(form.sectionId)
 
   return (
     <FormPage
-      icon={UserPlus} title={t('students.admit.title')} subtitle={t('students.admit.subtitle')}
-      headerActions={hasPermission('students.directory.view') && <Button to="/students/directory" variant="secondary" icon={ClipboardList}>{t('students.admit.directory')}</Button>}
+      icon={UserPlus} title={t('students.admit.title')} subtitle={reviewing ? t('students.review.subtitle') : t('students.admit.subtitle')}
+      headerActions={<>
+        {!reviewing && <Button variant="secondary" icon={Send} onClick={() => setSending(true)}>{t('students.familyForm.button')}</Button>}
+        {hasPermission('students.directory.view') && <Button to="/students/directory" variant="secondary" icon={ClipboardList}>{t('students.admit.directory')}</Button>}
+      </>}
       errors={errors}
-      submitLabel={t('students.admit.save')} submitIcon={UserPlus} requires="create"
-      onSubmit={() => save.mutate()} saving={save.isPending} canSubmit={!!ready}
-      cancelLabel={t('students.admit.clear')} cancelIcon={RotateCcw} onCancel={clear}
+      submitLabel={reviewing ? t('students.review.confirm') : t('students.review.button')} submitIcon={reviewing ? UserPlus : ClipboardCheck} requires="create"
+      onSubmit={() => { if (reviewing) save.mutate(); else { setReviewing(true); top() } }} saving={save.isPending} canSubmit={!!ready}
+      cancelLabel={reviewing ? t('students.review.back') : t('students.admit.clear')} cancelIcon={reviewing ? ArrowLeft : RotateCcw}
+      onCancel={reviewing ? () => { setReviewing(false); top() } : clear}
       aside={<>
+        {family && <Note icon={Inbox} actions={<Button size="sm" variant="ghost" onClick={clear}>{t('students.familyForm.closeOpened')}</Button>}>{t('students.familyForm.openedNote', { name: family.name })}</Note>}
+        <FamilyFormsPanel onOpen={openFamily} openId={family?.id} />
         <AlreadyHere form={form} />
         <Note icon={Users}>{t('students.admit.requiredNote')}</Note>
         {localRule.required && (
@@ -97,9 +182,28 @@ export default function Admit() {
             {t('students.admit.localNamesNote', { campus: localRule.campus.name, language: localRule.language })}
           </Note>
         )}
+        {docsMissing.length > 0 && (
+          <Note icon={FileCheck2} tone="warning">{t('students.docs.missingNow', { list: docsMissing.map((d) => t(`students.docs.kinds.${d.category}`)).join(', ') })}</Note>
+        )}
       </>}
     >
-      <StudentForm value={form} onChange={setForm} errors={errors} names={names} />
+      {reviewing ? (
+        <AdmissionReview form={form} names={names} placement={placement} documents={docs} checklist={checklist} onEdit={() => { setReviewing(false); top() }} />
+      ) : (
+        <>
+          <StudentForm value={form} onChange={setForm} errors={errors} names={names} />
+          <FormSection title={t('students.docs.title')} hint={campus ? t('students.docs.hintCampus', { campus: campus.name }) : t('students.docs.hint')}>
+            <AdmissionDocuments checklist={checklist} items={docs} onAdd={addDoc} onRemove={removeDoc} />
+          </FormSection>
+        </>
+      )}
+      {sending && <SendFormModal prefill={sendPrefill} onClose={() => setSending(false)} />}
     </FormPage>
   )
+}
+
+/** "Class 5 – A (CBSE)" for the review. */
+function useSectionLabel(sectionId) {
+  const { data: lookup } = useQuery({ queryKey: ['academic-lookup'], queryFn: fetchAcademicLookup })
+  return lookup?.sections?.find((s) => s.id === sectionId)?.label ?? ''
 }

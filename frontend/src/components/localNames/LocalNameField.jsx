@@ -60,6 +60,20 @@ export function useLocalNames(kind) {
   return { kind, langs, values, track, load, set, save, dirty }
 }
 
+/**
+ * The same boxes on a page with no sign-in (a family's admission form): the languages come from the server, nothing is
+ * looked up, and what is typed goes back with the form itself. `initial`: { slot: { lang: text } }.
+ */
+export function usePlainLocalNames(kind, codes = [], initial = null) {
+  const langs = useMemo(() => codes.map((c) => getLanguage(c)).filter((l) => l && l.code !== 'en' && codes.includes(l.code)), [codes.join()]) // eslint-disable-line react-hooks/exhaustive-deps
+  const [values, setValues] = useState(() => initial ?? {})
+  const track = useCallback(() => {}, [])
+  const load = useCallback(async () => {}, [])
+  const set = useCallback((slot, lang, text) => setValues((v) => ({ ...v, [slot]: { ...v[slot], [lang]: text } })), [])
+  const save = useCallback(async () => {}, [])
+  return { kind, langs, values, track, load, set, save, dirty: false }
+}
+
 /** The local-language box(es) for one name in a form; nothing when the school keeps names only in English. */
 export default function LocalNameField({ names, slot, english, label, disabled, required, className }) {
   const { t } = useTranslation('ui')

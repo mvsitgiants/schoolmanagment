@@ -114,6 +114,7 @@ const VerifyTc = lazy(() => import('./pages/Public/VerifyTc'))
 const ScanGate = lazy(() => import('./pages/Scan/Gate'))
 const LibStockCheck = lazy(() => import('./pages/Library/StockCheck'))
 const PublicApply = lazy(() => import('./pages/Public/Apply'))
+const PublicAdmissionForm = lazy(() => import('./pages/Public/AdmissionForm'))
 // Admissions
 const AdmEnquiries = lazy(() => import('./pages/Admissions/Enquiries'))
 const AdmApplications = lazy(() => import('./pages/Admissions/Applications'))
@@ -268,6 +269,7 @@ export default function App() {
         <Route path="/site/:slug" element={<PublicSite />} />
         <Route path="/site/:slug/:page" element={<PublicSite />} />
         <Route path="/s/:slug/:token" element={<PublicSurvey />} />
+        <Route path="/admission-form/:slug/:token" element={<PublicAdmissionForm />} />
         <Route path="/apply/:slug" element={<PublicApply />} />
         <Route path="/apply/:slug/status" element={<PublicApply track />} />
         <Route path="/verify/:code" element={<VerifyCertificate />} />

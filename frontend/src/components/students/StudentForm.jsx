@@ -3,8 +3,8 @@ import { useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { Plus, Star, X } from 'lucide-react'
-import { BLOOD_GROUPS, GENDERS, GUARDIAN_RELATIONS, STUDENT_CATEGORIES } from '@schoolgiant/shared'
-import { DateInput, FormField, FormSection, Input, Select } from '../system'
+import { BLOOD_GROUPS, GENDERS, GUARDIAN_RELATIONS, STUDENT_CATEGORIES, tcMismatch } from '@schoolgiant/shared'
+import { DateInput, FormField, FormSection, Input, Note, Select } from '../system'
 import Button from '../ui/Button'
 import { fetchAcademicLookup } from '../../api/academics'
 
@@ -19,7 +19,7 @@ export function studentFormValues(s) {
     aadhaar: '', apaarId: s?.apaarId ?? '', pen: s?.pen ?? '', mobile: s?.mobile ?? '', email: s?.email ?? '',
     address: { line: '', city: '', state: '', pincode: '', ...s?.address },
     guardians: s?.guardians?.length ? s.guardians.map((g) => ({ ...blankGuardian, ...g })) : [{ ...blankGuardian, relation: 'FATHER', isPrimary: true }, { ...blankGuardian, relation: 'MOTHER' }],
-    previousSchool: { name: '', board: '', lastClass: '', tcNo: '', ...s?.previousSchool },
+    previousSchool: { name: '', board: '', lastClass: '', tcNo: '', tcDate: '', nameOnTc: '', dobOnTc: '', mismatchNote: '', ...s?.previousSchool },
     medical: { allergies: '', conditions: '', notes: '', ...s?.medical },
   }
 }
@@ -51,27 +51,39 @@ export function useStudentNames() {
  * e.g. the UP Board campus printing in Hindi): whether they are needed, and whether one is still empty — the student's
  * and every parent's whose English name is filled. Editing a student never requires them.
  */
-export function useLocalNamesRule(f, names, { editing = false } = {}) {
-  const { data: lookup } = useQuery({ queryKey: ['academic-lookup'], queryFn: fetchAcademicLookup })
-  const section = lookup?.sections?.find((s) => s.id === f.sectionId)
-  // a section without a campus belongs to the main one (listed first)
-  const campus = section ? lookup?.branches?.find((b) => b.id === section.branchId) ?? (section.branchId ? null : lookup?.branches?.[0]) : null
+export function useLocalNamesRule(f, names, { editing = false, publicRequired } = {}) {
+  // a family's form (no sign-in) is told by the server instead of looking the campus up
+  const isPublic = publicRequired !== undefined
+  const campus = useCampusOf(f.sectionId, { enabled: !isPublic })
   const langs = names?.student.langs ?? []
-  const required = !editing && !!campus?.localNameRequired && langs.length > 0
+  const required = !editing && (isPublic ? !!publicRequired : !!campus?.localNameRequired) && langs.length > 0
   const filled = (n, slot) => n.langs.every((l) => String(n.values[slot]?.[l.code] ?? '').trim())
   const missing = required && (!filled(names.student, 'student') || f.guardians.some((g, i) => g.name.trim() && !filled(names.parents, `g${i}`)))
   return { required, missing, campus, language: langs.map((l) => l.nativeName).join(', ') }
 }
 
-export default function StudentForm({ value: f, onChange, errors = {}, editing = false, aadhaarSet = false, names }) {
+/** The campus of a section (its own, or the main one for a section without one) — with what it asks at admission. */
+export function useCampusOf(sectionId, { enabled = true } = {}) {
+  const { data: lookup } = useQuery({ queryKey: ['academic-lookup'], queryFn: fetchAcademicLookup, enabled })
+  const section = lookup?.sections?.find((s) => s.id === sectionId)
+  return section ? lookup?.branches?.find((b) => b.id === section.branchId) ?? (section.branchId ? null : lookup?.branches?.[0]) ?? null : null
+}
+
+/**
+ * The form as the office fills it, or (`publicForm`) as a family fills it from the link the school sent: no class and
+ * section, numbers or dates (the office sets those), nothing looked up behind a sign-in; `publicForm.namesRequired`
+ * says whether the campus needs the names in its other languages.
+ */
+export default function StudentForm({ value: f, onChange, errors = {}, editing = false, aadhaarSet = false, names, publicForm }) {
   const { t } = useTranslation('students')
-  const { data: lookup } = useQuery({ queryKey: ['academic-lookup'], queryFn: fetchAcademicLookup })
+  const { data: lookup } = useQuery({ queryKey: ['academic-lookup'], queryFn: fetchAcademicLookup, enabled: !publicForm })
   const set = (k) => (e) => onChange({ ...f, [k]: e?.target ? e.target.value : e })
   const setIn = (group, k) => (e) => onChange({ ...f, [group]: { ...f[group], [k]: e.target.value } })
   const setG = (i, k) => (e) => onChange({ ...f, guardians: f.guardians.map((g, j) => (j === i ? { ...g, [k]: e.target.value } : g)) })
   const makePrimary = (i) => onChange({ ...f, guardians: f.guardians.map((g, j) => ({ ...g, isPrimary: j === i })) })
-  const [more, setMore] = useState(editing)
-  const localRule = useLocalNamesRule(f, names, { editing })
+  const [more, setMore] = useState(editing || !!publicForm)
+  const localRule = useLocalNamesRule(f, names, { editing, publicRequired: publicForm ? !!publicForm.namesRequired : undefined })
+  const tc = tcMismatch(f, f.previousSchool)
 
   // sections of the current year, grouped by class
   const groups = useMemo(() => {
@@ -87,7 +99,7 @@ export default function StudentForm({ value: f, onChange, errors = {}, editing =
   const remove = (i) => onChange({ ...f, guardians: f.guardians.filter((_, j) => j !== i) })
   return (
     <div className="space-y-5">
-      <FormSection title={t('students.form.placement')} hint={lookup?.currentYear ? t('students.form.placementHint', { year: lookup.currentYear.name }) : undefined}>
+      {!publicForm && <FormSection title={t('students.form.placement')} hint={lookup?.currentYear ? t('students.form.placementHint', { year: lookup.currentYear.name }) : undefined}>
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
           <div className="sm:col-span-2">
             <FormField label={t('students.form.section')} required error={errors.sectionId}>
@@ -102,7 +114,7 @@ export default function StudentForm({ value: f, onChange, errors = {}, editing =
           {!editing && <FormField label={t('students.form.admissionNo')} error={errors.admissionNo} hint={t('students.form.admissionNoHint')}><Input value={f.admissionNo} onChange={set('admissionNo')} maxLength={30} /></FormField>}
           <FormField label={t('students.form.admissionDate')} error={errors.admissionDate} hint={editing ? undefined : t('students.form.admissionDateHint')}><DateInput value={f.admissionDate} onChange={set('admissionDate')} /></FormField>
         </div>
-      </FormSection>
+      </FormSection>}
 
       <FormSection title={t('students.form.student')} hint={t('students.form.studentHint')}
         actions={!more && <Button size="sm" variant="ghost" icon={Plus} onClick={() => setMore(true)}>{t('students.form.moreDetails')}</Button>}>
@@ -183,7 +195,24 @@ export default function StudentForm({ value: f, onChange, errors = {}, editing =
           <FormField label={t('students.form.board')}><Input value={f.previousSchool.board} onChange={setIn('previousSchool', 'board')} placeholder="CBSE" /></FormField>
           <FormField label={t('students.form.lastClass')}><Input value={f.previousSchool.lastClass} onChange={setIn('previousSchool', 'lastClass')} /></FormField>
           <FormField label={t('students.form.tcNo')}><Input value={f.previousSchool.tcNo} onChange={setIn('previousSchool', 'tcNo')} /></FormField>
+          <FormField label={t('students.form.tcDate')}><DateInput value={f.previousSchool.tcDate} onChange={(v) => onChange({ ...f, previousSchool: { ...f.previousSchool, tcDate: v?.target ? v.target.value : v } })} /></FormField>
+          <FormField label={t('students.form.nameOnTc')} hint={t('students.form.nameOnTcHint')}><Input value={f.previousSchool.nameOnTc} onChange={setIn('previousSchool', 'nameOnTc')} /></FormField>
+          <FormField label={t('students.form.dobOnTc')}><DateInput value={f.previousSchool.dobOnTc} onChange={(v) => onChange({ ...f, previousSchool: { ...f.previousSchool, dobOnTc: v?.target ? v.target.value : v } })} /></FormField>
         </div>
+        {/* the TC must agree with the student: a difference is shown, and saved only with the reason */}
+        {tc.any && (
+          <div className="mt-4 space-y-3">
+            <Note tone="warning">
+              {[tc.name && t('students.form.tcNameDiffers', { tc: f.previousSchool.nameOnTc, name: [f.firstName, f.middleName, f.lastName].filter(Boolean).join(' ') }),
+                tc.dob && t('students.form.tcDobDiffers')].filter(Boolean).join(' ')}
+            </Note>
+            {!publicForm && (
+              <FormField label={t('students.form.mismatchNote')} required error={errors['previousSchool.mismatchNote']} hint={t('students.form.mismatchNoteHint')}>
+                <Input value={f.previousSchool.mismatchNote} onChange={setIn('previousSchool', 'mismatchNote')} maxLength={300} />
+              </FormField>
+            )}
+          </div>
+        )}
       </FormSection>
       <FormSection title={t('students.form.medical')} hint={t('students.form.medicalHint')}>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
