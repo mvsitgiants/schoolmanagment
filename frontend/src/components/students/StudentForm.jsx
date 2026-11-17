@@ -1,3 +1,4 @@
+import LocalNameField, { useLocalNames } from '../localNames/LocalNameField'
 import { useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
@@ -38,7 +39,31 @@ export function studentBody(f, { editing = false } = {}) {
  * Admission and edit form for a student. Controlled: `value` + `onChange(next)`. `errors` are the
  * API's field errors (`guardians.0.name` style). `editing` hides the admission number (fixed once given).
  */
-export default function StudentForm({ value: f, onChange, errors = {}, editing = false, aadhaarSet = false }) {
+/** The student's and parents' names in the school's other languages (Settings › Also keep names in); save() after the record. */
+export function useStudentNames() {
+  const student = useLocalNames('students')
+  const parents = useLocalNames('parents')
+  return { student, parents, save: async () => { await student.save(); await parents.save() } }
+}
+
+/**
+ * Admission to a campus that asks for the names in the other languages too (Campuses › names … needed at admission,
+ * e.g. the UP Board campus printing in Hindi): whether they are needed, and whether one is still empty — the student's
+ * and every parent's whose English name is filled. Editing a student never requires them.
+ */
+export function useLocalNamesRule(f, names, { editing = false } = {}) {
+  const { data: lookup } = useQuery({ queryKey: ['academic-lookup'], queryFn: fetchAcademicLookup })
+  const section = lookup?.sections?.find((s) => s.id === f.sectionId)
+  // a section without a campus belongs to the main one (listed first)
+  const campus = section ? lookup?.branches?.find((b) => b.id === section.branchId) ?? (section.branchId ? null : lookup?.branches?.[0]) : null
+  const langs = names?.student.langs ?? []
+  const required = !editing && !!campus?.localNameRequired && langs.length > 0
+  const filled = (n, slot) => n.langs.every((l) => String(n.values[slot]?.[l.code] ?? '').trim())
+  const missing = required && (!filled(names.student, 'student') || f.guardians.some((g, i) => g.name.trim() && !filled(names.parents, `g${i}`)))
+  return { required, missing, campus, language: langs.map((l) => l.nativeName).join(', ') }
+}
+
+export default function StudentForm({ value: f, onChange, errors = {}, editing = false, aadhaarSet = false, names }) {
   const { t } = useTranslation('students')
   const { data: lookup } = useQuery({ queryKey: ['academic-lookup'], queryFn: fetchAcademicLookup })
   const set = (k) => (e) => onChange({ ...f, [k]: e?.target ? e.target.value : e })
@@ -46,6 +71,7 @@ export default function StudentForm({ value: f, onChange, errors = {}, editing =
   const setG = (i, k) => (e) => onChange({ ...f, guardians: f.guardians.map((g, j) => (j === i ? { ...g, [k]: e.target.value } : g)) })
   const makePrimary = (i) => onChange({ ...f, guardians: f.guardians.map((g, j) => ({ ...g, isPrimary: j === i })) })
   const [more, setMore] = useState(editing)
+  const localRule = useLocalNamesRule(f, names, { editing })
 
   // sections of the current year, grouped by class
   const groups = useMemo(() => {
@@ -84,6 +110,7 @@ export default function StudentForm({ value: f, onChange, errors = {}, editing =
           <FormField label={t('students.form.firstName')} required error={errors.firstName}><Input value={f.firstName} onChange={set('firstName')} /></FormField>
           <FormField label={t('students.form.middleName')} error={errors.middleName}><Input value={f.middleName} onChange={set('middleName')} /></FormField>
           <FormField label={t('students.form.lastName')} error={errors.lastName}><Input value={f.lastName} onChange={set('lastName')} /></FormField>
+          {names && <LocalNameField names={names.student} slot="student" required={localRule.required} english={[f.firstName, f.middleName, f.lastName].map((x) => String(x ?? '').trim()).filter(Boolean).join(' ')} label={t('students.form.fullName')} />}
           <FormField label={t('students.form.gender')} error={errors.gender}>
             <Select value={f.gender} onChange={set('gender')}><option value="">{t('students.notSet')}</option>{GENDERS.map((g) => <option key={g.value} value={g.value}>{t(`students.genders.${g.value}`, g.label)}</option>)}</Select>
           </FormField>
@@ -115,21 +142,26 @@ export default function StudentForm({ value: f, onChange, errors = {}, editing =
         <div className="divide-y divide-border">
           {f.guardians.map((g, i) => (
             <div key={i} className="px-4 py-3">
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:items-end">
+              {/* who gets the family's messages, and remove — above the fields so they never sit on a row of their own */}
+              <div className="flex items-center justify-between gap-2 mb-2">
+                <button type="button" onClick={() => makePrimary(i)} disabled={g.isPrimary}
+                  className={g.isPrimary
+                    ? 'inline-flex items-center gap-1.5 h-7 px-2 rounded-md text-xs font-medium text-brand-700 bg-brand-50'
+                    : 'inline-flex items-center gap-1.5 h-7 px-2 rounded-md text-xs font-medium text-ink-muted hover:bg-black/[0.04] hover:text-ink'}>
+                  <Star className={g.isPrimary ? 'w-3.5 h-3.5 fill-current' : 'w-3.5 h-3.5'} />
+                  {g.isPrimary ? t('students.form.primary') : t('students.form.makePrimary')}
+                </button>
+                {f.guardians.length > 1 && <Button size="sm" variant="ghost" icon={X} className="-me-2" onClick={() => remove(i)}>{t('students.form.removeGuardian')}</Button>}
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:items-start">
                 <FormField label={t('students.form.guardianName')} error={errors[`guardians.${i}.name`]}><Input value={g.name} onChange={setG(i, 'name')} /></FormField>
+                {names && <LocalNameField names={names.parents} slot={`g${i}`} required={localRule.required && !!g.name.trim()} english={g.name} label={t('students.form.guardianName')} />}
                 <FormField label={t('students.form.relation')}>
                   <Select value={g.relation ?? ''} onChange={setG(i, 'relation')}><option value="">{t('students.notSet')}</option>{GUARDIAN_RELATIONS.map((r) => <option key={r.value} value={r.value}>{t(`students.relations.${r.value}`, r.label)}</option>)}</Select>
                 </FormField>
                 <FormField label={t('students.form.mobile')} error={errors[`guardians.${i}.mobile`]}><Input value={g.mobile ?? ''} onChange={setG(i, 'mobile')} inputMode="tel" placeholder="98450 12345" /></FormField>
                 <FormField label={t('students.form.email')} error={errors[`guardians.${i}.email`]}><Input type="email" value={g.email ?? ''} onChange={setG(i, 'email')} /></FormField>
                 <FormField label={t('students.form.occupation')}><Input value={g.occupation ?? ''} onChange={setG(i, 'occupation')} /></FormField>
-                <div className="flex items-center gap-1 h-9">
-                  <button type="button" onClick={() => makePrimary(i)} disabled={g.isPrimary} title={g.isPrimary ? t('students.form.primary') : t('students.form.makePrimary')} aria-label={g.isPrimary ? t('students.form.primary') : t('students.form.makePrimary')}
-                    className={g.isPrimary ? 'inline-flex items-center gap-1 h-8 px-2 rounded-md text-xs font-medium text-brand-700 bg-brand-50 border border-brand-200' : 'inline-flex items-center gap-1 h-8 px-2 rounded-md text-xs font-medium text-ink-muted hover:bg-black/[0.04]'}>
-                    <Star className={g.isPrimary ? 'w-3.5 h-3.5 fill-current' : 'w-3.5 h-3.5'} /><span className="lg:sr-only">{g.isPrimary ? t('students.form.primary') : t('students.form.makePrimary')}</span>
-                  </button>
-                  {f.guardians.length > 1 && <Button size="sm" variant="ghost" icon={X} aria-label={t('students.form.removeGuardian')} title={t('students.form.removeGuardian')} onClick={() => remove(i)} />}
-                </div>
               </div>
             </div>
           ))}

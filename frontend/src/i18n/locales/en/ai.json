@@ -36,7 +36,8 @@
       "features": {
         "ASSISTANT": "Assistant",
         "QUESTION_PAPERS": "Question papers",
-        "REMARKS": "Report card remarks"
+        "REMARKS": "Report card remarks",
+        "LOCAL_NAMES": "Names in other languages"
       }
     },
     "assistant": {

@@ -134,6 +134,8 @@ export async function buildMe(auth) {
       },
       defaultLanguage: core.defaultAppLanguage || 'en',
       enabledLanguages: Array.isArray(core.enabledLanguages) ? core.enabledLanguages : null,
+      // forms show a second name box in these languages (Settings › Also keep names in)
+      namesAlsoIn: Array.isArray(core.namesAlsoIn) ? core.namesAlsoIn.filter((c) => c !== 'en') : [],
     },
     subscription: await subscriptionSummary(t),
     // server features the screens adapt to (PDF download needs Gotenberg — platform/pdf.js)

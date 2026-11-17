@@ -2,7 +2,7 @@
 // Labels live in the web app's locales (locales/en/ai.json); these are the values only.
 
 /** What each AI call was for — the usage log groups by it. */
-export const AI_FEATURES = ['ASSISTANT', 'QUESTION_PAPERS', 'REMARKS']
+export const AI_FEATURES = ['ASSISTANT', 'QUESTION_PAPERS', 'REMARKS', 'LOCAL_NAMES']
 
 /** Report card remarks: the institution's tone and how long a remark is. */
 export const REMARK_TONES = ['WARM', 'FORMAL']

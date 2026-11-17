@@ -112,3 +112,16 @@ export const withdrawRequest = (id) => post(`/v1/core/approvals/${id}/withdraw`)
 export const fetchApprovalRules = () => get('/v1/core/approval-rules')
 export const saveApprovalRule = async (type, body) => (await api.put(`/v1/core/approval-rules/${type}`, body)).data.data
 export const fetchMasters = () => get('/v1/core/masters')
+
+// Names in other languages (/v1/core/local-names/:lang)
+export const fetchLocalNames = (lang, params) => get(`/v1/core/local-names/${lang}`, params)
+export const saveLocalNames = (lang, body) => api.put(`/v1/core/local-names/${lang}`, body).then((r) => r.data.data)
+export const importLocalNames = (lang, body) => post(`/v1/core/local-names/${lang}/import`, body)
+export const suggestLocalNames = (lang, body) => post(`/v1/core/local-names/${lang}/suggest`, body)
+export async function exportLocalNames(lang, params) {
+  const res = await api.get(`/v1/core/local-names/${lang}/export`, { params, responseType: 'blob' })
+  downloadBlob(res, `names-${lang}-${params?.kind ?? 'all'}.csv`)
+}
+// …from a record's own form (each kind checks that record's permissions)
+export const lookupLocalNames = (lang, kind, texts) => post(`/v1/core/local-names/${lang}/lookup`, { kind, texts })
+export const saveRecordLocalNames = (lang, kind, entries) => api.put(`/v1/core/local-names/${lang}/record`, { kind, entries }).then((r) => r.data.data)

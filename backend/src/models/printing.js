@@ -46,6 +46,8 @@ const templateSchema = new Schema({
   // the language its labels print in (SUPPORTED_LANGUAGES code), e.g. Hindi for the UP Board campus's TC and admit card;
   // null = each student's own language, else the institution's
   language: { type: String, default: null },
+  // with a language: the institution's own names (students, subjects, the school …) — NAMES_IN; null = LOCAL
+  namesIn: { type: String, default: null },
   body: String, // Handlebars body of the document; empty = the built-in template
   active: { type: Boolean, default: true },
   updatedBy: String,

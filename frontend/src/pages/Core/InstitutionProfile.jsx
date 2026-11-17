@@ -10,6 +10,7 @@ import { hasPermission, syncCurrentUser } from '../../api/auth'
 import { useSnackbar } from '../../context/SnackbarContext'
 import { IMAGE_TYPES, shrinkImage } from '../../utils/shrinkImage'
 import { deriveBrandRamp } from '../../utils/brandRamp'
+import LocalNameField, { useLocalNames } from '../../components/localNames/LocalNameField'
 
 const SWATCHES = ['#0E7C86', '#2563EB', '#7C3AED', '#DB2777', '#DC2626', '#EA580C', '#16A34A', '#0F172A']
 const LOGO_MAX_BYTES = 300 * 1024 // longest side ≤ 512 px — see utils/shrinkImage
@@ -65,6 +66,9 @@ const brandSidebars = (primary) => {
 }
 const sameColour = (a, b) => String(a || '').toLowerCase() === String(b || '').toLowerCase()
 
+
+/** Profile fields that also print in the school's other languages. */
+const LOCAL_FIELDS = ['name', 'legalName', 'trustName', 'board', 'addressLine', 'city', 'state']
 export default function InstitutionProfile() {
   const { t } = useTranslation('admin')
   const qc = useQueryClient()
@@ -72,6 +76,7 @@ export default function InstitutionProfile() {
   const [form, setForm] = useState(null)
   const [errors, setErrors] = useState({})
   const { showSuccess, showError } = useSnackbar()
+  const names = useLocalNames('school') // the school's names in its other languages (Settings › Also keep names in)
   const canEdit = hasPermission('core.profile.edit')
 
   useEffect(() => { if (data && !form) setForm(data) }, [data, form])
@@ -83,7 +88,7 @@ export default function InstitutionProfile() {
     },
     // Write the saved profile back to the cache too — `dirty` compares against it, and a stale copy
     // left the old colour there, so picking it again after a save looked unchanged and Save stayed off.
-    onSuccess: async (d) => { qc.setQueryData(['settings'], d); setForm(d); setErrors({}); await syncCurrentUser(); showSuccess(t('admin.institutionProfile.saved')) },
+    onSuccess: async (d) => { await names.save().catch((e) => showError(e.message)); qc.setQueryData(['settings'], d); setForm(d); setErrors({}); await syncCurrentUser(); showSuccess(t('admin.institutionProfile.saved')) },
     onError: (e) => { setErrors(e.response?.data?.details?.fields ?? {}); showError(e.message) },
   })
 
@@ -97,13 +102,16 @@ export default function InstitutionProfile() {
   const menuSwatch = (c) => (
     <button key={c} type="button" disabled={!canEdit} onClick={() => set('sidebarColor')(c)} className="w-7 h-7 rounded-md border-2 transition" style={{ background: c, borderColor: sameColour(form.sidebarColor || '#0B1220', c) ? accent : '#E4E7EC' }} aria-label={c} />
   )
-  const dirty = JSON.stringify(form) !== JSON.stringify(data)
+  const dirty = JSON.stringify(form) !== JSON.stringify(data) || names.dirty
   // the shade the app actually uses — a very light pick is darkened so white text stays readable
   const accent = `rgb(${(deriveBrandRamp(form.primaryColor || '#0E7C86') ?? { 500: '14 124 134' })[500]})`
   const field = (k, label, { hint, ...props } = {}) => (
-    <FormField label={label} error={errors[k]} hint={hint}>
-      <Input value={form[k] ?? ''} onChange={set(k)} disabled={!canEdit} {...props} />
-    </FormField>
+    <>
+      <FormField label={label} error={errors[k]} hint={hint}>
+        <Input value={form[k] ?? ''} onChange={set(k)} disabled={!canEdit} {...props} />
+      </FormField>
+      {LOCAL_FIELDS.includes(k) && <LocalNameField names={names} slot={k} english={form[k]} label={label} disabled={!canEdit} />}
+    </>
   )
 
   return (

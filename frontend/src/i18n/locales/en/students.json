@@ -57,7 +57,8 @@
       "title": "New admission",
       "subtitle": "Admit a student into a class and section. The admission number comes from the number series unless you type one.",
       "save": "Admit student",
-      "done": "{{name}} admitted — admission no. {{no}}."
+      "done": "{{name}} admitted — admission no. {{no}}.",
+      "localNamesNote": "{{campus}} prints its documents in {{language}}: fill the student's and each parent's name in {{language}} too."
     },
     "directory": {
       "title": "Student directory",
@@ -157,7 +158,8 @@
       "medical": "Health",
       "allergies": "Allergies",
       "conditions": "Medical conditions",
-      "medicalNotes": "Notes for teachers"
+      "medicalNotes": "Notes for teachers",
+      "fullName": "Student’s full name"
     },
     "profile": {
       "back": "← Student directory",

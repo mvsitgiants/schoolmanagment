@@ -10,6 +10,7 @@ import { hasPermission } from '../../api/auth'
 import { updateEmployee } from '../../api/hrms'
 import { useSnackbar } from '../../context/SnackbarContext'
 import { useHrLabels, useHrMeta } from './HrKit'
+import LocalNameField, { useLocalNames } from '../localNames/LocalNameField'
 
 const WEEK = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN']
 const GRID = 'grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4'
@@ -50,7 +51,7 @@ export const employeeReady = (form) => form.name.trim().length >= 2 && !!form.jo
  * field errors. `employee` (editing) hides the sign-in choice and shows the note on the change.
  * Salary, bank and ID numbers are not here — they are on the staff profile.
  */
-export default function EmployeeForm({ value: form, onChange, errors = {}, employee = null, autoFocus = false }) {
+export default function EmployeeForm({ value: form, onChange, errors = {}, employee = null, autoFocus = false, names }) {
   const { t } = useTranslation('hrms')
   const L = useHrLabels()
   const { data: meta } = useHrMeta()
@@ -66,6 +67,7 @@ export default function EmployeeForm({ value: form, onChange, errors = {}, emplo
       <FormSection title={t('hrms.employees.form.person')} hint={t('hrms.employees.form.personHint')}>
         <div className={GRID}>
           <div className="sm:col-span-2"><FormField label={t('hrms.employees.name')} required error={errors.name}><Input autoFocus={autoFocus} value={form.name} onChange={set('name')} /></FormField></div>
+          {names && <div className="sm:col-span-2"><LocalNameField names={names} slot="name" english={form.name} label={t('hrms.employees.name')} /></div>}
           <FormField label={t('hrms.employees.mobile')} error={errors.mobile}><Input value={form.mobile} onChange={set('mobile')} inputMode="tel" /></FormField>
           <FormField label={t('hrms.employees.email')} error={errors.email}><Input type="email" value={form.email} onChange={set('email')} /></FormField>
           <FormField label={t('hrms.employees.gender')}>
@@ -203,9 +205,10 @@ export function EmployeeEditModal({ employee, onClose, onSaved }) {
   const { showError } = useSnackbar()
   const [form, setForm] = useState(() => employeeFormValues(employee))
   const [errors, setErrors] = useState({})
+  const names = useLocalNames('staff')
   const save = useMutation({
     mutationFn: () => updateEmployee(employee.id, employeeBody(form, { editing: true })),
-    onSuccess: onSaved,
+    onSuccess: async (...a) => { await names.save().catch((e) => showError(e.message)); onSaved(...a) },
     onError: (e) => { setErrors(e.response?.data?.details?.fields ?? {}); showError(e.message) },
   })
   return (
@@ -213,7 +216,7 @@ export function EmployeeEditModal({ employee, onClose, onSaved }) {
       <Button variant="secondary" onClick={onClose}>{t('actions.cancel')}</Button>
       <Button loading={save.isPending} disabled={!employeeReady(form)} onClick={() => save.mutate()}>{t('hrms.employees.save')}</Button>
     </>}>
-      <EmployeeForm value={form} onChange={setForm} errors={errors} employee={employee} />
+      <EmployeeForm value={form} onChange={setForm} errors={errors} employee={employee} names={names} />
     </Modal>
   )
 }

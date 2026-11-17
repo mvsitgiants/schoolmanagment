@@ -6,7 +6,7 @@ export const BUILT_PAGES = new Set([
   'core.setup', 'core.profile', 'core.branches', 'core.departments', 'core.users',
   'core.roles', 'core.modules', 'core.subscription', 'core.audit',
   'core.numbering', 'core.settings', 'core.custom-fields', 'core.workflows', 'core.notifications-setup', 'core.forms',
-  'core.masters', 'core.print-templates', 'core.api-keys',
+  'core.masters', 'core.print-templates', 'core.local-names', 'core.api-keys',
   'academics.years', 'academics.classes', 'academics.subjects', 'academics.grading', 'academics.allocation',
   'students.admit', 'students.directory', 'students.profile', 'students.guardians', 'students.promotion', 'students.transfer', 'students.id-cards',
   'admissions.enquiries', 'admissions.applications', 'admissions.tests', 'admissions.merit', 'admissions.settings',

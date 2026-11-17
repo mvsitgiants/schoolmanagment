@@ -11,6 +11,7 @@ import { useHrLabels } from '../../components/hrms/HrKit'
 import { createEmployee, fetchEmployees } from '../../api/hrms'
 import useDebouncedValue from '../../hooks/useDebouncedValue'
 import { useSnackbar } from '../../context/SnackbarContext'
+import { useLocalNames } from '../../components/localNames/LocalNameField'
 
 const digits = (v) => String(v ?? '').replace(/\D/g, '')
 
@@ -74,9 +75,11 @@ export default function NewEmployee() {
   const { showSuccess, showError } = useSnackbar()
   const [form, setForm] = useState(() => employeeFormValues())
   const [errors, setErrors] = useState({})
+  const names = useLocalNames('staff')
   const save = useMutation({
     mutationFn: () => createEmployee(employeeBody(form)),
-    onSuccess: (e) => {
+    onSuccess: async (e) => {
+      await names.save().catch((err) => showError(err.message))
       qc.invalidateQueries({ queryKey: ['employees'] })
       qc.invalidateQueries({ queryKey: ['hrms-meta'] })
       showSuccess(t('hrms.employees.saved'))
@@ -98,7 +101,7 @@ export default function NewEmployee() {
         <Note icon={UsersRound}>{t('hrms.employees.add.requiredNote')}</Note>
       </>}
     >
-      <EmployeeForm value={form} onChange={setForm} errors={errors} autoFocus />
+      <EmployeeForm value={form} onChange={setForm} errors={errors} autoFocus names={names} />
     </FormPage>
   )
 }

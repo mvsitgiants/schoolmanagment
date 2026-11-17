@@ -18,6 +18,7 @@ import { fetchBranches, fetchDepartments } from '../../api/core'
 import { hasPermission } from '../../api/auth'
 import { useSnackbar } from '../../context/SnackbarContext'
 import { readSheet } from '../../utils/readSheet'
+import LocalNameField, { useLocalNames } from '../../components/localNames/LocalNameField'
 
 const errorsOf = (e) => e.response?.data?.details?.fields ?? {}
 
@@ -36,6 +37,7 @@ function ClassForm({ cls, onClose, onSaved }) {
   const toggle = (id) => setForm((f) => (f.subjectIds.includes(id)
     ? { ...f, subjectIds: f.subjectIds.filter((x) => x !== id), optionalSubjectIds: f.optionalSubjectIds.filter((x) => x !== id) }
     : { ...f, subjectIds: [...f.subjectIds, id] }))
+  const names = useLocalNames('classes') // the name in the school's other languages (Settings › Also keep names in)
   const toggleOptional = (id) => setForm((f) => ({ ...f, optionalSubjectIds: f.optionalSubjectIds.includes(id) ? f.optionalSubjectIds.filter((x) => x !== id) : [...f.optionalSubjectIds, id] }))
   const save = useMutation({
     mutationFn: () => {
@@ -45,7 +47,7 @@ function ClassForm({ cls, onClose, onSaved }) {
       }
       return cls ? updateClass(cls.id, body) : createClass(body)
     },
-    onSuccess: onSaved,
+    onSuccess: async (...a) => { await names.save().catch((e) => showError(e.message)); onSaved(...a) },
     onError: (e) => { setErrors(errorsOf(e)); showError(e.message) },
   })
   const active = subjects.filter((s) => s.active || form.subjectIds.includes(s.id))
@@ -56,6 +58,7 @@ function ClassForm({ cls, onClose, onSaved }) {
     </>}>
       <div className="grid grid-cols-4 gap-4">
         <div className="col-span-2"><FormField label={t('academics.classes.name')} required error={errors.name}><Input value={form.name} onChange={set('name')} placeholder={t('academics.classes.namePlaceholder')} /></FormField></div>
+        <div className="col-span-2"><LocalNameField names={names} slot="class" english={form.name} label={t('academics.classes.name')} /></div>
         <FormField label={t('academics.classes.code')} required error={errors.code} hint={t('academics.classes.codeHint')}><Input value={form.code} onChange={(e) => set('code')(e.target.value.toUpperCase())} maxLength={12} placeholder="8" /></FormField>
         <FormField label={t('academics.classes.order')} error={errors.order}><Input type="number" value={form.order} onChange={set('order')} /></FormField>
       </div>

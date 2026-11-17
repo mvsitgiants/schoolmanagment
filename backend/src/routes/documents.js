@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { PAPER_SIZES, LETTERHEAD_MODES, SUPPORTED_LANGUAGES } from '@schoolgiant/shared'
+import { PAPER_SIZES, LETTERHEAD_MODES, NAMES_IN, SUPPORTED_LANGUAGES } from '@schoolgiant/shared'
 import { authenticate, requirePermission, subscriptionGate, tenantOnly } from '../platform/middleware.js'
 import { objectId, z } from '../platform/validate.js'
 import { sendPdf } from '../platform/pdf.js'
@@ -29,6 +29,7 @@ router.post('/:docType/preview', requirePermission('core.print-templates.view'),
       letterhead: z.enum(values(LETTERHEAD_MODES)), headerSpaceMm: z.coerce.number().min(0).max(120).optional(), footerSpaceMm: z.coerce.number().min(0).max(80).optional(),
       footerText: z.string().max(300).optional(), showQr: z.boolean(), showPrintedOn: z.boolean(), fontScale: z.coerce.number().int().min(80).max(130), signMode: z.enum(['HAND', 'PRINTED', 'NONE']).optional(),
       language: z.enum(SUPPORTED_LANGUAGES.map((l) => l.code)).nullable().optional(),
+      namesIn: z.enum(NAMES_IN.map((n) => n.value)).nullable().optional(),
     }).partial().optional(),
   }).parse(req.body ?? {})
   html(res, await previewDocument(req.params.docType, body, req.auth))

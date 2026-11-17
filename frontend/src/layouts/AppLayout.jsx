@@ -129,7 +129,7 @@ export default function AppLayout() {
             </div>
           )}
           {/* bottom room for the phone tab bar, so it never covers a page's last actions */}
-          <main className="flex-1 overflow-y-auto scroll-hide p-3 sm:p-4 lg:p-6 pb-40 sm:pb-40 lg:pb-24">{body}</main>
+          <main className="relative flex-1 overflow-y-auto scroll-hide p-3 sm:p-4 lg:p-6 pb-40 sm:pb-40 lg:pb-24">{body}</main>
         </div>
         <MobileTabBar onMenu={() => setNavOpen(true)} />
         <ChangePasswordModal open={pwdOpen} onClose={() => setPwdOpen(false)} />

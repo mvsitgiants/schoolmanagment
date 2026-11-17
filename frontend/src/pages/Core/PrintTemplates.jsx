@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import clsx from 'clsx'
 import { Trans, useTranslation } from 'react-i18next'
 import { Braces, Check, Code2, FileText, LayoutTemplate, Plus, Printer, RotateCcw, Star, Trash2 } from 'lucide-react'
-import { LETTERHEAD_IDS, LETTERHEAD_MODES, PAPER_BY, PAPER_SIZES, PRINT_DOC_BY, SIGNATORIES, SIGN_MODES, SUPPORTED_LANGUAGES, defaultSignMode, getLanguage } from '@schoolgiant/shared'
+import { LETTERHEAD_IDS, LETTERHEAD_MODES, PAPER_BY, PAPER_SIZES, PRINT_DOC_BY, SIGNATORIES, SIGN_MODES, SUPPORTED_LANGUAGES, NAMES_IN, defaultSignMode, getLanguage } from '@schoolgiant/shared'
 import PrintImageField from '../../components/print/PrintImageField'
 import { FormField, Input, Note, PageContainer, PageHeader, Panel, SegmentedControl, Select, StatusPill, Tabs, Textarea, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
@@ -258,7 +258,7 @@ function TemplateEditor({ doc, template, design, base, letterhead, onClose }) {
     name: start.name, paper: start.paper, orientation: start.orientation ?? 'portrait', margins: { ...start.margins }, letterhead: start.letterhead,
     headerSpaceMm: start.headerSpaceMm ?? 35, footerSpaceMm: start.footerSpaceMm ?? 20, footerText: start.footerText ?? '',
     showQr: start.showQr !== false, showPrintedOn: start.showPrintedOn !== false, fontScale: start.fontScale ?? 100, active: start.active !== false,
-    signMode: start.signMode || defaultSignMode(doc.value), branchId: start.branchId || '', language: start.language || '',
+    signMode: start.signMode || defaultSignMode(doc.value), branchId: start.branchId || '', language: start.language || '', namesIn: start.namesIn || 'LOCAL',
     isDefault: template ? template.isDefault : doc.templates.length === 0,
   }))
   // the document body: null = the standard layout, a string = this institution's own Handlebars template
@@ -277,6 +277,7 @@ function TemplateEditor({ doc, template, design, base, letterhead, onClose }) {
     ...(doc.server && { body: docBody ?? null }),
     branchId: f.branchId || null, ...(f.branchId && { isDefault: false }),
     language: f.language || null,
+    namesIn: f.language && f.language !== 'en' ? f.namesIn : null,
   })
   const save = useMutation({
     mutationFn: () => (template ? updatePrintTemplate(template.id, body()) : createPrintTemplate({ ...body(), docType: doc.value })),
@@ -338,6 +339,11 @@ function TemplateEditor({ doc, template, design, base, letterhead, onClose }) {
                   <option value="">{t('admin.printTemplates.eachStudentsLanguage')}</option>
                   {SUPPORTED_LANGUAGES.map((l) => <option key={l.code} value={l.code}>{l.nativeName === l.name ? l.name : `${l.nativeName} (${l.name})`}</option>)}
                 </Select>
+              </FormField>
+            )}
+            {doc.server && f.language && f.language !== 'en' && (
+              <FormField label={t('admin.printTemplates.namesIn')} hint={<>{t('admin.printTemplates.namesInHint', { language: getLanguage(f.language).nativeName })} <Link to="/core/local-names" className="text-brand-600 hover:underline">{t('admin.printTemplates.namesInLink')}</Link></>}>
+                <Select value={f.namesIn} onChange={set('namesIn')}>{NAMES_IN.map((n) => <option key={n.value} value={n.value}>{t(`admin.printTemplates.namesInModes.${n.value}`, { language: getLanguage(f.language).nativeName })}</option>)}</Select>
               </FormField>
             )}
             {!f.branchId && <div className="flex items-center gap-2"><Switch size="sm" checked={f.isDefault} disabled={template?.isDefault} onChange={(v) => setF((x) => ({ ...x, isDefault: v, active: v ? true : x.active }))} label={t('admin.printTemplates.default')} />{t('admin.printTemplates.defaultFor', { doc: docName.toLowerCase() })}</div>}

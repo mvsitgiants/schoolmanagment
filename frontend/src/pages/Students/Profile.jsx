@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { ArrowLeft, RefreshCw } from 'lucide-react'
 import { Modal, Note, PageContainer, Skeleton, SkeletonRows, Tabs, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
-import StudentForm, { studentBody, studentFormValues } from '../../components/students/StudentForm'
+import StudentForm, { studentBody, studentFormValues, useStudentNames } from '../../components/students/StudentForm'
 import Hero, { HeroActions } from '../../components/students/profile/Hero'
 import KpiStrip from '../../components/students/profile/KpiStrip'
 import OverviewTab from '../../components/students/profile/OverviewTab'
@@ -28,9 +28,10 @@ function EditStudent({ student, onClose, onSaved }) {
   const { showError } = useSnackbar()
   const [form, setForm] = useState(() => studentFormValues(student))
   const [errors, setErrors] = useState({})
+  const names = useStudentNames()
   const save = useMutation({
     mutationFn: () => updateStudent(student.id, studentBody(form, { editing: true })),
-    onSuccess: onSaved,
+    onSuccess: async (...a) => { await names.save().catch((e) => showError(e.message)); onSaved(...a) },
     onError: (e) => { setErrors(e.response?.data?.details?.fields ?? {}); showError(e.message) },
   })
   return (
@@ -38,7 +39,7 @@ function EditStudent({ student, onClose, onSaved }) {
       <Button variant="secondary" onClick={onClose}>{t('actions.cancel')}</Button>
       <Button loading={save.isPending} disabled={!form.firstName.trim() || !form.sectionId} onClick={() => save.mutate()}>{t('actions.save')}</Button>
     </>}>
-      <StudentForm value={form} onChange={setForm} errors={errors} editing aadhaarSet={student.aadhaarSet} />
+      <StudentForm value={form} onChange={setForm} errors={errors} editing aadhaarSet={student.aadhaarSet} names={names} />
     </Modal>
   )
 }

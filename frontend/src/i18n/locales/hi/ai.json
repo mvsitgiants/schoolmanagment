@@ -36,7 +36,8 @@
       "features": {
         "ASSISTANT": "सहायक",
         "QUESTION_PAPERS": "प्रश्न पत्र",
-        "REMARKS": "रिपोर्ट कार्ड टिप्पणियाँ"
+        "REMARKS": "रिपोर्ट कार्ड टिप्पणियाँ",
+        "LOCAL_NAMES": "अन्य भाषाओं में नाम"
       }
     },
     "assistant": {

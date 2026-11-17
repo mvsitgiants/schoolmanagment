@@ -497,6 +497,14 @@
       "add": "फ़ोटो जोड़ें",
       "preview": "फ़ोटो",
       "fileName": "photo"
+    },
+    "localName": {
+      "label": "{{label}} {{language}} में",
+      "hint": "{{language}} के दस्तावेज़ों पर प्रिंट होगा। खाली छोड़ने पर अंग्रेज़ी प्रिंट होगी।",
+      "placeholder": "{{language}} में लिखें",
+      "placeholderTyping": "अंग्रेज़ी अक्षरों में लिखें, जैसे uday",
+      "hintTyping": "जैसा बोला जाता है वैसा लिखें: uday → उदय। खाली छोड़ने पर अंग्रेज़ी प्रिंट होगी।",
+      "use": "{{text}} रखें"
     }
   }
 }

@@ -2,10 +2,10 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { ClipboardList, RotateCcw, UserPlus, Users } from 'lucide-react'
+import { ClipboardList, Languages, RotateCcw, UserPlus, Users } from 'lucide-react'
 import { FormPage, Note, Panel, PersonCell, SectionCard } from '../../components/system'
 import Button from '../../components/ui/Button'
-import StudentForm, { studentBody, studentFormValues } from '../../components/students/StudentForm'
+import StudentForm, { studentBody, studentFormValues, useLocalNamesRule, useStudentNames } from '../../components/students/StudentForm'
 import { admitStudent, fetchStudents } from '../../api/students'
 import { hasPermission } from '../../api/auth'
 import useDebouncedValue from '../../hooks/useDebouncedValue'
@@ -65,9 +65,11 @@ export default function Admit() {
   const { showSuccess, showError } = useSnackbar()
   const [form, setForm] = useState(() => studentFormValues(null))
   const [errors, setErrors] = useState({})
+  const names = useStudentNames()
   const save = useMutation({
     mutationFn: () => admitStudent(studentBody(form)),
-    onSuccess: (s) => {
+    onSuccess: async (s) => {
+      await names.save().catch((e) => showError(e.message))
       qc.invalidateQueries({ queryKey: ['students'] })
       qc.invalidateQueries({ queryKey: ['academic-classes'] })
       showSuccess(t('students.admit.done', { name: s.name, no: s.admissionNo }))
@@ -75,7 +77,8 @@ export default function Admit() {
     },
     onError: (e) => { setErrors(e.response?.data?.details?.fields ?? {}); showError(e.message) },
   })
-  const ready = form.firstName.trim() && form.sectionId && form.guardians.some((g) => g.name.trim())
+  const localRule = useLocalNamesRule(form, names)
+  const ready = form.firstName.trim() && form.sectionId && form.guardians.some((g) => g.name.trim()) && !localRule.missing
   const clear = () => { setForm(studentFormValues(null)); setErrors({}) }
 
   return (
@@ -89,9 +92,14 @@ export default function Admit() {
       aside={<>
         <AlreadyHere form={form} />
         <Note icon={Users}>{t('students.admit.requiredNote')}</Note>
+        {localRule.required && (
+          <Note icon={Languages} tone={localRule.missing ? 'warning' : undefined}>
+            {t('students.admit.localNamesNote', { campus: localRule.campus.name, language: localRule.language })}
+          </Note>
+        )}
       </>}
     >
-      <StudentForm value={form} onChange={setForm} errors={errors} />
+      <StudentForm value={form} onChange={setForm} errors={errors} names={names} />
     </FormPage>
   )
 }

@@ -22,6 +22,8 @@ const branchSchema = z.object({
   gstin: z.string().trim().toUpperCase().regex(/^[0-9A-Z]{15}$/, 'GSTIN has 15 letters/digits').optional().or(z.literal('').transform(() => undefined)),
   // self-attendance geofence: named sites (circle or outline) of this branch
   attendanceSites: attendanceSitesInput.optional(),
+  // admission needs the names in the other languages too (Hindi on the UP Board campus)
+  localNameRequired: z.boolean().optional(),
   // printed documents of this campus, when it is its own school on paper (empty = the institution's)
   identity: z.object({
     printName: optionalText(160), board: optionalText(120), affiliationNo: optionalText(60), schoolCode: optionalText(30), udiseCode: optionalText(60),

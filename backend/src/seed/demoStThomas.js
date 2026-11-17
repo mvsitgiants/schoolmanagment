@@ -139,6 +139,8 @@ const HINDI_DOCS = ['HALL_TICKET', 'REPORT_CARD', 'YEAR_REPORT_CARD', 'TRANSFER_
 async function fillHindiTemplates(admin) {
   await loadBranches(admin)
   if (!branches.UP) return 'no UP Board campus'
+  // its admissions take the Hindi names too, so those documents never fall back to the English
+  await admin.patch(`/core/branches/${branches.UP}`, { localNameRequired: true })
   const docs = await admin.get('/core/print-templates')
   let made = 0
   for (const docType of HINDI_DOCS) {
@@ -153,6 +155,73 @@ async function fillHindiTemplates(admin) {
     made++
   }
   return made ? `${made} documents print in Hindi for the UP Board campus` : 'already there'
+}
+
+// The school's own names in Hindi (Administration › Names in other languages) — what the UP Board campus's Hindi
+// templates print. People's names are put together from their parts; everything else is listed whole.
+const HI_NAME_PARTS = {
+  Aarav: 'आरव', Abhay: 'अभय', Aditi: 'अदिति', Aditya: 'आदित्य', Agarwal: 'अग्रवाल', Ali: 'अली', Alok: 'आलोक', Amit: 'अमित', Anil: 'अनिल', Anita: 'अनीता',
+  Anjali: 'अंजलि', Anushka: 'अनुष्का', Archana: 'अर्चना', Arif: 'आरिफ़', Aryan: 'आर्यन', Ashok: 'अशोक', Awasthi: 'अवस्थी', Bajpai: 'बाजपेयी', Bhola: 'भोला',
+  Chandra: 'चन्द्र', Chaurasia: 'चौरसिया', Deepak: 'दीपक', Dinesh: 'दिनेश', 'Dr.': 'डॉ.', Dubey: 'दुबे', 'Fr.': 'फ़ादर', Garima: 'गरिमा', Gupta: 'गुप्ता',
+  Harsh: 'हर्ष', Imran: 'इमरान', Ishita: 'इशिता', Kavita: 'कविता', Khan: 'ख़ान', Kiran: 'किरण', Kritika: 'कृतिका', Kumar: 'कुमार', Kushwaha: 'कुशवाहा',
+  Lal: 'लाल', Mamta: 'ममता', Manju: 'मंजू', Manoj: 'मनोज', Mathew: 'मैथ्यू', Maurya: 'मौर्य', Mishra: 'मिश्रा', 'Mohd.': 'मो.', Muskan: 'मुस्कान',
+  Neelam: 'नीलम', Neha: 'नेहा', Nigam: 'निगम', Pandey: 'पाण्डेय', Pankaj: 'पंकज', Pari: 'परी', Pooja: 'पूजा', Prachi: 'प्राची', Pradeep: 'प्रदीप',
+  Prakhar: 'प्रखर', Pramod: 'प्रमोद', Prasad: 'प्रसाद', Rajendra: 'राजेन्द्र', Rajesh: 'राजेश', Rakesh: 'राकेश', Ramesh: 'रमेश', Rastogi: 'रस्तोगी',
+  Rekha: 'रेखा', Renu: 'रेनू', Ritu: 'ऋतु', Rohit: 'रोहित', Rudra: 'रुद्र', Sabir: 'साबिर', Sanjay: 'संजय', Saxena: 'सक्सेना', Seema: 'सीमा',
+  Shalini: 'शालिनी', Shaurya: 'शौर्य', Shivangi: 'शिवांगी', Shreya: 'श्रेया', Shukla: 'शुक्ला', Shyam: 'श्याम', Siddiqui: 'सिद्दीक़ी', Singh: 'सिंह',
+  Srivastava: 'श्रीवास्तव', Sunil: 'सुनील', Sunita: 'सुनीता', Thomas: 'थॉमस', Tiwari: 'तिवारी', Tripathi: 'त्रिपाठी', Utkarsh: 'उत्कर्ष', Vaibhav: 'वैभव',
+  Vandana: 'वंदना', Verma: 'वर्मा', Vikas: 'विकास', Vinod: 'विनोद', Yadav: 'यादव',
+  // the rest of the demo's first names and surnames, for students added later
+  Ayush: 'आयुष', Anuj: 'अनुज', Shivam: 'शिवम', Divyansh: 'दिव्यांश', Kartik: 'कार्तिक', Saurabh: 'सौरभ', Ansh: 'अंश', Yash: 'यश', Priyansh: 'प्रियांश',
+  Devansh: 'देवांश', Ananya: 'अनन्या', Khushi: 'ख़ुशी', Riya: 'रिया', Vaishnavi: 'वैष्णवी', Sakshi: 'साक्षी', Nandini: 'नंदिनी', Tanya: 'तान्या',
+  Aarohi: 'आरोही', Mahi: 'माही', Saumya: 'सौम्या',
+}
+const HI_TEXTS = {
+  // the school and its campuses
+  'St. Thomas School': 'सेंट थॉमस स्कूल', 'St. Thomas Educational Society (Regd.)': 'सेंट थॉमस एजुकेशनल सोसाइटी (पंजी.)',
+  'St. Thomas School – UP Board': 'सेंट थॉमस स्कूल – यूपी बोर्ड',
+  'Board of High School & Intermediate Education, Uttar Pradesh (UP Board), Prayagraj': 'माध्यमिक शिक्षा परिषद, उत्तर प्रदेश, प्रयागराज',
+  'Central Board of Secondary Education (CBSE), New Delhi': 'केन्द्रीय माध्यमिक शिक्षा बोर्ड (CBSE), नई दिल्ली',
+  'Sector 12, Kursi Road, Vikas Nagar': 'सेक्टर 12, कुर्सी रोड, विकास नगर', 'Sector 12, Kursi Road, Vikas Nagar (Block B)': 'सेक्टर 12, कुर्सी रोड, विकास नगर (ब्लॉक B)',
+  Lucknow: 'लखनऊ', 'Uttar Pradesh': 'उत्तर प्रदेश', 'Lux et Veritas — Light and Truth': 'Lux et Veritas — प्रकाश एवं सत्य',
+  'Run by St. Thomas Educational Society (Regd.), Lucknow': 'सेंट थॉमस एजुकेशनल सोसाइटी (पंजी.), लखनऊ द्वारा संचालित',
+  // the UP Board classes (the "(UP)" only tells the two campuses apart on screen)
+  'Nursery (UP)': 'नर्सरी', 'LKG (UP)': 'एल.के.जी.', 'UKG (UP)': 'यू.के.जी.',
+  ...Object.fromEntries(Array.from({ length: 12 }, (_, i) => [`Class ${i + 1} (UP)`, `कक्षा ${i + 1}`])),
+  // subjects
+  'Art & Craft': 'कला एवं शिल्प', Biology: 'जीव विज्ञान', Chemistry: 'रसायन विज्ञान', 'Computer Science': 'कंप्यूटर विज्ञान', English: 'अंग्रेज़ी',
+  'Environmental Studies': 'पर्यावरण अध्ययन', Hindi: 'हिन्दी', Mathematics: 'गणित', Music: 'संगीत', 'Physical Education': 'शारीरिक शिक्षा',
+  Physics: 'भौतिक विज्ञान', Sanskrit: 'संस्कृत', Science: 'विज्ञान', 'Social Science': 'सामाजिक विज्ञान',
+  // exams
+  'Ardhvarshik Pariksha (Half-yearly)': 'अर्धवार्षिक परीक्षा', 'Half-yearly examination': 'अर्धवार्षिक परीक्षा', 'Periodic Test 1': 'आवधिक परीक्षा 1',
+  'Unit test': 'इकाई परीक्षा', 'Periodic test': 'आवधिक परीक्षा', 'Half-yearly': 'अर्धवार्षिक', Annual: 'वार्षिक', 'Pre-board': 'प्री-बोर्ड',
+  // fees
+  'Tuition fee': 'शिक्षण शुल्क', 'Admission fee': 'प्रवेश शुल्क', 'Annual charges': 'वार्षिक शुल्क', 'Examination fee': 'परीक्षा शुल्क',
+  'Computer / lab fee': 'कंप्यूटर / प्रयोगशाला शुल्क', 'Library fee': 'पुस्तकालय शुल्क', 'Sports & activities': 'खेलकूद एवं गतिविधियाँ',
+  'Transport fee': 'परिवहन शुल्क', 'Caution deposit': 'प्रतिभूति राशि', 'Term 1': 'प्रथम सत्र', 'Term 2': 'द्वितीय सत्र',
+  // grade remarks and common words
+  Outstanding: 'उत्कृष्ट', Excellent: 'अति उत्तम', 'Very good': 'बहुत अच्छा', Good: 'अच्छा', 'Above average': 'औसत से ऊपर', Average: 'औसत',
+  Pass: 'उत्तीर्ण', 'Needs improvement': 'सुधार की आवश्यकता', Male: 'पुरुष', Female: 'महिला', Indian: 'भारतीय', Hindu: 'हिन्दू', General: 'सामान्य',
+}
+const PHRASES = ['Male', 'Female', 'Indian', 'Hindu', 'General']
+async function fillHindiNames(admin) {
+  // forms show a Hindi box beside each name (Settings › Also keep names in)
+  await admin.patch('/core/settings/modules/core', { namesAlsoIn: ['hi'] })
+  const people = (english) => {
+    const parts = english.split(/\s+/).map((p) => HI_NAME_PARTS[p])
+    return parts.every(Boolean) ? parts.join(' ') : null
+  }
+  let saved = 0
+  for (const kind of ['students', 'parents', 'staff', 'school', 'classes', 'subjects', 'exams', 'fees', 'phrases']) {
+    const { rows } = await admin.get('/core/local-names/hi', { kind, missing: 'true' })
+    const entries = rows.map((r) => ({ english: r.english, value: HI_TEXTS[r.english] ?? people(r.english) })).filter((e) => e.value)
+    if (entries.length) saved += (await admin.put('/core/local-names/hi', { kind, entries })).saved
+  }
+  // words a document prints that no list holds (gender, nationality, religion, category)
+  const have = new Set((await admin.get('/core/local-names/hi', { kind: 'phrases' })).rows.filter((r) => r.value).map((r) => r.english))
+  const extra = PHRASES.filter((english) => !have.has(english)).map((english) => ({ english, value: HI_TEXTS[english] }))
+  if (extra.length) saved += (await admin.put('/core/local-names/hi', { kind: 'phrases', entries: extra })).saved
+  return saved ? `${saved} Hindi names and words saved` : 'already there'
 }
 
 // ───────────────────────────────────────────────────────── students
@@ -2029,6 +2098,7 @@ async function main() {
   await step('Letterhead', () => fillLetterhead(admin))
   await step('Campus print details', () => fixCampusDetails(admin))
   await step('Hindi print templates for the UP Board campus', () => fillHindiTemplates(admin))
+  await step('Names in Hindi', () => fillHindiNames(admin))
   await step('Students', () => fillStudents(admin))
   await step('Staff & HR', () => fillStaff(admin))
   await step('Teachers and subject allocation', () => fillTeachers(admin))

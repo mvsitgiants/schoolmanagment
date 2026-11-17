@@ -11,6 +11,7 @@ import { createExam, deleteExam, fetchExam, fetchExamTypes, fetchExams, savePape
 import { hasPermission } from '../../api/auth'
 import { useSnackbar } from '../../context/SnackbarContext'
 import { useFormat } from '../../context/SettingsContext'
+import LocalNameField, { useLocalNames } from '../../components/localNames/LocalNameField'
 
 const statusLabel = (t, s) => t(`exams.status.${s}`, EXAM_STATUS[s]?.label ?? s)
 
@@ -28,13 +29,14 @@ function ExamForm({ exam, year, onClose, onSaved }) {
   const [errors, setErrors] = useState({})
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }))
   const toggle = (id) => setForm((f) => ({ ...f, classIds: f.classIds.includes(id) ? f.classIds.filter((x) => x !== id) : [...f.classIds, id] }))
+  const names = useLocalNames('exams') // the name in the school's other languages (Settings › Also keep names in)
   const pickType = (e) => {
     const type = types.find((x) => x.id === e.target.value)
     setForm((f) => ({ ...f, examTypeId: e.target.value, name: f.name || (type ? `${type.name} ${year?.name ?? ''}`.trim() : '') }))
   }
   const save = useMutation({
     mutationFn: () => (exam ? updateExam(exam.id, { ...form, academicYearId: year?.id }) : createExam({ ...form, academicYearId: year?.id })),
-    onSuccess: onSaved,
+    onSuccess: async (...a) => { await names.save().catch((e) => showError(e.message)); onSaved(...a) },
     onError: (e) => { setErrors(e.response?.data?.details?.fields ?? {}); showError(e.message) },
   })
   const classes = lookup?.classes ?? []
@@ -51,6 +53,7 @@ function ExamForm({ exam, year, onClose, onSaved }) {
           </Select>
         </FormField>
         <FormField label={t('exams.schedule.name')} required error={errors.name}><Input value={form.name} onChange={set('name')} placeholder={t('exams.schedule.namePlaceholder')} /></FormField>
+        <LocalNameField names={names} slot="exam" english={form.name} label={t('exams.schedule.name')} />
         <FormField label={t('exams.schedule.term')}>
           <Select value={form.term} onChange={set('term')}>
             <option value="">{t('exams.schedule.noTerm')}</option>

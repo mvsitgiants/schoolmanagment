@@ -8,6 +8,7 @@ import { clean, isOid } from '../platform/db.js'
 import { AppError, badRequest, forbidden, notFound } from '../platform/errors.js'
 import { pdfAvailable, pdfOrNull } from '../platform/pdf.js'
 import { getLetterhead } from './printing.js'
+import { glossaryFor, localize } from './localNames.js'
 import { Branch } from '../models/tenant.js'
 import { Student } from '../models/students.js'
 import { Employee } from '../models/hrms.js'
@@ -71,14 +72,20 @@ export async function renderData(docType, raw, opts = {}) {
 }
 
 /** renderData plus what a PDF needs: the paper, orientation and margins, and a file name. */
-export async function renderPrint(docType, raw, { templateId, body, layout: draft, autoPrint = true, model: given, lang: askedLang } = {}) {
+export async function renderPrint(docType, rawIn, { templateId, body, layout: draft, autoPrint = true, model: given, lang: askedLang } = {}) {
   const def = docOf(docType)
+  let raw = rawIn
   // the record's campus: its own template, and its own name and numbers when it is its own school on paper
   const campus = await campusOf(raw).catch(() => null)
   let template = { ...(await templateFor(docType, templateId, campus?._id)), ...(draft ?? {}) }
   // the template's own language wins (a Hindi TC for the UP Board campus), then the student's, then the institution's
   const fromRecord = raw.student?.language || raw.certificate?.snapshot?.language || raw.bill?.language || raw.receipt?.language || raw.institution?.defaultLanguage
   const lang = askedLang || template.language || (fromRecord ? langCodeFor(fromRecord) : 'en')
+  // in another language, the institution's own names (students, parents, subjects, the school …) as kept in its glossary —
+  // swapped in the record before the document is put together, so names inside sentences (", पुत्री विनोद मौर्य") come out too
+  const namesIn = template.namesIn || 'LOCAL'
+  const glossary = lang !== 'en' && namesIn !== 'SAVED' ? await glossaryFor(lang) : null
+  if (glossary?.size) raw = localize(raw, glossary, namesIn)
   let model = given ?? def.model(raw, { lang })
   // no saved template: the module's own setting chooses the 80 mm roll, or the paper (a sideways ID card)
   if (template.builtIn && !draft && def.thermal?.(raw)) template = { ...template, paper: 'THERMAL_80', margins: { top: 3, right: 3, bottom: 3, left: 3 } }
@@ -87,9 +94,17 @@ export async function renderPrint(docType, raw, { templateId, body, layout: draf
   const card = !!PAPER_BY[template.paper]?.card
   const letterhead = await getLetterhead()
   // the record's campus prints as its own school when it has one on paper (e.g. the UP Board college of a CBSE school's trust)
-  const inst = campusInstitution({ ...letterhead.institution, ...raw.institution }, campus)
+  let inst = campusInstitution({ ...letterhead.institution, ...raw.institution }, campus)
   // every template can print the institution's details (name, address, PAN, GSTIN, 80G registration …) as institution.*
   model = { ...model, institution: { ...inst, ...model.institution, ...(inst.campus ? { name: inst.name } : {}) } }
+  // and what the document added itself (class labels, the school's details)
+  if (glossary?.size) {
+    model = localize(model, glossary, namesIn)
+    inst = localize(inst, glossary, namesIn)
+    letterhead.tagline = localize(letterhead.tagline, glossary, namesIn)
+    letterhead.footerText = localize(letterhead.footerText, glossary, namesIn)
+    template = { ...template, footerText: localize(template.footerText, glossary, namesIn) }
+  }
   const layout = layoutFor({ ...template, docType, lang }, letterhead, inst)
   const source = body ?? (template.body?.trim() ? template.body : defaultTemplate(docType))
   if (!source) throw notFound('Template')

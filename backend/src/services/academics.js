@@ -620,11 +620,12 @@ export async function sectionsInScope(auth, moduleId) {
 /** The small picture every screen needs: years, the current one, its sections, subjects. */
 export async function lookup(auth) {
   const year = await currentYear()
-  const [years, classes, sections, subjects] = await Promise.all([
+  const [years, classes, sections, subjects, branches] = await Promise.all([
     AcademicYear.find().select('name startDate endDate isCurrent closed').sort({ startDate: -1 }).lean(),
     ClassLevel.find({ active: true }).select('name code order').sort({ order: 1, name: 1 }).lean(),
     year ? Section.find({ academicYearId: year._id, active: true }).select('classId name branchId classTeacherId').sort({ name: 1 }).lean() : [],
     Subject.find({ active: true }).select('name code type').sort({ name: 1 }).lean(),
+    Branch.find({ active: true }).select('name code localNameRequired').sort({ isDefault: -1, name: 1 }).lean(),
   ])
   const clsById = new Map(classes.map((c) => [String(c._id), c]))
   const mine = year && auth?.userId ? new Set(await mySectionIds(auth.userId, year._id)) : new Set()
@@ -637,6 +638,8 @@ export async function lookup(auth) {
       label: sectionLabel(clsById.get(String(s.classId)), s), short: sectionLabel(clsById.get(String(s.classId)), s, { short: true }), mine: mine.has(String(s._id)),
     })),
     subjects: subjects.map(clean),
+    // campuses, for what a section's campus asks of a form (admission: names in other languages required)
+    branches: branches.map((b) => ({ id: String(b._id), name: b.name, code: b.code, localNameRequired: !!b.localNameRequired })),
   }
 }
 

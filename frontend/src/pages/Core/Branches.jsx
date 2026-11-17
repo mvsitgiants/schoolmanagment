@@ -13,6 +13,7 @@ import { useSnackbar } from '../../context/SnackbarContext'
 import AttendanceSites, { siteIn, siteOut, sitesValid } from '../../components/geo/AttendanceSitesEditor'
 import PrintImageField from '../../components/print/PrintImageField'
 import { metresText } from '@schoolgiant/shared'
+import LocalNameField, { useLocalNames, useNamesAlsoIn } from '../../components/localNames/LocalNameField'
 
 // signatories a campus can have its own of (the principal has its own fields above)
 const CAMPUS_SIGNERS = ['ACCOUNTANT', 'CONTROLLER', 'SECRETARY']
@@ -20,22 +21,24 @@ const CAMPUS_SIGNERS = ['ACCOUNTANT', 'CONTROLLER', 'SECRETARY']
 function BranchForm({ branch, onClose, onSaved, onDeleted }) {
   const { t } = useTranslation('admin')
   const confirm = useConfirm()
-  const [form, setForm] = useState(() => ({ name: '', code: '', addressLine: '', city: '', state: '', pincode: '', phone: '', gstin: '', active: true, ...branch, attendanceSites: (branch?.attendanceSites ?? []).map(siteIn), identity: { printName: '', board: '', affiliationNo: '', schoolCode: '', udiseCode: '', email: '', principalName: '', logoUrl: '', sealUrl: '', principalSignUrl: '', ...branch?.identity, signatures: CAMPUS_SIGNERS.map((role) => ({ role, name: '', imageUrl: '', ...(branch?.identity?.signatures ?? []).find((x) => x.role === role) })) } }))
+  const [form, setForm] = useState(() => ({ name: '', code: '', addressLine: '', city: '', state: '', pincode: '', phone: '', gstin: '', active: true, localNameRequired: false, ...branch, attendanceSites: (branch?.attendanceSites ?? []).map(siteIn), identity: { printName: '', board: '', affiliationNo: '', schoolCode: '', udiseCode: '', email: '', principalName: '', logoUrl: '', sealUrl: '', principalSignUrl: '', ...branch?.identity, signatures: CAMPUS_SIGNERS.map((role) => ({ role, name: '', imageUrl: '', ...(branch?.identity?.signatures ?? []).find((x) => x.role === role) })) } }))
   const [ownPrint, setOwnPrint] = useState(() => Object.values(branch?.identity ?? {}).some(Boolean))
   const setId = (k) => (v) => setForm((f) => ({ ...f, identity: { ...f.identity, [k]: v?.target ? v.target.value : v } }))
+  const names = useLocalNames('school') // the name in the school's other languages (Settings › Also keep names in)
+  const otherLangs = useNamesAlsoIn().map((l) => l.nativeName).join(', ')
   const sitesOk = sitesValid(form.attendanceSites)
   const [errors, setErrors] = useState({})
   const { showError } = useSnackbar()
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e?.target ? e.target.value : e }))
   const save = useMutation({
     mutationFn: () => {
-      const { name, code, addressLine, city, state, pincode, phone, gstin, active } = form
-      const body = { name, code, addressLine, city, state, pincode, phone, gstin, attendanceSites: form.attendanceSites.map(siteOut), identity: ownPrint
+      const { name, code, addressLine, city, state, pincode, phone, gstin, active, localNameRequired } = form
+      const body = { name, code, addressLine, city, state, pincode, phone, gstin, localNameRequired: !!localNameRequired, attendanceSites: form.attendanceSites.map(siteOut), identity: ownPrint
         ? { ...form.identity, signatures: form.identity.signatures.filter((x) => x.name?.trim() || x.imageUrl).map(({ role, name, imageUrl }) => ({ role, name, imageUrl })) }
         : { ...Object.fromEntries(Object.keys(form.identity).filter((k) => k !== 'signatures').map((k) => [k, ''])), signatures: [] } }
       return branch ? updateBranch(branch.id, { ...body, active }) : createBranch(body)
     },
-    onSuccess: onSaved,
+    onSuccess: async (...a) => { await names.save().catch((e) => showError(e.message)); onSaved(...a) },
     onError: (e) => { setErrors(e.response?.data?.details?.fields ?? {}); showError(e.message) },
   })
   const remove = useMutation({ mutationFn: () => deleteBranch(branch.id), onSuccess: onDeleted, onError: (e) => showError(e.message) })
@@ -51,6 +54,7 @@ function BranchForm({ branch, onClose, onSaved, onDeleted }) {
         <FormField label={t('admin.branches.code')} required error={errors.code} hint={t('admin.branches.codeHint')}><Input value={form.code} onChange={(e) => set('code')(e.target.value.toUpperCase())} maxLength={12} placeholder="WFD" /></FormField>
       </div>
       <div className="mt-4"><FormField label={t('admin.branches.address')}><Input value={form.addressLine ?? ''} onChange={set('addressLine')} /></FormField></div>
+      <div className="mt-4"><LocalNameField names={names} slot="addressLine" english={form.addressLine} label={t('admin.branches.address')} /></div>
       <div className="grid grid-cols-3 gap-4 mt-4">
         <FormField label={t('admin.branches.city')}><Input value={form.city ?? ''} onChange={set('city')} /></FormField>
         <FormField label={t('admin.branches.state')}><Input value={form.state ?? ''} onChange={set('state')} /></FormField>
@@ -61,6 +65,16 @@ function BranchForm({ branch, onClose, onSaved, onDeleted }) {
         <FormField label="GSTIN" error={errors.gstin} hint={t('admin.branches.gstinHint')}><Input value={form.gstin ?? ''} onChange={(e) => set('gstin')(e.target.value.toUpperCase())} maxLength={15} /></FormField>
       </div>
       {branch && !branch.isDefault && <label className="mt-4 flex items-center justify-between rounded-lg border border-border px-3 py-2.5 text-sm text-ink">{t('status.active')} <Switch checked={form.active} onChange={set('active')} label={t('status.active')} /></label>}
+      {/* only when the school keeps names in another language (Settings › Also keep names in) */}
+      {otherLangs && (
+        <label className="mt-4 flex items-center justify-between gap-4 rounded-lg border border-border px-3 py-2.5 text-sm text-ink">
+          <span className="min-w-0">
+            <span className="block">{t('admin.branches.localNameRequired', { language: otherLangs })}</span>
+            <span className="block text-xs text-ink-muted">{t('admin.branches.localNameRequiredHint', { language: otherLangs })}</span>
+          </span>
+          <Switch checked={!!form.localNameRequired} onChange={set('localNameRequired')} label={t('admin.branches.localNameRequired', { language: otherLangs })} />
+        </label>
+      )}
       <div className="mt-5 rounded-xl border border-border p-4 space-y-3">
         <label className="flex items-start gap-2.5 text-sm text-ink cursor-pointer">
           <input type="checkbox" checked={ownPrint} onChange={(e) => setOwnPrint(e.target.checked)} className="mt-0.5 rounded border-border text-brand-500 focus:ring-brand-500" />
@@ -69,12 +83,15 @@ function BranchForm({ branch, onClose, onSaved, onDeleted }) {
         {ownPrint && (
           <div className="grid sm:grid-cols-2 gap-3">
             <div className="sm:col-span-2"><FormField label={t('admin.branches.printName')} hint={t('admin.branches.printNameHint')}><Input value={form.identity.printName} onChange={setId('printName')} maxLength={160} /></FormField></div>
+            <div className="sm:col-span-2"><LocalNameField names={names} slot="printName" english={form.identity.printName} label={t('admin.branches.printName')} /></div>
             <FormField label={t('admin.branches.board')} hint={t('admin.branches.boardHint')}><Input value={form.identity.board} onChange={setId('board')} maxLength={120} /></FormField>
+            <LocalNameField names={names} slot="board" english={form.identity.board} label={t('admin.branches.board')} />
             <FormField label={t('admin.branches.affiliationNo')}><Input value={form.identity.affiliationNo} onChange={setId('affiliationNo')} maxLength={60} /></FormField>
             <FormField label={t('admin.branches.schoolCode')}><Input value={form.identity.schoolCode} onChange={setId('schoolCode')} maxLength={30} /></FormField>
             <FormField label={t('admin.branches.udiseCode')}><Input value={form.identity.udiseCode} onChange={setId('udiseCode')} maxLength={60} /></FormField>
             <FormField label={t('admin.branches.email')}><Input type="email" value={form.identity.email} onChange={setId('email')} maxLength={120} /></FormField>
             <FormField label={t('admin.branches.principalName')}><Input value={form.identity.principalName} onChange={setId('principalName')} maxLength={120} /></FormField>
+            <LocalNameField names={names} slot="principalName" english={form.identity.principalName} label={t('admin.branches.principalName')} />
             <PrintImageField label={t('admin.branches.logo')} value={form.identity.logoUrl} onChange={setId('logoUrl')} error={errors['identity.logoUrl']} />
             <PrintImageField make="stamp" stampDefaults={{ name: form.identity.printName || form.name, place: form.city }} label={t('admin.branches.seal')} value={form.identity.sealUrl} onChange={setId('sealUrl')} error={errors['identity.sealUrl']} />
             <PrintImageField wide make="signature" label={t('admin.branches.principalSign')} value={form.identity.principalSignUrl} onChange={setId('principalSignUrl')} error={errors['identity.principalSignUrl']} />

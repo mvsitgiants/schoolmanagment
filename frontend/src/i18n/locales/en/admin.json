@@ -397,7 +397,15 @@
       "printLanguage": "Print language",
       "printLanguageHint": "The language of the labels and headings on this document — e.g. Hindi for a UP Board campus. Names and other details print as they are saved.",
       "eachStudentsLanguage": "Each student’s own language",
-      "printsIn": "Prints in {{language}}"
+      "printsIn": "Prints in {{language}}",
+      "namesIn": "Names on the document",
+      "namesInHint": "Students’, parents’ and staff names, the school’s details, classes, subjects — as kept in {{language}}.",
+      "namesInLink": "Names in other languages",
+      "namesInModes": {
+        "LOCAL": "In {{language}} (English where not added)",
+        "BOTH": "In {{language}}, with the English in brackets",
+        "SAVED": "As saved (English)"
+      }
     },
     "notificationSetup": {
       "channels": {
@@ -1488,7 +1496,9 @@
       "deleteConfirm": {
         "title": "Delete {{name}}?",
         "message": "Only a campus with nothing filed under it can be deleted. If it already has students, classes or other records, make it inactive instead."
-      }
+      },
+      "localNameRequired": "Names in {{language}} needed at admission",
+      "localNameRequiredHint": "Turn on for a campus whose documents print in {{language}}, such as a UP Board campus. A student can be admitted here only with the student's and parents' names also filled in {{language}}."
     },
     "customFields": {
       "title": "Custom fields",
@@ -1803,6 +1813,64 @@
         "printNote": "Printed about 2 cm across, a little see-through, as a real stamp looks.",
         "use": "Use this seal"
       }
+    },
+    "localNames": {
+      "title": "Names in other languages",
+      "subtitle": "Your students’, parents’ and staff names, the school’s details, classes, subjects and more — in {{language}}, beside the English.",
+      "how": "The English stays exactly as saved everywhere. A print template set to print in {{language}} uses the names saved here — or prints both. Anything left empty prints in English.",
+      "noLanguage": "Only English is switched on, so there is no other language to keep names in.",
+      "language": "Language",
+      "campus": "Campus",
+      "allCampuses": "All campuses",
+      "search": "Search names",
+      "showAll": "All",
+      "showMissing": "Still to do",
+      "kinds": {
+        "students": "Students",
+        "parents": "Parents & guardians",
+        "staff": "Staff",
+        "school": "School & campuses",
+        "classes": "Classes",
+        "subjects": "Subjects",
+        "exams": "Exams",
+        "fees": "Fee heads",
+        "phrases": "Words & phrases"
+      },
+      "progress": "{{done}} of {{total}} in {{language}}",
+      "english": "English (as saved)",
+      "missing": "Not added yet — prints in English",
+      "localFor": "{{english}} in {{language}}",
+      "fillAi": "Fill the rest with AI",
+      "suggested": "{{count}} filled in — check them, then save",
+      "suggestedTag": "Check",
+      "checkSuggested": "The AI filled in some names. Read each one marked “Check” and correct it before saving — automatic spellings can be wrong, especially surnames.",
+      "aiOff": "The AI assistant is not set up for your school, so names can’t be filled in automatically. Type them, or fill them in Excel (Export, then Import).",
+      "save": "Save changes ({{count}})",
+      "saved_one": "Saved {{count}} name",
+      "saved_other": "Saved {{count}} names",
+      "discard": "Discard changes",
+      "discardTitle": "Discard your changes?",
+      "discardChanges": "The names you typed here haven’t been saved yet.",
+      "newEnglish": "A word or phrase in English, as documents print it",
+      "newLocal": "In {{language}}",
+      "add": "Add",
+      "added": "Added",
+      "loading": "Loading…",
+      "nothing": "Nothing here yet.",
+      "allDone": "Everything here is done.",
+      "showingFirst": "Showing the first {{count}}. Search to find others.",
+      "export": "Export to Excel",
+      "import": "Import from Excel",
+      "importTitle": "Import “{{name}}”",
+      "importReady_one": "{{count}} name in {{language}} is ready to save.",
+      "importReady_other": "{{count}} names in {{language}} are ready to save.",
+      "importSkipped_one": "{{count}} row was skipped (empty or too long).",
+      "importSkipped_other": "{{count}} rows were skipped (empty or too long).",
+      "importHow": "The first column is the English exactly as saved, the second its translation — the same columns Export gives you. A name that already has a translation is replaced.",
+      "importSave_one": "Save {{count}} name",
+      "importSave_other": "Save {{count}} names",
+      "imported_one": "Saved {{count}} name",
+      "imported_other": "Saved {{count}} names"
     }
   }
 }

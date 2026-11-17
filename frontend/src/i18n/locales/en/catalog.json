@@ -114,6 +114,7 @@
         "workflows": "Workflows & approvals",
         "numbering": "Number series",
         "print-templates": "Print templates",
+        "local-names": "Names in other languages",
         "notifications-setup": "Notification rules",
         "audit": "Audit log",
         "api-keys": "API keys & webhooks",

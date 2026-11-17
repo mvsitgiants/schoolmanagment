@@ -30,6 +30,9 @@ const branchSchema = new Schema({
     polygon: { type: [[Number]], default: undefined }, // [[lat, lng], …] — POLYGON only
     active: { type: Boolean, default: true },
   })],
+  // admission asks for the names in the institution's other languages too (Settings › Also keep names in) — e.g. the
+  // UP Board campus, whose documents print in Hindi; elsewhere those boxes are optional
+  localNameRequired: { type: Boolean, default: false },
   active: { type: Boolean, default: true },
 }, { timestamps: true })
 branchSchema.plugin(tenantPlugin)

@@ -36,6 +36,7 @@ const Workflows = lazy(() => import('./pages/Core/Workflows'))
 const NotificationSetup = lazy(() => import('./pages/Core/NotificationSetup'))
 const CoreMasters = lazy(() => import('./pages/Core/Masters'))
 const PrintTemplates = lazy(() => import('./pages/Core/PrintTemplates'))
+const LocalNames = lazy(() => import('./pages/Core/LocalNames'))
 const ApiKeys = lazy(() => import('./pages/Core/ApiKeys'))
 
 // Academic setup
@@ -311,6 +312,7 @@ export default function App() {
           <Route path="core/notifications-setup" element={<NotificationSetup />} />
           <Route path="core/masters" element={<CoreMasters />} />
           <Route path="core/print-templates" element={<PrintTemplates />} />
+          <Route path="core/local-names" element={<LocalNames />} />
           <Route path="core/api-keys" element={<ApiKeys />} />
           <Route path="approvals" element={<Approvals />} />
           <Route path="academics" element={<Navigate to="/academics/classes" replace />} />

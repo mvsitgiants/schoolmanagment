@@ -10,6 +10,7 @@ import { createFeeHead, createStructure, deleteFeeHead, deleteStructure, fetchFe
 import { hasPermission } from '../../api/auth'
 import { useSnackbar } from '../../context/SnackbarContext'
 import { useFormat } from '../../context/SettingsContext'
+import LocalNameField, { useLocalNames } from '../../components/localNames/LocalNameField'
 
 const addMonths = (ymd, n) => {
   const [y, m, d] = ymd.split('-').map(Number)
@@ -141,12 +142,13 @@ function HeadsModal({ heads, onClose }) {
   const empty = { id: null, name: '', code: '', refundable: false }
   const [form, setForm] = useState(empty)
   const [errors, setErrors] = useState({})
+  const names = useLocalNames('fees') // the name in the school's other languages (Settings › Also keep names in)
   const canCreate = hasPermission('fees.structures.create')
   const canEdit = hasPermission('fees.structures.edit')
   const done = (msg) => { qc.invalidateQueries({ queryKey: ['fee-heads'] }); setForm(empty); setErrors({}); showSuccess(msg) }
   const save = useMutation({
     mutationFn: () => (form.id ? updateFeeHead(form.id, { name: form.name, code: form.code, refundable: form.refundable }) : createFeeHead({ name: form.name, code: form.code, refundable: form.refundable })),
-    onSuccess: () => done(t('fees.heads.saved')),
+    onSuccess: async (...a) => { await names.save().catch((e) => showError(e.message)); done(t('fees.heads.saved')) },
     onError: (e) => { setErrors(e.response?.data?.details?.fields ?? {}); showError(e.message) },
   })
   const toggle = useMutation({ mutationFn: (h) => updateFeeHead(h.id, { active: !h.active }), onSuccess: () => done(t('fees.heads.saved')), onError: (e) => showError(e.message) })
@@ -159,6 +161,7 @@ function HeadsModal({ heads, onClose }) {
         {(canCreate || (form.id && canEdit)) && (
           <div className="grid sm:grid-cols-[1fr_9rem_auto_auto] gap-3 items-end">
             <FormField label={t('fees.heads.name')} required error={errors.name}><Input value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} /></FormField>
+            <LocalNameField key={form.id ?? 'new'} names={names} slot={form.id ?? 'new'} english={form.name} label={t('fees.heads.name')} />
             <FormField label={t('fees.heads.code')} required error={errors.code}><Input value={form.code} onChange={(e) => setForm((f) => ({ ...f, code: e.target.value.toUpperCase() }))} /></FormField>
             <label className="inline-flex items-center gap-2 text-sm h-9">
               <input type="checkbox" checked={form.refundable} onChange={(e) => setForm((f) => ({ ...f, refundable: e.target.checked }))} className="rounded border-border text-brand-500 focus:ring-brand-500" />

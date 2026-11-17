@@ -103,6 +103,7 @@ export const MODULES = [
       pg('workflows', 'Workflows & approvals', 'V E', { setup: true }),
       pg('numbering', 'Number series', 'V E', { setup: true }),
       pg('print-templates', 'Print templates', 'V C E D', { setup: true }),
+      pg('local-names', 'Names in other languages', 'V E X I', { setup: true }),
       pg('notifications-setup', 'Notification rules', 'V E', { setup: true }),
       pg('audit', 'Audit log', 'V X', { setup: true }),
       pg('api-keys', 'API keys & webhooks', 'V C E D', { setup: true }),

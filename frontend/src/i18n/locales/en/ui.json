@@ -497,6 +497,14 @@
       "add": "Add photo",
       "preview": "The photo",
       "fileName": "photo"
+    },
+    "localName": {
+      "label": "{{label}} in {{language}}",
+      "hint": "Printed on documents in {{language}}. Leave empty to print the English.",
+      "placeholder": "Type it in {{language}}",
+      "placeholderTyping": "Type in English letters, e.g. uday",
+      "hintTyping": "Type as it sounds: uday → उदय. Leave empty to print the English.",
+      "use": "Use {{text}}"
     }
   }
 }

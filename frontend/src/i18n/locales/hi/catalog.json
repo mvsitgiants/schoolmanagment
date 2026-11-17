@@ -117,7 +117,8 @@
         "notifications-setup": "अधिसूचना नियम",
         "audit": "ऑडिट लॉग",
         "api-keys": "API कुंजियाँ एवं वेबहुक",
-        "settings": "सेटिंग्स"
+        "settings": "सेटिंग्स",
+        "local-names": "अन्य भाषाओं में नाम"
       },
       "students": {
         "admit": "नया प्रवेश",

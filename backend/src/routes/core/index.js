@@ -12,6 +12,7 @@ import subscription from './subscription.js'
 import users from './users.js'
 import masters from './masters.js'
 import printing from './printing.js'
+import localNames from './localNames.js'
 import apiKeys from './apiKeys.js'
 
 // Institution workspace API: /api/v1/core/*
@@ -29,6 +30,7 @@ router.use(approvals)
 router.use(forms)
 router.use(masters)
 router.use(printing)
+router.use(localNames)
 router.use(apiKeys)
 
 export default router

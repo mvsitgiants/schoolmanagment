@@ -13,6 +13,7 @@ import { fetchDepartments } from '../../api/core'
 import { hasPermission } from '../../api/auth'
 import { useSnackbar } from '../../context/SnackbarContext'
 import { readSheet } from '../../utils/readSheet'
+import LocalNameField, { useLocalNames } from '../../components/localNames/LocalNameField'
 
 const TYPE_TONE = { THEORY: 'brand', PRACTICAL: 'info', LANGUAGE: 'success', ACTIVITY: 'warning' }
 
@@ -21,6 +22,7 @@ function SubjectForm({ subject, onClose, onSaved }) {
   const { showError } = useSnackbar()
   const { data: depts = [] } = useQuery({ queryKey: ['departments'], queryFn: fetchDepartments })
   const [form, setForm] = useState(() => ({ name: '', code: '', type: 'THEORY', active: true, ...subject, departmentId: subject?.departmentId ?? '' }))
+  const names = useLocalNames('subjects') // the name in the school's other languages (Settings › Also keep names in)
   const [errors, setErrors] = useState({})
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e?.target ? e.target.value : e }))
   const save = useMutation({
@@ -28,7 +30,7 @@ function SubjectForm({ subject, onClose, onSaved }) {
       const body = { name: form.name, code: form.code, type: form.type, departmentId: form.departmentId || null, ...(subject && { active: form.active }) }
       return subject ? updateSubject(subject.id, body) : createSubject(body)
     },
-    onSuccess: onSaved,
+    onSuccess: async (...a) => { await names.save().catch((e) => showError(e.message)); onSaved(...a) },
     onError: (e) => { setErrors(e.response?.data?.details?.fields ?? {}); showError(e.message) },
   })
   return (
@@ -38,6 +40,7 @@ function SubjectForm({ subject, onClose, onSaved }) {
     </>}>
       <div className="grid grid-cols-3 gap-4">
         <div className="col-span-2"><FormField label={t('academics.subjects.name')} required error={errors.name}><Input value={form.name} onChange={set('name')} placeholder={t('academics.subjects.namePlaceholder')} /></FormField></div>
+        <div className="col-span-2"><LocalNameField names={names} slot="subject" english={form.name} label={t('academics.subjects.name')} /></div>
         <FormField label={t('academics.subjects.code')} required error={errors.code}><Input value={form.code} onChange={(e) => set('code')(e.target.value.toUpperCase())} maxLength={12} placeholder="MATH" /></FormField>
       </div>
       <div className="grid grid-cols-2 gap-4 mt-4">
