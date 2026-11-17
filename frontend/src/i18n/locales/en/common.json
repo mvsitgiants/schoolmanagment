@@ -242,7 +242,19 @@
     "class": "Class",
     "admissionNo": "Adm. no.",
     "guardian": "Parent",
-    "printedOn": "Printed {{when}}"
+    "printedOn": "Printed {{when}}",
+    "letterhead": {
+      "affiliatedTo": "Affiliated to {{board}}",
+      "phone": "Ph:",
+      "email": "Email:",
+      "ids": {
+        "affiliationNo": "Affiliation No.",
+        "schoolCode": "School No.",
+        "udiseCode": "UDISE",
+        "registrationNo": "Reg. No.",
+        "gstin": "GSTIN"
+      }
+    }
   },
   "signOut": "Sign out",
   "notFound": {

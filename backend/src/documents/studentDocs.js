@@ -11,14 +11,14 @@ const parentOf = (s, rel) => {
   return g ? { name: g.name, occupation: g.occupation ?? '', mobile: g.mobile ?? '', email: g.email ?? '', relation: g.relation } : null
 }
 
-function admissionFormModel({ student: s, place, admittedTo, admittedYear, siblings }) {
+function admissionFormModel({ student: s, place, admittedTo, admittedYear, siblings }, { lang } = {}) {
   const other = s.guardians?.find((g) => !['FATHER', 'MOTHER'].includes(g.relation))
   const address = s.address ?? {}
   return {
     form: { classSought: admittedTo ?? '', year: admittedYear ?? '', admissionNo: s.admissionNo, admissionDate: s.admissionDate ?? null, section: place?.label ?? '', rollNo: s.rollNo ?? '' },
     student: {
       name: studentName(s), firstName: s.firstName, middleName: s.middleName ?? '', lastName: s.lastName ?? '',
-      dob: s.dob ?? null, dobWords: dateInWords(s.dob, s.language), gender: GENDERS.find((g) => g.value === s.gender)?.label ?? '', bloodGroup: s.bloodGroup ?? '',
+      dob: s.dob ?? null, dobWords: dateInWords(s.dob, lang || s.language), gender: GENDERS.find((g) => g.value === s.gender)?.label ?? '', bloodGroup: s.bloodGroup ?? '',
       nationality: s.nationality ?? '', religion: s.religion ?? '', category: CATEGORY_LABEL_OF(s.category) ?? '', motherTongue: s.motherTongue ?? '',
       aadhaar: s.aadhaarLast4 ? `XXXX XXXX ${s.aadhaarLast4}` : '', apaarId: s.apaarId ?? '', pen: s.pen ?? '', mobile: s.mobile ?? '', email: s.email ?? '',
       photo: typeof s.photo === 'string' && PHOTO_DATA_URL.test(s.photo) ? s.photo : null,

@@ -122,7 +122,7 @@ async function seedStThomas() {
       'profile.addressLine': 'Sector 12, Kursi Road, Vikas Nagar', 'profile.pincode': '226022', 'profile.phone': '+91 522 4012 345',
       'profile.email': 'office@stthomas.test', 'profile.website': 'https://stthomas.example', 'profile.legalName': 'St. Thomas School',
       'profile.trustName': 'St. Thomas Educational Society (Regd.)', 'profile.pan': 'AAATS4521K', 'profile.registrationNo': 'LKO/1987/0452',
-      'profile.board': 'Affiliated to CBSE, New Delhi', 'profile.affiliationNo': '2130417', 'profile.schoolCode': '71417', 'profile.udiseCode': '09221100417',
+      'profile.board': 'Central Board of Secondary Education (CBSE), New Delhi', 'profile.affiliationNo': '2130417', 'profile.schoolCode': '71417', 'profile.udiseCode': '09221100417',
       createdAt: new Date(Date.now() - 240 * DAY),
     },
   })
@@ -135,11 +135,11 @@ async function seedStThomas() {
     // two campuses, each its own school on paper: the CBSE school (default) and the UP Board school
     await Branch.updateOne({ _id: main._id }, { $set: {
       name: 'St. Thomas School', code: 'CBSE', addressLine: 'Sector 12, Kursi Road, Vikas Nagar', city: 'Lucknow', state: 'Uttar Pradesh', pincode: '226022', phone: '+91 522 4012 345',
-      identity: { printName: 'St. Thomas School', board: 'Affiliated to CBSE, New Delhi', affiliationNo: '2130417', schoolCode: '71417', udiseCode: '09221100417', email: 'cbse@stthomas.test', principalName: 'Fr. Thomas Mathew' },
+      identity: { printName: 'St. Thomas School', board: 'Central Board of Secondary Education (CBSE), New Delhi', affiliationNo: '2130417', schoolCode: '71417', udiseCode: '09221100417', email: 'cbse@stthomas.test', principalName: 'Fr. Thomas Mathew' },
     } })
     const up = await Branch.create({
       name: 'St. Thomas School – UP Board', code: 'UPB', addressLine: 'Sector 12, Kursi Road, Vikas Nagar (Block B)', city: 'Lucknow', state: 'Uttar Pradesh', pincode: '226022', phone: '+91 522 4012 346',
-      identity: { printName: 'St. Thomas School', board: 'Board of High School & Intermediate Education, Uttar Pradesh (UP Board), Prayagraj', affiliationNo: 'Recognition No. 2468/UPB/1996', schoolCode: '1071', udiseCode: '09221100418', email: 'upboard@stthomas.test', principalName: 'Dr. Rajendra Prasad Tiwari' },
+      identity: { printName: 'St. Thomas School', board: 'Board of High School & Intermediate Education, Uttar Pradesh (UP Board), Prayagraj', affiliationNo: '2468/UPB/1996', schoolCode: '1071', udiseCode: '09221100418', email: 'upboard@stthomas.test', principalName: 'Dr. Rajendra Prasad Tiwari' },
     })
     const campus = { CBSE: main._id, UP: up._id }
     // numbers counted per campus carry the campus code (CBSE/FI2627000001, UPB/FI2627000001), so the two campuses never clash

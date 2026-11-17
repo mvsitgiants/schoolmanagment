@@ -393,7 +393,11 @@
       "usedFor": "Used for",
       "usedForHint": "Pick a campus to print only its records with this template — e.g. a state-board TC for that campus. Every other campus keeps the default.",
       "allCampuses": "All campuses (the default choice)",
-      "campusOnly": "Only {{name}}"
+      "campusOnly": "Only {{name}}",
+      "printLanguage": "Print language",
+      "printLanguageHint": "The language of the labels and headings on this document — e.g. Hindi for a UP Board campus. Names and other details print as they are saved.",
+      "eachStudentsLanguage": "Each student’s own language",
+      "printsIn": "Prints in {{language}}"
     },
     "notificationSetup": {
       "channels": {

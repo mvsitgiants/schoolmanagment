@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import clsx from 'clsx'
 import { Trans, useTranslation } from 'react-i18next'
 import { Braces, Check, Code2, FileText, LayoutTemplate, Plus, Printer, RotateCcw, Star, Trash2 } from 'lucide-react'
-import { LETTERHEAD_IDS, LETTERHEAD_MODES, PAPER_BY, PAPER_SIZES, PRINT_DOC_BY, SIGNATORIES, SIGN_MODES, defaultSignMode } from '@schoolgiant/shared'
+import { LETTERHEAD_IDS, LETTERHEAD_MODES, PAPER_BY, PAPER_SIZES, PRINT_DOC_BY, SIGNATORIES, SIGN_MODES, SUPPORTED_LANGUAGES, defaultSignMode, getLanguage } from '@schoolgiant/shared'
 import PrintImageField from '../../components/print/PrintImageField'
 import { FormField, Input, Note, PageContainer, PageHeader, Panel, SegmentedControl, Select, StatusPill, Tabs, Textarea, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
@@ -236,7 +236,7 @@ function TemplateRow({ tpl, active, onEdit }) {
   return (
     <div className={clsx('py-3 flex flex-wrap items-center gap-x-3 gap-y-1', active && 'bg-brand-50/40 -mx-5 px-5')}>
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium text-ink flex items-center gap-2">{tpl.name}{tpl.isDefault && <StatusPill tone="success">{t('admin.printTemplates.default')}</StatusPill>}{tpl.branchId && <StatusPill tone="info">{t('admin.printTemplates.campusOnly', { name: campusName(tpl.branchId) })}</StatusPill>}{!tpl.active && <StatusPill tone="neutral">{t('ui.common.off')}</StatusPill>}</p>
+        <p className="text-sm font-medium text-ink flex items-center gap-2">{tpl.name}{tpl.isDefault && <StatusPill tone="success">{t('admin.printTemplates.default')}</StatusPill>}{tpl.branchId && <StatusPill tone="info">{t('admin.printTemplates.campusOnly', { name: campusName(tpl.branchId) })}</StatusPill>}{tpl.language && <StatusPill tone="neutral">{t('admin.printTemplates.printsIn', { language: getLanguage(tpl.language).nativeName })}</StatusPill>}{!tpl.active && <StatusPill tone="neutral">{t('ui.common.off')}</StatusPill>}</p>
         <p className="text-xs text-ink-faint">{layoutLine(t, tpl)}{tpl.updatedBy ? ` · ${t('admin.printTemplates.changedBy', { name: tpl.updatedBy })}` : ''}</p>
       </div>
       {!tpl.isDefault && !tpl.branchId && tpl.active && hasPermission('core.print-templates.edit') && <Button size="sm" variant="ghost" icon={Star} loading={makeDefault.isPending} onClick={() => makeDefault.mutate()}>{t('admin.printTemplates.makeDefault')}</Button>}
@@ -258,7 +258,7 @@ function TemplateEditor({ doc, template, design, base, letterhead, onClose }) {
     name: start.name, paper: start.paper, orientation: start.orientation ?? 'portrait', margins: { ...start.margins }, letterhead: start.letterhead,
     headerSpaceMm: start.headerSpaceMm ?? 35, footerSpaceMm: start.footerSpaceMm ?? 20, footerText: start.footerText ?? '',
     showQr: start.showQr !== false, showPrintedOn: start.showPrintedOn !== false, fontScale: start.fontScale ?? 100, active: start.active !== false,
-    signMode: start.signMode || defaultSignMode(doc.value), branchId: start.branchId || '',
+    signMode: start.signMode || defaultSignMode(doc.value), branchId: start.branchId || '', language: start.language || '',
     isDefault: template ? template.isDefault : doc.templates.length === 0,
   }))
   // the document body: null = the standard layout, a string = this institution's own Handlebars template
@@ -276,6 +276,7 @@ function TemplateEditor({ doc, template, design, base, letterhead, onClose }) {
     headerSpaceMm: num(f.headerSpaceMm), footerSpaceMm: num(f.footerSpaceMm), fontScale: num(f.fontScale) || 100,
     ...(doc.server && { body: docBody ?? null }),
     branchId: f.branchId || null, ...(f.branchId && { isDefault: false }),
+    language: f.language || null,
   })
   const save = useMutation({
     mutationFn: () => (template ? updatePrintTemplate(template.id, body()) : createPrintTemplate({ ...body(), docType: doc.value })),
@@ -328,6 +329,14 @@ function TemplateEditor({ doc, template, design, base, letterhead, onClose }) {
                 <Select value={f.branchId} onChange={(e) => setF((x) => ({ ...x, branchId: e.target.value, ...(e.target.value && { isDefault: false }) }))}>
                   <option value="">{t('admin.printTemplates.allCampuses')}</option>
                   {campuses.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
+                </Select>
+              </FormField>
+            )}
+            {doc.server && SUPPORTED_LANGUAGES.length > 1 && (
+              <FormField label={t('admin.printTemplates.printLanguage')} hint={t('admin.printTemplates.printLanguageHint')}>
+                <Select value={f.language} onChange={set('language')}>
+                  <option value="">{t('admin.printTemplates.eachStudentsLanguage')}</option>
+                  {SUPPORTED_LANGUAGES.map((l) => <option key={l.code} value={l.code}>{l.nativeName === l.name ? l.name : `${l.nativeName} (${l.name})`}</option>)}
                 </Select>
               </FormField>
             )}

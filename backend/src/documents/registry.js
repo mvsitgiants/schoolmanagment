@@ -53,8 +53,9 @@ const V = {
   layout: '{{#> letterhead}}corner{{/letterhead}} · {{> footer}} · $layout.showQr',
 }
 
-function tcModel({ tc, student }) {
+function tcModel({ tc, student }, { lang } = {}) {
   const sn = tc.snapshot ?? {}
+  const L = lang || student?.language
   return {
     tc: {
       no: tc.tcNo, status: tc.status, issued: tc.status === 'ISSUED', cancelled: tc.status === 'CANCELLED', requested: tc.status === 'REQUESTED',
@@ -63,15 +64,15 @@ function tcModel({ tc, student }) {
       reasonText: tc.reasonText, conduct: tc.conduct, lastClass: tc.lastClassLabel, promotedTo: tc.promotedTo, feesPaidUpTo: tc.feesPaidUpTo,
       remarks: tc.remarks, cancelReason: tc.cancelReason,
       // the rest of the CBSE-format TC (empty ones print as a blank line)
-      lastClassWords: classInWords(tc.lastClassLabel), promotedToWords: classInWords(tc.promotedTo),
+      lastClassWords: classInWords(tc.lastClassLabel, L), promotedToWords: classInWords(tc.promotedTo, L),
       bookNo: tc.bookNo, applicationDate: tc.applicationDate, lastExam: tc.lastExam, lastExamResult: tc.lastExamResult,
       failed: TC_FAILED.find((x) => x.value === tc.failed)?.label ?? null, subjects: tc.subjects ?? [], subjectsText: (tc.subjects ?? []).join(', '),
       concession: tc.concession, workingDays: tc.workingDays ?? null, presentDays: tc.presentDays ?? null, nccScoutGuide: tc.nccScoutGuide, games: tc.games,
     },
     student: {
-      name: sn.name, admissionNo: sn.admissionNo, dob: sn.dob, dobWords: dateInWords(sn.dob, student?.language), gender: sn.gender, nationality: sn.nationality,
+      name: sn.name, admissionNo: sn.admissionNo, dob: sn.dob, dobWords: dateInWords(sn.dob, L), gender: sn.gender, nationality: sn.nationality,
       category: CATEGORY_LABEL_OF(sn.category), religion: sn.religion, admissionDate: sn.admissionDate, firstClass: sn.firstClass,
-      father: sn.father, mother: sn.mother, guardian: sn.guardian, apaarId: sn.apaarId, pen: sn.pen, language: student?.language,
+      father: sn.father, mother: sn.mother, guardian: sn.guardian, apaarId: sn.apaarId, pen: sn.pen, language: L,
       // SC / ST / OBC row: the category, or "No" for General
       reserved: ['SC', 'ST', 'OBC'].includes(sn.category) ? CATEGORY_LABEL_OF(sn.category) : sn.category ? 'No' : null,
     },
@@ -145,8 +146,9 @@ function reportCardModel({ candidate: c, exam, year, student, place, papers, ent
   }
 }
 
-function certificateModel({ certificate: c, verifyUrl }) {
+function certificateModel({ certificate: c, verifyUrl }, { lang } = {}) {
   const sn = c.snapshot ?? {}
+  const L = lang || sn.language || 'en'
   const kid = sn.gender === 'MALE' ? 'm' : sn.gender === 'FEMALE' ? 'f' : 'x'
   return {
     certificate: {
@@ -157,13 +159,13 @@ function certificateModel({ certificate: c, verifyUrl }) {
     student: {
       ...sn, kid, parent: sn.father || sn.mother || null, studying: sn.studying ?? sn.status === 'ACTIVE',
       // ", son of Rajesh Sharma" — the relation word is translated in the template's language
-      parentPhrase: sn.father || sn.mother ? `, ${translateDoc(sn.language || 'en', `certificates.print.childOf.${kid}`, kid === 'm' ? 'son of' : kid === 'f' ? 'daughter of' : 'ward of')} ${sn.father || sn.mother}` : '',
+      parentPhrase: sn.father || sn.mother ? `, ${translateDoc(L, `certificates.print.childOf.${kid}`, kid === 'm' ? 'son of' : kid === 'f' ? 'daughter of' : 'ward of')} ${sn.father || sn.mother}` : '',
       // he / she, his / her, Master / Kumari, S/o / D/o — from the gender, "he/she" when it isn't recorded
-      p: Object.fromEntries(Object.entries(pronounsOf(sn.gender)).map(([k, v]) => [k, k === 'kid' ? v : translateDoc(sn.language || 'en', `certificates.print.words.${k}.${kid}`, v)])),
-      dobWords: dateInWords(sn.dob, sn.language), years: sn.years ?? [], hasYears: (sn.years ?? []).length > 0,
+      p: Object.fromEntries(Object.entries(pronounsOf(sn.gender)).map(([k, v]) => [k, k === 'kid' ? v : translateDoc(L, `certificates.print.words.${k}.${kid}`, v)])),
+      dobWords: dateInWords(sn.dob, L), years: sn.years ?? [], hasYears: (sn.years ?? []).length > 0,
       // "Master Aditya Iyer" and ", S/o Suresh Iyer" as Indian certificates write them
-      titleName: [translateDoc(sn.language || 'en', `certificates.print.words.title.${kid}`, pronounsOf(sn.gender).title), sn.name].filter(Boolean).join(' '),
-      relPhrase: sn.father || sn.mother ? `, ${translateDoc(sn.language || 'en', `certificates.print.words.rel.${kid}`, pronounsOf(sn.gender).rel)} ${sn.father || sn.mother}` : '',
+      titleName: [translateDoc(L, `certificates.print.words.title.${kid}`, pronounsOf(sn.gender).title), sn.name].filter(Boolean).join(' '),
+      relPhrase: sn.father || sn.mother ? `, ${translateDoc(L, `certificates.print.words.rel.${kid}`, pronounsOf(sn.gender).rel)} ${sn.father || sn.mother}` : '',
     },
     fees: sn.fees ? { ...sn.fees, heads: (sn.fees.heads ?? []).map((h, i) => ({ ...h, sl: i + 1, tuition: TUITION_HEAD_CODES.includes(h.code) })) } : null,
     verify: { url: verifyUrl, code: c.verifyCode },

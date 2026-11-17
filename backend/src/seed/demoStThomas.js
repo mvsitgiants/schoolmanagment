@@ -114,6 +114,47 @@ async function fillLetterhead(admin) {
   return 'classic centred letterhead'
 }
 
+/**
+ * The board and numbers as the letterhead prints them: the letterhead adds "Affiliated to" and "Affiliation No." itself,
+ * so the saved values carry just the board's name and the number (older demo data had the words in them twice).
+ */
+async function fixCampusDetails(admin) {
+  const fixes = { board: ['Affiliated to CBSE, New Delhi', 'Central Board of Secondary Education (CBSE), New Delhi'], affiliationNo: ['Recognition No. 2468/UPB/1996', '2468/UPB/1996'] }
+  let fixed = 0
+  for (const b of await admin.get('/core/branches')) {
+    const identity = { ...(b.identity ?? {}) }
+    let changed = 0
+    for (const [k, [from, to]] of Object.entries(fixes)) if (identity[k] === from) { identity[k] = to; changed++ }
+    if (changed) await admin.patch(`/core/branches/${b.id}`, { identity })
+    fixed += changed
+  }
+  const settings = await admin.get('/core/settings')
+  if ((settings.profile?.board ?? settings.board) === fixes.board[0]) { await admin.patch('/core/settings', { board: fixes.board[1] }); fixed++ }
+  return fixed ? `${fixed} corrected` : 'already right'
+}
+
+// The UP Board campus prints its students' documents in Hindi: one template per document, for that campus only, set to
+// Hindi (Settings › Print templates › Print language). The CBSE campus keeps the built-in English layout.
+const HINDI_DOCS = ['HALL_TICKET', 'REPORT_CARD', 'YEAR_REPORT_CARD', 'TRANSFER_CERTIFICATE', 'CERTIFICATE', 'FEE_RECEIPT', 'FEE_INVOICE', 'ADMISSION_FORM']
+async function fillHindiTemplates(admin) {
+  await loadBranches(admin)
+  if (!branches.UP) return 'no UP Board campus'
+  const docs = await admin.get('/core/print-templates')
+  let made = 0
+  for (const docType of HINDI_DOCS) {
+    const doc = docs.find((d) => d.value === docType)
+    if (!doc || doc.templates.some((t) => String(t.branchId) === String(branches.UP))) continue
+    const { template: base } = await admin.get(`/core/print/effective/${docType}`) // the built-in paper, margins and signing
+    await admin.post('/core/print-templates', {
+      docType, name: 'UP Board — Hindi', branchId: branches.UP, language: 'hi',
+      paper: base.paper, orientation: base.orientation ?? 'portrait', margins: base.margins, letterhead: base.letterhead ?? 'FULL',
+      showQr: base.showQr !== false, showPrintedOn: base.showPrintedOn !== false, fontScale: base.fontScale ?? 100, ...(base.signMode && { signMode: base.signMode }),
+    })
+    made++
+  }
+  return made ? `${made} documents print in Hindi for the UP Board campus` : 'already there'
+}
+
 // ───────────────────────────────────────────────────────── students
 
 /** Every class gets 5–10 students (one section a class), the right age for the class; older UP students carry APAAR and PEN. */
@@ -1986,6 +2027,8 @@ async function main() {
   await loadBranches(admin)
   if (FRESH_CONTENT) await step('Clear every syllabus and all topic content', () => clearContentAndSyllabus())
   await step('Letterhead', () => fillLetterhead(admin))
+  await step('Campus print details', () => fixCampusDetails(admin))
+  await step('Hindi print templates for the UP Board campus', () => fillHindiTemplates(admin))
   await step('Students', () => fillStudents(admin))
   await step('Staff & HR', () => fillStaff(admin))
   await step('Teachers and subject allocation', () => fillTeachers(admin))

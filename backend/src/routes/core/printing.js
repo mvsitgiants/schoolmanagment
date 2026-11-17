@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { LETTERHEAD_IDS, LETTERHEAD_MODES, PAPER_SIZES, PRINT_DOCS, SIGNATORIES, SIGN_MODES } from '@schoolgiant/shared'
+import { LETTERHEAD_IDS, LETTERHEAD_MODES, PAPER_SIZES, PRINT_DOCS, SIGNATORIES, SIGN_MODES, SUPPORTED_LANGUAGES } from '@schoolgiant/shared'
 import { requirePermission } from '../../platform/middleware.js'
 import { objectId, optionalText, printImage, z } from '../../platform/validate.js'
 import { deleteTemplate, effectiveTemplate, getLetterhead, listTemplates, saveLetterhead, saveTemplate } from '../../services/printing.js'
@@ -48,6 +48,7 @@ const templateBody = z.object({
   fontScale: z.coerce.number().int().min(80).max(130).default(100),
   signMode: z.enum(values(SIGN_MODES)).optional().nullable(),
   branchId: objectId.nullable().optional(),
+  language: z.enum(SUPPORTED_LANGUAGES.map((l) => l.code)).nullable().optional(),
   body: z.string().max(200_000).optional().nullable(),
   active: z.boolean().default(true),
 })

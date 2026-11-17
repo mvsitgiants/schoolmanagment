@@ -93,3 +93,21 @@ describe('fee paid certificate', () => {
     expect((await admin.post(`${api}/preview`).send({ kind: 'FEE', studentIds: [diya.id], fy })).status).toBe(400) // paid nothing
   })
 })
+
+describe('print language', () => {
+  it('prints in the template’s own language, whatever the student’s language', async () => {
+    const before = (await admin.get(`${api}?kind=BONAFIDE`)).body.data[0]
+    const english = (await admin.get(`/api/v1/documents/CERTIFICATE/${before.id}?print=0`)).text
+    expect(english).toContain('<html lang="en"')
+    const tpl = { docType: 'CERTIFICATE', name: 'Hindi certificates', isDefault: true, margins: { top: 12, right: 12, bottom: 16, left: 12 } }
+    expect((await admin.post('/api/v1/core/print-templates').send({ ...tpl, name: 'Bad', language: 'xx' })).status).toBe(400)
+    const saved = (await admin.post('/api/v1/core/print-templates').send({ ...tpl, language: 'hi' }).expect(201)).body.data
+    expect(saved.language).toBe('hi')
+    const hindi = (await admin.get(`/api/v1/documents/CERTIFICATE/${before.id}?print=0`)).text
+    expect(hindi).toContain('<html lang="hi"')
+    expect(hindi).toContain('बोनाफाइड प्रमाण पत्र')
+    // back to each student's own language
+    await admin.patch(`/api/v1/core/print-templates/${saved.id}`).send({ language: null }).expect(200)
+    expect((await admin.get(`/api/v1/documents/CERTIFICATE/${before.id}?print=0`)).text).toContain('<html lang="en"')
+  })
+})

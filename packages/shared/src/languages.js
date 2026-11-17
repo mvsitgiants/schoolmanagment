@@ -2,7 +2,8 @@
 //
 // To add a language later (no code changes elsewhere):
 //   1. add its row here (the commented rows below are ready to switch on),
-//   2. add frontend/src/i18n/locales/<code>/*.json — the same files as locales/en/,
+//   2. add frontend/src/i18n/locales/<code>/*.json — the same files as locales/en/ (printWords.json holds the words
+//      printed documents use for amounts, dates and classes in words — numbers 0–99, months, “Eighth” …),
 //   3. add its web font in frontend/src/i18n/fonts.js if it needs a non-Latin script.
 // Every screen and the language picker read this list; with one language the picker hides itself.
 

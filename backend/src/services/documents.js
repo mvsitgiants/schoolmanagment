@@ -1,4 +1,4 @@
-import { PAPER_BY, PRINT_DOC_BY, fixedPaper, printDefaults } from '@schoolgiant/shared'
+import { PAPER_BY, PRINT_DOC_BY, fixedPaper, langCodeFor, printDefaults } from '@schoolgiant/shared'
 import { DOCS } from '../documents/registry.js'
 import { sampleModel } from '../documents/samples.js'
 import { HELPER_NAMES, defaultTemplate, designsOf, layoutFor, renderPage, templateError } from '../documents/engine.js'
@@ -73,10 +73,13 @@ export async function renderData(docType, raw, opts = {}) {
 /** renderData plus what a PDF needs: the paper, orientation and margins, and a file name. */
 export async function renderPrint(docType, raw, { templateId, body, layout: draft, autoPrint = true, model: given, lang: askedLang } = {}) {
   const def = docOf(docType)
-  let model = given ?? def.model(raw)
   // the record's campus: its own template, and its own name and numbers when it is its own school on paper
   const campus = await campusOf(raw).catch(() => null)
   let template = { ...(await templateFor(docType, templateId, campus?._id)), ...(draft ?? {}) }
+  // the template's own language wins (a Hindi TC for the UP Board campus), then the student's, then the institution's
+  const fromRecord = raw.student?.language || raw.certificate?.snapshot?.language || raw.bill?.language || raw.receipt?.language || raw.institution?.defaultLanguage
+  const lang = askedLang || template.language || (fromRecord ? langCodeFor(fromRecord) : 'en')
+  let model = given ?? def.model(raw, { lang })
   // no saved template: the module's own setting chooses the 80 mm roll, or the paper (a sideways ID card)
   if (template.builtIn && !draft && def.thermal?.(raw)) template = { ...template, paper: 'THERMAL_80', margins: { top: 3, right: 3, bottom: 3, left: 3 } }
   if (template.builtIn && !draft && def.paper?.(raw)) template = { ...template, paper: def.paper(raw) }
@@ -87,12 +90,11 @@ export async function renderPrint(docType, raw, { templateId, body, layout: draf
   const inst = campusInstitution({ ...letterhead.institution, ...raw.institution }, campus)
   // every template can print the institution's details (name, address, PAN, GSTIN, 80G registration …) as institution.*
   model = { ...model, institution: { ...inst, ...model.institution, ...(inst.campus ? { name: inst.name } : {}) } }
-  const layout = layoutFor({ ...template, docType }, letterhead, inst)
+  const layout = layoutFor({ ...template, docType, lang }, letterhead, inst)
   const source = body ?? (template.body?.trim() ? template.body : defaultTemplate(docType))
   if (!source) throw notFound('Template')
   const title = def.title(model)
   try {
-    const lang = askedLang || raw.student?.language || raw.bill?.language || raw.receipt?.language || raw.institution?.defaultLanguage || 'en'
     const html = renderPage({ title, source, model, layout, timeZone: letterhead.institution?.timezone || 'Asia/Kolkata', autoPrint, lang })
     return { html, title, paper: template.paper ?? 'A4', landscape: template.orientation === 'landscape' && !fixedPaper(template.paper), margins: card ? {} : template.margins ?? {}, skipped: model.skipped ?? 0 }
   } catch (e) {

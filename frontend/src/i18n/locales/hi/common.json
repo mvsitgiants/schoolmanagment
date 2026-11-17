@@ -242,7 +242,19 @@
     "class": "कक्षा",
     "admissionNo": "प्रवेश सं.",
     "guardian": "अभिभावक",
-    "printedOn": "मुद्रित: {{when}}"
+    "printedOn": "मुद्रित: {{when}}",
+    "letterhead": {
+      "affiliatedTo": "{{board}} से सम्बद्ध",
+      "phone": "फ़ोन:",
+      "email": "ईमेल:",
+      "ids": {
+        "affiliationNo": "सम्बद्धता सं.",
+        "schoolCode": "विद्यालय सं.",
+        "udiseCode": "UDISE कोड",
+        "registrationNo": "पंजीकरण सं.",
+        "gstin": "GSTIN"
+      }
+    }
   },
   "signOut": "साइन आउट",
   "notFound": {

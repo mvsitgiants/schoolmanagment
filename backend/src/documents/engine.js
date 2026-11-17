@@ -8,8 +8,9 @@ import { fileURLToPath } from 'node:url'
 import Handlebars from 'handlebars'
 import QRCode from 'qrcode'
 import bwipjs from 'bwip-js'
-import { amountInWordsHi, classInWords, dateInWords } from './words.js'
-import { LETTERHEAD_IDS, PAPER_BY, amountInWords, fixedPaper, formatINR, pageCss, defaultSignMode } from '@schoolgiant/shared'
+import { amountInWordsFor, classInWords, dateInWords, wordsFor } from './words.js'
+import { getBundle } from './locales.js'
+import { LETTERHEAD_IDS, PAPER_BY, fixedPaper, formatINR, pageCss, defaultSignMode } from '@schoolgiant/shared'
 
 const DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), 'defaults')
 const hb = Handlebars.create()
@@ -46,26 +47,6 @@ export function barcodeSvg(text, height = 9) {
   } catch {
     return ''
   }
-}
-
-const LOCALES_DIR = [
-  path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../frontend/src/i18n/locales'),
-  path.resolve(process.cwd(), 'frontend/src/i18n/locales'),
-  path.resolve(process.cwd(), '../frontend/src/i18n/locales'),
-].find((d) => fs.existsSync(d)) || null
-
-const bundleCache = new Map()
-function getBundle(lang, ns) {
-  if (!LOCALES_DIR) return null
-  const cacheKey = `${lang}:${ns}`
-  if (bundleCache.has(cacheKey)) return bundleCache.get(cacheKey)
-  const file = path.join(LOCALES_DIR, lang, `${ns}.json`)
-  let data = null
-  if (fs.existsSync(file)) {
-    try { data = JSON.parse(fs.readFileSync(file, 'utf8')) } catch {}
-  }
-  bundleCache.set(cacheKey, data)
-  return data
 }
 
 function getPath(obj, keys) {
@@ -124,12 +105,13 @@ export function translateDoc(lang, key, fallback) {
 }
 
 const HELPERS = {
-  /** UP Board / state-board division from a percentage: {{division pct}} → First / Second / Third / Fail; {{division pct "hi"}} in Hindi. */
+  /** UP Board / state-board division from a percentage: {{division pct}} → First / Second / Third / Fail in the print's
+   *  language (printWords.divisions); {{division pct "hi"}} names the language. */
   division: (pct, lang) => {
     const n = Number(pct)
     if (pct === null || pct === undefined || pct === '' || !Number.isFinite(n)) return ''
     const k = n >= 60 ? 0 : n >= 45 ? 1 : n >= 33 ? 2 : 3
-    return (lang === 'hi' ? ['प्रथम श्रेणी', 'द्वितीय श्रेणी', 'तृतीय श्रेणी', 'अनुत्तीर्ण'] : ['First division', 'Second division', 'Third division', 'Fail'])[k]
+    return wordsFor(typeof lang === 'string' ? lang : langOf(lang)).divisions[k] ?? ''
   },
   /** Translate a string: `{{t "key" "fallback"}}` or `{{t "key"}}`. Values for `{{placeholders}}` in the text come
    *  from the hash: `{{t "hrms.print.offer.dear" "Dear {{name}}," name=employee.name}}` (escaped like any value).
@@ -154,7 +136,7 @@ const HELPERS = {
   /** ₹1,234.50 from paise. `{{money total}}`, `{{money total 0}}` for whole rupees. */
   money: (p, decimals, options) => (p === undefined || p === null || p === '' ? '' : formatINR(Number(p), { decimals: typeof decimals === 'number' ? decimals : 2 })),
   num: (n) => (n === undefined || n === null || n === '' ? '' : new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 }).format(Number(n))),
-  words: (p, options) => (p ? (langOf(options) === 'hi' ? amountInWordsHi(Number(p)) : amountInWords(Number(p))) : ''),
+  words: (p, options) => (p ? amountInWordsFor(Number(p), langOf(options)) : ''),
   /** A date of birth in words in the print's language: `{{dateWords student.dob}}` (Tenth May … / दस मई …). */
   dateWords: (ymd, options) => dateInWords(typeof ymd === 'string' ? ymd : '', langOf(options)),
   /** A class in words in the print's language: `{{classWords tc.lastClass}}` (Eighth / आठवीं). */
@@ -269,23 +251,27 @@ export function templateError(source) {
 }
 
 /** The letterhead block for the layout (logo, name, address, contacts, registration numbers). */
-function letterheadBlock(lh, mode, h, accent) {
+function letterheadBlock(lh, mode, h, accent, lang = 'en') {
   if (mode === 'NONE') return `<div class="hn" style="font-size:11pt">${esc(h.name)}</div>`
-  const ids = (lh.ids ?? []).filter((k) => h[k]).map((k) => `${esc(LETTERHEAD_IDS.find((x) => x.value === k)?.short ?? LETTERHEAD_IDS.find((x) => x.value === k)?.label)} ${esc(h[k])}`)
+  // labels in the print language (common.letterhead.*); the institution's own details print as saved
+  const word = (key, fallback) => translateDoc(lang, `common.letterhead.${key}`, fallback)
+  const idLabel = (k) => { const id = LETTERHEAD_IDS.find((x) => x.value === k); return word(`ids.${k}`, id?.short ?? id?.label ?? k) }
+  const ids = (lh.ids ?? []).filter((k) => h[k]).map((k) => `${esc(idLabel(k))} ${esc(h[k])}`)
   const address = esc([h.addressLine, h.city, h.state, h.pincode].filter(Boolean).join(', '))
-  const contacts = lh.showContacts !== false ? [h.phone && `Ph: ${esc(h.phone)}`, h.email && `Email: ${esc(h.email)}`, h.website && esc(h.website)].filter(Boolean).join(' · ') : ''
+  const contacts = lh.showContacts !== false ? [h.phone && `${esc(word('phone', 'Ph:'))} ${esc(h.phone)}`, h.email && `${esc(word('email', 'Email:'))} ${esc(h.email)}`, h.website && esc(h.website)].filter(Boolean).join(' · ') : ''
+  const affiliated = h.board ? esc(word('affiliatedTo', 'Affiliated to {{board}}')).replace('{{board}}', esc(h.board)) : ''
   if (lh.align === 'CENTER') {
     // The usual Indian school letterhead: crest on the left, the name in capitals in the middle, the board and its
     // numbers under it, then the address and contacts — over a double rule.
     const logo = lh.showLogo !== false && h.logoUrl ? `<img class="crest" src="${esc(h.logoUrl)}" alt="" />` : ''
-    const board = [h.board && `Affiliated to ${esc(h.board)}`, ...ids].filter(Boolean).join(' · ')
+    const board = [affiliated, ...ids].filter(Boolean).join(' · ')
     return `<div class="lh-classic">${logo ? `<div class="crest-box">${logo}</div>` : '<div class="crest-box"></div>'}<div class="lh-mid">${h.trustName ? `<div class="lh-trust">${esc(h.trustName)}</div>` : ''}<div class="hn-classic" style="color:${esc(accent)}">${esc(h.name)}</div>${lh.tagline ? `<div class="lh-tag">${esc(lh.tagline)}</div>` : ''}${board ? `<div class="lh-board">${board}</div>` : ''}${address ? `<div class="lh-line">${address}</div>` : ''}${contacts ? `<div class="lh-line">${contacts}</div>` : ''}</div><div class="crest-box"></div></div>`
   }
   return [
     lh.showLogo !== false && h.logoUrl ? `<img class="logo" src="${esc(h.logoUrl)}" alt="" />` : '',
     `<div class="hn" style="color:${esc(accent)}">${esc(h.name)}</div>`,
     lh.tagline ? `<div class="muted" style="font-style:italic">${esc(lh.tagline)}</div>` : '',
-    h.board ? `<div class="muted">Affiliated to ${esc(h.board)}</div>` : '',
+    affiliated ? `<div class="muted">${affiliated}</div>` : '',
     `<div class="muted">${address}</div>`,
     contacts ? `<div class="muted">${contacts}</div>` : '',
     ids.length ? `<div class="muted">${ids.join(' · ')}</div>` : '',
@@ -304,7 +290,7 @@ export function layoutFor(template, letterhead, institution) {
     mode,
     center: letterhead?.align === 'CENTER',
     accent,
-    block: card ? '' : letterheadBlock(letterhead ?? {}, mode, h, accent),
+    block: card ? '' : letterheadBlock(letterhead ?? {}, mode, h, accent, template.lang),
     footerText: template.footerText || letterhead?.footerText || '',
     showQr: template.showQr !== false,
     showPrintedOn: !card && template.showPrintedOn !== false,
