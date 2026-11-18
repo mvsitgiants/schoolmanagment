@@ -14,7 +14,8 @@
     "lint:i18n": "node scripts/lint-i18n.mjs",
     "gen:locales": "node scripts/gen-locales.mjs",
     "i18n:progress": "node scripts/hindi-progress.mjs",
-    "i18n:sync": "node scripts/i18n-sync.mjs"
+    "i18n:sync": "node scripts/i18n-sync.mjs",
+    "i18n:check": "node scripts/i18n-check.mjs"
   },
   "dependencies": {
     "@schoolgiant/shared": "*",
