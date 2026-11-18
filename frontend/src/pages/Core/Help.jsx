@@ -2,12 +2,14 @@ import { useEffect, useState } from 'react'
 import { useLocation, useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { CheckCircle2, Clock, LifeBuoy, Mail, MessageCircle, Phone, Send, Star } from 'lucide-react'
+import { BookOpen, CheckCircle2, Clock, LifeBuoy, Mail, MessageCircle, Phone, Search, Send, Star, ThumbsDown, ThumbsUp } from 'lucide-react'
 import { SUPPORT_CATEGORIES, SUPPORT_STATUS } from '@schoolgiant/shared'
 import { EmptyState, FormField, Input, Modal, Note, PageContainer, PageHeader, Panel, SegmentedControl, Select, StatusPill } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { Messages, ReplyBox } from '../../components/support/Conversation'
-import { createTicket, fetchMyTicket, fetchMyTickets, fetchSupportContact, loadSupportFile, replyTicket, solveTicket, uploadSupportFile } from '../../api/support'
+import { createTicket, fetchMyTicket, fetchMyTickets, fetchSupportContact, helpFeedback, loadSupportFile, readHelp, replyTicket, searchHelp, solveTicket, uploadSupportFile } from '../../api/support'
+import ArticleBody from '../../components/support/ArticleBody'
+import useDebouncedValue from '../../hooks/useDebouncedValue'
 import { useSnackbar } from '../../context/SnackbarContext'
 import { useFormat } from '../../context/SettingsContext'
 import useAuthUser from '../../hooks/useAuthUser'
@@ -38,12 +40,80 @@ function ReachUs() {
   )
 }
 
+/** One article to read, with "was this helpful?" — and, if not, a way straight to asking. */
+function ArticleModal({ slug, onClose, onAsk }) {
+  const { t, i18n } = useTranslation('admin')
+  const { data: a, error } = useQuery({ queryKey: ['help-article', slug, i18n.language], queryFn: () => readHelp(slug, i18n.language) })
+  const [voted, setVoted] = useState(null)
+  const vote = (helpful) => { setVoted(helpful); helpFeedback(slug, helpful).catch(() => {}) }
+  return (
+    <Modal open onClose={onClose} size="lg" title={a?.title ?? '…'}>
+      {error ? <Note tone="danger">{error.message}</Note> : !a ? <p className="text-sm text-ink-faint">…</p> : (
+        <div className="space-y-5">
+          {a.summary && <p className="text-sm text-ink-muted">{a.summary}</p>}
+          <ArticleBody text={a.body} />
+          <div className="rounded-lg border border-border p-3 flex flex-wrap items-center gap-2">
+            {voted === null ? <>
+              <span className="text-sm text-ink me-auto">{t('admin.help.wasHelpful')}</span>
+              <Button size="sm" variant="secondary" icon={ThumbsUp} onClick={() => vote(true)}>{t('admin.help.yes')}</Button>
+              <Button size="sm" variant="secondary" icon={ThumbsDown} onClick={() => vote(false)}>{t('admin.help.no')}</Button>
+            </> : voted ? <span className="text-sm text-success-700">{t('admin.help.gladHelped')}</span> : <>
+              <span className="text-sm text-ink me-auto">{t('admin.help.sorryAsk')}</span>
+              <Button size="sm" icon={Send} onClick={() => onAsk(a.title)}>{t('admin.help.askUs')}</Button>
+            </>}
+          </div>
+        </div>
+      )}
+    </Modal>
+  )
+}
+
+/** Search the help articles; with nothing typed, the ones for the screen the person came from, then the rest. */
+function HelpSearch({ pageKey, pageName, onAsk }) {
+  const { t, i18n } = useTranslation('admin')
+  const [q, setQ] = useState('')
+  const dq = useDebouncedValue(q, 300)
+  const [open, setOpen] = useState(null)
+  const { data } = useQuery({ queryKey: ['help-search', dq, pageKey, i18n.language], queryFn: () => searchHelp({ q: dq || undefined, page: pageKey || undefined, lang: i18n.language }) })
+  const forPage = !dq ? data?.forPage ?? [] : []
+  const rows = (data?.rows ?? []).filter((r) => !forPage.some((f) => f.slug === r.slug)).slice(0, dq ? 20 : 6)
+  const item = (a) => (
+    <li key={a.slug}>
+      <button type="button" onClick={() => setOpen(a.slug)} className="w-full flex items-start gap-3 px-4 py-2.5 text-start hover:bg-black/[0.02]">
+        <BookOpen className="w-4 h-4 mt-0.5 text-ink-faint shrink-0" />
+        <span className="min-w-0"><span className="block text-sm font-medium text-ink">{a.title}</span>{a.summary && <span className="block text-xs text-ink-muted">{a.summary}</span>}</span>
+      </button>
+    </li>
+  )
+  if (data && !data.rows.length && !dq) return null // no articles published yet
+  return (
+    <Panel title={t('admin.help.searchTitle')} flush>
+      <div className="px-4 pt-3 pb-2">
+        <div className="relative">
+          <Search className="w-4 h-4 text-ink-faint absolute start-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('admin.help.searchPlaceholder')} className="ps-9" />
+        </div>
+      </div>
+      {forPage.length > 0 && <>
+        <p className="px-4 pt-2 text-[11px] font-semibold uppercase tracking-wider text-ink-faint">{t('admin.help.forThisPage', { page: pageName })}</p>
+        <ul className="divide-y divide-border">{forPage.map(item)}</ul>
+      </>}
+      {rows.length > 0 ? <>
+        {!dq && <p className="px-4 pt-3 text-[11px] font-semibold uppercase tracking-wider text-ink-faint">{t('admin.help.popular')}</p>}
+        <ul className="divide-y divide-border">{rows.map(item)}</ul>
+      </> : dq ? <p className="px-4 py-3 text-sm text-ink-muted">{t('admin.help.noMatch')}</p> : null}
+      <div className="h-2" />
+      {open && <ArticleModal slug={open} onClose={() => setOpen(null)} onAsk={(title) => { setOpen(null); onAsk(title) }} />}
+    </Panel>
+  )
+}
+
 /** Ask for help: what it is about, a subject, what happened, files. */
-function AskForm({ from, onSent }) {
+function AskForm({ from, onSent, subject: startSubject = '' }) {
   const { t } = useTranslation('admin')
   const user = useAuthUser()
   const { showError } = useSnackbar()
-  const [v, setV] = useState({ category: 'PROBLEM', subject: '', priority: 'NORMAL' })
+  const [v, setV] = useState({ category: 'PROBLEM', subject: startSubject, priority: 'NORMAL' })
   const [errors, setErrors] = useState({})
   const cl = useCatalogLabel()
   const gate = from ? gateFor(user, from) : null
@@ -141,6 +211,13 @@ export default function Help() {
   const [openId, setOpenId] = useState(params.get('request'))
   useEffect(() => { const r = params.get('request'); if (r) setOpenId(r) }, [params])
   const rows = data?.rows ?? []
+  const user = useAuthUser()
+  const cl = useCatalogLabel()
+  const gate = from ? gateFor(user, from) : null
+  const pageKey = gate?.module && gate?.page ? `${gate.module.id}.${gate.page.id}` : ''
+  const pageName = gate?.module ? [cl.module(gate.module), gate.page ? cl.page(gate.module, gate.page) : null].filter(Boolean).join(' › ') : ''
+  const [ask, setAsk] = useState({ n: 0, subject: '' })
+  const askAbout = (title) => { setAsk((a) => ({ n: a.n + 1, subject: title })); setTimeout(() => document.getElementById('ask-form')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50) }
   const close = () => { setOpenId(null); if (params.get('request')) { params.delete('request'); setParams(params, { replace: true }) } }
 
   return (
@@ -148,7 +225,8 @@ export default function Help() {
       <PageHeader icon={LifeBuoy} title={t('admin.help.title')} subtitle={t('admin.help.subtitle')} />
       <div className="grid lg:grid-cols-3 gap-5 items-start">
         <div className="lg:col-span-2 space-y-5 min-w-0">
-          <AskForm from={from} onSent={(r) => { setFilter('ACTIVE'); setOpenId(r.id) }} />
+          <HelpSearch pageKey={pageKey} pageName={pageName} onAsk={askAbout} />
+          <div id="ask-form" className="scroll-mt-4"><AskForm key={ask.n} subject={ask.subject} from={from} onSent={(r) => { setFilter('ACTIVE'); setOpenId(r.id) }} /></div>
           <Panel title={data?.all ? t('admin.help.schoolRequests') : t('admin.help.myRequests')} flush
             actions={<SegmentedControl value={filter} onChange={setFilter} options={[{ value: 'ACTIVE', label: t('admin.help.filterActive') }, { value: 'SOLVED', label: t('admin.help.filterSolved') }, { value: 'ALL', label: t('admin.help.filterAll') }]} />}>
             {!rows.length ? <EmptyState icon={Send} title={t('admin.help.none')} hint={t('admin.help.noneHint')} /> : (

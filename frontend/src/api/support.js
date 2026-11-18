@@ -27,3 +27,13 @@ export const teamReply = (id, body) => post(`/v1/superadmin/support/${id}/messag
 export const updateTeamTicket = (id, body) => patch(`/v1/superadmin/support/${id}`, body)
 export const uploadTeamFile = (file, tenantId) => upload('/v1/superadmin/support/files', file, { tenantId })
 export const loadTeamFile = (id) => api.get(`/v1/superadmin/support/files/${id}`, { responseType: 'blob' })
+
+// help articles — schools read the published ones (in their language where translated)
+export const searchHelp = (params) => get('/v1/support/articles', params)
+export const readHelp = (slug, lang) => get(`/v1/support/articles/${encodeURIComponent(slug)}`, { lang })
+export const helpFeedback = (slug, helpful) => post(`/v1/support/articles/${encodeURIComponent(slug)}/feedback`, { helpful })
+// the team writes them
+export const fetchHelpArticles = () => get('/v1/superadmin/help-articles')
+export const saveHelpArticle = (id, body) => (id ? api.put(`/v1/superadmin/help-articles/${id}`, body).then((r) => r.data.data) : post('/v1/superadmin/help-articles', body))
+export const deleteHelpArticle = (id) => api.delete(`/v1/superadmin/help-articles/${id}`).then((r) => r.data.data)
+export const addStarterHelp = () => post('/v1/superadmin/help-articles/starter')

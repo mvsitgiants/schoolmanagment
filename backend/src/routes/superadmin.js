@@ -16,6 +16,7 @@ import { tempPassword } from '../services/users.js'
 import { platformAudit } from '../services/platformAudit.js'
 import { getTeamTicket, listAllTickets, supportStaff, teamReply, updateTeamTicket, uploadSupportFile } from '../services/support.js'
 import { sendSupportFile } from './support.js'
+import { addStarterArticles, deleteArticle, listArticlesForTeam, saveArticle } from '../services/helpArticles.js'
 import { email, escapeRegex, mobile, optionalText, pageParams, listResponse, searchFilter, z } from '../platform/validate.js'
 import { applyPlanModuleChange, listTenantModules, saveModuleOverrides } from '../services/modules.js'
 import { provisionTenant } from '../services/provisioning.js'
@@ -580,6 +581,24 @@ router.patch('/support/:id', requirePlatform('support'), async (req, res) => {
     assignedToId: z.string().regex(/^[0-9a-f]{24}$/).nullable().optional(),
   }).parse(req.body)
   res.json({ data: await updateTeamTicket(req.params.id, input) })
+})
+
+// ───────────────────────────────────────────────────────── help articles (for every school's Help & support page)
+
+const articleSchema = z.object({
+  slug: z.string().trim().max(80).optional(), title: z.string().trim().min(3, 'Give the article a title').max(160), summary: z.string().trim().max(300).optional(),
+  body: z.string().max(20000).default(''), module: z.string().max(40).optional().or(z.literal('')), pages: z.array(z.string().max(80)).max(20).default([]),
+  translations: z.record(z.string().regex(/^[a-z]{2}$/), z.object({ title: z.string().max(160).default(''), summary: z.string().max(300).optional(), body: z.string().max(20000).default('') })).default({}),
+  published: z.boolean().default(false), order: z.number().int().min(0).max(10000).default(100),
+})
+router.get('/help-articles', async (req, res) => { res.json({ data: await listArticlesForTeam() }) })
+router.post('/help-articles/starter', requirePlatform('support'), async (req, res) => { res.json({ data: await addStarterArticles(req.auth) }) })
+router.post('/help-articles', requirePlatform('support'), async (req, res) => { res.status(201).json({ data: await saveArticle(null, articleSchema.parse(req.body), req.auth) }) })
+router.put('/help-articles/:id', requirePlatform('support'), async (req, res) => {
+  res.json({ data: await saveArticle(z.string().regex(/^[0-9a-f]{24}$/).parse(req.params.id), articleSchema.parse(req.body), req.auth) })
+})
+router.delete('/help-articles/:id', requirePlatform('support'), async (req, res) => {
+  res.json({ data: await deleteArticle(z.string().regex(/^[0-9a-f]{24}$/).parse(req.params.id)) })
 })
 
 export default router

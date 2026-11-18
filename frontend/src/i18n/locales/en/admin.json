@@ -1934,7 +1934,18 @@
       "thanks": "Thank you. Marked as solved.",
       "solvedNote": "Marked as solved. Write again here if it comes back.",
       "closedNote": "This request is closed. Start a new one if you still need help.",
-      "tips": "Faster help: one problem per request, the student’s or receipt’s name or number, and a screenshot."
+      "tips": "Faster help: one problem per request, the student’s or receipt’s name or number, and a screenshot.",
+      "searchTitle": "Find an answer",
+      "searchPlaceholder": "Search help, e.g. admit a student",
+      "forThisPage": "Help for {{page}}",
+      "popular": "Popular",
+      "noMatch": "Nothing matches. Ask us below.",
+      "wasHelpful": "Was this helpful?",
+      "yes": "Yes",
+      "no": "No",
+      "gladHelped": "Glad it helped.",
+      "sorryAsk": "Sorry about that. Tell us what you need.",
+      "askUs": "Ask us"
     }
   }
 }

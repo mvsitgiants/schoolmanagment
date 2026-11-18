@@ -48,6 +48,7 @@ const AcademicAllocation = lazy(() => import('./pages/Academics/Allocation'))
 const AcademicBooksUniform = lazy(() => import('./pages/Academics/BooksUniform'))
 const HelpSupport = lazy(() => import('./pages/Core/Help'))
 const SaSupport = lazy(() => import('./pages/Superadmin/Support'))
+const SaHelpArticles = lazy(() => import('./pages/Superadmin/HelpArticles'))
 
 // Students
 const StudentAdmit = lazy(() => import('./pages/Students/Admit'))
@@ -293,6 +294,7 @@ export default function App() {
           <Route path="audit" element={<SaAudit />} />
           <Route path="support" element={<SaSupport />} />
           <Route path="support/:id" element={<SaSupport />} />
+          <Route path="help-articles" element={<SaHelpArticles />} />
           <Route path="settings" element={<SaSettings />} />
         </Route>
 

@@ -366,3 +366,26 @@ const supportFileSchema = new Schema({
 }, { timestamps: true })
 supportFileSchema.index({ tenantId: 1, createdAt: -1 })
 export const SupportFile = model('SupportFile', supportFileSchema, 'support_files')
+
+/**
+ * A help article (Superadmin › Help articles): a short how-to, linked to the screens it explains so the Help page can
+ * offer it to someone who came from there. English is the article; other languages are its translations (shown when the
+ * reader's language has one). Body: plain text with "1." / "-" lists and **bold**.
+ */
+const helpTextSchema = new Schema({ title: String, summary: String, body: String }, { _id: false })
+const helpArticleSchema = new Schema({
+  slug: { type: String, required: true, unique: true, lowercase: true, trim: true },
+  title: { type: String, required: true, trim: true },
+  summary: { type: String, trim: true },
+  body: { type: String, default: '' },
+  module: String, // catalog module id
+  pages: { type: [String], default: [] }, // "<module>.<page>" the article explains
+  translations: { type: Map, of: helpTextSchema, default: {} }, // hi, kn …
+  published: { type: Boolean, default: false },
+  order: { type: Number, default: 100 },
+  views: { type: Number, default: 0 },
+  helpful: { yes: { type: Number, default: 0 }, no: { type: Number, default: 0 } },
+  updatedBy: String,
+}, { timestamps: true })
+helpArticleSchema.index({ published: 1, module: 1, order: 1 })
+export const HelpArticle = model('HelpArticle', helpArticleSchema, 'help_articles')

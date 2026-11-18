@@ -285,7 +285,8 @@
       "coupons": "Coupons",
       "staff": "Staff",
       "audit": "Audit log",
-      "support": "Support"
+      "support": "Support",
+      "helpArticles": "Help articles"
     },
     "language": {
       "change": "Change language",
