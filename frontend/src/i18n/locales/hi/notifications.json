@@ -253,6 +253,18 @@
           "body": "प्रिय {{guardian.name}},\n\n{{chat.teacher}} ने {{student.name}} के बारे में आपके संदेश का उत्तर दिया है।\nऐप में पढ़ें: {{chat.link}}\n\n{{institution.name}}"
         }
       },
+      "students_admissionForm": {
+        "SMS": {
+          "body": "कृपया {{applicant.name}} का {{applicant.class}} का प्रवेश फ़ॉर्म {{form.until}} तक भरें: {{form.link}} - {{institution.name}}"
+        },
+        "WHATSAPP": {
+          "body": "प्रिय {{guardian.name}},\nकृपया {{institution.name}} में {{applicant.name}} ({{applicant.class}}) का प्रवेश फ़ॉर्म भरें।\n\nफ़ॉर्म खोलें: {{form.link}}\nआप अपने फ़ोन से दस्तावेज़ों (जन्म प्रमाणपत्र, आधार, टीसी) की फ़ोटो जोड़ सकते हैं।\nयह लिंक {{form.until}} तक काम करेगा।\n\n{{institution.name}}"
+        },
+        "EMAIL": {
+          "subject": "{{applicant.name}} का प्रवेश फ़ॉर्म — {{institution.name}}",
+          "body": "प्रिय {{guardian.name}},\n\nकृपया {{institution.name}} में {{applicant.name}} ({{applicant.class}}) का प्रवेश फ़ॉर्म भरें:\n{{form.link}}\n\nआप दस्तावेज़ (जन्म प्रमाणपत्र, आधार, पिछले विद्यालय का टीसी) फ़ोटो या पीडीएफ़ के रूप में जोड़ सकते हैं। यह लिंक {{form.until}} तक काम करेगा।\n\n{{institution.name}}"
+        }
+      },
       "admissions_enquiry": {
         "SMS": {
           "body": "{{applicant.name}} के {{applicant.class}} में प्रवेश संबंधी पूछताछ के लिए धन्यवाद। हम शीघ्र ही आपको कॉल करेंगे। - {{institution.name}}"
@@ -455,18 +467,6 @@
         "EMAIL": {
           "subject": "कैंटीन वॉलेट में राशि कम — {{student.firstName}}",
           "body": "प्रिय {{guardian.name}},\n\n{{student.name}} के कैंटीन वॉलेट में {{canteen.balance}} शेष हैं ({{canteen.threshold}} से कम)। इसे विद्यालय ऐप में या कैंटीन काउंटर पर टॉप अप करें।\n\n{{institution.name}}"
-        }
-      },
-      "students_admissionForm": {
-        "SMS": {
-          "body": "कृपया {{applicant.name}} का {{applicant.class}} का प्रवेश फ़ॉर्म {{form.until}} तक भरें: {{form.link}} - {{institution.name}}"
-        },
-        "WHATSAPP": {
-          "body": "प्रिय {{guardian.name}},\nकृपया {{institution.name}} में {{applicant.name}} ({{applicant.class}}) का प्रवेश फ़ॉर्म भरें।\n\nफ़ॉर्म खोलें: {{form.link}}\nआप अपने फ़ोन से दस्तावेज़ों (जन्म प्रमाणपत्र, आधार, टीसी) की फ़ोटो जोड़ सकते हैं।\nयह लिंक {{form.until}} तक काम करेगा।\n\n{{institution.name}}"
-        },
-        "EMAIL": {
-          "subject": "{{applicant.name}} का प्रवेश फ़ॉर्म — {{institution.name}}",
-          "body": "प्रिय {{guardian.name}},\n\nकृपया {{institution.name}} में {{applicant.name}} ({{applicant.class}}) का प्रवेश फ़ॉर्म भरें:\n{{form.link}}\n\nआप दस्तावेज़ (जन्म प्रमाणपत्र, आधार, पिछले विद्यालय का टीसी) फ़ोटो या पीडीएफ़ के रूप में जोड़ सकते हैं। यह लिंक {{form.until}} तक काम करेगा।\n\n{{institution.name}}"
         }
       }
     },

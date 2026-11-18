@@ -8,7 +8,7 @@ import { fileURLToPath } from 'url'
 const L = path.join(path.dirname(fileURLToPath(import.meta.url)), '../src/i18n/locales')
 const PHASES = [
   ['1 · Teaching & daily use', ['dashboard', 'hub', 'homework', 'lms', 'exams', 'questionPapers', 'tests', 'timetable', 'attendance', 'fees', 'students', 'me', 'family', 'common', 'ui', 'printWords']],
-  ['2 · Office & student services', ['admissions', 'academics', 'certificates', 'frontoffice', 'communication', 'comms', 'events', 'notifications', 'health', 'transport', 'library', 'hostel', 'canteen']],
+  ['2 · Office & student services', ['admissions', 'academics', 'certificates', 'frontoffice', 'communication', 'comms', 'events', 'notifications', 'health', 'transport', 'library', 'hostel', 'canteen', 'parking']],
   ['3 · Staff & money', ['hrms', 'hrmsLeave', 'payroll', 'finance', 'inventory']],
   ['4 · Settings & administration', ['admin', 'settings', 'integrations', 'superadmin', 'catalog', 'nav', 'errors', 'geo', 'registration', 'portal', 'website']],
   ['5 · Higher education & extras', ['programs', 'coe', 'placements', 'alumni', 'research', 'accreditation', 'surveys', 'analytics', 'reports', 'ai', 'scan']],

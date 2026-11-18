@@ -107,6 +107,8 @@ const DEFS = [
     grants: [
       ['frontoffice', '*', 'A'],
       ['frontoffice', ['visitors'], '+delete'], // today's mistaken visitor entry
+      ['parking', ['gate'], 'A'],
+      ['parking', ['vehicles'], 'V'],
       ['students', ['directory'], 'V'],
       ['certificates', ['issue'], 'W'],
       ['admissions', ['enquiries'], 'W'],
@@ -130,6 +132,14 @@ const DEFS = [
     description: 'Rooms, allotment, outpasses, mess and hostel attendance.',
     dataScopes: { default: 'BRANCH' }, limits: {},
     grants: [['hostel', '*', 'F'], ['students', ['directory', 'profile', 'guardians'], 'V'], ['health', ['visits'], 'W']] },
+  { code: 'SECURITY_GUARD', name: 'Security / Gate', icon: 'SquareParking', homePage: '/parking/gate',
+    description: 'At the gate: vehicles in and out, visitors’ vehicles, and visitors checked out on their way out.',
+    dataScopes: { default: 'BRANCH' }, limits: {},
+    grants: [['parking', ['gate'], 'A'], ['parking', ['vehicles'], 'V'], ['frontoffice', ['visitors'], 'V'], ['frontoffice', ['visitors'], '+checkout'], ['frontoffice', ['gate-pass'], 'V']] },
+  { code: 'PARKING_MANAGER', name: 'Parking Manager', icon: 'SquareParking', homePage: '/parking/vehicles',
+    description: 'Parking areas, parking passes and stickers, and the gate.',
+    dataScopes: { default: 'BRANCH' }, limits: {},
+    grants: [['parking', '*', 'F'], ['students', ['directory'], 'V']] },
   { code: 'STORE_KEEPER', name: 'Store Keeper', icon: 'Boxes', homePage: '/inventory/stock',
     description: 'Items, stock, uniform and book sales, purchase orders and the asset register.',
     dataScopes: { default: 'BRANCH' }, limits: {},

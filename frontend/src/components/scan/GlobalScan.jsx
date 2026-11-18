@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { Award, BookCopy, Boxes, CalendarHeart, DoorClosed, CheckCircle2, DoorOpen, HandHelping, HelpCircle, Receipt, ScanQrCode, ShieldAlert, Ticket, UserRound, UsersRound, Utensils } from 'lucide-react'
+import { Award, BookCopy, Boxes, Car, CalendarHeart, DoorClosed, CheckCircle2, DoorOpen, HandHelping, HelpCircle, Receipt, ScanQrCode, ShieldAlert, Ticket, UserRound, UsersRound, Utensils } from 'lucide-react'
 import { Modal, Note, PhoneLink, StatusPill } from '../system'
 import Button from '../ui/Button'
 import { fetchGates, resolveCode } from '../../api/scan'
@@ -11,7 +11,7 @@ import { useFormat } from '../../context/SettingsContext'
 import { ScanDialog, scanFeedback } from './Scanner'
 import { CanteenTokenCard } from '../canteen/TokenScan'
 
-const KIND_ICON = { CANTEEN_TOKEN: Utensils, VISITOR: DoorClosed, ASSET: Boxes, EVENT_PASS: CalendarHeart, MEETING_PASS: UsersRound, PICKUP_PASS: HandHelping, TC: Award, HALL_TICKET: Ticket, STUDENT: UserRound, STAFF: UsersRound, BOOK: BookCopy, RECEIPT: Receipt, CERTIFICATE: Award, UNKNOWN: HelpCircle }
+const KIND_ICON = { VEHICLE: Car, CANTEEN_TOKEN: Utensils, VISITOR: DoorClosed, ASSET: Boxes, EVENT_PASS: CalendarHeart, MEETING_PASS: UsersRound, PICKUP_PASS: HandHelping, TC: Award, HALL_TICKET: Ticket, STUDENT: UserRound, STAFF: UsersRound, BOOK: BookCopy, RECEIPT: Receipt, CERTIFICATE: Award, UNKNOWN: HelpCircle }
 export const OPEN_SCAN_EVENT = 'sg:open-scan'
 export const openScan = () => window.dispatchEvent(new Event(OPEN_SCAN_EVENT))
 
@@ -125,6 +125,12 @@ export default function GlobalScan() {
               {result.kind === 'ASSET' && (
                 <p className={`rounded-lg px-3 py-2.5 text-sm ${result.lastVerified ? 'bg-success-50 text-success-700' : 'bg-black/[0.04] text-ink-muted'}`}>
                   {result.lastVerified ? t('scan.asset.verified', { when: date(result.lastVerified.at), by: result.lastVerified.by ?? '' }) : t('scan.asset.never')}
+                </p>
+              )}
+              {result.kind === 'VEHICLE' && result.parking && (
+                <p className="rounded-lg bg-bg/70 px-3 py-2 text-sm text-ink">
+                  {result.parking.inside ? t('scan.vehicle.inside', { time: time(result.parking.inAt), area: result.parking.area ?? '—' }) : t('scan.vehicle.outside')}
+                  {result.parking.validTo && <span className="block text-xs text-ink-muted">{t('scan.vehicle.pass', { no: result.parking.passNo, date: date(result.parking.validTo) })}</span>}
                 </p>
               )}
               {result.kind === 'CANTEEN_TOKEN' && result.canteen && <CanteenTokenCard result={result} />}

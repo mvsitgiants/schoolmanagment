@@ -34,7 +34,8 @@
       "VISITOR": "आगंतुक",
       "ASSET": "संपत्ति",
       "GATE_PASS": "गेट पास",
-      "CANTEEN_TOKEN": "कैंटीन टोकन"
+      "CANTEEN_TOKEN": "कैंटीन टोकन",
+      "VEHICLE": "वाहन"
     },
     "status": {
       "CANCELLED": "रद्द",
@@ -54,7 +55,9 @@
       "ACTIVE": "आज के लिए मान्य",
       "IN_STORE": "भंडार में",
       "UNDER_REPAIR": "मरम्मत में",
-      "DISPOSED": "निपटाया गया"
+      "DISPOSED": "निपटाया गया",
+      "EXPIRED": "पास समाप्त",
+      "REVOKED": "पास रद्द"
     },
     "action": {
       "profile": "छात्र की प्रोफ़ाइल खोलें",
@@ -78,7 +81,10 @@
       "outpassOut": "आउटपास पर बाहर जाना दर्ज करें",
       "outpassIn": "वापसी दर्ज करें",
       "canteenReady": "तैयार चिह्नित करें",
-      "canteenCollected": "प्राप्त चिह्नित करें — सौंप दें"
+      "canteenCollected": "प्राप्त चिह्नित करें — सौंप दें",
+      "parkingIn": "गेट पर अंदर दर्ज करें",
+      "parkingOut": "गेट पर बाहर दर्ज करें",
+      "parkingPass": "पास खोलें"
     },
     "gate": {
       "title": "गेट स्कैनर",
@@ -187,6 +193,11 @@
       "approved": "स्वीकृत आउटपास {{no}}",
       "out": "आउटपास {{no}} पर {{time}} से बाहर",
       "returnBy": "{{when}} तक लौटना है"
+    },
+    "vehicle": {
+      "inside": "{{time}} से {{area}} में खड़ा है।",
+      "outside": "अभी अंदर खड़ा नहीं है।",
+      "pass": "पास {{no}} · {{date}} तक मान्य"
     }
   }
 }

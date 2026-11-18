@@ -4,7 +4,7 @@ import {
   BadgeCheck, BarChart3, BedDouble, BookMarked, Boxes, Briefcase, Bus, CalendarCheck, CalendarDays, ClipboardCheck,
   ConciergeBell, FileBadge, FileQuestion, FileText, FlaskConical, Globe, GraduationCap, HandHeart, HeartPulse,
   IndianRupee, Landmark, LayoutDashboard, Library, ListChecks, Megaphone, MessageSquareHeart, MonitorPlay,
-  NotebookPen, PartyPopper, Plug, School, ScrollText, Settings2, Smartphone, Sparkles, Square, UserPlus,
+  NotebookPen, PartyPopper, Plug, School, ScrollText, Settings2, Smartphone, Sparkles, Square, SquareParking, UserPlus,
   UsersRound, Utensils, Wallet,
 } from 'lucide-react'
 
@@ -12,7 +12,7 @@ const ICONS = {
   BadgeCheck, BarChart3, BedDouble, BookMarked, Boxes, Briefcase, Bus, CalendarCheck, CalendarDays, ClipboardCheck,
   ConciergeBell, FileBadge, FileQuestion, FileText, FlaskConical, Globe, GraduationCap, HandHeart, HeartPulse,
   IndianRupee, Landmark, LayoutDashboard, Library, ListChecks, Megaphone, MessageSquareHeart, MonitorPlay,
-  NotebookPen, PartyPopper, Plug, School, ScrollText, Settings2, Smartphone, Sparkles, UserPlus,
+  NotebookPen, PartyPopper, Plug, School, ScrollText, Settings2, Smartphone, Sparkles, SquareParking, UserPlus,
   UsersRound, Utensils, Wallet,
 }
 

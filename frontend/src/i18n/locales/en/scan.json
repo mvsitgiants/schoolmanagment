@@ -34,7 +34,8 @@
       "VISITOR": "Visitor",
       "ASSET": "Asset",
       "GATE_PASS": "Gate pass",
-      "CANTEEN_TOKEN": "Canteen token"
+      "CANTEEN_TOKEN": "Canteen token",
+      "VEHICLE": "Vehicle"
     },
     "status": {
       "CANCELLED": "Cancelled",
@@ -54,7 +55,9 @@
       "ACTIVE": "Valid today",
       "IN_STORE": "In store",
       "UNDER_REPAIR": "Under repair",
-      "DISPOSED": "Disposed"
+      "DISPOSED": "Disposed",
+      "EXPIRED": "Pass expired",
+      "REVOKED": "Pass cancelled"
     },
     "action": {
       "profile": "Open student profile",
@@ -78,7 +81,10 @@
       "outpassOut": "Mark out on the outpass",
       "outpassIn": "Mark back in",
       "canteenReady": "Mark ready",
-      "canteenCollected": "Mark collected — hand it over"
+      "canteenCollected": "Mark collected — hand it over",
+      "parkingIn": "Mark in at the gate",
+      "parkingOut": "Mark out at the gate",
+      "parkingPass": "Open the pass"
     },
     "gate": {
       "title": "Gate scanner",
@@ -187,6 +193,11 @@
       "approved": "Approved outpass {{no}}",
       "out": "Out on outpass {{no}} since {{time}}",
       "returnBy": "Back by {{when}}"
+    },
+    "vehicle": {
+      "inside": "Parked since {{time}} in {{area}}.",
+      "outside": "Not parked inside now.",
+      "pass": "Pass {{no}} · valid till {{date}}"
     }
   }
 }

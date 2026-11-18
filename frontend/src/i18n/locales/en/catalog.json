@@ -39,6 +39,7 @@
       "transport": "Transport",
       "library": "Library",
       "hostel": "Hostel",
+      "parking": "Parking",
       "inventory": "Store & assets",
       "health": "Health & infirmary",
       "canteen": "Canteen & wallet",
@@ -81,6 +82,7 @@
       "transport": "Routes, stops, vehicles, student assignment, GPS tracking and pickup alerts.",
       "library": "Catalogue, barcode issue and return, fines and e-library.",
       "hostel": "Rooms and beds, allotment, mess, hostel attendance and outpasses.",
+      "parking": "Parking areas, parking passes for staff, student and parent vehicles, and the gate: vehicles in and out, visitors’ vehicles.",
       "inventory": "Items, stock, vendors, purchase orders, uniform and book sales, asset register.",
       "health": "Health records, vaccinations, sick-room visits and incident reports.",
       "canteen": "Menu, pre-orders and a cashless RFID wallet that parents top up.",
@@ -273,6 +275,11 @@
         "allotment": "Allotment",
         "outpass": "Outpasses",
         "mess": "Mess"
+      },
+      "parking": {
+        "gate": "Gate & parked now",
+        "vehicles": "Vehicles & passes",
+        "areas": "Parking areas"
       },
       "inventory": {
         "items": "Items",

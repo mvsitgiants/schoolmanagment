@@ -325,6 +325,13 @@ export const MODULES = [
       pg('outpass', 'Outpasses', 'V C Ap'),
       pg('mess', 'Mess', 'V E'),
     ] },
+  { id: 'parking', name: 'Parking', category: 'campus', icon: 'SquareParking', deps: [], phase: 3, scopes: SITE_SCOPES,
+    desc: 'Parking areas, parking passes for staff, student and parent vehicles, and the gate: vehicles in and out, visitors’ vehicles.',
+    pages: [
+      pg('gate', 'Gate & parked now', 'V C'),
+      pg('vehicles', 'Vehicles & passes', 'V C E D X'),
+      pg('areas', 'Parking areas', 'V C E D', { setup: true }),
+    ] },
   { id: 'inventory', name: 'Store & assets', category: 'campus', icon: 'Boxes', deps: [], phase: 3, scopes: SITE_SCOPES,
     desc: 'Items, stock, vendors, purchase orders, uniform and book sales, asset register.',
     pages: [

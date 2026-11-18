@@ -1706,6 +1706,59 @@ async function fillFrontOffice(admin) {
   return `${visitors.length} visitors today (${checkedOut} checked out), ${passes} gate passes, ${complaints.length} complaints (1 resolved)`
 }
 
+// ───────────────────────────────────────────────────────── parking
+
+async function fillParking(admin) {
+  if ((await admin.get('/parking/areas', { all: '1' })).length) return 'already there'
+  await loadBranches(admin)
+  if (!employees.length) await loadEmployees(admin)
+  if (!students.length) await loadStudents(admin)
+  const area = (branchId, name, forWho, capacity, kinds = []) => admin.post('/parking/areas', { name, for: forWho, capacity, kinds, ...(branchId ? { branchId } : {}) })
+  const lots = {
+    CBSE: { staff: await area(branches.CBSE, 'Staff car park', 'STAFF', 20), students: await area(branches.CBSE, 'Students’ cycle stand', 'STUDENT', 40, ['CYCLE']), visitors: await area(branches.CBSE, 'Visitor parking', 'VISITOR', 10), parents: await area(branches.CBSE, 'Parents’ pick-up bay', 'GUARDIAN', 12, ['CAR', 'TWO_WHEELER']) },
+    UP: { staff: await area(branches.UP, 'Staff parking (UP Board block)', 'STAFF', 15), students: await area(branches.UP, 'Cycle and scooter stand', 'STUDENT', 60, ['CYCLE', 'TWO_WHEELER']), visitors: await area(branches.UP, 'Visitor parking — Kursi Road gate', 'VISITOR', 8) },
+  }
+  const campusOfEmp = (e) => ((e.branchId ?? e.branch?.id) === branches.UP ? 'UP' : 'CBSE')
+  const SERIES = ['AB', 'BK', 'CD', 'DL', 'EP', 'FK', 'GT', 'HM', 'JR', 'KS']
+  const plateFor = (i) => `UP 32 ${SERIES[i % SERIES.length]} ${String(1200 + i * 37).padStart(4, '0')}`
+  const STAFF_RIDES = [['TWO_WHEELER', 'Honda Activa', 'Grey'], ['CAR', 'Maruti Swift', 'White'], ['TWO_WHEELER', 'TVS Jupiter', 'Blue'], ['CAR', 'Hyundai i20', 'Red'], ['TWO_WHEELER', 'Hero Splendor', 'Black'], ['CAR', 'Tata Nexon', 'Silver']]
+  const passes = []
+  const give = async (body) => { const v = await admin.post('/parking/vehicles', body, { ok: [201], quiet: [400, 409] }); if (v) passes.push(v); return v }
+  let n = 0
+  for (const [i, e] of employees.slice(0, 14).entries()) {
+    const [kind, model, colour] = pick(STAFF_RIDES, i)
+    const lot = lots[campusOfEmp(e)].staff
+    await give({ ownerKind: 'STAFF', employeeId: e.id, plate: plateFor(n++), kind, model, colour, licenceNo: `UP32${2010 + (i % 12)}${String(4100 + i * 13).padStart(7, '0')}`, areaId: lot.id })
+  }
+  // UP Board Classes 11–12: scooters with a licence; younger UP and CBSE students: cycles
+  const seniors = students.filter((s) => boardOf(classOf(s.classId)?.code) === 'UP' && gradeOfStudent(s) >= 11).slice(0, 5)
+  for (const [i, s] of seniors.entries()) {
+    await give({ ownerKind: 'STUDENT', studentId: s.id, plate: plateFor(n++), kind: 'TWO_WHEELER', model: pick(['Honda Activa', 'TVS Jupiter', 'Hero Pleasure'], i), colour: pick(['Red', 'Grey', 'White'], i), licenceNo: `UP32${2025}${String(9100 + i).padStart(7, '0')}`, areaId: lots.UP.students.id })
+  }
+  const cyclists = students.filter((s) => gradeOfStudent(s) >= 6 && gradeOfStudent(s) <= 10).filter((_, i) => i % 6 === 0).slice(0, 10)
+  for (const [i, s] of cyclists.entries()) {
+    const board = boardOf(classOf(s.classId)?.code)
+    await give({ ownerKind: 'STUDENT', studentId: s.id, plate: `CYC-${String(101 + i).padStart(4, '0')}`, kind: 'CYCLE', model: pick(['Hero Sprint', 'Atlas Cycle', 'BSA Ladybird'], i), colour: pick(['Black', 'Blue', 'Pink', 'Green'], i), areaId: lots[board].students.id })
+  }
+  // parents who drive in for pick-up (CBSE juniors)
+  const juniors = students.filter((s) => boardOf(classOf(s.classId)?.code) === 'CBSE' && gradeOfStudent(s) <= 3).filter((_, i) => i % 7 === 0).slice(0, 4)
+  for (const [i, s] of juniors.entries()) {
+    const g = (await admin.get(`/students/${s.id}`))?.guardians?.[0]
+    await give({ ownerKind: 'GUARDIAN', studentId: s.id, ownerName: g?.name ?? `Parent of ${s.name}`, relation: g?.relation ?? 'FATHER', ownerMobile: g?.mobile, plate: plateFor(n++), kind: i % 2 ? 'TWO_WHEELER' : 'CAR', model: i % 2 ? pick(['Bajaj Pulsar', 'Honda Shine'], i >> 1) : pick(['Maruti Baleno', 'Honda City'], i >> 1), colour: pick(['White', 'Grey', 'Blue'], i), licenceNo: `UP32${2008 + i}${String(5500 + i).padStart(7, '0')}`, areaId: lots.CBSE.parents.id })
+  }
+  // this morning at the gate: most staff and the riders in, two visitors (one gone already)
+  let inside = 0
+  for (const v of passes.filter((_, i) => i % 4 !== 3)) if (await admin.post('/parking/gate/in', { vehicleId: v.id }, { ok: [201], quiet: [400, 409] })) inside++
+  const guest = await admin.post('/parking/gate/in', { plate: 'UP 32 MN 4521', kind: 'CAR', name: 'Ramesh Chandra Gupta', mobile: '9415776655', purpose: 'Meeting the principal — admission of his daughter', areaId: lots.CBSE.visitors.id }, { ok: [201], quiet: [400, 409] })
+  await admin.post('/parking/gate/in', { plate: 'UP 78 DT 0932', kind: 'TWO_WHEELER', name: 'Courier — Blue Dart', purpose: 'Parcel for the office', areaId: lots.UP.visitors.id }, { ok: [201], quiet: [400, 409] })
+  const courier = await admin.post('/parking/gate/in', { plate: 'UP 32 KT 7788', kind: 'CAR', name: 'Book supplier (Rastogi Book Depot)', purpose: 'Delivering library books', areaId: lots.CBSE.visitors.id }, { ok: [201], quiet: [400, 409] })
+  if (courier) await admin.post(`/parking/gate/${courier.id}/out`, {}, { ok: [200], quiet: [409] })
+  // one pass cancelled (a vehicle sold)
+  const sold = passes.filter((v) => v.ownerKind === 'STAFF').at(-1)
+  if (sold) await admin.post(`/parking/vehicles/${sold.id}/revoke`, { reason: 'Vehicle sold — new one to be registered' }, { ok: [200], quiet: [409] })
+  return `7 areas on both campuses, ${passes.length} passes (staff, Class 11–12 scooters, cycles, parents), ${inside + (guest ? 1 : 0) + 1} vehicles parked now`
+}
+
 // ───────────────────────────────────────────────────────── hostel
 
 async function fillHostel(admin) {
@@ -2130,6 +2183,7 @@ async function main() {
   await step('Certificates', () => fillCertificates(admin))
   await step('Front office', () => fillFrontOffice(admin))
   await step('Hostel', () => fillHostel(admin))
+  await step('Parking', () => fillParking(admin))
   await step('Canteen', () => fillCanteen(admin))
   await step('Store & assets', () => fillInventory(admin))
   await step('Health', () => fillHealth(admin))

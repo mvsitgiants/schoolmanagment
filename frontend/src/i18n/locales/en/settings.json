@@ -51,7 +51,8 @@
           "help": "Interface language for staff and the parent app, unless a user picks another.",
           "options": {
             "en": "English",
-            "hi": "हिन्दी (Hindi)"
+            "hi": "हिन्दी (Hindi)",
+            "kn": "ಕನ್ನಡ (Kannada)"
           }
         },
         "enabledLanguages": {
@@ -59,14 +60,16 @@
           "help": "Which languages appear in the language picker.",
           "options": {
             "en": "English",
-            "hi": "हिन्दी (Hindi)"
+            "hi": "हिन्दी (Hindi)",
+            "kn": "ಕನ್ನಡ (Kannada)"
           }
         },
         "namesAlsoIn": {
           "label": "Also keep names in",
           "help": "Forms get a second box beside each name — student, parents, staff, class, subject, exam, fee head, the school and its campuses — to type it in this language too. The English stays as it is; print templates set to this language print these names.",
           "options": {
-            "hi": "हिन्दी (Hindi)"
+            "hi": "हिन्दी (Hindi)",
+            "kn": "ಕನ್ನಡ (Kannada)"
           }
         },
         "sessionIdleMinutes": {
@@ -403,6 +406,22 @@
         },
         "alertOutpass": {
           "label": "Tell the guardian when an outpass is approved or rejected, and when the student leaves and comes back"
+        }
+      },
+      "parking": {
+        "studentMotorFromClass": {
+          "label": "Students can register a scooter, bike or car from class",
+          "help": "Younger students can register only a cycle. 0: no student may register a motor vehicle."
+        },
+        "licenceNeeded": {
+          "label": "A driving licence number is needed for a scooter, bike or car"
+        },
+        "passMonths": {
+          "label": "A parking pass is valid for (months)",
+          "help": "From the day it is given. Renew it from the vehicle to extend it."
+        },
+        "visitorHours": {
+          "label": "Flag a visitor’s vehicle parked longer than (hours)"
         }
       },
       "events": {

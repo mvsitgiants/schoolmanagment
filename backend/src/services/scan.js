@@ -21,6 +21,7 @@ import { Outpass } from '../models/hostel.js'
 import { campusFilter } from './frontOffice.js'
 import { institutionNow } from '../platform/time.js'
 import { scopeFilter } from './students.js'
+import { vehicleScanResult } from './parking.js'
 
 // Scan: one place that knows what a scanned code is. The app's Scan button, the gate scanner, the class
 // register and the bus attendant all send what the camera or a scanner gun read; this says what it is —
@@ -35,6 +36,7 @@ import { scopeFilter } from './students.js'
 //   library book      barcode → accession number
 //   staff punch code  SGP1.<employeeId>.<time>.<signature>      (My workspace, rotates; 90 seconds)
 //   canteen token     SGT1.<orderId>.<signature>                (token slip QR; the family app's pre-order code)
+//   parking sticker   QR  → the pass number (PK260001); a number plate typed in finds the same vehicle
 
 const PUNCH_PREFIX = 'SGP1.'
 const PUNCH_TTL_MS = 90_000
@@ -283,6 +285,8 @@ export async function resolveCode(raw, auth) {
       hit = e && staffResult(e, auth)
     }
   }
+  // a parking sticker (its pass no.) or a number plate
+  if (!hit && kind === 'TEXT') hit = await vehicleScanResult(code, auth, (...keys) => on(auth, 'parking', ...keys))
   if (!hit && kind === 'TEXT') hit = await visitorByBadge(code, auth)
   if (!hit && kind === 'TEXT') hit = await assetByTag(code, auth)
   return hit ?? { kind: 'UNKNOWN', id: null, title: code, subtitle: '', actions: kind === 'LINK' ? [{ key: 'open', link: code }] : [] }

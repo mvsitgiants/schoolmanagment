@@ -13,6 +13,7 @@ import { verifyAsset } from '../services/inventoryAssets.js'
 import { staffSelfPunch, staffSelfStatus } from '../services/selfAttendance.js'
 import { forbidden } from '../platform/errors.js'
 import { on } from '../services/dashboard.js'
+import { markIn, markOut, vehicleScanResult } from '../services/parking.js'
 import { assetByTag, moveScannedToken, visitorAfterCheckout } from '../services/scan.js'
 
 // Scan: /api/v1/scan/* — what a scanned code is (every signed-in member of staff; what comes back follows their
@@ -60,6 +61,18 @@ router.post('/outpass/:id/:dir', async (req, res) => {
   const o = await gateOutpass(objectId.parse(req.params.id), dir === 'out' ? 'OUT' : 'IN', req.auth, req)
   const s = o.studentId ? await Student.findById(o.studentId).select('admissionNo').lean() : null
   res.json({ data: s ? await resolveCode(s.admissionNo, req.auth) : { kind: 'UNKNOWN', title: o.outpassNo ?? '', actions: [] } })
+})
+// parking: a pass holder in at the gate, and out again (the scan shows the vehicle afterwards)
+const parkingGate = (req) => { if (!on(req.auth, 'parking', 'parking.gate.create')) throw forbidden('Marking vehicles in and out needs “Gate & parked now › Create”.') }
+const vehicleAfter = async (e, req) => (await vehicleScanResult(e.passNo ?? e.plate, req.auth, (...k) => on(req.auth, 'parking', ...k)))
+  ?? { kind: 'VEHICLE', id: null, title: e.plate, subtitle: e.name ?? '', parking: { inside: !e.outAt, inAt: e.inAt, area: e.areaName }, actions: [] }
+router.post('/parking/:id/in', async (req, res) => {
+  parkingGate(req)
+  res.json({ data: await vehicleAfter(await markIn({ vehicleId: objectId.parse(req.params.id) }, req.auth, req), req) })
+})
+router.post('/parking/entry/:id/out', async (req, res) => {
+  parkingGate(req)
+  res.json({ data: await vehicleAfter(await markOut(objectId.parse(req.params.id), req.auth, req), req) })
 })
 router.post('/asset/:id/verify', async (req, res) => {
   if (!on(req.auth, 'inventory', 'inventory.assets.edit')) throw forbidden('Verifying assets needs “Assets › Edit”.')

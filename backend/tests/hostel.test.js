@@ -14,7 +14,8 @@ let asha
 let ravi
 const api = '/api/v1/hostel'
 const addDays = (ymd, n) => new Date(Date.parse(`${ymd}T00:00:00Z`) + n * 864e5).toISOString().slice(0, 10)
-const todayIso = new Date().toISOString().slice(0, 10)
+// the institution's date (India), not the UTC one: before 5:30 am they differ
+const todayIso = new Date(Date.now() + 5.5 * 3600e3).toISOString().slice(0, 10)
 
 beforeAll(async () => {
   app = await startDb()
@@ -90,8 +91,9 @@ describe('blocks, rooms and the bed board', () => {
     })
 
     it('moves a student and keeps the history', async () => {
+      // from today, so the checkout further down (today) is after the new bed's start
       const target = (await admin.get(`${api}/board`)).body.data.blocks[0].rooms[1].beds[0]
-      const moved = (await admin.post(`${api}/allotments/${allotment.id}/move`).send({ bedId: target.id, from: addDays(todayIso, 1) }).expect(200)).body.data
+      const moved = (await admin.post(`${api}/allotments/${allotment.id}/move`).send({ bedId: target.id, from: todayIso }).expect(200)).body.data
       expect(moved.bedId).toBe(target.id)
       const hist = (await admin.get(`${api}/students/${ravi.id}/history`).expect(200)).body.data
       expect(hist.allotments).toHaveLength(2)

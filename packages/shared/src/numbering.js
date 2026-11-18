@@ -32,6 +32,7 @@ export const DOC_TYPES = [
   { code: 'LIBRARY_ACCESSION', label: 'Library accession number', module: 'library', pattern: 'LIB{SEQ:6}', reset: 'NEVER', perBranch: true, hint: 'Printed as the barcode on each copy. Keep the numbers already written in your books by importing them.' },
   { code: 'LIBRARY_FINE', label: 'Library fine receipt', module: 'library', pattern: 'LF{YY}{SEQ:5}', reset: 'YEAR', perBranch: true },
   { code: 'OUTPASS', label: 'Hostel outpass', module: 'hostel', pattern: 'OP{YY}{MM}{SEQ:4}', reset: 'MONTH', perBranch: true },
+  { code: 'PARKING_PASS', label: 'Parking pass', module: 'parking', pattern: 'PK{YY}{SEQ:4}', reset: 'YEAR', perBranch: false, hint: 'Printed on the vehicle’s sticker as a QR the gate scans.' },
   { code: 'PO', label: 'Purchase order', module: 'inventory', pattern: 'PO{YY}{SEQ:5}', reset: 'YEAR', perBranch: true },
   { code: 'STORE_SALE', label: 'Uniform / book sale', module: 'inventory', pattern: 'SS{YY}{MM}{SEQ:5}', reset: 'MONTH', perBranch: true },
   { code: 'CANTEEN_ORDER', label: 'Canteen order', module: 'canteen', pattern: 'CN{YY}{SEQ:6}', reset: 'YEAR', perBranch: false },

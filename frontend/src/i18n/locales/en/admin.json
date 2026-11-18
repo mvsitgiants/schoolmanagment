@@ -179,6 +179,10 @@
         "OUTPASS": {
           "label": "Hostel outpass"
         },
+        "PARKING_PASS": {
+          "label": "Parking pass",
+          "hint": "Printed on the vehicle’s sticker as a QR the gate scans."
+        },
         "PO": {
           "label": "Purchase order"
         },

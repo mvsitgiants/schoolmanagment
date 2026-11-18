@@ -195,6 +195,9 @@ const FrontOfficeVisitors = lazy(() => import('./pages/FrontOffice/Visitors'))
 const FrontOfficeNewVisitor = lazy(() => import('./pages/FrontOffice/NewVisitor'))
 const FrontOfficeGatePasses = lazy(() => import('./pages/FrontOffice/GatePasses'))
 const FrontOfficeComplaints = lazy(() => import('./pages/FrontOffice/Complaints'))
+const ParkingGate = lazy(() => import('./pages/Parking/Gate'))
+const ParkingVehicles = lazy(() => import('./pages/Parking/Vehicles'))
+const ParkingAreas = lazy(() => import('./pages/Parking/Areas'))
 const AccreditationReports = lazy(() => import('./pages/Accreditation/Reports'))
 const AccreditationEvidence = lazy(() => import('./pages/Accreditation/Evidence'))
 const PlacementsCompanies = lazy(() => import('./pages/Placements/Companies'))
@@ -479,6 +482,10 @@ export default function App() {
           <Route path="frontoffice/visitors/new" element={<FrontOfficeNewVisitor />} />
           <Route path="frontoffice/gate-pass" element={<FrontOfficeGatePasses />} />
           <Route path="frontoffice/complaints" element={<FrontOfficeComplaints />} />
+          <Route path="parking" element={<Navigate to="/parking/gate" replace />} />
+          <Route path="parking/gate" element={<ParkingGate />} />
+          <Route path="parking/vehicles" element={<ParkingVehicles />} />
+          <Route path="parking/areas" element={<ParkingAreas />} />
           <Route path="accreditation" element={<Navigate to="/accreditation/reports" replace />} />
           <Route path="accreditation/reports" element={<AccreditationReports />} />
           <Route path="accreditation/evidence" element={<AccreditationEvidence />} />
