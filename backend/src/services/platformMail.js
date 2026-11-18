@@ -20,6 +20,23 @@ const when = (d = new Date()) => new Intl.DateTimeFormat('en-IN', { dateStyle: '
  * text and HTML bodies, so every email looks the same and nothing unescaped reaches the HTML.
  */
 const TEMPLATES = {
+  // Help & support: to the support team when a school asks or writes back, and to the person who asked when the team answers
+  supportNew: ({ ticketNo, school, name, subject, category, urgent, body, link }) => ({
+    subject: `${urgent ? '[Urgent] ' : ''}${ticketNo} · ${school}: ${subject}`,
+    lines: [`${name} at ${school} asked for help (${category}).`, subject, body.slice(0, 1500)],
+    action: { label: 'Open the request', url: link },
+  }),
+  supportReply: ({ ticketNo, school, name, subject, body, link }) => ({
+    subject: `${ticketNo} · ${school} replied: ${subject}`,
+    lines: [`${name} at ${school} wrote back.`, body.slice(0, 1500)],
+    action: { label: 'Open the request', url: link },
+  }),
+  supportAnswered: ({ name, ticketNo, subject, body, link }) => ({
+    subject: `We replied to your request ${ticketNo}: ${subject}`,
+    lines: [`Hello ${name},`, 'The support team has replied:', body.slice(0, 1500)],
+    action: { label: 'Open your request', url: link },
+    after: ['You can reply from the Help & support page in the app.'],
+  }),
   test: ({ company }) => ({
     subject: `Test email from ${company}`,
     lines: ['This is a test from the platform console. Outgoing email is working.'],

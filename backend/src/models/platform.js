@@ -241,6 +241,8 @@ const platformSettingSchema = new Schema({
     otpTemplateId: String, otpText: String,
     verifiedAt: Date,
   },
+  /** How schools reach the support team (their Help & support page); email and phone are company.supportEmail / supportPhone. */
+  support: { whatsapp: String, hours: String, note: String },
   /** Self sign-up open; unset = the SIGNUP_ENABLED environment default. */
   signupEnabled: Boolean,
   /** Maintenance / announcement banner on every signed-in screen and the sign-in page. */
@@ -318,3 +320,49 @@ const platformAuditSchema = new Schema({
 }, { versionKey: false })
 platformAuditSchema.index({ at: 1 }, { expireAfterSeconds: 2 * 365 * 24 * 3600 })
 export const PlatformAuditLog = model('PlatformAuditLog', platformAuditSchema, 'platform_audit_logs')
+
+// ───────────────────────────────────────────────────────── help & support
+
+/**
+ * A school asks the SchoolGiant team for help (Help & support page); the team answers from Superadmin › Support.
+ * Kept at platform level — the team reads across schools — with the school's tenantId on every request; the school's
+ * side always filters by it (services/support.js). Internal notes are the team's only and never sent to the school.
+ */
+const supportFileRef = new Schema({ fileId: { type: Schema.Types.ObjectId, required: true }, name: String, mime: String, size: Number }, { _id: false })
+const supportMessageSchema = new Schema({
+  from: { type: String, enum: ['SCHOOL', 'SUPPORT'], required: true },
+  byId: Schema.Types.ObjectId, byName: String,
+  body: { type: String, required: true },
+  internal: { type: Boolean, default: false }, // a team note, not shown to the school
+  files: { type: [supportFileRef], default: [] },
+  at: { type: Date, default: Date.now },
+}, { _id: true })
+const supportTicketSchema = new Schema({
+  ticketNo: { type: String, required: true, unique: true },
+  tenantId: { type: Schema.Types.ObjectId, ref: 'Tenant', required: true },
+  tenantName: String,
+  category: { type: String, default: 'OTHER' }, // SUPPORT_CATEGORIES
+  subject: { type: String, required: true, trim: true },
+  priority: { type: String, default: 'NORMAL' }, // SUPPORT_PRIORITIES
+  status: { type: String, default: 'OPEN' }, // SUPPORT_STATUS
+  createdBy: { userId: Schema.Types.ObjectId, name: String, email: String, mobile: String },
+  // where they were when they asked: the page, its module, the browser and the app's build
+  context: { path: String, module: String, page: String, userAgent: String, appVersion: String },
+  messages: { type: [supportMessageSchema], default: [] },
+  assignedToId: Schema.Types.ObjectId, assignedTo: String,
+  firstReplyAt: Date, lastSchoolAt: Date, lastSupportAt: Date, solvedAt: Date,
+  rating: { score: Number, note: String, at: Date },
+}, { timestamps: true })
+supportTicketSchema.index({ tenantId: 1, createdAt: -1 })
+supportTicketSchema.index({ status: 1, lastSchoolAt: 1 })
+export const SupportTicket = model('SupportTicket', supportTicketSchema, 'support_tickets')
+
+/** A file added to a support request (a screenshot, the sheet that would not import). Kept with the school's files. */
+const supportFileSchema = new Schema({
+  tenantId: { type: Schema.Types.ObjectId, required: true },
+  ticketId: Schema.Types.ObjectId, // set once the message carrying it is sent
+  name: String, mime: String, size: Number, storageKey: { type: String, required: true },
+  by: String, byId: Schema.Types.ObjectId, fromSupport: { type: Boolean, default: false },
+}, { timestamps: true })
+supportFileSchema.index({ tenantId: 1, createdAt: -1 })
+export const SupportFile = model('SupportFile', supportFileSchema, 'support_files')

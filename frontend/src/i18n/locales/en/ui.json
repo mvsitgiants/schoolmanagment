@@ -203,7 +203,8 @@
       "scanCodeHint": "Scan a code with the camera",
       "platformOwner": "Platform owner",
       "compactHint": "Tighter spacing, so more rows fit on screen",
-      "scan": "Scan a code"
+      "scan": "Scan a code",
+      "help": "Help & support"
     },
     "mobileTabs": {
       "scan": "Scan",
@@ -283,7 +284,8 @@
       "closeMenu": "Close menu",
       "coupons": "Coupons",
       "staff": "Staff",
-      "audit": "Audit log"
+      "audit": "Audit log",
+      "support": "Support"
     },
     "language": {
       "change": "Change language",
@@ -505,6 +507,14 @@
       "placeholderTyping": "Type in English letters, e.g. uday",
       "hintTyping": "Type as it sounds: uday → उदय. Leave empty to print the English.",
       "use": "Use {{text}}"
+    },
+    "support": {
+      "team": "Support team",
+      "internalNote": "team note",
+      "attach": "Attach",
+      "attachHint": "Screenshots or files, up to {{max}} MB each",
+      "send": "Send",
+      "tooBig": "This file is too big. Files can be up to {{max}} MB."
     }
   }
 }

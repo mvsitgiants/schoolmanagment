@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
-import { Bell, ChevronDown, LogOut, MonitorSmartphone, Menu, Rows3, KeyRound, UserRound, Building2, CheckSquare, ScanQrCode, ArrowLeftRight } from 'lucide-react'
+import { Bell, ChevronDown, LogOut, MonitorSmartphone, Menu, Rows3, KeyRound, UserRound, Building2, CheckSquare, ScanQrCode, ArrowLeftRight, LifeBuoy } from 'lucide-react'
 import GlobalScan, { openScan } from '../scan/GlobalScan'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import clsx from 'clsx'
 import PushToggle from '../app/PushToggle'
@@ -42,6 +42,7 @@ export default function Topbar({ onMenu }) {
   const me = useAuthUser()
   const name = me?.user?.name || t('ui.common.user')
   const navigate = useNavigate()
+  const location = useLocation()
   const [bellData, setBellData] = useState({ alerts: [], items: [], unread: 0 })
   const [bell, setBell] = useState(false)
   const [menu, setMenu] = useState(false)
@@ -186,6 +187,12 @@ export default function Topbar({ onMenu }) {
               {!me?.superadmin && (
                 <Link to="/approvals" onClick={() => setMenu(false)} className="flex items-center gap-2 px-3 py-2 text-ink hover:bg-bg">
                   <CheckSquare className="w-4 h-4 text-ink-muted" /> {t('approvals', 'Approvals')}
+                </Link>
+              )}
+              {/* help & support: the page the person is on goes along, so they don't have to say where they were */}
+              {me?.kind === 'TENANT' && (
+                <Link to="/help" state={{ from: location.pathname }} onClick={() => setMenu(false)} className="flex items-center gap-2 px-3 py-2 text-ink hover:bg-bg">
+                  <LifeBuoy className="w-4 h-4 text-ink-muted" /> {t('ui.topbar.help')}
                 </Link>
               )}
               <button onClick={() => setDensity(applyDensity(density === 'compact' ? 'comfortable' : 'compact'))} className="w-full flex items-center gap-2 px-3 py-2 text-ink hover:bg-bg text-start" title={t('ui.topbar.compactHint')}>

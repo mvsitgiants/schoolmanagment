@@ -1,5 +1,5 @@
-import { Router } from 'express'
-import { LIMIT_KEYS, MODULES, PLATFORM_ROLES, closeOverDependencies, normalizePermissions, platformCan } from '@schoolgiant/shared'
+import express, { Router } from 'express'
+import { FILE_MAX_MB, LIMIT_KEYS, MODULES, PLATFORM_ROLES, closeOverDependencies, normalizePermissions, platformCan } from '@schoolgiant/shared'
 import {
   DiscountCode, Plan, PlatformAuditLog, PlatformUser, RoleTemplate, SubscriptionEvent, SubscriptionInvoice, TENANT_STATUSES, Tenant,
 } from '../models/platform.js'
@@ -14,6 +14,8 @@ import { authenticate, endSessions, requirePlatform, requireSuperadmin } from '.
 import { clearFailedLogins } from '../platform/auth/lockout.js'
 import { tempPassword } from '../services/users.js'
 import { platformAudit } from '../services/platformAudit.js'
+import { getTeamTicket, listAllTickets, supportStaff, teamReply, updateTeamTicket, uploadSupportFile } from '../services/support.js'
+import { sendSupportFile } from './support.js'
 import { email, escapeRegex, mobile, optionalText, pageParams, listResponse, searchFilter, z } from '../platform/validate.js'
 import { applyPlanModuleChange, listTenantModules, saveModuleOverrides } from '../services/modules.js'
 import { provisionTenant } from '../services/provisioning.js'
@@ -383,6 +385,8 @@ const settingsSchema = z.object({
     stateCode: z.union([z.string().trim().regex(/^\d{2}$/, 'Two digits, as in the GSTIN'), z.literal('')]),
     address: text(400), supportEmail: emailOrEmpty, supportPhone: text(30),
   }).partial().optional(),
+  // how schools reach the support team (their Help & support page)
+  support: z.object({ whatsapp: text(30), hours: text(120), note: text(300) }).partial().optional(),
   email: z.object({
     host: text(200), port: z.number().int().min(1).max(65535).nullable(), secure: z.boolean(), user: text(200),
     pass: z.string().max(500), fromName: text(80), fromEmail: emailOrEmpty, replyTo: emailOrEmpty,
@@ -542,6 +546,40 @@ router.patch('/role-templates/:code', requirePlatform('templates'), async (req, 
   Object.assign(t, input)
   await t.save()
   res.json({ data: clean(t.toObject()) })
+})
+
+// ───────────────────────────────────────────────────────── help & support (schools' requests)
+
+const supportBody = z.string().trim().min(1, 'Write the reply').max(5000)
+router.get('/support', async (req, res) => {
+  const q = z.object({
+    status: z.enum(['ACTIVE', 'OPEN', 'IN_PROGRESS', 'WAITING', 'SOLVED', 'CLOSED']).optional(), priority: z.enum(['NORMAL', 'URGENT']).optional(),
+    tenantId: z.string().max(40).optional(), assignedToId: z.string().max(40).optional(), search: z.string().max(80).optional(),
+  }).parse(req.query)
+  res.json({ data: await listAllTickets(q, pageParams(req.query)) })
+})
+router.get('/support/staff', async (req, res) => { res.json({ data: await supportStaff() }) })
+router.get('/support/files/:id', async (req, res) => { await sendSupportFile(req, res) })
+router.post('/support/files', requirePlatform('support'), express.raw({ type: () => true, limit: `${FILE_MAX_MB}mb` }), async (req, res) => {
+  const { tenantId } = z.object({ tenantId: z.string().regex(/^[0-9a-f]{24}$/) }).parse(req.query)
+  let fileName = req.get('x-file-name') || 'file'
+  try { fileName = decodeURIComponent(fileName) } catch { /* keep as sent */ }
+  res.status(201).json({ data: await uploadSupportFile({ tenantId, fileName, by: req.auth.user?.name, byId: req.auth.user?._id, fromSupport: true }, Buffer.isBuffer(req.body) ? req.body : null) })
+})
+router.get('/support/:id', async (req, res) => { res.json({ data: await getTeamTicket(req.params.id) }) })
+router.post('/support/:id/messages', requirePlatform('support'), async (req, res) => {
+  const input = z.object({
+    body: supportBody, internal: z.boolean().default(false), status: z.enum(['OPEN', 'IN_PROGRESS', 'WAITING', 'SOLVED', 'CLOSED']).optional(),
+    fileIds: z.array(z.string().regex(/^[0-9a-f]{24}$/)).max(5).default([]),
+  }).parse(req.body)
+  res.json({ data: await teamReply(req.params.id, input, req.auth) })
+})
+router.patch('/support/:id', requirePlatform('support'), async (req, res) => {
+  const input = z.object({
+    status: z.enum(['OPEN', 'IN_PROGRESS', 'WAITING', 'SOLVED', 'CLOSED']).optional(), priority: z.enum(['NORMAL', 'URGENT']).optional(),
+    assignedToId: z.string().regex(/^[0-9a-f]{24}$/).nullable().optional(),
+  }).parse(req.body)
+  res.json({ data: await updateTeamTicket(req.params.id, input) })
 })
 
 export default router

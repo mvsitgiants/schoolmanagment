@@ -3,10 +3,10 @@ import { ACCR_DVV_STATUS, ACCR_FRAMEWORKS, ACCR_METRIC_STATUS } from '@schoolgia
 import { authenticate, requireModule, requirePermission, subscriptionGate, tenantOnly } from '../platform/middleware.js'
 import { objectId, optionalText, z } from '../platform/validate.js'
 import {
-  accreditationMeta, deleteEvidence, exportReport, getEvidence, getReport, listEvidence, saveEvidence, saveMetric, setEvidenceDvv,
+  accreditationMeta, deleteEvidence, exportReport, getEvidence, getReport, listEvidence, saveEvidence, saveMetric, saveScore, setEvidenceDvv,
 } from '../services/accreditation.js'
 
-// accreditation: /api/v1/accreditation/*  — reports (NAAC, NIRF, AISHE) metric by metric, and the evidence repository
+// accreditation: /api/v1/accreditation/*  — reports (NAAC, NBA per programme, NIRF, AISHE) metric by metric, and the evidence repository
 const router = Router()
 router.use(authenticate, tenantOnly, subscriptionGate, requireModule('accreditation'))
 
@@ -16,6 +16,7 @@ const id = (req) => objectId.parse(req.params.id)
 const framework = z.enum(ACCR_FRAMEWORKS.map((f) => f.value))
 const year = z.string().regex(/^\d{4}-\d{2}$/, 'Use a year like 2025-26')
 const metricCode = z.string().trim().min(1).max(12)
+const programId = objectId.optional().or(z.literal('').transform(() => undefined))
 const clearEmpty = (q) => Object.fromEntries(Object.entries(q).filter(([, v]) => v !== '' && v !== undefined))
 const csv = (res, name, body) => {
   res.setHeader('Content-Type', 'text/csv; charset=utf-8')
@@ -29,15 +30,15 @@ router.get('/meta', requirePermission(`${REP}.view`, `${EVI}.view`), async (req,
 
 // ───────────────────────────────────────────────────────── reports
 
-const reportQuery = z.object({ framework, year })
+const reportQuery = z.object({ framework, year, programId })
 
 router.get('/reports', requirePermission(`${REP}.view`), async (req, res) => {
   const q = reportQuery.parse(req.query)
-  res.json({ data: await getReport(q.framework, q.year) })
+  res.json({ data: await getReport(q.framework, q.year, q.programId) })
 })
 router.get('/reports/export', requirePermission(`${REP}.export`), async (req, res) => {
   const q = reportQuery.parse(req.query)
-  csv(res, `${q.framework}-${q.year}.csv`, await exportReport(q.framework, q.year))
+  csv(res, `${q.framework}-${q.year}.csv`, await exportReport(q.framework, q.year, q.programId))
 })
 router.put('/reports/:framework/:year/metrics/:code', requirePermission(`${REP}.edit`), async (req, res) => {
   const p = z.object({ framework, year, code: metricCode }).parse(req.params)
@@ -46,14 +47,25 @@ router.put('/reports/:framework/:year/metrics/:code', requirePermission(`${REP}.
     manualValue: z.preprocess((v) => (v === '' ? null : v), z.coerce.number().min(-1e12).max(1e12).nullable().optional()),
     note: z.string().trim().max(1000).optional(),
     narrative: z.string().max(30000).optional(),
+    programId,
   }).parse(req.body)
   res.json({ data: await saveMetric(p.framework, p.year, p.code, body, req.auth, req) })
+})
+router.put('/reports/:framework/:year/scores/:criterion', requirePermission(`${REP}.edit`), async (req, res) => {
+  const p = z.object({ framework, year, criterion: z.string().trim().min(1).max(8) }).parse(req.params)
+  const body = z.object({
+    marks: z.preprocess((v) => (v === '' ? null : v), z.coerce.number().min(0).max(1000).nullable().optional()),
+    note: z.string().trim().max(1000).optional(),
+    programId,
+  }).parse(req.body)
+  res.json({ data: await saveScore(p.framework, p.year, p.criterion, body, req.auth, req) })
 })
 
 // ───────────────────────────────────────────────────────── evidence
 
 const evidenceBody = z.object({
   framework,
+  programId,
   metricCodes: z.array(metricCode).min(1, 'Link it to at least one metric').max(20),
   checklist: z.array(z.string().trim().max(20)).max(60).default([]),
   year: year.optional().nullable().or(z.literal('').transform(() => null)),
@@ -64,7 +76,7 @@ const evidenceBody = z.object({
 
 router.get('/evidence', requirePermission(`${EVI}.view`), async (req, res) => {
   const q = z.object({
-    framework, year: year.optional(), metric: metricCode.optional(), criterion: z.string().max(8).optional(), search: z.string().trim().max(80).optional(),
+    framework, year: year.optional(), metric: metricCode.optional(), criterion: z.string().max(8).optional(), search: z.string().trim().max(80).optional(), programId,
   }).parse(clearEmpty(req.query))
   res.json({ data: await listEvidence(q) })
 })
@@ -75,7 +87,7 @@ router.post('/evidence', requirePermission(`${EVI}.create`), async (req, res) =>
   res.status(201).json({ data: await saveEvidence(null, evidenceBody.parse(req.body), req.auth, req) })
 })
 router.patch('/evidence/:id', requirePermission(`${EVI}.edit`), async (req, res) => {
-  const body = evidenceBody.omit({ framework: true }).partial().parse(req.body)
+  const body = evidenceBody.omit({ framework: true, programId: true }).partial().parse(req.body)
   if (req.body?.checklist === undefined) delete body.checklist
   res.json({ data: await saveEvidence(id(req), body, req.auth, req) })
 })

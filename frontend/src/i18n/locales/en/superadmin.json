@@ -401,6 +401,15 @@
         "testHint": "Sends a sample code with the saved settings. Institutions use platform SMS once a test has gone through.",
         "testTo": "Mobile number",
         "testMode": "Test mode"
+      },
+      "support": {
+        "title": "Help & support",
+        "subtitle": "How schools reach you, on their Help & support page. Email and phone are under Company.",
+        "whatsapp": "WhatsApp number",
+        "hours": "Support hours",
+        "hoursPlaceholder": "e.g. Mon–Sat, 9 am – 7 pm",
+        "note": "A line for schools",
+        "notePlaceholder": "e.g. For urgent problems, call — don’t only write."
       }
     },
     "coupons": {
@@ -526,6 +535,67 @@
         "message": "Modules you added switch on now and modules you took away switch off now for everyone at the school. Their data is kept, so giving a module back brings everything back."
       },
       "saved": "Saved — {{on}} module(s) switched on, {{off}} switched off."
+    },
+    "support": {
+      "title": "Support",
+      "subtitle": "Schools’ requests for help. What needs a reply comes first: urgent, then waiting longest.",
+      "needsReply": "Needs a reply ({{count}})",
+      "waitingSchool": "Waiting for the school ({{count}})",
+      "solved": "Solved",
+      "closed": "Closed",
+      "all": "All",
+      "search": "Search number, subject, school or person",
+      "empty": "Nothing here.",
+      "urgent": "Urgent",
+      "normal": "Normal",
+      "with": "with {{name}}",
+      "unassigned": "nobody yet",
+      "schoolWrote": "school wrote {{when}}",
+      "weWrote": "we wrote {{when}}",
+      "status": {
+        "OPEN": "Open",
+        "IN_PROGRESS": "We’re working on it",
+        "WAITING": "Waiting for you",
+        "SOLVED": "Solved",
+        "CLOSED": "Closed"
+      },
+      "back": "All requests",
+      "replyTitle": "Reply to the school",
+      "replyHint": "They get it in the app’s bell and by email.",
+      "noteTitle": "Team note",
+      "noteHint": "Only the team sees this. The school is not told.",
+      "sendReply": "Send reply",
+      "saveNote": "Save note",
+      "replyPlaceholder": "Write the answer in plain words",
+      "notePlaceholder": "What you found, what to try next",
+      "internal": "Team note only",
+      "after": "After sending",
+      "thenStatus": "Then: {{status}}",
+      "noteSaved": "Note saved.",
+      "sent": "Reply sent.",
+      "request": "This request",
+      "statusLabel": "Status",
+      "urgency": "Urgency",
+      "assignedTo": "Looked after by",
+      "nobody": "Nobody yet",
+      "opened": "Opened",
+      "firstReply": "First reply",
+      "notYet": "Not yet",
+      "rating": "Rating",
+      "asker": "Who asked",
+      "name": "Name",
+      "email": "Email",
+      "mobile": "Mobile",
+      "page": "Page",
+      "module": "Module",
+      "browser": "Browser",
+      "openSchool": "Open the institution",
+      "plan": "Plan",
+      "schoolStatus": "Status",
+      "city": "City",
+      "phone": "Phone",
+      "earlier": "Earlier requests",
+      "readOnly": "Your role can read requests but not answer them."
     }
   }
 }

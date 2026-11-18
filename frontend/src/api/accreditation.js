@@ -13,15 +13,18 @@ const BASE = '/v1/accreditation'
 
 export const fetchAccrMeta = () => get(`${BASE}/meta`)
 
-export const fetchAccrReport = (framework, year) => get(`${BASE}/reports`, { framework, year })
+/** `programId`: the programme of a per-programme framework (NBA); left out for the others. */
+export const fetchAccrReport = (framework, year, programId) => get(`${BASE}/reports`, clean({ framework, year, programId }))
 export const saveAccrMetric = (framework, year, code, body) => put(`${BASE}/reports/${framework}/${year}/metrics/${encodeURIComponent(code)}`, body)
+/** A criterion's self-assessed marks (NBA): body { marks, note, programId }. */
+export const saveAccrScore = (framework, year, criterion, body) => put(`${BASE}/reports/${framework}/${year}/scores/${criterion}`, body)
 /** The report as a CSV download. */
-export async function exportAccrReport(framework, year) {
-  const res = await api.get(`${BASE}/reports/export`, { params: { framework, year }, responseType: 'blob' })
+export async function exportAccrReport(framework, year, programId, name) {
+  const res = await api.get(`${BASE}/reports/export`, { params: clean({ framework, year, programId }), responseType: 'blob' })
   const href = URL.createObjectURL(res.data)
   const a = document.createElement('a')
   a.href = href
-  a.download = `${framework}-${year}.csv`
+  a.download = `${framework}${name ? `-${name}` : ''}-${year}.csv`
   a.click()
   setTimeout(() => URL.revokeObjectURL(href), 5000)
 }

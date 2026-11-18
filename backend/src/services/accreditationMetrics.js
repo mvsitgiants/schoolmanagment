@@ -8,6 +8,7 @@ import { ResearchProject, ResearchPublication, ResearchScholar } from '../models
 import { Student } from '../models/students.js'
 import { Department } from '../models/tenant.js'
 import { logger } from '../platform/logger.js'
+import { programAttainment } from './programs.js'
 
 // Accreditation metrics computed from SchoolGiant's own records, for one assessment year ("2025-26"). Each calculation
 // (the `auto` key of a metric in packages/shared/src/accreditation.js) returns
@@ -31,29 +32,35 @@ async function placementModels() {
   return mod?.PlacementOffer ? mod : null
 }
 
-/** A lazy, memoised set of the figures the calculations share. */
-function figures(year) {
+/**
+ * A lazy, memoised set of the figures the calculations share. `programId` (NBA) narrows them to one programme: its
+ * students, results and placements, and the staff and research of its department.
+ */
+function figures(year, { programId } = {}) {
   const memo = new Map()
   const once = (key, fn) => () => { if (!memo.has(key)) memo.set(key, fn()); return memo.get(key) }
-  const f = {}
+  const f = { programId: programId ?? null }
+  f.program = once('program', async () => (programId ? Program.findById(programId).select('name code departmentId semesters intake').lean() : null))
+  /** The department filter for staff and research ({} for the whole institution). */
+  f.dept = once('dept', async () => { const p = await f.program(); return p?.departmentId ? { departmentId: p.departmentId } : {} })
 
   f.range = once('range', async () => {
     const ay = await AcademicYear.findOne({ name: year }).select('name startDate endDate').lean()
     const base = accrYearRange(year)
     return ay ? { from: ay.startDate, to: ay.endDate, startYear: base?.startYear ?? Number(ay.startDate.slice(0, 4)), ayId: ay._id } : { ...base, ayId: null }
   })
-  f.programs = once('programs', async () => Program.find({ active: true }).select('code semesters intake durationYears').lean())
+  f.programs = once('programs', async () => Program.find({ active: true, ...(programId && { _id: programId }) }).select('code semesters intake durationYears').lean())
   f.staff = once('staff', async () => {
     const { from, to } = await f.range()
-    const rows = await Employee.find({ joiningDate: { $lte: to } }).select('category employmentType status exit.lastWorkingDate qualifications experienceYears joiningDate').lean()
+    const rows = await Employee.find({ joiningDate: { $lte: to }, ...(await f.dept()) }).select('category employmentType status exit.lastWorkingDate qualifications experienceYears joiningDate').lean()
     return rows.filter((e) => !(e.status === 'EXITED' && e.exit?.lastWorkingDate && e.exit.lastWorkingDate < from))
   })
   f.teachers = once('teachers', async () => (await f.staff()).filter((e) => e.category === 'TEACHING'))
   f.fullTime = once('fullTime', async () => (await f.teachers()).filter((e) => !PART_TIME.includes(e.employmentType)))
-  f.enrolments = once('enrolments', async () => ProgramEnrolment.find({ status: { $in: ['ACTIVE', 'DETAINED'] } }).select('studentId programId batch advisorId currentSemester').lean())
+  f.enrolments = once('enrolments', async () => ProgramEnrolment.find({ status: { $in: ['ACTIVE', 'DETAINED'] }, ...(programId && { programId }) }).select('studentId programId batch advisorId currentSemester').lean())
   f.students = once('students', async () => {
     const enr = await f.enrolments()
-    if (enr.length) return enr.length
+    if (enr.length || programId) return enr.length
     return Student.countDocuments({ status: 'ACTIVE' })
   })
   // async: keep the result, not the query (a mongoose query can only be awaited once)
@@ -80,7 +87,7 @@ function figures(year) {
   })
   f.pubs = once('pubs', async () => {
     const { startYear } = await f.range()
-    return ResearchPublication.find({ year: { $gte: startYear - 2, $lte: startYear } }).select('type year indexing citations').lean()
+    return ResearchPublication.find({ year: { $gte: startYear - 2, $lte: startYear }, ...(await f.dept()) }).select('type year indexing citations').lean()
   })
   f.pubsOfYear = once('pubsOfYear', async () => { const { startYear } = await f.range(); return (await f.pubs()).filter((p) => p.year === startYear) })
   f.placement = once('placement', async () => {
@@ -88,7 +95,8 @@ function figures(year) {
     const { ayId } = await f.range()
     if (!mod || !ayId) return null
     try {
-      const offers = await mod.PlacementOffer.find({ academicYearId: ayId, status: 'ACCEPTED' }).select('studentId ctc').lean()
+      const mine = programId ? { studentId: { $in: await ProgramEnrolment.distinct('studentId', { programId }) } } : {}
+      const offers = await mod.PlacementOffer.find({ academicYearId: ayId, status: 'ACCEPTED', ...mine }).select('studentId ctc').lean()
       const best = new Map()
       for (const o of offers) { const k = String(o.studentId); if (!best.has(k) || (o.ctc ?? 0) > best.get(k)) best.set(k, o.ctc ?? 0) }
       return { placed: best.size, ctcs: [...best.values()].filter((v) => v > 0).sort((a, b) => a - b) }
@@ -97,6 +105,8 @@ function figures(year) {
       return null
     }
   })
+  /** Direct CO / PO attainment of the programme (its latest exam session) — one programme only. */
+  f.attainment = once('attainment', async () => (programId ? programAttainment(programId) : null))
   f.outgoing = once('outgoing', async () => {
     const results = await f.finalResults()
     if (results.length) return results.length
@@ -248,6 +258,13 @@ const CALC = {
     if (!ft) return null
     return { value: ratio(n, ft), detail: [D('papers', n), D('fullTimeTeachers', ft)] }
   },
+  /** Every journal and conference paper of the year (NBA 5.7 doesn't limit it to UGC-CARE as NAAC 3.3.2 does). */
+  async researchPapersPerTeacher(f) {
+    const ft = (await f.fullTime()).length
+    const n = (await f.pubsOfYear()).filter((p) => p.type === 'JOURNAL' || p.type === 'CONFERENCE').length
+    if (!ft) return null
+    return { value: ratio(n, ft), detail: [D('papers', n), D('fullTimeTeachers', ft)] }
+  },
   async booksPerTeacher(f) {
     const ft = (await f.fullTime()).length
     const n = (await f.pubsOfYear()).filter((p) => ['BOOK', 'CHAPTER', 'CONFERENCE'].includes(p.type)).length
@@ -289,6 +306,25 @@ const CALC = {
     const days = new Set(loans.map((l) => l.issuedOn)).size
     return { value: ratio(loans.length, days), detail: [D('loans', loans.length), D('days', days)] }
   },
+  // outcome-based education (Programs) — NBA criteria 2 and 3
+  async mappedCoursesPct(f) {
+    const programs = await f.programs()
+    if (!programs.length) return null
+    const courses = await ProgramCourse.find({ active: true, programId: { $in: programs.map((p) => p._id) } }).select('coPo').lean()
+    if (!courses.length) return null
+    const mapped = courses.filter((c) => c.coPo?.length).length
+    return { value: pct(mapped, courses.length), detail: [D('coursesMapped', mapped), D('courses', courses.length)] }
+  },
+  async coAttainedPct(f) {
+    const a = await f.attainment()
+    if (!a?.summary.cos) return null
+    return { value: pct(a.summary.cosAttained, a.summary.cos), detail: [D('cosAttained', a.summary.cosAttained), D('cos', a.summary.cos), D('courses', a.summary.courses)] }
+  },
+  async poAttainment(f) {
+    const a = await f.attainment()
+    if (a?.summary.poAverage === null || a?.summary.poAverage === undefined) return null
+    return { value: a.summary.poAverage, detail: [D('outcomes', Object.keys(a.po ?? {}).length)] }
+  },
   // placements
   async placementPct(f) {
     const p = await f.placement()
@@ -313,8 +349,8 @@ export const ACCR_AUTO_KEYS = Object.keys(CALC)
  * The computed values of a framework's metrics for one assessment year: Map code → { value, detail } (only metrics with
  * an `auto` key; a calculation that fails is logged and left out — the metric can still be entered by hand).
  */
-export async function computeMetrics(metrics, year) {
-  const f = figures(year)
+export async function computeMetrics(metrics, year, { programId } = {}) {
+  const f = figures(year, { programId })
   const out = new Map()
   for (const m of metrics) {
     if (!m.auto || !CALC[m.auto]) continue

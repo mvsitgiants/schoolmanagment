@@ -66,6 +66,7 @@ import hookRoutes from './routes/hooks.js'
 import deviceHookRoutes from './routes/deviceHooks.js'
 import publicRoutes from './routes/public.js'
 import superadminRoutes from './routes/superadmin.js'
+import supportRoutes from './routes/support.js'
 import { registerWebhookListeners } from './services/apiKeys.js'
 import { registerNotificationListeners } from './services/notify.js'
 import commsRoutes from './routes/comms.js'
@@ -165,6 +166,7 @@ export function createApp() {
   app.use('/api/v1/auth', authRoutes)
   app.use('/api/v1/core', coreRoutes)
   app.use('/api/v1/superadmin', superadminRoutes)
+  app.use('/api/v1/support', supportRoutes)
   app.use('/api/v1/files', filesRouter)
   app.use('/api/v1/comments', commentsRouter)
   // Module routes mount here as each module is built.

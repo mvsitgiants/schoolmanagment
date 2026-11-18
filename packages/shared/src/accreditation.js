@@ -1,4 +1,4 @@
-// Accreditation (module `accreditation`): NAAC, NIRF and AISHE returns of a college, metric by metric, with the
+// Accreditation (module `accreditation`): NAAC, NBA, NIRF and AISHE returns of a college, metric by metric, with the
 // evidence (files) behind each value. Constants and pure helpers shared by the API and the web app.
 //
 // A framework → criteria (NAAC criteria, NIRF parameters, AISHE sections) → metrics. Each metric:
@@ -12,8 +12,11 @@
 //
 // NAAC codes follow the revised SSR manual for affiliated / constituent colleges (UG).
 
+// perProgram: one report per programme (NBA accredits programmes, not the institution); marks: each criterion is scored
+// against its weight (the self-assessed marks of the SAR)
 export const ACCR_FRAMEWORKS = [
   { value: 'NAAC', label: 'NAAC', name: 'NAAC self-study report (SSR)', tone: 'brand' },
+  { value: 'NBA', label: 'NBA', name: 'NBA self-assessment report (SAR), Tier II', tone: 'orange', perProgram: true, marks: true },
   { value: 'NIRF', label: 'NIRF', name: 'NIRF data capture (college)', tone: 'violet' },
   { value: 'AISHE', label: 'AISHE', name: 'AISHE data capture format (college)', tone: 'teal' },
 ]
@@ -43,7 +46,7 @@ export const ACCR_SOURCES = {
   manual: { label: 'Entered', tone: 'neutral' },
 }
 
-export const ACCR_UNITS = ['count', 'pct', 'ratio', 'lakh', 'years', 'perTeacher', 'days', 'perDay']
+export const ACCR_UNITS = ['count', 'pct', 'ratio', 'lakh', 'years', 'perTeacher', 'days', 'perDay', 'level']
 
 /** NAAC's word limit for a qualitative metric's description. */
 export const ACCR_NARRATIVE_WORDS = 500
@@ -211,6 +214,114 @@ const NIRF = [
   },
 ]
 
+// ───────────────────────────────────────────────────────── NBA (SAR, Tier II — UG engineering programmes)
+// One report per programme; the ten criteria carry the SAR's marks (1000 in all). The CO–PO criterion and the students'
+// and faculty figures come from Programs (outcomes, attainment), exam results, placements, staff and research of the
+// programme's department.
+
+const NBA = [
+  {
+    id: 'N1', code: '1', title: 'Vision, mission and program educational objectives', weight: 60, metrics: [
+      QL('1.1', 'Vision and mission of the department and the institute', { dvv: ['Vision and mission statements as approved', 'Where they are displayed (photos, web page)'] }),
+      QL('1.2', 'Program educational objectives (PEOs)'),
+      QL('1.3', 'Where and how the vision, mission and PEOs are published and disseminated', { dvv: ['Website, prospectus and notice-board copies'] }),
+      QL('1.4', 'Process for defining the vision, mission and PEOs', { dvv: ['Minutes of the department advisory board / meetings'] }),
+      QL('1.5', 'Consistency of the PEOs with the mission of the department'),
+    ],
+  },
+  {
+    id: 'N2', code: '2', title: 'Program curriculum and teaching–learning processes', weight: 120, metrics: [
+      QL('2.1.1', 'Process for designing the program curriculum', { dvv: ['Minutes of the board of studies'] }),
+      QL('2.1.2', 'Structure of the curriculum (courses, credits, contact hours)'),
+      QN('2.1.3', 'Courses mapped to the program outcomes', 'programs', { auto: 'mappedCoursesPct', unit: 'pct', dvv: ['Course articulation matrix of each course'] }),
+      QL('2.1.4', 'Curricular gaps for attaining the POs and PSOs, and how they are closed', { dvv: ['Content-beyond-syllabus reports'] }),
+      QL('2.2.1', 'Processes to improve the quality of teaching and learning'),
+      QL('2.2.2', 'Quality of internal semester question papers, assignments and evaluation', { dvv: ['Sample question papers mapped to COs and Bloom levels'] }),
+      QL('2.2.3', 'Quality of student projects', { dvv: ['List of projects with guides', 'Project evaluation rubrics'] }),
+      QL('2.2.4', 'Initiatives related to industry interaction', { dvv: ['Industry visit and guest lecture reports', 'MoUs with industry'] }),
+      QN('2.2.5', 'Students doing internships or summer training', 'manual', { unit: 'pct', dvv: ['Internship certificates (sample)', 'List of students with organisations'] }),
+    ],
+  },
+  {
+    id: 'N3', code: '3', title: 'Course outcomes and program outcomes', weight: 120, metrics: [
+      QL('3.1', 'Correlation between the courses and the POs and PSOs (course articulation matrix)'),
+      QL('3.2.1', 'Assessment processes and tools used to measure the attainment of each CO'),
+      QN('3.2.2', 'Course outcomes attained (level 2 or more)', 'programs', { auto: 'coAttainedPct', unit: 'pct', dvv: ['CO attainment sheets of each course'] }),
+      QL('3.3.1', 'Assessment tools used to measure the attainment of the POs and PSOs (direct and indirect)', { dvv: ['Exit, alumni and employer survey forms and results'] }),
+      QN('3.3.2', 'Average attainment of the program outcomes', 'programs', { auto: 'poAttainment', unit: 'level', dvv: ['PO attainment sheet of the program'] }),
+    ],
+  },
+  {
+    id: 'N4', code: '4', title: 'Students’ performance', weight: 150, metrics: [
+      QN('4.1', 'Enrolment ratio (admitted against sanctioned intake)', 'programs', { auto: 'enrolmentPct', unit: 'pct', dvv: ['Approval letter with the sanctioned intake', 'List of students admitted'] }),
+      QN('4.2.1', 'Success rate without backlogs in any semester', 'coe', { unit: 'pct', dvv: ['Result sheets of each batch'] }),
+      QN('4.2.2', 'Success rate in the stipulated period (final-year pass %)', 'coe', { auto: 'passPct', unit: 'pct', dvv: ['Final-year result sheets'] }),
+      QN('4.3', 'Academic performance in the third year (mean CGPA)', 'coe', { unit: 'count', dvv: ['Third-year result sheets'] }),
+      QN('4.4', 'Academic performance in the second year (mean CGPA)', 'coe', { unit: 'count', dvv: ['Second-year result sheets'] }),
+      QN('4.5', 'Placement, higher studies and entrepreneurship', 'placements', { auto: 'placementPct', unit: 'pct', dvv: ['Offer letters', 'Higher-studies admission proofs', 'Proof of start-ups'] }),
+      QL('4.6', 'Professional activities (chapters, events, student publications)', { dvv: ['Reports of events organised', 'Student publications and awards'] }),
+    ],
+  },
+  {
+    id: 'N5', code: '5', title: 'Faculty information and contributions', weight: 200, metrics: [
+      QN('5.1', 'Student – faculty ratio', 'hrms', { auto: 'studentTeacherRatio', unit: 'ratio', dvv: ['List of faculty with appointment letters', 'Students on roll'] }),
+      QN('5.2', 'Faculty cadre proportion (professors : associate : assistant)', 'manual', { unit: 'pct', dvv: ['List of faculty with designation'] }),
+      QN('5.3', 'Faculty with a Ph.D.', 'hrms', { auto: 'teachersPhdPct', unit: 'pct', dvv: ['Ph.D. degree certificates'] }),
+      QN('5.4', 'Faculty retention', 'manual', { unit: 'pct', dvv: ['Faculty joining and leaving register'] }),
+      QL('5.5', 'Innovations by the faculty in teaching and learning'),
+      QN('5.6', 'Faculty in development and training programmes (FDPs, STTPs)', 'manual', { dvv: ['FDP / STTP certificates'] }),
+      QN('5.7', 'Research papers per faculty member', 'research', { auto: 'researchPapersPerTeacher', unit: 'perTeacher', dvv: ['First page of each paper', 'Sponsored research and consultancy letters'] }),
+      QL('5.8', 'Faculty performance appraisal and development system (FPADS)', { dvv: ['Appraisal forms (sample)'] }),
+      QN('5.9', 'Visiting, adjunct and emeritus faculty', 'manual', { dvv: ['Appointment letters', 'Hours taught'] }),
+    ],
+  },
+  {
+    id: 'N6', code: '6', title: 'Facilities and technical support', weight: 80, metrics: [
+      QL('6.1', 'Adequate, well-equipped laboratories and technical staff', { dvv: ['List of laboratories with equipment', 'Technical staff with qualifications'] }),
+      QL('6.2', 'Additional facilities created for improving the quality of learning'),
+      QL('6.3', 'Maintenance and overall ambience of the laboratories'),
+      QL('6.4', 'Project laboratory'),
+      QL('6.5', 'Safety measures in the laboratories', { dvv: ['Safety instructions displayed (photos)', 'Fire extinguisher records'] }),
+    ],
+  },
+  {
+    id: 'N7', code: '7', title: 'Continuous improvement', weight: 50, metrics: [
+      QL('7.1', 'Actions taken on the results of the evaluation of each PO and PSO'),
+      QL('7.2', 'Academic audit and the actions taken', { dvv: ['Academic audit reports'] }),
+      QN('7.3', 'Improvement in placement, higher studies and entrepreneurship (change on the year before)', 'manual', { unit: 'pct' }),
+      QN('7.4', 'Improvement in the quality of students admitted (entrance rank or marks)', 'manual'),
+    ],
+  },
+  {
+    id: 'N8', code: '8', title: 'First-year academics', weight: 50, metrics: [
+      QN('8.1', 'First-year student – faculty ratio', 'manual', { unit: 'ratio' }),
+      QN('8.2', 'Qualification of the faculty teaching first-year common courses (with a Ph.D.)', 'manual', { unit: 'pct' }),
+      QN('8.3', 'First-year academic performance (mean CGPA)', 'coe'),
+      QL('8.4', 'Attainment of the course outcomes of first-year courses'),
+      QL('8.5', 'Attainment of the POs and PSOs from first-year courses'),
+    ],
+  },
+  {
+    id: 'N9', code: '9', title: 'Student support systems', weight: 50, metrics: [
+      QL('9.1', 'Mentoring system to help students at the individual level', { dvv: ['Mentor allotment list', 'Mentoring records (sample)'] }),
+      QL('9.2', 'Feedback analysis and reward or corrective measures', { dvv: ['Feedback analysis reports', 'Action taken reports'] }),
+      QL('9.3', 'Feedback on facilities'),
+      QL('9.4', 'Self-learning'),
+      QL('9.5', 'Career guidance, training and placement'),
+      QL('9.6', 'Entrepreneurship cell'),
+      QL('9.7', 'Co-curricular and extra-curricular activities'),
+    ],
+  },
+  {
+    id: 'N10', code: '10', title: 'Governance, institutional support and financial resources', weight: 120, metrics: [
+      QL('10.1', 'Organisation, governance and transparency', { dvv: ['Organisation chart', 'Minutes of the governing body'] }),
+      QN('10.2', 'Budget allocation, utilisation and public accounting at the institute level (₹ lakh)', 'manual', { unit: 'lakh', dvv: ['Audited statements of the institute'] }),
+      QN('10.3', 'Budget allocation and utilisation for the program (₹ lakh)', 'manual', { unit: 'lakh', dvv: ['Department budget and expenditure statements'] }),
+      QL('10.4', 'Library and internet'),
+    ],
+  },
+]
+
 // ───────────────────────────────────────────────────────── AISHE (college DCF, basic)
 
 const AISHE = [
@@ -243,7 +354,22 @@ const AISHE = [
   },
 ]
 
-const CRITERIA = { NAAC, NIRF, AISHE }
+const CRITERIA = { NAAC, NBA, NIRF, AISHE }
+
+/** NBA-style frameworks report one programme at a time. */
+export const accrPerProgram = (framework) => !!ACCR_FRAMEWORK_BY[framework]?.perProgram
+
+/** Self-assessed marks: { max, claimed, scored (criteria with marks) } from the criteria and their saved marks ({ id → marks }). */
+export function accrMarks(criteria, scores = {}) {
+  let max = 0
+  let claimed = 0
+  let scored = 0
+  for (const c of criteria) {
+    max += c.weight ?? 0
+    if (typeof scores[c.id] === 'number') { claimed += scores[c.id]; scored++ }
+  }
+  return { max, claimed, scored }
+}
 
 /** The criteria (with their metrics) of a framework. */
 export const accrCriteria = (framework) => CRITERIA[framework] ?? []

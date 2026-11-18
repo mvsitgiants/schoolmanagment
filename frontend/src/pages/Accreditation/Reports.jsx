@@ -1,14 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { BadgeCheck, Calculator, Download, FileCheck2, FolderOpen, NotebookPen, Printer, RotateCcw, Sparkles } from 'lucide-react'
-import { ACCR_METRIC_STATUS, ACCR_NARRATIVE_WORDS, PRINT_DOC_BY } from '@schoolgiant/shared'
+import { Award, BadgeCheck, Calculator, Download, FileCheck2, FolderOpen, NotebookPen, Printer, RotateCcw, Sparkles } from 'lucide-react'
+import { ACCR_FRAMEWORK_BY, ACCR_METRIC_STATUS, ACCR_NARRATIVE_WORDS, PRINT_DOC_BY, accrPerProgram } from '@schoolgiant/shared'
 import {
   CodeBadge, Drawer, EmptyState, FactGrid, FormField, HeaderButton, Input, Note, PageContainer, PageHeader, PillRow, ProgressBar, SegmentedControl,
   SideNav, SideNavLayout, Skeleton, StatCardRow, Tag, Textarea, pillClass,
 } from '../../components/system'
 import Button from '../../components/ui/Button'
-import { exportAccrReport, fetchAccrReport, saveAccrMetric } from '../../api/accreditation'
+import { exportAccrReport, fetchAccrReport, saveAccrMetric, saveAccrScore } from '../../api/accreditation'
 import { hasPermission } from '../../api/auth'
 import { printDocument } from '../../components/print/printDocument'
 import { useSnackbar } from '../../context/SnackbarContext'
@@ -20,7 +20,7 @@ import {
 const REP = 'accreditation.reports'
 
 /** One metric: its computed value (and how it was worked out), the manual value and note, or the narrative; status. */
-function MetricDrawer({ framework, year, metric: m, onClose }) {
+function MetricDrawer({ framework, year, programId, metric: m, onClose }) {
   const { t } = useTranslation('accreditation')
   const L = useAccrLabels()
   const fmt = useAccrValue()
@@ -32,7 +32,7 @@ function MetricDrawer({ framework, year, metric: m, onClose }) {
   const qn = m.kind === 'QN'
   const save = useMutation({
     mutationFn: () => saveAccrMetric(framework, year, m.code, {
-      status: form.status, note: form.note,
+      status: form.status, note: form.note, ...(programId && { programId }),
       ...(qn ? { manualValue: form.manualValue === '' ? null : Number(form.manualValue) } : { narrative: form.narrative }),
     }),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['accreditation'] }); showSuccess(t('accreditation.reports.saved')); onClose() },
@@ -87,10 +87,38 @@ function MetricDrawer({ framework, year, metric: m, onClose }) {
             {t('accreditation.reports.evidenceN', { count: m.evidence, files: m.files })}
             {m.checklist && <span className="text-xs text-ink-faint">{t('accreditation.reports.checklistN', { done: m.checklist.done, total: m.checklist.total })}</span>}
           </span>
-          {hasPermission('accreditation.evidence.view') && <Button size="sm" variant="secondary" to={`/accreditation/evidence?framework=${framework}&year=${year}&metric=${encodeURIComponent(m.code)}`}>{t('accreditation.reports.openEvidence')}</Button>}
+          {hasPermission('accreditation.evidence.view') && <Button size="sm" variant="secondary" to={`/accreditation/evidence?framework=${framework}&year=${year}&metric=${encodeURIComponent(m.code)}${programId ? `&program=${programId}` : ''}`}>{t('accreditation.reports.openEvidence')}</Button>}
         </div>
       </div>
     </Drawer>
+  )
+}
+
+/** A criterion's self-assessed marks (NBA): out of its weight, with a note; saved when it changes. */
+function ScoreBox({ framework, year, programId, crit }) {
+  const { t } = useTranslation('accreditation')
+  const qc = useQueryClient()
+  const { showError, showSuccess } = useSnackbar()
+  const canEdit = hasPermission(`${REP}.edit`)
+  const [marks, setMarks] = useState(crit.score?.marks ?? '')
+  const [note, setNote] = useState(crit.score?.note ?? '')
+  const dirty = String(marks) !== String(crit.score?.marks ?? '') || note !== (crit.score?.note ?? '')
+  const over = marks !== '' && (Number(marks) < 0 || Number(marks) > crit.weight)
+  const save = useMutation({
+    mutationFn: () => saveAccrScore(framework, year, crit.id, { marks: marks === '' ? null : Number(marks), note, programId }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['accreditation', 'report'] }); showSuccess(t('accreditation.marks.saved')) },
+    onError: (e) => showError(e.message),
+  })
+  return (
+    <div className="flex flex-wrap items-end gap-2 rounded-xl border border-border bg-bg/60 p-3">
+      <FormField label={t('accreditation.marks.label', { weight: crit.weight })} error={over ? t('accreditation.marks.range', { weight: crit.weight }) : undefined}>
+        <Input type="number" min="0" max={crit.weight} step="any" className="w-28" value={marks} disabled={!canEdit} onChange={(e) => setMarks(e.target.value)} />
+      </FormField>
+      <FormField label={t('accreditation.marks.note')} className="min-w-0 flex-1">
+        <Input value={note} disabled={!canEdit} onChange={(e) => setNote(e.target.value)} placeholder={t('accreditation.marks.noteHint')} />
+      </FormField>
+      {canEdit && <Button variant="secondary" disabled={!dirty || over} loading={save.isPending} onClick={() => save.mutate()}>{t('accreditation.marks.save')}</Button>}
+    </div>
   )
 }
 
@@ -140,11 +168,16 @@ export default function Reports() {
   const { data: meta } = useAccrMeta()
   const [framework, setFramework] = useState('NAAC')
   const [year, setYear] = useState('')
+  const [programId, setProgramId] = useState('')
+  const perProgram = accrPerProgram(framework)
+  const scored = !!ACCR_FRAMEWORK_BY[framework]?.marks
+  useEffect(() => { if (perProgram && !programId && meta?.programs?.length) setProgramId(meta.programs[0].id) }, [perProgram, programId, meta])
+  const pid = perProgram ? programId : undefined
   const [criterion, setCriterion] = useState('')
   const [kind, setKind] = useState('')
   const [open, setOpen] = useState(null)
   useEffect(() => { if (!year && meta?.current) setYear(meta.current) }, [meta, year])
-  const { data: r, isLoading, error, refetch } = useQuery({ queryKey: ['accreditation', 'report', framework, year], queryFn: () => fetchAccrReport(framework, year), enabled: !!year })
+  const { data: r, isLoading, error, refetch } = useQuery({ queryKey: ['accreditation', 'report', framework, year, pid ?? ''], queryFn: () => fetchAccrReport(framework, year, pid), enabled: !!year && (!perProgram || !!programId) })
   const crit = r?.criteria.find((c) => c.id === criterion) ?? r?.criteria[0]
   const shown = useMemo(() => (crit?.metrics ?? []).filter((m) => (kind === 'PENDING' ? m.status !== 'COMPLETE' : !kind || m.kind === kind)), [crit, kind])
   const live = open && r?.criteria.flatMap((c) => c.metrics).find((m) => m.code === open.code)
@@ -152,7 +185,8 @@ export default function Reports() {
   const canExport = hasPermission(`${REP}.export`)
   const nav = r && (
     <SideNav title={t('accreditation.reports.criteria')} value={crit?.id} onChange={setCriterion} items={r.criteria.map((c) => ({
-      id: c.id, label: `${c.code} · ${L.criterion(framework, c)}`, hint: c.weight ? t('accreditation.reports.weight', { weight: c.weight }) : undefined,
+      id: c.id, label: `${c.code} · ${L.criterion(framework, c)}`,
+      hint: scored && typeof c.score?.marks === 'number' ? t('accreditation.marks.ofWeight', { marks: c.score.marks, weight: c.weight }) : c.weight ? t('accreditation.reports.weight', { weight: c.weight }) : undefined,
       count: `${c.completion.complete}/${c.completion.total}`, progress: { value: c.completion.complete, max: c.completion.total, kind: 'done' },
     }))} />
   )
@@ -160,11 +194,13 @@ export default function Reports() {
     <PageContainer>
       <PageHeader icon={BadgeCheck} title={t('accreditation.reports.pageTitle')} subtitle={t('accreditation.reports.pageSubtitle')}
         actions={r && canExport && <>
-          <HeaderButton icon={Download} onClick={() => exportAccrReport(framework, year).catch((e) => showError(e.message))}>{t('accreditation.reports.export')}</HeaderButton>
+          <HeaderButton icon={Download} onClick={() => exportAccrReport(framework, year, pid, r.program?.code).catch((e) => showError(e.message))}>{t('accreditation.reports.export')}</HeaderButton>
           {!!PRINT_DOC_BY.ACCREDITATION_SSR && <HeaderButton icon={Printer} onClick={() => printDocument('ACCREDITATION_SSR', r.id)}>{t('accreditation.reports.print')}</HeaderButton>}
         </>} />
-      <FrameworkYearBar framework={framework} year={year} onFramework={(f) => { setFramework(f); setCriterion(''); setKind('') }} onYear={setYear} />
-      {isLoading || !year ? <Skeleton className="h-64" /> : error ? <EmptyState error={error} onRetry={refetch} /> : r && (
+      <FrameworkYearBar framework={framework} year={year} onFramework={(f) => { setFramework(f); setCriterion(''); setKind('') }} onYear={setYear}
+        programId={programId} onProgram={(p) => { setProgramId(p); setCriterion('') }} />
+      {perProgram && meta && !meta.programs?.length ? <EmptyState icon={BadgeCheck} title={t('accreditation.reports.noPrograms')} hint={t('accreditation.reports.noProgramsHint')} />
+        : isLoading || !year || (perProgram && !programId) ? <Skeleton className="h-64" /> : error ? <EmptyState error={error} onRetry={refetch} /> : r && (
         <SideNavLayout nav={nav}>
           <StatCardRow items={[
             { icon: BadgeCheck, label: t('accreditation.reports.completion'), value: `${s.pct}%`, progress: s.pct, segments: [
@@ -172,13 +208,15 @@ export default function Reports() {
               { label: L.status('NOT_STARTED'), value: s.total - s.complete - s.draft, tone: 'neutral' }] },
             { icon: Calculator, label: t('accreditation.reports.valuesReady'), value: `${s.valued}/${s.quantitative}`, progress: s.quantitative ? (s.valued / s.quantitative) * 100 : undefined, sub: t('accreditation.reports.computedN', { count: s.computed }) },
             { icon: NotebookPen, label: t('accreditation.reports.narratives'), value: `${s.narratives}/${s.qualitative}`, progress: s.qualitative ? (s.narratives / s.qualitative) * 100 : undefined },
-            { icon: FileCheck2, label: t('accreditation.reports.evidence'), value: s.evidence },
+            r.marks
+              ? { icon: Award, label: t('accreditation.marks.total'), value: `${r.marks.claimed} / ${r.marks.max}`, progress: (r.marks.claimed / r.marks.max) * 100, sub: t('accreditation.marks.scoredN', { count: r.marks.scored, total: r.criteria.length }) }
+              : { icon: FileCheck2, label: t('accreditation.reports.evidence'), value: s.evidence },
           ]} />
           {crit && (
             <div className="ui-panel bg-surface border border-border/80 rounded-2xl shadow-card p-4 sm:p-5 space-y-3">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="text-[11px] font-semibold uppercase tracking-wider text-ink-faint">{L.frameworkName(framework)} · {year}</p>
+                  <p className="text-[11px] font-semibold uppercase tracking-wider text-ink-faint">{L.frameworkName(framework)}{r.program ? ` · ${r.program.name}` : ''} · {year}</p>
                   <h2 className="font-display text-lg font-semibold text-ink">{crit.code} · {L.criterion(framework, crit)}</h2>
                 </div>
                 <div className="w-full sm:w-64">
@@ -186,6 +224,7 @@ export default function Reports() {
                   <p className="mt-1 text-xs text-ink-muted">{t('accreditation.reports.criterionDone', { done: crit.completion.complete, total: crit.completion.total, draft: crit.completion.draft })}</p>
                 </div>
               </div>
+              {scored && crit.score && <ScoreBox key={`${crit.id}${pid}${year}`} framework={framework} year={year} programId={pid} crit={crit} />}
               <PillRow>
                 {[['', t('accreditation.reports.all')], ['QN', L.kind('QN')], ['QL', L.kind('QL')], ['PENDING', t('accreditation.reports.pending')]].map(([v, label]) => (
                   <button key={v} type="button" aria-pressed={kind === v} className={pillClass(kind === v)} onClick={() => setKind(v)}>{label}</button>
@@ -201,7 +240,7 @@ export default function Reports() {
           <p className="text-xs text-ink-faint">{t('accreditation.reports.rangeNote', { from: date(r.range.from), to: date(r.range.to) })}</p>
         </SideNavLayout>
       )}
-      {live && <MetricDrawer key={live.code} framework={framework} year={year} metric={live} onClose={() => setOpen(null)} />}
+      {live && <MetricDrawer key={live.code} framework={framework} year={year} programId={pid} metric={live} onClose={() => setOpen(null)} />}
     </PageContainer>
   )
 }

@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { CheckCircle2, Circle, ExternalLink, FileCheck2, FolderOpen, Link2, Paperclip, Plus, ShieldCheck, ShieldQuestion, Trash2 } from 'lucide-react'
-import { accrCriteria, accrMetric, accrMetrics } from '@schoolgiant/shared'
+import { accrCriteria, accrMetric, accrMetrics, accrPerProgram } from '@schoolgiant/shared'
 import {
   Attachments, CodeBadge, Drawer, EmptyState, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, PersonCell, SearchInput, Select,
   SideNav, SideNavLayout, Skeleton, StatCardRow, Textarea, useConfirm, usePrompt,
@@ -19,7 +19,7 @@ import { DvvPill, FrameworkYearBar, KindTag, useAccrLabels, useAccrMeta } from '
 const EVI = 'accreditation.evidence'
 
 /** Add or change a piece of evidence: what it is, the metrics it backs, which DVV documents it answers. */
-function EvidenceForm({ framework, item, preset, years, onClose, onSaved }) {
+function EvidenceForm({ framework, programId, item, preset, years, onClose, onSaved }) {
   const { t } = useTranslation('accreditation')
   const L = useAccrLabels()
   const { showError } = useSnackbar()
@@ -33,7 +33,7 @@ function EvidenceForm({ framework, item, preset, years, onClose, onSaved }) {
   const metrics = accrMetrics(framework)
   const toggleDoc = (key) => setForm((f) => ({ ...f, checklist: f.checklist.includes(key) ? f.checklist.filter((x) => x !== key) : [...f.checklist, key] }))
   const save = useMutation({
-    mutationFn: () => saveEvidence(item?.id, { ...(!item && { framework }), ...form, year: form.year || null, link: form.link || null }),
+    mutationFn: () => saveEvidence(item?.id, { ...(!item && { framework, ...(programId && { programId }) }), ...form, year: form.year || null, link: form.link || null }),
     onSuccess: onSaved,
     onError: (e) => { setErrors(e.details?.fields ?? {}); showError(e.message) },
   })
@@ -208,6 +208,10 @@ export default function Evidence() {
   const { data: meta } = useAccrMeta()
   const [framework, setFramework] = useState(params.get('framework') || 'NAAC')
   const [year, setYear] = useState(params.get('year') || '')
+  const [programId, setProgramId] = useState(params.get('program') || '')
+  const perProgram = accrPerProgram(framework)
+  useEffect(() => { if (perProgram && !programId && meta?.programs?.length) setProgramId(meta.programs[0].id) }, [perProgram, programId, meta])
+  const pid = perProgram ? programId : undefined
   const [criterion, setCriterion] = useState('')
   const [search, setSearch] = useState('')
   const q = useDebouncedValue(search.trim(), 300)
@@ -222,8 +226,8 @@ export default function Evidence() {
     if (m) { setCriterion(m.criterion); setPanel(code) }
     setParams({}, { replace: true })
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
-  const query = { framework, year, search: q }
-  const { data, isLoading, error, refetch } = useQuery({ queryKey: ['accreditation', 'evidence', query], queryFn: () => fetchEvidence(query) })
+  const query = { framework, year, search: q, programId: pid }
+  const { data, isLoading, error, refetch } = useQuery({ queryKey: ['accreditation', 'evidence', query], queryFn: () => fetchEvidence(query), enabled: !perProgram || !!programId })
   const refresh = () => qc.invalidateQueries({ queryKey: ['accreditation'] })
   const criteria = accrCriteria(framework)
   const crit = criteria.find((c) => c.id === criterion) ?? criteria[0]
@@ -246,7 +250,8 @@ export default function Evidence() {
       <PageHeader icon={FolderOpen} title={t('accreditation.evidence.pageTitle')} subtitle={t('accreditation.evidence.pageSubtitle')}
         actions={<HeaderButton icon={Plus} variant="primary" requires={`${EVI}.create`} onClick={() => setForm({ preset: { year } })}>{t('accreditation.evidence.new')}</HeaderButton>} />
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <FrameworkYearBar framework={framework} year={year} allYears onFramework={(f) => { setFramework(f); setCriterion(''); setPanel(null) }} onYear={setYear} />
+        <FrameworkYearBar framework={framework} year={year} allYears onFramework={(f) => { setFramework(f); setCriterion(''); setPanel(null) }} onYear={setYear}
+          programId={programId} onProgram={(p) => { setProgramId(p); setPanel(null) }} />
         <div className="w-full sm:w-64"><SearchInput value={search} onChange={setSearch} placeholder={t('accreditation.evidence.search')} /></div>
       </div>
       {isLoading ? <Skeleton className="h-64" /> : error ? <EmptyState error={error} onRetry={refetch} /> : (
@@ -290,7 +295,7 @@ export default function Evidence() {
       {panelRow && !liveItem && <MetricPanel framework={framework} row={panelRow} items={itemsOf(panelRow.code)}
         onAdd={(preset) => setForm({ preset: { ...preset, year } })} onOpen={(row, e) => { if (!row) setPanel(null); else if (e) setOpenItem(e.id) }} />}
       {liveItem && <EvidenceDrawer framework={framework} item={liveItem} onClose={() => setOpenItem(null)} onEdit={() => setForm({ item: liveItem })} onChanged={refresh} />}
-      {form && <EvidenceForm framework={framework} item={form.item} preset={form.preset} years={years} onClose={() => setForm(null)}
+      {form && <EvidenceForm framework={framework} programId={pid} item={form.item} preset={form.preset} years={years} onClose={() => setForm(null)}
         onSaved={(saved) => { setForm(null); refresh(); showSuccess(t('accreditation.evidence.saved')); setOpenItem(saved.id) }} />}
     </PageContainer>
   )

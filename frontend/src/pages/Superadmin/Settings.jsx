@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Building2, Check, Copy, CreditCard, Mail, Megaphone, MessageSquareText, Send, Settings2, UserPlus } from 'lucide-react'
+import { Building2, Check, Copy, CreditCard, LifeBuoy, Mail, Megaphone, MessageSquareText, Send, Settings2, UserPlus } from 'lucide-react'
 import { FormField, Input, Note, PageContainer, PageHeader, Panel, SegmentedControl, StatusPill, Textarea } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { Switch } from '../../components/app/Controls'
@@ -66,6 +66,23 @@ function CompanyPanel({ data }) {
         </div>
         {field('supportEmail', { type: 'email' })}
         {field('supportPhone', { inputMode: 'tel' })}
+      </div>
+    </Panel>
+  )
+}
+
+/** How schools reach the support team: shown on their Help & support page (email and phone are in Company). */
+function SupportPanel({ data }) {
+  const { t } = useTranslation('superadmin')
+  const { form, set, errors, save, dirty } = useSection(data, 'support', ['whatsapp', 'hours', 'note'])
+  if (!form) return null
+  return (
+    <Panel icon={LifeBuoy} title={t('superadmin.settings.support.title')} subtitle={t('superadmin.settings.support.subtitle')}
+      actions={<Button size="sm" icon={Check} loading={save.isPending} disabled={!dirty} onClick={() => save.mutate()}>{t('superadmin.settings.save')}</Button>}>
+      <div className="grid sm:grid-cols-2 gap-4">
+        <FormField label={t('superadmin.settings.support.whatsapp')} error={errors.whatsapp}><Input value={form.whatsapp} onChange={set('whatsapp')} inputMode="tel" placeholder="98450 12345" /></FormField>
+        <FormField label={t('superadmin.settings.support.hours')} error={errors.hours}><Input value={form.hours} onChange={set('hours')} placeholder={t('superadmin.settings.support.hoursPlaceholder')} /></FormField>
+        <div className="sm:col-span-2"><FormField label={t('superadmin.settings.support.note')} error={errors.note}><Input value={form.note} onChange={set('note')} placeholder={t('superadmin.settings.support.notePlaceholder')} /></FormField></div>
       </div>
     </Panel>
   )
@@ -303,6 +320,7 @@ export default function PlatformSettings() {
           </div>
           <div className="flex flex-col gap-6">
             <CompanyPanel data={data} />
+            <SupportPanel data={data} />
             <PaymentsPanel data={data} />
             <NoticePanel data={data} />
             <SignupPanel data={data} />

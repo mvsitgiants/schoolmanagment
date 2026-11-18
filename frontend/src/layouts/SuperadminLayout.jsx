@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { NavLink, Navigate, Outlet, useLocation } from 'react-router-dom'
 import clsx from 'clsx'
 import { useTranslation } from 'react-i18next'
-import { Building2, FileText, History, KeyRound, LayoutDashboard, Layers, LogOut, Menu, Settings2, ShieldCheck, Tag, UserCog, X } from 'lucide-react'
+import { Building2, FileText, History, KeyRound, LayoutDashboard, Layers, LifeBuoy, LogOut, Menu, Settings2, ShieldCheck, Tag, UserCog, X } from 'lucide-react'
 import { canPlatform, getCurrentUser, logout } from '../api/auth'
 import ChangePasswordModal from '../components/ui/ChangePasswordModal'
 import NoticeBanner from '../components/ui/NoticeBanner'
@@ -13,6 +13,7 @@ import IdleGuard from '../components/ui/IdleGuard'
 const LINKS = [
   { to: '/superadmin', labelKey: 'ui.superadmin.overview', icon: LayoutDashboard, end: true },
   { to: '/superadmin/tenants', labelKey: 'ui.superadmin.institutions', icon: Building2 },
+  { to: '/superadmin/support', labelKey: 'ui.superadmin.support', icon: LifeBuoy },
   { to: '/superadmin/invoices', labelKey: 'ui.superadmin.invoices', icon: FileText },
   { to: '/superadmin/plans', labelKey: 'ui.superadmin.plans', icon: Layers },
   { to: '/superadmin/coupons', labelKey: 'ui.superadmin.coupons', icon: Tag },

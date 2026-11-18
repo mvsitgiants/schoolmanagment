@@ -57,11 +57,11 @@ export const SUBSCRIPTION_GST_PCT = 18
  * Platform staff (Superadmin › Staff): what each role may change in the console. Everyone signed
  * in to the console can look; settings, staff and the audit log are for owners only.
  */
-export const PLATFORM_PERMISSIONS = ['tenants.create', 'tenants.edit', 'billing', 'plans', 'coupons', 'templates', 'settings', 'staff', 'audit']
+export const PLATFORM_PERMISSIONS = ['tenants.create', 'tenants.edit', 'billing', 'plans', 'coupons', 'templates', 'settings', 'staff', 'audit', 'support']
 export const PLATFORM_ROLES = [
   { value: 'OWNER', label: 'Owner', perms: PLATFORM_PERMISSIONS },
   { value: 'BILLING', label: 'Billing', perms: ['billing', 'coupons'] },
-  { value: 'SUPPORT', label: 'Support', perms: ['tenants.create', 'tenants.edit', 'templates'] },
+  { value: 'SUPPORT', label: 'Support', perms: ['tenants.create', 'tenants.edit', 'templates', 'support'] },
   { value: 'READONLY', label: 'Read-only', perms: [] },
 ]
 /** Can a platform role do this? (A platform user saved before roles existed is an owner.) */

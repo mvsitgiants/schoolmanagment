@@ -1,6 +1,6 @@
 // Accreditation (module `accreditation`). Tenant-scoped.
 //
-//   AccrAssessment  one framework's return for one assessment year (NAAC SSR 2025-26, NIRF 2026 …): per metric its
+//   AccrAssessment  one framework's return for one assessment year (NAAC SSR 2025-26, NIRF 2026 …; NBA per programme): per metric its
 //                   status, a manual value (when SchoolGiant can't compute it, or the computed one is overridden),
 //                   a note and, for qualitative metrics, the narrative. Computed values are read live, never stored.
 //   AccrEvidence    a piece of evidence (sanction letter, geo-tagged photos, minutes …) for one or more metrics: its files
@@ -21,18 +21,32 @@ const metricStateSchema = new Schema({
   updatedAt: Date,
 }, { _id: false })
 
+/** Self-assessed marks of a criterion (frameworks with `marks`, e.g. NBA's SAR). */
+const scoreSchema = new Schema({
+  criterion: { type: String, required: true },
+  marks: Number,
+  note: String,
+  updatedBy: String,
+  updatedAt: Date,
+}, { _id: false })
+
 const assessmentSchema = new Schema({
   framework: { type: String, required: true }, // ACCR_FRAMEWORKS
   year: { type: String, required: true, match: /^\d{4}-\d{2}$/ }, // assessment (academic) year, "2025-26"
+  programId: { type: ObjectId, ref: 'Program' }, // per-programme frameworks (NBA): the programme assessed; else empty
   metrics: { type: [metricStateSchema], default: [] },
+  scores: { type: [scoreSchema], default: [] },
   createdBy: String,
 }, { timestamps: true })
 assessmentSchema.plugin(tenantPlugin)
-assessmentSchema.index({ tenantId: 1, framework: 1, year: 1 }, { unique: true })
+// one per framework, year and programme (no programme for NAAC, NIRF, AISHE). It replaced { tenantId, framework, year }:
+// services/accreditation.js syncs the indexes once so the old one is dropped.
+assessmentSchema.index({ tenantId: 1, framework: 1, year: 1, programId: 1 }, { unique: true, name: 'framework_year_program' })
 export const AccrAssessment = model('AccrAssessment', assessmentSchema, 'accr_assessments')
 
 const evidenceSchema = new Schema({
   framework: { type: String, required: true },
+  programId: { type: ObjectId, ref: 'Program' }, // per-programme frameworks (NBA)
   metricCodes: { type: [String], default: [] },
   /** Which DVV checklist line it answers ("3.1.1#0" → the metric's first required document). */
   checklist: { type: [String], default: [] },

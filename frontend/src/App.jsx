@@ -46,6 +46,8 @@ const AcademicSubjects = lazy(() => import('./pages/Academics/Subjects'))
 const AcademicGrading = lazy(() => import('./pages/Academics/Grading'))
 const AcademicAllocation = lazy(() => import('./pages/Academics/Allocation'))
 const AcademicBooksUniform = lazy(() => import('./pages/Academics/BooksUniform'))
+const HelpSupport = lazy(() => import('./pages/Core/Help'))
+const SaSupport = lazy(() => import('./pages/Superadmin/Support'))
 
 // Students
 const StudentAdmit = lazy(() => import('./pages/Students/Admit'))
@@ -289,12 +291,15 @@ export default function App() {
           <Route path="coupons" element={<SaCoupons />} />
           <Route path="staff" element={<SaStaff />} />
           <Route path="audit" element={<SaAudit />} />
+          <Route path="support" element={<SaSupport />} />
+          <Route path="support/:id" element={<SaSupport />} />
           <Route path="settings" element={<SaSettings />} />
         </Route>
 
         <Route element={<AuthGuard><SettingsProvider><AppLayout /></SettingsProvider></AuthGuard>}>
           <Route index element={<Home />} />
           <Route path="me" element={<MyWorkspace />} />
+          <Route path="help" element={<HelpSupport />} />
           <Route path="me/*" element={<Navigate to="/me" replace />} />
           <Route path="core" element={<Navigate to="/core/setup" replace />} />
           <Route path="core/setup" element={<SetupHub />} />

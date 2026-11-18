@@ -69,6 +69,7 @@ export function platformSettingsView(row) {
   const sm = row.sms ?? {}
   return {
     company: row.company ?? {},
+    support: row.support ?? {},
     email: { ...email, passSet: !!pass },
     razorpay: { keyId: rz.keyId ?? '', keySecretSet: !!rz.keySecret, webhookSecretSet: !!rz.webhookSecret },
     paymentsReady: !!(rz.keyId && rz.keySecret),
@@ -93,6 +94,7 @@ export async function savePlatformSettings(input) {
   const set = { updatedBy: getContext()?.userName }
   const unset = {}
   if (input.company) for (const [k, v] of Object.entries(input.company)) set[`company.${k}`] = v
+  if (input.support) for (const [k, v] of Object.entries(input.support)) set[`support.${k}`] = v
   if (input.email) {
     const { pass, ...rest } = input.email
     for (const [k, v] of Object.entries(rest)) set[`email.${k}`] = v

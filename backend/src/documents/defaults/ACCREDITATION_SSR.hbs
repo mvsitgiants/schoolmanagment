@@ -1,6 +1,7 @@
-{{!-- Accreditation summary (A4): a framework's return (NAAC SSR, NIRF, AISHE) for an assessment year, criterion by
+{{!-- Accreditation summary (A4): a framework's return (NAAC SSR, NBA SAR, NIRF, AISHE) for an assessment year, criterion by
       criterion. framework.code, framework.name · year · range.from, range.to · summary.total, complete, pct ·
-      criteria[] {code, title, weight, completion.complete, completion.total, metrics[] {code, title, qualitative, value,
+      program {name, code} and marks {max, claimed} (NBA) ·
+      criteria[] {code, title, weight, marks, scored, marksNote, completion.complete, completion.total, metrics[] {code, title, qualitative, value,
       computed, source, statusLabel, complete, note, narrative, words}}. --}}
 <style>
   .crit { margin: 5mm 0 1.4mm; padding-bottom: .8mm; border-bottom: .35mm solid #333; display: flex; justify-content: space-between; align-items: baseline; gap: 4mm }
@@ -19,11 +20,23 @@
 <table class="grid" style="margin-bottom:2mm">
   <tr><th class="l" style="width:45mm">{{t "accreditation.print.institution" "Name of the institution"}}</th><td>{{institution.name}}{{#if institution.city}}, {{institution.city}}{{/if}}</td></tr>
   {{#if (or institution.affiliationNo institution.registrationNo)}}<tr><th class="l">{{t "accreditation.print.ids" "Affiliation / registration"}}</th><td>{{join (array institution.affiliationNo institution.registrationNo) " · "}}</td></tr>{{/if}}
+  {{#if program}}<tr><th class="l">{{t "accreditation.print.program" "Programme"}}</th><td>{{program.name}} ({{program.code}})</td></tr>{{/if}}
   <tr><th class="l">{{t "accreditation.print.complete" "Metrics complete"}}</th><td>{{summary.complete}} / {{summary.total}} ({{summary.pct}}%)</td></tr>
+  {{#if marks}}<tr><th class="l">{{t "accreditation.print.marks" "Self-assessed marks"}}</th><td><b>{{marks.claimed}}</b> / {{marks.max}}</td></tr>{{/if}}
 </table>
 
+{{#if marks}}
+  <table class="grid" style="margin-bottom:2mm">
+    <thead><tr><th style="width:16mm">{{t "accreditation.print.criterionNo" "Criterion"}}</th><th class="l">{{t "accreditation.print.title" "Description"}}</th><th style="width:22mm">{{t "accreditation.print.maxMarks" "Marks"}}</th><th style="width:26mm">{{t "accreditation.print.claimed" "Self-assessed"}}</th></tr></thead>
+    <tbody>
+      {{#each criteria}}<tr><td class="c">{{code}}</td><td>{{title}}</td><td class="c">{{weight}}</td><td class="c">{{#if scored}}{{marks}}{{else}}—{{/if}}</td></tr>{{/each}}
+      <tr><td></td><td><b>{{t "accreditation.print.total" "Total"}}</b></td><td class="c"><b>{{marks.max}}</b></td><td class="c"><b>{{marks.claimed}}</b></td></tr>
+    </tbody>
+  </table>
+{{/if}}
+
 {{#each criteria}}
-  <div class="crit no-break"><b>{{t "accreditation.print.criterion" "Criterion {{code}}" code=code}} – {{title}}</b><span>{{#if weight}}{{t "accreditation.print.weight" "Weightage"}} {{weight}} · {{/if}}{{completion.complete}} / {{completion.total}} {{t "accreditation.print.done" "complete"}}</span></div>
+  <div class="crit no-break"><b>{{t "accreditation.print.criterion" "Criterion {{code}}" code=code}} – {{title}}</b><span>{{#if scored}}{{t "accreditation.print.marksOf" "Marks"}} {{marks}} / {{weight}} · {{else}}{{#if weight}}{{t "accreditation.print.weight" "Weightage"}} {{weight}} · {{/if}}{{/if}}{{completion.complete}} / {{completion.total}} {{t "accreditation.print.done" "complete"}}</span></div>
   <table class="grid">
     <thead><tr><th style="width:16mm">{{t "accreditation.print.metric" "Metric"}}</th><th class="l">{{t "accreditation.print.title" "Description"}}</th><th style="width:30mm">{{t "accreditation.print.value" "Value"}}</th><th style="width:22mm">{{t "accreditation.print.status" "Status"}}</th></tr></thead>
     <tbody>

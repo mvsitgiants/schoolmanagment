@@ -2,7 +2,7 @@ import { Fragment, useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { Bold, Eye, Heading2, List, PencilLine } from 'lucide-react'
-import { ACCR_DVV_STATUS, ACCR_FRAMEWORKS, ACCR_METRIC_STATUS, ACCR_NARRATIVE_WORDS, ACCR_SOURCES, accrWordCount } from '@schoolgiant/shared'
+import { ACCR_DVV_STATUS, ACCR_FRAMEWORKS, ACCR_METRIC_STATUS, ACCR_NARRATIVE_WORDS, ACCR_SOURCES, accrPerProgram, accrWordCount } from '@schoolgiant/shared'
 import { SegmentedControl, Select, StatusPill, Tag, Textarea } from '../system'
 import { fetchAccrMeta } from '../../api/accreditation'
 import { useFormat } from '../../context/SettingsContext'
@@ -55,8 +55,11 @@ export function SourceTag({ source }) {
   return <Tag size="xs" tone={ACCR_SOURCES[source]?.tone ?? 'neutral'}>{L.source(source)}</Tag>
 }
 
-/** Framework (NAAC · NIRF · AISHE) and assessment year pickers, side by side. `allYears` adds "every year". */
-export function FrameworkYearBar({ framework, year, onFramework, onYear, allYears = false }) {
+/**
+ * Framework (NAAC · NBA · NIRF · AISHE) and assessment year pickers, side by side. `allYears` adds "every year". A
+ * per-programme framework (NBA) also picks the programme (`programId`, `onProgram`).
+ */
+export function FrameworkYearBar({ framework, year, onFramework, onYear, allYears = false, programId, onProgram }) {
   const { t } = useTranslation('accreditation')
   const L = useAccrLabels()
   const { data: meta } = useAccrMeta()
@@ -69,6 +72,13 @@ export function FrameworkYearBar({ framework, year, onFramework, onYear, allYear
           {(meta?.years ?? (year ? [year] : [])).map((y) => <option key={y} value={y}>{y}</option>)}
         </Select>
       </div>
+      {accrPerProgram(framework) && onProgram && !!meta?.programs?.length && (
+        <div className="w-full sm:w-80">
+          <Select value={programId ?? ''} onChange={(e) => onProgram(e.target.value)} aria-label={t('accreditation.program')}>
+            {meta.programs.map((p) => <option key={p.id} value={p.id}>{p.name} ({p.code})</option>)}
+          </Select>
+        </div>
+      )}
     </div>
   )
 }

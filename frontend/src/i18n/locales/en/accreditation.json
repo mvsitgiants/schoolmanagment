@@ -3,14 +3,17 @@
     "edit": "Edit",
     "delete": "Delete",
     "year": "Assessment year",
+    "program": "Programme",
     "allYears": "Every year",
     "frameworks": {
       "NAAC": "NAAC",
+      "NBA": "NBA",
       "NIRF": "NIRF",
       "AISHE": "AISHE"
     },
     "frameworkNames": {
       "NAAC": "NAAC self-study report",
+      "NBA": "NBA self-assessment report (Tier II)",
       "NIRF": "NIRF data capture",
       "AISHE": "AISHE data capture"
     },
@@ -46,7 +49,8 @@
       "years": "{{value}} years",
       "perTeacher": "{{value}} per teacher",
       "days": "{{value}} days",
-      "perDay": "{{value}} a day"
+      "perDay": "{{value}} a day",
+      "level": "{{value}} / 3"
     },
     "unitHints": {
       "count": "A number",
@@ -56,7 +60,8 @@
       "years": "Years",
       "perTeacher": "Per teacher, e.g. 0.6",
       "days": "Days",
-      "perDay": "A day"
+      "perDay": "A day",
+      "level": "A level from 0 to 3, e.g. 2.1"
     },
     "detail": {
       "programs": "Programmes",
@@ -90,7 +95,11 @@
       "loans": "Loans",
       "days": "Days the desk issued",
       "placed": "Students placed",
-      "outgoing": "Outgoing students"
+      "outgoing": "Outgoing students",
+      "coursesMapped": "Courses mapped to POs",
+      "cosAttained": "COs attained (level 2+)",
+      "cos": "Course outcomes assessed",
+      "outcomes": "Program outcomes"
     },
     "narrative": {
       "bold": "Bold",
@@ -105,7 +114,7 @@
     },
     "reports": {
       "pageTitle": "Accreditation reports",
-      "pageSubtitle": "NAAC, NIRF and AISHE returns metric by metric — values computed from SchoolGiant where it can, narratives for the qualitative metrics.",
+      "pageSubtitle": "NAAC, NBA (one programme at a time), NIRF and AISHE returns metric by metric — values computed from SchoolGiant where it can, narratives for the qualitative metrics.",
       "export": "Export CSV",
       "print": "Print summary",
       "criteria": "Criteria",
@@ -143,7 +152,9 @@
       "openEvidence": "Open the evidence",
       "save": "Save metric",
       "saved": "Metric saved",
-      "updated": "Last changed by {{by}}, {{at}}"
+      "updated": "Last changed by {{by}}, {{at}}",
+      "noPrograms": "No programmes yet",
+      "noProgramsHint": "NBA accredits one programme at a time. Add your programmes in Programs & OBE first."
     },
     "evidence": {
       "pageTitle": "Evidence repository",
@@ -214,7 +225,14 @@
       "done": "complete",
       "iqac": "IQAC Coordinator",
       "seal": "Seal",
-      "head": "Principal / Head of the Institution"
+      "head": "Principal / Head of the Institution",
+      "program": "Programme",
+      "marks": "Self-assessed marks",
+      "criterionNo": "Criterion",
+      "maxMarks": "Marks",
+      "claimed": "Self-assessed",
+      "total": "Total",
+      "marksOf": "Marks"
     },
     "fw": {
       "NAAC": {
@@ -528,6 +546,208 @@
           }
         }
       },
+      "NBA": {
+        "c": {
+          "N1": "Vision, mission and program educational objectives",
+          "N2": "Program curriculum and teaching–learning processes",
+          "N3": "Course outcomes and program outcomes",
+          "N4": "Students’ performance",
+          "N5": "Faculty information and contributions",
+          "N6": "Facilities and technical support",
+          "N7": "Continuous improvement",
+          "N8": "First-year academics",
+          "N9": "Student support systems",
+          "N10": "Governance, institutional support and financial resources"
+        },
+        "m": {
+          "1_1": "Vision and mission of the department and the institute",
+          "1_2": "Program educational objectives (PEOs)",
+          "1_3": "Where and how the vision, mission and PEOs are published and disseminated",
+          "1_4": "Process for defining the vision, mission and PEOs",
+          "1_5": "Consistency of the PEOs with the mission of the department",
+          "2_1_1": "Process for designing the program curriculum",
+          "2_1_2": "Structure of the curriculum (courses, credits, contact hours)",
+          "2_1_3": "Courses mapped to the program outcomes",
+          "2_1_4": "Curricular gaps for attaining the POs and PSOs, and how they are closed",
+          "2_2_1": "Processes to improve the quality of teaching and learning",
+          "2_2_2": "Quality of internal semester question papers, assignments and evaluation",
+          "2_2_3": "Quality of student projects",
+          "2_2_4": "Initiatives related to industry interaction",
+          "2_2_5": "Students doing internships or summer training",
+          "3_1": "Correlation between the courses and the POs and PSOs (course articulation matrix)",
+          "3_2_1": "Assessment processes and tools used to measure the attainment of each CO",
+          "3_2_2": "Course outcomes attained (level 2 or more)",
+          "3_3_1": "Assessment tools used to measure the attainment of the POs and PSOs (direct and indirect)",
+          "3_3_2": "Average attainment of the program outcomes",
+          "4_1": "Enrolment ratio (admitted against sanctioned intake)",
+          "4_2_1": "Success rate without backlogs in any semester",
+          "4_2_2": "Success rate in the stipulated period (final-year pass %)",
+          "4_3": "Academic performance in the third year (mean CGPA)",
+          "4_4": "Academic performance in the second year (mean CGPA)",
+          "4_5": "Placement, higher studies and entrepreneurship",
+          "4_6": "Professional activities (chapters, events, student publications)",
+          "5_1": "Student – faculty ratio",
+          "5_2": "Faculty cadre proportion (professors : associate : assistant)",
+          "5_3": "Faculty with a Ph.D.",
+          "5_4": "Faculty retention",
+          "5_5": "Innovations by the faculty in teaching and learning",
+          "5_6": "Faculty in development and training programmes (FDPs, STTPs)",
+          "5_7": "Research papers per faculty member",
+          "5_8": "Faculty performance appraisal and development system (FPADS)",
+          "5_9": "Visiting, adjunct and emeritus faculty",
+          "6_1": "Adequate, well-equipped laboratories and technical staff",
+          "6_2": "Additional facilities created for improving the quality of learning",
+          "6_3": "Maintenance and overall ambience of the laboratories",
+          "6_4": "Project laboratory",
+          "6_5": "Safety measures in the laboratories",
+          "7_1": "Actions taken on the results of the evaluation of each PO and PSO",
+          "7_2": "Academic audit and the actions taken",
+          "7_3": "Improvement in placement, higher studies and entrepreneurship (change on the year before)",
+          "7_4": "Improvement in the quality of students admitted (entrance rank or marks)",
+          "8_1": "First-year student – faculty ratio",
+          "8_2": "Qualification of the faculty teaching first-year common courses (with a Ph.D.)",
+          "8_3": "First-year academic performance (mean CGPA)",
+          "8_4": "Attainment of the course outcomes of first-year courses",
+          "8_5": "Attainment of the POs and PSOs from first-year courses",
+          "9_1": "Mentoring system to help students at the individual level",
+          "9_2": "Feedback analysis and reward or corrective measures",
+          "9_3": "Feedback on facilities",
+          "9_4": "Self-learning",
+          "9_5": "Career guidance, training and placement",
+          "9_6": "Entrepreneurship cell",
+          "9_7": "Co-curricular and extra-curricular activities",
+          "10_1": "Organisation, governance and transparency",
+          "10_2": "Budget allocation, utilisation and public accounting at the institute level (₹ lakh)",
+          "10_3": "Budget allocation and utilisation for the program (₹ lakh)",
+          "10_4": "Library and internet"
+        },
+        "dvv": {
+          "1_1": {
+            "0": "Vision and mission statements as approved",
+            "1": "Where they are displayed (photos, web page)"
+          },
+          "1_3": {
+            "0": "Website, prospectus and notice-board copies"
+          },
+          "1_4": {
+            "0": "Minutes of the department advisory board / meetings"
+          },
+          "2_1_1": {
+            "0": "Minutes of the board of studies"
+          },
+          "2_1_3": {
+            "0": "Course articulation matrix of each course"
+          },
+          "2_1_4": {
+            "0": "Content-beyond-syllabus reports"
+          },
+          "2_2_2": {
+            "0": "Sample question papers mapped to COs and Bloom levels"
+          },
+          "2_2_3": {
+            "0": "List of projects with guides",
+            "1": "Project evaluation rubrics"
+          },
+          "2_2_4": {
+            "0": "Industry visit and guest lecture reports",
+            "1": "MoUs with industry"
+          },
+          "2_2_5": {
+            "0": "Internship certificates (sample)",
+            "1": "List of students with organisations"
+          },
+          "3_2_2": {
+            "0": "CO attainment sheets of each course"
+          },
+          "3_3_1": {
+            "0": "Exit, alumni and employer survey forms and results"
+          },
+          "3_3_2": {
+            "0": "PO attainment sheet of the program"
+          },
+          "4_1": {
+            "0": "Approval letter with the sanctioned intake",
+            "1": "List of students admitted"
+          },
+          "4_2_1": {
+            "0": "Result sheets of each batch"
+          },
+          "4_2_2": {
+            "0": "Final-year result sheets"
+          },
+          "4_3": {
+            "0": "Third-year result sheets"
+          },
+          "4_4": {
+            "0": "Second-year result sheets"
+          },
+          "4_5": {
+            "0": "Offer letters",
+            "1": "Higher-studies admission proofs",
+            "2": "Proof of start-ups"
+          },
+          "4_6": {
+            "0": "Reports of events organised",
+            "1": "Student publications and awards"
+          },
+          "5_1": {
+            "0": "List of faculty with appointment letters",
+            "1": "Students on roll"
+          },
+          "5_2": {
+            "0": "List of faculty with designation"
+          },
+          "5_3": {
+            "0": "Ph.D. degree certificates"
+          },
+          "5_4": {
+            "0": "Faculty joining and leaving register"
+          },
+          "5_6": {
+            "0": "FDP / STTP certificates"
+          },
+          "5_7": {
+            "0": "First page of each paper",
+            "1": "Sponsored research and consultancy letters"
+          },
+          "5_8": {
+            "0": "Appraisal forms (sample)"
+          },
+          "5_9": {
+            "0": "Appointment letters",
+            "1": "Hours taught"
+          },
+          "6_1": {
+            "0": "List of laboratories with equipment",
+            "1": "Technical staff with qualifications"
+          },
+          "6_5": {
+            "0": "Safety instructions displayed (photos)",
+            "1": "Fire extinguisher records"
+          },
+          "7_2": {
+            "0": "Academic audit reports"
+          },
+          "9_1": {
+            "0": "Mentor allotment list",
+            "1": "Mentoring records (sample)"
+          },
+          "9_2": {
+            "0": "Feedback analysis reports",
+            "1": "Action taken reports"
+          },
+          "10_1": {
+            "0": "Organisation chart",
+            "1": "Minutes of the governing body"
+          },
+          "10_2": {
+            "0": "Audited statements of the institute"
+          },
+          "10_3": {
+            "0": "Department budget and expenditure statements"
+          }
+        }
+      },
       "NIRF": {
         "c": {
           "TLR": "Teaching, learning and resources",
@@ -591,6 +811,17 @@
         },
         "dvv": {}
       }
+    },
+    "marks": {
+      "label": "Self-assessed marks (out of {{weight}})",
+      "range": "0 to {{weight}}",
+      "note": "Why these marks",
+      "noteHint": "What the marks are based on",
+      "save": "Save marks",
+      "saved": "Marks saved.",
+      "total": "Self-assessed marks",
+      "scoredN": "{{count}} of {{total}} criteria marked",
+      "ofWeight": "{{marks}} / {{weight}} marks"
     }
   }
 }
