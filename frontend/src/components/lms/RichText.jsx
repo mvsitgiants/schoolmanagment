@@ -6,6 +6,7 @@ import { safeHref, sanitizeHtml, videoEmbed } from '@schoolgiant/shared'
 import { usePrompt } from '../system'
 import { useSnackbar } from '../../context/SnackbarContext'
 import TextFromFile from './TextFromFile'
+import { TypeInButton } from '../typing/TypeIn.jsx'
 
 // one tap each: the maths the editor can't draw (no equation layout), as ordinary characters
 const MATHS = ['²', '³', 'ⁿ', '√', '∛', 'π', '½', '¼', '¾', '⅓', '×', '÷', '±', '=', '≠', '≈', '<', '>', '≤', '≥', '∞', '°', '∠', '⊥', '∥', '△', 'θ', 'α', 'β', 'Δ', '∑', '∴', '∵', '→', '₁', '₂', '₃']
@@ -120,15 +121,18 @@ export const RichTextEditor = forwardRef(function RichTextEditor({ value, onChan
     { icon: AlignRight, label: t('lms.rich.right'), run: () => exec('justifyRight') },
   ]
   return (
-    <div className="min-w-0 rounded-lg border border-border bg-surface focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/20">
-      <div className="scroll-thin flex flex-nowrap items-center gap-0.5 overflow-x-auto border-b border-border px-1.5 py-1" role="toolbar" aria-label={t('lms.rich.toolbar')}>
-        {tools.map((x, i) => (x.sep ? <span key={i} className="mx-1 h-4 w-px shrink-0 bg-border" aria-hidden /> : (
-          <button key={i} type="button" title={x.label} aria-label={x.label} onMouseDown={(e) => e.preventDefault()} onClick={x.run}
-            aria-pressed={x.on ?? undefined}
-            className={clsx('grid h-8 w-8 shrink-0 place-items-center rounded-md hover:bg-black/[0.04] hover:text-ink [@media(pointer:coarse)]:h-10 [@media(pointer:coarse)]:w-10', x.on ? 'bg-brand-50 text-brand-700' : 'text-ink-muted')}>
-            <x.icon className="h-4 w-4" aria-hidden />
-          </button>
-        )))}
+    <div data-typein="auto" className="min-w-0 rounded-lg border border-border bg-surface focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/20">
+      <div className="flex items-center border-b border-border">
+        <div className="scroll-thin flex min-w-0 flex-1 flex-nowrap items-center gap-0.5 overflow-x-auto px-1.5 py-1" role="toolbar" aria-label={t('lms.rich.toolbar')}>
+          {tools.map((x, i) => (x.sep ? <span key={i} className="mx-1 h-4 w-px shrink-0 bg-border" aria-hidden /> : (
+            <button key={i} type="button" title={x.label} aria-label={x.label} onMouseDown={(e) => e.preventDefault()} onClick={x.run}
+              aria-pressed={x.on ?? undefined}
+              className={clsx('grid h-8 w-8 shrink-0 place-items-center rounded-md hover:bg-black/[0.04] hover:text-ink [@media(pointer:coarse)]:h-10 [@media(pointer:coarse)]:w-10', x.on ? 'bg-brand-50 text-brand-700' : 'text-ink-muted')}>
+              <x.icon className="h-4 w-4" aria-hidden />
+            </button>
+          )))}
+        </div>
+        <TypeInButton className="border-s border-border px-1" />
       </div>
       {symbols && (
         <div className="flex flex-wrap gap-1 border-b border-border bg-bg/60 px-1.5 py-1.5" role="toolbar" aria-label={t('lms.rich.mathsBar')}>

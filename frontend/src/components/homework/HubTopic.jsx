@@ -300,7 +300,7 @@ export function TopicCard({
   }
   const status = topic.content?.status ?? 'EMPTY'
   return (
-    <li {...dragProps} id={`hub-topic-${topic.id}`} className={clsx('scroll-mt-20 rounded-xl border bg-surface shadow-card', open ? 'border-brand-300' : 'border-border')}>
+    <li {...dragProps} data-typein="auto" id={`hub-topic-${topic.id}`} className={clsx('scroll-mt-20 rounded-xl border bg-surface shadow-card', open ? 'border-brand-300' : 'border-border')}>
       <div className="flex min-h-[52px] items-center gap-1 px-1.5 sm:gap-2 sm:px-2">
         {editable && (
           <>

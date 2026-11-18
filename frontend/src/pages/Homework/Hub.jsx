@@ -7,6 +7,7 @@ import { ArrowLeft, ArrowRight, Check, ChevronRight, LayoutPanelTop, ListTree, P
 import { Note, PageContainer, PageHeader, Panel, Skeleton, StatusPill, useConfirm, usePrompt } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { TopicCard } from '../../components/homework/HubTopic'
+import { TypeInButton } from '../../components/typing/TypeIn.jsx'
 import HubTree, { ContentDot } from '../../components/homework/HubTree'
 import TopicPanel from '../../components/homework/TopicPanel'
 import HubSubjectView from '../../components/homework/HubSubjectView'
@@ -436,6 +437,7 @@ export default function Hub() {
                 <h2 className="truncate text-base font-semibold text-ink">{t('hub.topics.title')}</h2>
               </div>
               <div className="flex flex-wrap items-center gap-2">
+                {ctx.editable && <TypeInButton className="rounded-md border border-border bg-surface" />}
                 {draftButton}
                 {ctx.editable && hasPermission('homework.hub.create') && <Button variant="secondary" icon={Plus} loading={busy === 'add'} onClick={addTopic}>{t('hub.topics.add')}</Button>}
                 {nextButton}

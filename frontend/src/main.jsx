@@ -5,6 +5,7 @@ import { QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-qu
 import App from './App.jsx'
 import { ModuleProvider } from './context/ModuleContext.jsx'
 import { SnackbarProvider, notify } from './context/SnackbarContext.jsx'
+import { TypeInBar } from './components/typing/TypeIn.jsx'
 import { ConfirmProvider, DocumentViewerHost, ErrorBoundary, reloadForNewBuild } from './components/system'
 import './index.css'
 import { i18nReady } from './i18n'
@@ -50,6 +51,7 @@ i18nReady.then(() => ReactDOM.createRoot(document.getElementById('root')).render
                 <App />
                 <DocumentViewerHost />
                 <PwaPrompts />
+                <TypeInBar />
               </ErrorBoundary>
             </ModuleProvider>
           </ConfirmProvider>

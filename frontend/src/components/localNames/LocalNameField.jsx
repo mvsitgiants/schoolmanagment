@@ -88,9 +88,6 @@ export default function LocalNameField({ names, slot, english, label, disabled, 
   ))
 }
 
-// a word ends here: turn the English letters typed so far into the script
-const WORD_END = /[\s.,\-'()/]$/
-
 /**
  * One language's box. In a script we can type phonetically (Hindi), English letters turn into the script
  * at the end of each word and on leaving the box ("uday " → "उदय "); with the box empty, the English name
@@ -102,12 +99,9 @@ function LocalNameBox({ language, value, onChange, english, label, disabled, req
   const convert = (text) => (phonetic && hasLatin(text) ? transliterate(text, language) : text)
   const suggestion = phonetic && !value.trim() && String(english ?? '').trim() ? convert(String(english).trim()) : ''
 
-  const change = (e) => {
-    const text = e.target.value
-    // only when typing at the end, so the cursor never jumps while someone corrects the middle
-    const atEnd = e.target.selectionStart === text.length
-    onChange(atEnd && WORD_END.test(text) ? convert(text) : text)
-  }
+  // typed in English letters, each word turns into the script on space (components/typing: the shared typing, with
+  // the other spellings offered under the word)
+  const change = (e) => onChange(e.target.value)
   const blur = () => { if (phonetic && hasLatin(value)) onChange(convert(value)) }
 
   const hint = (
@@ -123,7 +117,7 @@ function LocalNameBox({ language, value, onChange, english, label, disabled, req
   )
   return (
     <FormField className={className} label={label} hint={hint} required={required}>
-      <Input lang={language.code} value={value} onChange={change} onBlur={blur} disabled={disabled} autoComplete="off" spellCheck={false}
+      <Input lang={language.code} data-typein={phonetic ? language.code : 'off'} value={value} onChange={change} onBlur={blur} disabled={disabled} autoComplete="off" spellCheck={false}
         placeholder={phonetic ? t('ui.localName.placeholderTyping', { language: language.nativeName }) : t('ui.localName.placeholder', { language: language.nativeName })} />
     </FormField>
   )

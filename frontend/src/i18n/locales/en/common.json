@@ -262,5 +262,14 @@
     "description": "The link may be old, or the page moved. Use the menu or search ( / ) to find what you need.",
     "goHome": "Go home"
   },
-  "scanToVerify": "Scan to verify"
+  "scanToVerify": "Scan to verify",
+  "typing": {
+    "title": "Type in",
+    "button": "Typing language",
+    "english": "English letters",
+    "on": "Typing in {{lang}} — click to change",
+    "help": "Type a word the way it sounds and press space. Write long sounds twice: aa, ee, oo. If the word comes out wrong, pick the right spelling from the list under it — it is remembered next time.",
+    "other": "Other spellings",
+    "keepEnglish": "Keep it in English letters"
+  }
 }
