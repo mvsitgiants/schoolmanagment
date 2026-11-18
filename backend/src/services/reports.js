@@ -1,6 +1,5 @@
 import {
-  CERTIFICATE_KIND_BY, PAYMENT_MODES, REPORTS, REPORT_BY, attendancePct, countMarks, formatINR, nextRunAt, resolveRange, sectionLabel,
-} from '@schoolgiant/shared'
+  CERTIFICATE_KIND_BY, PAYMENT_MODES, REPORTS, REPORT_BY, attendancePct, countMarks, formatINR, nextRunAt, resolveRange, sectionLabel, paperScore } from '@schoolgiant/shared'
 import { config } from '../config.js'
 import { AcademicYear, ClassLevel, Section, Subject } from '../models/academics.js'
 import { AttendanceSheet } from '../models/attendance.js'
@@ -252,7 +251,7 @@ const RUNNERS = {
           class: s.short, subject: subjects.get(String(paper.subjectId)) ?? '?', students: sat.length,
           average: pcts.length ? Math.round((pcts.reduce((n, x) => n + x, 0) / pcts.length) * 10) / 10 : null,
           highest: marked.length ? Math.max(...marked.map((e) => e.marks)) : null, lowest: marked.length ? Math.min(...marked.map((e) => e.marks)) : null,
-          passPct: sat.length ? Math.round((marked.filter((e) => e.marks >= paper.passMarks).length / sat.length) * 1000) / 10 : null,
+          passPct: sat.length ? Math.round((marked.filter((e) => paperScore(e, paper).pass).length / sat.length) * 1000) / 10 : null, // in parts: every part passed
           absent: sat.filter((e) => e.absent).length,
         })
       }

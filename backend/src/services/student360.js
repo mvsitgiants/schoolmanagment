@@ -1,7 +1,6 @@
 import {
   CERTIFICATE_KIND_BY, CONCESSION_STATUS, FINE_REASONS, LEAVE_STATUS, OFFER_STATUS, OUTPASS_OPEN, OUTPASS_STATUS, PAYMENT_MODE_LABEL,
-  RESULT_STATUS, YEAR_RESULT, attendancePct, bedCode, countMarks, dayDiff, loanState, weekdayCode,
-} from '@schoolgiant/shared'
+  RESULT_STATUS, YEAR_RESULT, attendancePct, bedCode, countMarks, dayDiff, loanState, weekdayCode, paperScore, partsOf } from '@schoolgiant/shared'
 import { Subject } from '../models/academics.js'
 import { AttendanceSheet, StudentLeave } from '../models/attendance.js'
 import { Certificate } from '../models/certificates.js'
@@ -134,7 +133,9 @@ async function examsSection(s, auth, { today, year }) {
           subject: subjects.get(String(p.subjectId))?.name ?? '', code: subjects.get(String(p.subjectId))?.code ?? null, gradeOnly: !!p.gradeOnly,
           maxMarks: p.maxMarks, passMarks: p.passMarks, marks, absent: !!e?.absent, exempt: !!e?.exempt, grade: e?.grade ?? null,
           pct: p.gradeOnly || marks == null || !p.maxMarks ? null : Math.round((marks / p.maxMarks) * 1000) / 10,
-          pass: p.gradeOnly || marks == null ? null : marks >= (p.passMarks ?? 0),
+          // a paper in parts is passed only when every part is (Theory and Practical)
+          pass: p.gradeOnly || marks == null ? null : paperScore(e, p).pass,
+          parts: partsOf(p).map((x) => ({ name: x.name, maxMarks: x.maxMarks, marks: e?.parts?.[x.key] ?? null })),
         }
       }).filter((x) => !x.exempt),
     }

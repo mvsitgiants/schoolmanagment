@@ -1,6 +1,6 @@
 {{!-- Report card (A4), CBSE style, for one exam of the session (a term card).
       Student block: student.name, admissionNo, class, rollNo, dob, father, mother.
-      Part 1 Scholastic areas: subjects[] {subject, maxMarks, marks, pct, grade, absent, exempt, below} under the exam
+      Part 1 Scholastic areas: subjects[] {subject, maxMarks, marks, pct, grade, absent, exempt, below, parts[] {name, marks, maxMarks, below}}; hasParts under the exam
       (exam.typeName / exam.name), with result.total / result.max, result.pct, result.grade, result.rank.
       Part 2 Co-scholastic areas: coScholastic[] {subject, grade}. Part 3 Discipline: discipline[] {subject, grade}.
       attendance.present / attendance.working · remark · result.label, result.pass, result.date · classTeacher ·
@@ -47,7 +47,7 @@
 <table class="grid">
   <thead>
     <tr><th rowspan="2">{{t "exams.print.reportCard.sno" "S. No."}}</th><th rowspan="2" class="l">{{t "exams.print.reportCard.subject" "Subject"}}</th>
-        <th colspan="2">{{default exam.typeName exam.name}}</th><th rowspan="2">{{t "exams.print.reportCard.pct" "%"}}</th><th rowspan="2">{{t "exams.print.reportCard.grade" "Grade"}}</th></tr>
+        <th colspan="2">{{default exam.typeName exam.name}}</th>{{#if hasParts}}<th rowspan="2">{{t "exams.print.reportCard.breakUp" "Break-up"}}</th>{{/if}}<th rowspan="2">{{t "exams.print.reportCard.pct" "%"}}</th><th rowspan="2">{{t "exams.print.reportCard.grade" "Grade"}}</th></tr>
     <tr><th>{{t "exams.print.reportCard.maxMarks" "Max. marks"}}</th><th>{{t "exams.print.reportCard.marks" "Marks obtained"}}</th></tr>
   </thead>
   <tbody>
@@ -57,11 +57,12 @@
         <td>{{subject}}</td>
         <td class="c">{{#if exempt}}—{{else}}{{maxMarks}}{{/if}}</td>
         <td class="c{{#if below}} low{{/if}}">{{#if exempt}}{{t "exams.print.reportCard.exempt" "Not taken"}}{{else if absent}}{{t "exams.print.reportCard.absentShort" "AB"}}{{else}}{{num marks}}{{/if}}</td>
+        {{#if ../hasParts}}<td class="c" style="font-size:.85em">{{#unless exempt}}{{#unless absent}}{{#each parts}}{{#if @index}} · {{/if}}<span class="{{#if below}}low{{/if}}">{{name}} {{num marks}}/{{maxMarks}}</span>{{/each}}{{/unless}}{{/unless}}</td>{{/if}}
         <td class="c">{{#unless exempt}}{{num pct}}{{/unless}}</td>
         <td class="c"><b>{{grade}}</b></td>
       </tr>
     {{/each}}
-    <tr class="total"><td></td><td>{{t "exams.print.reportCard.grandTotal" "Grand total"}}</td><td class="c">{{num result.max}}</td><td class="c">{{num result.total}}</td><td class="c">{{num result.pct}}</td><td class="c">{{result.grade}}</td></tr>
+    <tr class="total"><td></td><td>{{t "exams.print.reportCard.grandTotal" "Grand total"}}</td><td class="c">{{num result.max}}</td><td class="c">{{num result.total}}</td>{{#if hasParts}}<td></td>{{/if}}<td class="c">{{num result.pct}}</td><td class="c">{{result.grade}}</td></tr>
   </tbody>
 </table>
 <div class="note" style="margin-top:1mm">{{#if result.rank}}{{t "exams.print.reportCard.rank" "Rank in class"}}: <b>{{result.rank}}</b> · {{/if}}{{t "exams.print.reportCard.abNote" "AB: absent"}}</div>

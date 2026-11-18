@@ -125,7 +125,21 @@
       "remove": "Remove",
       "clash": "Two papers of this class overlap on the same day.",
       "save": "Save papers",
-      "saved": "Papers saved."
+      "saved": "Papers saved.",
+      "inParts": "Marked in parts",
+      "presets": {
+        "TH_PR": "Theory + Practical",
+        "TH_IA": "Theory + Internal assessment",
+        "TH_PR_IA": "Theory + Practical + Internal"
+      },
+      "customParts": "Your own parts",
+      "oneMark": "Mark as one",
+      "partName": "Part",
+      "removePart": "Remove this part",
+      "addPart": "Add a part",
+      "partsHint": "To pass, a student needs the pass marks in every part, and the pass marks overall.",
+      "splitParts": "Mark in parts (theory + practical)…",
+      "maxFromParts": "The total of the parts"
     },
     "hallTickets": {
       "title": "Hall tickets",
@@ -186,7 +200,11 @@
       "clearStatus": "Show every status",
       "absentShort": "AB",
       "exemptShort": "N/A",
-      "enteredOf": "{{entered}}/{{total}} entered"
+      "enteredOf": "{{entered}}/{{total}} entered",
+      "partFor": "{{part}} marks of {{name}}",
+      "partOutOf": "{{part}}: out of {{max}}",
+      "partLine": "{{part}} {{max}} (pass {{pass}})",
+      "total": "Total ({{max}})"
     },
     "results": {
       "title": "Results",
@@ -337,7 +355,8 @@
         "resultDate": "Date of result",
         "marksRange": "Marks range",
         "meaning": "Remark",
-        "seal": "School seal"
+        "seal": "School seal",
+        "breakUp": "Break-up"
       },
       "seating": {
         "title": "Seating plan",

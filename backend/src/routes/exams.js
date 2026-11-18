@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import { MAX_PAPER_PARTS } from '@schoolgiant/shared'
 import { authenticate, requireModule, requirePermission, subscriptionGate, tenantOnly } from '../platform/middleware.js'
 import { objectId, optionalText, z } from '../platform/validate.js'
 import { holdCandidates, releaseCandidates } from '../services/examHolds.js'
@@ -78,6 +79,12 @@ router.put('/:id/classes/:classId/papers', requirePermission('exams.schedule.edi
       passMarks: z.coerce.number().min(0).max(1000).default(0),
       gradeOnly: z.boolean().optional(),
       countsInTotal: z.boolean().optional(),
+      // marked in parts (Theory + Practical …): 2–4 parts, or none
+      parts: z.array(z.object({
+        name: z.string().trim().min(1, 'Name the part').max(40),
+        maxMarks: z.coerce.number().min(0).max(1000),
+        passMarks: z.coerce.number().min(0).max(1000).default(0),
+      })).max(MAX_PAPER_PARTS).optional(),
     })).max(40),
   }).parse(req.body)
   res.json({ data: await savePapers(id(req), objectId.parse(req.params.classId), papers, req) })
@@ -109,6 +116,7 @@ router.put('/marks/:paperId/:sectionId', requirePermission('exams.marks.create',
     entries: z.array(z.object({
       studentId: objectId,
       marks: z.union([z.coerce.number(), z.null()]).optional(),
+      parts: z.record(z.string().regex(/^p[1-4]$/), z.union([z.coerce.number(), z.null()])).optional(),
       grade: z.string().trim().max(4).optional(),
       absent: z.boolean().optional(),
       exempt: z.boolean().optional(),

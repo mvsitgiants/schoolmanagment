@@ -201,9 +201,9 @@ const HI_TEXTS = {
   'Transport fee': 'परिवहन शुल्क', 'Caution deposit': 'प्रतिभूति राशि', 'Term 1': 'प्रथम सत्र', 'Term 2': 'द्वितीय सत्र',
   // grade remarks and common words
   Outstanding: 'उत्कृष्ट', Excellent: 'अति उत्तम', 'Very good': 'बहुत अच्छा', Good: 'अच्छा', 'Above average': 'औसत से ऊपर', Average: 'औसत',
-  Pass: 'उत्तीर्ण', 'Needs improvement': 'सुधार की आवश्यकता', Male: 'पुरुष', Female: 'महिला', Indian: 'भारतीय', Hindu: 'हिन्दू', General: 'सामान्य',
+  Pass: 'उत्तीर्ण', 'Needs improvement': 'सुधार की आवश्यकता', Theory: 'सैद्धांतिक', Practical: 'प्रायोगिक', 'Internal assessment': 'आंतरिक मूल्यांकन', Male: 'पुरुष', Female: 'महिला', Indian: 'भारतीय', Hindu: 'हिन्दू', General: 'सामान्य',
 }
-const PHRASES = ['Male', 'Female', 'Indian', 'Hindu', 'General']
+const PHRASES = ['Male', 'Female', 'Indian', 'Hindu', 'General', 'Theory', 'Practical', 'Internal assessment']
 async function fillHindiNames(admin) {
   // forms show a Hindi box beside each name (Settings › Also keep names in)
   await admin.patch('/core/settings/modules/core', { namesAlsoIn: ['hi'] })

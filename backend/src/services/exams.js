@@ -1,5 +1,6 @@
 import {
   EXAM_STATUS, RESULT_STATUS, STARTER_EXAM_TYPES, SUBJECT_TYPE_LABEL, attendancePct, checkMark, clashes, computeResult, countMarks, gradeFor, paperScore, rankBy, sectionLabel,
+  partKey, partsOf, sumParts,
 } from '@schoolgiant/shared'
 import { AcademicYear, ClassLevel, GradingScheme, Section, Subject, TeacherAllocation } from '../models/academics.js'
 import { AttendanceSheet } from '../models/attendance.js'
@@ -224,7 +225,10 @@ export async function deleteExam(id, req) {
   if (e.status === 'PUBLISHED') throw conflict('Results of this exam are published; it can’t be deleted.')
   if ((await papersWithMarks(e._id)).size) throw conflict('Marks have been entered for this exam, so it can’t be deleted.')
   await withTransaction(async () => {
-    await Promise.all([ExamPaper.deleteMany({ examId: e._id }), MarkSheet.deleteMany({ examId: e._id }), ExamCandidate.deleteMany({ examId: e._id })])
+    // one at a time: a transaction can't run operations in parallel (MongoDB error 117)
+    await ExamPaper.deleteMany({ examId: e._id })
+    await MarkSheet.deleteMany({ examId: e._id })
+    await ExamCandidate.deleteMany({ examId: e._id })
     await Exam.deleteOne({ _id: e._id })
   })
   await audit({ action: 'DELETE', module: 'exams', entityType: 'exam', entityId: String(e._id), entityName: e.name, summary: `Deleted exam ${e.name}` }, req)
@@ -260,6 +264,17 @@ export async function savePapers(examId, classId, papers, req) {
   papers.forEach((p, i) => {
     if (seen.has(p.subjectId)) errors[`papers.${i}.subjectId`] = 'This subject is already in the list'
     seen.add(p.subjectId)
+    // marked in parts: its max is their sum; the pass marks default to theirs
+    const parts = p.gradeOnly ? [] : (p.parts ?? [])
+    if (parts.length === 1) errors[`papers.${i}.parts`] = 'Two parts or more — or none'
+    parts.forEach((x, j) => {
+      if (!(x.maxMarks > 0)) errors[`papers.${i}.parts.${j}.maxMarks`] = 'More than 0'
+      if (x.passMarks > x.maxMarks) errors[`papers.${i}.parts.${j}.passMarks`] = 'Can’t be more than its max marks'
+    })
+    if (parts.length >= 2) {
+      p.maxMarks = parts.reduce((n, x) => n + Number(x.maxMarks || 0), 0)
+      if (!(p.passMarks > 0)) p.passMarks = parts.reduce((n, x) => n + Number(x.passMarks || 0), 0)
+    }
     if (!p.gradeOnly && !(p.maxMarks > 0)) errors[`papers.${i}.maxMarks`] = 'More than 0'
     if (!p.gradeOnly && p.passMarks > p.maxMarks) errors[`papers.${i}.passMarks`] = 'Can’t be more than the max marks'
     if (p.date && (p.date < year.startDate || p.date > year.endDate)) errors[`papers.${i}.date`] = `Inside ${year.name}`
@@ -274,13 +289,19 @@ export async function savePapers(examId, classId, papers, req) {
   const keep = new Set(papers.map((p) => p.subjectId))
   const removed = existing.filter((p) => !keep.has(String(p.subjectId)))
   if (removed.some((p) => marked.has(String(p._id)))) throw conflict('Marks have been entered for a paper you removed. Keep it, or clear its marks first.')
+  // a marked paper keeps how it is split (its parts' marks are stored by part); their max and pass marks can change
+  for (const old of existing.filter((x) => marked.has(String(x._id)))) {
+    const now = papers.find((p) => p.subjectId === String(old.subjectId))
+    const was = partsOf(old).length, will = now?.gradeOnly ? 0 : (now?.parts?.length >= 2 ? now.parts.length : 0)
+    if (now && was !== will) throw conflict('Marks have been entered for a paper you are splitting into parts (or joining). Clear its marks first, or keep it as it is.')
+  }
   await withTransaction(async () => {
     await ExamPaper.deleteMany({ _id: { $in: removed.map((p) => p._id) } })
     await MarkSheet.deleteMany({ paperId: { $in: removed.map((p) => p._id) } })
     await ExamPaper.bulkWrite(papers.map((p, i) => ({
       updateOne: {
         filter: { examId: e._id, classId, subjectId: p.subjectId },
-        update: { $set: { date: p.date || undefined, startTime: p.startTime || undefined, endTime: p.endTime || undefined, maxMarks: p.gradeOnly ? 0 : p.maxMarks, passMarks: p.gradeOnly ? 0 : p.passMarks, gradeOnly: !!p.gradeOnly, countsInTotal: p.gradeOnly ? false : p.countsInTotal !== false, order: i } },
+        update: { $set: { date: p.date || undefined, startTime: p.startTime || undefined, endTime: p.endTime || undefined, maxMarks: p.gradeOnly ? 0 : p.maxMarks, passMarks: p.gradeOnly ? 0 : p.passMarks, gradeOnly: !!p.gradeOnly, countsInTotal: p.gradeOnly ? false : p.countsInTotal !== false, order: i, parts: !p.gradeOnly && p.parts?.length >= 2 ? p.parts.map((x, j) => ({ key: partKey(j), name: x.name, maxMarks: x.maxMarks, passMarks: x.passMarks ?? 0 })) : undefined } },
         upsert: true,
       },
     })))
@@ -458,14 +479,14 @@ export async function getMarkSheet({ paperId, sectionId }, auth) {
   const hall = await hallAbsentees(exam._id, paper.date, paper.startTime)
   return {
     exam: { id: String(exam._id), name: exam.name, status: exam.status },
-    paper: { id: String(paper._id), subject: subject?.name ?? '?', date: paper.date ?? null, maxMarks: paper.maxMarks, passMarks: paper.passMarks, gradeOnly: !!paper.gradeOnly },
+    paper: { id: String(paper._id), subject: subject?.name ?? '?', date: paper.date ?? null, maxMarks: paper.maxMarks, passMarks: paper.passMarks, gradeOnly: !!paper.gradeOnly, parts: partsOf(paper) },
     section: { id: String(sec._id), label: sec.label },
     status: sheetState(sheet), enteredBy: sheet?.enteredBy ?? null, enteredAt: sheet?.enteredAt ?? null, lockedBy: sheet?.lockedBy ?? null, lockedAt: sheet?.lockedAt ?? null,
     canEdit: !block, blockedBy: block, canLock: !block && sheet?.status !== 'LOCKED', canUnlock: sheet?.status === 'LOCKED' && exam.status === 'SCHEDULED' && can(auth, 'exams.marks.unlock'),
     students: students.map((s) => {
       const x = saved.get(String(s._id))
       const hallAbsent = hall.has(String(s._id))
-      return { id: String(s._id), name: studentName(s), admissionNo: s.admissionNo, rollNo: s.rollNo ?? null, marks: x?.marks ?? null, grade: x?.grade ?? '', absent: x ? !!x.absent : hallAbsent, exempt: !!x?.exempt, hallAbsent }
+      return { id: String(s._id), name: studentName(s), admissionNo: s.admissionNo, rollNo: s.rollNo ?? null, marks: x?.marks ?? null, parts: x?.parts ?? {}, grade: x?.grade ?? '', absent: x ? !!x.absent : hallAbsent, exempt: !!x?.exempt, hallAbsent }
     }),
   }
 }
@@ -487,9 +508,12 @@ export async function saveMarkSheet({ paperId, sectionId, entries }, auth, req) 
     if (problem) errors[`entries.${i}.marks`] = problem
   })
   if (Object.keys(errors).length) throw fieldsError(errors, 'Some marks need fixing.')
+  const inParts = partsOf(paper)
   const rows = entries.map((x) => ({
     studentId: x.studentId, absent: !!x.absent, exempt: !!x.exempt,
-    marks: x.absent || x.exempt || paper.gradeOnly || x.marks === null || x.marks === undefined || x.marks === '' ? null : Number(x.marks),
+    // in parts: each part's marks, and the paper's marks = their sum once all are in
+    ...(inParts.length && !x.absent && !x.exempt && { parts: Object.fromEntries(inParts.map((p) => [p.key, x.parts?.[p.key] === null || x.parts?.[p.key] === undefined || x.parts?.[p.key] === '' ? null : Number(x.parts[p.key])])) }),
+    marks: x.absent || x.exempt || paper.gradeOnly ? null : inParts.length ? sumParts(x, paper) : x.marks === null || x.marks === undefined || x.marks === '' ? null : Number(x.marks),
     grade: paper.gradeOnly && !x.absent && !x.exempt ? (String(x.grade ?? '').trim().toUpperCase() || undefined) : undefined,
   }))
   const doc = sheet ?? new MarkSheet({ examId: exam._id, paperId: paper._id, sectionId: sec._id })
@@ -592,7 +616,7 @@ export async function listResults(examId, sectionId, auth) {
       marks: Object.fromEntries(papers.map((p) => {
         const x = r.byPaper[p.id]
         const sc = paperScore(x, p)
-        return [p.id, x ? { marks: x.marks ?? null, grade: p.gradeOnly ? x.grade ?? null : (x.marks !== null && p.maxMarks ? gradeFor(bands, (x.marks / p.maxMarks) * 100)?.grade ?? null : null), absent: !!x.absent, exempt: !!x.exempt, pass: sc.pass } : null]
+        return [p.id, x ? { marks: x.marks ?? null, parts: x.parts ?? null, grade: p.gradeOnly ? x.grade ?? null : (x.marks !== null && p.maxMarks ? gradeFor(bands, (x.marks / p.maxMarks) * 100)?.grade ?? null : null), absent: !!x.absent, exempt: !!x.exempt, pass: sc.pass } : null]
       })),
       total: r.total, max: r.max, pct: r.pct, grade: r.grade, rank: r.rank, result: r.result,
     }
@@ -601,7 +625,7 @@ export async function listResults(examId, sectionId, auth) {
   return {
     exam: { id: String(e._id), name: e.name, status: e.status, publishedAt: e.publishedAt ?? null, publishedBy: e.publishedBy ?? null },
     section: { id: String(sec._id), label: sec.label },
-    papers: papers.map((p) => ({ id: p.id, subject: p.subject, maxMarks: p.maxMarks, passMarks: p.passMarks, gradeOnly: !!p.gradeOnly, locked: locked.has(p.id) })),
+    papers: papers.map((p) => ({ id: p.id, subject: p.subject, maxMarks: p.maxMarks, passMarks: p.passMarks, gradeOnly: !!p.gradeOnly, parts: partsOf(p), locked: locked.has(p.id) })),
     rows: list,
     summary: {
       students: list.length, passed: done.filter((r) => r.result === 'PASS').length, failed: done.filter((r) => r.result === 'FAIL').length, incomplete: list.length - done.length,

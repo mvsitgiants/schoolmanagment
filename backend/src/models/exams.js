@@ -62,6 +62,8 @@ const paperSchema = new Schema({
   gradeOnly: { type: Boolean, default: false },
   countsInTotal: { type: Boolean, default: true },
   order: { type: Number, default: 0 },
+  /** Marked in parts (Theory 70 + Practical 30): each with its own max and pass marks; maxMarks is their sum. Empty = one mark. */
+  parts: { type: [new Schema({ key: String, name: { type: String, trim: true }, maxMarks: Number, passMarks: Number }, { _id: false })], default: undefined },
 }, { timestamps: true })
 paperSchema.plugin(tenantPlugin)
 paperSchema.index({ tenantId: 1, examId: 1, classId: 1, subjectId: 1 }, { unique: true })
@@ -69,7 +71,8 @@ export const ExamPaper = model('ExamPaper', paperSchema, 'exam_papers')
 
 const markEntrySchema = new Schema({
   studentId: { type: ObjectId, ref: 'Student', required: true },
-  marks: { type: Number, default: null },
+  marks: { type: Number, default: null }, // a paper in parts: their sum, once every part has marks
+  parts: { type: Schema.Types.Mixed, default: undefined }, // { p1: 54, p2: 28 } for a paper marked in parts
   grade: String, // grade-only papers
   absent: { type: Boolean, default: false },
   exempt: { type: Boolean, default: false }, // doesn't take this subject

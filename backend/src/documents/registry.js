@@ -26,7 +26,7 @@ import { FeePayment } from '../models/fees.js'
 import { receiptPrintData } from '../services/fees.js'
 import { FEE_DOCS, withReceiptExtras } from './feeDocs.js'
 import { HR_DOCS } from './hrDocs.js'
-import { PAYMENT_MODE_LABEL, RESULT_STATUS, gradeFor } from '@schoolgiant/shared'
+import { PAYMENT_MODE_LABEL, RESULT_STATUS, gradeFor, paperScore, partsOf } from '@schoolgiant/shared'
 import { hallTicketData, latestCandidate, reportCardData } from '../services/exams.js'
 import { certificatePrintData, latestCertificate } from '../services/certificates.js'
 import { CERTIFICATE_KIND_BY, TC_FAILED, TUITION_HEAD_CODES } from '@schoolgiant/shared'
@@ -126,7 +126,9 @@ function reportCardModel({ candidate: c, exam, year, student, place, papers, ent
       subject: p.subject, code: p.subjectCode ?? null, maxMarks: p.maxMarks, passMarks: p.passMarks, marks, absent: !!x?.absent, exempt: !!x?.exempt, counts: p.countsInTotal !== false,
       pct: marks !== null && p.maxMarks ? Math.round((marks / p.maxMarks) * 10000) / 100 : null,
       grade: marks !== null && p.maxMarks ? gradeFor(bandList, (marks / p.maxMarks) * 100)?.grade ?? null : null,
-      below: !x?.exempt && (x?.absent || (marks !== null && marks < p.passMarks)),
+      below: !x?.exempt && (x?.absent || (marks !== null && !paperScore(x, p).pass)),
+      // marked in parts: each part's marks (Theory 54 / 70 · Practical 28 / 30), the failed ones flagged
+      parts: partsOf(p).map((y) => ({ name: y.name, maxMarks: y.maxMarks, marks: x?.parts?.[y.key] ?? null, below: !x?.absent && x?.parts?.[y.key] !== null && x?.parts?.[y.key] !== undefined && Number(y.passMarks) > 0 && Number(x.parts[y.key]) < Number(y.passMarks) })),
     }
   })
   const activities = papers.filter((p) => p.gradeOnly).map((p) => ({ subject: p.subject, grade: entry.get(p.id)?.grade ?? null, exempt: !!entry.get(p.id)?.exempt }))
@@ -134,7 +136,7 @@ function reportCardModel({ candidate: c, exam, year, student, place, papers, ent
   return {
     exam: { name: exam.name, year: year?.name, term: exam.term, published: exam.status === 'PUBLISHED', publishedAt: exam.publishedAt, verifyUrl: c.verifyCode ? `${config.appUrl}/verify/exam/${c.verifyCode}` : null, typeName: examType?.name ?? null, typeCode: examType?.code ?? null },
     student: studentBlock(student, place, c.rollNo),
-    subjects, activities, hasActivities: activities.length > 0, coScholastic, discipline,
+    subjects, hasParts: subjects.some((s) => s.parts.length > 0), activities, hasActivities: activities.length > 0, coScholastic, discipline,
     classTeacher: classTeacher ?? null,
     result: {
       total: c.total, max: c.max, pct: c.pct, grade: c.grade, rank: showRank ? c.rank : null, showRank, date: exam.status === 'PUBLISHED' ? exam.publishedAt ?? null : null,

@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { CalendarClock, CalendarRange, ChevronLeft, ClipboardList, Pencil, Plus, Send, Trash2, Undo2, Wand2, X } from 'lucide-react'
-import { EXAM_STATUS, addMinutes, clashes } from '@schoolgiant/shared'
+import { EXAM_STATUS, MAX_PAPER_PARTS, PAPER_PART_PRESETS, addMinutes, clashes } from '@schoolgiant/shared'
 import { DateInput, ColorChip, ControlChip, DataTable, DateCell, FormField, HeaderButton, Input, Modal, Note, PageContainer, PageHeader, Panel, PillRow, ProgressBar, Select, SideNav, SideNavLayout, StatusPill, Textarea, pillClass, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { fetchAcademicLookup, fetchGrading } from '../../api/academics'
@@ -84,7 +84,11 @@ function ExamForm({ exam, year, onClose, onSaved }) {
   )
 }
 
-const blankPaper = { subjectId: '', date: '', startTime: '09:30', endTime: '12:30', maxMarks: '80', passMarks: '27', gradeOnly: false, countsInTotal: true }
+const blankPaper = { subjectId: '', date: '', startTime: '09:30', endTime: '12:30', maxMarks: '80', passMarks: '27', gradeOnly: false, countsInTotal: true, parts: [] }
+const partsIn = (parts) => (parts ?? []).map((x) => ({ name: x.name, maxMarks: String(x.maxMarks ?? ''), passMarks: String(x.passMarks ?? '') }))
+const sumOf = (parts, k) => parts.reduce((n, x) => n + (Number(x[k]) || 0), 0)
+/** Which ready-made split these parts are (names and marks match), or 'CUSTOM'. */
+const presetOf = (parts) => PAPER_PART_PRESETS.find((p) => p.parts.length === parts.length && p.parts.every((x, i) => x.name === parts[i].name && String(x.maxMarks) === String(parts[i].maxMarks) && String(x.passMarks) === String(parts[i].passMarks)))?.value ?? 'CUSTOM'
 
 /** A class's timetable for the exam: one row per subject. */
 function PapersEditor({ exam, cls, onClose, onSaved }) {
@@ -92,11 +96,16 @@ function PapersEditor({ exam, cls, onClose, onSaved }) {
   const { showError } = useSnackbar()
   const { data: lookup } = useQuery({ queryKey: ['academic-lookup'], queryFn: fetchAcademicLookup })
   const [rows, setRows] = useState(() => cls.papers.map((p) => ({
-    subjectId: p.subjectId, date: p.date ?? '', startTime: p.startTime ?? '', endTime: p.endTime ?? '', maxMarks: String(p.maxMarks ?? ''), passMarks: String(p.passMarks ?? ''), gradeOnly: !!p.gradeOnly, countsInTotal: p.countsInTotal !== false,
+    subjectId: p.subjectId, date: p.date ?? '', startTime: p.startTime ?? '', endTime: p.endTime ?? '', maxMarks: String(p.maxMarks ?? ''), passMarks: String(p.passMarks ?? ''), gradeOnly: !!p.gradeOnly, countsInTotal: p.countsInTotal !== false, parts: partsIn(p.parts),
   })))
   const [errors, setErrors] = useState({})
   const [filling, setFilling] = useState(false)
   const setRow = (i, k, v) => setRows((r) => r.map((x, j) => (j === i ? { ...x, [k]: v } : x)))
+  // marked in parts: the paper's max and pass marks follow its parts (the overall pass marks can still be changed)
+  const setParts = (i, parts) => setRows((r) => r.map((x, j) => (j === i ? { ...x, parts, ...(parts.length >= 2 && { maxMarks: String(sumOf(parts, 'maxMarks')), passMarks: String(sumOf(parts, 'passMarks')) }) } : x)))
+  const applyPreset = (i, value) => { const p = PAPER_PART_PRESETS.find((x) => x.value === value); if (p) setParts(i, partsIn(p.parts)) }
+  const setPart = (i, j, k, v) => setParts(i, rows[i].parts.map((x, n) => (n === j ? { ...x, [k]: v } : x)))
+  const presetName = (p) => t(`exams.papers.presets.${p.value}`, { defaultValue: p.label })
   const subjects = lookup?.subjects ?? []
   const fill = async () => {
     setFilling(true)
@@ -107,7 +116,8 @@ function PapersEditor({ exam, cls, onClose, onSaved }) {
   }
   const clash = useMemo(() => new Set(clashes(rows).flat()), [rows])
   const save = useMutation({
-    mutationFn: () => savePapers(exam.id, cls.id, rows.filter((r) => r.subjectId).map((r) => ({ ...r, maxMarks: Number(r.maxMarks) || 0, passMarks: Number(r.passMarks) || 0 }))),
+    mutationFn: () => savePapers(exam.id, cls.id, rows.filter((r) => r.subjectId).map((r) => ({ ...r, maxMarks: Number(r.maxMarks) || 0, passMarks: Number(r.passMarks) || 0,
+      parts: !r.gradeOnly && r.parts?.length >= 2 ? r.parts.map((x) => ({ name: x.name.trim(), maxMarks: Number(x.maxMarks) || 0, passMarks: Number(x.passMarks) || 0 })) : [] }))),
     onSuccess: onSaved,
     onError: (e) => { setErrors(e.response?.data?.details?.fields ?? {}); showError(e.message) },
   })
@@ -124,7 +134,8 @@ function PapersEditor({ exam, cls, onClose, onSaved }) {
         </div>
         {!rows.length && <Note>{t('exams.papers.emptyHint')}</Note>}
         {rows.map((r, i) => (
-          <div key={i} className={`grid grid-cols-2 md:grid-cols-[1.6fr_1fr_.8fr_.8fr_.7fr_.7fr_auto_auto] gap-2 items-start rounded-lg p-2 ${clash.has(i) ? 'bg-amber-50' : ''}`}>
+          <div key={i} className={`rounded-lg p-2 ${clash.has(i) ? 'bg-amber-50' : ''}`}>
+          <div className="grid grid-cols-2 md:grid-cols-[1.6fr_1fr_.8fr_.8fr_.7fr_.7fr_auto_auto] gap-2 items-start">
             <FormField label={i === 0 ? t('exams.papers.subject') : undefined} error={err(i, 'subjectId')}>
               <Select value={r.subjectId} onChange={(e) => setRow(i, 'subjectId', e.target.value)}>
                 <option value="">{t('exams.papers.pickSubject')}</option>
@@ -134,13 +145,42 @@ function PapersEditor({ exam, cls, onClose, onSaved }) {
             <FormField label={i === 0 ? t('exams.papers.date') : undefined} error={err(i, 'date')}><DateInput value={r.date} onChange={(e) => setRow(i, 'date', e.target.value)} /></FormField>
             <FormField label={i === 0 ? t('exams.papers.start') : undefined} error={err(i, 'startTime')}><Input type="time" value={r.startTime} onChange={(e) => setRow(i, 'startTime', e.target.value)} onBlur={() => !r.endTime && r.startTime && setRow(i, 'endTime', addMinutes(r.startTime, 180))} /></FormField>
             <FormField label={i === 0 ? t('exams.papers.end') : undefined} error={err(i, 'endTime')}><Input type="time" value={r.endTime} onChange={(e) => setRow(i, 'endTime', e.target.value)} /></FormField>
-            <FormField label={i === 0 ? t('exams.papers.max') : undefined} error={err(i, 'maxMarks')}><Input type="number" min="0" disabled={r.gradeOnly} value={r.gradeOnly ? '' : r.maxMarks} onChange={(e) => setRow(i, 'maxMarks', e.target.value)} /></FormField>
+            <FormField label={i === 0 ? t('exams.papers.max') : undefined} error={err(i, 'maxMarks')}><Input type="number" min="0" disabled={r.gradeOnly || r.parts?.length >= 2} title={r.parts?.length >= 2 ? t('exams.papers.maxFromParts') : undefined} value={r.gradeOnly ? '' : r.maxMarks} onChange={(e) => setRow(i, 'maxMarks', e.target.value)} /></FormField>
             <FormField label={i === 0 ? t('exams.papers.pass') : undefined} error={err(i, 'passMarks')}><Input type="number" min="0" disabled={r.gradeOnly} value={r.gradeOnly ? '' : r.passMarks} onChange={(e) => setRow(i, 'passMarks', e.target.value)} /></FormField>
             <label className={`inline-flex items-center gap-1.5 text-xs text-ink-muted h-9 ${i === 0 ? 'md:mt-6' : ''}`} title={t('exams.papers.gradeOnlyHint')}>
               <input type="checkbox" checked={r.gradeOnly} onChange={(e) => setRow(i, 'gradeOnly', e.target.checked)} className="rounded border-border text-brand-500 focus:ring-brand-500" />
               {t('exams.papers.gradeOnly')}
             </label>
             <Button size="sm" variant="ghost" icon={X} className={i === 0 ? 'md:mt-6' : ''} aria-label={t('exams.papers.remove')} onClick={() => setRows((x) => x.filter((_, j) => j !== i))} />
+          </div>
+          {/* Theory + Practical (+ Internal): each part with its own max and pass marks */}
+          {!r.gradeOnly && (r.parts?.length >= 2 ? (
+            <div className="mt-2 ms-1 rounded-md border border-border bg-black/[0.02] p-2 space-y-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-xs font-medium text-ink-muted">{t('exams.papers.inParts')}</span>
+                <Select value={presetOf(r.parts)} onChange={(e) => applyPreset(i, e.target.value)} className="w-64" aria-label={t('exams.papers.inParts')}>
+                  {PAPER_PART_PRESETS.map((p) => <option key={p.value} value={p.value}>{presetName(p)}</option>)}
+                  <option value="CUSTOM" disabled>{t('exams.papers.customParts')}</option>
+                </Select>
+                <Button size="sm" variant="ghost" onClick={() => setRow(i, 'parts', [])}>{t('exams.papers.oneMark')}</Button>
+              </div>
+              {err(i, 'parts') && <Note tone="danger">{err(i, 'parts')}</Note>}
+              {r.parts.map((p, j) => (
+                <div key={j} className="grid grid-cols-[1.6fr_.8fr_.8fr_auto] gap-2 items-start">
+                  <FormField label={j === 0 ? t('exams.papers.partName') : undefined}><Input value={p.name} maxLength={40} onChange={(e) => setPart(i, j, 'name', e.target.value)} /></FormField>
+                  <FormField label={j === 0 ? t('exams.papers.max') : undefined} error={err(i, `parts.${j}.maxMarks`)}><Input type="number" min="0" value={p.maxMarks} onChange={(e) => setPart(i, j, 'maxMarks', e.target.value)} /></FormField>
+                  <FormField label={j === 0 ? t('exams.papers.pass') : undefined} error={err(i, `parts.${j}.passMarks`)}><Input type="number" min="0" value={p.passMarks} onChange={(e) => setPart(i, j, 'passMarks', e.target.value)} /></FormField>
+                  <Button size="sm" variant="ghost" icon={X} className={j === 0 ? 'mt-6' : ''} disabled={r.parts.length <= 2} aria-label={t('exams.papers.removePart')} onClick={() => setParts(i, r.parts.filter((_, n) => n !== j))} />
+                </div>
+              ))}
+              <div className="flex flex-wrap items-center gap-3">
+                {r.parts.length < MAX_PAPER_PARTS && <Button size="sm" variant="ghost" icon={Plus} onClick={() => setParts(i, [...r.parts, { name: '', maxMarks: '', passMarks: '' }])}>{t('exams.papers.addPart')}</Button>}
+                <span className="text-xs text-ink-muted">{t('exams.papers.partsHint')}</span>
+              </div>
+            </div>
+          ) : (
+            <button type="button" className="mt-1 ms-1 text-xs font-medium text-brand-600 hover:underline" onClick={() => applyPreset(i, 'TH_PR')}>{t('exams.papers.splitParts')}</button>
+          ))}
           </div>
         ))}
         {clash.size > 0 && <Note tone="warning">{t('exams.papers.clash')}</Note>}

@@ -29,13 +29,47 @@ export const STARTER_EXAM_TYPES = [
   { name: 'Pre-board', code: 'PB', weightage: 0, defaultMaxMarks: 80 },
 ]
 
+// ───────────────────────────────────────────────────────── theory and practical
+//
+// A paper can be marked in parts — Theory 70 + Practical 30 (CBSE and state boards, classes 9–12), or Theory 80 +
+// Internal assessment 20. Each part has its own maximum and pass marks; the paper's maximum is their sum, and a
+// student passes the paper only by passing every part and reaching the paper's pass marks overall.
+
+/** The usual ways to split a paper (Exams › paper setup › "In parts"). */
+export const PAPER_PART_PRESETS = [
+  { value: 'TH_PR', label: 'Theory + Practical', parts: [{ name: 'Theory', maxMarks: 70, passMarks: 23 }, { name: 'Practical', maxMarks: 30, passMarks: 10 }] },
+  { value: 'TH_IA', label: 'Theory + Internal assessment', parts: [{ name: 'Theory', maxMarks: 80, passMarks: 26 }, { name: 'Internal assessment', maxMarks: 20, passMarks: 7 }] },
+  { value: 'TH_PR_IA', label: 'Theory + Practical + Internal', parts: [{ name: 'Theory', maxMarks: 60, passMarks: 20 }, { name: 'Practical', maxMarks: 30, passMarks: 10 }, { name: 'Internal assessment', maxMarks: 10, passMarks: 0 }] },
+]
+export const MAX_PAPER_PARTS = 4
+/** Stable keys for a paper's parts, by position: p1, p2 … (marks are stored under them). */
+export const partKey = (i) => 'p' + (i + 1)
+const num = (v) => (v === null || v === undefined || v === '' ? null : Number(v))
+
+/** A marked-in-parts paper's parts with keys, or [] for a paper marked as one. */
+export const partsOf = (paper) => (Array.isArray(paper?.parts) && paper.parts.length >= 2 ? paper.parts.map((p, i) => ({ ...p, key: p.key ?? partKey(i) })) : [])
+
+/** The paper's total from its parts' marks, or null while any part is still blank. */
+export function sumParts(entry, paper) {
+  const parts = partsOf(paper)
+  if (!parts.length) return num(entry?.marks)
+  const values = parts.map((p) => num(entry?.parts?.[p.key]))
+  return values.some((v) => v === null) ? null : Math.round(values.reduce((a, b) => a + b, 0) * 100) / 100
+}
+
+/** The parts a student hasn't passed ([] when all are passed or the paper isn't in parts). */
+export function failedParts(entry, paper) {
+  return partsOf(paper).filter((p) => (Number(p.passMarks) || 0) > 0 && num(entry?.parts?.[p.key]) !== null && num(entry?.parts?.[p.key]) < Number(p.passMarks))
+}
+
 /** One student's entry on a paper: what counts towards the total. */
 export function paperScore(entry, paper) {
   if (!entry || entry.exempt) return { counts: false, marks: null, absent: false, pass: true }
   if (entry.absent) return { counts: paper.countsInTotal !== false && !paper.gradeOnly, marks: 0, absent: true, pass: false }
   if (paper.gradeOnly) return { counts: false, marks: null, absent: false, pass: true, grade: entry.grade ?? null }
-  const marks = entry.marks === null || entry.marks === undefined || entry.marks === '' ? null : Number(entry.marks)
-  const pass = marks === null ? false : marks >= (Number(paper.passMarks) || 0)
+  const marks = partsOf(paper).length ? sumParts(entry, paper) : num(entry.marks)
+  // in parts: pass every part (its own pass marks) and the paper overall
+  const pass = marks === null ? false : marks >= (Number(paper.passMarks) || 0) && !failedParts(entry, paper).length
   return { counts: paper.countsInTotal !== false, marks, absent: false, pass }
 }
 
@@ -77,6 +111,16 @@ export function rankBy(rows, key = 'pct') {
 export function checkMark(entry, paper) {
   if (!entry || entry.absent || entry.exempt) return null
   if (paper.gradeOnly) return entry.grade && String(entry.grade).length > 4 ? 'Up to 4 characters' : null
+  const parts = partsOf(paper)
+  if (parts.length) {
+    for (const p of parts) {
+      const v = num(entry.parts?.[p.key])
+      if (v === null) continue
+      if (!Number.isFinite(v) || v < 0) return 'Enter 0 or more'
+      if (v > Number(p.maxMarks)) return p.name + ': out of ' + p.maxMarks
+    }
+    return null
+  }
   if (entry.marks === null || entry.marks === undefined || entry.marks === '') return null
   const n = Number(entry.marks)
   if (!Number.isFinite(n) || n < 0) return 'Enter 0 or more'

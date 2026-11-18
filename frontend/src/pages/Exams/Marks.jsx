@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { ChevronLeft, CircleDashed, ClipboardList, Lock, LockOpen, NotebookPen, PencilLine, Save, X } from 'lucide-react'
-import { SHEET_STATUS, checkMark } from '@schoolgiant/shared'
+import { SHEET_STATUS, checkMark, sumParts } from '@schoolgiant/shared'
 import clsx from 'clsx'
 import { ColorChip, DataTable, DateCell, Fraction, Input, Note, PANEL, PageContainer, PageHeader, PersonCell, PillRow, SideNav, SideNavLayout, StatCardRow, StatusPill, pillClass, usePrompt } from '../../components/system'
 import Button from '../../components/ui/Button'
@@ -26,21 +26,27 @@ function SheetView({ paperId, sectionId, onBack }) {
   const { data: sheet, isLoading, error } = useQuery({ queryKey: key, queryFn: () => fetchMarkSheet(paperId, sectionId) })
   const [rows, setRows] = useState({})
   const [serverErrors, setServerErrors] = useState({})
-  useEffect(() => { if (sheet) setRows(Object.fromEntries(sheet.students.map((s) => [s.id, { marks: s.marks ?? '', grade: s.grade ?? '', absent: s.absent, exempt: s.exempt }]))) }, [sheet])
+  // a paper marked in parts (Theory + Practical): a box per part, the total worked out
+  const inParts = sheet?.paper?.parts?.length >= 2 ? sheet.paper.parts : null
+  const partsIn = (s) => Object.fromEntries((inParts ?? []).map((p) => [p.key, s.parts?.[p.key] ?? '']))
+  useEffect(() => { if (sheet) setRows(Object.fromEntries(sheet.students.map((s) => [s.id, { marks: s.marks ?? '', parts: partsIn(s), grade: s.grade ?? '', absent: s.absent, exempt: s.exempt }]))) }, [sheet])
+  const setPart = (id, key, v) => setRows((r) => ({ ...r, [id]: { ...r[id], parts: { ...r[id]?.parts, [key]: v } } }))
+  const partsOut = (r) => (inParts ? Object.fromEntries(inParts.map((p) => [p.key, r.parts?.[p.key] === '' || r.parts?.[p.key] === undefined ? null : Number(r.parts[p.key])])) : undefined)
   const set = (id, k, v) => setRows((r) => ({ ...r, [id]: { ...r[id], [k]: v } }))
   const paper = sheet?.paper
   const local = useMemo(() => {
     if (!paper) return {}
-    return Object.fromEntries(Object.entries(rows).map(([id, r]) => [id, checkMark({ ...r, marks: r.marks === '' ? null : r.marks }, paper)]).filter(([, e]) => e))
+    return Object.fromEntries(Object.entries(rows).map(([id, r]) => [id, checkMark({ ...r, marks: r.marks === '' ? null : r.marks, parts: partsOut(r) }, paper)]).filter(([, e]) => e))
   }, [rows, paper])
   const dirty = sheet && sheet.students.some((s) => {
     const r = rows[s.id]
-    return r && (String(r.marks ?? '') !== String(s.marks ?? '') || (r.grade ?? '') !== (s.grade ?? '') || r.absent !== s.absent || r.exempt !== s.exempt)
+    return r && (String(r.marks ?? '') !== String(s.marks ?? '') || (r.grade ?? '') !== (s.grade ?? '') || r.absent !== s.absent || r.exempt !== s.exempt
+      || (inParts && inParts.some((p) => String(r.parts?.[p.key] ?? '') !== String(s.parts?.[p.key] ?? ''))))
   })
   const after = (data, msg) => { qc.setQueryData(key, data); qc.invalidateQueries({ queryKey: ['marks-board'] }); setServerErrors({}); showSuccess(msg) }
   const entries = () => sheet.students.map((s) => {
     const r = rows[s.id] ?? {}
-    return { studentId: s.id, marks: r.marks === '' || r.marks === undefined ? null : Number(r.marks), grade: r.grade || undefined, absent: !!r.absent, exempt: !!r.exempt }
+    return { studentId: s.id, marks: inParts ? null : r.marks === '' || r.marks === undefined ? null : Number(r.marks), ...(inParts && { parts: partsOut(r) }), grade: r.grade || undefined, absent: !!r.absent, exempt: !!r.exempt }
   })
   const fail = (e) => {
     const fields = e.response?.data?.details?.fields ?? {}
@@ -54,7 +60,12 @@ function SheetView({ paperId, sectionId, onBack }) {
   if (isLoading) return <p className="text-sm text-ink-faint">{t('exams.loading')}</p>
   if (error || !sheet) return <Note tone="warning">{error?.message}</Note>
   const ro = !sheet.canEdit
-  const filled = sheet.students.filter((s) => { const r = rows[s.id]; return r && (r.absent || r.exempt || (paper.gradeOnly ? r.grade : r.marks !== '')) }).length
+  const filled = sheet.students.filter((s) => { const r = rows[s.id]; return r && (r.absent || r.exempt || (paper.gradeOnly ? r.grade : inParts ? inParts.every((p) => (r.parts?.[p.key] ?? '') !== '') : r.marks !== '')) }).length
+  const totalOf = (r) => (inParts ? sumParts({ parts: partsOut(r) }, paper) : null)
+  const partBox = (s, r, p, off, err, cls) => (
+    <Input key={p.key} className={cls} type="number" inputMode="decimal" min="0" max={p.maxMarks} step="0.5" value={r.parts?.[p.key] ?? ''} disabled={off} error={!!err}
+      onChange={(e) => setPart(s.id, p.key, e.target.value)} aria-label={t('exams.marks.partFor', { part: p.name, name: s.name })} title={t('exams.marks.partOutOf', { part: p.name, max: p.maxMarks })} enterKeyHint="next" />
+  )
 
   return (
     <div className="space-y-4">
@@ -65,6 +76,7 @@ function SheetView({ paperId, sectionId, onBack }) {
             <p className="font-semibold text-ink truncate">{paper.subject} · {sheet.section.label}</p>
             <p className="text-xs text-ink-muted">
               {paper.gradeOnly ? t('exams.marks.gradeOnly') : t('exams.marks.outOf', { max: paper.maxMarks, pass: paper.passMarks })}
+              {inParts ? ` · ${inParts.map((p) => t('exams.marks.partLine', { part: p.name, max: p.maxMarks, pass: p.passMarks })).join(' + ')}` : ''}
               {sheet.enteredBy ? ` · ${t('exams.marks.enteredBy', { name: sheet.enteredBy, at: dateTime(sheet.enteredAt) })}` : ''}
             </p>
           </div>
@@ -108,7 +120,9 @@ function SheetView({ paperId, sectionId, onBack }) {
                   </div>
                   {toggle('absent', t('exams.marks.absent'))}
                   {toggle('exempt', t('exams.marks.exempt'))}
-                  {paper.gradeOnly
+                  {inParts
+                    ? <span className="flex items-center gap-1">{inParts.map((p) => partBox(s, r, p, off, err, 'w-[56px] text-right'))}<span className="w-9 text-right font-mono-num text-xs font-semibold text-ink">{totalOf(r) ?? '—'}</span></span>
+                    : paper.gradeOnly
                     ? <Input className="w-[72px] uppercase text-center" maxLength={4} value={r.grade ?? ''} disabled={off} onChange={(e) => set(s.id, 'grade', e.target.value.toUpperCase())} aria-label={`${s.name} ${t('exams.marks.grade')}`} enterKeyHint="next" />
                     : <Input className="w-[72px] text-right" type="number" inputMode="decimal" min="0" max={paper.maxMarks} step="0.5" value={r.marks ?? ''} disabled={off} error={!!err} onChange={(e) => set(s.id, 'marks', e.target.value)} aria-label={`${s.name} ${t('exams.marks.marks')}`} enterKeyHint="next" />}
                 </div>
@@ -123,7 +137,14 @@ function SheetView({ paperId, sectionId, onBack }) {
         columns={[
           { key: 'rollNo', header: t('exams.roll'), width: 60, render: (v) => <span className="font-mono-num">{v ?? '—'}</span> },
           { key: 'name', header: t('exams.student'), mobilePrimary: true, render: (v, s) => <PersonCell name={v} sub={s.admissionNo} size={28} /> },
-          { key: 'marks', header: paper.gradeOnly ? t('exams.marks.grade') : t('exams.marks.marks'), width: 150, render: (_, s) => {
+          ...(inParts ? [
+            ...inParts.map((p, i) => ({ key: `part-${p.key}`, header: `${p.name} (${p.maxMarks})`, width: 130, render: (_, s) => {
+              const r = rows[s.id] ?? {}
+              const err = local[s.id] || serverErrors[s.id]
+              return <div>{partBox(s, r, p, ro || r.absent || r.exempt, err, 'w-24 text-right')}{i === 0 && err && <p className="text-xs text-danger-600 mt-0.5">{err}</p>}</div>
+            } })),
+            { key: 'total', header: t('exams.marks.total', { max: paper.maxMarks }), width: 90, align: 'right', render: (_, s) => <span className="font-semibold">{totalOf(rows[s.id] ?? {}) ?? '—'}</span> },
+          ] : [{ key: 'marks', header: paper.gradeOnly ? t('exams.marks.grade') : t('exams.marks.marks'), width: 150, render: (_, s) => {
             const r = rows[s.id] ?? {}
             const off = ro || r.absent || r.exempt
             const err = local[s.id] || serverErrors[s.id]
@@ -135,7 +156,7 @@ function SheetView({ paperId, sectionId, onBack }) {
                 {err && <p className="text-xs text-danger-600 mt-0.5">{err}</p>}
               </div>
             )
-          } },
+          } }]),
           { key: 'absent', header: t('exams.marks.absent'), width: 90, render: (_, s) => (
             <span className="inline-flex items-center gap-1.5">
               <input type="checkbox" checked={!!rows[s.id]?.absent} disabled={ro} onChange={(e) => setRows((x) => ({ ...x, [s.id]: { ...x[s.id], absent: e.target.checked, exempt: e.target.checked ? false : x[s.id]?.exempt } }))} aria-label={t('exams.marks.absent')} className="rounded border-border text-brand-500 focus:ring-brand-500" />
