@@ -2,7 +2,8 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { pctChange, splitByMix } from '@schoolgiant/shared'
 import { AiUsage } from '../src/models/ai.js'
 import { Question } from '../src/models/lms.js'
-import { runAsTenant } from '../src/platform/context.js'
+import { runAsSystem, runAsTenant } from '../src/platform/context.js'
+import { Tenant } from '../src/models/platform.js'
 import { setAiDriver } from '../src/services/aiClient.js'
 import { runTool } from '../src/services/aiTools.js'
 import { newInstitution, signIn, startDb, stopDb } from './helpers.js'
@@ -207,13 +208,15 @@ describe('with the model (canned)', () => {
     expect(st.usage.byFeature.ASSISTANT.calls).toBe(2)
     const rows = await runAsTenant(h.tenant._id, () => AiUsage.find().lean())
     expect(rows.every((r) => r.userName === 'Admin 1' || r.userName)).toBe(true)
-    process.env.AI_MONTHLY_TOKEN_CAP = '100'
+    // the plan's allowance is the cap (a per-institution override wins): 0.1 thousand = 100 tokens, already used up
+    const setCap = (k) => runAsSystem(() => Tenant.updateOne({ _id: h.tenant._id }, k === null ? { $unset: { 'limitsOverride.aiTokensK': 1 } } : { $set: { 'limitsOverride.aiTokensK': k } }))
+    await setCap(0.1)
     try {
       const res = await admin.post('/api/v1/ai/remarks/draft').send({ examId: exam.id, sectionId: section.id })
       expect(res.status).toBe(429)
       expect(res.body.code).toBe('AI_CAP_REACHED')
     } finally {
-      delete process.env.AI_MONTHLY_TOKEN_CAP
+      await setCap(null)
     }
   })
 

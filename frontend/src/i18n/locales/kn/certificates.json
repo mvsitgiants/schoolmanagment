@@ -1,277 +1,278 @@
 {
   "certificates": {
-    "all": "All",
-    "loading": "Loading…",
+    "all": "ಎಲ್ಲವೂ",
+    "loading": "ಲೋಡ್ ಆಗುತ್ತಿದೆ…",
     "kinds": {
       "BONAFIDE": {
-        "label": "Bonafide certificate",
-        "hint": "That the student studies here this year."
+        "label": "ನೈಜ ವಿದ್ಯಾರ್ಥಿ ಪ್ರಮಾಣಪತ್ರ",
+        "hint": "ವಿದ್ಯಾರ್ಥಿ ಈ ವರ್ಷ ಇಲ್ಲಿ ವ್ಯಾಸಂಗ ಮಾಡುತ್ತಿದ್ದಾರೆ ಎಂಬುದಕ್ಕೆ."
       },
       "CHARACTER": {
-        "label": "Character certificate",
-        "hint": "The student’s conduct while here."
+        "label": "ನಡತೆ ಪ್ರಮಾಣಪತ್ರ",
+        "hint": "ಇಲ್ಲಿದ್ದಾಗ ವಿದ್ಯಾರ್ಥಿಯ ನಡತೆ."
       },
       "STUDY": {
-        "label": "Study certificate",
-        "hint": "The classes and years the student studied here — for former students too."
+        "label": "ವ್ಯಾಸಂಗ ಪ್ರಮಾಣಪತ್ರ",
+        "hint": "ವಿದ್ಯಾರ್ಥಿ ಇಲ್ಲಿ ವ್ಯಾಸಂಗ ಮಾಡಿದ ತರಗತಿಗಳು ಮತ್ತು ವರ್ಷಗಳು — ಹಳೆಯ ವಿದ್ಯಾರ್ಥಿಗಳಿಗೂ."
       },
       "FEE": {
-        "label": "Fee paid certificate",
-        "hint": "Fees paid in a financial year, tuition shown separately (income tax, section 80C)."
+        "label": "ಶುಲ್ಕ ಪಾವತಿ ಪ್ರಮಾಣಪತ್ರ",
+        "hint": "ಒಂದು ಆರ್ಥಿಕ ವರ್ಷದಲ್ಲಿ ಪಾವತಿಸಿದ ಶುಲ್ಕ, ಬೋಧನಾ ಶುಲ್ಕವನ್ನು ಪ್ರತ್ಯೇಕವಾಗಿ ತೋರಿಸಿ (ಆದಾಯ ತೆರಿಗೆ, ಪ್ರಕರಣ 80C)."
       },
       "MERIT": {
-        "label": "Merit / participation certificate",
-        "hint": "An achievement or event. Can be issued to many students at once."
+        "label": "ಪ್ರತಿಭಾ / ಭಾಗವಹಿಸುವಿಕೆ ಪ್ರಮಾಣಪತ್ರ",
+        "hint": "ಒಂದು ಸಾಧನೆ ಅಥವಾ ಕಾರ್ಯಕ್ರಮಕ್ಕೆ. ಒಮ್ಮೆಗೆ ಹಲವು ವಿದ್ಯಾರ್ಥಿಗಳಿಗೆ ನೀಡಬಹುದು."
       }
     },
     "status": {
-      "ISSUED": "Issued",
-      "CANCELLED": "Cancelled"
+      "ISSUED": "ನೀಡಲಾಗಿದೆ",
+      "CANCELLED": "ರದ್ದುಮಾಡಲಾಗಿದೆ"
     },
     "purposes": {
-      "Passport": "Passport",
-      "Bankaccount": "Bank account",
-      "Scholarship": "Scholarship",
-      "Incometax80C": "Income tax (80C)",
-      "Busrailconcession": "Bus / rail concession",
-      "Visa": "Visa",
-      "Aadhaar": "Aadhaar",
-      "Competitionsports": "Competition / sports",
-      "Other": "Other"
+      "Passport": "ಪಾಸ್‌ಪೋರ್ಟ್",
+      "Bankaccount": "ಬ್ಯಾಂಕ್ ಖಾತೆ",
+      "Scholarship": "ವಿದ್ಯಾರ್ಥಿ ವೇತನ",
+      "Incometax80C": "ಆದಾಯ ತೆರಿಗೆ (80C)",
+      "Busrailconcession": "ಬಸ್ / ರೈಲು ರಿಯಾಯಿತಿ",
+      "Visa": "ವೀಸಾ",
+      "Aadhaar": "ಆಧಾರ್",
+      "Competitionsports": "ಸ್ಪರ್ಧೆ / ಕ್ರೀಡೆ",
+      "Other": "ಇತರ"
     },
     "conducts": {
-      "Excellent": "Excellent",
-      "Verygood": "Very good",
-      "Good": "Good",
-      "Satisfactory": "Satisfactory"
+      "Excellent": "ಅತ್ಯುತ್ತಮ",
+      "Verygood": "ಬಹಳ ಉತ್ತಮ",
+      "Good": "ಉತ್ತಮ",
+      "Satisfactory": "ತೃಪ್ತಿಕರ"
     },
     "issue": {
-      "title": "Issue certificates",
-      "subtitle": "Bonafide, character, study, fee paid and merit certificates — numbered, printed and verifiable by QR.",
-      "which": "Certificate",
-      "student": "Student",
-      "students": "Students",
-      "class": "Class",
-      "pickClass": "Pick a class",
-      "picked_one": "{{count}} picked",
-      "picked_other": "{{count}} picked",
-      "pickAll": "Pick all",
-      "details": "Details",
-      "conduct": "Conduct",
-      "fromClass": "First class here",
-      "toClass": "Last class here",
-      "classHint": "Leave blank to use the student’s record",
-      "fy": "Financial year",
-      "fyLabel": "April–March {{fy}}",
-      "event": "Event or achievement",
-      "eventPlaceholder": "e.g. Annual Sports Meet 2026",
-      "achievement": "Position / award",
-      "achievementHint": "Leave blank for a participation certificate",
-      "achievementPlaceholder": "e.g. First place, 100 m",
-      "eventDate": "Held on",
-      "purpose": "Purpose",
-      "noPurpose": "Not stated",
-      "purposeText": "Say what for",
-      "remarks": "Remarks",
-      "remarksHint": "Printed at the end of the certificate",
-      "issue": "Issue and print",
-      "issueMany_one": "Issue {{count}} and print",
-      "issueMany_other": "Issue {{count}} and print",
-      "numberHint": "Each certificate gets the next number (Settings › Number series) and a QR code to verify it.",
-      "issued": "Certificate {{no}} issued.",
-      "issuedMany_one": "{{count}} certificate issued.",
-      "issuedMany_other": "{{count}} certificates issued.",
-      "preparing": "Preparing the certificates…",
-      "earlier": "Earlier certificates"
+      "title": "ಪ್ರಮಾಣಪತ್ರಗಳನ್ನು ನೀಡಿ",
+      "subtitle": "ನೈಜ ವಿದ್ಯಾರ್ಥಿ, ನಡತೆ, ವ್ಯಾಸಂಗ, ಶುಲ್ಕ ಪಾವತಿ ಮತ್ತು ಪ್ರತಿಭಾ ಪ್ರಮಾಣಪತ್ರಗಳು — ಸಂಖ್ಯೆ ನೀಡಿ, ಮುದ್ರಿಸಿ, QR ಮೂಲಕ ಪರಿಶೀಲಿಸಬಹುದು.",
+      "which": "ಪ್ರಮಾಣಪತ್ರ",
+      "student": "ವಿದ್ಯಾರ್ಥಿ",
+      "students": "ವಿದ್ಯಾರ್ಥಿಗಳು",
+      "class": "ತರಗತಿ",
+      "pickClass": "ತರಗತಿಯನ್ನು ಆಯ್ಕೆಮಾಡಿ",
+      "picked_one": "{{count}} ಆಯ್ಕೆಮಾಡಲಾಗಿದೆ",
+      "picked_other": "{{count}} ಆಯ್ಕೆಮಾಡಲಾಗಿದೆ",
+      "pickAll": "ಎಲ್ಲವನ್ನೂ ಆಯ್ಕೆಮಾಡಿ",
+      "details": "ವಿವರಗಳು",
+      "conduct": "ನಡತೆ",
+      "fromClass": "ಇಲ್ಲಿನ ಮೊದಲ ತರಗತಿ",
+      "toClass": "ಇಲ್ಲಿನ ಕೊನೆಯ ತರಗತಿ",
+      "classHint": "ವಿದ್ಯಾರ್ಥಿಯ ದಾಖಲೆಯಲ್ಲಿರುವುದನ್ನು ಬಳಸಲು ಖಾಲಿ ಬಿಡಿ",
+      "fy": "ಆರ್ಥಿಕ ವರ್ಷ",
+      "fyLabel": "ಏಪ್ರಿಲ್–ಮಾರ್ಚ್ {{fy}}",
+      "event": "ಕಾರ್ಯಕ್ರಮ ಅಥವಾ ಸಾಧನೆ",
+      "eventPlaceholder": "ಉದಾ: ವಾರ್ಷಿಕ ಕ್ರೀಡಾಕೂಟ 2026",
+      "achievement": "ಸ್ಥಾನ / ಪ್ರಶಸ್ತಿ",
+      "achievementHint": "ಭಾಗವಹಿಸುವಿಕೆ ಪ್ರಮಾಣಪತ್ರಕ್ಕೆ ಖಾಲಿ ಬಿಡಿ",
+      "achievementPlaceholder": "ಉದಾ: ಪ್ರಥಮ ಸ್ಥಾನ, 100 ಮೀ.",
+      "eventDate": "ನಡೆದ ದಿನಾಂಕ",
+      "purpose": "ಉದ್ದೇಶ",
+      "noPurpose": "ತಿಳಿಸಿಲ್ಲ",
+      "purposeText": "ಯಾವುದಕ್ಕಾಗಿ ಎಂದು ತಿಳಿಸಿ",
+      "remarks": "ಅಭಿಪ್ರಾಯ",
+      "remarksHint": "ಪ್ರಮಾಣಪತ್ರದ ಕೊನೆಯಲ್ಲಿ ಮುದ್ರಿಸಲಾಗುತ್ತದೆ",
+      "issue": "ನೀಡಿ ಮತ್ತು ಮುದ್ರಿಸಿ",
+      "issueMany_one": "{{count}} ನೀಡಿ ಮತ್ತು ಮುದ್ರಿಸಿ",
+      "issueMany_other": "{{count}} ನೀಡಿ ಮತ್ತು ಮುದ್ರಿಸಿ",
+      "numberHint": "ಪ್ರತಿ ಪ್ರಮಾಣಪತ್ರಕ್ಕೆ ಮುಂದಿನ ಸಂಖ್ಯೆ (ಸೆಟ್ಟಿಂಗ್‌ಗಳು › ಸಂಖ್ಯಾ ಸರಣಿ) ಮತ್ತು ಅದನ್ನು ಪರಿಶೀಲಿಸಲು QR ಕೋಡ್ ದೊರೆಯುತ್ತದೆ.",
+      "issued": "ಪ್ರಮಾಣಪತ್ರ {{no}} ನೀಡಲಾಗಿದೆ.",
+      "issuedMany_one": "{{count}} ಪ್ರಮಾಣಪತ್ರ ನೀಡಲಾಗಿದೆ.",
+      "issuedMany_other": "{{count}} ಪ್ರಮಾಣಪತ್ರಗಳನ್ನು ನೀಡಲಾಗಿದೆ.",
+      "preparing": "ಪ್ರಮಾಣಪತ್ರಗಳನ್ನು ಸಿದ್ಧಪಡಿಸಲಾಗುತ್ತಿದೆ…",
+      "earlier": "ಹಿಂದಿನ ಪ್ರಮಾಣಪತ್ರಗಳು"
     },
     "preview": {
-      "title": "What it will say",
-      "pickStudent": "Pick a student to see what the certificate will say.",
-      "pickStudents": "Pick a class and tick the students.",
-      "many": "{{count}} certificates for “{{event}}”.",
-      "name": "Name",
-      "admissionNo": "Admission No.",
-      "class": "Class",
-      "parent": "Parent",
-      "dob": "Date of birth",
-      "conduct": "Conduct",
-      "from": "From",
-      "to": "To",
-      "tillDate": "Till date",
-      "classes": "Classes",
-      "refunded": "Less: refunded",
-      "total": "Total paid in {{fy}}",
-      "tuition": "Of which tuition"
+      "title": "ಪ್ರಮಾಣಪತ್ರದಲ್ಲಿ ಏನಿರುತ್ತದೆ",
+      "pickStudent": "ಪ್ರಮಾಣಪತ್ರದಲ್ಲಿ ಏನಿರುತ್ತದೆ ಎಂದು ನೋಡಲು ವಿದ್ಯಾರ್ಥಿಯನ್ನು ಆಯ್ಕೆಮಾಡಿ.",
+      "pickStudents": "ತರಗತಿಯನ್ನು ಆಯ್ಕೆಮಾಡಿ ವಿದ್ಯಾರ್ಥಿಗಳನ್ನು ಗುರುತಿಸಿ.",
+      "many": "“{{event}}” ಗಾಗಿ {{count}} ಪ್ರಮಾಣಪತ್ರಗಳು.",
+      "name": "ಹೆಸರು",
+      "admissionNo": "ಪ್ರವೇಶ ಸಂಖ್ಯೆ",
+      "class": "ತರಗತಿ",
+      "parent": "ಪೋಷಕರು",
+      "dob": "ಜನ್ಮ ದಿನಾಂಕ",
+      "conduct": "ನಡತೆ",
+      "from": "ಇಂದ",
+      "to": "ವರೆಗೆ",
+      "tillDate": "ಇಂದಿನವರೆಗೆ",
+      "classes": "ತರಗತಿಗಳು",
+      "refunded": "ಕಳೆಯಿರಿ: ಮರುಪಾವತಿಸಿದ್ದು",
+      "total": "{{fy}} ರಲ್ಲಿ ಪಾವತಿಸಿದ ಒಟ್ಟು ಮೊತ್ತ",
+      "tuition": "ಇದರಲ್ಲಿ ಬೋಧನಾ ಶುಲ್ಕ"
     },
     "register": {
-      "title": "Certificate register",
-      "anyDate": "Any date",
-      "dates": "Issue dates",
-      "subtitle": "Every certificate issued.",
-      "count_one": "{{count}} certificate",
-      "count_other": "{{count}} certificates",
-      "search": "Number, student, admission no. or purpose",
-      "from": "From",
-      "to": "To",
-      "no": "Certificate",
-      "date": "Date",
-      "kind": "Kind",
-      "student": "Student",
-      "purpose": "Purpose",
-      "by": "Issued by",
-      "prints_one": "printed {{count}} time",
-      "prints_other": "printed {{count}} times",
-      "status": "Status",
-      "print": "Print",
-      "copyLink": "Copy verify link",
-      "copied": "Verify link copied.",
-      "cancel": "Cancel certificate",
-      "cancelReason": "Why?",
+      "title": "ಪ್ರಮಾಣಪತ್ರ ವಹಿ",
+      "anyDate": "ಯಾವುದೇ ದಿನಾಂಕ",
+      "dates": "ನೀಡಿದ ದಿನಾಂಕಗಳು",
+      "subtitle": "ನೀಡಲಾದ ಪ್ರತಿಯೊಂದು ಪ್ರಮಾಣಪತ್ರ.",
+      "count_one": "{{count}} ಪ್ರಮಾಣಪತ್ರ",
+      "count_other": "{{count}} ಪ್ರಮಾಣಪತ್ರಗಳು",
+      "search": "ಸಂಖ್ಯೆ, ವಿದ್ಯಾರ್ಥಿ, ಪ್ರವೇಶ ಸಂಖ್ಯೆ ಅಥವಾ ಉದ್ದೇಶ",
+      "from": "ಇಂದ",
+      "to": "ವರೆಗೆ",
+      "no": "ಪ್ರಮಾಣಪತ್ರ",
+      "date": "ದಿನಾಂಕ",
+      "kind": "ಬಗೆ",
+      "student": "ವಿದ್ಯಾರ್ಥಿ",
+      "purpose": "ಉದ್ದೇಶ",
+      "by": "ನೀಡಿದವರು",
+      "prints_one": "{{count}} ಬಾರಿ ಮುದ್ರಿಸಲಾಗಿದೆ",
+      "prints_other": "{{count}} ಬಾರಿ ಮುದ್ರಿಸಲಾಗಿದೆ",
+      "status": "ಸ್ಥಿತಿ",
+      "print": "ಮುದ್ರಿಸಿ",
+      "copyLink": "ಪರಿಶೀಲನಾ ಲಿಂಕ್ ನಕಲಿಸಿ",
+      "copied": "ಪರಿಶೀಲನಾ ಲಿಂಕ್ ನಕಲಿಸಲಾಗಿದೆ.",
+      "cancel": "ಪ್ರಮಾಣಪತ್ರ ರದ್ದುಮಾಡಿ",
+      "cancelReason": "ಕಾರಣವೇನು?",
       "cancelConfirm": {
-        "title": "Cancel {{no}}?",
-        "message": "Anyone who scans its QR will see it as cancelled. Issue a new one if it needs correcting."
+        "title": "{{no}} ಅನ್ನು ರದ್ದುಮಾಡಬೇಕೆ?",
+        "message": "ಇದರ QR ಸ್ಕ್ಯಾನ್ ಮಾಡುವ ಯಾರಿಗೇ ಆದರೂ ಇದು ರದ್ದಾಗಿದೆ ಎಂದು ಕಾಣಿಸುತ್ತದೆ. ತಿದ್ದುಪಡಿ ಬೇಕಿದ್ದರೆ ಹೊಸದನ್ನು ನೀಡಿ."
       },
-      "cancelled": "Certificate cancelled.",
-      "empty": "No certificates issued yet",
-      "noMatch": "No certificates match these filters"
+      "cancelled": "ಪ್ರಮಾಣಪತ್ರ ರದ್ದುಮಾಡಲಾಗಿದೆ.",
+      "empty": "ಇನ್ನೂ ಯಾವುದೇ ಪ್ರಮಾಣಪತ್ರ ನೀಡಿಲ್ಲ",
+      "noMatch": "ಈ ಫಿಲ್ಟರ್‌ಗಳಿಗೆ ಹೊಂದುವ ಯಾವುದೇ ಪ್ರಮಾಣಪತ್ರ ಇಲ್ಲ"
     },
     "verify": {
-      "validTitle": "This certificate is genuine",
-      "valid": "Issued by {{institution}} and still valid.",
-      "cancelledTitle": "This certificate was cancelled",
-      "cancelled": "{{institution}} cancelled it on {{date}}. Don’t accept it; ask the institution for a new one.",
-      "notFoundTitle": "Certificate not found",
-      "notFound": "No certificate has the code {{code}}. Check the code, or contact the institution that issued it.",
-      "certificate": "Certificate",
-      "no": "Number",
-      "issued": "Issued on",
-      "name": "Issued to",
-      "class": "Class",
-      "event": "For",
-      "institution": "Institution",
-      "compare": "Compare these details with the paper you were given."
+      "validTitle": "ಈ ಪ್ರಮಾಣಪತ್ರ ಅಸಲಿಯಾಗಿದೆ",
+      "valid": "{{institution}} ನೀಡಿದೆ ಮತ್ತು ಇನ್ನೂ ಮಾನ್ಯವಾಗಿದೆ.",
+      "cancelledTitle": "ಈ ಪ್ರಮಾಣಪತ್ರವನ್ನು ರದ್ದುಮಾಡಲಾಗಿದೆ",
+      "cancelled": "{{institution}} ಇದನ್ನು {{date}} ರಂದು ರದ್ದುಮಾಡಿದೆ. ಇದನ್ನು ಸ್ವೀಕರಿಸಬೇಡಿ; ಹೊಸದಕ್ಕಾಗಿ ಸಂಸ್ಥೆಯನ್ನು ಕೇಳಿ.",
+      "notFoundTitle": "ಪ್ರಮಾಣಪತ್ರ ಸಿಗಲಿಲ್ಲ",
+      "notFound": "{{code}} ಕೋಡ್ ಇರುವ ಯಾವುದೇ ಪ್ರಮಾಣಪತ್ರ ಇಲ್ಲ. ಕೋಡ್ ಪರಿಶೀಲಿಸಿ, ಅಥವಾ ಇದನ್ನು ನೀಡಿದ ಸಂಸ್ಥೆಯನ್ನು ಸಂಪರ್ಕಿಸಿ.",
+      "certificate": "ಪ್ರಮಾಣಪತ್ರ",
+      "no": "ಸಂಖ್ಯೆ",
+      "issued": "ನೀಡಿದ ದಿನಾಂಕ",
+      "name": "ಯಾರಿಗೆ ನೀಡಲಾಗಿದೆ",
+      "class": "ತರಗತಿ",
+      "event": "ಯಾವುದಕ್ಕಾಗಿ",
+      "institution": "ಸಂಸ್ಥೆ",
+      "compare": "ಈ ವಿವರಗಳನ್ನು ನಿಮಗೆ ನೀಡಲಾದ ಕಾಗದದೊಂದಿಗೆ ಹೋಲಿಸಿ ನೋಡಿ."
     },
     "print": {
-      "stampCancelled": "CANCELLED",
+      "stampCancelled": "ರದ್ದುಮಾಡಲಾಗಿದೆ",
       "title": {
-        "BONAFIDE": "Bonafide certificate",
-        "CHARACTER": "Character certificate",
-        "STUDY": "Study certificate",
-        "FEE": "Fee paid certificate",
-        "MERIT": "Certificate of merit"
+        "BONAFIDE": "ನೈಜ ವಿದ್ಯಾರ್ಥಿ ಪ್ರಮಾಣಪತ್ರ",
+        "CHARACTER": "ನಡತೆ ಪ್ರಮಾಣಪತ್ರ",
+        "STUDY": "ವ್ಯಾಸಂಗ ಪ್ರಮಾಣಪತ್ರ",
+        "FEE": "ಶುಲ್ಕ ಪಾವತಿ ಪ್ರಮಾಣಪತ್ರ",
+        "MERIT": "ಪ್ರತಿಭಾ ಪ್ರಮಾಣಪತ್ರ"
       },
-      "no": "Certificate No.",
-      "date": "Date",
+      "no": "ಪ್ರಮಾಣಪತ್ರ ಸಂಖ್ಯೆ",
+      "date": "ದಿನಾಂಕ",
       "childOf": {
-        "m": "son of",
-        "f": "daughter of",
-        "x": "ward of"
+        "m": "ಪುತ್ರ",
+        "f": "ಪುತ್ರಿ",
+        "x": "ಆಶ್ರಿತ"
       },
       "he": {
-        "m": "he",
-        "f": "she",
-        "x": "he/she"
+        "m": "ಇವರು",
+        "f": "ಇವರು",
+        "x": "ಇವರು"
       },
       "His": {
-        "m": "His",
-        "f": "Her",
-        "x": "His/Her"
+        "m": "ಇವರ",
+        "f": "ಇವರ",
+        "x": "ಇವರ"
       },
       "bonafide": {
-        "text": "This is to certify that <b>{{name}}</b>{{rel}}, Admission No. {{admissionNo}}, is a bonafide {{pupil}} of {{school}}, studying in <b>{{cls}}</b> during the academic year <b>{{year}}</b>."
+        "text": "ಈ ಮೂಲಕ ಪ್ರಮಾಣೀಕರಿಸುವುದೇನೆಂದರೆ, <b>{{name}}</b>{{rel}}, ಪ್ರವೇಶ ಸಂಖ್ಯೆ {{admissionNo}}, ಇವರು {{school}} ಇಲ್ಲಿನ ನೈಜ {{pupil}}ಯಾಗಿದ್ದು, <b>{{year}}</b> ನೇ ಶೈಕ್ಷಣಿಕ ವರ್ಷದಲ್ಲಿ <b>{{cls}}</b> ರಲ್ಲಿ ವ್ಯಾಸಂಗ ಮಾಡುತ್ತಿದ್ದಾರೆ."
       },
-      "dobLine": "{{His}} date of birth as per the school records is <b>{{dob}}</b> ({{words}}).",
+      "dobLine": "ಶಾಲಾ ದಾಖಲೆಗಳ ಪ್ರಕಾರ {{His}} ಜನ್ಮ ದಿನಾಂಕ <b>{{dob}}</b> ({{words}}) ಆಗಿರುತ್ತದೆ.",
       "character": {
-        "textIs": "This is to certify that <b>{{name}}</b>{{rel}}, Admission No. {{admissionNo}}, is a bonafide {{pupil}} of {{school}} since {{from}} and is at present studying in <b>{{cls}}</b>.",
-        "textWas": "This is to certify that <b>{{name}}</b>{{rel}}, Admission No. {{admissionNo}}, was a bonafide {{pupil}} of {{school}} from {{from}} to {{to}}.",
-        "conduct": "During this period {{his}} conduct and character have been found to be <b>{{conduct}}</b>. To the best of our knowledge {{he}} bears a good moral character and has not taken part in any activity against the discipline of the institution.",
-        "wish": "We wish {{him}} every success in life."
+        "textIs": "ಈ ಮೂಲಕ ಪ್ರಮಾಣೀಕರಿಸುವುದೇನೆಂದರೆ, <b>{{name}}</b>{{rel}}, ಪ್ರವೇಶ ಸಂಖ್ಯೆ {{admissionNo}}, ಇವರು {{from}} ರಿಂದ {{school}} ಇಲ್ಲಿನ ನೈಜ {{pupil}}ಯಾಗಿದ್ದು, ಪ್ರಸ್ತುತ <b>{{cls}}</b> ರಲ್ಲಿ ವ್ಯಾಸಂಗ ಮಾಡುತ್ತಿದ್ದಾರೆ.",
+        "textWas": "ಈ ಮೂಲಕ ಪ್ರಮಾಣೀಕರಿಸುವುದೇನೆಂದರೆ, <b>{{name}}</b>{{rel}}, ಪ್ರವೇಶ ಸಂಖ್ಯೆ {{admissionNo}}, ಇವರು {{from}} ರಿಂದ {{to}} ರವರೆಗೆ {{school}} ಇಲ್ಲಿನ ನೈಜ {{pupil}}ಯಾಗಿದ್ದರು.",
+        "conduct": "ಈ ಅವಧಿಯಲ್ಲಿ {{his}} ನಡತೆ ಮತ್ತು ಚಾರಿತ್ರ್ಯ <b>{{conduct}}</b> ಆಗಿರುವುದು ಕಂಡುಬಂದಿದೆ. ನಮಗೆ ತಿಳಿದ ಮಟ್ಟಿಗೆ {{he}} ಉತ್ತಮ ನೈತಿಕ ಚಾರಿತ್ರ್ಯ ಹೊಂದಿದ್ದು, ಸಂಸ್ಥೆಯ ಶಿಸ್ತಿಗೆ ವಿರುದ್ಧವಾದ ಯಾವುದೇ ಚಟುವಟಿಕೆಯಲ್ಲಿ ಭಾಗವಹಿಸಿರುವುದಿಲ್ಲ.",
+        "wish": "{{him}} ಜೀವನದಲ್ಲಿ ಎಲ್ಲಾ ಯಶಸ್ಸು ದೊರೆಯಲೆಂದು ಹಾರೈಸುತ್ತೇವೆ."
       },
       "study": {
-        "textIs": "This is to certify that <b>{{name}}</b>{{rel}}, Admission No. {{admissionNo}}, has been studying in {{school}} since {{from}} and is at present in <b>{{toClass}}</b>.",
-        "textWas": "This is to certify that <b>{{name}}</b>{{rel}}, Admission No. {{admissionNo}}, studied in {{school}} from <b>{{fromClass}}</b> to <b>{{toClass}}</b> ({{from}} to {{to}}).",
-        "tableIntro": "The classes {{he}} studied in this institution are:",
-        "year": "Academic year",
-        "class": "Class studied",
-        "school": "Name of the school"
+        "textIs": "ಈ ಮೂಲಕ ಪ್ರಮಾಣೀಕರಿಸುವುದೇನೆಂದರೆ, <b>{{name}}</b>{{rel}}, ಪ್ರವೇಶ ಸಂಖ್ಯೆ {{admissionNo}}, ಇವರು {{from}} ರಿಂದ {{school}} ಇಲ್ಲಿ ವ್ಯಾಸಂಗ ಮಾಡುತ್ತಿದ್ದು, ಪ್ರಸ್ತುತ <b>{{toClass}}</b> ರಲ್ಲಿದ್ದಾರೆ.",
+        "textWas": "ಈ ಮೂಲಕ ಪ್ರಮಾಣೀಕರಿಸುವುದೇನೆಂದರೆ, <b>{{name}}</b>{{rel}}, ಪ್ರವೇಶ ಸಂಖ್ಯೆ {{admissionNo}}, ಇವರು {{school}} ಇಲ್ಲಿ <b>{{fromClass}}</b> ರಿಂದ <b>{{toClass}}</b> ರವರೆಗೆ ({{from}} ರಿಂದ {{to}} ರವರೆಗೆ) ವ್ಯಾಸಂಗ ಮಾಡಿರುತ್ತಾರೆ.",
+        "tableIntro": "{{he}} ಈ ಸಂಸ್ಥೆಯಲ್ಲಿ ವ್ಯಾಸಂಗ ಮಾಡಿದ ತರಗತಿಗಳು ಈ ಕೆಳಗಿನಂತಿವೆ:",
+        "year": "ಶೈಕ್ಷಣಿಕ ವರ್ಷ",
+        "class": "ವ್ಯಾಸಂಗ ಮಾಡಿದ ತರಗತಿ",
+        "school": "ಶಾಲೆಯ ಹೆಸರು"
       },
       "fee": {
-        "text": "This is to certify that <b>{{name}}</b>{{rel}}, Admission No. {{admissionNo}}, studying in <b>{{cls}}</b> of {{school}}, has paid the following fees during the financial year <b>{{fy}}</b> ({{from}} to {{to}}):",
-        "refunded": "Less: refunded",
-        "total": "Total paid",
-        "tuition": "Of the above, the <b>tuition fee</b> paid is <b>{{amount}}</b> ({{words}}).",
-        "head": "Fee head",
-        "amount": "Amount (₹)",
-        "totalWords": "Total amount paid: <b>{{amount}}</b> ({{words}}).",
-        "note": "Certified that the amount shown as tuition fee is the tuition fee only. It does not include development fee, donation, capitation fee, transport, hostel or any other charges. Issued for claiming deduction under section 80C of the Income-tax Act, 1961."
+        "text": "ಈ ಮೂಲಕ ಪ್ರಮಾಣೀಕರಿಸುವುದೇನೆಂದರೆ, {{school}} ಇಲ್ಲಿ <b>{{cls}}</b> ರಲ್ಲಿ ವ್ಯಾಸಂಗ ಮಾಡುತ್ತಿರುವ <b>{{name}}</b>{{rel}}, ಪ್ರವೇಶ ಸಂಖ್ಯೆ {{admissionNo}}, ಇವರು <b>{{fy}}</b> ಆರ್ಥಿಕ ವರ್ಷದಲ್ಲಿ ({{from}} ರಿಂದ {{to}} ರವರೆಗೆ) ಈ ಕೆಳಗಿನ ಶುಲ್ಕಗಳನ್ನು ಪಾವತಿಸಿರುತ್ತಾರೆ:",
+        "refunded": "ಕಳೆಯಿರಿ: ಮರುಪಾವತಿಸಿದ್ದು",
+        "total": "ಪಾವತಿಸಿದ ಒಟ್ಟು ಮೊತ್ತ",
+        "tuition": "ಮೇಲಿನ ಮೊತ್ತದಲ್ಲಿ ಪಾವತಿಸಿದ <b>ಬೋಧನಾ ಶುಲ್ಕ</b> <b>{{amount}}</b> ({{words}}) ಆಗಿರುತ್ತದೆ.",
+        "head": "ಶುಲ್ಕ ಶೀರ್ಷಿಕೆ",
+        "amount": "ಮೊತ್ತ (₹)",
+        "totalWords": "ಪಾವತಿಸಿದ ಒಟ್ಟು ಮೊತ್ತ: <b>{{amount}}</b> ({{words}}).",
+        "note": "ಬೋಧನಾ ಶುಲ್ಕವೆಂದು ತೋರಿಸಿರುವ ಮೊತ್ತವು ಬೋಧನಾ ಶುಲ್ಕ ಮಾತ್ರ ಆಗಿರುತ್ತದೆ ಎಂದು ಪ್ರಮಾಣೀಕರಿಸಲಾಗಿದೆ. ಇದರಲ್ಲಿ ಅಭಿವೃದ್ಧಿ ಶುಲ್ಕ, ದೇಣಿಗೆ, ಕ್ಯಾಪಿಟೇಶನ್ ಶುಲ್ಕ, ಸಾರಿಗೆ, ವಸತಿ ನಿಲಯ ಅಥವಾ ಇತರ ಯಾವುದೇ ಶುಲ್ಕಗಳು ಸೇರಿರುವುದಿಲ್ಲ. ಆದಾಯ ತೆರಿಗೆ ಅಧಿನಿಯಮ, 1961 ರ ಪ್ರಕರಣ 80C ಅಡಿಯಲ್ಲಿ ಕಡಿತವನ್ನು ಕೋರಲು ಇದನ್ನು ನೀಡಲಾಗಿದೆ."
       },
       "merit": {
-        "intro": "This is to certify that",
-        "ofClass": "of {{cls}}",
-        "for": "for",
-        "on": "held on {{date}}",
-        "title": "Certificate",
-        "ofMerit": "of merit",
-        "ofParticipation": "of participation",
-        "admNo": "Admission No. {{no}}",
-        "wish": "We congratulate {{him}} and wish {{him}} every success.",
-        "secured": "has secured <b>{{what}}</b> in <b>{{event}}</b>",
-        "tookPart": "has taken part in <b>{{event}}</b>"
+        "intro": "ಈ ಮೂಲಕ ಪ್ರಮಾಣೀಕರಿಸುವುದೇನೆಂದರೆ,",
+        "ofClass": "{{cls}}",
+        "for": "ಇದಕ್ಕಾಗಿ",
+        "on": "ದಿನಾಂಕ {{date}} ರಂದು ನಡೆದ ಕಾರ್ಯಕ್ರಮ",
+        "title": "ಪ್ರಮಾಣಪತ್ರ",
+        "ofMerit": "— ಪ್ರತಿಭೆಗಾಗಿ —",
+        "ofParticipation": "— ಭಾಗವಹಿಸುವಿಕೆಗಾಗಿ —",
+        "admNo": "ಪ್ರವೇಶ ಸಂಖ್ಯೆ {{no}}",
+        "wish": "{{him}} ಅಭಿನಂದನೆಗಳನ್ನು ಸಲ್ಲಿಸುತ್ತೇವೆ ಮತ್ತು {{him}} ಎಲ್ಲಾ ಯಶಸ್ಸು ದೊರೆಯಲೆಂದು ಹಾರೈಸುತ್ತೇವೆ.",
+        "secured": "ಇವರು <b>{{event}}</b> ನಲ್ಲಿ <b>{{what}}</b> ಪಡೆದಿರುತ್ತಾರೆ.",
+        "tookPart": "ಇವರು <b>{{event}}</b> ನಲ್ಲಿ ಭಾಗವಹಿಸಿರುತ್ತಾರೆ."
       },
-      "purpose": "This certificate is issued on {{his}} request for the purpose of {{purpose}}.",
-      "scan": "Scan to verify",
-      "coordinator": "Teacher in charge",
-      "signature": "Principal",
-      "cancelledNote": "Cancelled: {{reason}}",
+      "purpose": "{{his}} ಮನವಿಯ ಮೇರೆಗೆ {{purpose}} ಉದ್ದೇಶಕ್ಕಾಗಿ ಈ ಪ್ರಮಾಣಪತ್ರವನ್ನು ನೀಡಲಾಗಿದೆ.",
+      "scan": "ಪರಿಶೀಲಿಸಲು ಸ್ಕ್ಯಾನ್ ಮಾಡಿ",
+      "coordinator": "ಉಸ್ತುವಾರಿ ಶಿಕ್ಷಕರು",
+      "signature": "ಪ್ರಾಂಶುಪಾಲರು",
+      "cancelledNote": "ರದ್ದುಮಾಡಲಾಗಿದೆ: {{reason}}",
       "words": {
         "he": {
-          "m": "he",
-          "f": "she",
-          "x": "he/she"
+          "m": "ಇವರು",
+          "f": "ಇವರು",
+          "x": "ಇವರು"
         },
         "He": {
-          "m": "He",
-          "f": "She",
-          "x": "He/She"
+          "m": "ಇವರು",
+          "f": "ಇವರು",
+          "x": "ಇವರು"
         },
         "his": {
-          "m": "his",
-          "f": "her",
-          "x": "his/her"
+          "m": "ಇವರ",
+          "f": "ಇವರ",
+          "x": "ಇವರ"
         },
         "His": {
-          "m": "His",
-          "f": "Her",
-          "x": "His/Her"
+          "m": "ಇವರ",
+          "f": "ಇವರ",
+          "x": "ಇವರ"
         },
         "him": {
-          "m": "him",
-          "f": "her",
-          "x": "him/her"
+          "m": "ಇವರಿಗೆ",
+          "f": "ಇವರಿಗೆ",
+          "x": "ಇವರಿಗೆ"
         },
         "title": {
-          "m": "Master",
-          "f": "Kumari"
+          "m": "ಕುಮಾರ",
+          "f": "ಕುಮಾರಿ"
         },
         "rel": {
-          "m": "S/o",
-          "f": "D/o",
-          "x": "S/o / D/o"
+          "m": "ಪುತ್ರ",
+          "f": "ಪುತ್ರಿ",
+          "x": "ಆಶ್ರಿತ"
         },
         "child": {
-          "m": "son",
-          "f": "daughter",
-          "x": "ward"
+          "m": "ಪುತ್ರ",
+          "f": "ಪುತ್ರಿ",
+          "x": "ಆಶ್ರಿತ"
         },
         "pupil": {
-          "m": "student",
-          "f": "student",
-          "x": "student"
+          "m": "ವಿದ್ಯಾರ್ಥಿ",
+          "f": "ವಿದ್ಯಾರ್ಥಿನಿ",
+          "x": "ವಿದ್ಯಾರ್ಥಿ"
         }
       },
-      "seal": "School seal",
-      "sl": "Sl. No.",
-      "place": "Place"
+      "seal": "ಶಾಲೆಯ ಮೊಹರು",
+      "sl": "ಕ್ರ. ಸಂ.",
+      "place": "ಸ್ಥಳ",
+      "relOrder": ", {{parent}} ಅವರ {{rel}}"
     }
   }
 }

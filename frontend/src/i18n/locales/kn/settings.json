@@ -1,724 +1,724 @@
 {
   "settings": {
     "page": {
-      "title": "Settings",
-      "subtitle": "How each module behaves in your institution. Only modules you have switched on are listed.",
-      "module": "Module",
-      "sections": "Settings sections",
-      "find": "Find a setting…",
-      "noMatch": "No setting matches “{{q}}”.",
-      "count_one": "{{count}} setting",
-      "count_other": "{{count}} settings",
-      "save": "Save {{name}} settings",
-      "saved": "{{name}} settings saved.",
-      "unsaved_one": "{{count}} unsaved change",
-      "unsaved_other": "{{count}} unsaved changes",
-      "leaveTitle": "Leave without saving?",
-      "leaveMessage": "Your changes to {{name}} settings will be lost.",
-      "discard": "Discard changes"
+      "title": "ಸೆಟ್ಟಿಂಗ್‌ಗಳು",
+      "subtitle": "ನಿಮ್ಮ ಸಂಸ್ಥೆಯಲ್ಲಿ ಪ್ರತಿ ಮಾಡ್ಯೂಲ್ ಹೇಗೆ ಕೆಲಸ ಮಾಡಬೇಕು. ನೀವು ಚಾಲೂ ಮಾಡಿರುವ ಮಾಡ್ಯೂಲ್‌ಗಳನ್ನು ಮಾತ್ರ ಪಟ್ಟಿ ಮಾಡಲಾಗಿದೆ.",
+      "module": "ಮಾಡ್ಯೂಲ್",
+      "sections": "ಸೆಟ್ಟಿಂಗ್ ವಿಭಾಗಗಳು",
+      "find": "ಸೆಟ್ಟಿಂಗ್ ಹುಡುಕಿ…",
+      "noMatch": "“{{q}}” ಗೆ ಹೊಂದುವ ಯಾವುದೇ ಸೆಟ್ಟಿಂಗ್ ಇಲ್ಲ.",
+      "count_one": "{{count}} ಸೆಟ್ಟಿಂಗ್",
+      "count_other": "{{count}} ಸೆಟ್ಟಿಂಗ್‌ಗಳು",
+      "save": "{{name}} ಸೆಟ್ಟಿಂಗ್‌ಗಳನ್ನು ಉಳಿಸಿ",
+      "saved": "{{name}} ಸೆಟ್ಟಿಂಗ್‌ಗಳನ್ನು ಉಳಿಸಲಾಗಿದೆ.",
+      "unsaved_one": "{{count}} ಬದಲಾವಣೆ ಉಳಿಸಿಲ್ಲ",
+      "unsaved_other": "{{count}} ಬದಲಾವಣೆಗಳನ್ನು ಉಳಿಸಿಲ್ಲ",
+      "leaveTitle": "ಉಳಿಸದೆ ಹೊರಹೋಗಬೇಕೇ?",
+      "leaveMessage": "{{name}} ಸೆಟ್ಟಿಂಗ್‌ಗಳಿಗೆ ನೀವು ಮಾಡಿದ ಬದಲಾವಣೆಗಳು ಕಳೆದುಹೋಗುತ್ತವೆ.",
+      "discard": "ಬದಲಾವಣೆಗಳನ್ನು ಕೈಬಿಡಿ"
     },
     "defs": {
       "core": {
         "institutionType": {
-          "label": "Type of institution",
-          "help": "Sets the words the app uses (class or semester, principal or dean) and the default report formats.",
+          "label": "ಸಂಸ್ಥೆಯ ಪ್ರಕಾರ",
+          "help": "ಆ್ಯಪ್ ಬಳಸುವ ಪದಗಳನ್ನು (ತರಗತಿ ಅಥವಾ ಸೆಮಿಸ್ಟರ್, ಪ್ರಾಂಶುಪಾಲರು ಅಥವಾ ಡೀನ್) ಮತ್ತು ಪೂರ್ವನಿಯೋಜಿತ ವರದಿ ಮಾದರಿಗಳನ್ನು ಇದು ನಿರ್ಧರಿಸುತ್ತದೆ.",
           "options": {
-            "SCHOOL": "School (K-12)",
-            "COLLEGE": "College / university",
-            "COACHING": "Coaching / tuition institute"
+            "SCHOOL": "ಶಾಲೆ (K-12)",
+            "COLLEGE": "ಕಾಲೇಜು / ವಿಶ್ವವಿದ್ಯಾಲಯ",
+            "COACHING": "ಕೋಚಿಂಗ್ / ಟ್ಯೂಷನ್ ಸಂಸ್ಥೆ"
           }
         },
         "academicYearStartMonth": {
-          "label": "Academic year starts in",
-          "help": "April for most Indian schools, June or July for many colleges.",
+          "label": "ಶೈಕ್ಷಣಿಕ ವರ್ಷ ಆರಂಭವಾಗುವ ತಿಂಗಳು",
+          "help": "ಹೆಚ್ಚಿನ ಭಾರತೀಯ ಶಾಲೆಗಳಿಗೆ ಏಪ್ರಿಲ್, ಅನೇಕ ಕಾಲೇಜುಗಳಿಗೆ ಜೂನ್ ಅಥವಾ ಜುಲೈ.",
           "options": {
-            "1": "January",
-            "2": "February",
-            "3": "March",
-            "4": "April",
-            "5": "May",
-            "6": "June",
-            "7": "July",
-            "8": "August",
-            "9": "September",
-            "10": "October",
-            "11": "November",
-            "12": "December"
+            "1": "ಜನವರಿ",
+            "2": "ಫೆಬ್ರವರಿ",
+            "3": "ಮಾರ್ಚ್",
+            "4": "ಏಪ್ರಿಲ್",
+            "5": "ಮೇ",
+            "6": "ಜೂನ್",
+            "7": "ಜುಲೈ",
+            "8": "ಆಗಸ್ಟ್",
+            "9": "ಸೆಪ್ಟೆಂಬರ್",
+            "10": "ಅಕ್ಟೋಬರ್",
+            "11": "ನವೆಂಬರ್",
+            "12": "ಡಿಸೆಂಬರ್"
           }
         },
         "defaultAppLanguage": {
-          "label": "Default language",
-          "help": "Interface language for staff and the parent app, unless a user picks another.",
+          "label": "ಪೂರ್ವನಿಯೋಜಿತ ಭಾಷೆ",
+          "help": "ಬಳಕೆದಾರರು ಬೇರೆ ಭಾಷೆ ಆಯ್ಕೆಮಾಡದಿದ್ದರೆ, ಸಿಬ್ಬಂದಿ ಮತ್ತು ಪೋಷಕರ ಆ್ಯಪ್‌ಗೆ ಬಳಸುವ ಭಾಷೆ.",
           "options": {
-            "en": "English",
-            "hi": "हिन्दी (Hindi)"
+            "en": "ಇಂಗ್ಲಿಷ್",
+            "hi": "ಹಿಂದಿ"
           }
         },
         "enabledLanguages": {
-          "label": "Languages offered",
-          "help": "Which languages appear in the language picker.",
+          "label": "ಲಭ್ಯವಿರುವ ಭಾಷೆಗಳು",
+          "help": "ಭಾಷೆ ಆಯ್ಕೆ ಪಟ್ಟಿಯಲ್ಲಿ ಯಾವ ಭಾಷೆಗಳು ಕಾಣಿಸಬೇಕು.",
           "options": {
-            "en": "English",
-            "hi": "हिन्दी (Hindi)"
+            "en": "ಇಂಗ್ಲಿಷ್",
+            "hi": "ಹಿಂದಿ"
           }
         },
         "namesAlsoIn": {
-          "label": "Also keep names in",
-          "help": "Forms get a second box beside each name — student, parents, staff, class, subject, exam, fee head, the school and its campuses — to type it in this language too. The English stays as it is; print templates set to this language print these names.",
+          "label": "ಹೆಸರುಗಳನ್ನು ಈ ಭಾಷೆಯಲ್ಲೂ ಇರಿಸಿ",
+          "help": "ನಮೂನೆಗಳಲ್ಲಿ ಪ್ರತಿ ಹೆಸರಿನ ಪಕ್ಕದಲ್ಲಿ ಎರಡನೇ ಪೆಟ್ಟಿಗೆ ಬರುತ್ತದೆ — ವಿದ್ಯಾರ್ಥಿ, ಪೋಷಕರು, ಸಿಬ್ಬಂದಿ, ತರಗತಿ, ವಿಷಯ, ಪರೀಕ್ಷೆ, ಶುಲ್ಕ ಶೀರ್ಷಿಕೆ, ಶಾಲೆ ಮತ್ತು ಅದರ ಕ್ಯಾಂಪಸ್‌ಗಳು — ಅದನ್ನು ಈ ಭಾಷೆಯಲ್ಲೂ ಟೈಪ್ ಮಾಡಲು. ಇಂಗ್ಲಿಷ್ ಹೆಸರು ಹಾಗೆಯೇ ಉಳಿಯುತ್ತದೆ; ಈ ಭಾಷೆಗೆ ಹೊಂದಿಸಿದ ಮುದ್ರಣ ಮಾದರಿಗಳು ಈ ಹೆಸರುಗಳನ್ನು ಮುದ್ರಿಸುತ್ತವೆ.",
           "options": {
-            "hi": "हिन्दी (Hindi)"
+            "hi": "ಹಿಂದಿ"
           }
         },
         "sessionIdleMinutes": {
-          "label": "Default sign-out after inactivity (minutes)",
-          "help": "Roles can set their own value."
+          "label": "ಚಟುವಟಿಕೆ ಇಲ್ಲದಿದ್ದಾಗ ಪೂರ್ವನಿಯೋಜಿತ ಸೈನ್ ಔಟ್ (ನಿಮಿಷಗಳು)",
+          "help": "ಪಾತ್ರಗಳು ತಮ್ಮದೇ ಮೌಲ್ಯವನ್ನು ಹೊಂದಿಸಬಹುದು."
         },
         "familyMessageLanguage": {
-          "label": "Send family messages in their language",
-          "help": "SMS, WhatsApp and email use the family’s preferred language for the standard texts; a text you have edited in Notification rules is sent as written."
+          "label": "ಕುಟುಂಬಗಳಿಗೆ ಸಂದೇಶಗಳನ್ನು ಅವರ ಭಾಷೆಯಲ್ಲಿ ಕಳುಹಿಸಿ",
+          "help": "SMS, WhatsApp ಮತ್ತು ಇಮೇಲ್ ಪ್ರಮಾಣಿತ ಪಠ್ಯಗಳಿಗೆ ಕುಟುಂಬದ ಆದ್ಯತೆಯ ಭಾಷೆಯನ್ನು ಬಳಸುತ್ತವೆ; ಅಧಿಸೂಚನೆ ನಿಯಮಗಳಲ್ಲಿ ನೀವು ಸಂಪಾದಿಸಿದ ಪಠ್ಯವನ್ನು ಬರೆದಂತೆಯೇ ಕಳುಹಿಸಲಾಗುತ್ತದೆ."
         },
         "familyLinkDays": {
-          "label": "Links sent to families work for (days)",
-          "help": "Report cards, receipts and notices sent by WhatsApp, SMS or email."
+          "label": "ಕುಟುಂಬಗಳಿಗೆ ಕಳುಹಿಸಿದ ಲಿಂಕ್‌ಗಳು ಕೆಲಸ ಮಾಡುವ ಅವಧಿ (ದಿನಗಳು)",
+          "help": "WhatsApp, SMS ಅಥವಾ ಇಮೇಲ್ ಮೂಲಕ ಕಳುಹಿಸಿದ ಪ್ರಗತಿ ಪತ್ರಗಳು, ರಸೀದಿಗಳು ಮತ್ತು ಸೂಚನೆಗಳು."
         },
         "weekStartsOn": {
-          "label": "Week starts on",
+          "label": "ವಾರ ಆರಂಭವಾಗುವ ದಿನ",
           "options": {
-            "MONDAY": "Monday",
-            "SUNDAY": "Sunday"
+            "MONDAY": "ಸೋಮವಾರ",
+            "SUNDAY": "ಭಾನುವಾರ"
           }
         },
         "workingDays": {
-          "label": "Working days",
-          "help": "Attendance and timetables skip the other days.",
+          "label": "ಕೆಲಸದ ದಿನಗಳು",
+          "help": "ಹಾಜರಾತಿ ಮತ್ತು ವೇಳಾಪಟ್ಟಿಗಳು ಉಳಿದ ದಿನಗಳನ್ನು ಬಿಟ್ಟುಬಿಡುತ್ತವೆ.",
           "options": {
-            "MON": "Mon",
-            "TUE": "Tue",
-            "WED": "Wed",
-            "THU": "Thu",
-            "FRI": "Fri",
-            "SAT": "Sat",
-            "SUN": "Sun"
+            "MON": "ಸೋಮ",
+            "TUE": "ಮಂಗಳ",
+            "WED": "ಬುಧ",
+            "THU": "ಗುರು",
+            "FRI": "ಶುಕ್ರ",
+            "SAT": "ಶನಿ",
+            "SUN": "ಭಾನು"
           }
         }
       },
       "students": {
         "admissionNoPrefix": {
-          "label": "Admission number prefix",
-          "help": "Shown before the running number, e.g. GV. The pattern itself is set in Number series."
+          "label": "ಪ್ರವೇಶ ಸಂಖ್ಯೆಯ ಪೂರ್ವಪ್ರತ್ಯಯ",
+          "help": "ಕ್ರಮ ಸಂಖ್ಯೆಯ ಮುಂದೆ ತೋರಿಸಲಾಗುತ್ತದೆ, ಉದಾ. GV. ಮಾದರಿಯನ್ನು ಸಂಖ್ಯಾ ಸರಣಿಯಲ್ಲಿ ಹೊಂದಿಸಲಾಗುತ್ತದೆ."
         },
         "requiredFields": {
-          "label": "Required at admission",
-          "help": "Name and class are always required.",
+          "label": "ಪ್ರವೇಶದ ಸಮಯದಲ್ಲಿ ಕಡ್ಡಾಯ",
+          "help": "ಹೆಸರು ಮತ್ತು ತರಗತಿ ಯಾವಾಗಲೂ ಕಡ್ಡಾಯ.",
           "options": {
-            "dob": "Date of birth",
-            "gender": "Gender",
-            "guardianMobile": "Guardian mobile",
-            "guardianEmail": "Guardian email",
-            "address": "Address",
-            "aadhaar": "Aadhaar",
+            "dob": "ಜನ್ಮ ದಿನಾಂಕ",
+            "gender": "ಲಿಂಗ",
+            "guardianMobile": "ಪಾಲಕರ ಮೊಬೈಲ್",
+            "guardianEmail": "ಪಾಲಕರ ಇಮೇಲ್",
+            "address": "ವಿಳಾಸ",
+            "aadhaar": "ಆಧಾರ್",
             "apaar": "APAAR ID",
-            "photo": "Photo"
+            "photo": "ಫೋಟೋ"
           }
         },
         "idCardOrientation": {
-          "label": "Student ID card layout",
-          "help": "Both are the standard bank-card size (CR80) that fits card holders, lanyards and card printers.",
+          "label": "ವಿದ್ಯಾರ್ಥಿ ಗುರುತಿನ ಚೀಟಿಯ ವಿನ್ಯಾಸ",
+          "help": "ಎರಡೂ ಪ್ರಮಾಣಿತ ಬ್ಯಾಂಕ್ ಕಾರ್ಡ್ ಗಾತ್ರ (CR80), ಇದು ಕಾರ್ಡ್ ಹೋಲ್ಡರ್‌ಗಳು, ಲ್ಯಾನ್ಯಾರ್ಡ್‌ಗಳು ಮತ್ತು ಕಾರ್ಡ್ ಮುದ್ರಕಗಳಿಗೆ ಹೊಂದುತ್ತದೆ.",
           "options": {
-            "PORTRAIT": "Portrait — upright, 54 × 85.6 mm",
-            "LANDSCAPE": "Landscape — sideways, 85.6 × 54 mm"
+            "PORTRAIT": "ಲಂಬ — ನೇರವಾಗಿ, 54 × 85.6 mm",
+            "LANDSCAPE": "ಅಡ್ಡ — ಪಕ್ಕಕ್ಕೆ, 85.6 × 54 mm"
           }
         },
         "idCardTitle": {
-          "label": "Heading on the student ID card",
-          "help": "Printed in the coloured band, e.g. Student ID card or Identity card."
+          "label": "ವಿದ್ಯಾರ್ಥಿ ಗುರುತಿನ ಚೀಟಿಯ ಶೀರ್ಷಿಕೆ",
+          "help": "ಬಣ್ಣದ ಪಟ್ಟಿಯಲ್ಲಿ ಮುದ್ರಿಸಲಾಗುತ್ತದೆ, ಉದಾ. ವಿದ್ಯಾರ್ಥಿ ಗುರುತಿನ ಚೀಟಿ ಅಥವಾ ಗುರುತಿನ ಚೀಟಿ."
         },
         "idCardColor": {
-          "label": "Student ID card colour",
-          "help": "A colour code like #0E7C86. Leave it blank to use the brand colour from the institution profile."
+          "label": "ವಿದ್ಯಾರ್ಥಿ ಗುರುತಿನ ಚೀಟಿಯ ಬಣ್ಣ",
+          "help": "#0E7C86 ರೀತಿಯ ಬಣ್ಣದ ಕೋಡ್. ಸಂಸ್ಥೆಯ ಪ್ರೊಫೈಲ್‌ನಲ್ಲಿರುವ ಬ್ರ್ಯಾಂಡ್ ಬಣ್ಣವನ್ನು ಬಳಸಲು ಖಾಲಿ ಬಿಡಿ."
         },
         "idCardFields": {
-          "label": "Shown on the student ID card",
-          "help": "The name, class and admission number are always printed.",
+          "label": "ವಿದ್ಯಾರ್ಥಿ ಗುರುತಿನ ಚೀಟಿಯಲ್ಲಿ ತೋರಿಸುವುದು",
+          "help": "ಹೆಸರು, ತರಗತಿ ಮತ್ತು ಪ್ರವೇಶ ಸಂಖ್ಯೆಯನ್ನು ಯಾವಾಗಲೂ ಮುದ್ರಿಸಲಾಗುತ್ತದೆ.",
           "options": {
-            "PHOTO": "Photo",
-            "ROLL": "Roll number",
-            "DOB": "Date of birth",
-            "BLOOD_GROUP": "Blood group",
-            "GUARDIAN": "Parent / guardian",
-            "GUARDIAN_PHONE": "Parent’s phone",
-            "ADDRESS": "Home address",
-            "VALID_UNTIL": "Valid until (end of the academic year)",
-            "QR": "QR code (check the card online)"
+            "PHOTO": "ಫೋಟೋ",
+            "ROLL": "ಹಾಜರಿ ಸಂಖ್ಯೆ",
+            "DOB": "ಜನ್ಮ ದಿನಾಂಕ",
+            "BLOOD_GROUP": "ರಕ್ತದ ಗುಂಪು",
+            "GUARDIAN": "ಪೋಷಕರು / ಪಾಲಕರು",
+            "GUARDIAN_PHONE": "ಪೋಷಕರ ದೂರವಾಣಿ",
+            "ADDRESS": "ಮನೆಯ ವಿಳಾಸ",
+            "VALID_UNTIL": "ಮಾನ್ಯತೆಯ ಅವಧಿ (ಶೈಕ್ಷಣಿಕ ವರ್ಷದ ಕೊನೆಯವರೆಗೆ)",
+            "QR": "QR ಕೋಡ್ (ಚೀಟಿಯನ್ನು ಆನ್‌ಲೈನ್‌ನಲ್ಲಿ ಪರಿಶೀಲಿಸಲು)"
           }
         },
         "idCardBack": {
-          "label": "Print a back side on student ID cards",
-          "help": "Each card’s back follows its front, so double-sided printing lines up."
+          "label": "ವಿದ್ಯಾರ್ಥಿ ಗುರುತಿನ ಚೀಟಿಗಳ ಹಿಂಭಾಗವನ್ನೂ ಮುದ್ರಿಸಿ",
+          "help": "ಪ್ರತಿ ಚೀಟಿಯ ಹಿಂಭಾಗ ಅದರ ಮುಂಭಾಗದ ನಂತರ ಬರುತ್ತದೆ, ಆದ್ದರಿಂದ ಎರಡೂ ಬದಿಯ ಮುದ್ರಣ ಸರಿಯಾಗಿ ಹೊಂದುತ್ತದೆ."
         },
         "idCardBackText": {
-          "label": "Rules printed on the back of the card"
+          "label": "ಚೀಟಿಯ ಹಿಂಭಾಗದಲ್ಲಿ ಮುದ್ರಿಸುವ ನಿಯಮಗಳು"
         },
         "idCardReturnText": {
-          "label": "Return note on the back of the card",
-          "help": "Followed by the institution’s name, address and phone number."
+          "label": "ಚೀಟಿಯ ಹಿಂಭಾಗದಲ್ಲಿ ಹಿಂದಿರುಗಿಸುವ ಸೂಚನೆ",
+          "help": "ಅದರ ನಂತರ ಸಂಸ್ಥೆಯ ಹೆಸರು, ವಿಳಾಸ ಮತ್ತು ದೂರವಾಣಿ ಸಂಖ್ಯೆ ಬರುತ್ತದೆ."
         },
         "idCardSignatory": {
-          "label": "Caption under the signature line",
-          "help": "e.g. Principal or Headmistress."
+          "label": "ಸಹಿ ಸಾಲಿನ ಕೆಳಗಿನ ಪದ",
+          "help": "ಉದಾ. ಪ್ರಾಂಶುಪಾಲರು ಅಥವಾ ಮುಖ್ಯೋಪಾಧ್ಯಾಯಿನಿ."
         }
       },
       "admissions": {
         "onlineApplication": {
-          "label": "Families can apply online",
-          "help": "The application page at <app>/apply/<your school>, and the “Scan to apply” QR in Admissions › Settings."
+          "label": "ಕುಟುಂಬಗಳು ಆನ್‌ಲೈನ್‌ನಲ್ಲಿ ಅರ್ಜಿ ಸಲ್ಲಿಸಬಹುದು",
+          "help": "<app>/apply/<your school> ನಲ್ಲಿರುವ ಅರ್ಜಿ ಪುಟ, ಮತ್ತು ಪ್ರವೇಶ › ಸೆಟ್ಟಿಂಗ್‌ಗಳಲ್ಲಿರುವ “ಅರ್ಜಿ ಸಲ್ಲಿಸಲು ಸ್ಕ್ಯಾನ್ ಮಾಡಿ” QR."
         },
         "applyNeedsCode": {
-          "label": "Ask for a one-time code before applying",
-          "help": "Off: a parent scans the QR or opens the link and fills the form straight away. On: they first confirm their mobile number with a code sent by SMS — turn it on if fake applications come in. Checking an application or accepting a seat always asks for the code."
+          "label": "ಅರ್ಜಿ ಸಲ್ಲಿಸುವ ಮೊದಲು ಒಂದು ಬಾರಿಯ ಕೋಡ್ ಕೇಳಿ",
+          "help": "ಬಂದ್: ಪೋಷಕರು QR ಸ್ಕ್ಯಾನ್ ಮಾಡಿ ಅಥವಾ ಲಿಂಕ್ ತೆರೆದು ತಕ್ಷಣ ನಮೂನೆ ತುಂಬುತ್ತಾರೆ. ಚಾಲೂ: ಅವರು ಮೊದಲು SMS ಮೂಲಕ ಬಂದ ಕೋಡ್‌ನಿಂದ ತಮ್ಮ ಮೊಬೈಲ್ ಸಂಖ್ಯೆಯನ್ನು ದೃಢೀಕರಿಸುತ್ತಾರೆ — ನಕಲಿ ಅರ್ಜಿಗಳು ಬಂದರೆ ಇದನ್ನು ಚಾಲೂ ಮಾಡಿ. ಅರ್ಜಿಯ ಸ್ಥಿತಿ ಪರಿಶೀಲಿಸುವಾಗ ಅಥವಾ ಸೀಟು ಸ್ವೀಕರಿಸುವಾಗ ಯಾವಾಗಲೂ ಕೋಡ್ ಕೇಳಲಾಗುತ್ತದೆ."
         },
         "applyCodeBy": {
-          "label": "Families confirm with a code sent to",
-          "help": "For applying (when a code is asked) and for checking an application. Email needs the school’s email set up.",
+          "label": "ಕುಟುಂಬಗಳು ದೃಢೀಕರಿಸಲು ಕೋಡ್ ಕಳುಹಿಸುವುದು",
+          "help": "ಅರ್ಜಿ ಸಲ್ಲಿಸಲು (ಕೋಡ್ ಕೇಳಿದಾಗ) ಮತ್ತು ಅರ್ಜಿಯ ಸ್ಥಿತಿ ಪರಿಶೀಲಿಸಲು. ಇಮೇಲ್‌ಗೆ ಶಾಲೆಯ ಇಮೇಲ್ ಹೊಂದಿಸಿರಬೇಕು.",
           "options": {
-            "MOBILE": "Their mobile (SMS)",
-            "EMAIL": "Their email",
-            "EITHER": "Mobile or email — they choose"
+            "MOBILE": "ಅವರ ಮೊಬೈಲ್‌ಗೆ (SMS)",
+            "EMAIL": "ಅವರ ಇಮೇಲ್‌ಗೆ",
+            "EITHER": "ಮೊಬೈಲ್ ಅಥವಾ ಇಮೇಲ್ — ಅವರೇ ಆಯ್ಕೆಮಾಡುತ್ತಾರೆ"
           }
         },
         "websiteEnquiry": {
-          "label": "Take enquiries from the website",
-          "help": "A short enquiry form on the same page, for families not ready to apply."
+          "label": "ವೆಬ್‌ಸೈಟ್‌ನಿಂದ ವಿಚಾರಣೆಗಳನ್ನು ಸ್ವೀಕರಿಸಿ",
+          "help": "ಅದೇ ಪುಟದಲ್ಲಿ ಒಂದು ಚಿಕ್ಕ ವಿಚಾರಣಾ ನಮೂನೆ, ಇನ್ನೂ ಅರ್ಜಿ ಸಲ್ಲಿಸಲು ಸಿದ್ಧರಿಲ್ಲದ ಕುಟುಂಬಗಳಿಗಾಗಿ."
         },
         "ageCutoff": {
-          "label": "Age is counted on (day-month)",
-          "help": "The day of the admission year on which a child’s age is counted for eligibility."
+          "label": "ವಯಸ್ಸನ್ನು ಲೆಕ್ಕಹಾಕುವ ದಿನಾಂಕ (ದಿನ-ತಿಂಗಳು)",
+          "help": "ಅರ್ಹತೆಗಾಗಿ ಮಗುವಿನ ವಯಸ್ಸನ್ನು ಲೆಕ್ಕಹಾಕುವ, ಪ್ರವೇಶ ವರ್ಷದ ದಿನಾಂಕ."
         },
         "followUpDays": {
-          "label": "Follow up a new enquiry within (days)"
+          "label": "ಹೊಸ ವಿಚಾರಣೆಯನ್ನು ಇಷ್ಟು ದಿನಗಳೊಳಗೆ ಅನುಸರಿಸಿ"
         },
         "offerDays": {
-          "label": "Days a family has to accept an offered seat"
+          "label": "ನೀಡಿದ ಸೀಟನ್ನು ಸ್ವೀಕರಿಸಲು ಕುಟುಂಬಕ್ಕೆ ಇರುವ ದಿನಗಳು"
         }
       },
       "hrms": {
         "weeklyOffDays": {
-          "label": "Staff weekly off",
-          "help": "A staff record can have its own weekly off.",
+          "label": "ಸಿಬ್ಬಂದಿಯ ವಾರದ ರಜೆ",
+          "help": "ಒಬ್ಬ ಸಿಬ್ಬಂದಿಯ ದಾಖಲೆಯಲ್ಲಿ ಅವರದೇ ವಾರದ ರಜೆ ಇರಬಹುದು.",
           "options": {
-            "MON": "Mon",
-            "TUE": "Tue",
-            "WED": "Wed",
-            "THU": "Thu",
-            "FRI": "Fri",
-            "SAT": "Sat",
-            "SUN": "Sun"
+            "MON": "ಸೋಮ",
+            "TUE": "ಮಂಗಳ",
+            "WED": "ಬುಧ",
+            "THU": "ಗುರು",
+            "FRI": "ಶುಕ್ರ",
+            "SAT": "ಶನಿ",
+            "SUN": "ಭಾನು"
           }
         },
         "saturdaysOff": {
-          "label": "Saturdays off",
-          "help": "For example the 2nd and 4th Saturday of every month.",
+          "label": "ರಜೆಯ ಶನಿವಾರಗಳು",
+          "help": "ಉದಾಹರಣೆಗೆ ಪ್ರತಿ ತಿಂಗಳ 2ನೇ ಮತ್ತು 4ನೇ ಶನಿವಾರ.",
           "options": {
-            "1": "1st",
-            "2": "2nd",
-            "3": "3rd",
-            "4": "4th",
-            "5": "5th"
+            "1": "1ನೇ",
+            "2": "2ನೇ",
+            "3": "3ನೇ",
+            "4": "4ನೇ",
+            "5": "5ನೇ"
           }
         },
         "leaveYearStartMonth": {
-          "label": "Leave year starts in",
-          "help": "Yearly leave is credited, and unused leave carried forward, at this month.",
+          "label": "ರಜೆ ವರ್ಷ ಆರಂಭವಾಗುವ ತಿಂಗಳು",
+          "help": "ಈ ತಿಂಗಳಲ್ಲಿ ವಾರ್ಷಿಕ ರಜೆ ಜಮೆಯಾಗುತ್ತದೆ ಮತ್ತು ಬಳಸದ ರಜೆ ಮುಂದಕ್ಕೆ ಸಾಗುತ್ತದೆ.",
           "options": {
-            "1": "January",
-            "2": "February",
-            "3": "March",
-            "4": "April",
-            "5": "May",
-            "6": "June",
-            "7": "July",
-            "8": "August",
-            "9": "September",
-            "10": "October",
-            "11": "November",
-            "12": "December"
+            "1": "ಜನವರಿ",
+            "2": "ಫೆಬ್ರವರಿ",
+            "3": "ಮಾರ್ಚ್",
+            "4": "ಏಪ್ರಿಲ್",
+            "5": "ಮೇ",
+            "6": "ಜೂನ್",
+            "7": "ಜುಲೈ",
+            "8": "ಆಗಸ್ಟ್",
+            "9": "ಸೆಪ್ಟೆಂಬರ್",
+            "10": "ಅಕ್ಟೋಬರ್",
+            "11": "ನವೆಂಬರ್",
+            "12": "ಡಿಸೆಂಬರ್"
           }
         },
         "lateAfter": {
-          "label": "Late after (HH:MM)",
-          "help": "Arriving after this is marked late. Leave empty to not track late arrival."
+          "label": "ಈ ಸಮಯದ ನಂತರ ತಡ (HH:MM)",
+          "help": "ಇದರ ನಂತರ ಬಂದರೆ ತಡ ಎಂದು ಗುರುತಿಸಲಾಗುತ್ತದೆ. ತಡವಾಗಿ ಬರುವುದನ್ನು ದಾಖಲಿಸದಿರಲು ಖಾಲಿ ಬಿಡಿ."
         },
         "attendanceEditDays": {
-          "label": "Staff attendance can be corrected up to (days back)"
+          "label": "ಸಿಬ್ಬಂದಿ ಹಾಜರಾತಿಯನ್ನು ಇಷ್ಟು ದಿನಗಳ ಹಿಂದಿನವರೆಗೆ ಸರಿಪಡಿಸಬಹುದು"
         },
         "selfLeave": {
-          "label": "Staff apply for leave themselves",
-          "help": "In My workspace. Otherwise HR applies on their behalf."
+          "label": "ಸಿಬ್ಬಂದಿ ತಾವೇ ರಜೆಗೆ ಅರ್ಜಿ ಸಲ್ಲಿಸುತ್ತಾರೆ",
+          "help": "ನನ್ನ ಕಾರ್ಯಕ್ಷೇತ್ರದಲ್ಲಿ. ಇಲ್ಲದಿದ್ದರೆ ಮಾನವ ಸಂಪನ್ಮೂಲ ವಿಭಾಗ ಅವರ ಪರವಾಗಿ ಅರ್ಜಿ ಸಲ್ಲಿಸುತ್ತದೆ."
         },
         "selfAttendance": {
-          "label": "Staff can mark themselves in and out from their phone (My workspace)",
-          "help": "Off: HR, the biometric device or a gate scanner marks staff attendance. They can check in and out several times a day; the first in and last out make the day."
+          "label": "ಸಿಬ್ಬಂದಿ ತಮ್ಮ ಫೋನ್‌ನಿಂದ ತಾವೇ ಆಗಮನ ಮತ್ತು ನಿರ್ಗಮನ ಗುರುತಿಸಬಹುದು (ನನ್ನ ಕಾರ್ಯಕ್ಷೇತ್ರ)",
+          "help": "ಬಂದ್: ಮಾನವ ಸಂಪನ್ಮೂಲ ವಿಭಾಗ, ಬಯೋಮೆಟ್ರಿಕ್ ಸಾಧನ ಅಥವಾ ಗೇಟ್ ಸ್ಕ್ಯಾನರ್ ಸಿಬ್ಬಂದಿ ಹಾಜರಾತಿಯನ್ನು ಗುರುತಿಸುತ್ತದೆ. ಅವರು ದಿನಕ್ಕೆ ಹಲವು ಬಾರಿ ಆಗಮನ ಮತ್ತು ನಿರ್ಗಮನ ದಾಖಲಿಸಬಹುದು; ಮೊದಲ ಆಗಮನ ಮತ್ತು ಕೊನೆಯ ನಿರ್ಗಮನದಿಂದ ಆ ದಿನವನ್ನು ಲೆಕ್ಕಹಾಕಲಾಗುತ್ತದೆ."
         },
         "geofence": {
-          "label": "Where staff may mark themselves in and out",
-          "help": "Checks the phone’s location against the attendance sites of the person’s campus (Administration › Campuses). The location is read only at the moment they mark attendance — never tracked. HR can exempt field staff on their staff record.",
+          "label": "ಸಿಬ್ಬಂದಿ ತಾವೇ ಆಗಮನ ಮತ್ತು ನಿರ್ಗಮನ ಗುರುತಿಸಬಹುದಾದ ಸ್ಥಳ",
+          "help": "ಫೋನ್‌ನ ಸ್ಥಳವನ್ನು ಆ ವ್ಯಕ್ತಿಯ ಕ್ಯಾಂಪಸ್‌ನ ಹಾಜರಾತಿ ಸ್ಥಳಗಳೊಂದಿಗೆ (ಆಡಳಿತ › ಕ್ಯಾಂಪಸ್‌ಗಳು) ಹೋಲಿಸಿ ಪರಿಶೀಲಿಸುತ್ತದೆ. ಅವರು ಹಾಜರಾತಿ ಗುರುತಿಸುವ ಕ್ಷಣದಲ್ಲಿ ಮಾತ್ರ ಸ್ಥಳವನ್ನು ಓದಲಾಗುತ್ತದೆ — ಎಂದಿಗೂ ಹಿಂಬಾಲಿಸಲಾಗುವುದಿಲ್ಲ. ಕ್ಷೇತ್ರ ಕಾರ್ಯದ ಸಿಬ್ಬಂದಿಗೆ ಮಾನವ ಸಂಪನ್ಮೂಲ ವಿಭಾಗ ಅವರ ಸಿಬ್ಬಂದಿ ದಾಖಲೆಯಲ್ಲಿ ವಿನಾಯಿತಿ ನೀಡಬಹುದು.",
           "options": {
-            "OFF": "Off — anywhere",
-            "WARN": "Allow, but flag punches outside an attendance site",
-            "REQUIRED": "Block — only within an attendance site"
+            "OFF": "ಬಂದ್ — ಎಲ್ಲಿಂದ ಬೇಕಾದರೂ",
+            "WARN": "ಅನುಮತಿಸಿ, ಆದರೆ ಹಾಜರಾತಿ ಸ್ಥಳದ ಹೊರಗಿನ ದಾಖಲೆಗಳನ್ನು ಗುರುತುಮಾಡಿ",
+            "REQUIRED": "ತಡೆಯಿರಿ — ಹಾಜರಾತಿ ಸ್ಥಳದೊಳಗೆ ಮಾತ್ರ"
           }
         },
         "geofenceMaxAccuracyM": {
-          "label": "Refuse a staff location rougher than (metres)",
-          "help": "Phones indoors can be off by a few hundred metres; the punch is refused (or flagged) when the location is less accurate than this."
+          "label": "ಇದಕ್ಕಿಂತ ಕಡಿಮೆ ನಿಖರತೆಯ ಸಿಬ್ಬಂದಿ ಸ್ಥಳವನ್ನು ನಿರಾಕರಿಸಿ (ಮೀಟರ್)",
+          "help": "ಕಟ್ಟಡದೊಳಗಿನ ಫೋನ್‌ಗಳ ಸ್ಥಳ ಕೆಲವು ನೂರು ಮೀಟರ್‌ಗಳಷ್ಟು ತಪ್ಪಾಗಬಹುದು; ಸ್ಥಳದ ನಿಖರತೆ ಇದಕ್ಕಿಂತ ಕಡಿಮೆ ಇದ್ದಾಗ ದಾಖಲೆಯನ್ನು ನಿರಾಕರಿಸಲಾಗುತ್ತದೆ (ಅಥವಾ ಗುರುತುಮಾಡಲಾಗುತ್ತದೆ)."
         }
       },
       "transport": {
         "alertNear": {
-          "label": "Tell families when the bus is near their stop"
+          "label": "ಬಸ್ ತಮ್ಮ ನಿಲ್ದಾಣದ ಹತ್ತಿರ ಬಂದಾಗ ಕುಟುಂಬಗಳಿಗೆ ತಿಳಿಸಿ"
         },
         "nearMetres": {
-          "label": "Near means within (metres)"
+          "label": "ಹತ್ತಿರ ಎಂದರೆ ಇಷ್ಟು ದೂರದೊಳಗೆ (ಮೀಟರ್)"
         },
         "arriveMetres": {
-          "label": "At the stop means within (metres)"
+          "label": "ನಿಲ್ದಾಣದಲ್ಲಿ ಎಂದರೆ ಇಷ್ಟು ದೂರದೊಳಗೆ (ಮೀಟರ್)"
         },
         "alertRide": {
-          "label": "Tell families when their child gets on and off"
+          "label": "ಮಗು ಬಸ್ ಹತ್ತಿದಾಗ ಮತ್ತು ಇಳಿದಾಗ ಕುಟುಂಬಗಳಿಗೆ ತಿಳಿಸಿ"
         },
         "docWarnDays": {
-          "label": "Warn about vehicle papers this many days before expiry"
+          "label": "ವಾಹನದ ದಾಖಲೆಗಳ ಅವಧಿ ಮುಗಿಯುವ ಇಷ್ಟು ದಿನಗಳ ಮೊದಲು ಎಚ್ಚರಿಸಿ"
         }
       },
       "library": {
         "studentLimit": {
-          "label": "Books a student can have at once"
+          "label": "ಒಬ್ಬ ವಿದ್ಯಾರ್ಥಿ ಒಮ್ಮೆಗೆ ಪಡೆಯಬಹುದಾದ ಪುಸ್ತಕಗಳು"
         },
         "staffLimit": {
-          "label": "Books a staff member can have at once"
+          "label": "ಒಬ್ಬ ಸಿಬ್ಬಂದಿ ಒಮ್ಮೆಗೆ ಪಡೆಯಬಹುದಾದ ಪುಸ್ತಕಗಳು"
         },
         "studentDays": {
-          "label": "Loan period for students (days)"
+          "label": "ವಿದ್ಯಾರ್ಥಿಗಳಿಗೆ ಎರವಲು ಅವಧಿ (ದಿನಗಳು)"
         },
         "staffDays": {
-          "label": "Loan period for staff (days)"
+          "label": "ಸಿಬ್ಬಂದಿಗೆ ಎರವಲು ಅವಧಿ (ದಿನಗಳು)"
         },
         "renewals": {
-          "label": "Times a loan can be renewed"
+          "label": "ಎರವಲನ್ನು ನವೀಕರಿಸಬಹುದಾದ ಬಾರಿಗಳು"
         },
         "finePerDay": {
-          "label": "Late fine a day (₹)",
-          "help": "0: no late fines."
+          "label": "ದಿನಕ್ಕೆ ತಡ ದಂಡ (₹)",
+          "help": "0: ತಡ ದಂಡ ಇಲ್ಲ."
         },
         "fineMax": {
-          "label": "Most a late fine can be for one book (₹)",
-          "help": "0: no limit."
+          "label": "ಒಂದು ಪುಸ್ತಕಕ್ಕೆ ಗರಿಷ್ಠ ತಡ ದಂಡ (₹)",
+          "help": "0: ಮಿತಿ ಇಲ್ಲ."
         },
         "graceDays": {
-          "label": "Days late before a fine starts"
+          "label": "ದಂಡ ಆರಂಭವಾಗುವ ಮೊದಲು ತಡವಾದ ದಿನಗಳು"
         },
         "staffFines": {
-          "label": "Charge late fines to staff"
+          "label": "ಸಿಬ್ಬಂದಿಗೂ ತಡ ದಂಡ ವಿಧಿಸಿ"
         },
         "blockWithFines": {
-          "label": "No new books while a fine is unpaid"
+          "label": "ದಂಡ ಪಾವತಿಸದಿರುವಾಗ ಹೊಸ ಪುಸ್ತಕಗಳಿಲ್ಲ"
         },
         "blockOverdue": {
-          "label": "No new books while one is overdue"
+          "label": "ಒಂದು ಪುಸ್ತಕ ಅವಧಿ ಮೀರಿದ್ದರೆ ಹೊಸ ಪುಸ್ತಕಗಳಿಲ್ಲ"
         },
         "remindDaysBefore": {
-          "label": "Remind families this many days before a book is due",
-          "help": "0: no reminder before the due date."
+          "label": "ಪುಸ್ತಕ ಹಿಂದಿರುಗಿಸುವ ದಿನಾಂಕಕ್ಕೆ ಇಷ್ಟು ದಿನಗಳ ಮೊದಲು ಕುಟುಂಬಗಳಿಗೆ ಜ್ಞಾಪಿಸಿ",
+          "help": "0: ಹಿಂದಿರುಗಿಸುವ ದಿನಾಂಕದ ಮೊದಲು ಜ್ಞಾಪನೆ ಇಲ್ಲ."
         },
         "overdueEveryDays": {
-          "label": "Remind about an overdue book every (days)",
-          "help": "0: no overdue reminders."
+          "label": "ಅವಧಿ ಮೀರಿದ ಪುಸ್ತಕದ ಬಗ್ಗೆ ಇಷ್ಟು ದಿನಗಳಿಗೊಮ್ಮೆ ಜ್ಞಾಪಿಸಿ",
+          "help": "0: ಅವಧಿ ಮೀರಿದ ಜ್ಞಾಪನೆಗಳಿಲ್ಲ."
         }
       },
       "canteen": {
         "lowBalanceRs": {
-          "label": "Tell the family when the wallet falls below (₹)"
+          "label": "ವ್ಯಾಲೆಟ್ ಬಾಕಿ ಇದಕ್ಕಿಂತ ಕಡಿಮೆಯಾದಾಗ ಕುಟುಂಬಕ್ಕೆ ತಿಳಿಸಿ (₹)"
         },
         "minTopUpRs": {
-          "label": "Smallest top-up (₹)"
+          "label": "ಕನಿಷ್ಠ ಟಾಪ್-ಅಪ್ (₹)"
         },
         "maxTopUpRs": {
-          "label": "Largest single top-up (₹)"
+          "label": "ಒಂದು ಬಾರಿಯ ಗರಿಷ್ಠ ಟಾಪ್-ಅಪ್ (₹)"
         },
         "maxBalanceRs": {
-          "label": "Most a wallet can hold (₹)"
+          "label": "ವ್ಯಾಲೆಟ್‌ನಲ್ಲಿ ಇರಬಹುದಾದ ಗರಿಷ್ಠ ಮೊತ್ತ (₹)"
         },
         "preorderDays": {
-          "label": "Families can pre-order this many days ahead"
+          "label": "ಕುಟುಂಬಗಳು ಇಷ್ಟು ದಿನ ಮುಂಚಿತವಾಗಿ ಮುಂಗಡ ಆರ್ಡರ್ ಮಾಡಬಹುದು"
         },
         "preorderCutoff": {
-          "label": "Same-day pre-orders close at (HH:MM)"
+          "label": "ಅದೇ ದಿನದ ಮುಂಗಡ ಆರ್ಡರ್‌ಗಳು ಮುಚ್ಚುವ ಸಮಯ (HH:MM)"
         },
         "tokens": {
-          "label": "Give every order a token number",
-          "help": "Tokens start at 1 each day on each campus. A counter sale is then made first and called out by its token on the token board: Preparing, Ready, Collected. Off: a counter sale is served at once."
+          "label": "ಪ್ರತಿ ಆರ್ಡರ್‌ಗೆ ಟೋಕನ್ ಸಂಖ್ಯೆ ನೀಡಿ",
+          "help": "ಪ್ರತಿ ಕ್ಯಾಂಪಸ್‌ನಲ್ಲಿ ಪ್ರತಿದಿನ ಟೋಕನ್‌ಗಳು 1 ರಿಂದ ಆರಂಭವಾಗುತ್ತವೆ. ಆಗ ಕೌಂಟರ್ ಮಾರಾಟವನ್ನು ಮೊದಲು ತಯಾರಿಸಿ, ಟೋಕನ್ ಫಲಕದಲ್ಲಿ ಅದರ ಟೋಕನ್ ಮೂಲಕ ಕರೆಯಲಾಗುತ್ತದೆ: ತಯಾರಾಗುತ್ತಿದೆ, ಸಿದ್ಧವಾಗಿದೆ, ಪಡೆದುಕೊಳ್ಳಲಾಗಿದೆ. ಬಂದ್: ಕೌಂಟರ್ ಮಾರಾಟವನ್ನು ತಕ್ಷಣ ನೀಡಲಾಗುತ್ತದೆ."
         },
         "tokenPrint": {
-          "label": "Print the token slip after each counter sale",
-          "help": "Prints on the 80 mm receipt printer at the counter. Only when tokens are on."
+          "label": "ಪ್ರತಿ ಕೌಂಟರ್ ಮಾರಾಟದ ನಂತರ ಟೋಕನ್ ಚೀಟಿ ಮುದ್ರಿಸಿ",
+          "help": "ಕೌಂಟರ್‌ನಲ್ಲಿರುವ 80 mm ರಸೀದಿ ಮುದ್ರಕದಲ್ಲಿ ಮುದ್ರಿಸುತ್ತದೆ. ಟೋಕನ್‌ಗಳು ಚಾಲೂ ಇದ್ದಾಗ ಮಾತ್ರ."
         }
       },
       "frontoffice": {
         "complaintSlaDays": {
-          "label": "Resolve a complaint within (days)",
-          "help": "Sets the due day of every new complaint (an urgent one is due the next day). Past it, the complaint shows as overdue."
+          "label": "ದೂರನ್ನು ಇಷ್ಟು ದಿನಗಳೊಳಗೆ ಪರಿಹರಿಸಿ",
+          "help": "ಪ್ರತಿ ಹೊಸ ದೂರಿನ ಗಡುವು ದಿನವನ್ನು ಇದು ನಿಗದಿಪಡಿಸುತ್ತದೆ (ತುರ್ತು ದೂರಿನ ಗಡುವು ಮರುದಿನ). ಗಡುವು ಮೀರಿದರೆ, ದೂರು ಅವಧಿ ಮೀರಿದೆ ಎಂದು ಕಾಣಿಸುತ್ತದೆ."
         },
         "gatePassApproval": {
-          "label": "Gate passes need approval",
-          "help": "The class teacher, or someone allowed to approve, approves before a student is handed over at the gate. Off: a pass is ready as soon as it is written."
+          "label": "ಗೇಟ್ ಪಾಸ್‌ಗಳಿಗೆ ಅನುಮೋದನೆ ಬೇಕು",
+          "help": "ವಿದ್ಯಾರ್ಥಿಯನ್ನು ಗೇಟ್‌ನಲ್ಲಿ ಒಪ್ಪಿಸುವ ಮೊದಲು ತರಗತಿ ಶಿಕ್ಷಕರು ಅಥವಾ ಅನುಮೋದಿಸಲು ಅನುಮತಿ ಇರುವವರು ಅನುಮೋದಿಸುತ್ತಾರೆ. ಬಂದ್: ಪಾಸ್ ಬರೆದ ತಕ್ಷಣ ಸಿದ್ಧವಾಗುತ್ತದೆ."
         }
       },
       "placements": {
         "offerPolicy": {
-          "label": "Offers a student may hold",
-          "help": "Checked when students register for a drive and when an offer is accepted. Accepting a dream offer releases the earlier one.",
+          "label": "ಒಬ್ಬ ವಿದ್ಯಾರ್ಥಿ ಹೊಂದಬಹುದಾದ ಉದ್ಯೋಗ ಆಹ್ವಾನಗಳು",
+          "help": "ವಿದ್ಯಾರ್ಥಿಗಳು ನೇಮಕಾತಿ ಅಭಿಯಾನಕ್ಕೆ ನೋಂದಾಯಿಸುವಾಗ ಮತ್ತು ಉದ್ಯೋಗ ಆಹ್ವಾನವನ್ನು ಸ್ವೀಕರಿಸುವಾಗ ಪರಿಶೀಲಿಸಲಾಗುತ್ತದೆ. ಕನಸಿನ ಉದ್ಯೋಗ ಆಹ್ವಾನ ಸ್ವೀಕರಿಸಿದರೆ ಹಿಂದಿನದು ಬಿಡುಗಡೆಯಾಗುತ್ತದೆ.",
           "options": {
-            "ONE": "One offer — a placed student applies no more",
-            "DREAM": "Dream offer — once placed, only drives paying the dream CTC or more",
-            "OPEN": "No limit"
+            "ONE": "ಒಂದು ಆಹ್ವಾನ — ಉದ್ಯೋಗ ಪಡೆದ ವಿದ್ಯಾರ್ಥಿ ಮತ್ತೆ ಅರ್ಜಿ ಸಲ್ಲಿಸುವಂತಿಲ್ಲ",
+            "DREAM": "ಕನಸಿನ ಆಹ್ವಾನ — ಉದ್ಯೋಗ ಪಡೆದ ನಂತರ, ಕನಸಿನ CTC ಅಥವಾ ಅದಕ್ಕಿಂತ ಹೆಚ್ಚು ನೀಡುವ ಅಭಿಯಾನಗಳು ಮಾತ್ರ",
+            "OPEN": "ಮಿತಿ ಇಲ್ಲ"
           }
         },
         "dreamCtcLakhs": {
-          "label": "Dream offer: CTC from (₹ lakh a year)"
+          "label": "ಕನಸಿನ ಆಹ್ವಾನ: CTC ಇದರಿಂದ (ವರ್ಷಕ್ಕೆ ₹ ಲಕ್ಷ)"
         },
         "familyRegistration": {
-          "label": "Students and parents register for drives in the app",
-          "help": "Off: only the placement office registers students."
+          "label": "ವಿದ್ಯಾರ್ಥಿಗಳು ಮತ್ತು ಪೋಷಕರು ಆ್ಯಪ್‌ನಲ್ಲಿ ಅಭಿಯಾನಗಳಿಗೆ ನೋಂದಾಯಿಸುತ್ತಾರೆ",
+          "help": "ಬಂದ್: ಉದ್ಯೋಗ ನೇಮಕಾತಿ ಕಚೇರಿ ಮಾತ್ರ ವಿದ್ಯಾರ್ಥಿಗಳನ್ನು ನೋಂದಾಯಿಸುತ್ತದೆ."
         },
         "notifyEligible": {
-          "label": "Tell eligible students when a drive opens"
+          "label": "ಅಭಿಯಾನ ತೆರೆದಾಗ ಅರ್ಹ ವಿದ್ಯಾರ್ಥಿಗಳಿಗೆ ತಿಳಿಸಿ"
         }
       },
       "hostel": {
         "lateGraceMinutes": {
-          "label": "Minutes after the return time before an outpass counts as late"
+          "label": "ಹಿಂದಿರುಗುವ ಸಮಯದ ನಂತರ ಹೊರಹೋಗುವ ಅನುಮತಿಯನ್ನು ತಡ ಎಂದು ಪರಿಗಣಿಸುವ ಮೊದಲಿನ ನಿಮಿಷಗಳು"
         },
         "familyOutpass": {
-          "label": "Parents can ask for an outpass in the family app"
+          "label": "ಪೋಷಕರು ಕುಟುಂಬ ಆ್ಯಪ್‌ನಲ್ಲಿ ಹೊರಹೋಗುವ ಅನುಮತಿ ಕೇಳಬಹುದು"
         },
         "alertOutpass": {
-          "label": "Tell the guardian when an outpass is approved or rejected, and when the student leaves and comes back"
+          "label": "ಹೊರಹೋಗುವ ಅನುಮತಿ ಅನುಮೋದನೆಯಾದಾಗ ಅಥವಾ ತಿರಸ್ಕೃತವಾದಾಗ, ಮತ್ತು ವಿದ್ಯಾರ್ಥಿ ಹೊರಟಾಗ ಹಾಗೂ ಹಿಂದಿರುಗಿದಾಗ ಪಾಲಕರಿಗೆ ತಿಳಿಸಿ"
         }
       },
       "events": {
         "remindDayBefore": {
-          "label": "Remind families the day before an event",
-          "help": "Only for events that ask for it (the box on the event)."
+          "label": "ಕಾರ್ಯಕ್ರಮದ ಹಿಂದಿನ ದಿನ ಕುಟುಂಬಗಳಿಗೆ ಜ್ಞಾಪಿಸಿ",
+          "help": "ಅದನ್ನು ಕೇಳುವ ಕಾರ್ಯಕ್ರಮಗಳಿಗೆ ಮಾತ್ರ (ಕಾರ್ಯಕ್ರಮದಲ್ಲಿರುವ ಪೆಟ್ಟಿಗೆ)."
         },
         "calendarHolidays": {
-          "label": "Show holidays from Staff & HR on the calendar"
+          "label": "ಸಿಬ್ಬಂದಿ ಮತ್ತು ಮಾನವ ಸಂಪನ್ಮೂಲದಲ್ಲಿರುವ ರಜಾದಿನಗಳನ್ನು ಕ್ಯಾಲೆಂಡರ್‌ನಲ್ಲಿ ತೋರಿಸಿ"
         },
         "calendarExams": {
-          "label": "Show exam dates on the calendar"
+          "label": "ಪರೀಕ್ಷಾ ದಿನಾಂಕಗಳನ್ನು ಕ್ಯಾಲೆಂಡರ್‌ನಲ್ಲಿ ತೋರಿಸಿ"
         },
         "weekStartsSunday": {
-          "label": "Calendar weeks start on Sunday"
+          "label": "ಕ್ಯಾಲೆಂಡರ್ ವಾರಗಳು ಭಾನುವಾರದಿಂದ ಆರಂಭವಾಗುತ್ತವೆ"
         },
         "ptmSlotMinutes": {
-          "label": "Parent–teacher meeting slot (minutes)"
+          "label": "ಪೋಷಕ–ಶಿಕ್ಷಕರ ಸಭೆಯ ಸಮಯಾವಕಾಶ (ನಿಮಿಷಗಳು)"
         },
         "ptmReminder": {
-          "label": "Remind families of their meeting slot the day before"
+          "label": "ಹಿಂದಿನ ದಿನ ಕುಟುಂಬಗಳಿಗೆ ಅವರ ಸಭೆಯ ಸಮಯಾವಕಾಶವನ್ನು ಜ್ಞಾಪಿಸಿ"
         }
       },
       "finance": {
         "autoPost": {
-          "label": "Post fees, refunds and payroll to the books on their own",
-          "help": "Fee receipts, refunds, cancelled receipts and paid payroll make their vouchers as they happen."
+          "label": "ಶುಲ್ಕ, ಮರುಪಾವತಿ ಮತ್ತು ವೇತನಪಟ್ಟಿಯನ್ನು ಲೆಕ್ಕಪುಸ್ತಕಗಳಿಗೆ ತಾವಾಗಿಯೇ ದಾಖಲಿಸಿ",
+          "help": "ಶುಲ್ಕ ರಸೀದಿಗಳು, ಮರುಪಾವತಿಗಳು, ರದ್ದಾದ ರಸೀದಿಗಳು ಮತ್ತು ಪಾವತಿಸಿದ ವೇತನಪಟ್ಟಿ ನಡೆದ ತಕ್ಷಣ ಅವುಗಳ ಓಚರ್‌ಗಳು ಸಿದ್ಧವಾಗುತ್ತವೆ."
         },
         "onlineToGateway": {
-          "label": "Online fee payments go to “Payment gateway in transit”",
-          "help": "On: a contra voucher moves them to the bank when the gateway settles. Off: straight to the main bank account."
+          "label": "ಆನ್‌ಲೈನ್ ಶುಲ್ಕ ಪಾವತಿಗಳು “ಸಾಗಣೆಯಲ್ಲಿರುವ ಪಾವತಿ ಗೇಟ್‌ವೇ” ಖಾತೆಗೆ ಹೋಗುತ್ತವೆ",
+          "help": "ಚಾಲೂ: ಗೇಟ್‌ವೇ ಹಣ ಜಮೆ ಮಾಡಿದಾಗ ಕಾಂಟ್ರಾ ಓಚರ್ ಅವುಗಳನ್ನು ಬ್ಯಾಂಕ್‌ಗೆ ವರ್ಗಾಯಿಸುತ್ತದೆ. ಬಂದ್: ನೇರವಾಗಿ ಮುಖ್ಯ ಬ್ಯಾಂಕ್ ಖಾತೆಗೆ."
         },
         "expenseAutoApproveUpTo": {
-          "label": "Expenses up to this amount need no approval (₹)",
-          "help": "0: every expense is approved before it is paid."
+          "label": "ಈ ಮೊತ್ತದವರೆಗಿನ ವೆಚ್ಚಗಳಿಗೆ ಅನುಮೋದನೆ ಬೇಕಿಲ್ಲ (₹)",
+          "help": "0: ಪ್ರತಿ ವೆಚ್ಚವನ್ನು ಪಾವತಿಸುವ ಮೊದಲು ಅನುಮೋದಿಸಲಾಗುತ್ತದೆ."
         },
         "matchWindowDays": {
-          "label": "Bank matching window (days)",
-          "help": "A statement line matches a book entry of the same amount this many days apart."
+          "label": "ಬ್ಯಾಂಕ್ ಹೊಂದಾಣಿಕೆಯ ಅವಧಿ (ದಿನಗಳು)",
+          "help": "ಸ್ಟೇಟ್‌ಮೆಂಟ್‌ನ ಒಂದು ಸಾಲು ಇಷ್ಟು ದಿನಗಳ ಅಂತರದಲ್ಲಿರುವ ಅದೇ ಮೊತ್ತದ ಲೆಕ್ಕಪುಸ್ತಕದ ನಮೂದಿಗೆ ಹೊಂದುತ್ತದೆ."
         }
       },
       "attendance": {
         "mode": {
-          "label": "Attendance is taken",
-          "help": "Every period: the day’s attendance is worked out from the periods (see below). Both: the class teacher’s daily register stays the day’s attendance; the periods give subject-wise attendance.",
+          "label": "ಹಾಜರಾತಿ ತೆಗೆದುಕೊಳ್ಳುವ ವಿಧಾನ",
+          "help": "ಪ್ರತಿ ಅವಧಿಗೆ: ದಿನದ ಹಾಜರಾತಿಯನ್ನು ಅವಧಿಗಳಿಂದ ಲೆಕ್ಕಹಾಕಲಾಗುತ್ತದೆ (ಕೆಳಗೆ ನೋಡಿ). ಎರಡೂ: ತರಗತಿ ಶಿಕ್ಷಕರ ದೈನಂದಿನ ಹಾಜರಿ ಪುಸ್ತಕವೇ ದಿನದ ಹಾಜರಾತಿ; ಅವಧಿಗಳು ವಿಷಯವಾರು ಹಾಜರಾತಿಯನ್ನು ನೀಡುತ್ತವೆ.",
           "options": {
-            "DAILY": "Once a day, by the class teacher",
-            "PERIOD": "Every period, by the subject teacher",
-            "BOTH": "Both — once a day by the class teacher, and every period by the subject teacher"
+            "DAILY": "ದಿನಕ್ಕೆ ಒಮ್ಮೆ, ತರಗತಿ ಶಿಕ್ಷಕರಿಂದ",
+            "PERIOD": "ಪ್ರತಿ ಅವಧಿಗೆ, ವಿಷಯ ಶಿಕ್ಷಕರಿಂದ",
+            "BOTH": "ಎರಡೂ — ದಿನಕ್ಕೆ ಒಮ್ಮೆ ತರಗತಿ ಶಿಕ್ಷಕರಿಂದ, ಮತ್ತು ಪ್ರತಿ ಅವಧಿಗೆ ವಿಷಯ ಶಿಕ್ಷಕರಿಂದ"
           }
         },
         "dayFrom": {
-          "label": "With every period: the day’s attendance comes from",
+          "label": "ಪ್ರತಿ ಅವಧಿಯ ಹಾಜರಾತಿ ಇದ್ದಾಗ: ದಿನದ ಹಾಜರಾತಿ ಇದರಿಂದ ಬರುತ್ತದೆ",
           "options": {
-            "FIRST": "The first period marked that day",
-            "SHARE": "The share of periods attended"
+            "FIRST": "ಆ ದಿನ ಗುರುತಿಸಿದ ಮೊದಲ ಅವಧಿ",
+            "SHARE": "ಹಾಜರಾದ ಅವಧಿಗಳ ಪ್ರಮಾಣ"
           }
         },
         "dayMinPct": {
-          "label": "Present for the day when at least this % of periods are attended",
-          "help": "Used when the day comes from the share of periods."
+          "label": "ಕನಿಷ್ಠ ಇಷ್ಟು % ಅವಧಿಗಳಿಗೆ ಹಾಜರಾದರೆ ಆ ದಿನಕ್ಕೆ ಹಾಜರು",
+          "help": "ದಿನದ ಹಾಜರಾತಿ ಅವಧಿಗಳ ಪ್ರಮಾಣದಿಂದ ಬರುವಾಗ ಬಳಸಲಾಗುತ್ತದೆ."
         },
         "periodMarkers": {
-          "label": "Who marks a period",
-          "help": "Staff who see attendance for the whole campus or institution (principal, coordinator, office) can always mark any period.",
+          "label": "ಅವಧಿಯ ಹಾಜರಾತಿಯನ್ನು ಯಾರು ಗುರುತಿಸುತ್ತಾರೆ",
+          "help": "ಇಡೀ ಕ್ಯಾಂಪಸ್ ಅಥವಾ ಸಂಸ್ಥೆಯ ಹಾಜರಾತಿಯನ್ನು ನೋಡುವ ಸಿಬ್ಬಂದಿ (ಪ್ರಾಂಶುಪಾಲರು, ಸಂಯೋಜಕರು, ಕಚೇರಿ) ಯಾವುದೇ ಅವಧಿಯನ್ನು ಯಾವಾಗಲೂ ಗುರುತಿಸಬಹುದು.",
           "options": {
-            "TIMETABLE": "Its teacher in the published timetable (or the substitute), and the class teacher",
-            "ANYONE": "Anyone who may mark attendance for the class"
+            "TIMETABLE": "ಪ್ರಕಟಿಸಿದ ವೇಳಾಪಟ್ಟಿಯಲ್ಲಿರುವ ಅದರ ಶಿಕ್ಷಕರು (ಅಥವಾ ಬದಲಿ ಶಿಕ್ಷಕರು), ಮತ್ತು ತರಗತಿ ಶಿಕ್ಷಕರು",
+            "ANYONE": "ತರಗತಿಯ ಹಾಜರಾತಿ ಗುರುತಿಸಲು ಅನುಮತಿ ಇರುವ ಯಾರಾದರೂ"
           }
         },
         "absentAlert": {
-          "label": "Tell parents when their child is absent",
-          "help": "By the channels set for “Absence alert” in Notification rules."
+          "label": "ಮಗು ಗೈರುಹಾಜರಾದಾಗ ಪೋಷಕರಿಗೆ ತಿಳಿಸಿ",
+          "help": "ಅಧಿಸೂಚನೆ ನಿಯಮಗಳಲ್ಲಿ “ಗೈರುಹಾಜರಿ ಎಚ್ಚರಿಕೆ” ಗಾಗಿ ಹೊಂದಿಸಿದ ಮಾಧ್ಯಮಗಳ ಮೂಲಕ."
         },
         "markBefore": {
-          "label": "Attendance to be marked by (HH:MM)",
-          "help": "Classes not marked by then show on the principal’s dashboard."
+          "label": "ಹಾಜರಾತಿ ಗುರುತಿಸಬೇಕಾದ ಸಮಯ (HH:MM)",
+          "help": "ಅಷ್ಟರೊಳಗೆ ಗುರುತಿಸದ ತರಗತಿಗಳು ಪ್ರಾಂಶುಪಾಲರ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್‌ನಲ್ಲಿ ಕಾಣಿಸುತ್ತವೆ."
         },
         "minimumPct": {
-          "label": "Minimum attendance required (%)",
-          "help": "Students below it are flagged in reports."
+          "label": "ಅಗತ್ಯವಿರುವ ಕನಿಷ್ಠ ಹಾಜರಾತಿ (%)",
+          "help": "ಇದಕ್ಕಿಂತ ಕಡಿಮೆ ಇರುವ ವಿದ್ಯಾರ್ಥಿಗಳನ್ನು ವರದಿಗಳಲ್ಲಿ ಗುರುತುಮಾಡಲಾಗುತ್ತದೆ."
         },
         "editDays": {
-          "label": "Teachers can correct attendance up to (days back)"
+          "label": "ಶಿಕ್ಷಕರು ಹಾಜರಾತಿಯನ್ನು ಇಷ್ಟು ದಿನಗಳ ಹಿಂದಿನವರೆಗೆ ಸರಿಪಡಿಸಬಹುದು"
         },
         "studentSelfCheckIn": {
-          "label": "Students check themselves in from the student app",
-          "help": "Only from a student’s own login (not a parent’s), and only inside an attendance site of their campus (Administration › Campuses). They can check in and out several times; teachers can always mark or correct the register by hand.",
+          "label": "ವಿದ್ಯಾರ್ಥಿಗಳು ವಿದ್ಯಾರ್ಥಿ ಆ್ಯಪ್‌ನಿಂದ ತಾವೇ ಹಾಜರಿ ದಾಖಲಿಸುತ್ತಾರೆ",
+          "help": "ವಿದ್ಯಾರ್ಥಿಯ ಸ್ವಂತ ಲಾಗಿನ್‌ನಿಂದ ಮಾತ್ರ (ಪೋಷಕರದಲ್ಲ), ಮತ್ತು ಅವರ ಕ್ಯಾಂಪಸ್‌ನ ಹಾಜರಾತಿ ಸ್ಥಳದೊಳಗೆ ಮಾತ್ರ (ಆಡಳಿತ › ಕ್ಯಾಂಪಸ್‌ಗಳು). ಅವರು ಹಲವು ಬಾರಿ ಆಗಮನ ಮತ್ತು ನಿರ್ಗಮನ ದಾಖಲಿಸಬಹುದು; ಶಿಕ್ಷಕರು ಯಾವಾಗಲೂ ಹಾಜರಿ ಪುಸ್ತಕವನ್ನು ಕೈಯಾರೆ ಗುರುತಿಸಬಹುದು ಅಥವಾ ಸರಿಪಡಿಸಬಹುದು.",
           "options": {
-            "OFF": "Off — the class teacher marks attendance",
-            "LOG": "Students check in on the campus; it goes to the gate log (the teacher still marks the register)",
-            "PRESENT": "Students check in on the campus; a check-in before the “mark by” time marks them present"
+            "OFF": "ಬಂದ್ — ತರಗತಿ ಶಿಕ್ಷಕರು ಹಾಜರಾತಿ ಗುರುತಿಸುತ್ತಾರೆ",
+            "LOG": "ವಿದ್ಯಾರ್ಥಿಗಳು ಕ್ಯಾಂಪಸ್‌ನಲ್ಲಿ ಹಾಜರಿ ದಾಖಲಿಸುತ್ತಾರೆ; ಅದು ಗೇಟ್ ದಾಖಲೆಗೆ ಹೋಗುತ್ತದೆ (ಶಿಕ್ಷಕರು ಹಾಜರಿ ಪುಸ್ತಕವನ್ನು ಗುರುತಿಸುತ್ತಾರೆ)",
+            "PRESENT": "ವಿದ್ಯಾರ್ಥಿಗಳು ಕ್ಯಾಂಪಸ್‌ನಲ್ಲಿ ಹಾಜರಿ ದಾಖಲಿಸುತ್ತಾರೆ; “ಗುರುತಿಸಬೇಕಾದ ಸಮಯ”ದ ಮೊದಲು ದಾಖಲಿಸಿದರೆ ಅವರನ್ನು ಹಾಜರು ಎಂದು ಗುರುತಿಸಲಾಗುತ್ತದೆ"
           }
         },
         "studentGeofenceMaxAccuracyM": {
-          "label": "Refuse a student location rougher than (metres)"
+          "label": "ಇದಕ್ಕಿಂತ ಕಡಿಮೆ ನಿಖರತೆಯ ವಿದ್ಯಾರ್ಥಿ ಸ್ಥಳವನ್ನು ನಿರಾಕರಿಸಿ (ಮೀಟರ್)"
         }
       },
       "exams": {
         "roundMarks": {
-          "label": "Round totals to whole marks"
+          "label": "ಒಟ್ಟು ಅಂಕಗಳನ್ನು ಪೂರ್ಣ ಅಂಕಗಳಿಗೆ ಸರಿಹೊಂದಿಸಿ"
         },
         "showRank": {
-          "label": "Show class rank on report cards"
+          "label": "ಪ್ರಗತಿ ಪತ್ರಗಳಲ್ಲಿ ತರಗತಿಯ ಸ್ಥಾನವನ್ನು ತೋರಿಸಿ"
         },
         "yearCombine": {
-          "label": "Several exams of one type in the year result",
-          "help": "For example three unit tests: their average, or only the best, counts towards the unit-test share.",
+          "label": "ವಾರ್ಷಿಕ ಫಲಿತಾಂಶದಲ್ಲಿ ಒಂದೇ ಪ್ರಕಾರದ ಹಲವು ಪರೀಕ್ಷೆಗಳು",
+          "help": "ಉದಾಹರಣೆಗೆ ಮೂರು ಘಟಕ ಪರೀಕ್ಷೆಗಳು: ಅವುಗಳ ಸರಾಸರಿ, ಅಥವಾ ಅತ್ಯುತ್ತಮವಾದುದು ಮಾತ್ರ, ಘಟಕ ಪರೀಕ್ಷೆಯ ಪಾಲಿಗೆ ಸೇರುತ್ತದೆ.",
           "options": {
-            "AVERAGE": "Average them",
-            "BEST": "Take the best one"
+            "AVERAGE": "ಸರಾಸರಿ ತೆಗೆದುಕೊಳ್ಳಿ",
+            "BEST": "ಅತ್ಯುತ್ತಮವಾದುದನ್ನು ತೆಗೆದುಕೊಳ್ಳಿ"
           }
         },
         "yearPassPct": {
-          "label": "Pass mark for the year result (%)",
-          "help": "A subject whose final % is below this needs to improve."
+          "label": "ವಾರ್ಷಿಕ ಫಲಿತಾಂಶಕ್ಕೆ ಉತ್ತೀರ್ಣ ಅಂಕ (%)",
+          "help": "ಅಂತಿಮ % ಇದಕ್ಕಿಂತ ಕಡಿಮೆ ಇರುವ ವಿಷಯದಲ್ಲಿ ಸುಧಾರಣೆ ಅಗತ್ಯವಿದೆ."
         },
         "compartmentMax": {
-          "label": "Compartment: up to this many subjects below the pass mark",
-          "help": "0: no compartment — any subject below the pass mark is \"needs to improve\"."
+          "label": "ಪೂರಕ ಪರೀಕ್ಷೆ: ಉತ್ತೀರ್ಣ ಅಂಕಕ್ಕಿಂತ ಕಡಿಮೆ ಇರುವ ಗರಿಷ್ಠ ವಿಷಯಗಳು",
+          "help": "0: ಪೂರಕ ಪರೀಕ್ಷೆ ಇಲ್ಲ — ಉತ್ತೀರ್ಣ ಅಂಕಕ್ಕಿಂತ ಕಡಿಮೆ ಇರುವ ಯಾವುದೇ ವಿಷಯ \"ಸುಧಾರಣೆ ಅಗತ್ಯವಿದೆ\"."
         },
         "lockAfterDays": {
-          "label": "Lock marks entry this many days after the exam",
-          "help": "0: marks stay open until someone locks them."
+          "label": "ಪರೀಕ್ಷೆಯ ಇಷ್ಟು ದಿನಗಳ ನಂತರ ಅಂಕ ನಮೂದನ್ನು ಲಾಕ್ ಮಾಡಿ",
+          "help": "0: ಯಾರಾದರೂ ಲಾಕ್ ಮಾಡುವವರೆಗೆ ಅಂಕ ನಮೂದು ತೆರೆದಿರುತ್ತದೆ."
         },
         "holdFeesOverdue": {
-          "label": "Hold for overdue fees",
-          "help": "A student with fees past their due date gets their admit card and/or result held. The hold lifts by itself once the fees are paid."
+          "label": "ಅವಧಿ ಮೀರಿದ ಬಾಕಿ ಶುಲ್ಕಕ್ಕಾಗಿ ತಡೆ",
+          "help": "ಶುಲ್ಕ ಪಾವತಿ ದಿನಾಂಕ ಮೀರಿದ ವಿದ್ಯಾರ್ಥಿಯ ಪ್ರವೇಶ ಪತ್ರ ಮತ್ತು/ಅಥವಾ ಫಲಿತಾಂಶವನ್ನು ತಡೆಹಿಡಿಯಲಾಗುತ್ತದೆ. ಶುಲ್ಕ ಪಾವತಿಸಿದ ತಕ್ಷಣ ತಡೆ ತಾನಾಗಿಯೇ ತೆರವಾಗುತ್ತದೆ."
         },
         "holdFeesMinimum": {
-          "label": "Only when the overdue amount is at least (₹)",
-          "help": "0 holds for any overdue amount."
+          "label": "ಅವಧಿ ಮೀರಿದ ಮೊತ್ತ ಕನಿಷ್ಠ ಇಷ್ಟು ಇದ್ದಾಗ ಮಾತ್ರ (₹)",
+          "help": "0 ಆದರೆ ಯಾವುದೇ ಅವಧಿ ಮೀರಿದ ಮೊತ್ತಕ್ಕೂ ತಡೆ."
         },
         "holdAttendance": {
-          "label": "Hold for low attendance",
-          "help": "A student whose attendance this year is below the percentage set below gets their admit card and/or result held."
+          "label": "ಕಡಿಮೆ ಹಾಜರಾತಿಗಾಗಿ ತಡೆ",
+          "help": "ಈ ವರ್ಷದ ಹಾಜರಾತಿ ಕೆಳಗೆ ಹೊಂದಿಸಿದ ಶೇಕಡಾವಾರುಗಿಂತ ಕಡಿಮೆ ಇರುವ ವಿದ್ಯಾರ್ಥಿಯ ಪ್ರವೇಶ ಪತ್ರ ಮತ್ತು/ಅಥವಾ ಫಲಿತಾಂಶವನ್ನು ತಡೆಹಿಡಿಯಲಾಗುತ್ತದೆ."
         },
         "holdAttendanceBelow": {
-          "label": "Attendance below (%)"
+          "label": "ಹಾಜರಾತಿ ಇದಕ್ಕಿಂತ ಕಡಿಮೆ (%)"
         },
         "holdAutoWhat": {
-          "label": "What these rules hold",
+          "label": "ಈ ನಿಯಮಗಳು ಏನನ್ನು ತಡೆಹಿಡಿಯುತ್ತವೆ",
           "options": {
-            "BOTH": "Admit card and result",
-            "ADMIT_CARD": "Admit card only",
-            "RESULT": "Result only"
+            "BOTH": "ಪ್ರವೇಶ ಪತ್ರ ಮತ್ತು ಫಲಿತಾಂಶ",
+            "ADMIT_CARD": "ಪ್ರವೇಶ ಪತ್ರ ಮಾತ್ರ",
+            "RESULT": "ಫಲಿತಾಂಶ ಮಾತ್ರ"
           }
         },
         "holdAutoShowReason": {
-          "label": "Tell the family the reason",
-          "help": "Off: the family app only says it is on hold and to contact the school office. On: it also says why (fees overdue, low attendance)."
+          "label": "ಕಾರಣವನ್ನು ಕುಟುಂಬಕ್ಕೆ ತಿಳಿಸಿ",
+          "help": "ಬಂದ್: ಕುಟುಂಬ ಆ್ಯಪ್ ಅದು ತಡೆಹಿಡಿಯಲಾಗಿದೆ ಮತ್ತು ಶಾಲಾ ಕಚೇರಿಯನ್ನು ಸಂಪರ್ಕಿಸಿ ಎಂದು ಮಾತ್ರ ಹೇಳುತ್ತದೆ. ಚಾಲೂ: ಕಾರಣವನ್ನೂ ಹೇಳುತ್ತದೆ (ಅವಧಿ ಮೀರಿದ ಶುಲ್ಕ, ಕಡಿಮೆ ಹಾಜರಾತಿ)."
         }
       },
       "fees": {
         "lateFeePerDay": {
-          "label": "Late fee per day (₹)",
-          "help": "0 turns the late fee off. Fee structures can set their own."
+          "label": "ದಿನಕ್ಕೆ ತಡ ಶುಲ್ಕ (₹)",
+          "help": "0 ಆದರೆ ತಡ ಶುಲ್ಕ ಬಂದ್. ಶುಲ್ಕ ರಚನೆಗಳು ತಮ್ಮದೇ ಮೊತ್ತ ಹೊಂದಿಸಬಹುದು."
         },
         "graceDays": {
-          "label": "Days after the due date before the late fee starts"
+          "label": "ಪಾವತಿ ದಿನಾಂಕದ ನಂತರ ತಡ ಶುಲ್ಕ ಆರಂಭವಾಗುವ ಮೊದಲಿನ ದಿನಗಳು"
         },
         "remindDaysBefore": {
-          "label": "Remind parents this many days before the due date",
-          "help": "0 turns the reminder off. Uses “Fee due reminder” in Notification rules."
+          "label": "ಪಾವತಿ ದಿನಾಂಕಕ್ಕೆ ಇಷ್ಟು ದಿನಗಳ ಮೊದಲು ಪೋಷಕರಿಗೆ ಜ್ಞಾಪಿಸಿ",
+          "help": "0 ಆದರೆ ಜ್ಞಾಪನೆ ಬಂದ್. ಅಧಿಸೂಚನೆ ನಿಯಮಗಳಲ್ಲಿರುವ “ಶುಲ್ಕ ಬಾಕಿ ಜ್ಞಾಪನೆ” ಬಳಸುತ್ತದೆ."
         },
         "allowPartial": {
-          "label": "Accept part payments"
+          "label": "ಭಾಗಶಃ ಪಾವತಿಗಳನ್ನು ಸ್ವೀಕರಿಸಿ"
         },
         "upiId": {
-          "label": "UPI ID for QR payments at the counter",
-          "help": "e.g. greenvalley@okaxis — the counter shows a QR with the exact amount."
+          "label": "ಕೌಂಟರ್‌ನಲ್ಲಿ QR ಪಾವತಿಗಳಿಗಾಗಿ UPI ID",
+          "help": "ಉದಾ. greenvalley@okaxis — ಕೌಂಟರ್ ನಿಖರ ಮೊತ್ತದೊಂದಿಗೆ QR ತೋರಿಸುತ್ತದೆ."
         },
         "receiptFormat": {
-          "label": "Receipt printer",
+          "label": "ರಸೀದಿ ಮುದ್ರಕ",
           "options": {
-            "A5": "A5 sheet",
-            "THERMAL": "80 mm thermal roll"
+            "A5": "A5 ಹಾಳೆ",
+            "THERMAL": "80 mm ಥರ್ಮಲ್ ರೋಲ್"
           }
         },
         "receiptFooter": {
-          "label": "Footer on receipts"
+          "label": "ರಸೀದಿಗಳ ಕೆಳಭಾಗದ ಪಠ್ಯ"
         }
       },
       "portal": {
         "enabled": {
-          "label": "Parents and students can sign in to the app",
-          "help": "With a one-time code to the mobile number on the student’s record."
+          "label": "ಪೋಷಕರು ಮತ್ತು ವಿದ್ಯಾರ್ಥಿಗಳು ಆ್ಯಪ್‌ಗೆ ಸೈನ್ ಇನ್ ಮಾಡಬಹುದು",
+          "help": "ವಿದ್ಯಾರ್ಥಿಯ ದಾಖಲೆಯಲ್ಲಿರುವ ಮೊಬೈಲ್ ಸಂಖ್ಯೆಗೆ ಬರುವ ಒಂದು ಬಾರಿಯ ಕೋಡ್ ಮೂಲಕ."
         },
         "studentLogins": {
-          "label": "Students get their own sign-in",
-          "help": "Usually on for senior classes and colleges. Off: only parents sign in."
+          "label": "ವಿದ್ಯಾರ್ಥಿಗಳಿಗೆ ತಮ್ಮದೇ ಸೈನ್ ಇನ್",
+          "help": "ಸಾಮಾನ್ಯವಾಗಿ ಹಿರಿಯ ತರಗತಿಗಳು ಮತ್ತು ಕಾಲೇಜುಗಳಿಗೆ ಚಾಲೂ. ಬಂದ್: ಪೋಷಕರು ಮಾತ್ರ ಸೈನ್ ಇನ್ ಮಾಡುತ್ತಾರೆ."
         },
         "showFees": {
-          "label": "Show fees and online payment in the app"
+          "label": "ಆ್ಯಪ್‌ನಲ್ಲಿ ಶುಲ್ಕ ಮತ್ತು ಆನ್‌ಲೈನ್ ಪಾವತಿಯನ್ನು ತೋರಿಸಿ"
         },
         "showMarks": {
-          "label": "Show marks and report cards in the app",
-          "help": "Only results that have been published."
+          "label": "ಆ್ಯಪ್‌ನಲ್ಲಿ ಅಂಕಗಳು ಮತ್ತು ಪ್ರಗತಿ ಪತ್ರಗಳನ್ನು ತೋರಿಸಿ",
+          "help": "ಪ್ರಕಟಿಸಿದ ಫಲಿತಾಂಶಗಳು ಮಾತ್ರ."
         },
         "hiddenSections": {
-          "label": "Sections hidden from the app",
-          "help": "Hidden for parents and students, even when the module is on.",
+          "label": "ಆ್ಯಪ್‌ನಿಂದ ಮರೆಮಾಡಿದ ವಿಭಾಗಗಳು",
+          "help": "ಮಾಡ್ಯೂಲ್ ಚಾಲೂ ಇದ್ದರೂ ಪೋಷಕರು ಮತ್ತು ವಿದ್ಯಾರ್ಥಿಗಳಿಗೆ ಮರೆಮಾಡಲಾಗುತ್ತದೆ.",
           "options": {
-            "ATTENDANCE": "Attendance and leave",
-            "HOMEWORK": "Homework",
-            "TIMETABLE": "Class timetable",
-            "LEARNING": "Study material and live classes",
-            "TESTS": "Online tests",
-            "BUS": "School bus",
-            "LIBRARY": "Library books and e-library",
-            "HOSTEL": "Hostel room, outpasses and mess menu",
-            "HEALTH": "Health card: allergies, vaccinations, sick-room visits",
-            "PLACEMENTS": "Placement drives and offers",
-            "COMPLAINTS": "Complaints and concerns",
-            "SURVEYS": "Surveys and feedback",
-            "CANTEEN": "Canteen wallet and pre-orders",
-            "EVENTS": "Calendar, parent–teacher meetings and photos",
-            "FEES": "Fees and receipts",
-            "RESULTS": "Results and report cards",
-            "CERTIFICATES": "Certificates",
-            "KIT": "Books, stationery and uniform list",
-            "NOTICES": "Notices and circulars",
-            "CHAT": "Messages with teachers"
+            "ATTENDANCE": "ಹಾಜರಾತಿ ಮತ್ತು ರಜೆ",
+            "HOMEWORK": "ಮನೆಗೆಲಸ",
+            "TIMETABLE": "ತರಗತಿ ವೇಳಾಪಟ್ಟಿ",
+            "LEARNING": "ಅಧ್ಯಯನ ಸಾಮಗ್ರಿ ಮತ್ತು ನೇರ ತರಗತಿಗಳು",
+            "TESTS": "ಆನ್‌ಲೈನ್ ಪರೀಕ್ಷೆಗಳು",
+            "BUS": "ಶಾಲಾ ಬಸ್",
+            "LIBRARY": "ಗ್ರಂಥಾಲಯ ಪುಸ್ತಕಗಳು ಮತ್ತು ಇ-ಗ್ರಂಥಾಲಯ",
+            "HOSTEL": "ವಸತಿ ನಿಲಯದ ಕೊಠಡಿ, ಹೊರಹೋಗುವ ಅನುಮತಿಗಳು ಮತ್ತು ಊಟದ ಮೆನು",
+            "HEALTH": "ಆರೋಗ್ಯ ಕಾರ್ಡ್: ಅಲರ್ಜಿಗಳು, ಲಸಿಕೆಗಳು, ಆರೋಗ್ಯ ಕೊಠಡಿ ಭೇಟಿಗಳು",
+            "PLACEMENTS": "ನೇಮಕಾತಿ ಅಭಿಯಾನಗಳು ಮತ್ತು ಉದ್ಯೋಗ ಆಹ್ವಾನಗಳು",
+            "COMPLAINTS": "ದೂರುಗಳು ಮತ್ತು ಕಳವಳಗಳು",
+            "SURVEYS": "ಸಮೀಕ್ಷೆಗಳು ಮತ್ತು ಪ್ರತಿಕ್ರಿಯೆ",
+            "CANTEEN": "ಕ್ಯಾಂಟೀನ್ ವ್ಯಾಲೆಟ್ ಮತ್ತು ಮುಂಗಡ ಆರ್ಡರ್‌ಗಳು",
+            "EVENTS": "ಕ್ಯಾಲೆಂಡರ್, ಪೋಷಕ–ಶಿಕ್ಷಕರ ಸಭೆಗಳು ಮತ್ತು ಫೋಟೋಗಳು",
+            "FEES": "ಶುಲ್ಕ ಮತ್ತು ರಸೀದಿಗಳು",
+            "RESULTS": "ಫಲಿತಾಂಶಗಳು ಮತ್ತು ಪ್ರಗತಿ ಪತ್ರಗಳು",
+            "CERTIFICATES": "ಪ್ರಮಾಣಪತ್ರಗಳು",
+            "KIT": "ಪುಸ್ತಕಗಳು, ಲೇಖನ ಸಾಮಗ್ರಿ ಮತ್ತು ಸಮವಸ್ತ್ರ ಪಟ್ಟಿ",
+            "NOTICES": "ಸೂಚನೆಗಳು ಮತ್ತು ಸುತ್ತೋಲೆಗಳು",
+            "CHAT": "ಶಿಕ್ಷಕರೊಂದಿಗೆ ಸಂದೇಶಗಳು"
           }
         },
         "parentOnlySections": {
-          "label": "Sections only parents see",
-          "help": "A student signed in on their own does not see these.",
+          "label": "ಪೋಷಕರು ಮಾತ್ರ ನೋಡುವ ವಿಭಾಗಗಳು",
+          "help": "ತಮ್ಮದೇ ಸೈನ್ ಇನ್‌ನಲ್ಲಿರುವ ವಿದ್ಯಾರ್ಥಿಗೆ ಇವು ಕಾಣಿಸುವುದಿಲ್ಲ.",
           "options": {
-            "ATTENDANCE": "Attendance and leave",
-            "HOMEWORK": "Homework",
-            "TIMETABLE": "Class timetable",
-            "LEARNING": "Study material and live classes",
-            "TESTS": "Online tests",
-            "BUS": "School bus",
-            "LIBRARY": "Library books and e-library",
-            "HOSTEL": "Hostel room, outpasses and mess menu",
-            "HEALTH": "Health card: allergies, vaccinations, sick-room visits",
-            "PLACEMENTS": "Placement drives and offers",
-            "COMPLAINTS": "Complaints and concerns",
-            "SURVEYS": "Surveys and feedback",
-            "CANTEEN": "Canteen wallet and pre-orders",
-            "EVENTS": "Calendar, parent–teacher meetings and photos",
-            "FEES": "Fees and receipts",
-            "RESULTS": "Results and report cards",
-            "CERTIFICATES": "Certificates",
-            "KIT": "Books, stationery and uniform list",
-            "NOTICES": "Notices and circulars",
-            "CHAT": "Messages with teachers"
+            "ATTENDANCE": "ಹಾಜರಾತಿ ಮತ್ತು ರಜೆ",
+            "HOMEWORK": "ಮನೆಗೆಲಸ",
+            "TIMETABLE": "ತರಗತಿ ವೇಳಾಪಟ್ಟಿ",
+            "LEARNING": "ಅಧ್ಯಯನ ಸಾಮಗ್ರಿ ಮತ್ತು ನೇರ ತರಗತಿಗಳು",
+            "TESTS": "ಆನ್‌ಲೈನ್ ಪರೀಕ್ಷೆಗಳು",
+            "BUS": "ಶಾಲಾ ಬಸ್",
+            "LIBRARY": "ಗ್ರಂಥಾಲಯ ಪುಸ್ತಕಗಳು ಮತ್ತು ಇ-ಗ್ರಂಥಾಲಯ",
+            "HOSTEL": "ವಸತಿ ನಿಲಯದ ಕೊಠಡಿ, ಹೊರಹೋಗುವ ಅನುಮತಿಗಳು ಮತ್ತು ಊಟದ ಮೆನು",
+            "HEALTH": "ಆರೋಗ್ಯ ಕಾರ್ಡ್: ಅಲರ್ಜಿಗಳು, ಲಸಿಕೆಗಳು, ಆರೋಗ್ಯ ಕೊಠಡಿ ಭೇಟಿಗಳು",
+            "PLACEMENTS": "ನೇಮಕಾತಿ ಅಭಿಯಾನಗಳು ಮತ್ತು ಉದ್ಯೋಗ ಆಹ್ವಾನಗಳು",
+            "COMPLAINTS": "ದೂರುಗಳು ಮತ್ತು ಕಳವಳಗಳು",
+            "SURVEYS": "ಸಮೀಕ್ಷೆಗಳು ಮತ್ತು ಪ್ರತಿಕ್ರಿಯೆ",
+            "CANTEEN": "ಕ್ಯಾಂಟೀನ್ ವ್ಯಾಲೆಟ್ ಮತ್ತು ಮುಂಗಡ ಆರ್ಡರ್‌ಗಳು",
+            "EVENTS": "ಕ್ಯಾಲೆಂಡರ್, ಪೋಷಕ–ಶಿಕ್ಷಕರ ಸಭೆಗಳು ಮತ್ತು ಫೋಟೋಗಳು",
+            "FEES": "ಶುಲ್ಕ ಮತ್ತು ರಸೀದಿಗಳು",
+            "RESULTS": "ಫಲಿತಾಂಶಗಳು ಮತ್ತು ಪ್ರಗತಿ ಪತ್ರಗಳು",
+            "CERTIFICATES": "ಪ್ರಮಾಣಪತ್ರಗಳು",
+            "KIT": "ಪುಸ್ತಕಗಳು, ಲೇಖನ ಸಾಮಗ್ರಿ ಮತ್ತು ಸಮವಸ್ತ್ರ ಪಟ್ಟಿ",
+            "NOTICES": "ಸೂಚನೆಗಳು ಮತ್ತು ಸುತ್ತೋಲೆಗಳು",
+            "CHAT": "ಶಿಕ್ಷಕರೊಂದಿಗೆ ಸಂದೇಶಗಳು"
           }
         },
         "profileFields": {
-          "label": "Child’s details shown in the app",
-          "help": "The name and class are always shown.",
+          "label": "ಆ್ಯಪ್‌ನಲ್ಲಿ ತೋರಿಸುವ ಮಗುವಿನ ವಿವರಗಳು",
+          "help": "ಹೆಸರು ಮತ್ತು ತರಗತಿಯನ್ನು ಯಾವಾಗಲೂ ತೋರಿಸಲಾಗುತ್ತದೆ.",
           "options": {
-            "ADMISSION_NO": "Admission number",
-            "ROLL_NO": "Roll number",
-            "CLASS_TEACHER": "Class teacher",
-            "DOB": "Date of birth",
-            "BLOOD_GROUP": "Blood group",
-            "GUARDIANS": "Parents and guardians",
-            "GUARDIAN_MOBILE": "Parents’ mobile numbers (last four digits)"
+            "ADMISSION_NO": "ಪ್ರವೇಶ ಸಂಖ್ಯೆ",
+            "ROLL_NO": "ಹಾಜರಿ ಸಂಖ್ಯೆ",
+            "CLASS_TEACHER": "ತರಗತಿ ಶಿಕ್ಷಕರು",
+            "DOB": "ಜನ್ಮ ದಿನಾಂಕ",
+            "BLOOD_GROUP": "ರಕ್ತದ ಗುಂಪು",
+            "GUARDIANS": "ಪೋಷಕರು ಮತ್ತು ಪಾಲಕರು",
+            "GUARDIAN_MOBILE": "ಪೋಷಕರ ಮೊಬೈಲ್ ಸಂಖ್ಯೆಗಳು (ಕೊನೆಯ ನಾಲ್ಕು ಅಂಕಿಗಳು)"
           }
         },
         "staffPhones": {
-          "label": "Show staff phone numbers in the app",
-          "help": "The bus driver’s and attendant’s, and the hostel warden’s. Off: names only."
+          "label": "ಆ್ಯಪ್‌ನಲ್ಲಿ ಸಿಬ್ಬಂದಿಯ ದೂರವಾಣಿ ಸಂಖ್ಯೆಗಳನ್ನು ತೋರಿಸಿ",
+          "help": "ಬಸ್ ಚಾಲಕರ ಮತ್ತು ಸಹಾಯಕರ, ಹಾಗೂ ವಸತಿ ನಿಲಯದ ವಾರ್ಡನ್ ಅವರ ಸಂಖ್ಯೆಗಳು. ಬಂದ್: ಹೆಸರುಗಳು ಮಾತ್ರ."
         },
         "chat": {
-          "label": "Families can message teachers in the app",
-          "help": "The class teacher and the subject teachers of the child’s class. Needs the Communication hub."
+          "label": "ಕುಟುಂಬಗಳು ಆ್ಯಪ್‌ನಲ್ಲಿ ಶಿಕ್ಷಕರಿಗೆ ಸಂದೇಶ ಕಳುಹಿಸಬಹುದು",
+          "help": "ಮಗುವಿನ ತರಗತಿಯ ತರಗತಿ ಶಿಕ್ಷಕರು ಮತ್ತು ವಿಷಯ ಶಿಕ್ಷಕರು. ಇದಕ್ಕೆ ಸಂವಹನ ಕೇಂದ್ರ ಬೇಕು."
         }
       },
       "comms": {
         "reRingMinutes": {
-          "label": "Ring again when nobody has answered for (minutes)"
+          "label": "ಯಾರೂ ಉತ್ತರಿಸದಿದ್ದರೆ ಇಷ್ಟು ನಿಮಿಷಗಳ ನಂತರ ಮತ್ತೆ ರಿಂಗ್ ಮಾಡಿ"
         },
         "maxRings": {
-          "label": "Ring each person at most (times)",
-          "help": "After that the call shows as missed for them."
+          "label": "ಪ್ರತಿ ವ್ಯಕ್ತಿಗೆ ಗರಿಷ್ಠ ಇಷ್ಟು ಬಾರಿ ರಿಂಗ್ ಮಾಡಿ",
+          "help": "ಅದರ ನಂತರ ಅವರಿಗೆ ಕರೆ ತಪ್ಪಿದ ಕರೆ ಎಂದು ಕಾಣಿಸುತ್ತದೆ."
         },
         "escalateMinutes": {
-          "label": "Escalate when nobody is on the way after (minutes)",
-          "help": "Counted from the call, then again from each escalation."
+          "label": "ಇಷ್ಟು ನಿಮಿಷಗಳ ನಂತರವೂ ಯಾರೂ ಬರುತ್ತಿಲ್ಲದಿದ್ದರೆ ಮೇಲಕ್ಕೆ ಕಳುಹಿಸಿ",
+          "help": "ಕರೆಯಿಂದ ಲೆಕ್ಕಹಾಕಲಾಗುತ್ತದೆ, ನಂತರ ಪ್ರತಿ ಬಾರಿ ಮೇಲಕ್ಕೆ ಕಳುಹಿಸಿದಾಗಿನಿಂದ ಮತ್ತೆ."
         },
         "escalateTo": {
-          "label": "Normal and urgent calls escalate to",
-          "help": "The next step goes one level wider (head of department → whole department).",
+          "label": "ಸಾಮಾನ್ಯ ಮತ್ತು ತುರ್ತು ಕರೆಗಳನ್ನು ಮೇಲಕ್ಕೆ ಕಳುಹಿಸುವುದು",
+          "help": "ಮುಂದಿನ ಹಂತ ಒಂದು ಮಟ್ಟ ವಿಸ್ತಾರವಾಗುತ್ತದೆ (ಇಲಾಖೆಯ ಮುಖ್ಯಸ್ಥರು → ಇಡೀ ಇಲಾಖೆ).",
           "options": {
-            "DEPARTMENT_HEAD": "Head of the department",
-            "DEPARTMENT": "The whole department"
+            "DEPARTMENT_HEAD": "ಇಲಾಖೆಯ ಮುಖ್ಯಸ್ಥರಿಗೆ",
+            "DEPARTMENT": "ಇಡೀ ಇಲಾಖೆಗೆ"
           }
         },
         "maxEscalations": {
-          "label": "Escalation steps at most",
-          "help": "0 turns escalation off."
+          "label": "ಮೇಲಕ್ಕೆ ಕಳುಹಿಸುವ ಗರಿಷ್ಠ ಹಂತಗಳು",
+          "help": "0 ಆದರೆ ಮೇಲಕ್ಕೆ ಕಳುಹಿಸುವುದು ಬಂದ್."
         },
         "codeEscalateTo": {
-          "label": "Unanswered emergency alerts escalate to",
+          "label": "ಉತ್ತರಿಸದ ತುರ್ತು ಎಚ್ಚರಿಕೆಗಳನ್ನು ಮೇಲಕ್ಕೆ ಕಳುಹಿಸುವುದು",
           "options": {
-            "EVERYONE": "Everyone on the campus",
-            "DEPARTMENT": "The whole department",
-            "NONE": "Do not escalate (keep ringing)"
+            "EVERYONE": "ಕ್ಯಾಂಪಸ್‌ನಲ್ಲಿರುವ ಎಲ್ಲರಿಗೂ",
+            "DEPARTMENT": "ಇಡೀ ಇಲಾಖೆಗೆ",
+            "NONE": "ಮೇಲಕ್ಕೆ ಕಳುಹಿಸಬೇಡಿ (ರಿಂಗ್ ಮಾಡುತ್ತಲೇ ಇರಿ)"
           }
         },
         "autoCloseMinutes": {
-          "label": "Close normal and urgent calls left open after (minutes)",
-          "help": "Emergency alerts never close on their own — someone gives the all clear."
+          "label": "ಇಷ್ಟು ನಿಮಿಷಗಳ ನಂತರವೂ ತೆರೆದಿರುವ ಸಾಮಾನ್ಯ ಮತ್ತು ತುರ್ತು ಕರೆಗಳನ್ನು ಮುಚ್ಚಿ",
+          "help": "ತುರ್ತು ಎಚ್ಚರಿಕೆಗಳು ಎಂದಿಗೂ ತಾವಾಗಿಯೇ ಮುಚ್ಚುವುದಿಲ್ಲ — ಯಾರಾದರೂ ಅಪಾಯ ತೆರವಾಗಿದೆ ಎಂದು ತಿಳಿಸಬೇಕು."
         },
         "chatAnnouncementsOnly": {
-          "label": "Whole-staff chat is for announcements only",
-          "help": "On: only people who can moderate chat post in the whole-staff and campus chats; everyone still reads them."
+          "label": "ಎಲ್ಲಾ ಸಿಬ್ಬಂದಿಯ ಚಾಟ್ ಪ್ರಕಟಣೆಗಳಿಗೆ ಮಾತ್ರ",
+          "help": "ಚಾಲೂ: ಚಾಟ್ ನಿರ್ವಹಿಸಲು ಅನುಮತಿ ಇರುವವರು ಮಾತ್ರ ಎಲ್ಲಾ ಸಿಬ್ಬಂದಿಯ ಮತ್ತು ಕ್ಯಾಂಪಸ್ ಚಾಟ್‌ಗಳಲ್ಲಿ ಬರೆಯುತ್ತಾರೆ; ಉಳಿದವರೆಲ್ಲರೂ ಓದಬಹುದು."
         },
         "chatRetentionDays": {
-          "label": "Keep staff chat messages for (days)",
-          "help": "0 keeps them. Older messages and their attachments are removed by an hourly job."
+          "label": "ಸಿಬ್ಬಂದಿ ಚಾಟ್ ಸಂದೇಶಗಳನ್ನು ಇಷ್ಟು ದಿನ ಇರಿಸಿ",
+          "help": "0 ಆದರೆ ಎಂದಿಗೂ ಅಳಿಸುವುದಿಲ್ಲ. ಹಳೆಯ ಸಂದೇಶಗಳು ಮತ್ತು ಅವುಗಳ ಲಗತ್ತುಗಳನ್ನು ಪ್ರತಿ ಗಂಟೆಗೊಮ್ಮೆ ನಡೆಯುವ ಕಾರ್ಯ ತೆಗೆದುಹಾಕುತ್ತದೆ."
         }
       }
     }

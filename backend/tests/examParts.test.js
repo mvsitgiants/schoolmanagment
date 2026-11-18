@@ -16,7 +16,7 @@ let physics
 let english
 beforeAll(async () => {
   app = await startDb()
-  const h = await newInstitution('STARTER')
+  const h = await newInstitution('GROWTH') // analytics is on Growth
   admin = await signIn(app, h.email, h.password)
   await admin.post('/api/v1/academics/classes/quick-setup').send({ preset: 'SENIOR', sectionsPerClass: 1, addSubjects: true }).expect(201)
   const data = (await admin.get('/api/v1/academics/classes')).body.data
@@ -100,6 +100,32 @@ describe('setting up, marking and printing', () => {
     const draft = (await admin.post(api).send({ name: 'Unit test', examTypeId: types.find((t) => t.code === 'UT').id, classIds: [cls.id] })).body.data
     await admin.put(`${api}/${draft.id}/classes/${cls.id}/papers`).send({ papers: [{ subjectId: english.subjectId, maxMarks: 25, passMarks: 9 }] }).expect(200)
     await admin.delete(`${api}/${draft.id}`).expect(200)
+  })
+
+  it('a practical on its own day gets its own row on the hall ticket', async () => {
+    const day = year.startDate
+    const later = (await admin.get(`${api}/${exam.id}`)).body.data
+    const next = new Date(`${day}T12:00:00Z`); next.setUTCDate(next.getUTCDate() + 3)
+    const practicalDay = next.toISOString().slice(0, 10)
+    await admin.put(`${api}/${exam.id}/classes/${cls.id}/papers`).send({ papers: [
+      { subjectId: physics.subjectId, date: day, startTime: '09:00', endTime: '12:00', maxMarks: 0, passMarks: 33, parts: [TH_PR[0], { ...TH_PR[1], date: practicalDay, startTime: '10:00', endTime: '12:00' }] },
+      { subjectId: english.subjectId, date: day, startTime: '13:00', endTime: '15:00', maxMarks: 80, passMarks: 27 },
+    ] }).expect(200)
+    const updated = (await admin.get(`${api}/${exam.id}`)).body.data
+    expect(updated.endDate).toBe(practicalDay) // the exam now runs to the practical
+    expect(later.endDate).toBe(day)
+    const candidates = (await admin.get(`${api}/${exam.id}/candidates?sectionId=${section.id}`)).body.data
+    const html = (await admin.get(`/api/v1/documents/HALL_TICKET/${candidates[0].id}?print=0`)).text
+    expect(html).toContain('Physics (Theory)')
+    expect(html).toContain('Physics (Practical)')
+    expect(html.indexOf('Physics (Theory)')).toBeLessThan(html.indexOf('Physics (Practical)')) // by date
+  })
+
+  it('analytics counts a failed part as a failed subject', async () => {
+    await admin.post(`${api}/${exam.id}/publish`).expect(200)
+    const a = (await admin.get('/api/v1/analytics/academics').query({ examId: exam.id })).body.data
+    const phy = a.subjects.find((x) => x.subjectId === physics.subjectId)
+    expect(phy).toMatchObject({ students: 2, passPct: 50, failed: 1 }) // Diya passed overall (48) but not theory
   })
 
   it('the report card shows the break-up, the failed part marked', async () => {

@@ -137,9 +137,11 @@
       "partName": "Part",
       "removePart": "Remove this part",
       "addPart": "Add a part",
-      "partsHint": "To pass, a student needs the pass marks in every part, and the pass marks overall.",
+      "partsHint": "To pass, a student needs the pass marks in every part, and the pass marks overall. Leave a part’s date empty when it is written with the paper.",
       "splitParts": "Mark in parts (theory + practical)…",
-      "maxFromParts": "The total of the parts"
+      "maxFromParts": "The total of the parts",
+      "partDate": "Date (if separate)",
+      "partDateHint": "Leave the date empty when the part is written with the paper. A practical on another day gets its own row on the hall ticket."
     },
     "hallTickets": {
       "title": "Hall tickets",

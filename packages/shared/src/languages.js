@@ -14,7 +14,7 @@ export const SUPPORTED_LANGUAGES = [
   // { code: 'gu', name: 'Gujarati', nativeName: 'ગુજરાતી', script: 'Gujarati', dir: 'ltr', font: "'Noto Sans Gujarati', sans-serif" },
   // { code: 'ta', name: 'Tamil', nativeName: 'தமிழ்', script: 'Tamil', dir: 'ltr', font: "'Noto Sans Tamil', sans-serif" },
   // { code: 'te', name: 'Telugu', nativeName: 'తెలుగు', script: 'Telugu', dir: 'ltr', font: "'Noto Sans Telugu', sans-serif" },
-  // { code: 'kn', name: 'Kannada', nativeName: 'ಕನ್ನಡ', script: 'Kannada', dir: 'ltr', font: "'Noto Sans Kannada', sans-serif" },
+  { code: 'kn', name: 'Kannada', nativeName: 'ಕನ್ನಡ', script: 'Kannada', dir: 'ltr', font: "'Noto Sans Kannada', sans-serif" },
   // { code: 'ml', name: 'Malayalam', nativeName: 'മലയാളം', script: 'Malayalam', dir: 'ltr', font: "'Noto Sans Malayalam', sans-serif" },
   // { code: 'bn', name: 'Bengali', nativeName: 'বাংলা', script: 'Bengali', dir: 'ltr', font: "'Noto Sans Bengali', sans-serif" },
 ]

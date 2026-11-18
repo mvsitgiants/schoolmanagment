@@ -3,230 +3,230 @@
     "events": {
       "portal_otp": {
         "SMS": {
-          "body": "{{otp.code}} is your code for {{institution.name}}. It is valid for {{otp.minutes}} minutes. Do not share it."
+          "body": "{{institution.name}} ಗಾಗಿ ನಿಮ್ಮ ಕೋಡ್ {{otp.code}}. ಇದು {{otp.minutes}} ನಿಮಿಷಗಳವರೆಗೆ ಮಾನ್ಯ. ಇದನ್ನು ಯಾರೊಂದಿಗೂ ಹಂಚಿಕೊಳ್ಳಬೇಡಿ."
         },
         "WHATSAPP": {
-          "body": "{{otp.code}} is your code for {{institution.name}}. It is valid for {{otp.minutes}} minutes. Do not share it."
+          "body": "{{institution.name}} ಗಾಗಿ ನಿಮ್ಮ ಕೋಡ್ {{otp.code}}. ಇದು {{otp.minutes}} ನಿಮಿಷಗಳವರೆಗೆ ಮಾನ್ಯ. ಇದನ್ನು ಯಾರೊಂದಿಗೂ ಹಂಚಿಕೊಳ್ಳಬೇಡಿ."
         },
         "EMAIL": {
-          "subject": "Your code for {{institution.name}}",
-          "body": "{{otp.code}} is your code. It is valid for {{otp.minutes}} minutes."
+          "subject": "{{institution.name}} ಗಾಗಿ ನಿಮ್ಮ ಕೋಡ್",
+          "body": "ನಿಮ್ಮ ಕೋಡ್ {{otp.code}}. ಇದು {{otp.minutes}} ನಿಮಿಷಗಳವರೆಗೆ ಮಾನ್ಯ."
         }
       },
       "attendance_absent": {
         "SMS": {
-          "body": "Dear Parent, {{student.name}} ({{student.class}}) is absent today, {{attendance.date}}. - {{institution.name}}"
+          "body": "ಆತ್ಮೀಯ ಪೋಷಕರೇ, {{student.name}} ({{student.class}}) ಇಂದು, {{attendance.date}} ರಂದು ಗೈರುಹಾಜರಾಗಿದ್ದಾರೆ. - {{institution.name}}"
         },
         "WHATSAPP": {
-          "body": "Dear {{guardian.name}},\n{{student.firstName}} ({{student.class}}) was marked absent today, {{attendance.date}}.\n\nIf this is unexpected, please call {{institution.phone}}.\n{{institution.name}}"
+          "body": "ಆತ್ಮೀಯ {{guardian.name}} ಅವರೇ,\n{{student.firstName}} ({{student.class}}) ಅವರನ್ನು ಇಂದು, {{attendance.date}} ರಂದು ಗೈರುಹಾಜರು ಎಂದು ಗುರುತಿಸಲಾಗಿದೆ.\n\nಇದು ನಿಮಗೆ ತಿಳಿದಿಲ್ಲದಿದ್ದರೆ, ದಯವಿಟ್ಟು {{institution.phone}} ಗೆ ಕರೆ ಮಾಡಿ.\n{{institution.name}}"
         },
         "EMAIL": {
-          "subject": "{{student.firstName}} is absent today",
-          "body": "Dear {{guardian.name}},\n\n{{student.name}} ({{student.class}}) was marked absent today, {{attendance.date}}.\nIf this is unexpected, please call {{institution.phone}}.\n\n{{institution.name}}"
+          "subject": "{{student.firstName}} ಇಂದು ಗೈರುಹಾಜರಾಗಿದ್ದಾರೆ",
+          "body": "ಆತ್ಮೀಯ {{guardian.name}} ಅವರೇ,\n\n{{student.name}} ({{student.class}}) ಅವರನ್ನು ಇಂದು, {{attendance.date}} ರಂದು ಗೈರುಹಾಜರು ಎಂದು ಗುರುತಿಸಲಾಗಿದೆ.\nಇದು ನಿಮಗೆ ತಿಳಿದಿಲ್ಲದಿದ್ದರೆ, ದಯವಿಟ್ಟು {{institution.phone}} ಗೆ ಕರೆ ಮಾಡಿ.\n\n{{institution.name}}"
         }
       },
       "attendance_arrived": {
         "SMS": {
-          "body": "{{student.firstName}} ({{student.class}}) reached school at {{attendance.time}}, {{attendance.date}}. - {{institution.name}}"
+          "body": "{{student.firstName}} ({{student.class}}) {{attendance.date}} ರಂದು {{attendance.time}} ಗಂಟೆಗೆ ಶಾಲೆ ತಲುಪಿದ್ದಾರೆ. - {{institution.name}}"
         },
         "WHATSAPP": {
-          "body": "Dear {{guardian.name}},\n{{student.firstName}} ({{student.class}}) reached school at {{attendance.time}} today.\n\n{{institution.name}}"
+          "body": "ಆತ್ಮೀಯ {{guardian.name}} ಅವರೇ,\n{{student.firstName}} ({{student.class}}) ಇಂದು {{attendance.time}} ಗಂಟೆಗೆ ಶಾಲೆ ತಲುಪಿದ್ದಾರೆ.\n\n{{institution.name}}"
         },
         "EMAIL": {
-          "subject": "{{student.firstName}} reached school",
-          "body": "Dear {{guardian.name}},\n\n{{student.name}} ({{student.class}}) reached school at {{attendance.time}} on {{attendance.date}}.\n\n{{institution.name}}"
+          "subject": "{{student.firstName}} ಶಾಲೆ ತಲುಪಿದ್ದಾರೆ",
+          "body": "ಆತ್ಮೀಯ {{guardian.name}} ಅವರೇ,\n\n{{student.name}} ({{student.class}}) {{attendance.date}} ರಂದು {{attendance.time}} ಗಂಟೆಗೆ ಶಾಲೆ ತಲುಪಿದ್ದಾರೆ.\n\n{{institution.name}}"
         }
       },
       "attendance_pickedUp": {
         "SMS": {
-          "body": "{{student.firstName}} ({{student.class}}) was picked up by {{pickup.person}} at {{pickup.time}}. - {{institution.name}}"
+          "body": "{{student.firstName}} ({{student.class}}) ಅವರನ್ನು {{pickup.time}} ಗಂಟೆಗೆ {{pickup.person}} ಕರೆದೊಯ್ದಿದ್ದಾರೆ. - {{institution.name}}"
         },
         "WHATSAPP": {
-          "body": "Dear {{guardian.name}},\n{{student.firstName}} ({{student.class}}) was handed over to {{pickup.person}} at {{pickup.time}} on your early-pickup pass.\n\nIf you didn’t send them, call {{institution.phone}} at once.\n{{institution.name}}"
+          "body": "ಆತ್ಮೀಯ {{guardian.name}} ಅವರೇ,\nನಿಮ್ಮ ಬೇಗನೆ ಕರೆದೊಯ್ಯುವ ಪಾಸ್ ಆಧಾರದ ಮೇಲೆ {{student.firstName}} ({{student.class}}) ಅವರನ್ನು {{pickup.time}} ಗಂಟೆಗೆ {{pickup.person}} ಅವರಿಗೆ ಒಪ್ಪಿಸಲಾಗಿದೆ.\n\nನೀವು ಅವರನ್ನು ಕಳುಹಿಸಿಲ್ಲದಿದ್ದರೆ, ತಕ್ಷಣ {{institution.phone}} ಗೆ ಕರೆ ಮಾಡಿ.\n{{institution.name}}"
         },
         "EMAIL": {
-          "subject": "{{student.firstName}} was picked up early",
-          "body": "Dear {{guardian.name}},\n\n{{student.name}} ({{student.class}}) was handed over to {{pickup.person}} at {{pickup.time}} on your early-pickup pass.\nIf you didn’t send them, call {{institution.phone}} at once.\n\n{{institution.name}}"
+          "subject": "{{student.firstName}} ಅವರನ್ನು ಬೇಗನೆ ಕರೆದೊಯ್ಯಲಾಗಿದೆ",
+          "body": "ಆತ್ಮೀಯ {{guardian.name}} ಅವರೇ,\n\nನಿಮ್ಮ ಬೇಗನೆ ಕರೆದೊಯ್ಯುವ ಪಾಸ್ ಆಧಾರದ ಮೇಲೆ {{student.name}} ({{student.class}}) ಅವರನ್ನು {{pickup.time}} ಗಂಟೆಗೆ {{pickup.person}} ಅವರಿಗೆ ಒಪ್ಪಿಸಲಾಗಿದೆ.\nನೀವು ಅವರನ್ನು ಕಳುಹಿಸಿಲ್ಲದಿದ್ದರೆ, ತಕ್ಷಣ {{institution.phone}} ಗೆ ಕರೆ ಮಾಡಿ.\n\n{{institution.name}}"
         }
       },
       "fees_receipt": {
         "SMS": {
-          "body": "Received {{receipt.amount}} for {{student.name}} ({{student.admissionNo}}), receipt {{receipt.no}}. Balance {{fees.due}}. - {{institution.name}}"
+          "body": "{{student.name}} ({{student.admissionNo}}) ಅವರ ಶುಲ್ಕ {{receipt.amount}} ಸ್ವೀಕರಿಸಲಾಗಿದೆ, ರಸೀದಿ {{receipt.no}}. ಬಾಕಿ {{fees.due}}. - {{institution.name}}"
         },
         "WHATSAPP": {
-          "body": "Dear {{guardian.name}},\nThank you. We received {{receipt.amount}} for {{student.name}} on {{receipt.date}}.\n\nReceipt: {{receipt.no}}\nBalance due: {{fees.due}}\n\n{{institution.name}}"
+          "body": "ಆತ್ಮೀಯ {{guardian.name}} ಅವರೇ,\nಧನ್ಯವಾದಗಳು. {{student.name}} ಅವರ ಶುಲ್ಕ {{receipt.amount}} ಅನ್ನು {{receipt.date}} ರಂದು ಸ್ವೀಕರಿಸಲಾಗಿದೆ.\n\nರಸೀದಿ: {{receipt.no}}\nಉಳಿದ ಬಾಕಿ: {{fees.due}}\n\n{{institution.name}}"
         },
         "EMAIL": {
-          "subject": "Fee receipt {{receipt.no}} — {{student.name}}",
-          "body": "Dear {{guardian.name}},\n\nWe received {{receipt.amount}} for {{student.name}} ({{student.admissionNo}}) on {{receipt.date}}.\nReceipt: {{receipt.no}}\nBalance due: {{fees.due}}\n\nThank you,\n{{institution.name}}"
+          "subject": "ಶುಲ್ಕ ರಸೀದಿ {{receipt.no}} — {{student.name}}",
+          "body": "ಆತ್ಮೀಯ {{guardian.name}} ಅವರೇ,\n\n{{student.name}} ({{student.admissionNo}}) ಅವರ ಶುಲ್ಕ {{receipt.amount}} ಅನ್ನು {{receipt.date}} ರಂದು ಸ್ವೀಕರಿಸಲಾಗಿದೆ.\nರಸೀದಿ: {{receipt.no}}\nಉಳಿದ ಬಾಕಿ: {{fees.due}}\n\nಧನ್ಯವಾದಗಳು,\n{{institution.name}}"
         }
       },
       "fees_due_reminder": {
         "SMS": {
-          "body": "Dear Parent, fees of {{fees.due}} for {{student.name}} are due by {{fees.dueDate}}. Pay online: {{pay.link}} - {{institution.name}}"
+          "body": "ಆತ್ಮೀಯ ಪೋಷಕರೇ, {{student.name}} ಅವರ {{fees.due}} ಶುಲ್ಕವನ್ನು {{fees.dueDate}} ರೊಳಗೆ ಪಾವತಿಸಬೇಕಿದೆ. ಆನ್‌ಲೈನ್‌ನಲ್ಲಿ ಪಾವತಿಸಿ: {{pay.link}} - {{institution.name}}"
         },
         "WHATSAPP": {
-          "body": "Dear {{guardian.name}},\nA gentle reminder: fees of {{fees.due}} for {{student.firstName}} ({{student.class}}) are due by {{fees.dueDate}}.\n\nPay online: {{pay.link}}\n\n{{institution.name}}"
+          "body": "ಆತ್ಮೀಯ {{guardian.name}} ಅವರೇ,\nಒಂದು ವಿನಮ್ರ ಜ್ಞಾಪನೆ: {{student.firstName}} ({{student.class}}) ಅವರ {{fees.due}} ಶುಲ್ಕವನ್ನು {{fees.dueDate}} ರೊಳಗೆ ಪಾವತಿಸಬೇಕಿದೆ.\n\nಆನ್‌ಲೈನ್‌ನಲ್ಲಿ ಪಾವತಿಸಿ: {{pay.link}}\n\n{{institution.name}}"
         },
         "EMAIL": {
-          "subject": "Fees due by {{fees.dueDate}} — {{student.name}}",
-          "body": "Dear {{guardian.name}},\n\nFees of {{fees.due}} for {{student.name}} ({{student.class}}) are due by {{fees.dueDate}}.\nYou can pay online here: {{pay.link}}\n\n{{institution.name}}"
+          "subject": "{{fees.dueDate}} ರೊಳಗೆ ಶುಲ್ಕ ಪಾವತಿಸಿ — {{student.name}}",
+          "body": "ಆತ್ಮೀಯ {{guardian.name}} ಅವರೇ,\n\n{{student.name}} ({{student.class}}) ಅವರ {{fees.due}} ಶುಲ್ಕವನ್ನು {{fees.dueDate}} ರೊಳಗೆ ಪಾವತಿಸಬೇಕಿದೆ.\nನೀವು ಇಲ್ಲಿ ಆನ್‌ಲೈನ್‌ನಲ್ಲಿ ಪಾವತಿಸಬಹುದು: {{pay.link}}\n\n{{institution.name}}"
         }
       },
       "exams_results_published": {
         "SMS": {
-          "body": "Results of {{exam.name}} for {{student.name}} are out: {{result.link}} - {{institution.name}}"
+          "body": "{{student.name}} ಅವರ {{exam.name}} ಫಲಿತಾಂಶ ಪ್ರಕಟವಾಗಿದೆ: {{result.link}} - {{institution.name}}"
         },
         "WHATSAPP": {
-          "body": "Dear {{guardian.name}},\nThe {{exam.name}} report card of {{student.firstName}} is ready.\n\nView it: {{result.link}}\n\n{{institution.name}}"
+          "body": "ಆತ್ಮೀಯ {{guardian.name}} ಅವರೇ,\n{{student.firstName}} ಅವರ {{exam.name}} ಪ್ರಗತಿ ಪತ್ರ ಸಿದ್ಧವಾಗಿದೆ.\n\nಇಲ್ಲಿ ನೋಡಿ: {{result.link}}\n\n{{institution.name}}"
         },
         "EMAIL": {
-          "subject": "{{exam.name}} report card — {{student.name}}",
-          "body": "Dear {{guardian.name}},\n\nThe {{exam.name}} report card of {{student.name}} ({{student.class}}) is ready.\nView and download it here: {{result.link}}\n\n{{institution.name}}"
+          "subject": "{{exam.name}} ಪ್ರಗತಿ ಪತ್ರ — {{student.name}}",
+          "body": "ಆತ್ಮೀಯ {{guardian.name}} ಅವರೇ,\n\n{{student.name}} ({{student.class}}) ಅವರ {{exam.name}} ಪ್ರಗತಿ ಪತ್ರ ಸಿದ್ಧವಾಗಿದೆ.\nಇಲ್ಲಿ ನೋಡಿ ಮತ್ತು ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ: {{result.link}}\n\n{{institution.name}}"
         }
       },
       "homework_assigned": {
         "SMS": {
-          "body": "{{homework.subject}} homework for {{student.firstName}}: {{homework.title}}, due {{homework.dueDate}}. - {{institution.name}}"
+          "body": "{{student.firstName}} ಅವರಿಗೆ {{homework.subject}} ಮನೆಗೆಲಸ: {{homework.title}}, ಸಲ್ಲಿಕೆ ದಿನಾಂಕ {{homework.dueDate}}. - {{institution.name}}"
         },
         "WHATSAPP": {
-          "body": "Dear {{guardian.name}},\n{{homework.subject}} homework for {{student.firstName}} ({{student.class}}):\n{{homework.title}}\n\nDue: {{homework.dueDate}}\n\n{{institution.name}}"
+          "body": "ಆತ್ಮೀಯ {{guardian.name}} ಅವರೇ,\n{{student.firstName}} ({{student.class}}) ಅವರಿಗೆ {{homework.subject}} ಮನೆಗೆಲಸ:\n{{homework.title}}\n\nಸಲ್ಲಿಕೆ ದಿನಾಂಕ: {{homework.dueDate}}\n\n{{institution.name}}"
         },
         "EMAIL": {
-          "subject": "{{homework.subject}} homework — {{student.name}}",
-          "body": "Dear {{guardian.name}},\n\n{{homework.subject}} homework has been set for {{student.name}} ({{student.class}}):\n{{homework.title}}\n\nDue: {{homework.dueDate}}\n\n{{institution.name}}"
+          "subject": "{{homework.subject}} ಮನೆಗೆಲಸ — {{student.name}}",
+          "body": "ಆತ್ಮೀಯ {{guardian.name}} ಅವರೇ,\n\n{{student.name}} ({{student.class}}) ಅವರಿಗೆ {{homework.subject}} ಮನೆಗೆಲಸ ನೀಡಲಾಗಿದೆ:\n{{homework.title}}\n\nಸಲ್ಲಿಕೆ ದಿನಾಂಕ: {{homework.dueDate}}\n\n{{institution.name}}"
         }
       },
       "lms_live_class": {
         "SMS": {
-          "body": "{{live.subject}} live class for {{student.firstName}} {{live.status}}: {{live.date}} {{live.time}}. Join in the app. - {{institution.name}}"
+          "body": "{{student.firstName}} ಅವರ {{live.subject}} ನೇರ ತರಗತಿ: {{live.status}} — {{live.date}} {{live.time}}. ಆ್ಯಪ್‌ನಲ್ಲಿ ಸೇರಿ. - {{institution.name}}"
         },
         "WHATSAPP": {
-          "body": "Dear {{guardian.name}},\n{{live.subject}} live class for {{student.firstName}} ({{student.class}}) {{live.status}}:\n{{live.title}}\n\n{{live.date}} at {{live.time}}\nJoin from the app: {{live.link}}\n\n{{institution.name}}"
+          "body": "ಆತ್ಮೀಯ {{guardian.name}} ಅವರೇ,\n{{student.firstName}} ({{student.class}}) ಅವರ {{live.subject}} ನೇರ ತರಗತಿ: {{live.status}}\n{{live.title}}\n\n{{live.date}}, {{live.time}} ಗಂಟೆಗೆ\nಆ್ಯಪ್‌ನಿಂದ ಸೇರಿ: {{live.link}}\n\n{{institution.name}}"
         },
         "EMAIL": {
-          "subject": "{{live.subject}} live class — {{live.date}}",
-          "body": "Dear {{guardian.name}},\n\nA {{live.subject}} live class for {{student.name}} ({{student.class}}) {{live.status}}:\n{{live.title}}\n{{live.date}} at {{live.time}}\n\nJoin from the app: {{live.link}}\n\n{{institution.name}}"
+          "subject": "{{live.subject}} ನೇರ ತರಗತಿ — {{live.date}}",
+          "body": "ಆತ್ಮೀಯ {{guardian.name}} ಅವರೇ,\n\n{{student.name}} ({{student.class}}) ಅವರ {{live.subject}} ನೇರ ತರಗತಿ: {{live.status}}\n{{live.title}}\n{{live.date}}, {{live.time}} ಗಂಟೆಗೆ\n\nಆ್ಯಪ್‌ನಿಂದ ಸೇರಿ: {{live.link}}\n\n{{institution.name}}"
         }
       },
       "tests_published": {
         "SMS": {
-          "body": "{{test.subject}} online test for {{student.firstName}}: {{test.title}}, {{test.opens}} to {{test.closes}}. - {{institution.name}}"
+          "body": "{{student.firstName}} ಅವರಿಗೆ {{test.subject}} ಆನ್‌ಲೈನ್ ಪರೀಕ್ಷೆ: {{test.title}}, {{test.opens}} ರಿಂದ {{test.closes}} ರವರೆಗೆ. - {{institution.name}}"
         },
         "WHATSAPP": {
-          "body": "Dear {{guardian.name}},\nAn online {{test.subject}} test for {{student.firstName}} ({{student.class}}):\n{{test.title}} — {{test.minutes}} minutes\n\nOpen from {{test.opens}} to {{test.closes}}\nIn the app: {{test.link}}\n\n{{institution.name}}"
+          "body": "ಆತ್ಮೀಯ {{guardian.name}} ಅವರೇ,\n{{student.firstName}} ({{student.class}}) ಅವರಿಗೆ {{test.subject}} ಆನ್‌ಲೈನ್ ಪರೀಕ್ಷೆ:\n{{test.title}} — {{test.minutes}} ನಿಮಿಷಗಳು\n\n{{test.opens}} ರಿಂದ {{test.closes}} ರವರೆಗೆ ತೆರೆದಿರುತ್ತದೆ\nಆ್ಯಪ್‌ನಲ್ಲಿ: {{test.link}}\n\n{{institution.name}}"
         },
         "EMAIL": {
-          "subject": "Online test: {{test.title}}",
-          "body": "Dear {{guardian.name}},\n\nAn online {{test.subject}} test for {{student.name}} ({{student.class}}): {{test.title}}, {{test.minutes}} minutes.\nIt can be taken from {{test.opens}} to {{test.closes}} in the app: {{test.link}}\n\n{{institution.name}}"
+          "subject": "ಆನ್‌ಲೈನ್ ಪರೀಕ್ಷೆ: {{test.title}}",
+          "body": "ಆತ್ಮೀಯ {{guardian.name}} ಅವರೇ,\n\n{{student.name}} ({{student.class}}) ಅವರಿಗೆ {{test.subject}} ಆನ್‌ಲೈನ್ ಪರೀಕ್ಷೆ: {{test.title}}, {{test.minutes}} ನಿಮಿಷಗಳು.\nಇದನ್ನು {{test.opens}} ರಿಂದ {{test.closes}} ರವರೆಗೆ ಆ್ಯಪ್‌ನಲ್ಲಿ ಬರೆಯಬಹುದು: {{test.link}}\n\n{{institution.name}}"
         }
       },
       "transport_near": {
         "SMS": {
-          "body": "School bus ({{bus.route}}) is about {{bus.minutes}} min from {{bus.stop}}. - {{institution.name}}"
+          "body": "ಶಾಲಾ ಬಸ್ ({{bus.route}}) {{bus.stop}} ನಿಲ್ದಾಣದಿಂದ ಸುಮಾರು {{bus.minutes}} ನಿಮಿಷ ದೂರದಲ್ಲಿದೆ. - {{institution.name}}"
         },
         "WHATSAPP": {
-          "body": "Dear {{guardian.name}},\nThe school bus ({{bus.route}}, {{bus.vehicle}}) is about {{bus.minutes}} minutes from {{bus.stop}} for the {{bus.trip}}.\n\n{{institution.name}}"
+          "body": "ಆತ್ಮೀಯ {{guardian.name}} ಅವರೇ,\n{{bus.trip}} ಶಾಲಾ ಬಸ್ ({{bus.route}}, {{bus.vehicle}}) {{bus.stop}} ನಿಲ್ದಾಣದಿಂದ ಸುಮಾರು {{bus.minutes}} ನಿಮಿಷ ದೂರದಲ್ಲಿದೆ.\n\n{{institution.name}}"
         },
         "EMAIL": {
-          "subject": "School bus near {{bus.stop}}",
-          "body": "Dear {{guardian.name}},\n\nThe school bus ({{bus.route}}) is about {{bus.minutes}} minutes from {{bus.stop}}.\n\n{{institution.name}}"
+          "subject": "ಶಾಲಾ ಬಸ್ {{bus.stop}} ನಿಲ್ದಾಣದ ಹತ್ತಿರದಲ್ಲಿದೆ",
+          "body": "ಆತ್ಮೀಯ {{guardian.name}} ಅವರೇ,\n\nಶಾಲಾ ಬಸ್ ({{bus.route}}) {{bus.stop}} ನಿಲ್ದಾಣದಿಂದ ಸುಮಾರು {{bus.minutes}} ನಿಮಿಷ ದೂರದಲ್ಲಿದೆ.\n\n{{institution.name}}"
         }
       },
       "transport_ride": {
         "SMS": {
-          "body": "{{student.firstName}} {{bus.event}} the school bus at {{bus.stop}}, {{bus.time}}. - {{institution.name}}"
+          "body": "{{student.firstName}} — ಶಾಲಾ ಬಸ್: {{bus.event}}, {{bus.stop}}, {{bus.time}}. - {{institution.name}}"
         },
         "WHATSAPP": {
-          "body": "Dear {{guardian.name}},\n{{student.firstName}} {{bus.event}} the school bus ({{bus.route}}) at {{bus.stop}}, {{bus.time}}.\n\n{{institution.name}}"
+          "body": "ಆತ್ಮೀಯ {{guardian.name}} ಅವರೇ,\n{{student.firstName}} — ಶಾಲಾ ಬಸ್ ({{bus.route}}): {{bus.event}}, {{bus.stop}}, {{bus.time}}.\n\n{{institution.name}}"
         },
         "EMAIL": {
-          "subject": "{{student.firstName}} — school bus",
-          "body": "Dear {{guardian.name}},\n\n{{student.name}} {{bus.event}} the school bus ({{bus.route}}) at {{bus.stop}}, {{bus.time}}.\n\n{{institution.name}}"
+          "subject": "{{student.firstName}} — ಶಾಲಾ ಬಸ್",
+          "body": "ಆತ್ಮೀಯ {{guardian.name}} ಅವರೇ,\n\n{{student.name}} — ಶಾಲಾ ಬಸ್ ({{bus.route}}): {{bus.event}}, {{bus.stop}}, {{bus.time}}.\n\n{{institution.name}}"
         }
       },
       "library_due": {
         "SMS": {
-          "body": "{{student.firstName}}: library book \"{{library.title}}\" is due back on {{library.dueDate}}. - {{institution.name}}"
+          "body": "{{student.firstName}}: ಗ್ರಂಥಾಲಯದ ಪುಸ್ತಕ \"{{library.title}}\" ಅನ್ನು {{library.dueDate}} ರಂದು ಹಿಂದಿರುಗಿಸಬೇಕು. - {{institution.name}}"
         },
         "WHATSAPP": {
-          "body": "Dear {{guardian.name}},\n{{student.firstName}}’s library book “{{library.title}}” is due back on {{library.dueDate}}.\n\n{{institution.name}}"
+          "body": "ಆತ್ಮೀಯ {{guardian.name}} ಅವರೇ,\n{{student.firstName}} ಅವರು ಪಡೆದಿರುವ ಗ್ರಂಥಾಲಯದ ಪುಸ್ತಕ “{{library.title}}” ಅನ್ನು {{library.dueDate}} ರಂದು ಹಿಂದಿರುಗಿಸಬೇಕು.\n\n{{institution.name}}"
         },
         "EMAIL": {
-          "subject": "Library book due — {{library.title}}",
-          "body": "Dear {{guardian.name}},\n\n{{student.name}}’s library book “{{library.title}}” is due back on {{library.dueDate}}.\n\n{{institution.name}}"
+          "subject": "ಗ್ರಂಥಾಲಯದ ಪುಸ್ತಕ ಹಿಂದಿರುಗಿಸುವ ದಿನಾಂಕ — {{library.title}}",
+          "body": "ಆತ್ಮೀಯ {{guardian.name}} ಅವರೇ,\n\n{{student.name}} ಅವರು ಪಡೆದಿರುವ ಗ್ರಂಥಾಲಯದ ಪುಸ್ತಕ “{{library.title}}” ಅನ್ನು {{library.dueDate}} ರಂದು ಹಿಂದಿರುಗಿಸಬೇಕು.\n\n{{institution.name}}"
         }
       },
       "library_overdue": {
         "SMS": {
-          "body": "{{student.firstName}}: library book \"{{library.title}}\" was due on {{library.dueDate}} ({{library.days}} days late, fine {{library.fine}}). - {{institution.name}}"
+          "body": "{{student.firstName}}: ಗ್ರಂಥಾಲಯದ ಪುಸ್ತಕ \"{{library.title}}\" ಅನ್ನು {{library.dueDate}} ರಂದು ಹಿಂದಿರುಗಿಸಬೇಕಿತ್ತು ({{library.days}} ದಿನ ತಡ, ದಂಡ {{library.fine}}). - {{institution.name}}"
         },
         "WHATSAPP": {
-          "body": "Dear {{guardian.name}},\n{{student.firstName}}’s library book “{{library.title}}” was due back on {{library.dueDate}} and is {{library.days}} days late. Fine so far: {{library.fine}}.\n\nPlease return it to the library.\n{{institution.name}}"
+          "body": "ಆತ್ಮೀಯ {{guardian.name}} ಅವರೇ,\n{{student.firstName}} ಅವರು ಪಡೆದಿರುವ ಗ್ರಂಥಾಲಯದ ಪುಸ್ತಕ “{{library.title}}” ಅನ್ನು {{library.dueDate}} ರಂದು ಹಿಂದಿರುಗಿಸಬೇಕಿತ್ತು; ಈಗ {{library.days}} ದಿನ ತಡವಾಗಿದೆ. ಇದುವರೆಗಿನ ದಂಡ: {{library.fine}}.\n\nದಯವಿಟ್ಟು ಪುಸ್ತಕವನ್ನು ಗ್ರಂಥಾಲಯಕ್ಕೆ ಹಿಂದಿರುಗಿಸಿ.\n{{institution.name}}"
         },
         "EMAIL": {
-          "subject": "Library book overdue — {{library.title}}",
-          "body": "Dear {{guardian.name}},\n\n{{student.name}}’s library book “{{library.title}}” was due back on {{library.dueDate}} and is {{library.days}} days late. Fine so far: {{library.fine}}.\n\n{{institution.name}}"
+          "subject": "ಗ್ರಂಥಾಲಯದ ಪುಸ್ತಕ ಹಿಂದಿರುಗಿಸುವುದು ತಡವಾಗಿದೆ — {{library.title}}",
+          "body": "ಆತ್ಮೀಯ {{guardian.name}} ಅವರೇ,\n\n{{student.name}} ಅವರು ಪಡೆದಿರುವ ಗ್ರಂಥಾಲಯದ ಪುಸ್ತಕ “{{library.title}}” ಅನ್ನು {{library.dueDate}} ರಂದು ಹಿಂದಿರುಗಿಸಬೇಕಿತ್ತು; ಈಗ {{library.days}} ದಿನ ತಡವಾಗಿದೆ. ಇದುವರೆಗಿನ ದಂಡ: {{library.fine}}.\n\n{{institution.name}}"
         }
       },
       "events_announced": {
         "SMS": {
-          "body": "{{event.title}} on {{event.date}} {{event.time}} at {{event.venue}}. - {{institution.name}}"
+          "body": "{{event.title}}: {{event.date}} {{event.time}}, ಸ್ಥಳ: {{event.venue}}. - {{institution.name}}"
         },
         "WHATSAPP": {
-          "body": "Dear {{guardian.name}},\n{{event.title}}: {{event.date}} {{event.time}}, {{event.venue}}.\n\nDetails: {{event.link}}\n{{institution.name}}"
+          "body": "ಆತ್ಮೀಯ {{guardian.name}} ಅವರೇ,\n{{event.title}}: {{event.date}} {{event.time}}, {{event.venue}}.\n\nವಿವರಗಳು: {{event.link}}\n{{institution.name}}"
         },
         "EMAIL": {
           "subject": "{{event.title}} — {{event.date}}",
-          "body": "Dear {{guardian.name}},\n\n{{event.title}}\nWhen: {{event.date}} {{event.time}}\nWhere: {{event.venue}}\n\nDetails: {{event.link}}\n\n{{institution.name}}"
+          "body": "ಆತ್ಮೀಯ {{guardian.name}} ಅವರೇ,\n\n{{event.title}}\nಯಾವಾಗ: {{event.date}} {{event.time}}\nಎಲ್ಲಿ: {{event.venue}}\n\nವಿವರಗಳು: {{event.link}}\n\n{{institution.name}}"
         }
       },
       "events_reply": {
         "SMS": {
-          "body": "{{event.title}} ({{event.date}}): {{event.question}} Reply in the app by {{event.replyBy}}: {{event.link}} - {{institution.name}}"
+          "body": "{{event.title}} ({{event.date}}): {{event.question}} {{event.replyBy}} ರೊಳಗೆ ಆ್ಯಪ್‌ನಲ್ಲಿ ಉತ್ತರಿಸಿ: {{event.link}} - {{institution.name}}"
         },
         "WHATSAPP": {
-          "body": "Dear {{guardian.name}},\n{{event.title}} on {{event.date}}.\n\n{{event.question}}\nPlease reply in the app by {{event.replyBy}}: {{event.link}}\n\n{{institution.name}}"
+          "body": "ಆತ್ಮೀಯ {{guardian.name}} ಅವರೇ,\n{{event.title}}, {{event.date}} ರಂದು.\n\n{{event.question}}\nದಯವಿಟ್ಟು {{event.replyBy}} ರೊಳಗೆ ಆ್ಯಪ್‌ನಲ್ಲಿ ಉತ್ತರಿಸಿ: {{event.link}}\n\n{{institution.name}}"
         },
         "EMAIL": {
-          "subject": "Please reply — {{event.title}}",
-          "body": "Dear {{guardian.name}},\n\n{{event.title}} on {{event.date}}.\n{{event.question}}\nPlease reply in the app by {{event.replyBy}}: {{event.link}}\n\n{{institution.name}}"
+          "subject": "ದಯವಿಟ್ಟು ಉತ್ತರಿಸಿ — {{event.title}}",
+          "body": "ಆತ್ಮೀಯ {{guardian.name}} ಅವರೇ,\n\n{{event.title}}, {{event.date}} ರಂದು.\n{{event.question}}\nದಯವಿಟ್ಟು {{event.replyBy}} ರೊಳಗೆ ಆ್ಯಪ್‌ನಲ್ಲಿ ಉತ್ತರಿಸಿ: {{event.link}}\n\n{{institution.name}}"
         }
       },
       "events_reminder": {
         "SMS": {
-          "body": "Reminder: {{event.title}} tomorrow {{event.time}} at {{event.venue}}. - {{institution.name}}"
+          "body": "ಜ್ಞಾಪನೆ: {{event.title}} ನಾಳೆ {{event.time}}, ಸ್ಥಳ: {{event.venue}}. - {{institution.name}}"
         },
         "WHATSAPP": {
-          "body": "Dear {{guardian.name}},\nA reminder: {{event.title}} is tomorrow, {{event.date}} {{event.time}}, {{event.venue}}.\n\n{{institution.name}}"
+          "body": "ಆತ್ಮೀಯ {{guardian.name}} ಅವರೇ,\nಜ್ಞಾಪನೆ: {{event.title}} ನಾಳೆ, {{event.date}} {{event.time}}, {{event.venue}}.\n\n{{institution.name}}"
         },
         "EMAIL": {
-          "subject": "Tomorrow: {{event.title}}",
-          "body": "Dear {{guardian.name}},\n\nA reminder: {{event.title}} is tomorrow, {{event.date}} {{event.time}}, {{event.venue}}.\n\n{{institution.name}}"
+          "subject": "ನಾಳೆ: {{event.title}}",
+          "body": "ಆತ್ಮೀಯ {{guardian.name}} ಅವರೇ,\n\nಜ್ಞಾಪನೆ: {{event.title}} ನಾಳೆ, {{event.date}} {{event.time}}, {{event.venue}}.\n\n{{institution.name}}"
         }
       },
       "events_ptm_open": {
         "SMS": {
-          "body": "{{ptm.title}} on {{ptm.date}}. Book a slot in the app by {{ptm.bookBy}}: {{ptm.link}} - {{institution.name}}"
+          "body": "{{ptm.title}}, {{ptm.date}} ರಂದು. {{ptm.bookBy}} ರೊಳಗೆ ಆ್ಯಪ್‌ನಲ್ಲಿ ಸಮಯ ಕಾಯ್ದಿರಿಸಿ: {{ptm.link}} - {{institution.name}}"
         },
         "WHATSAPP": {
-          "body": "Dear {{guardian.name}},\n{{ptm.title}} is on {{ptm.date}}. Please book a time to meet {{student.firstName}}’s teachers by {{ptm.bookBy}}:\n{{ptm.link}}\n\n{{institution.name}}"
+          "body": "ಆತ್ಮೀಯ {{guardian.name}} ಅವರೇ,\n{{ptm.title}} {{ptm.date}} ರಂದು ನಡೆಯಲಿದೆ. {{student.firstName}} ಅವರ ಶಿಕ್ಷಕರನ್ನು ಭೇಟಿಯಾಗಲು ದಯವಿಟ್ಟು {{ptm.bookBy}} ರೊಳಗೆ ಸಮಯ ಕಾಯ್ದಿರಿಸಿ:\n{{ptm.link}}\n\n{{institution.name}}"
         },
         "EMAIL": {
-          "subject": "{{ptm.title}} — book a slot",
-          "body": "Dear {{guardian.name}},\n\n{{ptm.title}} is on {{ptm.date}}. Please book a time by {{ptm.bookBy}}: {{ptm.link}}\n\n{{institution.name}}"
+          "subject": "{{ptm.title}} — ಸಮಯ ಕಾಯ್ದಿರಿಸಿ",
+          "body": "ಆತ್ಮೀಯ {{guardian.name}} ಅವರೇ,\n\n{{ptm.title}} {{ptm.date}} ರಂದು ನಡೆಯಲಿದೆ. ದಯವಿಟ್ಟು {{ptm.bookBy}} ರೊಳಗೆ ಸಮಯ ಕಾಯ್ದಿರಿಸಿ: {{ptm.link}}\n\n{{institution.name}}"
         }
       },
       "events_ptm_booked": {
         "SMS": {
-          "body": "{{ptm.title}}: meet {{ptm.teacher}} on {{ptm.date}} at {{ptm.time}}, {{ptm.room}}. - {{institution.name}}"
+          "body": "{{ptm.title}}: {{ptm.teacher}} ಅವರೊಂದಿಗೆ ಭೇಟಿ — {{ptm.date}}, {{ptm.time}} ಗಂಟೆಗೆ, {{ptm.room}}. - {{institution.name}}"
         },
         "WHATSAPP": {
-          "body": "Dear {{guardian.name}},\nYour meeting with {{ptm.teacher}} about {{student.firstName}}: {{ptm.date}} at {{ptm.time}}, {{ptm.room}}.\n\n{{institution.name}}"
+          "body": "ಆತ್ಮೀಯ {{guardian.name}} ಅವರೇ,\n{{student.firstName}} ಕುರಿತು {{ptm.teacher}} ಅವರೊಂದಿಗೆ ನಿಮ್ಮ ಭೇಟಿ: {{ptm.date}}, {{ptm.time}} ಗಂಟೆಗೆ, {{ptm.room}}.\n\n{{institution.name}}"
         },
         "EMAIL": {
           "subject": "{{ptm.title}} — {{ptm.date}} {{ptm.time}}",
-          "body": "Dear {{guardian.name}},\n\nYour meeting with {{ptm.teacher}} about {{student.name}}: {{ptm.date}} at {{ptm.time}}, {{ptm.room}}.\n\n{{institution.name}}"
+          "body": "ಆತ್ಮೀಯ {{guardian.name}} ಅವರೇ,\n\n{{student.name}} ಕುರಿತು {{ptm.teacher}} ಅವರೊಂದಿಗೆ ನಿಮ್ಮ ಭೇಟಿ: {{ptm.date}}, {{ptm.time}} ಗಂಟೆಗೆ, {{ptm.room}}.\n\n{{institution.name}}"
         }
       },
       "communication_message": {
@@ -234,297 +234,297 @@
           "body": "{{message.text}} - {{institution.name}}"
         },
         "WHATSAPP": {
-          "body": "Dear {{guardian.name}},\n{{message.text}}\n\n{{institution.name}}"
+          "body": "ಆತ್ಮೀಯ {{guardian.name}} ಅವರೇ,\n{{message.text}}\n\n{{institution.name}}"
         },
         "EMAIL": {
           "subject": "{{message.subject}} — {{institution.name}}",
-          "body": "Dear {{guardian.name}},\n\n{{message.text}}\n\n{{institution.name}}"
+          "body": "ಆತ್ಮೀಯ {{guardian.name}} ಅವರೇ,\n\n{{message.text}}\n\n{{institution.name}}"
         }
       },
       "communication_chat": {
         "SMS": {
-          "body": "{{chat.teacher}} replied about {{student.firstName}}. Read: {{chat.link}} - {{institution.name}}"
+          "body": "{{student.firstName}} ಕುರಿತು {{chat.teacher}} ಉತ್ತರಿಸಿದ್ದಾರೆ. ಓದಿ: {{chat.link}} - {{institution.name}}"
         },
         "WHATSAPP": {
-          "body": "Dear {{guardian.name}},\n{{chat.teacher}} has replied to your message about {{student.firstName}}.\n\nRead it in the app: {{chat.link}}\n\n{{institution.name}}"
+          "body": "ಆತ್ಮೀಯ {{guardian.name}} ಅವರೇ,\n{{student.firstName}} ಕುರಿತ ನಿಮ್ಮ ಸಂದೇಶಕ್ಕೆ {{chat.teacher}} ಉತ್ತರಿಸಿದ್ದಾರೆ.\n\nಆ್ಯಪ್‌ನಲ್ಲಿ ಓದಿ: {{chat.link}}\n\n{{institution.name}}"
         },
         "EMAIL": {
-          "subject": "A reply from {{chat.teacher}} — {{student.name}}",
-          "body": "Dear {{guardian.name}},\n\n{{chat.teacher}} has replied to your message about {{student.name}}.\nRead it in the app: {{chat.link}}\n\n{{institution.name}}"
+          "subject": "{{chat.teacher}} ಅವರಿಂದ ಉತ್ತರ — {{student.name}}",
+          "body": "ಆತ್ಮೀಯ {{guardian.name}} ಅವರೇ,\n\n{{student.name}} ಕುರಿತ ನಿಮ್ಮ ಸಂದೇಶಕ್ಕೆ {{chat.teacher}} ಉತ್ತರಿಸಿದ್ದಾರೆ.\nಆ್ಯಪ್‌ನಲ್ಲಿ ಓದಿ: {{chat.link}}\n\n{{institution.name}}"
         }
       },
       "students_admissionForm": {
         "SMS": {
-          "body": "Please fill {{applicant.name}}’s admission form for {{applicant.class}} by {{form.until}}: {{form.link}} - {{institution.name}}"
+          "body": "ದಯವಿಟ್ಟು {{applicant.class}} ಗೆ {{applicant.name}} ಅವರ ಪ್ರವೇಶ ಅರ್ಜಿ ನಮೂನೆಯನ್ನು {{form.until}} ರೊಳಗೆ ಭರ್ತಿ ಮಾಡಿ: {{form.link}} - {{institution.name}}"
         },
         "WHATSAPP": {
-          "body": "Dear {{guardian.name}},\nPlease fill in the admission form for {{applicant.name}} ({{applicant.class}}) at {{institution.name}}.\n\nOpen the form: {{form.link}}\nYou can add photos of documents (birth certificate, Aadhaar, TC) from your phone.\nThe link works till {{form.until}}.\n\n{{institution.name}}"
+          "body": "ಆತ್ಮೀಯ {{guardian.name}} ಅವರೇ,\nದಯವಿಟ್ಟು {{institution.name}} ನಲ್ಲಿ {{applicant.name}} ({{applicant.class}}) ಅವರ ಪ್ರವೇಶ ಅರ್ಜಿ ನಮೂನೆಯನ್ನು ಭರ್ತಿ ಮಾಡಿ.\n\nನಮೂನೆ ತೆರೆಯಿರಿ: {{form.link}}\nದಾಖಲೆಗಳ (ಜನನ ಪ್ರಮಾಣಪತ್ರ, ಆಧಾರ್, TC) ಫೋಟೋಗಳನ್ನು ನಿಮ್ಮ ಫೋನ್‌ನಿಂದಲೇ ಸೇರಿಸಬಹುದು.\nಈ ಲಿಂಕ್ {{form.until}} ರವರೆಗೆ ಕಾರ್ಯನಿರ್ವಹಿಸುತ್ತದೆ.\n\n{{institution.name}}"
         },
         "EMAIL": {
-          "subject": "Admission form for {{applicant.name}} — {{institution.name}}",
-          "body": "Dear {{guardian.name}},\n\nPlease fill in the admission form for {{applicant.name}} ({{applicant.class}}) at {{institution.name}}:\n{{form.link}}\n\nYou can add the documents (birth certificate, Aadhaar, previous school’s TC) as photos or PDF files. The link works till {{form.until}}.\n\n{{institution.name}}"
+          "subject": "{{applicant.name}} ಅವರ ಪ್ರವೇಶ ಅರ್ಜಿ ನಮೂನೆ — {{institution.name}}",
+          "body": "ಆತ್ಮೀಯ {{guardian.name}} ಅವರೇ,\n\nದಯವಿಟ್ಟು {{institution.name}} ನಲ್ಲಿ {{applicant.name}} ({{applicant.class}}) ಅವರ ಪ್ರವೇಶ ಅರ್ಜಿ ನಮೂನೆಯನ್ನು ಭರ್ತಿ ಮಾಡಿ:\n{{form.link}}\n\nದಾಖಲೆಗಳನ್ನು (ಜನನ ಪ್ರಮಾಣಪತ್ರ, ಆಧಾರ್, ಹಿಂದಿನ ಶಾಲೆಯ TC) ಫೋಟೋ ಅಥವಾ PDF ಕಡತಗಳಾಗಿ ಸೇರಿಸಬಹುದು. ಈ ಲಿಂಕ್ {{form.until}} ರವರೆಗೆ ಕಾರ್ಯನಿರ್ವಹಿಸುತ್ತದೆ.\n\n{{institution.name}}"
         }
       },
       "admissions_enquiry": {
         "SMS": {
-          "body": "Thank you for your enquiry about {{applicant.class}} admission for {{applicant.name}}. We will call you soon. - {{institution.name}}"
+          "body": "{{applicant.name}} ಅವರ {{applicant.class}} ಪ್ರವೇಶದ ಕುರಿತು ವಿಚಾರಿಸಿದ್ದಕ್ಕೆ ಧನ್ಯವಾದಗಳು. ನಾವು ಶೀಘ್ರದಲ್ಲೇ ನಿಮಗೆ ಕರೆ ಮಾಡುತ್ತೇವೆ. - {{institution.name}}"
         },
         "WHATSAPP": {
-          "body": "Dear {{guardian.name}},\nThank you for your interest in {{institution.name}}. We have your enquiry for {{applicant.name}} ({{applicant.class}}) and will call you soon.\n\nFor questions: {{institution.phone}}"
+          "body": "ಆತ್ಮೀಯ {{guardian.name}} ಅವರೇ,\n{{institution.name}} ಬಗ್ಗೆ ಆಸಕ್ತಿ ತೋರಿದ್ದಕ್ಕೆ ಧನ್ಯವಾದಗಳು. {{applicant.name}} ({{applicant.class}}) ಅವರ ಕುರಿತ ನಿಮ್ಮ ವಿಚಾರಣೆ ನಮಗೆ ತಲುಪಿದೆ; ಶೀಘ್ರದಲ್ಲೇ ನಿಮಗೆ ಕರೆ ಮಾಡುತ್ತೇವೆ.\n\nಪ್ರಶ್ನೆಗಳಿದ್ದರೆ: {{institution.phone}}"
         },
         "EMAIL": {
-          "subject": "Your admission enquiry — {{institution.name}}",
-          "body": "Dear {{guardian.name}},\n\nThank you for your enquiry about {{applicant.class}} admission for {{applicant.name}}. We will contact you soon.\n\n{{institution.name}}"
+          "subject": "ನಿಮ್ಮ ಪ್ರವೇಶ ವಿಚಾರಣೆ — {{institution.name}}",
+          "body": "ಆತ್ಮೀಯ {{guardian.name}} ಅವರೇ,\n\n{{applicant.name}} ಅವರ {{applicant.class}} ಪ್ರವೇಶದ ಕುರಿತು ವಿಚಾರಿಸಿದ್ದಕ್ಕೆ ಧನ್ಯವಾದಗಳು. ನಾವು ಶೀಘ್ರದಲ್ಲೇ ನಿಮ್ಮನ್ನು ಸಂಪರ್ಕಿಸುತ್ತೇವೆ.\n\n{{institution.name}}"
         }
       },
       "admissions_application": {
         "SMS": {
-          "body": "Application {{application.no}} for {{applicant.name}} ({{applicant.class}}) received. Track it: {{application.link}} - {{institution.name}}"
+          "body": "{{applicant.name}} ({{applicant.class}}) ಅವರ ಅರ್ಜಿ {{application.no}} ಸ್ವೀಕರಿಸಲಾಗಿದೆ. ಸ್ಥಿತಿ ನೋಡಿ: {{application.link}} - {{institution.name}}"
         },
         "WHATSAPP": {
-          "body": "Dear {{guardian.name}},\nWe have received the application for {{applicant.name}} ({{applicant.class}}).\n\nApplication no.: {{application.no}}\nTrack it here: {{application.link}}\n\n{{institution.name}}"
+          "body": "ಆತ್ಮೀಯ {{guardian.name}} ಅವರೇ,\n{{applicant.name}} ({{applicant.class}}) ಅವರ ಅರ್ಜಿಯನ್ನು ನಾವು ಸ್ವೀಕರಿಸಿದ್ದೇವೆ.\n\nಅರ್ಜಿ ಸಂಖ್ಯೆ: {{application.no}}\nಸ್ಥಿತಿಯನ್ನು ಇಲ್ಲಿ ನೋಡಿ: {{application.link}}\n\n{{institution.name}}"
         },
         "EMAIL": {
-          "subject": "Application {{application.no}} received — {{institution.name}}",
-          "body": "Dear {{guardian.name}},\n\nWe have received the application for {{applicant.name}} ({{applicant.class}}).\nApplication number: {{application.no}}\nYou can check it here: {{application.link}}\n\n{{institution.name}}"
+          "subject": "ಅರ್ಜಿ {{application.no}} ಸ್ವೀಕರಿಸಲಾಗಿದೆ — {{institution.name}}",
+          "body": "ಆತ್ಮೀಯ {{guardian.name}} ಅವರೇ,\n\n{{applicant.name}} ({{applicant.class}}) ಅವರ ಅರ್ಜಿಯನ್ನು ನಾವು ಸ್ವೀಕರಿಸಿದ್ದೇವೆ.\nಅರ್ಜಿ ಸಂಖ್ಯೆ: {{application.no}}\nಇದರ ಸ್ಥಿತಿಯನ್ನು ಇಲ್ಲಿ ನೋಡಬಹುದು: {{application.link}}\n\n{{institution.name}}"
         }
       },
       "admissions_test": {
         "SMS": {
-          "body": "{{test.name}} for {{applicant.name}} ({{application.no}}): {{test.when}} at {{test.venue}}. - {{institution.name}}"
+          "body": "{{applicant.name}} ({{application.no}}) ಅವರ {{test.name}}: {{test.when}}, ಸ್ಥಳ: {{test.venue}}. - {{institution.name}}"
         },
         "WHATSAPP": {
-          "body": "Dear {{guardian.name}},\n{{applicant.name}} is invited for the {{test.name}}.\n\nWhen: {{test.when}}\nWhere: {{test.venue}}\nApplication no.: {{application.no}}\n\n{{institution.name}}"
+          "body": "ಆತ್ಮೀಯ {{guardian.name}} ಅವರೇ,\n{{test.name}} ಗೆ {{applicant.name}} ಅವರನ್ನು ಆಹ್ವಾನಿಸಲಾಗಿದೆ.\n\nಯಾವಾಗ: {{test.when}}\nಎಲ್ಲಿ: {{test.venue}}\nಅರ್ಜಿ ಸಂಖ್ಯೆ: {{application.no}}\n\n{{institution.name}}"
         },
         "EMAIL": {
           "subject": "{{test.name}} — {{applicant.name}}",
-          "body": "Dear {{guardian.name}},\n\n{{applicant.name}} is invited for the {{test.name}} on {{test.when}} at {{test.venue}}.\nApplication number: {{application.no}}\n\n{{institution.name}}"
+          "body": "ಆತ್ಮೀಯ {{guardian.name}} ಅವರೇ,\n\n{{test.when}} ರಂದು {{test.venue}} ನಲ್ಲಿ ನಡೆಯುವ {{test.name}} ಗೆ {{applicant.name}} ಅವರನ್ನು ಆಹ್ವಾನಿಸಲಾಗಿದೆ.\nಅರ್ಜಿ ಸಂಖ್ಯೆ: {{application.no}}\n\n{{institution.name}}"
         }
       },
       "admissions_offer": {
         "SMS": {
-          "body": "Congratulations! {{applicant.name}} is offered a seat in {{applicant.class}}. Please confirm by {{offer.until}}: {{application.link}} - {{institution.name}}"
+          "body": "ಅಭಿನಂದನೆಗಳು! {{applicant.name}} ಅವರಿಗೆ {{applicant.class}} ನಲ್ಲಿ ಸೀಟು ನೀಡಲಾಗಿದೆ. ದಯವಿಟ್ಟು {{offer.until}} ರೊಳಗೆ ಖಚಿತಪಡಿಸಿ: {{application.link}} - {{institution.name}}"
         },
         "WHATSAPP": {
-          "body": "Dear {{guardian.name}},\nCongratulations! {{applicant.name}} is offered a seat in {{applicant.class}} at {{institution.name}}.\n\nPlease confirm by {{offer.until}}: {{application.link}}\nApplication no.: {{application.no}}"
+          "body": "ಆತ್ಮೀಯ {{guardian.name}} ಅವರೇ,\nಅಭಿನಂದನೆಗಳು! {{institution.name}} ನಲ್ಲಿ {{applicant.name}} ಅವರಿಗೆ {{applicant.class}} ನಲ್ಲಿ ಸೀಟು ನೀಡಲಾಗಿದೆ.\n\nದಯವಿಟ್ಟು {{offer.until}} ರೊಳಗೆ ಖಚಿತಪಡಿಸಿ: {{application.link}}\nಅರ್ಜಿ ಸಂಖ್ಯೆ: {{application.no}}"
         },
         "EMAIL": {
-          "subject": "Seat offered — {{applicant.name}}, {{applicant.class}}",
-          "body": "Dear {{guardian.name}},\n\nCongratulations! {{applicant.name}} is offered a seat in {{applicant.class}}.\nPlease confirm by {{offer.until}}: {{application.link}}\nApplication number: {{application.no}}\n\n{{institution.name}}"
+          "subject": "ಸೀಟು ನೀಡಲಾಗಿದೆ — {{applicant.name}}, {{applicant.class}}",
+          "body": "ಆತ್ಮೀಯ {{guardian.name}} ಅವರೇ,\n\nಅಭಿನಂದನೆಗಳು! {{applicant.name}} ಅವರಿಗೆ {{applicant.class}} ನಲ್ಲಿ ಸೀಟು ನೀಡಲಾಗಿದೆ.\nದಯವಿಟ್ಟು {{offer.until}} ರೊಳಗೆ ಖಚಿತಪಡಿಸಿ: {{application.link}}\nಅರ್ಜಿ ಸಂಖ್ಯೆ: {{application.no}}\n\n{{institution.name}}"
         }
       },
       "communication_notice": {
         "SMS": {
-          "body": "New notice from {{institution.name}}: {{notice.title}}. Read: {{notice.link}}"
+          "body": "{{institution.name}} ಇಂದ ಹೊಸ ಸೂಚನೆ: {{notice.title}}. ಓದಿ: {{notice.link}}"
         },
         "WHATSAPP": {
-          "body": "Dear {{guardian.name}},\nNew notice: {{notice.title}}\n\nRead it here: {{notice.link}}\n\n{{institution.name}}"
+          "body": "ಆತ್ಮೀಯ {{guardian.name}} ಅವರೇ,\nಹೊಸ ಸೂಚನೆ: {{notice.title}}\n\nಇಲ್ಲಿ ಓದಿ: {{notice.link}}\n\n{{institution.name}}"
         },
         "EMAIL": {
           "subject": "{{notice.title}} — {{institution.name}}",
-          "body": "Dear {{guardian.name}},\n\nA new notice has been published: {{notice.title}}\nRead it here: {{notice.link}}\n\n{{institution.name}}"
+          "body": "ಆತ್ಮೀಯ {{guardian.name}} ಅವರೇ,\n\nಹೊಸ ಸೂಚನೆ ಪ್ರಕಟವಾಗಿದೆ: {{notice.title}}\nಇಲ್ಲಿ ಓದಿ: {{notice.link}}\n\n{{institution.name}}"
         }
       },
       "hostel_outpass_decided": {
         "SMS": {
-          "body": "Outpass {{outpass.no}} for {{student.firstName}} ({{outpass.leave}} to {{outpass.return}}) is {{outpass.status}}. {{outpass.note}} - {{institution.name}}"
+          "body": "{{student.firstName}} ಅವರ ಹೊರಹೋಗುವ ಅನುಮತಿ {{outpass.no}} ({{outpass.leave}} ರಿಂದ {{outpass.return}} ರವರೆಗೆ): {{outpass.status}}. {{outpass.note}} - {{institution.name}}"
         },
         "WHATSAPP": {
-          "body": "Dear {{guardian.name}},\nThe outpass for {{student.firstName}} ({{student.class}}) — {{outpass.leave}} to {{outpass.return}}, “{{outpass.reason}}” — is {{outpass.status}}.\n{{outpass.note}}\n\n{{institution.name}}"
+          "body": "ಆತ್ಮೀಯ {{guardian.name}} ಅವರೇ,\n{{student.firstName}} ({{student.class}}) ಅವರ ಹೊರಹೋಗುವ ಅನುಮತಿ — {{outpass.leave}} ರಿಂದ {{outpass.return}} ರವರೆಗೆ, “{{outpass.reason}}” — ಸ್ಥಿತಿ: {{outpass.status}}.\n{{outpass.note}}\n\n{{institution.name}}"
         },
         "EMAIL": {
-          "subject": "Outpass {{outpass.no}}: {{outpass.status}}",
-          "body": "Dear {{guardian.name}},\n\nThe outpass for {{student.name}} ({{outpass.leave}} to {{outpass.return}}, {{outpass.reason}}) is {{outpass.status}}.\n{{outpass.note}}\n\n{{institution.name}}"
+          "subject": "ಹೊರಹೋಗುವ ಅನುಮತಿ {{outpass.no}}: {{outpass.status}}",
+          "body": "ಆತ್ಮೀಯ {{guardian.name}} ಅವರೇ,\n\n{{student.name}} ಅವರ ಹೊರಹೋಗುವ ಅನುಮತಿ ({{outpass.leave}} ರಿಂದ {{outpass.return}} ರವರೆಗೆ, {{outpass.reason}}) — ಸ್ಥಿತಿ: {{outpass.status}}.\n{{outpass.note}}\n\n{{institution.name}}"
         }
       },
       "hostel_outpass_out": {
         "SMS": {
-          "body": "{{student.firstName}} left the hostel at {{outpass.time}} (outpass {{outpass.no}}), due back {{outpass.return}}. - {{institution.name}}"
+          "body": "{{student.firstName}} {{outpass.time}} ಗಂಟೆಗೆ ವಸತಿ ನಿಲಯದಿಂದ ಹೊರಟಿದ್ದಾರೆ (ಹೊರಹೋಗುವ ಅನುಮತಿ {{outpass.no}}), ಹಿಂದಿರುಗಬೇಕಾದ ಸಮಯ {{outpass.return}}. - {{institution.name}}"
         },
         "WHATSAPP": {
-          "body": "Dear {{guardian.name}},\n{{student.firstName}} left the hostel at {{outpass.time}} on outpass {{outpass.no}}. Due back by {{outpass.return}}.\n\n{{institution.name}}"
+          "body": "ಆತ್ಮೀಯ {{guardian.name}} ಅವರೇ,\n{{student.firstName}} ಹೊರಹೋಗುವ ಅನುಮತಿ {{outpass.no}} ಆಧಾರದ ಮೇಲೆ {{outpass.time}} ಗಂಟೆಗೆ ವಸತಿ ನಿಲಯದಿಂದ ಹೊರಟಿದ್ದಾರೆ. {{outpass.return}} ರೊಳಗೆ ಹಿಂದಿರುಗಬೇಕು.\n\n{{institution.name}}"
         },
         "EMAIL": {
-          "subject": "{{student.firstName}} left the hostel",
-          "body": "Dear {{guardian.name}},\n\n{{student.name}} left the hostel at {{outpass.time}} (outpass {{outpass.no}}), due back by {{outpass.return}}.\n\n{{institution.name}}"
+          "subject": "{{student.firstName}} ವಸತಿ ನಿಲಯದಿಂದ ಹೊರಟಿದ್ದಾರೆ",
+          "body": "ಆತ್ಮೀಯ {{guardian.name}} ಅವರೇ,\n\n{{student.name}} {{outpass.time}} ಗಂಟೆಗೆ ವಸತಿ ನಿಲಯದಿಂದ ಹೊರಟಿದ್ದಾರೆ (ಹೊರಹೋಗುವ ಅನುಮತಿ {{outpass.no}}); {{outpass.return}} ರೊಳಗೆ ಹಿಂದಿರುಗಬೇಕು.\n\n{{institution.name}}"
         }
       },
       "hostel_outpass_in": {
         "SMS": {
-          "body": "{{student.firstName}} is back in the hostel at {{outpass.time}} ({{outpass.late}}). - {{institution.name}}"
+          "body": "{{student.firstName}} {{outpass.time}} ಗಂಟೆಗೆ ವಸತಿ ನಿಲಯಕ್ಕೆ ಹಿಂದಿರುಗಿದ್ದಾರೆ ({{outpass.late}}). - {{institution.name}}"
         },
         "WHATSAPP": {
-          "body": "Dear {{guardian.name}},\n{{student.firstName}} is back in the hostel at {{outpass.time}} ({{outpass.late}}).\n\n{{institution.name}}"
+          "body": "ಆತ್ಮೀಯ {{guardian.name}} ಅವರೇ,\n{{student.firstName}} {{outpass.time}} ಗಂಟೆಗೆ ವಸತಿ ನಿಲಯಕ್ಕೆ ಹಿಂದಿರುಗಿದ್ದಾರೆ ({{outpass.late}}).\n\n{{institution.name}}"
         },
         "EMAIL": {
-          "subject": "{{student.firstName}} is back in the hostel",
-          "body": "Dear {{guardian.name}},\n\n{{student.name}} came back to the hostel at {{outpass.time}} ({{outpass.late}}).\n\n{{institution.name}}"
+          "subject": "{{student.firstName}} ವಸತಿ ನಿಲಯಕ್ಕೆ ಹಿಂದಿರುಗಿದ್ದಾರೆ",
+          "body": "ಆತ್ಮೀಯ {{guardian.name}} ಅವರೇ,\n\n{{student.name}} {{outpass.time}} ಗಂಟೆಗೆ ವಸತಿ ನಿಲಯಕ್ಕೆ ಹಿಂದಿರುಗಿದ್ದಾರೆ ({{outpass.late}}).\n\n{{institution.name}}"
         }
       },
       "health_sent_home": {
         "SMS": {
-          "body": "Dear Parent, {{student.firstName}} ({{student.class}}) was seen in the sick room for {{health.complaint}} and is being sent home ({{health.time}}). - {{institution.name}}"
+          "body": "ಆತ್ಮೀಯ ಪೋಷಕರೇ, {{student.firstName}} ({{student.class}}) ಅವರನ್ನು {{health.complaint}} ಕಾರಣ ವೈದ್ಯಕೀಯ ಕೊಠಡಿಯಲ್ಲಿ ಪರೀಕ್ಷಿಸಲಾಗಿದ್ದು, ಮನೆಗೆ ಕಳುಹಿಸಲಾಗುತ್ತಿದೆ ({{health.time}}). - {{institution.name}}"
         },
         "WHATSAPP": {
-          "body": "Dear {{guardian.name}},\n{{student.firstName}} ({{student.class}}) was seen in the school sick room for {{health.complaint}} and is being sent home at {{health.time}}.\n{{health.note}}\n\nPlease call {{institution.phone}} if you need to.\n{{institution.name}}"
+          "body": "ಆತ್ಮೀಯ {{guardian.name}} ಅವರೇ,\n{{student.firstName}} ({{student.class}}) ಅವರನ್ನು {{health.complaint}} ಕಾರಣ ಶಾಲೆಯ ವೈದ್ಯಕೀಯ ಕೊಠಡಿಯಲ್ಲಿ ಪರೀಕ್ಷಿಸಲಾಗಿದ್ದು, {{health.time}} ಗಂಟೆಗೆ ಮನೆಗೆ ಕಳುಹಿಸಲಾಗುತ್ತಿದೆ.\n{{health.note}}\n\nಅಗತ್ಯವಿದ್ದರೆ ದಯವಿಟ್ಟು {{institution.phone}} ಗೆ ಕರೆ ಮಾಡಿ.\n{{institution.name}}"
         },
         "EMAIL": {
-          "subject": "{{student.firstName}} sent home from school",
-          "body": "Dear {{guardian.name}},\n\n{{student.name}} ({{student.class}}) was seen in the school sick room for {{health.complaint}} and is being sent home at {{health.time}}.\n{{health.note}}\n\n{{institution.name}}"
+          "subject": "{{student.firstName}} ಅವರನ್ನು ಶಾಲೆಯಿಂದ ಮನೆಗೆ ಕಳುಹಿಸಲಾಗಿದೆ",
+          "body": "ಆತ್ಮೀಯ {{guardian.name}} ಅವರೇ,\n\n{{student.name}} ({{student.class}}) ಅವರನ್ನು {{health.complaint}} ಕಾರಣ ಶಾಲೆಯ ವೈದ್ಯಕೀಯ ಕೊಠಡಿಯಲ್ಲಿ ಪರೀಕ್ಷಿಸಲಾಗಿದ್ದು, {{health.time}} ಗಂಟೆಗೆ ಮನೆಗೆ ಕಳುಹಿಸಲಾಗುತ್ತಿದೆ.\n{{health.note}}\n\n{{institution.name}}"
         }
       },
       "health_incident": {
         "SMS": {
-          "body": "Dear Parent, {{student.firstName}} had a {{incident.severity}} {{incident.kind}} at school ({{incident.place}}, {{incident.time}}). First aid was given. Please call {{institution.phone}}. - {{institution.name}}"
+          "body": "ಆತ್ಮೀಯ ಪೋಷಕರೇ, ಶಾಲೆಯಲ್ಲಿ {{student.firstName}} ಅವರಿಗೆ ಒಂದು ಘಟನೆ ಸಂಭವಿಸಿದೆ: {{incident.kind}} ({{incident.severity}}) — {{incident.place}}, {{incident.time}}. ಪ್ರಥಮ ಚಿಕಿತ್ಸೆ ನೀಡಲಾಗಿದೆ. ದಯವಿಟ್ಟು {{institution.phone}} ಗೆ ಕರೆ ಮಾಡಿ. - {{institution.name}}"
         },
         "WHATSAPP": {
-          "body": "Dear {{guardian.name}},\n{{student.firstName}} ({{student.class}}) had a {{incident.severity}} {{incident.kind}} at school today — {{incident.place}}, {{incident.time}}.\nFirst aid: {{incident.firstAid}}\n\nPlease call {{institution.phone}} for details.\n{{institution.name}}"
+          "body": "ಆತ್ಮೀಯ {{guardian.name}} ಅವರೇ,\nಇಂದು ಶಾಲೆಯಲ್ಲಿ {{student.firstName}} ({{student.class}}) ಅವರಿಗೆ ಒಂದು ಘಟನೆ ಸಂಭವಿಸಿದೆ: {{incident.kind}} ({{incident.severity}}) — {{incident.place}}, {{incident.time}}.\nಪ್ರಥಮ ಚಿಕಿತ್ಸೆ: {{incident.firstAid}}\n\nವಿವರಗಳಿಗಾಗಿ ದಯವಿಟ್ಟು {{institution.phone}} ಗೆ ಕರೆ ಮಾಡಿ.\n{{institution.name}}"
         },
         "EMAIL": {
-          "subject": "Incident at school — {{student.firstName}}",
-          "body": "Dear {{guardian.name}},\n\n{{student.name}} ({{student.class}}) had a {{incident.severity}} {{incident.kind}} at school on {{incident.date}} ({{incident.place}}, {{incident.time}}).\nFirst aid: {{incident.firstAid}}\n\n{{institution.name}}"
+          "subject": "ಶಾಲೆಯಲ್ಲಿ ಘಟನೆ — {{student.firstName}}",
+          "body": "ಆತ್ಮೀಯ {{guardian.name}} ಅವರೇ,\n\n{{incident.date}} ರಂದು ಶಾಲೆಯಲ್ಲಿ {{student.name}} ({{student.class}}) ಅವರಿಗೆ ಒಂದು ಘಟನೆ ಸಂಭವಿಸಿದೆ: {{incident.kind}} ({{incident.severity}}) — {{incident.place}}, {{incident.time}}.\nಪ್ರಥಮ ಚಿಕಿತ್ಸೆ: {{incident.firstAid}}\n\n{{institution.name}}"
         }
       },
       "placements_drive_open": {
         "SMS": {
-          "body": "{{student.firstName}}: {{drive.company}} placement drive ({{drive.ctc}}) is open. Register by {{drive.lastDate}}. - {{institution.name}}"
+          "body": "{{student.firstName}}: {{drive.company}} ನೇಮಕಾತಿ ಅಭಿಯಾನ ({{drive.ctc}}) ಆರಂಭವಾಗಿದೆ. {{drive.lastDate}} ರೊಳಗೆ ನೋಂದಾಯಿಸಿ. - {{institution.name}}"
         },
         "WHATSAPP": {
-          "body": "Dear {{student.firstName}},\n{{drive.company}} — {{drive.title}} is open for registration. Package: {{drive.ctc}}.\nRegister in the app by {{drive.lastDate}}.\n\n{{institution.name}}"
+          "body": "ಆತ್ಮೀಯ {{student.firstName}} ಅವರೇ,\n{{drive.company}} — {{drive.title}} ಗೆ ನೋಂದಣಿ ಆರಂಭವಾಗಿದೆ. ವೇತನ ಪ್ಯಾಕೇಜ್: {{drive.ctc}}.\n{{drive.lastDate}} ರೊಳಗೆ ಆ್ಯಪ್‌ನಲ್ಲಿ ನೋಂದಾಯಿಸಿ.\n\n{{institution.name}}"
         },
         "EMAIL": {
-          "subject": "Placement drive open — {{drive.company}}",
-          "body": "Dear {{student.firstName}},\n\n{{drive.company}} — {{drive.title}} is open for registration (package {{drive.ctc}}, drive on {{drive.date}}). Register in the app by {{drive.lastDate}}.\n\n{{institution.name}}"
+          "subject": "ನೇಮಕಾತಿ ಅಭಿಯಾನ ಆರಂಭ — {{drive.company}}",
+          "body": "ಆತ್ಮೀಯ {{student.firstName}} ಅವರೇ,\n\n{{drive.company}} — {{drive.title}} ಗೆ ನೋಂದಣಿ ಆರಂಭವಾಗಿದೆ (ವೇತನ ಪ್ಯಾಕೇಜ್ {{drive.ctc}}, ಅಭಿಯಾನ ದಿನಾಂಕ {{drive.date}}). {{drive.lastDate}} ರೊಳಗೆ ಆ್ಯಪ್‌ನಲ್ಲಿ ನೋಂದಾಯಿಸಿ.\n\n{{institution.name}}"
         }
       },
       "placements_selected": {
         "SMS": {
-          "body": "Congratulations {{student.firstName}}! Selected by {{drive.company}} ({{drive.ctc}}). - {{institution.name}}"
+          "body": "ಅಭಿನಂದನೆಗಳು {{student.firstName}}! {{drive.company}} ನಿಮ್ಮನ್ನು ಆಯ್ಕೆ ಮಾಡಿದೆ ({{drive.ctc}}). - {{institution.name}}"
         },
         "WHATSAPP": {
-          "body": "Congratulations {{student.firstName}}!\nYou have been selected by {{drive.company}} as {{drive.role}} ({{drive.ctc}}). The placement office will share the offer letter.\n\n{{institution.name}}"
+          "body": "ಅಭಿನಂದನೆಗಳು {{student.firstName}}!\n{{drive.company}} ನಿಮ್ಮನ್ನು {{drive.role}} ಹುದ್ದೆಗೆ ಆಯ್ಕೆ ಮಾಡಿದೆ ({{drive.ctc}}). ಉದ್ಯೋಗ ನೇಮಕಾತಿ ಕಚೇರಿ ನಿಮಗೆ ಉದ್ಯೋಗ ಆಹ್ವಾನ ಪತ್ರವನ್ನು ಕಳುಹಿಸುತ್ತದೆ.\n\n{{institution.name}}"
         },
         "EMAIL": {
-          "subject": "Selected — {{drive.company}}",
-          "body": "Dear {{student.firstName}},\n\nCongratulations! You have been selected by {{drive.company}} as {{drive.role}} ({{drive.ctc}}).\n\n{{institution.name}}"
+          "subject": "ಆಯ್ಕೆಯಾಗಿದ್ದೀರಿ — {{drive.company}}",
+          "body": "ಆತ್ಮೀಯ {{student.firstName}} ಅವರೇ,\n\nಅಭಿನಂದನೆಗಳು! {{drive.company}} ನಿಮ್ಮನ್ನು {{drive.role}} ಹುದ್ದೆಗೆ ಆಯ್ಕೆ ಮಾಡಿದೆ ({{drive.ctc}}).\n\n{{institution.name}}"
         }
       },
       "frontoffice_gate_pass": {
         "SMS": {
-          "body": "{{student.firstName}} left school at {{gatepass.time}} with {{gatepass.collector}} ({{gatepass.relation}}). Gate pass {{gatepass.no}}. - {{institution.name}}"
+          "body": "{{student.firstName}} {{gatepass.time}} ಗಂಟೆಗೆ {{gatepass.collector}} ({{gatepass.relation}}) ಅವರೊಂದಿಗೆ ಶಾಲೆಯಿಂದ ಹೊರಟಿದ್ದಾರೆ. ಗೇಟ್ ಪಾಸ್ {{gatepass.no}}. - {{institution.name}}"
         },
         "WHATSAPP": {
-          "body": "Dear {{guardian.name}},\n{{student.firstName}} left school at {{gatepass.time}} with {{gatepass.collector}} ({{gatepass.relation}}).\nReason: {{gatepass.reason}}\nGate pass: {{gatepass.no}}\n\n{{institution.name}}"
+          "body": "ಆತ್ಮೀಯ {{guardian.name}} ಅವರೇ,\n{{student.firstName}} {{gatepass.time}} ಗಂಟೆಗೆ {{gatepass.collector}} ({{gatepass.relation}}) ಅವರೊಂದಿಗೆ ಶಾಲೆಯಿಂದ ಹೊರಟಿದ್ದಾರೆ.\nಕಾರಣ: {{gatepass.reason}}\nಗೇಟ್ ಪಾಸ್: {{gatepass.no}}\n\n{{institution.name}}"
         },
         "EMAIL": {
-          "subject": "{{student.firstName}} left school early — {{gatepass.no}}",
-          "body": "Dear {{guardian.name}},\n\n{{student.name}} left school at {{gatepass.time}} with {{gatepass.collector}} ({{gatepass.relation}}).\nReason: {{gatepass.reason}}\nGate pass: {{gatepass.no}}\n\n{{institution.name}}"
+          "subject": "{{student.firstName}} ಶಾಲೆಯಿಂದ ಬೇಗನೆ ಹೊರಟಿದ್ದಾರೆ — {{gatepass.no}}",
+          "body": "ಆತ್ಮೀಯ {{guardian.name}} ಅವರೇ,\n\n{{student.name}} {{gatepass.time}} ಗಂಟೆಗೆ {{gatepass.collector}} ({{gatepass.relation}}) ಅವರೊಂದಿಗೆ ಶಾಲೆಯಿಂದ ಹೊರಟಿದ್ದಾರೆ.\nಕಾರಣ: {{gatepass.reason}}\nಗೇಟ್ ಪಾಸ್: {{gatepass.no}}\n\n{{institution.name}}"
         }
       },
       "frontoffice_complaint_received": {
         "SMS": {
-          "body": "Your complaint {{complaint.no}} ({{complaint.subject}}) has been received. We aim to resolve it by {{complaint.dueDate}}. - {{institution.name}}"
+          "body": "ನಿಮ್ಮ ದೂರು {{complaint.no}} ({{complaint.subject}}) ಸ್ವೀಕರಿಸಲಾಗಿದೆ. ಇದನ್ನು {{complaint.dueDate}} ರೊಳಗೆ ಬಗೆಹರಿಸಲು ಪ್ರಯತ್ನಿಸುತ್ತೇವೆ. - {{institution.name}}"
         },
         "WHATSAPP": {
-          "body": "Dear {{complaint.name}},\nWe have received your complaint {{complaint.no}}: {{complaint.subject}}.\nWe aim to resolve it by {{complaint.dueDate}} and will let you know.\n\n{{institution.name}}"
+          "body": "ಆತ್ಮೀಯ {{complaint.name}} ಅವರೇ,\nನಿಮ್ಮ ದೂರು {{complaint.no}} ನಮಗೆ ತಲುಪಿದೆ: {{complaint.subject}}.\nಇದನ್ನು {{complaint.dueDate}} ರೊಳಗೆ ಬಗೆಹರಿಸಲು ಪ್ರಯತ್ನಿಸುತ್ತೇವೆ ಮತ್ತು ನಿಮಗೆ ತಿಳಿಸುತ್ತೇವೆ.\n\n{{institution.name}}"
         },
         "EMAIL": {
-          "subject": "Complaint {{complaint.no}} received — {{institution.name}}",
-          "body": "Dear {{complaint.name}},\n\nWe have received your complaint {{complaint.no}}: {{complaint.subject}}.\nWe aim to resolve it by {{complaint.dueDate}} and will let you know.\n\n{{institution.name}}"
+          "subject": "ದೂರು {{complaint.no}} ಸ್ವೀಕರಿಸಲಾಗಿದೆ — {{institution.name}}",
+          "body": "ಆತ್ಮೀಯ {{complaint.name}} ಅವರೇ,\n\nನಿಮ್ಮ ದೂರು {{complaint.no}} ನಮಗೆ ತಲುಪಿದೆ: {{complaint.subject}}.\nಇದನ್ನು {{complaint.dueDate}} ರೊಳಗೆ ಬಗೆಹರಿಸಲು ಪ್ರಯತ್ನಿಸುತ್ತೇವೆ ಮತ್ತು ನಿಮಗೆ ತಿಳಿಸುತ್ತೇವೆ.\n\n{{institution.name}}"
         }
       },
       "frontoffice_complaint_resolved": {
         "SMS": {
-          "body": "Your complaint {{complaint.no}} ({{complaint.subject}}) has been resolved. - {{institution.name}}"
+          "body": "ನಿಮ್ಮ ದೂರು {{complaint.no}} ({{complaint.subject}}) ಬಗೆಹರಿಸಲಾಗಿದೆ. - {{institution.name}}"
         },
         "WHATSAPP": {
-          "body": "Dear {{complaint.name}},\nYour complaint {{complaint.no}} ({{complaint.subject}}) has been resolved:\n{{complaint.resolution}}\n\nThank you for telling us.\n{{institution.name}}"
+          "body": "ಆತ್ಮೀಯ {{complaint.name}} ಅವರೇ,\nನಿಮ್ಮ ದೂರು {{complaint.no}} ({{complaint.subject}}) ಬಗೆಹರಿಸಲಾಗಿದೆ:\n{{complaint.resolution}}\n\nನಮಗೆ ತಿಳಿಸಿದ್ದಕ್ಕೆ ಧನ್ಯವಾದಗಳು.\n{{institution.name}}"
         },
         "EMAIL": {
-          "subject": "Complaint {{complaint.no}} resolved — {{institution.name}}",
-          "body": "Dear {{complaint.name}},\n\nYour complaint {{complaint.no}} ({{complaint.subject}}) has been resolved:\n{{complaint.resolution}}\n\nThank you for telling us.\n{{institution.name}}"
+          "subject": "ದೂರು {{complaint.no}} ಬಗೆಹರಿಸಲಾಗಿದೆ — {{institution.name}}",
+          "body": "ಆತ್ಮೀಯ {{complaint.name}} ಅವರೇ,\n\nನಿಮ್ಮ ದೂರು {{complaint.no}} ({{complaint.subject}}) ಬಗೆಹರಿಸಲಾಗಿದೆ:\n{{complaint.resolution}}\n\nನಮಗೆ ತಿಳಿಸಿದ್ದಕ್ಕೆ ಧನ್ಯವಾದಗಳು.\n{{institution.name}}"
         }
       },
       "surveys_request": {
         "SMS": {
-          "body": "{{institution.name}} would like your feedback: {{survey.title}}. Answer in the app: {{survey.link}}"
+          "body": "{{institution.name}} ನಿಮ್ಮ ಅಭಿಪ್ರಾಯವನ್ನು ಕೋರುತ್ತದೆ: {{survey.title}}. ಆ್ಯಪ್‌ನಲ್ಲಿ ಉತ್ತರಿಸಿ: {{survey.link}}"
         },
         "WHATSAPP": {
-          "body": "Dear {{guardian.name}},\n{{institution.name}} would like your feedback: {{survey.title}}.\n\nIt takes a few minutes — answer in the app: {{survey.link}}\n\n{{institution.name}}"
+          "body": "ಆತ್ಮೀಯ {{guardian.name}} ಅವರೇ,\n{{institution.name}} ನಿಮ್ಮ ಅಭಿಪ್ರಾಯವನ್ನು ಕೋರುತ್ತದೆ: {{survey.title}}.\n\nಇದಕ್ಕೆ ಕೆಲವೇ ನಿಮಿಷಗಳು ಸಾಕು — ಆ್ಯಪ್‌ನಲ್ಲಿ ಉತ್ತರಿಸಿ: {{survey.link}}\n\n{{institution.name}}"
         },
         "EMAIL": {
-          "subject": "Your feedback: {{survey.title}}",
-          "body": "Dear {{guardian.name}},\n\n{{institution.name}} would like your feedback: {{survey.title}}.\nAnswer in the app: {{survey.link}}\n\n{{institution.name}}"
+          "subject": "ನಿಮ್ಮ ಅಭಿಪ್ರಾಯ: {{survey.title}}",
+          "body": "ಆತ್ಮೀಯ {{guardian.name}} ಅವರೇ,\n\n{{institution.name}} ನಿಮ್ಮ ಅಭಿಪ್ರಾಯವನ್ನು ಕೋರುತ್ತದೆ: {{survey.title}}.\nಆ್ಯಪ್‌ನಲ್ಲಿ ಉತ್ತರಿಸಿ: {{survey.link}}\n\n{{institution.name}}"
         }
       },
       "canteen_low_balance": {
         "SMS": {
-          "body": "{{student.firstName}}’s canteen wallet is low: {{canteen.balance}} left. Please top up. - {{institution.name}}"
+          "body": "{{student.firstName}} ಅವರ ಕ್ಯಾಂಟೀನ್ ವಾಲೆಟ್‌ನಲ್ಲಿ ಹಣ ಕಡಿಮೆಯಿದೆ: {{canteen.balance}} ಉಳಿದಿದೆ. ದಯವಿಟ್ಟು ಹಣ ತುಂಬಿಸಿ. - {{institution.name}}"
         },
         "WHATSAPP": {
-          "body": "Dear {{guardian.name}},\n{{student.firstName}}’s canteen wallet has {{canteen.balance}} left (below {{canteen.threshold}}). You can top it up in the school app or at the canteen counter.\n\n{{institution.name}}"
+          "body": "ಆತ್ಮೀಯ {{guardian.name}} ಅವರೇ,\n{{student.firstName}} ಅವರ ಕ್ಯಾಂಟೀನ್ ವಾಲೆಟ್‌ನಲ್ಲಿ {{canteen.balance}} ಮಾತ್ರ ಉಳಿದಿದೆ ({{canteen.threshold}} ಕ್ಕಿಂತ ಕಡಿಮೆ). ಶಾಲಾ ಆ್ಯಪ್‌ನಲ್ಲಿ ಅಥವಾ ಕ್ಯಾಂಟೀನ್ ಕೌಂಟರ್‌ನಲ್ಲಿ ಹಣ ತುಂಬಿಸಬಹುದು.\n\n{{institution.name}}"
         },
         "EMAIL": {
-          "subject": "Canteen wallet low — {{student.firstName}}",
-          "body": "Dear {{guardian.name}},\n\n{{student.name}}’s canteen wallet has {{canteen.balance}} left (below {{canteen.threshold}}). Top it up in the school app or at the canteen counter.\n\n{{institution.name}}"
+          "subject": "ಕ್ಯಾಂಟೀನ್ ವಾಲೆಟ್‌ನಲ್ಲಿ ಹಣ ಕಡಿಮೆ — {{student.firstName}}",
+          "body": "ಆತ್ಮೀಯ {{guardian.name}} ಅವರೇ,\n\n{{student.name}} ಅವರ ಕ್ಯಾಂಟೀನ್ ವಾಲೆಟ್‌ನಲ್ಲಿ {{canteen.balance}} ಮಾತ್ರ ಉಳಿದಿದೆ ({{canteen.threshold}} ಕ್ಕಿಂತ ಕಡಿಮೆ). ಶಾಲಾ ಆ್ಯಪ್‌ನಲ್ಲಿ ಅಥವಾ ಕ್ಯಾಂಟೀನ್ ಕೌಂಟರ್‌ನಲ್ಲಿ ಹಣ ತುಂಬಿಸಿ.\n\n{{institution.name}}"
         }
       }
     },
     "words": {
       "bus": {
         "event": {
-          "BOARDED": "got on",
-          "DROPPED": "got off",
-          "ABSENT": "was not at the stop for"
+          "BOARDED": "ಬಸ್ ಹತ್ತಿದರು",
+          "DROPPED": "ಬಸ್‌ನಿಂದ ಇಳಿದರು",
+          "ABSENT": "ನಿಲ್ದಾಣದಲ್ಲಿ ಇರಲಿಲ್ಲ"
         },
         "stop": {
-          "SCHOOL": "school"
+          "SCHOOL": "ಶಾಲೆ"
         },
         "trip": {
-          "PICKUP": "morning pickup",
-          "DROP": "afternoon drop"
+          "PICKUP": "ಬೆಳಗಿನ",
+          "DROP": "ಮಧ್ಯಾಹ್ನದ"
         }
       },
       "live": {
         "status": {
-          "SCHEDULED": "scheduled",
-          "CANCELLED": "is cancelled"
+          "SCHEDULED": "ನಿಗದಿಯಾಗಿದೆ",
+          "CANCELLED": "ರದ್ದಾಗಿದೆ"
         }
       },
       "outpass": {
         "status": {
-          "APPROVED": "approved",
-          "NOT_APPROVED": "not approved"
+          "APPROVED": "ಅನುಮೋದಿಸಲಾಗಿದೆ",
+          "NOT_APPROVED": "ಅನುಮೋದಿಸಲಾಗಿಲ್ಲ"
         }
       },
       "incident": {
         "kind": {
-          "INJURY": "injury",
-          "FALL": "fall",
-          "SPORTS": "sports",
-          "FIGHT": "fight",
-          "ALLERGIC_REACTION": "allergic reaction",
-          "BURN": "burn",
-          "OTHER": "other"
+          "INJURY": "ಗಾಯ",
+          "FALL": "ಬೀಳುವಿಕೆ",
+          "SPORTS": "ಆಟದ ವೇಳೆ ಗಾಯ",
+          "FIGHT": "ಜಗಳ",
+          "ALLERGIC_REACTION": "ಅಲರ್ಜಿ ಪ್ರತಿಕ್ರಿಯೆ",
+          "BURN": "ಸುಟ್ಟ ಗಾಯ",
+          "OTHER": "ಇತರೆ"
         },
         "severity": {
-          "MINOR": "minor",
-          "MODERATE": "moderate",
-          "SERIOUS": "serious",
-          "CRITICAL": "critical"
+          "MINOR": "ಸಣ್ಣ",
+          "MODERATE": "ಮಧ್ಯಮ",
+          "SERIOUS": "ಗಂಭೀರ",
+          "CRITICAL": "ಅತಿ ಗಂಭೀರ"
         }
       },
       "health": {
         "complaint": {
-          "FEVER": "fever",
-          "HEADACHE": "headache",
-          "STOMACH_ACHE": "stomach ache",
-          "VOMITING": "vomiting",
-          "INJURY": "injury",
-          "COLD_COUGH": "cold cough",
-          "DIZZINESS": "dizziness",
-          "ALLERGY": "allergy",
-          "OTHER": "other"
+          "FEVER": "ಜ್ವರ",
+          "HEADACHE": "ತಲೆನೋವು",
+          "STOMACH_ACHE": "ಹೊಟ್ಟೆನೋವು",
+          "VOMITING": "ವಾಂತಿ",
+          "INJURY": "ಗಾಯ",
+          "COLD_COUGH": "ಶೀತ ಮತ್ತು ಕೆಮ್ಮು",
+          "DIZZINESS": "ತಲೆಸುತ್ತು",
+          "ALLERGY": "ಅಲರ್ಜಿ",
+          "OTHER": "ಇತರೆ"
         }
       }
     }

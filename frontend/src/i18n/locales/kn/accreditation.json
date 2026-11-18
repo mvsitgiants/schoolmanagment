@@ -1,593 +1,593 @@
 {
   "accreditation": {
-    "edit": "Edit",
-    "delete": "Delete",
-    "year": "Assessment year",
-    "allYears": "Every year",
+    "edit": "ಸಂಪಾದಿಸಿ",
+    "delete": "ಅಳಿಸಿ",
+    "year": "ಮೌಲ್ಯಮಾಪನ ವರ್ಷ",
+    "allYears": "ಪ್ರತಿ ವರ್ಷ",
     "frameworks": {
       "NAAC": "NAAC",
       "NIRF": "NIRF",
       "AISHE": "AISHE"
     },
     "frameworkNames": {
-      "NAAC": "NAAC self-study report",
-      "NIRF": "NIRF data capture",
-      "AISHE": "AISHE data capture"
+      "NAAC": "NAAC ಸ್ವ-ಅಧ್ಯಯನ ವರದಿ",
+      "NIRF": "NIRF ದತ್ತಾಂಶ ಸಂಗ್ರಹ",
+      "AISHE": "AISHE ದತ್ತಾಂಶ ಸಂಗ್ರಹ"
     },
     "status": {
-      "NOT_STARTED": "Not started",
-      "DRAFT": "Draft",
-      "COMPLETE": "Complete"
+      "NOT_STARTED": "ಆರಂಭಿಸಿಲ್ಲ",
+      "DRAFT": "ಕರಡು",
+      "COMPLETE": "ಪೂರ್ಣಗೊಂಡಿದೆ"
     },
     "dvv": {
-      "PENDING": "To verify",
-      "VERIFIED": "Verified",
-      "CLARIFY": "Needs clarification"
+      "PENDING": "ಪರಿಶೀಲಿಸಬೇಕಿದೆ",
+      "VERIFIED": "ಪರಿಶೀಲಿಸಲಾಗಿದೆ",
+      "CLARIFY": "ಸ್ಪಷ್ಟೀಕರಣ ಬೇಕಿದೆ"
     },
     "kinds": {
-      "QN": "Quantitative",
-      "QL": "Qualitative"
+      "QN": "ಪರಿಮಾಣಾತ್ಮಕ",
+      "QL": "ಗುಣಾತ್ಮಕ"
     },
     "sources": {
-      "programs": "Programs",
-      "students": "Students",
-      "coe": "Exam results",
-      "hrms": "Staff",
-      "research": "Research",
-      "placements": "Placements",
-      "library": "Library",
-      "manual": "Entered"
+      "programs": "ಕಾರ್ಯಕ್ರಮಗಳು",
+      "students": "ವಿದ್ಯಾರ್ಥಿಗಳು",
+      "coe": "ಪರೀಕ್ಷಾ ಫಲಿತಾಂಶಗಳು",
+      "hrms": "ಸಿಬ್ಬಂದಿ",
+      "research": "ಸಂಶೋಧನೆ",
+      "placements": "ಉದ್ಯೋಗ ನೇಮಕಾತಿ",
+      "library": "ಗ್ರಂಥಾಲಯ",
+      "manual": "ನಮೂದಿಸಲಾಗಿದೆ"
     },
     "units": {
       "count": "{{value}}",
       "pct": "{{value}} %",
       "ratio": "{{value}} : 1",
-      "lakh": "₹ {{value}} lakh",
-      "years": "{{value}} years",
-      "perTeacher": "{{value}} per teacher",
-      "days": "{{value}} days",
-      "perDay": "{{value}} a day"
+      "lakh": "₹ {{value}} ಲಕ್ಷ",
+      "years": "{{value}} ವರ್ಷಗಳು",
+      "perTeacher": "ಪ್ರತಿ ಶಿಕ್ಷಕರಿಗೆ {{value}}",
+      "days": "{{value}} ದಿನಗಳು",
+      "perDay": "ದಿನಕ್ಕೆ {{value}}"
     },
     "unitHints": {
-      "count": "A number",
-      "pct": "A percentage, e.g. 72.5",
-      "ratio": "Students per one, e.g. 18",
-      "lakh": "₹ lakh, e.g. 12.5",
-      "years": "Years",
-      "perTeacher": "Per teacher, e.g. 0.6",
-      "days": "Days",
-      "perDay": "A day"
+      "count": "ಒಂದು ಸಂಖ್ಯೆ",
+      "pct": "ಶೇಕಡಾವಾರು, ಉದಾ. 72.5",
+      "ratio": "ಒಬ್ಬರಿಗೆ ವಿದ್ಯಾರ್ಥಿಗಳು, ಉದಾ. 18",
+      "lakh": "₹ ಲಕ್ಷಗಳಲ್ಲಿ, ಉದಾ. 12.5",
+      "years": "ವರ್ಷಗಳು",
+      "perTeacher": "ಪ್ರತಿ ಶಿಕ್ಷಕರಿಗೆ, ಉದಾ. 0.6",
+      "days": "ದಿನಗಳು",
+      "perDay": "ದಿನಕ್ಕೆ"
     },
     "detail": {
-      "programs": "Programmes",
-      "programsCbcs": "With electives (CBCS)",
-      "courses": "Courses",
-      "projectCourses": "Project courses",
-      "admitted": "Admitted this year",
-      "intake": "Sanctioned intake",
-      "reservedAdmitted": "From reserved categories",
-      "students": "Students",
-      "phdScholars": "Ph.D. scholars",
-      "fullTimeTeachers": "Full-time teachers",
-      "teachers": "All teachers",
-      "mentees": "Students with a mentor",
-      "mentors": "Mentors",
-      "teachersPhd": "With a Ph.D.",
-      "passed": "Passed",
-      "appeared": "Appeared (final year)",
-      "revaluations": "Revaluation requests",
-      "papers": "Papers",
-      "womenStudents": "Women students",
-      "projects": "Projects sanctioned",
-      "receivedLakh": "Received (₹ lakh)",
-      "guides": "Research guides",
-      "departmentsFunded": "Departments with projects",
-      "departments": "Academic departments",
-      "registered": "Registered this year",
-      "booksChapters": "Books, chapters, conference papers",
-      "indexed": "Scopus / WoS indexed",
-      "copies": "Copies bought",
-      "loans": "Loans",
-      "days": "Days the desk issued",
-      "placed": "Students placed",
-      "outgoing": "Outgoing students"
+      "programs": "ಕಾರ್ಯಕ್ರಮಗಳು",
+      "programsCbcs": "ಐಚ್ಛಿಕ ಕೋರ್ಸ್‌ಗಳೊಂದಿಗೆ (CBCS)",
+      "courses": "ಕೋರ್ಸ್‌ಗಳು",
+      "projectCourses": "ಯೋಜನಾ ಕಾರ್ಯವಿರುವ ಕೋರ್ಸ್‌ಗಳು",
+      "admitted": "ಈ ವರ್ಷ ಪ್ರವೇಶ ಪಡೆದವರು",
+      "intake": "ಮಂಜೂರಾದ ಪ್ರವೇಶ ಸಾಮರ್ಥ್ಯ",
+      "reservedAdmitted": "ಮೀಸಲು ವರ್ಗಗಳಿಂದ",
+      "students": "ವಿದ್ಯಾರ್ಥಿಗಳು",
+      "phdScholars": "ಪಿಎಚ್.ಡಿ. ಸಂಶೋಧನಾರ್ಥಿಗಳು",
+      "fullTimeTeachers": "ಪೂರ್ಣಾವಧಿ ಶಿಕ್ಷಕರು",
+      "teachers": "ಎಲ್ಲಾ ಶಿಕ್ಷಕರು",
+      "mentees": "ಮಾರ್ಗದರ್ಶಕರಿರುವ ವಿದ್ಯಾರ್ಥಿಗಳು",
+      "mentors": "ಮಾರ್ಗದರ್ಶಕರು",
+      "teachersPhd": "ಪಿಎಚ್.ಡಿ. ಪಡೆದವರು",
+      "passed": "ಉತ್ತೀರ್ಣರಾದವರು",
+      "appeared": "ಪರೀಕ್ಷೆ ಬರೆದವರು (ಅಂತಿಮ ವರ್ಷ)",
+      "revaluations": "ಮರುಮೌಲ್ಯಮಾಪನ ಮನವಿಗಳು",
+      "papers": "ಸಂಶೋಧನಾ ಲೇಖನಗಳು",
+      "womenStudents": "ವಿದ್ಯಾರ್ಥಿನಿಯರು",
+      "projects": "ಮಂಜೂರಾದ ಯೋಜನೆಗಳು",
+      "receivedLakh": "ಸ್ವೀಕರಿಸಿದ ಮೊತ್ತ (₹ ಲಕ್ಷ)",
+      "guides": "ಸಂಶೋಧನಾ ಮಾರ್ಗದರ್ಶಕರು",
+      "departmentsFunded": "ಯೋಜನೆಗಳಿರುವ ಇಲಾಖೆಗಳು",
+      "departments": "ಶೈಕ್ಷಣಿಕ ಇಲಾಖೆಗಳು",
+      "registered": "ಈ ವರ್ಷ ನೋಂದಾಯಿಸಿದವರು",
+      "booksChapters": "ಪುಸ್ತಕಗಳು, ಅಧ್ಯಾಯಗಳು, ಸಮ್ಮೇಳನ ಲೇಖನಗಳು",
+      "indexed": "Scopus / WoS ಸೂಚಿತ",
+      "copies": "ಖರೀದಿಸಿದ ಪ್ರತಿಗಳು",
+      "loans": "ಎರವಲು ನೀಡಿದ ಪುಸ್ತಕಗಳು",
+      "days": "ಪುಸ್ತಕ ವಿತರಿಸಿದ ದಿನಗಳು",
+      "placed": "ಉದ್ಯೋಗ ಪಡೆದ ವಿದ್ಯಾರ್ಥಿಗಳು",
+      "outgoing": "ವ್ಯಾಸಂಗ ಮುಗಿಸಿ ಹೊರಹೋಗುವ ವಿದ್ಯಾರ್ಥಿಗಳು"
     },
     "narrative": {
-      "bold": "Bold",
-      "heading": "Heading",
-      "bullet": "Bullet list",
-      "preview": "Preview",
-      "write": "Write",
-      "text": "text",
-      "placeholder": "Describe what the institution does, with numbers and examples. Use “## ” for a heading and “- ” for a bullet.",
-      "words_one": "{{count}} / {{max}} word",
-      "words_other": "{{count}} / {{max}} words"
+      "bold": "ದಪ್ಪಕ್ಷರ",
+      "heading": "ಶೀರ್ಷಿಕೆ",
+      "bullet": "ಬಿಂದು ಪಟ್ಟಿ",
+      "preview": "ಮುನ್ನೋಟ",
+      "write": "ಬರೆಯಿರಿ",
+      "text": "ಪಠ್ಯ",
+      "placeholder": "ಸಂಸ್ಥೆ ಏನು ಮಾಡುತ್ತದೆ ಎಂಬುದನ್ನು ಸಂಖ್ಯೆಗಳು ಮತ್ತು ಉದಾಹರಣೆಗಳೊಂದಿಗೆ ವಿವರಿಸಿ. ಶೀರ್ಷಿಕೆಗೆ “## ” ಮತ್ತು ಬಿಂದುವಿಗೆ “- ” ಬಳಸಿ.",
+      "words_one": "{{count}} / {{max}} ಪದ",
+      "words_other": "{{count}} / {{max}} ಪದಗಳು"
     },
     "reports": {
-      "pageTitle": "Accreditation reports",
-      "pageSubtitle": "NAAC, NIRF and AISHE returns metric by metric — values computed from SchoolGiant where it can, narratives for the qualitative metrics.",
-      "export": "Export CSV",
-      "print": "Print summary",
-      "criteria": "Criteria",
-      "weight": "Weightage {{weight}}",
-      "completion": "Complete",
-      "valuesReady": "Values ready",
-      "computedN_one": "{{count}} computed from records",
-      "computedN_other": "{{count}} computed from records",
-      "narratives": "Narratives written",
-      "evidence": "Evidence items",
-      "criterionDone": "{{done}} of {{total}} complete · {{draft}} in draft",
-      "all": "All",
-      "pending": "Not complete",
-      "auto": "Computed",
-      "entered": "Entered",
-      "toEnter": "To enter",
-      "noNarrative": "Not written yet.",
-      "noneHere": "No metrics match",
-      "noRecordsHint": "Nothing could be computed for this year yet. Values come from Programs, Exam controller results, Staff & HR, Research, Library and Placements; enter the rest by hand with a note.",
-      "rangeNote": "The year runs {{from}} – {{to}} (the academic year of that name in Academic setup, else June to May). Publications count by the calendar year it starts in.",
-      "status": "Status",
-      "computed": "Computed from records",
-      "noData": "No data for this year",
-      "notComputed": "Not computed — enter it",
-      "manualValue": "Value to report",
-      "manualHint": "Enter the value from your records.",
-      "manualHintAuto": "Leave empty to report the computed value; enter one to override it.",
-      "clearManual": "Use the computed value",
-      "reported": "Reported",
-      "note": "Note",
-      "noteHint": "Where the value comes from, what it counts — the peer team reads this.",
-      "evidenceN_one": "{{count}} evidence item · {{files}} files",
-      "evidenceN_other": "{{count}} evidence items · {{files}} files",
-      "checklistN": "DVV documents {{done}}/{{total}}",
-      "openEvidence": "Open the evidence",
-      "save": "Save metric",
-      "saved": "Metric saved",
-      "updated": "Last changed by {{by}}, {{at}}"
+      "pageTitle": "ಮಾನ್ಯತೆ ವರದಿಗಳು",
+      "pageSubtitle": "NAAC, NIRF ಮತ್ತು AISHE ವಿವರಗಳು ಸೂಚಕವಾರು — ಸಾಧ್ಯವಿರುವಲ್ಲಿ SchoolGiant ದಾಖಲೆಗಳಿಂದ ಲೆಕ್ಕಹಾಕಿದ ಮೌಲ್ಯಗಳು, ಗುಣಾತ್ಮಕ ಸೂಚಕಗಳಿಗೆ ವಿವರಣೆಗಳು.",
+      "export": "CSV ರಫ್ತು ಮಾಡಿ",
+      "print": "ಸಾರಾಂಶ ಮುದ್ರಿಸಿ",
+      "criteria": "ಮಾನದಂಡಗಳು",
+      "weight": "ಪಾಲು {{weight}}",
+      "completion": "ಪೂರ್ಣಗೊಂಡಿದೆ",
+      "valuesReady": "ಸಿದ್ಧವಿರುವ ಮೌಲ್ಯಗಳು",
+      "computedN_one": "{{count}} ದಾಖಲೆಗಳಿಂದ ಲೆಕ್ಕಹಾಕಲಾಗಿದೆ",
+      "computedN_other": "{{count}} ದಾಖಲೆಗಳಿಂದ ಲೆಕ್ಕಹಾಕಲಾಗಿದೆ",
+      "narratives": "ಬರೆದ ವಿವರಣೆಗಳು",
+      "evidence": "ಪುರಾವೆಗಳು",
+      "criterionDone": "{{total}} ರಲ್ಲಿ {{done}} ಪೂರ್ಣ · {{draft}} ಕರಡಿನಲ್ಲಿ",
+      "all": "ಎಲ್ಲಾ",
+      "pending": "ಪೂರ್ಣಗೊಂಡಿಲ್ಲ",
+      "auto": "ಲೆಕ್ಕಹಾಕಲಾಗಿದೆ",
+      "entered": "ನಮೂದಿಸಲಾಗಿದೆ",
+      "toEnter": "ನಮೂದಿಸಬೇಕಿದೆ",
+      "noNarrative": "ಇನ್ನೂ ಬರೆದಿಲ್ಲ.",
+      "noneHere": "ಯಾವುದೇ ಸೂಚಕ ಹೊಂದಿಕೆಯಾಗುತ್ತಿಲ್ಲ",
+      "noRecordsHint": "ಈ ವರ್ಷಕ್ಕೆ ಇನ್ನೂ ಏನನ್ನೂ ಲೆಕ್ಕಹಾಕಲು ಸಾಧ್ಯವಾಗಿಲ್ಲ. ಮೌಲ್ಯಗಳು ಕಾರ್ಯಕ್ರಮಗಳು, ಪರೀಕ್ಷಾ ನಿಯಂತ್ರಕರ ಫಲಿತಾಂಶಗಳು, ಸಿಬ್ಬಂದಿ ಮತ್ತು ಮಾನವ ಸಂಪನ್ಮೂಲ, ಸಂಶೋಧನೆ, ಗ್ರಂಥಾಲಯ ಮತ್ತು ಉದ್ಯೋಗ ನೇಮಕಾತಿ ವಿಭಾಗಗಳಿಂದ ಬರುತ್ತವೆ; ಉಳಿದವನ್ನು ಟಿಪ್ಪಣಿಯೊಂದಿಗೆ ಕೈಯಾರೆ ನಮೂದಿಸಿ.",
+      "rangeNote": "ಈ ವರ್ಷ {{from}} – {{to}} ವರೆಗೆ ಇರುತ್ತದೆ (ಶೈಕ್ಷಣಿಕ ಸಿದ್ಧತೆಯಲ್ಲಿ ಅದೇ ಹೆಸರಿನ ಶೈಕ್ಷಣಿಕ ವರ್ಷ, ಇಲ್ಲದಿದ್ದರೆ ಜೂನ್‌ನಿಂದ ಮೇ). ಪ್ರಕಟಣೆಗಳನ್ನು ಈ ವರ್ಷ ಆರಂಭವಾಗುವ ಕ್ಯಾಲೆಂಡರ್ ವರ್ಷದ ಪ್ರಕಾರ ಎಣಿಸಲಾಗುತ್ತದೆ.",
+      "status": "ಸ್ಥಿತಿ",
+      "computed": "ದಾಖಲೆಗಳಿಂದ ಲೆಕ್ಕಹಾಕಲಾಗಿದೆ",
+      "noData": "ಈ ವರ್ಷಕ್ಕೆ ಯಾವುದೇ ದತ್ತಾಂಶವಿಲ್ಲ",
+      "notComputed": "ಲೆಕ್ಕಹಾಕಲಾಗಿಲ್ಲ — ಇದನ್ನು ನಮೂದಿಸಿ",
+      "manualValue": "ವರದಿ ಮಾಡಬೇಕಾದ ಮೌಲ್ಯ",
+      "manualHint": "ನಿಮ್ಮ ದಾಖಲೆಗಳಿಂದ ಮೌಲ್ಯವನ್ನು ನಮೂದಿಸಿ.",
+      "manualHintAuto": "ಲೆಕ್ಕಹಾಕಿದ ಮೌಲ್ಯವನ್ನೇ ವರದಿ ಮಾಡಲು ಖಾಲಿ ಬಿಡಿ; ಅದರ ಬದಲು ಬೇರೆ ಮೌಲ್ಯ ನೀಡಲು ಅದನ್ನು ನಮೂದಿಸಿ.",
+      "clearManual": "ಲೆಕ್ಕಹಾಕಿದ ಮೌಲ್ಯವನ್ನು ಬಳಸಿ",
+      "reported": "ವರದಿ ಮಾಡಿದ ಮೌಲ್ಯ",
+      "note": "ಟಿಪ್ಪಣಿ",
+      "noteHint": "ಮೌಲ್ಯ ಎಲ್ಲಿಂದ ಬಂದಿದೆ, ಅದು ಏನನ್ನು ಎಣಿಸುತ್ತದೆ — ಪರಿಶೀಲನಾ ತಂಡ ಇದನ್ನು ಓದುತ್ತದೆ.",
+      "evidenceN_one": "{{count}} ಪುರಾವೆ · {{files}} ಕಡತಗಳು",
+      "evidenceN_other": "{{count}} ಪುರಾವೆಗಳು · {{files}} ಕಡತಗಳು",
+      "checklistN": "DVV ದಾಖಲೆಗಳು {{done}}/{{total}}",
+      "openEvidence": "ಪುರಾವೆ ತೆರೆಯಿರಿ",
+      "save": "ಸೂಚಕ ಉಳಿಸಿ",
+      "saved": "ಸೂಚಕ ಉಳಿಸಲಾಗಿದೆ",
+      "updated": "ಕೊನೆಯ ಬದಲಾವಣೆ: {{by}}, {{at}}"
     },
     "evidence": {
-      "pageTitle": "Evidence repository",
-      "pageSubtitle": "The documents behind each metric — sanction letters, minutes, geo-tagged photos — with the DVV checklist of what data validation asks for.",
-      "new": "Add evidence",
-      "newTitle": "New evidence",
-      "editTitle": "Edit evidence",
-      "save": "Save evidence",
-      "saved": "Evidence saved",
-      "deleted": "Evidence deleted",
-      "deleteConfirm": "Delete “{{title}}”?",
-      "deleteHint": "Its files stay in the record’s history.",
-      "criteria": "Criteria",
-      "search": "Search evidence",
-      "docsDone": "DVV documents {{done}}/{{total}}",
-      "itemsTotal": "Evidence items",
-      "filesN_one": "{{count}} file",
-      "filesN_other": "{{count}} files",
-      "covered": "Metrics with evidence",
-      "checklistDone": "DVV documents in place",
-      "verified": "Verified",
-      "clarifyN_one": "{{count}} needs clarification",
-      "clarifyN_other": "{{count}} need clarification",
-      "emptyHint": "Add each document once and link it to the metrics it backs. Tick the DVV documents it answers; a checklist line is done when its evidence has a file or a link.",
-      "noChecklist": "No DVV checklist for this metric",
-      "itemsN_one": "{{count}} item",
-      "itemsN_other": "{{count}} items",
-      "checklist": "DVV checklist",
-      "items": "Evidence",
-      "noneForMetric": "No evidence for this metric yet",
-      "addFor": "Add evidence for {{code}}",
-      "title": "Title",
-      "titlePlaceholder": "e.g. DST sanction letter 2025",
-      "metrics": "Metrics it backs",
-      "addMetric": "Link a metric…",
-      "unlink": "Unlink",
-      "answers": "DVV documents it answers",
-      "year": "Year",
-      "yearHint": "Leave empty when it holds for every year (a policy, a committee order).",
-      "anyYear": "Every year",
-      "link": "Link",
-      "linkHint": "A page on the institution’s website, when the evidence lives there.",
-      "description": "Description",
-      "filesAfter": "Save first, then add the files (PDF, images, Word) to the evidence.",
-      "files": "Files",
-      "addedOn": "Added {{at}}",
-      "forYear": "For {{year}}",
-      "verify": "Mark verified",
-      "clarify": "Needs clarification",
-      "clarifyTitle": "What needs clarifying?",
-      "clarifyNote": "Note for the department",
-      "dvvSaved": "DVV status saved",
+      "pageTitle": "ಪುರಾವೆ ಭಂಡಾರ",
+      "pageSubtitle": "ಪ್ರತಿ ಸೂಚಕದ ಹಿಂದಿನ ದಾಖಲೆಗಳು — ಮಂಜೂರಾತಿ ಪತ್ರಗಳು, ಸಭಾ ನಡಾವಳಿಗಳು, ಜಿಯೋ-ಟ್ಯಾಗ್ ಮಾಡಿದ ಫೋಟೋಗಳು — ದತ್ತಾಂಶ ಪರಿಶೀಲನೆಗೆ ಬೇಕಾದ DVV ಪರಿಶೀಲನಾ ಪಟ್ಟಿಯೊಂದಿಗೆ.",
+      "new": "ಪುರಾವೆ ಸೇರಿಸಿ",
+      "newTitle": "ಹೊಸ ಪುರಾವೆ",
+      "editTitle": "ಪುರಾವೆ ಸಂಪಾದಿಸಿ",
+      "save": "ಪುರಾವೆ ಉಳಿಸಿ",
+      "saved": "ಪುರಾವೆ ಉಳಿಸಲಾಗಿದೆ",
+      "deleted": "ಪುರಾವೆ ಅಳಿಸಲಾಗಿದೆ",
+      "deleteConfirm": "“{{title}}” ಅಳಿಸಬೇಕೆ?",
+      "deleteHint": "ಇದರ ಕಡತಗಳು ದಾಖಲೆಯ ಇತಿಹಾಸದಲ್ಲಿ ಉಳಿಯುತ್ತವೆ.",
+      "criteria": "ಮಾನದಂಡಗಳು",
+      "search": "ಪುರಾವೆ ಹುಡುಕಿ",
+      "docsDone": "DVV ದಾಖಲೆಗಳು {{done}}/{{total}}",
+      "itemsTotal": "ಪುರಾವೆಗಳು",
+      "filesN_one": "{{count}} ಕಡತ",
+      "filesN_other": "{{count}} ಕಡತಗಳು",
+      "covered": "ಪುರಾವೆ ಇರುವ ಸೂಚಕಗಳು",
+      "checklistDone": "ಲಭ್ಯವಿರುವ DVV ದಾಖಲೆಗಳು",
+      "verified": "ಪರಿಶೀಲಿಸಲಾಗಿದೆ",
+      "clarifyN_one": "{{count}} ಕ್ಕೆ ಸ್ಪಷ್ಟೀಕರಣ ಬೇಕಿದೆ",
+      "clarifyN_other": "{{count}} ಕ್ಕೆ ಸ್ಪಷ್ಟೀಕರಣ ಬೇಕಿದೆ",
+      "emptyHint": "ಪ್ರತಿ ದಾಖಲೆಯನ್ನು ಒಮ್ಮೆ ಮಾತ್ರ ಸೇರಿಸಿ ಮತ್ತು ಅದು ಬೆಂಬಲಿಸುವ ಸೂಚಕಗಳಿಗೆ ಜೋಡಿಸಿ. ಅದು ಪೂರೈಸುವ DVV ದಾಖಲೆಗಳನ್ನು ಗುರುತಿಸಿ; ಪುರಾವೆಗೆ ಕಡತ ಅಥವಾ ಲಿಂಕ್ ಇದ್ದಾಗ ಪರಿಶೀಲನಾ ಪಟ್ಟಿಯ ಸಾಲು ಪೂರ್ಣಗೊಳ್ಳುತ್ತದೆ.",
+      "noChecklist": "ಈ ಸೂಚಕಕ್ಕೆ DVV ಪರಿಶೀಲನಾ ಪಟ್ಟಿ ಇಲ್ಲ",
+      "itemsN_one": "{{count}} ಪುರಾವೆ",
+      "itemsN_other": "{{count}} ಪುರಾವೆಗಳು",
+      "checklist": "DVV ಪರಿಶೀಲನಾ ಪಟ್ಟಿ",
+      "items": "ಪುರಾವೆ",
+      "noneForMetric": "ಈ ಸೂಚಕಕ್ಕೆ ಇನ್ನೂ ಯಾವುದೇ ಪುರಾವೆ ಇಲ್ಲ",
+      "addFor": "{{code}} ಗೆ ಪುರಾವೆ ಸೇರಿಸಿ",
+      "title": "ಶೀರ್ಷಿಕೆ",
+      "titlePlaceholder": "ಉದಾ. DST ಮಂಜೂರಾತಿ ಪತ್ರ 2025",
+      "metrics": "ಇದು ಬೆಂಬಲಿಸುವ ಸೂಚಕಗಳು",
+      "addMetric": "ಸೂಚಕವನ್ನು ಜೋಡಿಸಿ…",
+      "unlink": "ಜೋಡಣೆ ತೆಗೆಯಿರಿ",
+      "answers": "ಇದು ಪೂರೈಸುವ DVV ದಾಖಲೆಗಳು",
+      "year": "ವರ್ಷ",
+      "yearHint": "ಇದು ಪ್ರತಿ ವರ್ಷಕ್ಕೂ ಅನ್ವಯಿಸುವುದಾದರೆ (ನೀತಿ, ಸಮಿತಿ ಆದೇಶ) ಖಾಲಿ ಬಿಡಿ.",
+      "anyYear": "ಪ್ರತಿ ವರ್ಷ",
+      "link": "ಲಿಂಕ್",
+      "linkHint": "ಪುರಾವೆ ಸಂಸ್ಥೆಯ ವೆಬ್‌ಸೈಟ್‌ನಲ್ಲಿದ್ದರೆ, ಆ ಪುಟದ ಲಿಂಕ್.",
+      "description": "ವಿವರಣೆ",
+      "filesAfter": "ಮೊದಲು ಉಳಿಸಿ, ನಂತರ ಪುರಾವೆಗೆ ಕಡತಗಳನ್ನು (PDF, ಚಿತ್ರಗಳು, Word) ಸೇರಿಸಿ.",
+      "files": "ಕಡತಗಳು",
+      "addedOn": "{{at}} ರಂದು ಸೇರಿಸಲಾಗಿದೆ",
+      "forYear": "{{year}} ಕ್ಕೆ",
+      "verify": "ಪರಿಶೀಲಿಸಲಾಗಿದೆ ಎಂದು ಗುರುತಿಸಿ",
+      "clarify": "ಸ್ಪಷ್ಟೀಕರಣ ಬೇಕಿದೆ",
+      "clarifyTitle": "ಯಾವುದಕ್ಕೆ ಸ್ಪಷ್ಟೀಕರಣ ಬೇಕು?",
+      "clarifyNote": "ಇಲಾಖೆಗೆ ಟಿಪ್ಪಣಿ",
+      "dvvSaved": "DVV ಸ್ಥಿತಿ ಉಳಿಸಲಾಗಿದೆ",
       "dvvBy": "{{by}}, {{at}}"
     },
     "print": {
-      "year": "Assessment year",
-      "complete": "Metrics complete",
-      "weight": "Weightage",
-      "metric": "Metric",
-      "title": "Description",
-      "value": "Value",
-      "status": "Status",
-      "words": "words",
-      "noNarrative": "Not written yet.",
-      "institution": "Name of the institution",
-      "ids": "Affiliation / registration",
-      "criterion": "Criterion {{code}}",
-      "done": "complete",
-      "iqac": "IQAC Coordinator",
-      "seal": "Seal",
-      "head": "Principal / Head of the Institution"
+      "year": "ಮೌಲ್ಯಮಾಪನ ವರ್ಷ",
+      "complete": "ಪೂರ್ಣಗೊಂಡ ಸೂಚಕಗಳು",
+      "weight": "ಪಾಲು",
+      "metric": "ಸೂಚಕ",
+      "title": "ವಿವರಣೆ",
+      "value": "ಮೌಲ್ಯ",
+      "status": "ಸ್ಥಿತಿ",
+      "words": "ಪದಗಳು",
+      "noNarrative": "ಇನ್ನೂ ಬರೆದಿಲ್ಲ.",
+      "institution": "ಸಂಸ್ಥೆಯ ಹೆಸರು",
+      "ids": "ಸಂಯೋಜನೆ / ನೋಂದಣಿ",
+      "criterion": "ಮಾನದಂಡ {{code}}",
+      "done": "ಪೂರ್ಣ",
+      "iqac": "IQAC ಸಂಯೋಜಕರು",
+      "seal": "ಮೊಹರು",
+      "head": "ಪ್ರಾಂಶುಪಾಲರು / ಸಂಸ್ಥೆಯ ಮುಖ್ಯಸ್ಥರು"
     },
     "fw": {
       "NAAC": {
         "c": {
-          "C1": "Curricular aspects",
-          "C2": "Teaching–learning and evaluation",
-          "C3": "Research, innovations and extension",
-          "C4": "Infrastructure and learning resources",
-          "C5": "Student support and progression",
-          "C6": "Governance, leadership and management",
-          "C7": "Institutional values and best practices"
+          "C1": "ಪಠ್ಯಕ್ರಮ ಅಂಶಗಳು",
+          "C2": "ಬೋಧನೆ–ಕಲಿಕೆ ಮತ್ತು ಮೌಲ್ಯಮಾಪನ",
+          "C3": "ಸಂಶೋಧನೆ, ನಾವೀನ್ಯತೆ ಮತ್ತು ವಿಸ್ತರಣಾ ಚಟುವಟಿಕೆಗಳು",
+          "C4": "ಮೂಲಸೌಕರ್ಯ ಮತ್ತು ಕಲಿಕಾ ಸಂಪನ್ಮೂಲಗಳು",
+          "C5": "ವಿದ್ಯಾರ್ಥಿ ಬೆಂಬಲ ಮತ್ತು ಪ್ರಗತಿ",
+          "C6": "ಆಡಳಿತ, ನಾಯಕತ್ವ ಮತ್ತು ನಿರ್ವಹಣೆ",
+          "C7": "ಸಾಂಸ್ಥಿಕ ಮೌಲ್ಯಗಳು ಮತ್ತು ಉತ್ತಮ ಅಭ್ಯಾಸಗಳು"
         },
         "m": {
-          "1_1_1": "Effective curriculum planning and delivery",
-          "1_1_3": "Teachers participating in curriculum development and assessment",
-          "1_2_1": "Programmes with CBCS / elective course system",
-          "1_2_2": "Add-on / certificate programmes offered",
-          "1_2_3": "Students enrolled in add-on / certificate programmes",
-          "1_3_1": "Cross-cutting issues: gender, environment, human values, professional ethics",
-          "1_3_2": "Courses with experiential learning (project, field work, internship)",
-          "1_3_3": "Students undertaking project work / field work / internships",
-          "1_4_1": "Feedback on the syllabus from stakeholders",
-          "1_4_2": "Feedback process (collected, analysed, action taken, on website)",
-          "2_1_1": "Enrolment percentage (admitted against sanctioned intake)",
-          "2_1_2": "Seats filled against reserved categories",
-          "2_2_1": "Assessing learning levels; programmes for advanced and slow learners",
-          "2_2_2": "Student – full-time teacher ratio",
-          "2_3_1": "Student-centric methods: experiential, participative, problem-solving",
-          "2_3_2": "Teachers using ICT-enabled tools",
-          "2_3_3": "Ratio of students to mentor",
-          "2_4_1": "Full-time teachers against sanctioned posts",
-          "2_4_2": "Full-time teachers with Ph.D.",
-          "2_4_3": "Average teaching experience of full-time teachers",
-          "2_5_1": "Days from the last semester-end exam to the declaration of results",
-          "2_5_2": "Student complaints / grievances about evaluation",
-          "2_6_1": "Programme and course outcomes stated and communicated",
-          "2_6_2": "Attainment of programme and course outcomes",
-          "2_6_3": "Pass percentage of final-year students",
-          "2_7_1": "Online student satisfaction survey (SSS)",
-          "3_1_1": "Grants received for research projects (₹ lakh)",
-          "3_1_2": "Teachers recognised as research guides",
-          "3_1_3": "Departments with funded research projects",
-          "3_2_1": "Ecosystem for innovations, incubation and knowledge transfer",
-          "3_2_2": "Workshops / seminars on research methodology, IPR and entrepreneurship",
-          "3_3_1": "Ph.D.s registered per eligible teacher",
-          "3_3_2": "Research papers per teacher in UGC-CARE journals",
-          "3_3_3": "Books, chapters and conference papers per teacher",
-          "3_4_1": "Extension activities in the neighbourhood community",
-          "3_4_2": "Awards and recognition for extension activities",
-          "3_4_3": "Extension and outreach programmes conducted",
-          "3_4_4": "Students participating in extension activities",
-          "3_5_1": "Collaborative activities (research, internship, exchange)",
-          "3_5_2": "Functional MoUs with institutions and industries",
-          "4_1_1": "Adequate facilities for teaching–learning",
-          "4_1_2": "Facilities for cultural activities, sports and games",
-          "4_1_3": "Classrooms and seminar halls with ICT facilities",
-          "4_1_4": "Expenditure on infrastructure augmentation, excluding salary (₹ lakh)",
-          "4_2_1": "Library automated with an integrated library management system",
-          "4_2_2": "E-resources subscribed / e-books in the library",
-          "4_2_3": "Expenditure on books and journals (₹ lakh)",
-          "4_2_4": "Library usage per day (loans)",
-          "4_3_1": "IT facilities and Wi-Fi, updated regularly",
-          "4_3_2": "Student – computer ratio",
-          "4_3_3": "Bandwidth of the internet connection (Mbps)",
-          "4_4_1": "Expenditure on maintenance of infrastructure (₹ lakh)",
-          "5_1_1": "Students benefited by government scholarships and freeships",
-          "5_1_2": "Students benefited by institution / non-government scholarships",
-          "5_1_3": "Capacity building and skills enhancement initiatives",
-          "5_1_4": "Students benefited by guidance for competitive exams and career counselling",
-          "5_1_5": "Grievance redressal (sexual harassment, ragging) mechanism",
-          "5_2_1": "Placement of outgoing students",
-          "5_2_2": "Outgoing students progressing to higher education",
-          "5_2_3": "Students qualifying state / national exams (NET, SLET, GATE, CAT …)",
-          "5_3_1": "Awards / medals in sports and cultural activities",
-          "5_3_2": "Active student council and student representation",
-          "5_3_3": "Sports and cultural events organised",
-          "5_4_1": "Registered alumni association and its contribution",
-          "6_1_1": "Governance reflecting the vision and mission",
-          "6_2_1": "Perspective / strategic plan deployed; functioning of institutional bodies",
-          "6_2_2": "E-governance in administration, finance, admissions and examinations",
-          "6_3_1": "Welfare measures for teaching and non-teaching staff",
-          "6_3_2": "Teachers given financial support for conferences / workshops",
-          "6_3_3": "Professional development / administrative training programmes organised",
-          "6_3_4": "Teachers undergoing faculty development programmes (FDP)",
-          "6_4_1": "Internal and external financial audits",
-          "6_4_2": "Funds received from non-government bodies and philanthropists (₹ lakh)",
-          "6_5_1": "IQAC’s contribution to institutionalising quality assurance",
-          "6_5_3": "Quality assurance initiatives (AQAR, audits, NIRF, ISO)",
-          "7_1_1": "Measures for the promotion of gender equity",
-          "7_1_2": "Facilities for alternate sources of energy and energy conservation",
-          "7_1_3": "Facilities for the management of degradable and non-degradable waste",
-          "7_1_4": "Water conservation facilities",
-          "7_1_6": "Quality audits on environment and energy",
-          "7_1_7": "Disabled-friendly, barrier-free environment",
-          "7_1_8": "Inclusive environment: tolerance and harmony",
-          "7_1_9": "Sensitisation to constitutional obligations",
-          "7_2_1": "Two best practices of the institution",
-          "7_3_1": "Institutional distinctiveness"
+          "1_1_1": "ಪರಿಣಾಮಕಾರಿ ಪಠ್ಯಕ್ರಮ ಯೋಜನೆ ಮತ್ತು ಅನುಷ್ಠಾನ",
+          "1_1_3": "ಪಠ್ಯಕ್ರಮ ರಚನೆ ಮತ್ತು ಮೌಲ್ಯಮಾಪನದಲ್ಲಿ ಭಾಗವಹಿಸುವ ಶಿಕ್ಷಕರು",
+          "1_2_1": "CBCS / ಐಚ್ಛಿಕ ಕೋರ್ಸ್ ವ್ಯವಸ್ಥೆ ಇರುವ ಕಾರ್ಯಕ್ರಮಗಳು",
+          "1_2_2": "ನೀಡಲಾಗುವ ಹೆಚ್ಚುವರಿ / ಪ್ರಮಾಣಪತ್ರ ಕಾರ್ಯಕ್ರಮಗಳು",
+          "1_2_3": "ಹೆಚ್ಚುವರಿ / ಪ್ರಮಾಣಪತ್ರ ಕಾರ್ಯಕ್ರಮಗಳಿಗೆ ದಾಖಲಾದ ವಿದ್ಯಾರ್ಥಿಗಳು",
+          "1_3_1": "ಸಮಗ್ರ ವಿಷಯಗಳು: ಲಿಂಗ ಸಮಾನತೆ, ಪರಿಸರ, ಮಾನವೀಯ ಮೌಲ್ಯಗಳು, ವೃತ್ತಿಪರ ನೈತಿಕತೆ",
+          "1_3_2": "ಅನುಭವಾತ್ಮಕ ಕಲಿಕೆ ಇರುವ ಕೋರ್ಸ್‌ಗಳು (ಯೋಜನಾ ಕಾರ್ಯ, ಕ್ಷೇತ್ರ ಕಾರ್ಯ, ಇಂಟರ್ನ್‌ಶಿಪ್)",
+          "1_3_3": "ಯೋಜನಾ ಕಾರ್ಯ / ಕ್ಷೇತ್ರ ಕಾರ್ಯ / ಇಂಟರ್ನ್‌ಶಿಪ್ ಕೈಗೊಂಡ ವಿದ್ಯಾರ್ಥಿಗಳು",
+          "1_4_1": "ಪಠ್ಯಕ್ರಮದ ಕುರಿತು ಸಂಬಂಧಿತರಿಂದ ಪ್ರತಿಕ್ರಿಯೆ",
+          "1_4_2": "ಪ್ರತಿಕ್ರಿಯೆ ಪ್ರಕ್ರಿಯೆ (ಸಂಗ್ರಹ, ವಿಶ್ಲೇಷಣೆ, ಕೈಗೊಂಡ ಕ್ರಮ, ವೆಬ್‌ಸೈಟ್‌ನಲ್ಲಿ ಪ್ರಕಟಣೆ)",
+          "2_1_1": "ದಾಖಲಾತಿ ಶೇಕಡಾವಾರು (ಮಂಜೂರಾದ ಪ್ರವೇಶ ಸಾಮರ್ಥ್ಯಕ್ಕೆ ಎದುರಾಗಿ ಪ್ರವೇಶ ಪಡೆದವರು)",
+          "2_1_2": "ಮೀಸಲು ವರ್ಗಗಳಿಗೆ ಎದುರಾಗಿ ಭರ್ತಿಯಾದ ಸ್ಥಾನಗಳು",
+          "2_2_1": "ಕಲಿಕಾ ಮಟ್ಟದ ಮೌಲ್ಯಮಾಪನ; ಮುಂದುವರಿದ ಮತ್ತು ನಿಧಾನ ಕಲಿಕಾರ್ಥಿಗಳಿಗೆ ಕಾರ್ಯಕ್ರಮಗಳು",
+          "2_2_2": "ವಿದ್ಯಾರ್ಥಿ – ಪೂರ್ಣಾವಧಿ ಶಿಕ್ಷಕರ ಅನುಪಾತ",
+          "2_3_1": "ವಿದ್ಯಾರ್ಥಿ ಕೇಂದ್ರಿತ ವಿಧಾನಗಳು: ಅನುಭವಾತ್ಮಕ, ಸಹಭಾಗಿತ್ವದ, ಸಮಸ್ಯೆ ಪರಿಹಾರದ",
+          "2_3_2": "ICT ಆಧಾರಿತ ಸಾಧನಗಳನ್ನು ಬಳಸುವ ಶಿಕ್ಷಕರು",
+          "2_3_3": "ವಿದ್ಯಾರ್ಥಿ – ಮಾರ್ಗದರ್ಶಕರ ಅನುಪಾತ",
+          "2_4_1": "ಮಂಜೂರಾದ ಹುದ್ದೆಗಳಿಗೆ ಎದುರಾಗಿ ಪೂರ್ಣಾವಧಿ ಶಿಕ್ಷಕರು",
+          "2_4_2": "ಪಿಎಚ್.ಡಿ. ಹೊಂದಿರುವ ಪೂರ್ಣಾವಧಿ ಶಿಕ್ಷಕರು",
+          "2_4_3": "ಪೂರ್ಣಾವಧಿ ಶಿಕ್ಷಕರ ಸರಾಸರಿ ಬೋಧನಾ ಅನುಭವ",
+          "2_5_1": "ಕೊನೆಯ ಸೆಮಿಸ್ಟರ್ ಅಂತ್ಯದ ಪರೀಕ್ಷೆಯಿಂದ ಫಲಿತಾಂಶ ಪ್ರಕಟಣೆಯವರೆಗಿನ ದಿನಗಳು",
+          "2_5_2": "ಮೌಲ್ಯಮಾಪನದ ಕುರಿತು ವಿದ್ಯಾರ್ಥಿಗಳ ದೂರುಗಳು / ಕುಂದುಕೊರತೆಗಳು",
+          "2_6_1": "ಕಾರ್ಯಕ್ರಮ ಮತ್ತು ಕೋರ್ಸ್ ಫಲಿತಗಳನ್ನು ನಿಗದಿಪಡಿಸಿ ತಿಳಿಸಲಾಗಿದೆ",
+          "2_6_2": "ಕಾರ್ಯಕ್ರಮ ಮತ್ತು ಕೋರ್ಸ್ ಫಲಿತಗಳ ಸಾಧನೆ",
+          "2_6_3": "ಅಂತಿಮ ವರ್ಷದ ವಿದ್ಯಾರ್ಥಿಗಳ ಉತ್ತೀರ್ಣ ಶೇಕಡಾವಾರು",
+          "2_7_1": "ಆನ್‌ಲೈನ್ ವಿದ್ಯಾರ್ಥಿ ತೃಪ್ತಿ ಸಮೀಕ್ಷೆ (SSS)",
+          "3_1_1": "ಸಂಶೋಧನಾ ಯೋಜನೆಗಳಿಗೆ ಪಡೆದ ಅನುದಾನ (₹ ಲಕ್ಷ)",
+          "3_1_2": "ಸಂಶೋಧನಾ ಮಾರ್ಗದರ್ಶಕರೆಂದು ಮಾನ್ಯತೆ ಪಡೆದ ಶಿಕ್ಷಕರು",
+          "3_1_3": "ಅನುದಾನಿತ ಸಂಶೋಧನಾ ಯೋಜನೆಗಳಿರುವ ಇಲಾಖೆಗಳು",
+          "3_2_1": "ನಾವೀನ್ಯತೆ, ಇನ್‌ಕ್ಯುಬೇಷನ್ ಮತ್ತು ಜ್ಞಾನ ವರ್ಗಾವಣೆಗೆ ಪೂರಕ ವ್ಯವಸ್ಥೆ",
+          "3_2_2": "ಸಂಶೋಧನಾ ವಿಧಾನ, ಬೌದ್ಧಿಕ ಆಸ್ತಿ ಹಕ್ಕು (IPR) ಮತ್ತು ಉದ್ಯಮಶೀಲತೆ ಕುರಿತು ಕಾರ್ಯಾಗಾರಗಳು / ವಿಚಾರಸಂಕಿರಣಗಳು",
+          "3_3_1": "ಅರ್ಹ ಶಿಕ್ಷಕರೊಬ್ಬರಿಗೆ ನೋಂದಾಯಿತ ಪಿಎಚ್.ಡಿ.ಗಳು",
+          "3_3_2": "UGC-CARE ನಿಯತಕಾಲಿಕಗಳಲ್ಲಿ ಪ್ರತಿ ಶಿಕ್ಷಕರ ಸಂಶೋಧನಾ ಲೇಖನಗಳು",
+          "3_3_3": "ಪ್ರತಿ ಶಿಕ್ಷಕರ ಪುಸ್ತಕಗಳು, ಅಧ್ಯಾಯಗಳು ಮತ್ತು ಸಮ್ಮೇಳನ ಲೇಖನಗಳು",
+          "3_4_1": "ನೆರೆಹೊರೆಯ ಸಮುದಾಯದಲ್ಲಿ ವಿಸ್ತರಣಾ ಚಟುವಟಿಕೆಗಳು",
+          "3_4_2": "ವಿಸ್ತರಣಾ ಚಟುವಟಿಕೆಗಳಿಗೆ ಪ್ರಶಸ್ತಿಗಳು ಮತ್ತು ಮನ್ನಣೆ",
+          "3_4_3": "ನಡೆಸಿದ ವಿಸ್ತರಣಾ ಮತ್ತು ಸಮುದಾಯ ಸಂಪರ್ಕ ಕಾರ್ಯಕ್ರಮಗಳು",
+          "3_4_4": "ವಿಸ್ತರಣಾ ಚಟುವಟಿಕೆಗಳಲ್ಲಿ ಭಾಗವಹಿಸುವ ವಿದ್ಯಾರ್ಥಿಗಳು",
+          "3_5_1": "ಸಹಯೋಗ ಚಟುವಟಿಕೆಗಳು (ಸಂಶೋಧನೆ, ಇಂಟರ್ನ್‌ಶಿಪ್, ವಿನಿಮಯ)",
+          "3_5_2": "ಸಂಸ್ಥೆಗಳು ಮತ್ತು ಉದ್ಯಮಗಳೊಂದಿಗೆ ಜಾರಿಯಲ್ಲಿರುವ ಒಡಂಬಡಿಕೆಗಳು (MoU)",
+          "4_1_1": "ಬೋಧನೆ–ಕಲಿಕೆಗೆ ಸಾಕಷ್ಟು ಸೌಲಭ್ಯಗಳು",
+          "4_1_2": "ಸಾಂಸ್ಕೃತಿಕ ಚಟುವಟಿಕೆಗಳು, ಕ್ರೀಡೆ ಮತ್ತು ಆಟಗಳಿಗೆ ಸೌಲಭ್ಯಗಳು",
+          "4_1_3": "ICT ಸೌಲಭ್ಯವಿರುವ ತರಗತಿ ಕೊಠಡಿಗಳು ಮತ್ತು ವಿಚಾರಸಂಕಿರಣ ಸಭಾಂಗಣಗಳು",
+          "4_1_4": "ಮೂಲಸೌಕರ್ಯ ವೃದ್ಧಿಗೆ ವೆಚ್ಚ, ವೇತನ ಹೊರತುಪಡಿಸಿ (₹ ಲಕ್ಷ)",
+          "4_2_1": "ಸಮಗ್ರ ಗ್ರಂಥಾಲಯ ನಿರ್ವಹಣಾ ವ್ಯವಸ್ಥೆಯೊಂದಿಗೆ ಸ್ವಯಂಚಾಲಿತ ಗ್ರಂಥಾಲಯ",
+          "4_2_2": "ಗ್ರಂಥಾಲಯದಲ್ಲಿ ಚಂದಾದಾರಿಕೆಯ ಇ-ಸಂಪನ್ಮೂಲಗಳು / ಇ-ಪುಸ್ತಕಗಳು",
+          "4_2_3": "ಪುಸ್ತಕಗಳು ಮತ್ತು ನಿಯತಕಾಲಿಕಗಳಿಗೆ ವೆಚ್ಚ (₹ ಲಕ್ಷ)",
+          "4_2_4": "ದಿನವೊಂದಕ್ಕೆ ಗ್ರಂಥಾಲಯ ಬಳಕೆ (ಎರವಲು)",
+          "4_3_1": "ನಿಯಮಿತವಾಗಿ ಉನ್ನತೀಕರಿಸುವ IT ಸೌಲಭ್ಯಗಳು ಮತ್ತು Wi-Fi",
+          "4_3_2": "ವಿದ್ಯಾರ್ಥಿ – ಕಂಪ್ಯೂಟರ್ ಅನುಪಾತ",
+          "4_3_3": "ಇಂಟರ್ನೆಟ್ ಸಂಪರ್ಕದ ಬ್ಯಾಂಡ್‌ವಿಡ್ತ್ (Mbps)",
+          "4_4_1": "ಮೂಲಸೌಕರ್ಯ ನಿರ್ವಹಣೆಗೆ ವೆಚ್ಚ (₹ ಲಕ್ಷ)",
+          "5_1_1": "ಸರ್ಕಾರಿ ವಿದ್ಯಾರ್ಥಿವೇತನ ಮತ್ತು ಶುಲ್ಕ ವಿನಾಯಿತಿಯ ಪ್ರಯೋಜನ ಪಡೆದ ವಿದ್ಯಾರ್ಥಿಗಳು",
+          "5_1_2": "ಸಂಸ್ಥೆಯ / ಸರ್ಕಾರೇತರ ವಿದ್ಯಾರ್ಥಿವೇತನದ ಪ್ರಯೋಜನ ಪಡೆದ ವಿದ್ಯಾರ್ಥಿಗಳು",
+          "5_1_3": "ಸಾಮರ್ಥ್ಯ ವೃದ್ಧಿ ಮತ್ತು ಕೌಶಲ ಅಭಿವೃದ್ಧಿ ಉಪಕ್ರಮಗಳು",
+          "5_1_4": "ಸ್ಪರ್ಧಾತ್ಮಕ ಪರೀಕ್ಷೆಗಳ ಮಾರ್ಗದರ್ಶನ ಮತ್ತು ವೃತ್ತಿ ಸಮಾಲೋಚನೆಯ ಪ್ರಯೋಜನ ಪಡೆದ ವಿದ್ಯಾರ್ಥಿಗಳು",
+          "5_1_5": "ಕುಂದುಕೊರತೆ ನಿವಾರಣಾ ವ್ಯವಸ್ಥೆ (ಲೈಂಗಿಕ ಕಿರುಕುಳ, ರ‍್ಯಾಗಿಂಗ್)",
+          "5_2_1": "ವ್ಯಾಸಂಗ ಮುಗಿಸಿದ ವಿದ್ಯಾರ್ಥಿಗಳ ಉದ್ಯೋಗ ನೇಮಕಾತಿ",
+          "5_2_2": "ಉನ್ನತ ಶಿಕ್ಷಣಕ್ಕೆ ಮುಂದುವರಿದ ವಿದ್ಯಾರ್ಥಿಗಳು",
+          "5_2_3": "ರಾಜ್ಯ / ರಾಷ್ಟ್ರ ಮಟ್ಟದ ಪರೀಕ್ಷೆಗಳಲ್ಲಿ ಅರ್ಹತೆ ಪಡೆದ ವಿದ್ಯಾರ್ಥಿಗಳು (NET, SLET, GATE, CAT …)",
+          "5_3_1": "ಕ್ರೀಡೆ ಮತ್ತು ಸಾಂಸ್ಕೃತಿಕ ಚಟುವಟಿಕೆಗಳಲ್ಲಿ ಪ್ರಶಸ್ತಿಗಳು / ಪದಕಗಳು",
+          "5_3_2": "ಸಕ್ರಿಯ ವಿದ್ಯಾರ್ಥಿ ಪರಿಷತ್ತು ಮತ್ತು ವಿದ್ಯಾರ್ಥಿ ಪ್ರಾತಿನಿಧ್ಯ",
+          "5_3_3": "ಆಯೋಜಿಸಿದ ಕ್ರೀಡಾ ಮತ್ತು ಸಾಂಸ್ಕೃತಿಕ ಕಾರ್ಯಕ್ರಮಗಳು",
+          "5_4_1": "ನೋಂದಾಯಿತ ಹಳೆಯ ವಿದ್ಯಾರ್ಥಿಗಳ ಸಂಘ ಮತ್ತು ಅದರ ಕೊಡುಗೆ",
+          "6_1_1": "ಧ್ಯೇಯ ಮತ್ತು ಉದ್ದೇಶಗಳನ್ನು ಪ್ರತಿಬಿಂಬಿಸುವ ಆಡಳಿತ",
+          "6_2_1": "ದೀರ್ಘಾವಧಿ / ಕಾರ್ಯತಂತ್ರ ಯೋಜನೆಯ ಅನುಷ್ಠಾನ; ಸಾಂಸ್ಥಿಕ ಮಂಡಳಿಗಳ ಕಾರ್ಯನಿರ್ವಹಣೆ",
+          "6_2_2": "ಆಡಳಿತ, ಹಣಕಾಸು, ಪ್ರವೇಶ ಮತ್ತು ಪರೀಕ್ಷೆಗಳಲ್ಲಿ ಇ-ಆಡಳಿತ",
+          "6_3_1": "ಬೋಧಕ ಮತ್ತು ಬೋಧಕೇತರ ಸಿಬ್ಬಂದಿಗೆ ಕಲ್ಯಾಣ ಕ್ರಮಗಳು",
+          "6_3_2": "ಸಮ್ಮೇಳನ / ಕಾರ್ಯಾಗಾರಗಳಿಗೆ ಆರ್ಥಿಕ ನೆರವು ಪಡೆದ ಶಿಕ್ಷಕರು",
+          "6_3_3": "ಆಯೋಜಿಸಿದ ವೃತ್ತಿಪರ ಅಭಿವೃದ್ಧಿ / ಆಡಳಿತಾತ್ಮಕ ತರಬೇತಿ ಕಾರ್ಯಕ್ರಮಗಳು",
+          "6_3_4": "ಬೋಧಕರ ಅಭಿವೃದ್ಧಿ ಕಾರ್ಯಕ್ರಮಗಳಲ್ಲಿ (FDP) ಭಾಗವಹಿಸಿದ ಶಿಕ್ಷಕರು",
+          "6_4_1": "ಆಂತರಿಕ ಮತ್ತು ಬಾಹ್ಯ ಹಣಕಾಸು ಲೆಕ್ಕಪರಿಶೋಧನೆ",
+          "6_4_2": "ಸರ್ಕಾರೇತರ ಸಂಸ್ಥೆಗಳು ಮತ್ತು ದಾನಿಗಳಿಂದ ಪಡೆದ ನಿಧಿ (₹ ಲಕ್ಷ)",
+          "6_5_1": "ಗುಣಮಟ್ಟ ಖಾತರಿಯನ್ನು ಸಾಂಸ್ಥೀಕರಿಸುವಲ್ಲಿ IQAC ಕೊಡುಗೆ",
+          "6_5_3": "ಗುಣಮಟ್ಟ ಖಾತರಿ ಉಪಕ್ರಮಗಳು (AQAR, ಲೆಕ್ಕಪರಿಶೋಧನೆ, NIRF, ISO)",
+          "7_1_1": "ಲಿಂಗ ಸಮಾನತೆಯ ಉತ್ತೇಜನಕ್ಕೆ ಕ್ರಮಗಳು",
+          "7_1_2": "ಪರ್ಯಾಯ ಇಂಧನ ಮೂಲಗಳು ಮತ್ತು ಇಂಧನ ಸಂರಕ್ಷಣೆಗೆ ಸೌಲಭ್ಯಗಳು",
+          "7_1_3": "ಕೊಳೆಯುವ ಮತ್ತು ಕೊಳೆಯದ ತ್ಯಾಜ್ಯ ನಿರ್ವಹಣೆಗೆ ಸೌಲಭ್ಯಗಳು",
+          "7_1_4": "ಜಲ ಸಂರಕ್ಷಣಾ ಸೌಲಭ್ಯಗಳು",
+          "7_1_6": "ಪರಿಸರ ಮತ್ತು ಇಂಧನ ಕುರಿತು ಗುಣಮಟ್ಟ ಲೆಕ್ಕಪರಿಶೋಧನೆ",
+          "7_1_7": "ಅಂಗವಿಕಲ ಸ್ನೇಹಿ, ಅಡೆತಡೆರಹಿತ ಪರಿಸರ",
+          "7_1_8": "ಎಲ್ಲರನ್ನೂ ಒಳಗೊಳ್ಳುವ ಪರಿಸರ: ಸಹಿಷ್ಣುತೆ ಮತ್ತು ಸಾಮರಸ್ಯ",
+          "7_1_9": "ಸಾಂವಿಧಾನಿಕ ಕರ್ತವ್ಯಗಳ ಕುರಿತು ಜಾಗೃತಿ",
+          "7_2_1": "ಸಂಸ್ಥೆಯ ಎರಡು ಉತ್ತಮ ಅಭ್ಯಾಸಗಳು",
+          "7_3_1": "ಸಂಸ್ಥೆಯ ವಿಶಿಷ್ಟತೆ"
         },
         "dvv": {
           "1_1_3": {
-            "0": "Letters of nomination to BoS / academic council",
-            "1": "Minutes of the meetings"
+            "0": "BoS / ಶೈಕ್ಷಣಿಕ ಪರಿಷತ್ತಿಗೆ ನಾಮನಿರ್ದೇಶನ ಪತ್ರಗಳು",
+            "1": "ಸಭಾ ನಡಾವಳಿಗಳು"
           },
           "1_2_1": {
-            "0": "Minutes of the academic council approving CBCS",
-            "1": "Course structure of each programme"
+            "0": "CBCS ಅನುಮೋದಿಸಿದ ಶೈಕ್ಷಣಿಕ ಪರಿಷತ್ತಿನ ನಡಾವಳಿಗಳು",
+            "1": "ಪ್ರತಿ ಕಾರ್ಯಕ್ರಮದ ಕೋರ್ಸ್ ರಚನೆ"
           },
           "1_2_2": {
-            "0": "Brochure or notice of each programme",
-            "1": "List of students enrolled"
+            "0": "ಪ್ರತಿ ಕಾರ್ಯಕ್ರಮದ ಕೈಪಿಡಿ ಅಥವಾ ಸೂಚನೆ",
+            "1": "ದಾಖಲಾದ ವಿದ್ಯಾರ್ಥಿಗಳ ಪಟ್ಟಿ"
           },
           "1_2_3": {
-            "0": "List of students with programme",
-            "1": "Certificates issued (sample)"
+            "0": "ಕಾರ್ಯಕ್ರಮವಾರು ವಿದ್ಯಾರ್ಥಿಗಳ ಪಟ್ಟಿ",
+            "1": "ನೀಡಿದ ಪ್ರಮಾಣಪತ್ರಗಳು (ಮಾದರಿ)"
           },
           "1_3_2": {
-            "0": "Syllabus marking the experiential courses"
+            "0": "ಅನುಭವಾತ್ಮಕ ಕೋರ್ಸ್‌ಗಳನ್ನು ಗುರುತಿಸಿದ ಪಠ್ಯಕ್ರಮ"
           },
           "1_3_3": {
-            "0": "List of students with project / internship",
-            "1": "Completion certificates (sample)"
+            "0": "ಯೋಜನಾ ಕಾರ್ಯ / ಇಂಟರ್ನ್‌ಶಿಪ್ ಸಹಿತ ವಿದ್ಯಾರ್ಥಿಗಳ ಪಟ್ಟಿ",
+            "1": "ಪೂರ್ಣಗೊಳಿಸಿದ ಪ್ರಮಾಣಪತ್ರಗಳು (ಮಾದರಿ)"
           },
           "1_4_1": {
-            "0": "Feedback forms",
-            "1": "Action taken report"
+            "0": "ಪ್ರತಿಕ್ರಿಯೆ ನಮೂನೆಗಳು",
+            "1": "ಕೈಗೊಂಡ ಕ್ರಮದ ವರದಿ"
           },
           "1_4_2": {
-            "0": "Feedback analysis report",
-            "1": "Website link of the feedback"
+            "0": "ಪ್ರತಿಕ್ರಿಯೆ ವಿಶ್ಲೇಷಣಾ ವರದಿ",
+            "1": "ಪ್ರತಿಕ್ರಿಯೆಯ ವೆಬ್‌ಸೈಟ್ ಲಿಂಕ್"
           },
           "2_1_1": {
-            "0": "Sanctioned intake letter from the university / regulator",
-            "1": "List of students admitted, programme-wise"
+            "0": "ವಿಶ್ವವಿದ್ಯಾಲಯ / ನಿಯಂತ್ರಕ ಸಂಸ್ಥೆಯ ಮಂಜೂರಾದ ಪ್ರವೇಶ ಸಾಮರ್ಥ್ಯದ ಪತ್ರ",
+            "1": "ಕಾರ್ಯಕ್ರಮವಾರು ಪ್ರವೇಶ ಪಡೆದ ವಿದ್ಯಾರ್ಥಿಗಳ ಪಟ್ಟಿ"
           },
           "2_1_2": {
-            "0": "Reservation policy letter",
-            "1": "Category-wise admission list"
+            "0": "ಮೀಸಲಾತಿ ನೀತಿ ಪತ್ರ",
+            "1": "ವರ್ಗವಾರು ಪ್ರವೇಶ ಪಟ್ಟಿ"
           },
           "2_2_2": {
-            "0": "List of full-time teachers with appointment letters",
-            "1": "Students on roll, programme-wise"
+            "0": "ನೇಮಕಾತಿ ಪತ್ರಗಳೊಂದಿಗೆ ಪೂರ್ಣಾವಧಿ ಶಿಕ್ಷಕರ ಪಟ್ಟಿ",
+            "1": "ಕಾರ್ಯಕ್ರಮವಾರು ದಾಖಲಾತಿಯಲ್ಲಿರುವ ವಿದ್ಯಾರ್ಥಿಗಳು"
           },
           "2_3_3": {
-            "0": "Mentor allotment list",
-            "1": "Mentoring records (sample)"
+            "0": "ಮಾರ್ಗದರ್ಶಕರ ಹಂಚಿಕೆ ಪಟ್ಟಿ",
+            "1": "ಮಾರ್ಗದರ್ಶನದ ದಾಖಲೆಗಳು (ಮಾದರಿ)"
           },
           "2_4_1": {
-            "0": "Sanctioned posts letter",
-            "1": "List of full-time teachers"
+            "0": "ಮಂಜೂರಾದ ಹುದ್ದೆಗಳ ಪತ್ರ",
+            "1": "ಪೂರ್ಣಾವಧಿ ಶಿಕ್ಷಕರ ಪಟ್ಟಿ"
           },
           "2_4_2": {
-            "0": "Ph.D. degree certificates of the teachers"
+            "0": "ಶಿಕ್ಷಕರ ಪಿಎಚ್.ಡಿ. ಪದವಿ ಪ್ರಮಾಣಪತ್ರಗಳು"
           },
           "2_4_3": {
-            "0": "List of teachers with date of joining and experience"
+            "0": "ಸೇರ್ಪಡೆ ದಿನಾಂಕ ಮತ್ತು ಅನುಭವದೊಂದಿಗೆ ಶಿಕ್ಷಕರ ಪಟ್ಟಿ"
           },
           "2_5_1": {
-            "0": "Exam timetable",
-            "1": "Result notification with date"
+            "0": "ಪರೀಕ್ಷಾ ವೇಳಾಪಟ್ಟಿ",
+            "1": "ದಿನಾಂಕ ಸಹಿತ ಫಲಿತಾಂಶ ಅಧಿಸೂಚನೆ"
           },
           "2_5_2": {
-            "0": "Revaluation applications and outcomes"
+            "0": "ಮರುಮೌಲ್ಯಮಾಪನ ಅರ್ಜಿಗಳು ಮತ್ತು ಅವುಗಳ ಫಲಿತಾಂಶ"
           },
           "2_6_3": {
-            "0": "Result sheets of the final-year students",
-            "1": "Annual report of the controller of examinations"
+            "0": "ಅಂತಿಮ ವರ್ಷದ ವಿದ್ಯಾರ್ಥಿಗಳ ಫಲಿತಾಂಶ ಪಟ್ಟಿಗಳು",
+            "1": "ಪರೀಕ್ಷಾ ನಿಯಂತ್ರಕರ ವಾರ್ಷಿಕ ವರದಿ"
           },
           "2_7_1": {
-            "0": "Database of all currently enrolled students"
+            "0": "ಪ್ರಸ್ತುತ ದಾಖಲಾಗಿರುವ ಎಲ್ಲಾ ವಿದ್ಯಾರ್ಥಿಗಳ ದತ್ತಾಂಶ"
           },
           "3_1_1": {
-            "0": "Sanction letters from the funding agencies",
-            "1": "Utilisation certificates",
-            "2": "Audited statements of the grants"
+            "0": "ಅನುದಾನ ನೀಡುವ ಸಂಸ್ಥೆಗಳ ಮಂಜೂರಾತಿ ಪತ್ರಗಳು",
+            "1": "ಬಳಕೆ ಪ್ರಮಾಣಪತ್ರಗಳು",
+            "2": "ಅನುದಾನಗಳ ಲೆಕ್ಕಪರಿಶೋಧಿತ ತಃಖ್ತೆಗಳು"
           },
           "3_1_2": {
-            "0": "Recognition letters of the guides from the university"
+            "0": "ವಿಶ್ವವಿದ್ಯಾಲಯದಿಂದ ಮಾರ್ಗದರ್ಶಕರ ಮಾನ್ಯತಾ ಪತ್ರಗಳು"
           },
           "3_1_3": {
-            "0": "List of departments with project sanction letters"
+            "0": "ಯೋಜನಾ ಮಂಜೂರಾತಿ ಪತ್ರಗಳೊಂದಿಗೆ ಇಲಾಖೆಗಳ ಪಟ್ಟಿ"
           },
           "3_2_2": {
-            "0": "Brochures and reports of each event",
-            "1": "Geo-tagged photos"
+            "0": "ಪ್ರತಿ ಕಾರ್ಯಕ್ರಮದ ಕೈಪಿಡಿಗಳು ಮತ್ತು ವರದಿಗಳು",
+            "1": "ಜಿಯೋ-ಟ್ಯಾಗ್ ಮಾಡಿದ ಫೋಟೋಗಳು"
           },
           "3_3_1": {
-            "0": "Ph.D. registration letters",
-            "1": "List of scholars with guides"
+            "0": "ಪಿಎಚ್.ಡಿ. ನೋಂದಣಿ ಪತ್ರಗಳು",
+            "1": "ಮಾರ್ಗದರ್ಶಕರೊಂದಿಗೆ ಸಂಶೋಧನಾರ್ಥಿಗಳ ಪಟ್ಟಿ"
           },
           "3_3_2": {
-            "0": "First page of each paper with the journal’s name",
-            "1": "UGC-CARE list entry of the journals"
+            "0": "ನಿಯತಕಾಲಿಕದ ಹೆಸರಿನೊಂದಿಗೆ ಪ್ರತಿ ಲೇಖನದ ಮೊದಲ ಪುಟ",
+            "1": "ನಿಯತಕಾಲಿಕಗಳ UGC-CARE ಪಟ್ಟಿ ನಮೂದು"
           },
           "3_3_3": {
-            "0": "Cover page, contents and ISBN page of each book",
-            "1": "First page of each conference paper"
+            "0": "ಪ್ರತಿ ಪುಸ್ತಕದ ಮುಖಪುಟ, ಪರಿವಿಡಿ ಮತ್ತು ISBN ಪುಟ",
+            "1": "ಪ್ರತಿ ಸಮ್ಮೇಳನ ಲೇಖನದ ಮೊದಲ ಪುಟ"
           },
           "3_4_2": {
-            "0": "Award letters"
+            "0": "ಪ್ರಶಸ್ತಿ ಪತ್ರಗಳು"
           },
           "3_4_3": {
-            "0": "Reports of each programme",
-            "1": "Geo-tagged photos"
+            "0": "ಪ್ರತಿ ಕಾರ್ಯಕ್ರಮದ ವರದಿಗಳು",
+            "1": "ಜಿಯೋ-ಟ್ಯಾಗ್ ಮಾಡಿದ ಫೋಟೋಗಳು"
           },
           "3_4_4": {
-            "0": "Attendance of students in each activity"
+            "0": "ಪ್ರತಿ ಚಟುವಟಿಕೆಯಲ್ಲಿ ವಿದ್ಯಾರ್ಥಿಗಳ ಹಾಜರಾತಿ"
           },
           "3_5_1": {
-            "0": "Collaboration documents",
-            "1": "Activity reports"
+            "0": "ಸಹಯೋಗದ ದಾಖಲೆಗಳು",
+            "1": "ಚಟುವಟಿಕೆ ವರದಿಗಳು"
           },
           "3_5_2": {
-            "0": "Copies of the MoUs",
-            "1": "Activities under each MoU"
+            "0": "ಒಡಂಬಡಿಕೆಗಳ (MoU) ಪ್ರತಿಗಳು",
+            "1": "ಪ್ರತಿ ಒಡಂಬಡಿಕೆಯಡಿ ಚಟುವಟಿಕೆಗಳು"
           },
           "4_1_3": {
-            "0": "List of ICT rooms with geo-tagged photos"
+            "0": "ಜಿಯೋ-ಟ್ಯಾಗ್ ಮಾಡಿದ ಫೋಟೋಗಳೊಂದಿಗೆ ICT ಕೊಠಡಿಗಳ ಪಟ್ಟಿ"
           },
           "4_1_4": {
-            "0": "Audited income and expenditure statement"
+            "0": "ಲೆಕ್ಕಪರಿಶೋಧಿತ ಆದಾಯ ಮತ್ತು ವೆಚ್ಚದ ತಃಖ್ತೆ"
           },
           "4_2_2": {
-            "0": "Subscription receipts of the e-resources"
+            "0": "ಇ-ಸಂಪನ್ಮೂಲಗಳ ಚಂದಾ ರಸೀದಿಗಳು"
           },
           "4_2_3": {
-            "0": "Audited statement of library purchases",
-            "1": "Accession register (extract)"
+            "0": "ಗ್ರಂಥಾಲಯ ಖರೀದಿಗಳ ಲೆಕ್ಕಪರಿಶೋಧಿತ ತಃಖ್ತೆ",
+            "1": "ಸ್ವೀಕೃತಿ ರಿಜಿಸ್ಟರ್ (ಭಾಗ)"
           },
           "4_2_4": {
-            "0": "Library footfall / issue register (extract)"
+            "0": "ಗ್ರಂಥಾಲಯ ಭೇಟಿ / ವಿತರಣಾ ರಿಜಿಸ್ಟರ್ (ಭಾಗ)"
           },
           "4_3_2": {
-            "0": "Stock register of computers",
-            "1": "Purchase bills"
+            "0": "ಕಂಪ್ಯೂಟರ್‌ಗಳ ದಾಸ್ತಾನು ರಿಜಿಸ್ಟರ್",
+            "1": "ಖರೀದಿ ಬಿಲ್‌ಗಳು"
           },
           "4_3_3": {
-            "0": "Bill of the internet provider"
+            "0": "ಇಂಟರ್ನೆಟ್ ಸೇವಾದಾರರ ಬಿಲ್"
           },
           "4_4_1": {
-            "0": "Audited income and expenditure statement"
+            "0": "ಲೆಕ್ಕಪರಿಶೋಧಿತ ಆದಾಯ ಮತ್ತು ವೆಚ್ಚದ ತಃಖ್ತೆ"
           },
           "5_1_1": {
-            "0": "Sanction letters of the scholarships",
-            "1": "List of beneficiaries"
+            "0": "ವಿದ್ಯಾರ್ಥಿವೇತನಗಳ ಮಂಜೂರಾತಿ ಪತ್ರಗಳು",
+            "1": "ಫಲಾನುಭವಿಗಳ ಪಟ್ಟಿ"
           },
           "5_1_2": {
-            "0": "List of beneficiaries with amounts"
+            "0": "ಮೊತ್ತಗಳೊಂದಿಗೆ ಫಲಾನುಭವಿಗಳ ಪಟ್ಟಿ"
           },
           "5_1_3": {
-            "0": "Reports of each initiative"
+            "0": "ಪ್ರತಿ ಉಪಕ್ರಮದ ವರದಿಗಳು"
           },
           "5_1_4": {
-            "0": "Attendance and reports of the sessions"
+            "0": "ಅವಧಿಗಳ ಹಾಜರಾತಿ ಮತ್ತು ವರದಿಗಳು"
           },
           "5_1_5": {
-            "0": "Committee constitution orders",
-            "1": "Minutes of meetings"
+            "0": "ಸಮಿತಿ ರಚನಾ ಆದೇಶಗಳು",
+            "1": "ಸಭಾ ನಡಾವಳಿಗಳು"
           },
           "5_2_1": {
-            "0": "Offer letters of the placed students",
-            "1": "List of students placed with employer and package"
+            "0": "ಉದ್ಯೋಗ ಪಡೆದ ವಿದ್ಯಾರ್ಥಿಗಳ ನೇಮಕಾತಿ ಆಹ್ವಾನ ಪತ್ರಗಳು",
+            "1": "ಉದ್ಯೋಗದಾತರು ಮತ್ತು ವೇತನ ಪ್ಯಾಕೇಜ್ ಸಹಿತ ಉದ್ಯೋಗ ಪಡೆದ ವಿದ್ಯಾರ್ಥಿಗಳ ಪಟ್ಟಿ"
           },
           "5_2_2": {
-            "0": "Admission proof of each student"
+            "0": "ಪ್ರತಿ ವಿದ್ಯಾರ್ಥಿಯ ಪ್ರವೇಶದ ಪುರಾವೆ"
           },
           "5_2_3": {
-            "0": "Score cards / qualifying certificates"
+            "0": "ಅಂಕ ಪಟ್ಟಿಗಳು / ಅರ್ಹತಾ ಪ್ರಮಾಣಪತ್ರಗಳು"
           },
           "5_3_1": {
-            "0": "Award certificates"
+            "0": "ಪ್ರಶಸ್ತಿ ಪ್ರಮಾಣಪತ್ರಗಳು"
           },
           "5_3_3": {
-            "0": "Reports of the events"
+            "0": "ಕಾರ್ಯಕ್ರಮಗಳ ವರದಿಗಳು"
           },
           "6_2_2": {
-            "0": "ERP document and screenshots",
-            "1": "Annual e-governance report"
+            "0": "ERP ದಾಖಲೆ ಮತ್ತು ಪರದೆಯ ಚಿತ್ರಗಳು",
+            "1": "ವಾರ್ಷಿಕ ಇ-ಆಡಳಿತ ವರದಿ"
           },
           "6_3_2": {
-            "0": "Policy document",
-            "1": "Receipts of the support given"
+            "0": "ನೀತಿ ದಾಖಲೆ",
+            "1": "ನೀಡಿದ ನೆರವಿನ ರಸೀದಿಗಳು"
           },
           "6_3_3": {
-            "0": "Reports and attendance of each programme"
+            "0": "ಪ್ರತಿ ಕಾರ್ಯಕ್ರಮದ ವರದಿಗಳು ಮತ್ತು ಹಾಜರಾತಿ"
           },
           "6_3_4": {
-            "0": "FDP certificates"
+            "0": "FDP ಪ್ರಮಾಣಪತ್ರಗಳು"
           },
           "6_4_2": {
-            "0": "Audited statements of the grants"
+            "0": "ಅನುದಾನಗಳ ಲೆಕ್ಕಪರಿಶೋಧಿತ ತಃಖ್ತೆಗಳು"
           },
           "6_5_3": {
-            "0": "AQARs submitted",
-            "1": "Minutes of IQAC meetings"
+            "0": "ಸಲ್ಲಿಸಿದ AQAR ಗಳು",
+            "1": "IQAC ಸಭೆಗಳ ನಡಾವಳಿಗಳು"
           },
           "7_1_2": {
-            "0": "Geo-tagged photos",
-            "1": "Purchase bills"
+            "0": "ಜಿಯೋ-ಟ್ಯಾಗ್ ಮಾಡಿದ ಫೋಟೋಗಳು",
+            "1": "ಖರೀದಿ ಬಿಲ್‌ಗಳು"
           },
           "7_1_4": {
-            "0": "Geo-tagged photos"
+            "0": "ಜಿಯೋ-ಟ್ಯಾಗ್ ಮಾಡಿದ ಫೋಟೋಗಳು"
           },
           "7_1_6": {
-            "0": "Audit reports",
-            "1": "Certificates"
+            "0": "ಲೆಕ್ಕಪರಿಶೋಧನಾ ವರದಿಗಳು",
+            "1": "ಪ್ರಮಾಣಪತ್ರಗಳು"
           },
           "7_1_7": {
-            "0": "Geo-tagged photos",
-            "1": "Bills of the facilities"
+            "0": "ಜಿಯೋ-ಟ್ಯಾಗ್ ಮಾಡಿದ ಫೋಟೋಗಳು",
+            "1": "ಸೌಲಭ್ಯಗಳ ಬಿಲ್‌ಗಳು"
           }
         }
       },
       "NIRF": {
         "c": {
-          "TLR": "Teaching, learning and resources",
-          "RP": "Research and professional practice",
-          "GO": "Graduation outcomes",
-          "OI": "Outreach and inclusivity",
-          "PR": "Perception"
+          "TLR": "ಬೋಧನೆ, ಕಲಿಕೆ ಮತ್ತು ಸಂಪನ್ಮೂಲಗಳು",
+          "RP": "ಸಂಶೋಧನೆ ಮತ್ತು ವೃತ್ತಿಪರ ಅಭ್ಯಾಸ",
+          "GO": "ಪದವಿ ಫಲಿತಗಳು",
+          "OI": "ಸಮುದಾಯ ಸಂಪರ್ಕ ಮತ್ತು ಒಳಗೊಳ್ಳುವಿಕೆ",
+          "PR": "ಗ್ರಹಿಕೆ"
         },
         "m": {
-          "SS": "Student strength including doctoral students",
-          "FSR": "Faculty–student ratio (students per faculty)",
-          "FQE": "Faculty with Ph.D. and experience",
-          "FRU": "Financial resources and their utilisation (₹ lakh)",
-          "PU": "Publications (last three years)",
-          "QP": "Quality of publications (citations)",
-          "IPR": "Patents published and granted",
-          "FPPP": "Sponsored research and consultancy (₹ lakh)",
-          "GPH": "Placement and higher studies",
-          "GUE": "Students graduating in the stipulated time",
-          "MS": "Median salary of placed graduates (₹ lakh a year)",
-          "GPHD": "Ph.D. students graduated",
-          "RD": "Students from other states and countries",
-          "WD": "Women students and faculty",
-          "ESCS": "Economically and socially challenged students",
-          "PCS": "Facilities for physically challenged students",
-          "PR": "Peer and employer perception"
+          "SS": "ಡಾಕ್ಟರೇಟ್ ವಿದ್ಯಾರ್ಥಿಗಳೂ ಸೇರಿ ವಿದ್ಯಾರ್ಥಿಗಳ ಸಂಖ್ಯೆ",
+          "FSR": "ಬೋಧಕ–ವಿದ್ಯಾರ್ಥಿ ಅನುಪಾತ (ಪ್ರತಿ ಬೋಧಕರಿಗೆ ವಿದ್ಯಾರ್ಥಿಗಳು)",
+          "FQE": "ಪಿಎಚ್.ಡಿ. ಮತ್ತು ಅನುಭವ ಹೊಂದಿರುವ ಬೋಧಕರು",
+          "FRU": "ಆರ್ಥಿಕ ಸಂಪನ್ಮೂಲಗಳು ಮತ್ತು ಅವುಗಳ ಬಳಕೆ (₹ ಲಕ್ಷ)",
+          "PU": "ಪ್ರಕಟಣೆಗಳು (ಕಳೆದ ಮೂರು ವರ್ಷಗಳು)",
+          "QP": "ಪ್ರಕಟಣೆಗಳ ಗುಣಮಟ್ಟ (ಉಲ್ಲೇಖಗಳು)",
+          "IPR": "ಪ್ರಕಟಿತ ಮತ್ತು ಮಂಜೂರಾದ ಪೇಟೆಂಟ್‌ಗಳು",
+          "FPPP": "ಪ್ರಾಯೋಜಿತ ಸಂಶೋಧನೆ ಮತ್ತು ಸಲಹಾ ಸೇವೆ (₹ ಲಕ್ಷ)",
+          "GPH": "ಉದ್ಯೋಗ ನೇಮಕಾತಿ ಮತ್ತು ಉನ್ನತ ವ್ಯಾಸಂಗ",
+          "GUE": "ನಿಗದಿತ ಅವಧಿಯಲ್ಲಿ ಪದವಿ ಪಡೆದ ವಿದ್ಯಾರ್ಥಿಗಳು",
+          "MS": "ಉದ್ಯೋಗ ಪಡೆದ ಪದವೀಧರರ ಮಧ್ಯಮ ವೇತನ (ವರ್ಷಕ್ಕೆ ₹ ಲಕ್ಷ)",
+          "GPHD": "ಪಿಎಚ್.ಡಿ. ಪದವಿ ಪಡೆದ ವಿದ್ಯಾರ್ಥಿಗಳು",
+          "RD": "ಇತರ ರಾಜ್ಯಗಳು ಮತ್ತು ದೇಶಗಳ ವಿದ್ಯಾರ್ಥಿಗಳು",
+          "WD": "ವಿದ್ಯಾರ್ಥಿನಿಯರು ಮತ್ತು ಮಹಿಳಾ ಬೋಧಕರು",
+          "ESCS": "ಆರ್ಥಿಕವಾಗಿ ಮತ್ತು ಸಾಮಾಜಿಕವಾಗಿ ಹಿಂದುಳಿದ ವಿದ್ಯಾರ್ಥಿಗಳು",
+          "PCS": "ದೈಹಿಕ ವಿಕಲಚೇತನ ವಿದ್ಯಾರ್ಥಿಗಳಿಗೆ ಸೌಲಭ್ಯಗಳು",
+          "PR": "ಸಹವರ್ತಿ ಸಂಸ್ಥೆಗಳು ಮತ್ತು ಉದ್ಯೋಗದಾತರ ಗ್ರಹಿಕೆ"
         },
         "dvv": {
           "FRU": {
-            "0": "Audited capital and operational expenditure"
+            "0": "ಲೆಕ್ಕಪರಿಶೋಧಿತ ಬಂಡವಾಳ ಮತ್ತು ನಿರ್ವಹಣಾ ವೆಚ್ಚ"
           },
           "FPPP": {
-            "0": "Sanction letters",
-            "1": "Audited statements"
+            "0": "ಮಂಜೂರಾತಿ ಪತ್ರಗಳು",
+            "1": "ಲೆಕ್ಕಪರಿಶೋಧಿತ ತಃಖ್ತೆಗಳು"
           },
           "GPH": {
-            "0": "Offer letters",
-            "1": "Higher-studies admission proofs"
+            "0": "ನೇಮಕಾತಿ ಆಹ್ವಾನ ಪತ್ರಗಳು",
+            "1": "ಉನ್ನತ ವ್ಯಾಸಂಗ ಪ್ರವೇಶದ ಪುರಾವೆಗಳು"
           }
         }
       },
       "AISHE": {
         "c": {
-          "A1": "Basic details and programmes",
-          "A2": "Students",
-          "A3": "Staff",
-          "A4": "Infrastructure and finance"
+          "A1": "ಮೂಲ ವಿವರಗಳು ಮತ್ತು ಕಾರ್ಯಕ್ರಮಗಳು",
+          "A2": "ವಿದ್ಯಾರ್ಥಿಗಳು",
+          "A3": "ಸಿಬ್ಬಂದಿ",
+          "A4": "ಮೂಲಸೌಕರ್ಯ ಮತ್ತು ಹಣಕಾಸು"
         },
         "m": {
-          "1_1": "Institution details (AISHE code, address, affiliation, type, management)",
-          "1_2": "Programmes offered",
-          "2_1": "Students enrolled",
-          "2_2": "Women students enrolled",
-          "2_3": "Ph.D. scholars",
-          "2_4": "Students passed out (final year)",
-          "3_1": "Teaching staff",
-          "3_2": "Non-teaching staff",
-          "4_1": "Infrastructure (classrooms, labs, hostels, library)",
-          "4_2": "Scholarships awarded",
-          "4_3": "Income and expenditure (₹ lakh)"
+          "1_1": "ಸಂಸ್ಥೆಯ ವಿವರಗಳು (AISHE ಕೋಡ್, ವಿಳಾಸ, ಸಂಯೋಜನೆ, ಪ್ರಕಾರ, ಆಡಳಿತ ಮಂಡಳಿ)",
+          "1_2": "ನೀಡಲಾಗುವ ಕಾರ್ಯಕ್ರಮಗಳು",
+          "2_1": "ದಾಖಲಾದ ವಿದ್ಯಾರ್ಥಿಗಳು",
+          "2_2": "ದಾಖಲಾದ ವಿದ್ಯಾರ್ಥಿನಿಯರು",
+          "2_3": "ಪಿಎಚ್.ಡಿ. ಸಂಶೋಧನಾರ್ಥಿಗಳು",
+          "2_4": "ವ್ಯಾಸಂಗ ಪೂರ್ಣಗೊಳಿಸಿದ ವಿದ್ಯಾರ್ಥಿಗಳು (ಅಂತಿಮ ವರ್ಷ)",
+          "3_1": "ಬೋಧಕ ಸಿಬ್ಬಂದಿ",
+          "3_2": "ಬೋಧಕೇತರ ಸಿಬ್ಬಂದಿ",
+          "4_1": "ಮೂಲಸೌಕರ್ಯ (ತರಗತಿ ಕೊಠಡಿಗಳು, ಪ್ರಯೋಗಾಲಯಗಳು, ವಸತಿ ನಿಲಯಗಳು, ಗ್ರಂಥಾಲಯ)",
+          "4_2": "ನೀಡಿದ ವಿದ್ಯಾರ್ಥಿವೇತನಗಳು",
+          "4_3": "ಆದಾಯ ಮತ್ತು ವೆಚ್ಚ (₹ ಲಕ್ಷ)"
         },
         "dvv": {}
       }

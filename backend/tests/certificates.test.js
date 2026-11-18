@@ -43,7 +43,7 @@ describe('issuing and verifying', () => {
     bonafide = list.data[0]
     expect(bonafide).toMatchObject({ name: 'Aarav', status: 'ISSUED', purpose: 'Passport' })
     const html = (await admin.get(`/api/v1/documents/CERTIFICATE/${bonafide.id}?print=0`)).text
-    expect(html).toContain('son of Rajesh Sharma')
+    expect(html).toContain('S/o Rajesh Sharma') // as Indian certificates write it (relPhrase)
     expect(html).toContain('Passport')
     expect(html).toContain('<svg') // the QR
   })
@@ -71,7 +71,7 @@ describe('issuing and verifying', () => {
   it('a character certificate uses she / her for a girl', async () => {
     const res = (await admin.post(api).send({ kind: 'CHARACTER', studentIds: [diya.id], conduct: 'Excellent' })).body.data
     const html = (await admin.get(`/api/v1/documents/CERTIFICATE/${res.ids[0]}?print=0`)).text
-    expect(html).toContain('daughter of Vikram Rao')
+    expect(html).toContain('D/o Vikram Rao')
     expect(html).toContain('Excellent')
   })
 })

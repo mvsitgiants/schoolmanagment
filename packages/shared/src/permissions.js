@@ -3,10 +3,6 @@ import { MODULES, MODULE_BY_ID, SOD_RULES, pagePath } from './catalog.js'
 /** Held by full-access roles: every permission of every enabled module, now and later. */
 export const FULL_ACCESS = '*'
 
-/**
- * Permissions every signed-in staff member holds whatever their roles say (in modules the tenant has
- * switched on). Empty for now; e.g. staff chat would go here so no custom role can forget it.
- */
 /** Every signed-in staff member can chat and ring the call bell, whatever their roles say (comms module). */
 export const STAFF_BASELINE_PERMISSIONS = ['comms.chat.view', 'comms.chat.create', 'comms.calls.view', 'comms.calls.create']
 

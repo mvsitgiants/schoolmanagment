@@ -63,7 +63,7 @@ const paperSchema = new Schema({
   countsInTotal: { type: Boolean, default: true },
   order: { type: Number, default: 0 },
   /** Marked in parts (Theory 70 + Practical 30): each with its own max and pass marks; maxMarks is their sum. Empty = one mark. */
-  parts: { type: [new Schema({ key: String, name: { type: String, trim: true }, maxMarks: Number, passMarks: Number }, { _id: false })], default: undefined },
+  parts: { type: [new Schema({ key: String, name: { type: String, trim: true }, maxMarks: Number, passMarks: Number, date: ymd, startTime: hhmm, endTime: hhmm }, { _id: false })], default: undefined }, // a part's own date and time: the practical on another day
 }, { timestamps: true })
 paperSchema.plugin(tenantPlugin)
 paperSchema.index({ tenantId: 1, examId: 1, classId: 1, subjectId: 1 }, { unique: true })

@@ -141,3 +141,30 @@ addresses, codes, units like "mm", "%", "₹".
 | provisional | ತಾತ್ಕಾಲಿಕ |
 | hall (room type) | ಸಭಾಂಗಣ |
 | comment | ಅಭಿಪ್ರಾಯ |
+
+## Screen and menu names already used (phase 1) — use exactly these in menus, catalog and hints
+| English | Kannada |
+|---|---|
+| Academic setup | ಶೈಕ್ಷಣಿಕ ಸಿದ್ಧತೆ |
+| Academic years & terms | ಶೈಕ್ಷಣಿಕ ವರ್ಷಗಳು ಮತ್ತು ಸತ್ರಗಳು |
+| Teacher allocation | ಶಿಕ್ಷಕರ ಹಂಚಿಕೆ |
+| Teaching hub | ಬೋಧನಾ ಕೇಂದ್ರ |
+| Learning (LMS) | ಕಲಿಕೆ |
+| Student 360 | ವಿದ್ಯಾರ್ಥಿ 360 |
+| Student directory | ವಿದ್ಯಾರ್ಥಿಗಳ ಪಟ್ಟಿ |
+| Syllabus tracker | ಪಠ್ಯಕ್ರಮ ಪ್ರಗತಿ |
+| Command centre | ನಿಯಂತ್ರಣ ಕೇಂದ್ರ |
+| Live campus | ಕ್ಯಾಂಪಸ್ ನೇರ ನೋಟ |
+| Notification rules | ಅಧಿಸೂಚನೆ ನಿಯಮಗಳು |
+| Communication › Message log | ಸಂವಹನ › ಸಂದೇಶ ದಾಖಲೆ |
+| My workspace | ನನ್ನ ಕಾರ್ಯಕ್ಷೇತ್ರ |
+| Payslip | ವೇತನ ಚೀಟಿ |
+| HR | ಮಾನವ ಸಂಪನ್ಮೂಲ |
+| fee head | ಶುಲ್ಕ ಶೀರ್ಷಿಕೆ |
+| promotion (to next class) | ಬಡ್ತಿ |
+| batch | ತಂಡ |
+| overview (tab) | ಸಾರಾಂಶ |
+| refresh | ನವೀಕರಿಸಿ |
+| undo | ಹಿಂದಿನಂತೆ ಮಾಡಿ |
+| archive / archived | ಸಂಗ್ರಹಾಗಾರಕ್ಕೆ ಸರಿಸಿ / ಸಂಗ್ರಹಾಗಾರದಲ್ಲಿದೆ |
+| theory / practical / internal assessment | ಸೈದ್ಧಾಂತಿಕ / ಪ್ರಾಯೋಗಿಕ / ಆಂತರಿಕ ಮೌಲ್ಯಮಾಪನ |

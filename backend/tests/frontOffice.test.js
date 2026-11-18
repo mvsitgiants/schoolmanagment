@@ -116,7 +116,7 @@ describe('gate passes', () => {
     expect((await admin.post(`${api}/gate-passes/${pass.id}/left`)).status).toBe(409)
     // a class teacher with no front-office permission may decide for their own class only
     const tpl = (await admin.post('/api/v1/core/roles/from-templates').send({ codes: ['SUBJECT_TEACHER'] })).body.data.created[0]
-    const teacher = (await admin.post('/api/v1/core/users').send({ name: 'Class Teacher', email: 'ct@fo.test', roleIds: [tpl.id], password: 'Teach@123' }).expect(201)).body.data
+    const teacher = (await admin.post('/api/v1/core/users').send({ name: 'Class Teacher', email: 'ct@fo.test', roleIds: [tpl.id], password: 'Teach@123' }).expect(201)).body.data.user
     const t = await signIn(app, 'ct@fo.test', 'Teach@123')
     expect((await t.post(`${api}/gate-passes/${pass.id}/decide`).send({ approve: true })).status).toBe(403)
     await admin.patch(`/api/v1/academics/sections/${section.id}`).send({ classTeacherId: teacher.id }).expect(200)

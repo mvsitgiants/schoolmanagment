@@ -1,4 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { STAFF_BASELINE_PERMISSIONS } from '@schoolgiant/shared'
 import { newInstitution, signIn, startDb, stopDb } from './helpers.js'
 
 let app
@@ -54,7 +55,9 @@ describe('permissions are enforced on the API', () => {
     const role = (await admin.post('/api/v1/core/roles').send({ name: 'Viewer', permissions: ['core.departments.view', 'core.users.view'] })).body.data
     await makeUser(role.id, 'viewer@test.test')
     const viewer = await signIn(app, 'viewer@test.test', 'Staff@123')
-    expect(viewer.me.permissions).toEqual(['core.departments.view', 'core.users.view'])
+    // the role's permissions, plus what every staff member holds (chat and the call bell)
+    expect(viewer.me.permissions).toEqual(expect.arrayContaining(['core.departments.view', 'core.users.view']))
+    expect(viewer.me.permissions.filter((p) => !['core.departments.view', 'core.users.view'].includes(p)).every((p) => STAFF_BASELINE_PERMISSIONS.includes(p))).toBe(true)
     expect((await viewer.get('/api/v1/core/users')).status).toBe(200)
     const denied = await viewer.post('/api/v1/core/departments').send({ name: 'Transport', code: 'TRAN', type: 'SUPPORT' })
     expect(denied.status).toBe(403)

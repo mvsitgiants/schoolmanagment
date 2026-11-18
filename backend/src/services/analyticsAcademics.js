@@ -41,6 +41,12 @@ async function attendanceByStudent(yearId, sectionIds, upto) {
   return new Map(rows.map((r) => [String(r._id), { pct: attendancePct(r), days: r.total }]))
 }
 
+/** Every part of the paper passed — true for a paper not in parts. Part keys are p1…p4 (shared partKey). */
+const PARTS_PASSED = { $allElementsTrue: [{ $map: { input: { $ifNull: ['$p.parts', []] }, as: 'pt', in: { $or: [
+  { $lte: [{ $ifNull: ['$$pt.passMarks', 0] }, 0] },
+  { $gte: [{ $switch: { branches: ['p1', 'p2', 'p3', 'p4'].map((k) => ({ case: { $eq: ['$$pt.key', k] }, then: { $ifNull: [`$entries.parts.${k}`, null] } })), default: null } }, '$$pt.passMarks'] },
+] } } }] }
+
 /** Subject averages of an exam (every paper with marks; absent = 0, exempt and grade-only papers left out). */
 async function subjectStats(examId, sectionIds) {
   return MarkSheet.aggregate([
@@ -48,13 +54,14 @@ async function subjectStats(examId, sectionIds) {
     { $unwind: '$entries' },
     { $match: { 'entries.exempt': { $ne: true }, $or: [{ 'entries.absent': true }, { 'entries.marks': { $ne: null } }] } },
     // a mark sheet is already this institution's, and paper ids are unique: the join needs no tenant filter of its own
-    { $lookup: { from: 'exam_papers', localField: 'paperId', foreignField: '_id', as: 'p', pipeline: [{ $project: { subjectId: 1, classId: 1, maxMarks: 1, passMarks: 1, gradeOnly: 1 } }] } },
+    { $lookup: { from: 'exam_papers', localField: 'paperId', foreignField: '_id', as: 'p', pipeline: [{ $project: { subjectId: 1, classId: 1, maxMarks: 1, passMarks: 1, gradeOnly: 1, parts: 1 } }] } },
     { $unwind: '$p' },
     { $match: { 'p.gradeOnly': { $ne: true } } },
     { $project: {
       subjectId: '$p.subjectId', classId: '$p.classId',
       pct: { $cond: ['$entries.absent', 0, { $multiply: [{ $divide: ['$entries.marks', { $max: ['$p.maxMarks', 1] }] }, 100] }] },
-      passed: { $cond: [{ $and: [{ $ne: ['$entries.absent', true] }, { $gte: ['$entries.marks', { $ifNull: ['$p.passMarks', 0] }] }] }, 1, 0] },
+      // passed: the paper's pass marks overall and, for a paper in parts (Theory + Practical), each part's own
+      passed: { $cond: [{ $and: [{ $ne: ['$entries.absent', true] }, { $gte: ['$entries.marks', { $ifNull: ['$p.passMarks', 0] }] }, PARTS_PASSED] }, 1, 0] },
     } },
     { $group: { _id: { subjectId: '$subjectId', classId: '$classId' }, n: { $sum: 1 }, sumPct: { $sum: '$pct' }, passed: { $sum: '$passed' } } },
   ])

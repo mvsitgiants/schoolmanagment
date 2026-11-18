@@ -271,7 +271,8 @@
       },
       "seal": "School seal",
       "sl": "Sl. No.",
-      "place": "Place"
+      "place": "Place",
+      "relOrder": ", {{rel}} {{parent}}"
     }
   }
 }

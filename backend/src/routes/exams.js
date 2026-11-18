@@ -84,6 +84,10 @@ router.put('/:id/classes/:classId/papers', requirePermission('exams.schedule.edi
         name: z.string().trim().min(1, 'Name the part').max(40),
         maxMarks: z.coerce.number().min(0).max(1000),
         passMarks: z.coerce.number().min(0).max(1000).default(0),
+        // its own day and time (the practical on another day); empty = with the paper
+        date: ymd.optional().or(z.literal('').transform(() => undefined)),
+        startTime: hhmm.optional().or(z.literal('').transform(() => undefined)),
+        endTime: hhmm.optional().or(z.literal('').transform(() => undefined)),
       })).max(MAX_PAPER_PARTS).optional(),
     })).max(40),
   }).parse(req.body)

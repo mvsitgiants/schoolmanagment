@@ -183,7 +183,7 @@
     "setupStepsDone": "{{total}} ಸಿದ್ಧತಾ ಹಂತಗಳಲ್ಲಿ {{done}} ಪೂರ್ಣಗೊಂಡಿವೆ",
     "activeUsers": "ಸಕ್ರಿಯ ಬಳಕೆದಾರರು",
     "roles": "ಪಾತ್ರಗಳು",
-    "departments": "ವಿಭಾಗಗಳು",
+    "departments": "ಇಲಾಖೆಗಳು",
     "modulesOn": "ಆನ್ ಇರುವ ಮಾಡ್ಯೂಲ್‌ಗಳು",
     "yourWorkspace": "ನಿಮ್ಮ ಕಾರ್ಯಕ್ಷೇತ್ರ",
     "workspaceSubtitle": "{{modules}} ಮಾಡ್ಯೂಲ್‌ಗಳು · ನಿಮ್ಮ ಪಾತ್ರ ತೆರೆಯಬಹುದಾದ {{pages}} ಪುಟಗಳು",

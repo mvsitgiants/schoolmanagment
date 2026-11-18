@@ -1,421 +1,421 @@
 {
   "catalog": {
     "categories": {
-      "platform": "Administration",
-      "students": "Students & admissions",
-      "academics": "Academics",
-      "higher": "Higher education",
-      "finance": "Fees & finance",
-      "people": "Staff & HR",
-      "campus": "Campus operations",
-      "engage": "Communication",
-      "intel": "Reports & AI"
+      "platform": "ಆಡಳಿತ",
+      "students": "ವಿದ್ಯಾರ್ಥಿಗಳು ಮತ್ತು ಪ್ರವೇಶ",
+      "academics": "ಶೈಕ್ಷಣಿಕ",
+      "higher": "ಉನ್ನತ ಶಿಕ್ಷಣ",
+      "finance": "ಶುಲ್ಕ ಮತ್ತು ಹಣಕಾಸು",
+      "people": "ಸಿಬ್ಬಂದಿ ಮತ್ತು ಮಾನವ ಸಂಪನ್ಮೂಲ",
+      "campus": "ಕ್ಯಾಂಪಸ್ ಕಾರ್ಯಾಚರಣೆ",
+      "engage": "ಸಂವಹನ",
+      "intel": "ವರದಿಗಳು ಮತ್ತು AI"
     },
     "modules": {
-      "dashboard": "Dashboard",
-      "core": "Administration",
-      "students": "Students",
-      "admissions": "Admissions",
-      "certificates": "Certificates",
-      "frontoffice": "Front office",
-      "academics": "Academic setup",
-      "attendance": "Attendance",
-      "homework": "Homework & lessons",
-      "exams": "Exams & report cards",
-      "timetable": "Timetable",
-      "lms": "Learning (LMS)",
-      "online-tests": "Online tests",
-      "programs": "Programs & OBE",
-      "registration": "Semester registration",
-      "coe": "Exam controller",
-      "accreditation": "Accreditation",
-      "placements": "Training & placements",
-      "research": "Research",
-      "alumni": "Alumni",
-      "fees": "Fees",
-      "finance": "Accounts",
-      "hrms": "Staff & HR",
-      "payroll": "Payroll",
-      "transport": "Transport",
-      "library": "Library",
-      "hostel": "Hostel",
-      "inventory": "Store & assets",
-      "health": "Health & infirmary",
-      "canteen": "Canteen & wallet",
-      "communication": "Communication hub",
-      "comms": "Staff chat & call bell",
-      "portal": "Parent & student app",
-      "events": "Events & calendar",
-      "surveys": "Surveys & feedback",
-      "website": "Website",
-      "reports": "Reports",
-      "analytics": "Analytics",
-      "ai": "AI assistant",
-      "integrations": "Integrations"
+      "dashboard": "ಡ್ಯಾಶ್‌ಬೋರ್ಡ್",
+      "core": "ಆಡಳಿತ",
+      "students": "ವಿದ್ಯಾರ್ಥಿಗಳು",
+      "admissions": "ಪ್ರವೇಶ",
+      "certificates": "ಪ್ರಮಾಣಪತ್ರಗಳು",
+      "frontoffice": "ಮುಂಭಾಗದ ಕಚೇರಿ",
+      "academics": "ಶೈಕ್ಷಣಿಕ ಸಿದ್ಧತೆ",
+      "attendance": "ಹಾಜರಾತಿ",
+      "homework": "ಮನೆಗೆಲಸ ಮತ್ತು ಪಾಠಗಳು",
+      "exams": "ಪರೀಕ್ಷೆಗಳು ಮತ್ತು ಪ್ರಗತಿ ಪತ್ರಗಳು",
+      "timetable": "ವೇಳಾಪಟ್ಟಿ",
+      "lms": "ಕಲಿಕೆ",
+      "online-tests": "ಆನ್‌ಲೈನ್ ಪರೀಕ್ಷೆಗಳು",
+      "programs": "ಶೈಕ್ಷಣಿಕ ಕಾರ್ಯಕ್ರಮಗಳು ಮತ್ತು OBE",
+      "registration": "ಸೆಮಿಸ್ಟರ್ ನೋಂದಣಿ",
+      "coe": "ಪರೀಕ್ಷಾ ನಿಯಂತ್ರಕರು",
+      "accreditation": "ಮಾನ್ಯತೆ",
+      "placements": "ತರಬೇತಿ ಮತ್ತು ಉದ್ಯೋಗ ನೇಮಕಾತಿ",
+      "research": "ಸಂಶೋಧನೆ",
+      "alumni": "ಹಳೆಯ ವಿದ್ಯಾರ್ಥಿಗಳು",
+      "fees": "ಶುಲ್ಕ",
+      "finance": "ಲೆಕ್ಕಪತ್ರ",
+      "hrms": "ಸಿಬ್ಬಂದಿ ಮತ್ತು ಮಾನವ ಸಂಪನ್ಮೂಲ",
+      "payroll": "ವೇತನ ಪಾವತಿ",
+      "transport": "ಸಾರಿಗೆ",
+      "library": "ಗ್ರಂಥಾಲಯ",
+      "hostel": "ವಸತಿ ನಿಲಯ",
+      "inventory": "ಉಗ್ರಾಣ ಮತ್ತು ಆಸ್ತಿಗಳು",
+      "health": "ಆರೋಗ್ಯ ಮತ್ತು ಆರೋಗ್ಯ ಕೊಠಡಿ",
+      "canteen": "ಕ್ಯಾಂಟೀನ್ ಮತ್ತು ವಾಲೆಟ್",
+      "communication": "ಸಂವಹನ ಕೇಂದ್ರ",
+      "comms": "ಸಿಬ್ಬಂದಿ ಚಾಟ್ ಮತ್ತು ಕರೆ ಗಂಟೆ",
+      "portal": "ಪೋಷಕರು ಮತ್ತು ವಿದ್ಯಾರ್ಥಿಗಳ ಆ್ಯಪ್",
+      "events": "ಕಾರ್ಯಕ್ರಮಗಳು ಮತ್ತು ಕ್ಯಾಲೆಂಡರ್",
+      "surveys": "ಸಮೀಕ್ಷೆಗಳು ಮತ್ತು ಅಭಿಪ್ರಾಯ ಸಂಗ್ರಹ",
+      "website": "ವೆಬ್‌ಸೈಟ್",
+      "reports": "ವರದಿಗಳು",
+      "analytics": "ವಿಶ್ಲೇಷಣೆ",
+      "ai": "AI ಸಹಾಯಕ",
+      "integrations": "ಏಕೀಕರಣಗಳು"
     },
     "descriptions": {
-      "dashboard": "Role home, the principal’s command centre and the live campus board.",
-      "core": "Institution profile, campuses, users, roles, subscription and every setting.",
-      "students": "Student information system: admission, profile, guardians, documents, promotion and transfer.",
-      "admissions": "Enquiry CRM, online application, entrance test, merit list and seat allotment.",
-      "certificates": "Bonafide, character, leaving and transfer certificates with QR verification.",
-      "frontoffice": "Visitor log, gate passes, call log and complaints.",
-      "academics": "Academic years, terms, classes and sections, subjects, grading schemes, and each class’s books and uniform list.",
-      "attendance": "Daily or period-wise attendance, absence alerts to parents and student leave.",
-      "homework": "Teaching hub, lesson plans, syllabus tracking, homework and submissions.",
-      "exams": "Exam schedule, seating and invigilation, question papers, hall tickets, marks entry, results and report cards.",
-      "timetable": "Timetable generator, substitutions and room allocation.",
-      "lms": "Courses, study material, live classes and assignments.",
-      "online-tests": "MCQ and written tests with timer, proctoring and auto-evaluation.",
-      "programs": "Programs, regulations, CBCS credits, course and program outcomes (CO–PO mapping).",
-      "registration": "Course and elective registration, prerequisites, credit limits and add/drop.",
-      "coe": "Internal and external marks, moderation, revaluation, SGPA/CGPA, grade cards and transcripts.",
-      "accreditation": "NAAC, NBA, NIRF and AISHE reports with an evidence repository per criterion.",
-      "placements": "Companies, drives, eligibility, interview rounds, offers and placement statistics.",
-      "research": "Publications, projects, grants, patents and PhD scholars.",
-      "alumni": "Alumni directory, events, donations and job board.",
-      "fees": "Fee structures, installments, concessions, online payment, receipts, dues and refunds.",
-      "finance": "Ledgers, income and expense, bank reconciliation, GST and Tally export.",
-      "hrms": "Staff records, staff attendance, leave, recruitment and appraisal.",
-      "payroll": "Salary structures, payroll runs, payslips, PF/ESI/TDS and bank exports.",
-      "transport": "Routes, stops, vehicles, student assignment, GPS tracking and pickup alerts.",
-      "library": "Catalogue, barcode issue and return, fines and e-library.",
-      "hostel": "Rooms and beds, allotment, mess, hostel attendance and outpasses.",
-      "inventory": "Items, stock, vendors, purchase orders, uniform and book sales, asset register.",
-      "health": "Health records, vaccinations, sick-room visits and incident reports.",
-      "canteen": "Menu, pre-orders and a cashless RFID wallet that parents top up.",
-      "communication": "Notices and circulars, SMS, WhatsApp, email and push, parent–teacher chat.",
-      "comms": "Live chat between staff (one-to-one, groups, the whole staff room) and a call bell — normal, urgent or an emergency alert.",
-      "portal": "The parent and student app: what it shows and how families sign in.",
-      "events": "School calendar, events, parent–teacher meeting slots and photo gallery.",
-      "surveys": "Parent and student feedback, teacher evaluation and polls.",
-      "website": "The institution’s website with notice board and online admission form.",
-      "reports": "Standard reports, report builder and scheduled exports.",
-      "analytics": "Attendance, results, fee collection and campus comparison dashboards.",
-      "ai": "Question papers, report card remarks and an assistant that answers from your own data.",
-      "integrations": "Payment gateway, SMS and WhatsApp, biometric and RFID devices, GPS and their logs."
+      "dashboard": "ಪಾತ್ರಕ್ಕೆ ತಕ್ಕ ಮುಖಪುಟ, ಪ್ರಾಂಶುಪಾಲರ ನಿಯಂತ್ರಣ ಕೇಂದ್ರ ಮತ್ತು ಕ್ಯಾಂಪಸ್ ನೇರ ನೋಟ.",
+      "core": "ಸಂಸ್ಥೆಯ ಪ್ರೊಫೈಲ್, ಕ್ಯಾಂಪಸ್‌ಗಳು, ಬಳಕೆದಾರರು, ಪಾತ್ರಗಳು, ಚಂದಾದಾರಿಕೆ ಮತ್ತು ಎಲ್ಲಾ ಸೆಟ್ಟಿಂಗ್‌ಗಳು.",
+      "students": "ವಿದ್ಯಾರ್ಥಿ ಮಾಹಿತಿ ವ್ಯವಸ್ಥೆ: ಪ್ರವೇಶ, ಪ್ರೊಫೈಲ್, ಪಾಲಕರು, ದಾಖಲೆಗಳು, ಬಡ್ತಿ ಮತ್ತು ವರ್ಗಾವಣೆ.",
+      "admissions": "ವಿಚಾರಣೆಗಳ ನಿರ್ವಹಣೆ, ಆನ್‌ಲೈನ್ ಅರ್ಜಿ, ಪ್ರವೇಶ ಪರೀಕ್ಷೆ, ಅರ್ಹತಾ ಪಟ್ಟಿ ಮತ್ತು ಸೀಟು ಹಂಚಿಕೆ.",
+      "certificates": "QR ಪರಿಶೀಲನೆಯೊಂದಿಗೆ ವ್ಯಾಸಂಗ ದೃಢೀಕರಣ, ನಡತೆ, ಶಾಲೆ ಬಿಡುವ ಮತ್ತು ವರ್ಗಾವಣೆ ಪ್ರಮಾಣಪತ್ರಗಳು.",
+      "frontoffice": "ಸಂದರ್ಶಕರ ದಾಖಲೆ, ಗೇಟ್ ಪಾಸ್‌ಗಳು, ಕರೆಗಳ ದಾಖಲೆ ಮತ್ತು ದೂರುಗಳು.",
+      "academics": "ಶೈಕ್ಷಣಿಕ ವರ್ಷಗಳು, ಸತ್ರಗಳು, ತರಗತಿಗಳು ಮತ್ತು ವಿಭಾಗಗಳು, ವಿಷಯಗಳು, ಶ್ರೇಣೀಕರಣ ಯೋಜನೆಗಳು, ಮತ್ತು ಪ್ರತಿ ತರಗತಿಯ ಪುಸ್ತಕ ಹಾಗೂ ಸಮವಸ್ತ್ರ ಪಟ್ಟಿ.",
+      "attendance": "ದೈನಂದಿನ ಅಥವಾ ಅವಧಿವಾರು ಹಾಜರಾತಿ, ಗೈರುಹಾಜರಿಯ ಬಗ್ಗೆ ಪೋಷಕರಿಗೆ ಎಚ್ಚರಿಕೆ ಮತ್ತು ವಿದ್ಯಾರ್ಥಿ ರಜೆ.",
+      "homework": "ಬೋಧನಾ ಕೇಂದ್ರ, ಪಾಠ ಯೋಜನೆಗಳು, ಪಠ್ಯಕ್ರಮ ಪ್ರಗತಿ, ಮನೆಗೆಲಸ ಮತ್ತು ಸಲ್ಲಿಕೆಗಳು.",
+      "exams": "ಪರೀಕ್ಷಾ ವೇಳಾಪಟ್ಟಿ, ಆಸನ ವ್ಯವಸ್ಥೆ ಮತ್ತು ಮೇಲ್ವಿಚಾರಣೆ, ಪ್ರಶ್ನೆ ಪತ್ರಿಕೆಗಳು, ಪ್ರವೇಶ ಪತ್ರಗಳು, ಅಂಕಗಳ ನಮೂದು, ಫಲಿತಾಂಶಗಳು ಮತ್ತು ಪ್ರಗತಿ ಪತ್ರಗಳು.",
+      "timetable": "ವೇಳಾಪಟ್ಟಿ ಸಿದ್ಧಪಡಿಕೆ, ಬದಲಿ ವ್ಯವಸ್ಥೆ ಮತ್ತು ಕೊಠಡಿ ಹಂಚಿಕೆ.",
+      "lms": "ಕೋರ್ಸ್‌ಗಳು, ಅಧ್ಯಯನ ಸಾಮಗ್ರಿ, ನೇರ ತರಗತಿಗಳು ಮತ್ತು ನಿಯೋಜಿತ ಕಾರ್ಯಗಳು.",
+      "online-tests": "ಸಮಯಮಿತಿ, ಮೇಲ್ವಿಚಾರಣೆ ಮತ್ತು ಸ್ವಯಂ ಮೌಲ್ಯಮಾಪನದೊಂದಿಗೆ ಬಹು ಆಯ್ಕೆ (MCQ) ಮತ್ತು ಲಿಖಿತ ಪರೀಕ್ಷೆಗಳು.",
+      "programs": "ಕಾರ್ಯಕ್ರಮಗಳು, ನಿಯಮಾವಳಿಗಳು, CBCS ಕ್ರೆಡಿಟ್‌ಗಳು, ಕೋರ್ಸ್ ಮತ್ತು ಕಾರ್ಯಕ್ರಮ ಫಲಿತಗಳು (CO–PO ಹೊಂದಾಣಿಕೆ).",
+      "registration": "ಕೋರ್ಸ್ ಮತ್ತು ಐಚ್ಛಿಕ ವಿಷಯಗಳ ನೋಂದಣಿ, ಪೂರ್ವಾಪೇಕ್ಷಿತ ಕೋರ್ಸ್‌ಗಳು, ಕ್ರೆಡಿಟ್ ಮಿತಿಗಳು ಮತ್ತು ಸೇರ್ಪಡೆ/ಕೈಬಿಡುವಿಕೆ.",
+      "coe": "ಆಂತರಿಕ ಮತ್ತು ಬಾಹ್ಯ ಅಂಕಗಳು, ಅಂಕ ಪರಿಷ್ಕರಣೆ, ಮರುಮೌಲ್ಯಮಾಪನ, SGPA/CGPA, ಶ್ರೇಣಿ ಪತ್ರಗಳು ಮತ್ತು ಕ್ರೋಢೀಕೃತ ಶ್ರೇಣಿ ಪಟ್ಟಿಗಳು.",
+      "accreditation": "ಪ್ರತಿ ಮಾನದಂಡಕ್ಕೆ ಪುರಾವೆ ಭಂಡಾರದೊಂದಿಗೆ NAAC, NBA, NIRF ಮತ್ತು AISHE ವರದಿಗಳು.",
+      "placements": "ಕಂಪನಿಗಳು, ನೇಮಕಾತಿ ಅಭಿಯಾನಗಳು, ಅರ್ಹತೆ, ಸಂದರ್ಶನದ ಸುತ್ತುಗಳು, ನೇಮಕಾತಿ ಆಹ್ವಾನಗಳು ಮತ್ತು ನೇಮಕಾತಿ ಅಂಕಿಅಂಶಗಳು.",
+      "research": "ಪ್ರಕಟಣೆಗಳು, ಯೋಜನೆಗಳು, ಅನುದಾನಗಳು, ಪೇಟೆಂಟ್‌ಗಳು ಮತ್ತು PhD ಸಂಶೋಧಕರು.",
+      "alumni": "ಹಳೆಯ ವಿದ್ಯಾರ್ಥಿಗಳ ಪಟ್ಟಿ, ಕಾರ್ಯಕ್ರಮಗಳು, ದೇಣಿಗೆಗಳು ಮತ್ತು ಉದ್ಯೋಗ ಫಲಕ.",
+      "fees": "ಶುಲ್ಕ ರಚನೆಗಳು, ಕಂತುಗಳು, ರಿಯಾಯಿತಿಗಳು, ಆನ್‌ಲೈನ್ ಪಾವತಿ, ರಸೀದಿಗಳು, ಬಾಕಿಗಳು ಮತ್ತು ಮರುಪಾವತಿಗಳು.",
+      "finance": "ಖಾತೆ ವಹಿಗಳು, ಆದಾಯ ಮತ್ತು ವೆಚ್ಚ, ಬ್ಯಾಂಕ್ ತಾಳೆ, GST ಮತ್ತು Tally ರಫ್ತು.",
+      "hrms": "ಸಿಬ್ಬಂದಿ ದಾಖಲೆಗಳು, ಸಿಬ್ಬಂದಿ ಹಾಜರಾತಿ, ರಜೆ, ನೇಮಕಾತಿ ಮತ್ತು ಕಾರ್ಯನಿರ್ವಹಣಾ ಮೌಲ್ಯಮಾಪನ.",
+      "payroll": "ವೇತನ ರಚನೆಗಳು, ಮಾಸಿಕ ವೇತನ ಲೆಕ್ಕ, ವೇತನ ಚೀಟಿಗಳು, PF/ESI/TDS ಮತ್ತು ಬ್ಯಾಂಕ್ ರಫ್ತುಗಳು.",
+      "transport": "ಮಾರ್ಗಗಳು, ನಿಲ್ದಾಣಗಳು, ವಾಹನಗಳು, ವಿದ್ಯಾರ್ಥಿಗಳ ನಿಯೋಜನೆ, GPS ಮೂಲಕ ವೀಕ್ಷಣೆ ಮತ್ತು ಕರೆದೊಯ್ಯುವ ಎಚ್ಚರಿಕೆಗಳು.",
+      "library": "ಪುಸ್ತಕ ಸೂಚಿ, ಬಾರ್‌ಕೋಡ್ ಮೂಲಕ ವಿತರಣೆ ಮತ್ತು ಹಿಂಪಡೆಯುವಿಕೆ, ದಂಡಗಳು ಮತ್ತು ಇ-ಗ್ರಂಥಾಲಯ.",
+      "hostel": "ಕೊಠಡಿಗಳು ಮತ್ತು ಹಾಸಿಗೆಗಳು, ಹಂಚಿಕೆ, ಭೋಜನಾಲಯ, ವಸತಿ ನಿಲಯ ಹಾಜರಾತಿ ಮತ್ತು ಹೊರಹೋಗುವ ಅನುಮತಿಗಳು.",
+      "inventory": "ವಸ್ತುಗಳು, ದಾಸ್ತಾನು, ಪೂರೈಕೆದಾರರು, ಖರೀದಿ ಆದೇಶಗಳು, ಸಮವಸ್ತ್ರ ಮತ್ತು ಪುಸ್ತಕ ಮಾರಾಟ, ಆಸ್ತಿ ವಹಿ.",
+      "health": "ಆರೋಗ್ಯ ದಾಖಲೆಗಳು, ಲಸಿಕೆಗಳು, ಆರೋಗ್ಯ ಕೊಠಡಿ ಭೇಟಿಗಳು ಮತ್ತು ಘಟನೆಗಳ ವರದಿಗಳು.",
+      "canteen": "ಆಹಾರ ಪಟ್ಟಿ, ಮುಂಗಡ ಆರ್ಡರ್‌ಗಳು ಮತ್ತು ಪೋಷಕರು ಹಣ ತುಂಬಿಸುವ ನಗದುರಹಿತ RFID ವಾಲೆಟ್.",
+      "communication": "ಸೂಚನೆಗಳು ಮತ್ತು ಸುತ್ತೋಲೆಗಳು, SMS, WhatsApp, ಇಮೇಲ್ ಮತ್ತು ಪುಶ್ ಅಧಿಸೂಚನೆ, ಪೋಷಕ–ಶಿಕ್ಷಕರ ಚಾಟ್.",
+      "comms": "ಸಿಬ್ಬಂದಿಯ ನಡುವೆ ನೇರ ಚಾಟ್ (ವೈಯಕ್ತಿಕ, ಗುಂಪುಗಳು, ಇಡೀ ಸಿಬ್ಬಂದಿ ಕೊಠಡಿ) ಮತ್ತು ಕರೆ ಗಂಟೆ — ಸಾಮಾನ್ಯ, ತುರ್ತು ಅಥವಾ ತುರ್ತು ಎಚ್ಚರಿಕೆ.",
+      "portal": "ಪೋಷಕರು ಮತ್ತು ವಿದ್ಯಾರ್ಥಿಗಳ ಆ್ಯಪ್: ಅದರಲ್ಲಿ ಏನು ಕಾಣುತ್ತದೆ ಮತ್ತು ಕುಟುಂಬಗಳು ಹೇಗೆ ಸೈನ್ ಇನ್ ಮಾಡುತ್ತವೆ.",
+      "events": "ಶಾಲಾ ಕ್ಯಾಲೆಂಡರ್, ಕಾರ್ಯಕ್ರಮಗಳು, ಪೋಷಕ–ಶಿಕ್ಷಕರ ಸಭೆಯ ಸಮಯಗಳು ಮತ್ತು ಚಿತ್ರ ಸಂಗ್ರಹ.",
+      "surveys": "ಪೋಷಕರು ಮತ್ತು ವಿದ್ಯಾರ್ಥಿಗಳ ಅಭಿಪ್ರಾಯ, ಶಿಕ್ಷಕರ ಮೌಲ್ಯಮಾಪನ ಮತ್ತು ಮತದಾನಗಳು.",
+      "website": "ಸೂಚನಾ ಫಲಕ ಮತ್ತು ಆನ್‌ಲೈನ್ ಪ್ರವೇಶ ಅರ್ಜಿಯೊಂದಿಗೆ ಸಂಸ್ಥೆಯ ವೆಬ್‌ಸೈಟ್.",
+      "reports": "ಸಿದ್ಧ ವರದಿಗಳು, ವರದಿ ರಚನೆ ಮತ್ತು ನಿಗದಿತ ರಫ್ತುಗಳು.",
+      "analytics": "ಹಾಜರಾತಿ, ಫಲಿತಾಂಶಗಳು, ಶುಲ್ಕ ಸಂಗ್ರಹ ಮತ್ತು ಕ್ಯಾಂಪಸ್ ಹೋಲಿಕೆಯ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್‌ಗಳು.",
+      "ai": "ಪ್ರಶ್ನೆ ಪತ್ರಿಕೆಗಳು, ಪ್ರಗತಿ ಪತ್ರದ ಅಭಿಪ್ರಾಯಗಳು ಮತ್ತು ನಿಮ್ಮದೇ ಮಾಹಿತಿಯಿಂದ ಉತ್ತರಿಸುವ ಸಹಾಯಕ.",
+      "integrations": "ಪಾವತಿ ಗೇಟ್‌ವೇ, SMS ಮತ್ತು WhatsApp, ಬಯೋಮೆಟ್ರಿಕ್ ಮತ್ತು RFID ಸಾಧನಗಳು, GPS ಮತ್ತು ಅವುಗಳ ದಾಖಲೆಗಳು."
     },
     "pages": {
       "dashboard": {
-        "live": "Live campus"
+        "live": "ಕ್ಯಾಂಪಸ್ ನೇರ ನೋಟ"
       },
       "core": {
-        "setup": "Setup hub",
-        "profile": "Institution profile",
-        "branches": "Campuses",
-        "departments": "Departments",
-        "users": "Users",
-        "roles": "Roles & permissions",
-        "modules": "Modules",
-        "subscription": "Subscription & billing",
-        "masters": "Masters hub",
-        "custom-fields": "Custom fields",
-        "forms": "Form builder",
-        "workflows": "Workflows & approvals",
-        "numbering": "Number series",
-        "print-templates": "Print templates",
-        "local-names": "Names in other languages",
-        "notifications-setup": "Notification rules",
-        "audit": "Audit log",
-        "api-keys": "API keys & webhooks",
-        "settings": "Settings"
+        "setup": "ಸಿದ್ಧತಾ ಕೇಂದ್ರ",
+        "profile": "ಸಂಸ್ಥೆಯ ಪ್ರೊಫೈಲ್",
+        "branches": "ಕ್ಯಾಂಪಸ್‌ಗಳು",
+        "departments": "ಇಲಾಖೆಗಳು",
+        "users": "ಬಳಕೆದಾರರು",
+        "roles": "ಪಾತ್ರಗಳು ಮತ್ತು ಅನುಮತಿಗಳು",
+        "modules": "ಮಾಡ್ಯೂಲ್‌ಗಳು",
+        "subscription": "ಚಂದಾದಾರಿಕೆ ಮತ್ತು ಬಿಲ್‌ಗಳು",
+        "masters": "ಮೂಲ ಪಟ್ಟಿಗಳ ಕೇಂದ್ರ",
+        "custom-fields": "ಹೆಚ್ಚುವರಿ ಕ್ಷೇತ್ರಗಳು",
+        "forms": "ನಮೂನೆ ರಚನೆ",
+        "workflows": "ಕಾರ್ಯಪ್ರವಾಹಗಳು ಮತ್ತು ಅನುಮೋದನೆಗಳು",
+        "numbering": "ಸಂಖ್ಯಾ ಸರಣಿ",
+        "print-templates": "ಮುದ್ರಣ ಮಾದರಿಗಳು",
+        "local-names": "ಇತರ ಭಾಷೆಗಳಲ್ಲಿ ಹೆಸರುಗಳು",
+        "notifications-setup": "ಅಧಿಸೂಚನೆ ನಿಯಮಗಳು",
+        "audit": "ಚಟುವಟಿಕೆ ದಾಖಲೆ",
+        "api-keys": "API ಕೀಗಳು ಮತ್ತು ವೆಬ್‌ಹುಕ್‌ಗಳು",
+        "settings": "ಸೆಟ್ಟಿಂಗ್‌ಗಳು"
       },
       "students": {
-        "admit": "New admission",
-        "directory": "Student directory",
-        "profile": "Student 360",
-        "guardians": "Parents & guardians",
-        "promotion": "Promotion",
-        "transfer": "Transfer & leaving",
-        "id-cards": "ID cards"
+        "admit": "ಹೊಸ ಪ್ರವೇಶ",
+        "directory": "ವಿದ್ಯಾರ್ಥಿಗಳ ಪಟ್ಟಿ",
+        "profile": "ವಿದ್ಯಾರ್ಥಿ 360",
+        "guardians": "ಪೋಷಕರು ಮತ್ತು ಪಾಲಕರು",
+        "promotion": "ಬಡ್ತಿ",
+        "transfer": "ವರ್ಗಾವಣೆ ಮತ್ತು ಶಾಲೆ ಬಿಡುವಿಕೆ",
+        "id-cards": "ಗುರುತಿನ ಚೀಟಿಗಳು"
       },
       "admissions": {
-        "enquiries": "Enquiries",
-        "applications": "Applications",
-        "tests": "Entrance tests",
-        "merit": "Merit lists",
-        "settings": "Admission settings"
+        "enquiries": "ವಿಚಾರಣೆಗಳು",
+        "applications": "ಅರ್ಜಿಗಳು",
+        "tests": "ಪ್ರವೇಶ ಪರೀಕ್ಷೆಗಳು",
+        "merit": "ಅರ್ಹತಾ ಪಟ್ಟಿಗಳು",
+        "settings": "ಪ್ರವೇಶ ಸೆಟ್ಟಿಂಗ್‌ಗಳು"
       },
       "certificates": {
-        "issue": "Issue certificates",
-        "register": "Certificate register"
+        "issue": "ಪ್ರಮಾಣಪತ್ರಗಳನ್ನು ನೀಡಿ",
+        "register": "ಪ್ರಮಾಣಪತ್ರ ವಹಿ"
       },
       "frontoffice": {
-        "visitors": "Visitor log",
-        "gate-pass": "Gate passes",
-        "complaints": "Complaints"
+        "visitors": "ಸಂದರ್ಶಕರ ದಾಖಲೆ",
+        "gate-pass": "ಗೇಟ್ ಪಾಸ್‌ಗಳು",
+        "complaints": "ದೂರುಗಳು"
       },
       "academics": {
-        "years": "Academic years & terms",
-        "classes": "Classes & sections",
-        "subjects": "Subjects",
-        "grading": "Grading schemes",
-        "allocation": "Teacher allocation",
-        "books-uniform": "Books & uniform"
+        "years": "ಶೈಕ್ಷಣಿಕ ವರ್ಷಗಳು ಮತ್ತು ಸತ್ರಗಳು",
+        "classes": "ತರಗತಿಗಳು ಮತ್ತು ವಿಭಾಗಗಳು",
+        "subjects": "ವಿಷಯಗಳು",
+        "grading": "ಶ್ರೇಣೀಕರಣ ಯೋಜನೆಗಳು",
+        "allocation": "ಶಿಕ್ಷಕರ ಹಂಚಿಕೆ",
+        "books-uniform": "ಪುಸ್ತಕಗಳು ಮತ್ತು ಸಮವಸ್ತ್ರ"
       },
       "attendance": {
-        "mark": "Mark attendance",
-        "register": "Attendance register",
-        "leave": "Student leave",
-        "reports": "Attendance reports"
+        "mark": "ಹಾಜರಾತಿ ದಾಖಲಿಸಿ",
+        "register": "ಹಾಜರಾತಿ ಪುಸ್ತಕ",
+        "leave": "ವಿದ್ಯಾರ್ಥಿ ರಜೆ",
+        "reports": "ಹಾಜರಾತಿ ವರದಿಗಳು"
       },
       "homework": {
-        "hub": "Teaching hub",
-        "lesson-plans": "Lesson plans",
-        "syllabus": "Syllabus tracker",
-        "homework": "Homework"
+        "hub": "ಬೋಧನಾ ಕೇಂದ್ರ",
+        "lesson-plans": "ಪಾಠ ಯೋಜನೆಗಳು",
+        "syllabus": "ಪಠ್ಯಕ್ರಮ ಪ್ರಗತಿ",
+        "homework": "ಮನೆಗೆಲಸ"
       },
       "exams": {
-        "schedule": "Exam schedule",
-        "hall-tickets": "Hall tickets",
-        "seating": "Seating & invigilation",
-        "question-papers": "Question papers",
-        "marks": "Marks entry",
-        "results": "Results",
-        "report-cards": "Report cards",
-        "year-results": "Year-end results",
-        "setup": "Exam setup"
+        "schedule": "ಪರೀಕ್ಷಾ ವೇಳಾಪಟ್ಟಿ",
+        "hall-tickets": "ಪ್ರವೇಶ ಪತ್ರಗಳು",
+        "seating": "ಆಸನ ವ್ಯವಸ್ಥೆ ಮತ್ತು ಮೇಲ್ವಿಚಾರಣೆ",
+        "question-papers": "ಪ್ರಶ್ನೆ ಪತ್ರಿಕೆಗಳು",
+        "marks": "ಅಂಕಗಳ ನಮೂದು",
+        "results": "ಫಲಿತಾಂಶಗಳು",
+        "report-cards": "ಪ್ರಗತಿ ಪತ್ರಗಳು",
+        "year-results": "ವರ್ಷಾಂತ್ಯದ ಫಲಿತಾಂಶ",
+        "setup": "ಪರೀಕ್ಷಾ ವ್ಯವಸ್ಥೆ"
       },
       "timetable": {
-        "timetable": "Timetable",
-        "substitutions": "Substitutions",
-        "rooms": "Rooms"
+        "timetable": "ವೇಳಾಪಟ್ಟಿ",
+        "substitutions": "ಬದಲಿ ವ್ಯವಸ್ಥೆ",
+        "rooms": "ಕೊಠಡಿಗಳು"
       },
       "lms": {
-        "courses": "Courses & material",
-        "create-content": "Create content",
-        "my-content": "My content",
-        "content-library": "Content library",
-        "live-classes": "Live classes",
-        "question-bank": "Question bank"
+        "courses": "ಕೋರ್ಸ್‌ಗಳು ಮತ್ತು ಅಧ್ಯಯನ ಸಾಮಗ್ರಿ",
+        "create-content": "ವಿಷಯ ರಚಿಸಿ",
+        "my-content": "ನನ್ನ ಬೋಧನಾ ವಿಷಯ",
+        "content-library": "ಬೋಧನಾ ವಿಷಯ ಸಂಗ್ರಹ",
+        "live-classes": "ನೇರ ತರಗತಿಗಳು",
+        "question-bank": "ಪ್ರಶ್ನೆ ಭಂಡಾರ"
       },
       "online-tests": {
-        "tests": "Tests",
-        "attempts": "Attempts & results"
+        "tests": "ಪರೀಕ್ಷೆಗಳು",
+        "attempts": "ಪ್ರಯತ್ನಗಳು ಮತ್ತು ಫಲಿತಾಂಶಗಳು"
       },
       "programs": {
-        "programs": "Programs & regulations",
-        "outcomes": "Outcomes & CO–PO mapping",
-        "attainment": "Attainment"
+        "programs": "ಕಾರ್ಯಕ್ರಮಗಳು ಮತ್ತು ನಿಯಮಾವಳಿಗಳು",
+        "outcomes": "ಫಲಿತಗಳು ಮತ್ತು CO–PO ಹೊಂದಾಣಿಕೆ",
+        "attainment": "ಫಲಿತಗಳ ಸಾಧನೆ"
       },
       "registration": {
-        "windows": "Registration windows",
-        "requests": "Registrations"
+        "windows": "ನೋಂದಣಿ ಅವಧಿಗಳು",
+        "requests": "ನೋಂದಣಿಗಳು"
       },
       "coe": {
-        "marks": "Internal & external marks",
-        "revaluation": "Revaluation",
-        "grade-cards": "Grade cards & transcripts"
+        "marks": "ಆಂತರಿಕ ಮತ್ತು ಬಾಹ್ಯ ಅಂಕಗಳು",
+        "revaluation": "ಮರುಮೌಲ್ಯಮಾಪನ",
+        "grade-cards": "ಶ್ರೇಣಿ ಪತ್ರಗಳು ಮತ್ತು ಕ್ರೋಢೀಕೃತ ಶ್ರೇಣಿ ಪಟ್ಟಿಗಳು"
       },
       "accreditation": {
-        "reports": "Accreditation reports",
-        "evidence": "Evidence repository"
+        "reports": "ಮಾನ್ಯತೆ ವರದಿಗಳು",
+        "evidence": "ಪುರಾವೆ ಭಂಡಾರ"
       },
       "placements": {
-        "companies": "Companies",
-        "drives": "Placement drives",
-        "offers": "Offers"
+        "companies": "ಕಂಪನಿಗಳು",
+        "drives": "ನೇಮಕಾತಿ ಅಭಿಯಾನಗಳು",
+        "offers": "ನೇಮಕಾತಿ ಆಹ್ವಾನಗಳು"
       },
       "research": {
-        "publications": "Publications",
-        "projects": "Projects & grants"
+        "publications": "ಪ್ರಕಟಣೆಗಳು",
+        "projects": "ಯೋಜನೆಗಳು ಮತ್ತು ಅನುದಾನಗಳು"
       },
       "alumni": {
-        "directory": "Alumni directory",
-        "donations": "Donations"
+        "directory": "ಹಳೆಯ ವಿದ್ಯಾರ್ಥಿಗಳ ಪಟ್ಟಿ",
+        "donations": "ದೇಣಿಗೆಗಳು"
       },
       "fees": {
-        "structures": "Fee structures",
-        "concessions": "Concessions & scholarships",
-        "collect": "Collect fees",
-        "invoices": "Fee invoices & receipts",
-        "dues": "Dues & reminders",
-        "refunds": "Refunds",
-        "day-end": "Day-end closing",
-        "online": "Online payments"
+        "structures": "ಶುಲ್ಕ ರಚನೆಗಳು",
+        "concessions": "ರಿಯಾಯಿತಿಗಳು ಮತ್ತು ವಿದ್ಯಾರ್ಥಿವೇತನಗಳು",
+        "collect": "ಶುಲ್ಕ ಸಂಗ್ರಹಿಸಿ",
+        "invoices": "ಶುಲ್ಕ ಬಿಲ್‌ಗಳು ಮತ್ತು ರಸೀದಿಗಳು",
+        "dues": "ಬಾಕಿಗಳು ಮತ್ತು ಜ್ಞಾಪನೆಗಳು",
+        "refunds": "ಮರುಪಾವತಿಗಳು",
+        "day-end": "ದಿನದ ಮುಕ್ತಾಯ",
+        "online": "ಆನ್‌ಲೈನ್ ಪಾವತಿಗಳು"
       },
       "finance": {
-        "accounts": "Chart of accounts",
-        "journals": "Journals",
-        "expenses": "Expenses",
-        "bank": "Bank",
-        "reports": "Financial reports"
+        "accounts": "ಖಾತೆಗಳ ಪಟ್ಟಿ",
+        "journals": "ದಿನವಹಿ ನಮೂದುಗಳು",
+        "expenses": "ವೆಚ್ಚಗಳು",
+        "bank": "ಬ್ಯಾಂಕ್",
+        "reports": "ಹಣಕಾಸು ವರದಿಗಳು"
       },
       "hrms": {
-        "employees": "Staff",
-        "attendance": "Staff attendance",
-        "leave": "Leave",
-        "holidays": "Holidays",
-        "hiring": "Recruitment",
-        "performance": "Appraisal"
+        "employees": "ಸಿಬ್ಬಂದಿ",
+        "attendance": "ಸಿಬ್ಬಂದಿ ಹಾಜರಾತಿ",
+        "leave": "ರಜೆ",
+        "holidays": "ರಜಾದಿನಗಳು",
+        "hiring": "ನೇಮಕಾತಿ",
+        "performance": "ಕಾರ್ಯನಿರ್ವಹಣಾ ಮೌಲ್ಯಮಾಪನ"
       },
       "payroll": {
-        "structures": "Salary structures",
-        "statutory": "Statutory rules",
-        "loans": "Loans & advances",
-        "runs": "Payroll runs",
-        "payslips": "Payslips",
-        "exports": "Bank & statutory exports"
+        "structures": "ವೇತನ ರಚನೆಗಳು",
+        "statutory": "ಶಾಸನಬದ್ಧ ನಿಯಮಗಳು",
+        "loans": "ಸಾಲಗಳು ಮತ್ತು ಮುಂಗಡಗಳು",
+        "runs": "ಮಾಸಿಕ ವೇತನ ಲೆಕ್ಕ",
+        "payslips": "ವೇತನ ಚೀಟಿಗಳು",
+        "exports": "ಬ್ಯಾಂಕ್ ಮತ್ತು ಶಾಸನಬದ್ಧ ರಫ್ತುಗಳು"
       },
       "transport": {
-        "routes": "Routes & stops",
-        "vehicles": "Vehicles & drivers",
-        "assignments": "Student assignment",
-        "tracking": "Live tracking"
+        "routes": "ಮಾರ್ಗಗಳು ಮತ್ತು ನಿಲ್ದಾಣಗಳು",
+        "vehicles": "ವಾಹನಗಳು ಮತ್ತು ಚಾಲಕರು",
+        "assignments": "ವಿದ್ಯಾರ್ಥಿಗಳ ನಿಯೋಜನೆ",
+        "tracking": "ನೇರ ಸ್ಥಳ ವೀಕ್ಷಣೆ"
       },
       "library": {
-        "catalogue": "Catalogue",
-        "circulation": "Issue & return",
-        "fines": "Fines"
+        "catalogue": "ಪುಸ್ತಕ ಸೂಚಿ",
+        "circulation": "ಪುಸ್ತಕ ವಿತರಣೆ ಮತ್ತು ಹಿಂಪಡೆಯುವಿಕೆ",
+        "fines": "ದಂಡಗಳು"
       },
       "hostel": {
-        "rooms": "Rooms & beds",
-        "allotment": "Allotment",
-        "outpass": "Outpasses",
-        "mess": "Mess"
+        "rooms": "ಕೊಠಡಿಗಳು ಮತ್ತು ಹಾಸಿಗೆಗಳು",
+        "allotment": "ಹಾಸಿಗೆ ಹಂಚಿಕೆ",
+        "outpass": "ಹೊರಹೋಗುವ ಅನುಮತಿಗಳು",
+        "mess": "ಭೋಜನಾಲಯ"
       },
       "inventory": {
-        "items": "Items",
-        "stock": "Stock",
-        "purchase-orders": "Purchase orders",
-        "sales": "Uniform & book sales",
-        "assets": "Asset register"
+        "items": "ವಸ್ತುಗಳು",
+        "stock": "ದಾಸ್ತಾನು",
+        "purchase-orders": "ಖರೀದಿ ಆದೇಶಗಳು",
+        "sales": "ಸಮವಸ್ತ್ರ ಮತ್ತು ಪುಸ್ತಕ ಮಾರಾಟ",
+        "assets": "ಆಸ್ತಿ ವಹಿ"
       },
       "health": {
-        "records": "Health records",
-        "visits": "Sick-room visits",
-        "incidents": "Incidents"
+        "records": "ಆರೋಗ್ಯ ದಾಖಲೆಗಳು",
+        "visits": "ಆರೋಗ್ಯ ಕೊಠಡಿ ಭೇಟಿಗಳು",
+        "incidents": "ಘಟನೆಗಳು"
       },
       "canteen": {
-        "menu": "Menu",
-        "orders": "Orders",
-        "wallet": "Wallets"
+        "menu": "ಆಹಾರ ಪಟ್ಟಿ",
+        "orders": "ಆರ್ಡರ್‌ಗಳು",
+        "wallet": "ವಾಲೆಟ್‌ಗಳು"
       },
       "communication": {
-        "notices": "Notices & circulars",
-        "messages": "Send messages",
-        "chat": "Parent–teacher chat",
-        "log": "Delivery log"
+        "notices": "ಸೂಚನೆಗಳು ಮತ್ತು ಸುತ್ತೋಲೆಗಳು",
+        "messages": "ಸಂದೇಶ ಕಳುಹಿಸಿ",
+        "chat": "ಪೋಷಕ–ಶಿಕ್ಷಕರ ಚಾಟ್",
+        "log": "ಸಂದೇಶ ದಾಖಲೆ"
       },
       "comms": {
-        "chat": "Staff chat",
-        "calls": "Call bell",
-        "codes": "Emergency alerts"
+        "chat": "ಸಿಬ್ಬಂದಿ ಚಾಟ್",
+        "calls": "ಕರೆ ಗಂಟೆ",
+        "codes": "ತುರ್ತು ಎಚ್ಚರಿಕೆಗಳು"
       },
       "portal": {
-        "settings": "App settings",
-        "content": "App content"
+        "settings": "ಆ್ಯಪ್ ಸೆಟ್ಟಿಂಗ್‌ಗಳು",
+        "content": "ಆ್ಯಪ್ ವಿಷಯ"
       },
       "events": {
-        "calendar": "Calendar",
-        "ptm": "Parent–teacher meetings",
-        "gallery": "Gallery"
+        "calendar": "ಕ್ಯಾಲೆಂಡರ್",
+        "ptm": "ಪೋಷಕ–ಶಿಕ್ಷಕರ ಸಭೆಗಳು",
+        "gallery": "ಚಿತ್ರ ಸಂಗ್ರಹ"
       },
       "surveys": {
-        "forms": "Surveys",
-        "responses": "Responses"
+        "forms": "ಸಮೀಕ್ಷೆಗಳು",
+        "responses": "ಪ್ರತಿಕ್ರಿಯೆಗಳು"
       },
       "website": {
-        "pages": "Pages"
+        "pages": "ಪುಟಗಳು"
       },
       "reports": {
-        "library": "Report library",
-        "builder": "Report builder"
+        "library": "ವರದಿ ಭಂಡಾರ",
+        "builder": "ವರದಿ ರಚನೆ"
       },
       "analytics": {
-        "academics": "Academic performance",
-        "fees": "Fee collection",
-        "campuses": "Campus comparison"
+        "academics": "ಶೈಕ್ಷಣಿಕ ಸಾಧನೆ",
+        "fees": "ಶುಲ್ಕ ಸಂಗ್ರಹ",
+        "campuses": "ಕ್ಯಾಂಪಸ್ ಹೋಲಿಕೆ"
       },
       "ai": {
-        "assistant": "Assistant",
-        "question-papers": "Question paper generator",
-        "remarks": "Report card remarks"
+        "assistant": "ಸಹಾಯಕ",
+        "question-papers": "ಪ್ರಶ್ನೆ ಪತ್ರಿಕೆ ಸಿದ್ಧಪಡಿಕೆ",
+        "remarks": "ಪ್ರಗತಿ ಪತ್ರದ ಅಭಿಪ್ರಾಯಗಳು"
       },
       "integrations": {
-        "payments": "Payment gateway",
-        "messaging": "SMS & WhatsApp",
-        "devices": "Devices",
-        "logs": "Integration logs"
+        "payments": "ಪಾವತಿ ಗೇಟ್‌ವೇ",
+        "messaging": "SMS ಮತ್ತು WhatsApp",
+        "devices": "ಸಾಧನಗಳು",
+        "logs": "ಏಕೀಕರಣ ದಾಖಲೆಗಳು"
       }
     },
     "actions": {
-      "allot": "Allot",
-      "apply_on_behalf": "Apply on behalf",
-      "approve": "Approve",
-      "approve_variance": "Approve cash variance",
-      "ask": "Ask",
-      "assign": "Assign to users",
-      "broadcast": "Send emergency alerts",
-      "calculate": "Calculate",
-      "cancel": "Cancel",
-      "checkout": "Check out",
-      "close": "Close",
-      "configure": "Configure",
-      "create": "Create",
-      "delete": "Delete",
-      "discount": "Give concession",
-      "edit": "Edit",
-      "edit_lop": "Edit LOP",
-      "evaluate": "Evaluate",
-      "export": "Export",
-      "import": "Import",
-      "issue": "Issue",
-      "lock": "Lock marks",
-      "manage": "Change plan",
-      "moderate": "Moderate",
-      "pay": "Pay",
-      "post": "Post",
-      "print": "Print",
-      "promote": "Promote",
-      "publish": "Publish",
-      "receive": "Return",
-      "reconcile": "Reconcile",
-      "refund": "Refund",
-      "reset_password": "Reset password",
-      "resolve": "Resolve",
-      "reverse": "Reverse",
-      "revoke_sessions": "Sign out devices",
-      "run": "Run",
-      "schedule": "Schedule",
-      "send": "Send",
-      "share": "Share",
-      "sign": "Sign",
-      "start": "Start",
-      "terminate": "Terminate",
-      "track": "Live tracking",
-      "unlock": "Unlock marks",
-      "view": "View",
-      "view_salary": "See salary",
-      "view_sensitive": "See unmasked IDs"
+      "allot": "ಹಂಚಿಕೆ ಮಾಡಿ",
+      "apply_on_behalf": "ಪರವಾಗಿ ಅರ್ಜಿ ಸಲ್ಲಿಸಿ",
+      "approve": "ಅನುಮೋದಿಸಿ",
+      "approve_variance": "ನಗದು ವ್ಯತ್ಯಾಸವನ್ನು ಅನುಮೋದಿಸಿ",
+      "ask": "ಕೇಳಿ",
+      "assign": "ಬಳಕೆದಾರರಿಗೆ ನಿಯೋಜಿಸಿ",
+      "broadcast": "ತುರ್ತು ಎಚ್ಚರಿಕೆಗಳನ್ನು ಕಳುಹಿಸಿ",
+      "calculate": "ಲೆಕ್ಕಹಾಕಿ",
+      "cancel": "ರದ್ದುಮಾಡಿ",
+      "checkout": "ನಿರ್ಗಮನ ದಾಖಲಿಸಿ",
+      "close": "ಮುಚ್ಚಿ",
+      "configure": "ಸಂರಚಿಸಿ",
+      "create": "ರಚಿಸಿ",
+      "delete": "ಅಳಿಸಿ",
+      "discount": "ರಿಯಾಯಿತಿ ನೀಡಿ",
+      "edit": "ಸಂಪಾದಿಸಿ",
+      "edit_lop": "ವೇತನರಹಿತ ರಜೆ (LOP) ಸಂಪಾದಿಸಿ",
+      "evaluate": "ಮೌಲ್ಯಮಾಪನ ಮಾಡಿ",
+      "export": "ರಫ್ತು ಮಾಡಿ",
+      "import": "ಆಮದು ಮಾಡಿ",
+      "issue": "ನೀಡಿ",
+      "lock": "ಅಂಕಗಳನ್ನು ಲಾಕ್ ಮಾಡಿ",
+      "manage": "ಯೋಜನೆ ಬದಲಿಸಿ",
+      "moderate": "ಪರಿಷ್ಕರಿಸಿ",
+      "pay": "ಪಾವತಿಸಿ",
+      "post": "ದಾಖಲಿಸಿ",
+      "print": "ಮುದ್ರಿಸಿ",
+      "promote": "ಬಡ್ತಿ ನೀಡಿ",
+      "publish": "ಪ್ರಕಟಿಸಿ",
+      "receive": "ಹಿಂಪಡೆಯಿರಿ",
+      "reconcile": "ತಾಳೆ ಮಾಡಿ",
+      "refund": "ಮರುಪಾವತಿಸಿ",
+      "reset_password": "ಪಾಸ್‌ವರ್ಡ್ ಮರುಹೊಂದಿಸಿ",
+      "resolve": "ಪರಿಹರಿಸಿ",
+      "reverse": "ಹಿಮ್ಮುಖಗೊಳಿಸಿ",
+      "revoke_sessions": "ಸಾಧನಗಳಿಂದ ಸೈನ್ ಔಟ್ ಮಾಡಿ",
+      "run": "ನಡೆಸಿ",
+      "schedule": "ನಿಗದಿಪಡಿಸಿ",
+      "send": "ಕಳುಹಿಸಿ",
+      "share": "ಹಂಚಿಕೊಳ್ಳಿ",
+      "sign": "ಸಹಿ ಮಾಡಿ",
+      "start": "ಆರಂಭಿಸಿ",
+      "terminate": "ಸೇವೆ ಕೊನೆಗೊಳಿಸಿ",
+      "track": "ನೇರ ಸ್ಥಳ ವೀಕ್ಷಣೆ",
+      "unlock": "ಅಂಕಗಳನ್ನು ಅನ್‌ಲಾಕ್ ಮಾಡಿ",
+      "view": "ನೋಡಿ",
+      "view_salary": "ವೇತನ ನೋಡಿ",
+      "view_sensitive": "ಪೂರ್ಣ ಗುರುತಿನ ಸಂಖ್ಯೆಗಳನ್ನು ನೋಡಿ"
     },
     "scopes": {
-      "OWN": "Own records",
-      "CLASS": "My classes",
-      "DEPARTMENT": "My departments",
-      "BRANCH": "My campus",
-      "ALL": "All campuses"
+      "OWN": "ಸ್ವಂತ ದಾಖಲೆಗಳು",
+      "CLASS": "ನನ್ನ ತರಗತಿಗಳು",
+      "DEPARTMENT": "ನನ್ನ ಇಲಾಖೆಗಳು",
+      "BRANCH": "ನನ್ನ ಕ್ಯಾಂಪಸ್",
+      "ALL": "ಎಲ್ಲಾ ಕ್ಯಾಂಪಸ್‌ಗಳು"
     },
     "limits": {
-      "fees_discountMaxPct": "Max fee concession at the counter",
-      "fees_refundMax": "Max refund without approval",
-      "inventory_poApproveMax": "Max purchase order to approve",
-      "finance_expenseApproveMax": "Max expense to approve"
+      "fees_discountMaxPct": "ಕೌಂಟರ್‌ನಲ್ಲಿ ನೀಡಬಹುದಾದ ಗರಿಷ್ಠ ಶುಲ್ಕ ರಿಯಾಯಿತಿ",
+      "fees_refundMax": "ಅನುಮೋದನೆ ಇಲ್ಲದೆ ಗರಿಷ್ಠ ಮರುಪಾವತಿ",
+      "inventory_poApproveMax": "ಅನುಮೋದಿಸಬಹುದಾದ ಗರಿಷ್ಠ ಖರೀದಿ ಆದೇಶ",
+      "finance_expenseApproveMax": "ಅನುಮೋದಿಸಬಹುದಾದ ಗರಿಷ್ಠ ವೆಚ್ಚ"
     },
     "modulePage": {
-      "onTheWay": "This screen is on the way",
-      "accessReady": "Your access is already set up: when {{name}} arrives, this page opens for your role with exactly the actions below — nobody needs to change roles again.",
-      "roleCapabilities": "What your role can do on this page",
-      "moreInModule": "More in {{name}}",
+      "onTheWay": "ಈ ಪರದೆ ಶೀಘ್ರದಲ್ಲೇ ಬರಲಿದೆ",
+      "accessReady": "ನಿಮ್ಮ ಅನುಮತಿಯನ್ನು ಈಗಾಗಲೇ ಸಿದ್ಧಪಡಿಸಲಾಗಿದೆ: {{name}} ಬಂದಾಗ, ಈ ಪುಟ ನಿಮ್ಮ ಪಾತ್ರಕ್ಕೆ ಕೆಳಗಿನ ಕ್ರಿಯೆಗಳೊಂದಿಗೆ ನಿಖರವಾಗಿ ತೆರೆಯುತ್ತದೆ — ಯಾರೂ ಮತ್ತೆ ಪಾತ್ರಗಳನ್ನು ಬದಲಿಸಬೇಕಿಲ್ಲ.",
+      "roleCapabilities": "ಈ ಪುಟದಲ್ಲಿ ನಿಮ್ಮ ಪಾತ್ರ ಏನು ಮಾಡಬಹುದು",
+      "moreInModule": "{{name}} ನಲ್ಲಿ ಇನ್ನಷ್ಟು",
       "phases": {
-        "0": "Phase 0 — Platform",
-        "1": "Phase 1 — MVP (Nov 2026 – Apr 2027)",
-        "2": "Phase 2 — Growth (May – Oct 2027)",
-        "3": "Phase 3 — Full suite (Nov 2027 – Apr 2028)",
-        "4": "Phase 4 — Scale (May – Oct 2028)"
+        "0": "ಹಂತ 0 — ವೇದಿಕೆ",
+        "1": "ಹಂತ 1 — MVP (ನವೆಂಬರ್ 2026 – ಏಪ್ರಿಲ್ 2027)",
+        "2": "ಹಂತ 2 — ಬೆಳವಣಿಗೆ (ಮೇ – ಅಕ್ಟೋಬರ್ 2027)",
+        "3": "ಹಂತ 3 — ಸಂಪೂರ್ಣ ಸೌಲಭ್ಯಗಳು (ನವೆಂಬರ್ 2027 – ಏಪ್ರಿಲ್ 2028)",
+        "4": "ಹಂತ 4 — ವಿಸ್ತರಣೆ (ಮೇ – ಅಕ್ಟೋಬರ್ 2028)"
       },
-      "phaseN": "Phase {{phase}}",
-      "sensitive": "Sensitive"
+      "phaseN": "ಹಂತ {{phase}}",
+      "sensitive": "ಸೂಕ್ಷ್ಮ"
     }
   }
 }

@@ -18,10 +18,11 @@ const tpl = (extra) => ({ docType: 'REPORT_CARD', name: 'Plain paper', paper: 'A
 describe('letterhead', () => {
   it('starts from the defaults and the institution profile, and saves the layout', async () => {
     const lh = (await admin.get('/api/v1/core/print/letterhead')).body.data
-    expect(lh).toMatchObject({ align: 'LEFT', showLogo: true, ids: ['registrationNo', 'affiliationNo'] })
+    // the classic Indian school letterhead: crest, name in capitals, the board and its numbers
+    expect(lh).toMatchObject({ align: 'CENTER', showLogo: true, ids: ['affiliationNo', 'schoolCode', 'udiseCode'] })
     expect(lh.institution.name).toBe(h.tenant.name)
-    const res = await admin.put('/api/v1/core/print/letterhead').send({ align: 'CENTER', tagline: 'Caring since 1998', accentColor: '#123456', ids: ['gstin'] })
-    expect(res.body.data).toMatchObject({ align: 'CENTER', tagline: 'Caring since 1998', accentColor: '#123456', ids: ['gstin'], updatedBy: 'Admin 1' })
+    const res = await admin.put('/api/v1/core/print/letterhead').send({ align: 'LEFT', tagline: 'Caring since 1998', accentColor: '#123456', ids: ['gstin'] })
+    expect(res.body.data).toMatchObject({ align: 'LEFT', tagline: 'Caring since 1998', accentColor: '#123456', ids: ['gstin'], updatedBy: 'Admin 1' })
     expect((await admin.put('/api/v1/core/print/letterhead').send({ accentColor: 'teal' })).status).toBe(400)
   })
 })

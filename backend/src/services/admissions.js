@@ -607,5 +607,5 @@ export async function familyAcceptOffer(who, applicationId) {
   Object.assign(a, { status: 'ACCEPTED', acceptedAt: new Date() })
   await a.save()
   await audit({ action: 'UPDATE', module: 'admissions', entityType: 'application', entityId: String(a._id), entityName: a.applicationNo, summary: `The family accepted the seat offered on ${a.applicationNo} (online)` }, null)
-  return familyApplications(mobile)
+  return familyApplications(who) // the same family, as proven by the code
 }

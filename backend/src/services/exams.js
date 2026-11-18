@@ -270,6 +270,8 @@ export async function savePapers(examId, classId, papers, req) {
     parts.forEach((x, j) => {
       if (!(x.maxMarks > 0)) errors[`papers.${i}.parts.${j}.maxMarks`] = 'More than 0'
       if (x.passMarks > x.maxMarks) errors[`papers.${i}.parts.${j}.passMarks`] = 'Can’t be more than its max marks'
+      if (x.date && (x.date < year.startDate || x.date > year.endDate)) errors[`papers.${i}.parts.${j}.date`] = `Inside ${year.name}`
+      if (x.startTime && x.endTime && x.endTime <= x.startTime) errors[`papers.${i}.parts.${j}.endTime`] = 'After the start time'
     })
     if (parts.length >= 2) {
       p.maxMarks = parts.reduce((n, x) => n + Number(x.maxMarks || 0), 0)
@@ -301,11 +303,12 @@ export async function savePapers(examId, classId, papers, req) {
     await ExamPaper.bulkWrite(papers.map((p, i) => ({
       updateOne: {
         filter: { examId: e._id, classId, subjectId: p.subjectId },
-        update: { $set: { date: p.date || undefined, startTime: p.startTime || undefined, endTime: p.endTime || undefined, maxMarks: p.gradeOnly ? 0 : p.maxMarks, passMarks: p.gradeOnly ? 0 : p.passMarks, gradeOnly: !!p.gradeOnly, countsInTotal: p.gradeOnly ? false : p.countsInTotal !== false, order: i, parts: !p.gradeOnly && p.parts?.length >= 2 ? p.parts.map((x, j) => ({ key: partKey(j), name: x.name, maxMarks: x.maxMarks, passMarks: x.passMarks ?? 0 })) : undefined } },
+        update: { $set: { date: p.date || undefined, startTime: p.startTime || undefined, endTime: p.endTime || undefined, maxMarks: p.gradeOnly ? 0 : p.maxMarks, passMarks: p.gradeOnly ? 0 : p.passMarks, gradeOnly: !!p.gradeOnly, countsInTotal: p.gradeOnly ? false : p.countsInTotal !== false, order: i, parts: !p.gradeOnly && p.parts?.length >= 2 ? p.parts.map((x, j) => ({ key: partKey(j), name: x.name, maxMarks: x.maxMarks, passMarks: x.passMarks ?? 0, ...(x.date && { date: x.date, startTime: x.startTime, endTime: x.endTime }) })) : undefined } },
         upsert: true,
       },
     })))
-    const dates = (await ExamPaper.find({ examId: e._id, date: { $exists: true, $ne: null } }).select('date').lean()).map((p) => p.date).sort()
+    // the exam runs from its first paper (or practical on its own day) to its last
+    const dates = (await ExamPaper.find({ examId: e._id }).select('date parts.date').lean()).flatMap((p) => [p.date, ...(p.parts ?? []).map((x) => x.date)]).filter(Boolean).sort()
     await Exam.updateOne({ _id: e._id }, { $set: { startDate: dates[0], endDate: dates.at(-1) } })
   })
   const cls = await ClassLevel.findById(classId).select('name').lean()

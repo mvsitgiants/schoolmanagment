@@ -85,7 +85,7 @@ function ExamForm({ exam, year, onClose, onSaved }) {
 }
 
 const blankPaper = { subjectId: '', date: '', startTime: '09:30', endTime: '12:30', maxMarks: '80', passMarks: '27', gradeOnly: false, countsInTotal: true, parts: [] }
-const partsIn = (parts) => (parts ?? []).map((x) => ({ name: x.name, maxMarks: String(x.maxMarks ?? ''), passMarks: String(x.passMarks ?? '') }))
+const partsIn = (parts) => (parts ?? []).map((x) => ({ name: x.name, maxMarks: String(x.maxMarks ?? ''), passMarks: String(x.passMarks ?? ''), date: x.date ?? '', startTime: x.startTime ?? '', endTime: x.endTime ?? '' }))
 const sumOf = (parts, k) => parts.reduce((n, x) => n + (Number(x[k]) || 0), 0)
 /** Which ready-made split these parts are (names and marks match), or 'CUSTOM'. */
 const presetOf = (parts) => PAPER_PART_PRESETS.find((p) => p.parts.length === parts.length && p.parts.every((x, i) => x.name === parts[i].name && String(x.maxMarks) === String(parts[i].maxMarks) && String(x.passMarks) === String(parts[i].passMarks)))?.value ?? 'CUSTOM'
@@ -117,7 +117,7 @@ function PapersEditor({ exam, cls, onClose, onSaved }) {
   const clash = useMemo(() => new Set(clashes(rows).flat()), [rows])
   const save = useMutation({
     mutationFn: () => savePapers(exam.id, cls.id, rows.filter((r) => r.subjectId).map((r) => ({ ...r, maxMarks: Number(r.maxMarks) || 0, passMarks: Number(r.passMarks) || 0,
-      parts: !r.gradeOnly && r.parts?.length >= 2 ? r.parts.map((x) => ({ name: x.name.trim(), maxMarks: Number(x.maxMarks) || 0, passMarks: Number(x.passMarks) || 0 })) : [] }))),
+      parts: !r.gradeOnly && r.parts?.length >= 2 ? r.parts.map((x) => ({ name: x.name.trim(), maxMarks: Number(x.maxMarks) || 0, passMarks: Number(x.passMarks) || 0, date: x.date || '', startTime: x.date ? x.startTime : '', endTime: x.date ? x.endTime : '' })) : [] }))),
     onSuccess: onSaved,
     onError: (e) => { setErrors(e.response?.data?.details?.fields ?? {}); showError(e.message) },
   })
@@ -166,15 +166,18 @@ function PapersEditor({ exam, cls, onClose, onSaved }) {
               </div>
               {err(i, 'parts') && <Note tone="danger">{err(i, 'parts')}</Note>}
               {r.parts.map((p, j) => (
-                <div key={j} className="grid grid-cols-[1.6fr_.8fr_.8fr_auto] gap-2 items-start">
+                <div key={j} className="grid grid-cols-2 md:grid-cols-[1.4fr_.6fr_.6fr_1fr_.8fr_.8fr_auto] gap-2 items-start">
                   <FormField label={j === 0 ? t('exams.papers.partName') : undefined}><Input value={p.name} maxLength={40} onChange={(e) => setPart(i, j, 'name', e.target.value)} /></FormField>
                   <FormField label={j === 0 ? t('exams.papers.max') : undefined} error={err(i, `parts.${j}.maxMarks`)}><Input type="number" min="0" value={p.maxMarks} onChange={(e) => setPart(i, j, 'maxMarks', e.target.value)} /></FormField>
                   <FormField label={j === 0 ? t('exams.papers.pass') : undefined} error={err(i, `parts.${j}.passMarks`)}><Input type="number" min="0" value={p.passMarks} onChange={(e) => setPart(i, j, 'passMarks', e.target.value)} /></FormField>
+                  <FormField label={j === 0 ? t('exams.papers.partDate') : undefined} error={err(i, `parts.${j}.date`)}><DateInput value={p.date} onChange={(e) => setPart(i, j, 'date', e.target.value)} /></FormField>
+                  <FormField label={j === 0 ? t('exams.papers.start') : undefined}><Input type="time" disabled={!p.date} value={p.startTime} onChange={(e) => setPart(i, j, 'startTime', e.target.value)} onBlur={() => p.date && !p.endTime && p.startTime && setPart(i, j, 'endTime', addMinutes(p.startTime, 180))} /></FormField>
+                  <FormField label={j === 0 ? t('exams.papers.end') : undefined} error={err(i, `parts.${j}.endTime`)}><Input type="time" disabled={!p.date} value={p.endTime} onChange={(e) => setPart(i, j, 'endTime', e.target.value)} /></FormField>
                   <Button size="sm" variant="ghost" icon={X} className={j === 0 ? 'mt-6' : ''} disabled={r.parts.length <= 2} aria-label={t('exams.papers.removePart')} onClick={() => setParts(i, r.parts.filter((_, n) => n !== j))} />
                 </div>
               ))}
               <div className="flex flex-wrap items-center gap-3">
-                {r.parts.length < MAX_PAPER_PARTS && <Button size="sm" variant="ghost" icon={Plus} onClick={() => setParts(i, [...r.parts, { name: '', maxMarks: '', passMarks: '' }])}>{t('exams.papers.addPart')}</Button>}
+                {r.parts.length < MAX_PAPER_PARTS && <Button size="sm" variant="ghost" icon={Plus} onClick={() => setParts(i, [...r.parts, { name: '', maxMarks: '', passMarks: '', date: '', startTime: '', endTime: '' }])}>{t('exams.papers.addPart')}</Button>}
                 <span className="text-xs text-ink-muted">{t('exams.papers.partsHint')}</span>
               </div>
             </div>

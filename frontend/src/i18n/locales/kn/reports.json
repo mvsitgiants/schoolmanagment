@@ -1,320 +1,320 @@
 {
   "reports": {
-    "title": "Report library",
-    "subtitle": "Standard reports for every module you use — run, filter, export.",
-    "loading": "Loading…",
-    "search": "Find a report",
-    "noneAvailable": "No reports for your role yet. Reports appear for the modules your role can see.",
-    "run": "Run",
-    "runAgain": "Run again",
-    "saveAs": "Save as…",
-    "save": "Save",
-    "saved": "Report saved.",
-    "saveTitle": "Save this report",
-    "name": "Name",
-    "saveHint": "Saved reports keep these inputs and columns. Date ranges like “This month” move on by themselves. Find them in Reports › Report builder, where they can be shared and sent on a schedule.",
-    "cantRun": "Your role can see reports but not run them.",
-    "noInputs": "This report needs no inputs.",
-    "columnsPick": "Columns ({{shown}} of {{total}})",
-    "ranAt": "Ran {{at}} · {{count}} rows",
-    "total": "Total",
-    "chartView": "Chart visualization",
-    "tableView": "Table view",
-    "visualInsights": "Visual Insights",
-    "noRows": "No rows for these inputs",
-    "from": "From",
-    "to": "To",
-    "pick": "Pick one",
-    "allClasses": "All classes",
-    "thisMonth": "This month",
-    "alwaysToday": "Blank = today, whenever it runs",
+    "title": "ವರದಿ ಭಂಡಾರ",
+    "subtitle": "ನೀವು ಬಳಸುವ ಪ್ರತಿ ವಿಭಾಗದ ಪ್ರಮಾಣಿತ ವರದಿಗಳು — ಚಲಾಯಿಸಿ, ಫಿಲ್ಟರ್ ಮಾಡಿ, ರಫ್ತು ಮಾಡಿ.",
+    "loading": "ಲೋಡ್ ಆಗುತ್ತಿದೆ…",
+    "search": "ವರದಿಯನ್ನು ಹುಡುಕಿ",
+    "noneAvailable": "ನಿಮ್ಮ ಪಾತ್ರಕ್ಕೆ ಇನ್ನೂ ಯಾವುದೇ ವರದಿಗಳಿಲ್ಲ. ನಿಮ್ಮ ಪಾತ್ರ ನೋಡಬಹುದಾದ ವಿಭಾಗಗಳ ವರದಿಗಳು ಇಲ್ಲಿ ಕಾಣುತ್ತವೆ.",
+    "run": "ಚಲಾಯಿಸಿ",
+    "runAgain": "ಮತ್ತೆ ಚಲಾಯಿಸಿ",
+    "saveAs": "ಹೀಗೆ ಉಳಿಸಿ…",
+    "save": "ಉಳಿಸಿ",
+    "saved": "ವರದಿ ಉಳಿಸಲಾಗಿದೆ.",
+    "saveTitle": "ಈ ವರದಿಯನ್ನು ಉಳಿಸಿ",
+    "name": "ಹೆಸರು",
+    "saveHint": "ಉಳಿಸಿದ ವರದಿಗಳು ಈ ಆಯ್ಕೆಗಳು ಮತ್ತು ಕಾಲಂಗಳನ್ನು ಇರಿಸಿಕೊಳ್ಳುತ್ತವೆ. “ಈ ತಿಂಗಳು” ರೀತಿಯ ದಿನಾಂಕ ವ್ಯಾಪ್ತಿಗಳು ತಾವಾಗಿಯೇ ಮುಂದುವರಿಯುತ್ತವೆ. ಅವುಗಳನ್ನು ವರದಿಗಳು › ವರದಿ ರಚನೆ ಇಲ್ಲಿ ಕಾಣಬಹುದು; ಅಲ್ಲಿ ಅವುಗಳನ್ನು ಹಂಚಿಕೊಳ್ಳಬಹುದು ಮತ್ತು ನಿಗದಿತ ಸಮಯಕ್ಕೆ ಕಳುಹಿಸಬಹುದು.",
+    "cantRun": "ನಿಮ್ಮ ಪಾತ್ರಕ್ಕೆ ವರದಿಗಳನ್ನು ನೋಡಲು ಅನುಮತಿ ಇದೆ, ಆದರೆ ಚಲಾಯಿಸಲು ಇಲ್ಲ.",
+    "noInputs": "ಈ ವರದಿಗೆ ಯಾವುದೇ ಆಯ್ಕೆಗಳು ಬೇಕಿಲ್ಲ.",
+    "columnsPick": "ಕಾಲಂಗಳು ({{total}} ರಲ್ಲಿ {{shown}})",
+    "ranAt": "{{at}} ಕ್ಕೆ ಚಲಾಯಿಸಲಾಗಿದೆ · {{count}} ಸಾಲುಗಳು",
+    "total": "ಒಟ್ಟು",
+    "chartView": "ನಕ್ಷೆ ನೋಟ",
+    "tableView": "ಕೋಷ್ಟಕ ನೋಟ",
+    "visualInsights": "ಚಿತ್ರರೂಪದ ಒಳನೋಟಗಳು",
+    "noRows": "ಈ ಆಯ್ಕೆಗಳಿಗೆ ಯಾವುದೇ ಸಾಲುಗಳಿಲ್ಲ",
+    "from": "ಇಂದ",
+    "to": "ವರೆಗೆ",
+    "pick": "ಒಂದನ್ನು ಆಯ್ಕೆಮಾಡಿ",
+    "allClasses": "ಎಲ್ಲ ತರಗತಿಗಳು",
+    "thisMonth": "ಈ ತಿಂಗಳು",
+    "alwaysToday": "ಖಾಲಿ = ಚಲಾಯಿಸಿದ ದಿನದ ಇಂದಿನ ದಿನಾಂಕ",
     "ranges": {
-      "today": "Today",
-      "yesterday": "Yesterday",
-      "thisWeek": "This week",
-      "lastWeek": "Last week",
-      "thisMonth": "This month",
-      "lastMonth": "Last month",
-      "thisYear": "This financial year",
-      "custom": "Pick dates…"
+      "today": "ಇಂದು",
+      "yesterday": "ನಿನ್ನೆ",
+      "thisWeek": "ಈ ವಾರ",
+      "lastWeek": "ಕಳೆದ ವಾರ",
+      "thisMonth": "ಈ ತಿಂಗಳು",
+      "lastMonth": "ಕಳೆದ ತಿಂಗಳು",
+      "thisYear": "ಈ ಆರ್ಥಿಕ ವರ್ಷ",
+      "custom": "ದಿನಾಂಕಗಳನ್ನು ಆಯ್ಕೆಮಾಡಿ…"
     },
     "months": {
-      "1": "January",
-      "2": "February",
-      "3": "March",
-      "4": "April",
-      "5": "May",
-      "6": "June",
-      "7": "July",
-      "8": "August",
-      "9": "September",
-      "10": "October",
-      "11": "November",
-      "12": "December"
+      "1": "ಜನವರಿ",
+      "2": "ಫೆಬ್ರವರಿ",
+      "3": "ಮಾರ್ಚ್",
+      "4": "ಏಪ್ರಿಲ್",
+      "5": "ಮೇ",
+      "6": "ಜೂನ್",
+      "7": "ಜುಲೈ",
+      "8": "ಆಗಸ್ಟ್",
+      "9": "ಸೆಪ್ಟೆಂಬರ್",
+      "10": "ಅಕ್ಟೋಬರ್",
+      "11": "ನವೆಂಬರ್",
+      "12": "ಡಿಸೆಂಬರ್"
     },
     "groups": {
-      "students": "Students",
-      "attendance": "Attendance",
-      "fees": "Fees",
-      "exams": "Exams",
-      "homework": "Homework",
-      "certificates": "Certificates"
+      "students": "ವಿದ್ಯಾರ್ಥಿಗಳು",
+      "attendance": "ಹಾಜರಾತಿ",
+      "fees": "ಶುಲ್ಕ",
+      "exams": "ಪರೀಕ್ಷೆಗಳು",
+      "homework": "ಮನೆಗೆಲಸ",
+      "certificates": "ಪ್ರಮಾಣಪತ್ರಗಳು"
     },
     "frequency": {
-      "DAILY": "Every day",
-      "WEEKLY": "Every week (Monday)",
-      "MONTHLY": "Every month (1st)"
+      "DAILY": "ಪ್ರತಿದಿನ",
+      "WEEKLY": "ಪ್ರತಿ ವಾರ (ಸೋಮವಾರ)",
+      "MONTHLY": "ಪ್ರತಿ ತಿಂಗಳು (1ನೇ ತಾರೀಖು)"
     },
     "list": {
       "students.strength": {
-        "label": "Class strength",
-        "desc": "Students in each section, by gender."
+        "label": "ತರಗತಿಯ ವಿದ್ಯಾರ್ಥಿ ಸಂಖ್ಯೆ",
+        "desc": "ಪ್ರತಿ ವಿಭಾಗದ ವಿದ್ಯಾರ್ಥಿಗಳು, ಲಿಂಗವಾರು."
       },
       "students.admissions": {
-        "label": "Admissions",
-        "desc": "Students admitted between two dates."
+        "label": "ಪ್ರವೇಶಗಳು",
+        "desc": "ಎರಡು ದಿನಾಂಕಗಳ ನಡುವೆ ಪ್ರವೇಶ ಪಡೆದ ವಿದ್ಯಾರ್ಥಿಗಳು."
       },
       "students.contacts": {
-        "label": "Guardian contact list",
-        "desc": "Every student of a section with the primary guardian’s phone and email."
+        "label": "ಪಾಲಕರ ಸಂಪರ್ಕ ಪಟ್ಟಿ",
+        "desc": "ಒಂದು ವಿಭಾಗದ ಪ್ರತಿ ವಿದ್ಯಾರ್ಥಿ, ಮುಖ್ಯ ಪಾಲಕರ ಫೋನ್ ಮತ್ತು ಇಮೇಲ್‌ನೊಂದಿಗೆ."
       },
       "students.birthdays": {
-        "label": "Birthdays",
-        "desc": "Students whose birthday falls in a month."
+        "label": "ಜನ್ಮದಿನಗಳು",
+        "desc": "ಒಂದು ತಿಂಗಳಲ್ಲಿ ಜನ್ಮದಿನ ಬರುವ ವಿದ್ಯಾರ್ಥಿಗಳು."
       },
       "attendance.daily": {
-        "label": "Daily attendance",
-        "desc": "Each section on a day: present, absent, late, on leave — and which sections were not marked."
+        "label": "ದೈನಂದಿನ ಹಾಜರಾತಿ",
+        "desc": "ಒಂದು ದಿನದ ಪ್ರತಿ ವಿಭಾಗ: ಹಾಜರು, ಗೈರುಹಾಜರು, ತಡ, ರಜೆಯಲ್ಲಿ — ಮತ್ತು ಯಾವ ವಿಭಾಗಗಳ ಹಾಜರಾತಿ ದಾಖಲಿಸಿಲ್ಲ."
       },
       "attendance.defaulters": {
-        "label": "Low attendance",
-        "desc": "Students below a percentage over a period."
+        "label": "ಕಡಿಮೆ ಹಾಜರಾತಿ",
+        "desc": "ಒಂದು ಅವಧಿಯಲ್ಲಿ ನಿಗದಿತ ಶೇಕಡಾವಾರಿಗಿಂತ ಕಡಿಮೆ ಹಾಜರಾತಿ ಇರುವ ವಿದ್ಯಾರ್ಥಿಗಳು."
       },
       "fees.collection": {
-        "label": "Fee collection",
-        "desc": "Money received each day, by payment mode."
+        "label": "ಶುಲ್ಕ ಸಂಗ್ರಹ",
+        "desc": "ಪ್ರತಿದಿನ ಸ್ವೀಕರಿಸಿದ ಹಣ, ಪಾವತಿ ವಿಧಾನವಾರು."
       },
       "fees.headwise": {
-        "label": "Collection by fee head",
-        "desc": "What the money received was for — tuition, transport, lab … — over a period."
+        "label": "ಶುಲ್ಕ ಶೀರ್ಷಿಕೆವಾರು ಸಂಗ್ರಹ",
+        "desc": "ಸ್ವೀಕರಿಸಿದ ಹಣ ಯಾವುದಕ್ಕಾಗಿ — ಬೋಧನಾ ಶುಲ್ಕ, ಸಾರಿಗೆ, ಪ್ರಯೋಗಾಲಯ … — ಒಂದು ಅವಧಿಯಲ್ಲಿ."
       },
       "fees.classDues": {
-        "label": "Dues by class",
-        "desc": "Billed, collected and outstanding for each section this year."
+        "label": "ತರಗತಿವಾರು ಬಾಕಿಗಳು",
+        "desc": "ಈ ವರ್ಷ ಪ್ರತಿ ವಿಭಾಗಕ್ಕೆ ಬಿಲ್ ಮಾಡಿದ್ದು, ಸಂಗ್ರಹಿಸಿದ್ದು ಮತ್ತು ಪಾವತಿಯಾಗಬೇಕಾದದ್ದು."
       },
       "fees.concessions": {
-        "label": "Concessions given",
-        "desc": "Approved concessions and how much they took off this year’s invoices."
+        "label": "ನೀಡಿದ ರಿಯಾಯಿತಿಗಳು",
+        "desc": "ಅನುಮೋದಿತ ರಿಯಾಯಿತಿಗಳು ಮತ್ತು ಅವು ಈ ವರ್ಷದ ಬಿಲ್‌ಗಳಿಂದ ಎಷ್ಟು ಕಡಿಮೆ ಮಾಡಿದವು."
       },
       "exams.toppers": {
-        "label": "Toppers",
-        "desc": "The top students of each section in an exam."
+        "label": "ಅಗ್ರಸ್ಥಾನಿಗಳು",
+        "desc": "ಒಂದು ಪರೀಕ್ಷೆಯಲ್ಲಿ ಪ್ರತಿ ವಿಭಾಗದ ಮೊದಲ ಸ್ಥಾನದ ವಿದ್ಯಾರ್ಥಿಗಳು."
       },
       "exams.subjects": {
-        "label": "Subject analysis",
-        "desc": "For each section and subject of an exam: average, highest, lowest and pass rate."
+        "label": "ವಿಷಯ ವಿಶ್ಲೇಷಣೆ",
+        "desc": "ಒಂದು ಪರೀಕ್ಷೆಯ ಪ್ರತಿ ವಿಭಾಗ ಮತ್ತು ವಿಷಯಕ್ಕೆ: ಸರಾಸರಿ, ಗರಿಷ್ಠ, ಕನಿಷ್ಠ ಮತ್ತು ಉತ್ತೀರ್ಣ ಪ್ರಮಾಣ."
       },
       "homework.summary": {
-        "label": "Homework set",
-        "desc": "Homework set over a period, by teacher and subject, and how much was handed in."
+        "label": "ನೀಡಿದ ಮನೆಗೆಲಸ",
+        "desc": "ಒಂದು ಅವಧಿಯಲ್ಲಿ ನೀಡಿದ ಮನೆಗೆಲಸ, ಶಿಕ್ಷಕರು ಮತ್ತು ವಿಷಯವಾರು, ಮತ್ತು ಎಷ್ಟು ಸಲ್ಲಿಕೆಯಾಯಿತು."
       },
       "certificates.issued": {
-        "label": "Certificates issued",
-        "desc": "Certificates issued over a period, by kind."
+        "label": "ನೀಡಿದ ಪ್ರಮಾಣಪತ್ರಗಳು",
+        "desc": "ಒಂದು ಅವಧಿಯಲ್ಲಿ ನೀಡಿದ ಪ್ರಮಾಣಪತ್ರಗಳು, ವಿಧವಾರು."
       }
     },
     "params": {
       "students.admissions": {
-        "range": "Admitted between"
+        "range": "ಪ್ರವೇಶ ಪಡೆದ ಅವಧಿ"
       },
       "students.contacts": {
-        "sectionId": "Class"
+        "sectionId": "ತರಗತಿ"
       },
       "students.birthdays": {
-        "month": "Month"
+        "month": "ತಿಂಗಳು"
       },
       "attendance.daily": {
-        "date": "Date"
+        "date": "ದಿನಾಂಕ"
       },
       "attendance.defaulters": {
-        "range": "Period",
-        "below": "Below (%)",
-        "sectionId": "Class"
+        "range": "ಅವಧಿ",
+        "below": "ಇದಕ್ಕಿಂತ ಕಡಿಮೆ (%)",
+        "sectionId": "ತರಗತಿ"
       },
       "fees.collection": {
-        "range": "Period"
+        "range": "ಅವಧಿ"
       },
       "fees.headwise": {
-        "range": "Period"
+        "range": "ಅವಧಿ"
       },
       "exams.toppers": {
-        "examId": "Exam",
-        "top": "How many per class"
+        "examId": "ಪರೀಕ್ಷೆ",
+        "top": "ಪ್ರತಿ ತರಗತಿಗೆ ಎಷ್ಟು ಮಂದಿ"
       },
       "exams.subjects": {
-        "examId": "Exam"
+        "examId": "ಪರೀಕ್ಷೆ"
       },
       "homework.summary": {
-        "range": "Set between"
+        "range": "ನೀಡಿದ ಅವಧಿ"
       },
       "certificates.issued": {
-        "range": "Issued between"
+        "range": "ನೀಡಿದ ಅವಧಿ"
       }
     },
     "columns": {
       "students.strength": {
-        "class": "Class",
-        "section": "Section",
-        "boys": "Boys",
-        "girls": "Girls",
-        "other": "Other",
-        "total": "Total"
+        "class": "ತರಗತಿ",
+        "section": "ವಿಭಾಗ",
+        "boys": "ಬಾಲಕರು",
+        "girls": "ಬಾಲಕಿಯರು",
+        "other": "ಇತರೆ",
+        "total": "ಒಟ್ಟು"
       },
       "students.admissions": {
-        "admissionDate": "Admitted on",
-        "admissionNo": "Admission no.",
-        "name": "Student",
-        "class": "Class",
-        "gender": "Gender",
-        "guardian": "Guardian",
-        "mobile": "Mobile"
+        "admissionDate": "ಪ್ರವೇಶ ದಿನಾಂಕ",
+        "admissionNo": "ಪ್ರವೇಶ ಸಂಖ್ಯೆ",
+        "name": "ವಿದ್ಯಾರ್ಥಿ",
+        "class": "ತರಗತಿ",
+        "gender": "ಲಿಂಗ",
+        "guardian": "ಪಾಲಕರು",
+        "mobile": "ಮೊಬೈಲ್"
       },
       "students.contacts": {
-        "rollNo": "Roll",
-        "name": "Student",
-        "admissionNo": "Admission no.",
-        "guardian": "Guardian",
-        "relation": "Relation",
-        "mobile": "Mobile",
-        "email": "Email"
+        "rollNo": "ಹಾಜರಿ ಸಂ.",
+        "name": "ವಿದ್ಯಾರ್ಥಿ",
+        "admissionNo": "ಪ್ರವೇಶ ಸಂಖ್ಯೆ",
+        "guardian": "ಪಾಲಕರು",
+        "relation": "ಸಂಬಂಧ",
+        "mobile": "ಮೊಬೈಲ್",
+        "email": "ಇಮೇಲ್"
       },
       "students.birthdays": {
-        "day": "Day",
-        "name": "Student",
-        "class": "Class",
-        "dob": "Date of birth",
-        "age": "Turns"
+        "day": "ದಿನ",
+        "name": "ವಿದ್ಯಾರ್ಥಿ",
+        "class": "ತರಗತಿ",
+        "dob": "ಜನ್ಮ ದಿನಾಂಕ",
+        "age": "ತುಂಬುವ ವಯಸ್ಸು"
       },
       "attendance.daily": {
-        "class": "Class",
-        "strength": "Strength",
-        "present": "Present",
-        "absent": "Absent",
-        "late": "Late",
-        "leave": "On leave",
-        "pct": "Attendance",
-        "takenBy": "Marked by"
+        "class": "ತರಗತಿ",
+        "strength": "ವಿದ್ಯಾರ್ಥಿ ಸಂಖ್ಯೆ",
+        "present": "ಹಾಜರು",
+        "absent": "ಗೈರುಹಾಜರು",
+        "late": "ತಡ",
+        "leave": "ರಜೆಯಲ್ಲಿ",
+        "pct": "ಹಾಜರಾತಿ",
+        "takenBy": "ದಾಖಲಿಸಿದವರು"
       },
       "attendance.defaulters": {
-        "class": "Class",
-        "rollNo": "Roll",
-        "name": "Student",
-        "days": "Days marked",
-        "attended": "Attended",
-        "absent": "Absent",
-        "pct": "Attendance",
-        "guardian": "Guardian",
-        "mobile": "Mobile"
+        "class": "ತರಗತಿ",
+        "rollNo": "ಹಾಜರಿ ಸಂ.",
+        "name": "ವಿದ್ಯಾರ್ಥಿ",
+        "days": "ದಾಖಲಿಸಿದ ದಿನಗಳು",
+        "attended": "ಹಾಜರಾದ ದಿನಗಳು",
+        "absent": "ಗೈರುಹಾಜರು",
+        "pct": "ಹಾಜರಾತಿ",
+        "guardian": "ಪಾಲಕರು",
+        "mobile": "ಮೊಬೈಲ್"
       },
       "fees.collection": {
-        "date": "Date",
-        "receipts": "Receipts",
-        "CASH": "Cash",
+        "date": "ದಿನಾಂಕ",
+        "receipts": "ರಸೀದಿಗಳು",
+        "CASH": "ನಗದು",
         "UPI": "UPI",
-        "CARD": "Card",
-        "CHEQUE": "Cheque / DD",
-        "BANK_TRANSFER": "Bank transfer",
-        "ONLINE": "Online",
-        "refunds": "Refunds",
-        "net": "Net"
+        "CARD": "ಕಾರ್ಡ್",
+        "CHEQUE": "ಚೆಕ್ / DD",
+        "BANK_TRANSFER": "ಬ್ಯಾಂಕ್ ವರ್ಗಾವಣೆ",
+        "ONLINE": "ಆನ್‌ಲೈನ್",
+        "refunds": "ಮರುಪಾವತಿಗಳು",
+        "net": "ನಿವ್ವಳ"
       },
       "fees.headwise": {
-        "head": "Fee head",
-        "amount": "Collected",
-        "share": "Share"
+        "head": "ಶುಲ್ಕ ಶೀರ್ಷಿಕೆ",
+        "amount": "ಸಂಗ್ರಹಿಸಿದ್ದು",
+        "share": "ಪಾಲು"
       },
       "fees.classDues": {
-        "class": "Class",
-        "students": "Students with dues",
-        "billed": "Billed",
-        "paid": "Collected",
-        "due": "Outstanding",
-        "overdue": "Overdue",
-        "pct": "Collected"
+        "class": "ತರಗತಿ",
+        "students": "ಬಾಕಿ ಇರುವ ವಿದ್ಯಾರ್ಥಿಗಳು",
+        "billed": "ಬಿಲ್ ಮಾಡಿದ್ದು",
+        "paid": "ಸಂಗ್ರಹಿಸಿದ್ದು",
+        "due": "ಪಾವತಿಯಾಗಬೇಕಾದದ್ದು",
+        "overdue": "ಅವಧಿ ಮೀರಿದ ಬಾಕಿ",
+        "pct": "ಸಂಗ್ರಹಿಸಿದ್ದು"
       },
       "fees.concessions": {
-        "name": "Student",
-        "class": "Class",
-        "reason": "Reason",
-        "value": "Concession",
-        "amount": "Taken off",
-        "approvedBy": "Approved by"
+        "name": "ವಿದ್ಯಾರ್ಥಿ",
+        "class": "ತರಗತಿ",
+        "reason": "ಕಾರಣ",
+        "value": "ರಿಯಾಯಿತಿ",
+        "amount": "ಕಡಿತಗೊಳಿಸಿದ ಮೊತ್ತ",
+        "approvedBy": "ಅನುಮೋದಿಸಿದವರು"
       },
       "exams.toppers": {
-        "class": "Class",
-        "rank": "Rank",
-        "name": "Student",
-        "total": "Total",
-        "max": "Out of",
-        "pct": "Percentage",
-        "grade": "Grade"
+        "class": "ತರಗತಿ",
+        "rank": "ಸ್ಥಾನ",
+        "name": "ವಿದ್ಯಾರ್ಥಿ",
+        "total": "ಒಟ್ಟು",
+        "max": "ಇಷ್ಟರಲ್ಲಿ",
+        "pct": "ಶೇಕಡಾವಾರು",
+        "grade": "ಶ್ರೇಣಿ"
       },
       "exams.subjects": {
-        "class": "Class",
-        "subject": "Subject",
-        "students": "Students",
-        "average": "Average %",
-        "highest": "Highest",
-        "lowest": "Lowest",
-        "passPct": "Passed",
-        "absent": "Absent"
+        "class": "ತರಗತಿ",
+        "subject": "ವಿಷಯ",
+        "students": "ವಿದ್ಯಾರ್ಥಿಗಳು",
+        "average": "ಸರಾಸರಿ %",
+        "highest": "ಗರಿಷ್ಠ",
+        "lowest": "ಕನಿಷ್ಠ",
+        "passPct": "ಉತ್ತೀರ್ಣರು",
+        "absent": "ಗೈರುಹಾಜರು"
       },
       "homework.summary": {
-        "teacher": "Teacher",
-        "subject": "Subject",
-        "class": "Class",
-        "count": "Homework",
-        "handedIn": "Handed in"
+        "teacher": "ಶಿಕ್ಷಕರು",
+        "subject": "ವಿಷಯ",
+        "class": "ತರಗತಿ",
+        "count": "ಮನೆಗೆಲಸ",
+        "handedIn": "ಸಲ್ಲಿಸಿದ್ದು"
       },
       "certificates.issued": {
-        "issueDate": "Date",
-        "certificateNo": "Number",
-        "kind": "Kind",
-        "name": "Student",
-        "class": "Class",
-        "purpose": "Purpose",
-        "status": "Status"
+        "issueDate": "ದಿನಾಂಕ",
+        "certificateNo": "ಸಂಖ್ಯೆ",
+        "kind": "ವಿಧ",
+        "name": "ವಿದ್ಯಾರ್ಥಿ",
+        "class": "ತರಗತಿ",
+        "purpose": "ಉದ್ದೇಶ",
+        "status": "ಸ್ಥಿತಿ"
       }
     },
     "builder": {
-      "title": "Report builder",
-      "subtitle": "Your saved reports — share them with roles, or have them sent on a schedule.",
-      "new": "New saved report",
-      "newTitle": "New saved report",
-      "editTitle": "Edit saved report",
-      "namePlaceholder": "e.g. Monday attendance check",
-      "report": "Report",
-      "columns": "Columns",
-      "shareWith": "Share with roles",
-      "shareHint": "People with these roles see it in their list. Each still sees only what their role allows.",
-      "sendOnSchedule": "Send it on a schedule",
-      "frequency": "How often",
-      "at": "At",
-      "people": "People (a notification in their bell)",
-      "emails": "Also email to",
-      "emailsHint": "Separate addresses with commas. The email has the first rows and a link to the full report.",
-      "owner": "Saved by",
-      "you": "You",
-      "schedule": "Schedule",
-      "notScheduled": "Not scheduled",
-      "lastSent": "Last sent {{at}} · {{count}} rows",
-      "edit": "Edit",
-      "delete": "Delete",
-      "deleteConfirm": "Delete “{{name}}”?",
-      "deleted": "Saved report deleted.",
-      "back": "Back to saved reports",
-      "empty": "No saved reports yet",
-      "emptyHint": "Run a report in the library and use “Save as…”, or make one here."
+      "title": "ವರದಿ ರಚನೆ",
+      "subtitle": "ನೀವು ಉಳಿಸಿದ ವರದಿಗಳು — ಅವುಗಳನ್ನು ಪಾತ್ರಗಳೊಂದಿಗೆ ಹಂಚಿಕೊಳ್ಳಿ, ಅಥವಾ ನಿಗದಿತ ಸಮಯಕ್ಕೆ ಕಳುಹಿಸುವಂತೆ ಮಾಡಿ.",
+      "new": "ಹೊಸ ಉಳಿಸಿದ ವರದಿ",
+      "newTitle": "ಹೊಸ ಉಳಿಸಿದ ವರದಿ",
+      "editTitle": "ಉಳಿಸಿದ ವರದಿ ಸಂಪಾದಿಸಿ",
+      "namePlaceholder": "ಉದಾ. ಸೋಮವಾರದ ಹಾಜರಾತಿ ಪರಿಶೀಲನೆ",
+      "report": "ವರದಿ",
+      "columns": "ಕಾಲಂಗಳು",
+      "shareWith": "ಪಾತ್ರಗಳೊಂದಿಗೆ ಹಂಚಿಕೊಳ್ಳಿ",
+      "shareHint": "ಈ ಪಾತ್ರಗಳಿರುವವರು ಇದನ್ನು ತಮ್ಮ ಪಟ್ಟಿಯಲ್ಲಿ ನೋಡುತ್ತಾರೆ. ಆದರೂ ಪ್ರತಿಯೊಬ್ಬರೂ ತಮ್ಮ ಪಾತ್ರಕ್ಕೆ ಅನುಮತಿ ಇರುವುದನ್ನು ಮಾತ್ರ ನೋಡುತ್ತಾರೆ.",
+      "sendOnSchedule": "ನಿಗದಿತ ಸಮಯಕ್ಕೆ ಕಳುಹಿಸಿ",
+      "frequency": "ಎಷ್ಟು ಬಾರಿ",
+      "at": "ಸಮಯ",
+      "people": "ವ್ಯಕ್ತಿಗಳು (ಅವರ ಗಂಟೆ ಚಿಹ್ನೆಯಲ್ಲಿ ಅಧಿಸೂಚನೆ)",
+      "emails": "ಇವರಿಗೂ ಇಮೇಲ್ ಮಾಡಿ",
+      "emailsHint": "ವಿಳಾಸಗಳನ್ನು ಅಲ್ಪವಿರಾಮದಿಂದ ಬೇರ್ಪಡಿಸಿ. ಇಮೇಲ್‌ನಲ್ಲಿ ಮೊದಲ ಕೆಲವು ಸಾಲುಗಳು ಮತ್ತು ಪೂರ್ಣ ವರದಿಯ ಲಿಂಕ್ ಇರುತ್ತದೆ.",
+      "owner": "ಉಳಿಸಿದವರು",
+      "you": "ನೀವು",
+      "schedule": "ವೇಳಾಪಟ್ಟಿ",
+      "notScheduled": "ನಿಗದಿಪಡಿಸಿಲ್ಲ",
+      "lastSent": "ಕೊನೆಯದಾಗಿ {{at}} ಕ್ಕೆ ಕಳುಹಿಸಲಾಗಿದೆ · {{count}} ಸಾಲುಗಳು",
+      "edit": "ಸಂಪಾದಿಸಿ",
+      "delete": "ಅಳಿಸಿ",
+      "deleteConfirm": "“{{name}}” ಅಳಿಸಬೇಕೆ?",
+      "deleted": "ಉಳಿಸಿದ ವರದಿ ಅಳಿಸಲಾಗಿದೆ.",
+      "back": "ಉಳಿಸಿದ ವರದಿಗಳಿಗೆ ಹಿಂತಿರುಗಿ",
+      "empty": "ಇನ್ನೂ ಯಾವುದೇ ಉಳಿಸಿದ ವರದಿಗಳಿಲ್ಲ",
+      "emptyHint": "ಭಂಡಾರದಲ್ಲಿ ಒಂದು ವರದಿಯನ್ನು ಚಲಾಯಿಸಿ “ಹೀಗೆ ಉಳಿಸಿ…” ಬಳಸಿ, ಅಥವಾ ಇಲ್ಲಿಯೇ ಒಂದನ್ನು ರಚಿಸಿ."
     }
   }
 }

@@ -54,7 +54,8 @@ describe('the enquiry pipeline', () => {
 describe('applying online', () => {
   it('stays closed until the school switches online applications on', async () => {
     expect((await request(app).get(pub(''))).body.data.cycles).toHaveLength(0)
-    await admin.patch('/api/v1/core/settings/modules/admissions').send({ onlineApplication: true }).expect(200)
+    // with the one-time code on, the parent's number is the one proven, whatever was typed
+    await admin.patch('/api/v1/core/settings/modules/admissions').send({ onlineApplication: true, applyNeedsCode: true }).expect(200)
     const info = (await request(app).get(pub(''))).body.data
     expect(info.cycles[0].classes[0].className).toBe(cls.name)
   })

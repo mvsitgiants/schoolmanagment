@@ -142,7 +142,7 @@ describe('seating an exam session', () => {
     const cands = (await admin.get(`/api/v1/exams/${exam.id}/candidates?sectionId=${seat.sectionId}`)).body.data
     const ticket = await admin.get(`/api/v1/documents/HALL_TICKET/${cands.find((c) => c.studentId === seat.studentId)?.id ?? cands[0].id}`).query({ print: '0' })
     expect(ticket.status).toBe(200)
-    expect(ticket.text).toMatch(/Room · Seat/)
+    expect(ticket.text).toMatch(/Room [^<]+, Seat [^<]+|Room · Seat/) // one seat for the exam: beside the centre; else a column
     expect((await admin.post(`/api/v1/exams/seating/plans/${plan.id}/unpublish`)).body.data.plan.status).toBe('DRAFT')
   })
 })

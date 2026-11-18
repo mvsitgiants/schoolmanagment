@@ -1,13 +1,13 @@
 {
-  "home": "Home",
-  "menu": "Menu",
-  "search": "Search screens...",
-  "alerts": "Alerts",
-  "myWorkspace": "My workspace",
-  "settings": "Settings",
-  "logout": "Sign out",
-  "logoutAll": "Sign out of all devices",
-  "approvals": "Approvals",
-  "compactLayout": "Compact layout",
-  "changePassword": "Change password"
+  "home": "ಮುಖಪುಟ",
+  "menu": "ಮೆನು",
+  "search": "ಪರದೆಗಳನ್ನು ಹುಡುಕಿ...",
+  "alerts": "ಎಚ್ಚರಿಕೆಗಳು",
+  "myWorkspace": "ನನ್ನ ಕಾರ್ಯಕ್ಷೇತ್ರ",
+  "settings": "ಸೆಟ್ಟಿಂಗ್‌ಗಳು",
+  "logout": "ಸೈನ್ ಔಟ್",
+  "logoutAll": "ಎಲ್ಲಾ ಸಾಧನಗಳಿಂದ ಸೈನ್ ಔಟ್ ಮಾಡಿ",
+  "approvals": "ಅನುಮೋದನೆಗಳು",
+  "compactLayout": "ಸಾಂದ್ರ ವಿನ್ಯಾಸ",
+  "changePassword": "ಪಾಸ್‌ವರ್ಡ್ ಬದಲಾಯಿಸಿ"
 }

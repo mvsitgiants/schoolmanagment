@@ -42,7 +42,7 @@ function figures(year) {
     const base = accrYearRange(year)
     return ay ? { from: ay.startDate, to: ay.endDate, startYear: base?.startYear ?? Number(ay.startDate.slice(0, 4)), ayId: ay._id } : { ...base, ayId: null }
   })
-  f.programs = once('programs', () => Program.find({ active: true }).select('code semesters intake durationYears').lean())
+  f.programs = once('programs', async () => Program.find({ active: true }).select('code semesters intake durationYears').lean())
   f.staff = once('staff', async () => {
     const { from, to } = await f.range()
     const rows = await Employee.find({ joiningDate: { $lte: to } }).select('category employmentType status exit.lastWorkingDate qualifications experienceYears joiningDate').lean()
@@ -50,13 +50,14 @@ function figures(year) {
   })
   f.teachers = once('teachers', async () => (await f.staff()).filter((e) => e.category === 'TEACHING'))
   f.fullTime = once('fullTime', async () => (await f.teachers()).filter((e) => !PART_TIME.includes(e.employmentType)))
-  f.enrolments = once('enrolments', () => ProgramEnrolment.find({ status: { $in: ['ACTIVE', 'DETAINED'] } }).select('studentId programId batch advisorId currentSemester').lean())
+  f.enrolments = once('enrolments', async () => ProgramEnrolment.find({ status: { $in: ['ACTIVE', 'DETAINED'] } }).select('studentId programId batch advisorId currentSemester').lean())
   f.students = once('students', async () => {
     const enr = await f.enrolments()
     if (enr.length) return enr.length
     return Student.countDocuments({ status: 'ACTIVE' })
   })
-  f.scholars = once('scholars', () => ResearchScholar.find().select('guideId status registrationDate awardedOn').lean())
+  // async: keep the result, not the query (a mongoose query can only be awaited once)
+  f.scholars = once('scholars', async () => ResearchScholar.find().select('guideId status registrationDate awardedOn').lean())
   f.activeScholars = once('activeScholars', async () => {
     const { to } = await f.range()
     return (await f.scholars()).filter((s) => s.registrationDate <= to && !['DISCONTINUED', 'AWARDED'].includes(s.status))

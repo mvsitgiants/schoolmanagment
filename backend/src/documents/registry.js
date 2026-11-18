@@ -100,6 +100,25 @@ const studentBlock = (s, place, rollNo) => ({
   father: guardianOf(s, 'FATHER'), mother: guardianOf(s, 'MOTHER'),
 })
 
+/**
+ * A hall ticket's rows: one per paper — and one more for each part held on its own day (the practical), named
+ * "Physics (Practical)"; the paper's own row then names the parts written that day ("Physics (Theory)"). By date and time.
+ */
+function hallTicketRows(papers) {
+  const row = (p, subject, at) => ({ subject, code: p.subjectCode ?? null, date: at.date, ...weekdayOf(at.date), startTime: at.startTime, endTime: at.endTime, maxMarks: p.maxMarks, gradeOnly: !!p.gradeOnly, room: at === p ? p.seat?.room ?? null : null, seat: at === p ? p.seat?.seat ?? null : null })
+  const rows = papers.flatMap((p) => {
+    const parts = partsOf(p)
+    const apart = parts.filter((x) => x.date && (x.date !== p.date || (x.startTime && x.startTime !== p.startTime)))
+    if (!apart.length) return [row(p, p.subject, p)]
+    const withPaper = parts.filter((x) => !apart.includes(x))
+    return [
+      ...(withPaper.length ? [row(p, `${p.subject} (${withPaper.map((x) => x.name).join(' + ')})`, p)] : []),
+      ...apart.map((x) => row(p, `${p.subject} (${x.name})`, x)),
+    ]
+  })
+  return rows.sort((a, b) => String(a.date ?? '9').localeCompare(String(b.date ?? '9')) || String(a.startTime ?? '').localeCompare(String(b.startTime ?? '')))
+}
+
 function hallTicketModel({ candidate, exam, year, student, place, papers, classTeacher }) {
   // one room and seat for every paper: printed once in the student block instead of on each row
   const seats = [...new Set(papers.filter((p) => p.seat).map((p) => `${p.seat.room}|${p.seat.seat}`))]
@@ -110,7 +129,7 @@ function hallTicketModel({ candidate, exam, year, student, place, papers, classT
       instructionLines: String(exam.instructions ?? '').split('\n').map((x) => x.trim()).filter(Boolean),
     },
     student: { ...studentBlock(student, place, candidate.rollNo), photo: student?.photo || null },
-    papers: papers.map((p) => ({ subject: p.subject, code: p.subjectCode ?? null, date: p.date, ...weekdayOf(p.date), startTime: p.startTime, endTime: p.endTime, maxMarks: p.maxMarks, gradeOnly: !!p.gradeOnly, room: p.seat?.room ?? null, seat: p.seat?.seat ?? null })),
+    papers: hallTicketRows(papers),
     seated: papers.some((p) => p.seat),
     seat: sameSeat ? { room: sameSeat.room, seat: sameSeat.seat } : null,
     classTeacher: classTeacher ?? null,
@@ -148,6 +167,9 @@ function reportCardModel({ candidate: c, exam, year, student, place, papers, ent
   }
 }
 
+/** ", S/o Ashok Tripathi" in each language's word order (certificates.print.relOrder; Kannada ", Ashok Tripathi ಅವರ ಪುತ್ರ"). */
+const relOrder = (lang, rel, parent) => translateDoc(lang, 'certificates.print.relOrder', ', {{rel}} {{parent}}').split('{{rel}}').join(rel).split('{{parent}}').join(parent)
+
 function certificateModel({ certificate: c, verifyUrl }, { lang } = {}) {
   const sn = c.snapshot ?? {}
   const L = lang || sn.language || 'en'
@@ -161,13 +183,13 @@ function certificateModel({ certificate: c, verifyUrl }, { lang } = {}) {
     student: {
       ...sn, kid, parent: sn.father || sn.mother || null, studying: sn.studying ?? sn.status === 'ACTIVE',
       // ", son of Rajesh Sharma" — the relation word is translated in the template's language
-      parentPhrase: sn.father || sn.mother ? `, ${translateDoc(L, `certificates.print.childOf.${kid}`, kid === 'm' ? 'son of' : kid === 'f' ? 'daughter of' : 'ward of')} ${sn.father || sn.mother}` : '',
+      parentPhrase: sn.father || sn.mother ? relOrder(L, translateDoc(L, `certificates.print.childOf.${kid}`, kid === 'm' ? 'son of' : kid === 'f' ? 'daughter of' : 'ward of'), sn.father || sn.mother) : '',
       // he / she, his / her, Master / Kumari, S/o / D/o — from the gender, "he/she" when it isn't recorded
       p: Object.fromEntries(Object.entries(pronounsOf(sn.gender)).map(([k, v]) => [k, k === 'kid' ? v : translateDoc(L, `certificates.print.words.${k}.${kid}`, v)])),
       dobWords: dateInWords(sn.dob, L), years: sn.years ?? [], hasYears: (sn.years ?? []).length > 0,
       // "Master Aditya Iyer" and ", S/o Suresh Iyer" as Indian certificates write them
       titleName: [translateDoc(L, `certificates.print.words.title.${kid}`, pronounsOf(sn.gender).title), sn.name].filter(Boolean).join(' '),
-      relPhrase: sn.father || sn.mother ? `, ${translateDoc(L, `certificates.print.words.rel.${kid}`, pronounsOf(sn.gender).rel)} ${sn.father || sn.mother}` : '',
+      relPhrase: sn.father || sn.mother ? relOrder(L, translateDoc(L, `certificates.print.words.rel.${kid}`, pronounsOf(sn.gender).rel), sn.father || sn.mother) : '',
     },
     fees: sn.fees ? { ...sn.fees, heads: (sn.fees.heads ?? []).map((h, i) => ({ ...h, sl: i + 1, tuition: TUITION_HEAD_CODES.includes(h.code) })) } : null,
     verify: { url: verifyUrl, code: c.verifyCode },
