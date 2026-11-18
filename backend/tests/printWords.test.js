@@ -27,6 +27,13 @@ describe('words on printed documents', () => {
     expect(wordsFor('hi').divisions[0]).toBe('प्रथम श्रेणी')
   })
 
+  it('reads another language from its words alone — Kannada joins hundreds and thousands', () => {
+    expect(amountInWordsFor(4130000, 'kn')).toBe('ನಲವತ್ತೊಂದು ಸಾವಿರದ ಮುನ್ನೂರು ರೂಪಾಯಿಗಳು ಮಾತ್ರ')
+    expect(amountInWordsFor(12000, 'kn')).toBe('ನೂರ ಇಪ್ಪತ್ತು ರೂಪಾಯಿಗಳು ಮಾತ್ರ')
+    expect(dateInWords('2013-05-10', 'kn')).toBe('ಮೇ ಹತ್ತು, ಎರಡು ಸಾವಿರದ ಹದಿಮೂರು')
+    expect(classInWords('Class 8', 'kn')).toBe('ಎಂಟನೇ')
+  })
+
   it('falls back to English for a language without its own words', () => {
     expect(amountInWordsFor(4130000, 'mr')).toBe('Rupees Forty One Thousand Three Hundred Only')
     expect(dateInWords('2013-05-10', '../hi')).toBe('Tenth May Two Thousand Thirteen') // not a language code

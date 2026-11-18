@@ -1,0 +1,421 @@
+{
+  "catalog": {
+    "categories": {
+      "platform": "Administration",
+      "students": "Students & admissions",
+      "academics": "Academics",
+      "higher": "Higher education",
+      "finance": "Fees & finance",
+      "people": "Staff & HR",
+      "campus": "Campus operations",
+      "engage": "Communication",
+      "intel": "Reports & AI"
+    },
+    "modules": {
+      "dashboard": "Dashboard",
+      "core": "Administration",
+      "students": "Students",
+      "admissions": "Admissions",
+      "certificates": "Certificates",
+      "frontoffice": "Front office",
+      "academics": "Academic setup",
+      "attendance": "Attendance",
+      "homework": "Homework & lessons",
+      "exams": "Exams & report cards",
+      "timetable": "Timetable",
+      "lms": "Learning (LMS)",
+      "online-tests": "Online tests",
+      "programs": "Programs & OBE",
+      "registration": "Semester registration",
+      "coe": "Exam controller",
+      "accreditation": "Accreditation",
+      "placements": "Training & placements",
+      "research": "Research",
+      "alumni": "Alumni",
+      "fees": "Fees",
+      "finance": "Accounts",
+      "hrms": "Staff & HR",
+      "payroll": "Payroll",
+      "transport": "Transport",
+      "library": "Library",
+      "hostel": "Hostel",
+      "inventory": "Store & assets",
+      "health": "Health & infirmary",
+      "canteen": "Canteen & wallet",
+      "communication": "Communication hub",
+      "comms": "Staff chat & call bell",
+      "portal": "Parent & student app",
+      "events": "Events & calendar",
+      "surveys": "Surveys & feedback",
+      "website": "Website",
+      "reports": "Reports",
+      "analytics": "Analytics",
+      "ai": "AI assistant",
+      "integrations": "Integrations"
+    },
+    "descriptions": {
+      "dashboard": "Role home, the principal’s command centre and the live campus board.",
+      "core": "Institution profile, campuses, users, roles, subscription and every setting.",
+      "students": "Student information system: admission, profile, guardians, documents, promotion and transfer.",
+      "admissions": "Enquiry CRM, online application, entrance test, merit list and seat allotment.",
+      "certificates": "Bonafide, character, leaving and transfer certificates with QR verification.",
+      "frontoffice": "Visitor log, gate passes, call log and complaints.",
+      "academics": "Academic years, terms, classes and sections, subjects, grading schemes, and each class’s books and uniform list.",
+      "attendance": "Daily or period-wise attendance, absence alerts to parents and student leave.",
+      "homework": "Teaching hub, lesson plans, syllabus tracking, homework and submissions.",
+      "exams": "Exam schedule, seating and invigilation, question papers, hall tickets, marks entry, results and report cards.",
+      "timetable": "Timetable generator, substitutions and room allocation.",
+      "lms": "Courses, study material, live classes and assignments.",
+      "online-tests": "MCQ and written tests with timer, proctoring and auto-evaluation.",
+      "programs": "Programs, regulations, CBCS credits, course and program outcomes (CO–PO mapping).",
+      "registration": "Course and elective registration, prerequisites, credit limits and add/drop.",
+      "coe": "Internal and external marks, moderation, revaluation, SGPA/CGPA, grade cards and transcripts.",
+      "accreditation": "NAAC, NBA, NIRF and AISHE reports with an evidence repository per criterion.",
+      "placements": "Companies, drives, eligibility, interview rounds, offers and placement statistics.",
+      "research": "Publications, projects, grants, patents and PhD scholars.",
+      "alumni": "Alumni directory, events, donations and job board.",
+      "fees": "Fee structures, installments, concessions, online payment, receipts, dues and refunds.",
+      "finance": "Ledgers, income and expense, bank reconciliation, GST and Tally export.",
+      "hrms": "Staff records, staff attendance, leave, recruitment and appraisal.",
+      "payroll": "Salary structures, payroll runs, payslips, PF/ESI/TDS and bank exports.",
+      "transport": "Routes, stops, vehicles, student assignment, GPS tracking and pickup alerts.",
+      "library": "Catalogue, barcode issue and return, fines and e-library.",
+      "hostel": "Rooms and beds, allotment, mess, hostel attendance and outpasses.",
+      "inventory": "Items, stock, vendors, purchase orders, uniform and book sales, asset register.",
+      "health": "Health records, vaccinations, sick-room visits and incident reports.",
+      "canteen": "Menu, pre-orders and a cashless RFID wallet that parents top up.",
+      "communication": "Notices and circulars, SMS, WhatsApp, email and push, parent–teacher chat.",
+      "comms": "Live chat between staff (one-to-one, groups, the whole staff room) and a call bell — normal, urgent or an emergency alert.",
+      "portal": "The parent and student app: what it shows and how families sign in.",
+      "events": "School calendar, events, parent–teacher meeting slots and photo gallery.",
+      "surveys": "Parent and student feedback, teacher evaluation and polls.",
+      "website": "The institution’s website with notice board and online admission form.",
+      "reports": "Standard reports, report builder and scheduled exports.",
+      "analytics": "Attendance, results, fee collection and campus comparison dashboards.",
+      "ai": "Question papers, report card remarks and an assistant that answers from your own data.",
+      "integrations": "Payment gateway, SMS and WhatsApp, biometric and RFID devices, GPS and their logs."
+    },
+    "pages": {
+      "dashboard": {
+        "live": "Live campus"
+      },
+      "core": {
+        "setup": "Setup hub",
+        "profile": "Institution profile",
+        "branches": "Campuses",
+        "departments": "Departments",
+        "users": "Users",
+        "roles": "Roles & permissions",
+        "modules": "Modules",
+        "subscription": "Subscription & billing",
+        "masters": "Masters hub",
+        "custom-fields": "Custom fields",
+        "forms": "Form builder",
+        "workflows": "Workflows & approvals",
+        "numbering": "Number series",
+        "print-templates": "Print templates",
+        "local-names": "Names in other languages",
+        "notifications-setup": "Notification rules",
+        "audit": "Audit log",
+        "api-keys": "API keys & webhooks",
+        "settings": "Settings"
+      },
+      "students": {
+        "admit": "New admission",
+        "directory": "Student directory",
+        "profile": "Student 360",
+        "guardians": "Parents & guardians",
+        "promotion": "Promotion",
+        "transfer": "Transfer & leaving",
+        "id-cards": "ID cards"
+      },
+      "admissions": {
+        "enquiries": "Enquiries",
+        "applications": "Applications",
+        "tests": "Entrance tests",
+        "merit": "Merit lists",
+        "settings": "Admission settings"
+      },
+      "certificates": {
+        "issue": "Issue certificates",
+        "register": "Certificate register"
+      },
+      "frontoffice": {
+        "visitors": "Visitor log",
+        "gate-pass": "Gate passes",
+        "complaints": "Complaints"
+      },
+      "academics": {
+        "years": "Academic years & terms",
+        "classes": "Classes & sections",
+        "subjects": "Subjects",
+        "grading": "Grading schemes",
+        "allocation": "Teacher allocation",
+        "books-uniform": "Books & uniform"
+      },
+      "attendance": {
+        "mark": "Mark attendance",
+        "register": "Attendance register",
+        "leave": "Student leave",
+        "reports": "Attendance reports"
+      },
+      "homework": {
+        "hub": "Teaching hub",
+        "lesson-plans": "Lesson plans",
+        "syllabus": "Syllabus tracker",
+        "homework": "Homework"
+      },
+      "exams": {
+        "schedule": "Exam schedule",
+        "hall-tickets": "Hall tickets",
+        "seating": "Seating & invigilation",
+        "question-papers": "Question papers",
+        "marks": "Marks entry",
+        "results": "Results",
+        "report-cards": "Report cards",
+        "year-results": "Year-end results",
+        "setup": "Exam setup"
+      },
+      "timetable": {
+        "timetable": "Timetable",
+        "substitutions": "Substitutions",
+        "rooms": "Rooms"
+      },
+      "lms": {
+        "courses": "Courses & material",
+        "create-content": "Create content",
+        "my-content": "My content",
+        "content-library": "Content library",
+        "live-classes": "Live classes",
+        "question-bank": "Question bank"
+      },
+      "online-tests": {
+        "tests": "Tests",
+        "attempts": "Attempts & results"
+      },
+      "programs": {
+        "programs": "Programs & regulations",
+        "outcomes": "Outcomes & CO–PO mapping",
+        "attainment": "Attainment"
+      },
+      "registration": {
+        "windows": "Registration windows",
+        "requests": "Registrations"
+      },
+      "coe": {
+        "marks": "Internal & external marks",
+        "revaluation": "Revaluation",
+        "grade-cards": "Grade cards & transcripts"
+      },
+      "accreditation": {
+        "reports": "Accreditation reports",
+        "evidence": "Evidence repository"
+      },
+      "placements": {
+        "companies": "Companies",
+        "drives": "Placement drives",
+        "offers": "Offers"
+      },
+      "research": {
+        "publications": "Publications",
+        "projects": "Projects & grants"
+      },
+      "alumni": {
+        "directory": "Alumni directory",
+        "donations": "Donations"
+      },
+      "fees": {
+        "structures": "Fee structures",
+        "concessions": "Concessions & scholarships",
+        "collect": "Collect fees",
+        "invoices": "Fee invoices & receipts",
+        "dues": "Dues & reminders",
+        "refunds": "Refunds",
+        "day-end": "Day-end closing",
+        "online": "Online payments"
+      },
+      "finance": {
+        "accounts": "Chart of accounts",
+        "journals": "Journals",
+        "expenses": "Expenses",
+        "bank": "Bank",
+        "reports": "Financial reports"
+      },
+      "hrms": {
+        "employees": "Staff",
+        "attendance": "Staff attendance",
+        "leave": "Leave",
+        "holidays": "Holidays",
+        "hiring": "Recruitment",
+        "performance": "Appraisal"
+      },
+      "payroll": {
+        "structures": "Salary structures",
+        "statutory": "Statutory rules",
+        "loans": "Loans & advances",
+        "runs": "Payroll runs",
+        "payslips": "Payslips",
+        "exports": "Bank & statutory exports"
+      },
+      "transport": {
+        "routes": "Routes & stops",
+        "vehicles": "Vehicles & drivers",
+        "assignments": "Student assignment",
+        "tracking": "Live tracking"
+      },
+      "library": {
+        "catalogue": "Catalogue",
+        "circulation": "Issue & return",
+        "fines": "Fines"
+      },
+      "hostel": {
+        "rooms": "Rooms & beds",
+        "allotment": "Allotment",
+        "outpass": "Outpasses",
+        "mess": "Mess"
+      },
+      "inventory": {
+        "items": "Items",
+        "stock": "Stock",
+        "purchase-orders": "Purchase orders",
+        "sales": "Uniform & book sales",
+        "assets": "Asset register"
+      },
+      "health": {
+        "records": "Health records",
+        "visits": "Sick-room visits",
+        "incidents": "Incidents"
+      },
+      "canteen": {
+        "menu": "Menu",
+        "orders": "Orders",
+        "wallet": "Wallets"
+      },
+      "communication": {
+        "notices": "Notices & circulars",
+        "messages": "Send messages",
+        "chat": "Parent–teacher chat",
+        "log": "Delivery log"
+      },
+      "comms": {
+        "chat": "Staff chat",
+        "calls": "Call bell",
+        "codes": "Emergency alerts"
+      },
+      "portal": {
+        "settings": "App settings",
+        "content": "App content"
+      },
+      "events": {
+        "calendar": "Calendar",
+        "ptm": "Parent–teacher meetings",
+        "gallery": "Gallery"
+      },
+      "surveys": {
+        "forms": "Surveys",
+        "responses": "Responses"
+      },
+      "website": {
+        "pages": "Pages"
+      },
+      "reports": {
+        "library": "Report library",
+        "builder": "Report builder"
+      },
+      "analytics": {
+        "academics": "Academic performance",
+        "fees": "Fee collection",
+        "campuses": "Campus comparison"
+      },
+      "ai": {
+        "assistant": "Assistant",
+        "question-papers": "Question paper generator",
+        "remarks": "Report card remarks"
+      },
+      "integrations": {
+        "payments": "Payment gateway",
+        "messaging": "SMS & WhatsApp",
+        "devices": "Devices",
+        "logs": "Integration logs"
+      }
+    },
+    "actions": {
+      "allot": "Allot",
+      "apply_on_behalf": "Apply on behalf",
+      "approve": "Approve",
+      "approve_variance": "Approve cash variance",
+      "ask": "Ask",
+      "assign": "Assign to users",
+      "broadcast": "Send emergency alerts",
+      "calculate": "Calculate",
+      "cancel": "Cancel",
+      "checkout": "Check out",
+      "close": "Close",
+      "configure": "Configure",
+      "create": "Create",
+      "delete": "Delete",
+      "discount": "Give concession",
+      "edit": "Edit",
+      "edit_lop": "Edit LOP",
+      "evaluate": "Evaluate",
+      "export": "Export",
+      "import": "Import",
+      "issue": "Issue",
+      "lock": "Lock marks",
+      "manage": "Change plan",
+      "moderate": "Moderate",
+      "pay": "Pay",
+      "post": "Post",
+      "print": "Print",
+      "promote": "Promote",
+      "publish": "Publish",
+      "receive": "Return",
+      "reconcile": "Reconcile",
+      "refund": "Refund",
+      "reset_password": "Reset password",
+      "resolve": "Resolve",
+      "reverse": "Reverse",
+      "revoke_sessions": "Sign out devices",
+      "run": "Run",
+      "schedule": "Schedule",
+      "send": "Send",
+      "share": "Share",
+      "sign": "Sign",
+      "start": "Start",
+      "terminate": "Terminate",
+      "track": "Live tracking",
+      "unlock": "Unlock marks",
+      "view": "View",
+      "view_salary": "See salary",
+      "view_sensitive": "See unmasked IDs"
+    },
+    "scopes": {
+      "OWN": "Own records",
+      "CLASS": "My classes",
+      "DEPARTMENT": "My departments",
+      "BRANCH": "My campus",
+      "ALL": "All campuses"
+    },
+    "limits": {
+      "fees_discountMaxPct": "Max fee concession at the counter",
+      "fees_refundMax": "Max refund without approval",
+      "inventory_poApproveMax": "Max purchase order to approve",
+      "finance_expenseApproveMax": "Max expense to approve"
+    },
+    "modulePage": {
+      "onTheWay": "This screen is on the way",
+      "accessReady": "Your access is already set up: when {{name}} arrives, this page opens for your role with exactly the actions below — nobody needs to change roles again.",
+      "roleCapabilities": "What your role can do on this page",
+      "moreInModule": "More in {{name}}",
+      "phases": {
+        "0": "Phase 0 — Platform",
+        "1": "Phase 1 — MVP (Nov 2026 – Apr 2027)",
+        "2": "Phase 2 — Growth (May – Oct 2027)",
+        "3": "Phase 3 — Full suite (Nov 2027 – Apr 2028)",
+        "4": "Phase 4 — Scale (May – Oct 2028)"
+      },
+      "phaseN": "Phase {{phase}}",
+      "sensitive": "Sensitive"
+    }
+  }
+}

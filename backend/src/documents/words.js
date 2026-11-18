@@ -34,16 +34,23 @@ export function wordsFor(lang = 'en') {
 
 const fill = (text, vars) => String(text ?? '').replace(/\{\{\s*(\w+)\s*\}\}/g, (m, k) => (k in vars ? vars[k] ?? '' : m)).replace(/\s+/g, ' ').trim()
 const word = (W, n) => W.numbers?.[n] ?? ''
+/**
+ * 300 as the language says it: one word where it has one (hundreds[3]: Kannada ಮುನ್ನೂರು, Tamil முந்நூறு), else
+ * 'Three Hundred'; `more` = words follow, where some languages change the form (hundredsBefore: ಮುನ್ನೂರ ಇಪ್ಪತ್ತು).
+ */
+const hundredsOf = (W, h, more) => (more && W.hundredsBefore?.[h]) || W.hundreds?.[h] || `${word(W, h)} ${W.hundred}`
+/** thousand / lakh / crore — or its joining form when more words follow (before.thousand: Kannada ಸಾವಿರದ). */
+const groupWord = (W, k, more) => (more && W.before?.[k]) || W[k]
 /** 0–999: 'Four Hundred Fifty' / 'चार सौ पचास'. */
-const upTo999 = (W, x) => [x >= 100 ? `${word(W, Math.floor(x / 100))} ${W.hundred}` : '', word(W, x % 100)].filter(Boolean).join(' ')
+const upTo999 = (W, x) => [x >= 100 ? hundredsOf(W, Math.floor(x / 100), x % 100 > 0) : '', word(W, x % 100)].filter(Boolean).join(' ')
 
 /** A whole number in words, Indian grouping: 24500 → 'Twenty Four Thousand Five Hundred' / 'चौबीस हज़ार पाँच सौ'; '' for 0. */
 export function numberInWords(n, lang = 'en') {
-  const W = wordsFor(lang)
+  const W = typeof lang === 'object' ? lang : wordsFor(lang)
   const parts = []
-  if (n >= 1e7) { parts.push(`${upTo999(W, Math.floor(n / 1e7))} ${W.crore}`); n %= 1e7 }
-  if (n >= 1e5) { parts.push(`${word(W, Math.floor(n / 1e5))} ${W.lakh}`); n %= 1e5 }
-  if (n >= 1e3) { parts.push(`${word(W, Math.floor(n / 1e3))} ${W.thousand}`); n %= 1e3 }
+  if (n >= 1e7) { parts.push(`${upTo999(W, Math.floor(n / 1e7))} ${groupWord(W, 'crore', n % 1e7 > 0)}`); n %= 1e7 }
+  if (n >= 1e5) { parts.push(`${word(W, Math.floor(n / 1e5))} ${groupWord(W, 'lakh', n % 1e5 > 0)}`); n %= 1e5 }
+  if (n >= 1e3) { parts.push(`${word(W, Math.floor(n / 1e3))} ${groupWord(W, 'thousand', n % 1e3 > 0)}`); n %= 1e3 }
   if (n) parts.push(upTo999(W, n))
   return parts.join(' ')
 }
@@ -61,8 +68,7 @@ export function amountInWordsFor(paise, lang = 'en') {
 /** A year as it is said: 2013 → 'Two Thousand Thirteen'; 1998 → 'उन्नीस सौ अट्ठानवे' where yearsBefore2000 is 'hundreds'. */
 function yearInWords(W, y) {
   if (y < 2000 && W.yearsBefore2000 === 'hundreds') return [`${word(W, Math.floor(y / 100))} ${W.hundred}`, word(W, y % 100)].filter(Boolean).join(' ')
-  const h = Math.floor((y % 1000) / 100)
-  return [`${word(W, Math.floor(y / 1000))} ${W.thousand}`, h ? `${word(W, h)} ${W.hundred}` : '', word(W, y % 100)].filter(Boolean).join(' ')
+  return numberInWords(y, W) // 'Two Thousand Thirteen', Kannada ಎರಡು ಸಾವಿರದ ಹದಿಮೂರು
 }
 
 /** '2013-05-10' → 'Tenth May Two Thousand Thirteen' — in Hindi 'दस मई दो हज़ार तेरह' ('' when not a date). */

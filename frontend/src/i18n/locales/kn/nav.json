@@ -1,0 +1,13 @@
+{
+  "home": "Home",
+  "menu": "Menu",
+  "search": "Search screens...",
+  "alerts": "Alerts",
+  "myWorkspace": "My workspace",
+  "settings": "Settings",
+  "logout": "Sign out",
+  "logoutAll": "Sign out of all devices",
+  "approvals": "Approvals",
+  "compactLayout": "Compact layout",
+  "changePassword": "Change password"
+}

@@ -1,5 +1,5 @@
 {
-  "about": "Words for printed documents: amounts, dates and classes written out in words. numbers = 0–99 (each its own word in most Indian languages); days = the day of the month (1–31) as a date is said; classOrdinals = 1st–20th as in “Class Eighth”; yearsBefore2000 = “hundreds” (1998 → nineteen hundred ninety-eight) or “thousands” (one thousand nine hundred …). Keep {{placeholders}} as they are.",
+  "about": "Words for printed documents: amounts, dates and classes written out in words. numbers = 0–99 (each its own word in most Indian languages); hundreds = 100–900; hundredsBefore and before = the forms some languages use when more words follow (Kannada ಸಾವಿರದ, ನೂರ); days = the day of the month (1–31) as a date is said; classOrdinals = 1st–20th as in “Class Eighth”; yearsBefore2000 = “hundreds” (1998 → nineteen hundred ninety-eight) or “thousands” (one thousand nine hundred …). Keep {{placeholders}} as they are.",
   "numbers": [
     "",
     "One",
@@ -107,6 +107,35 @@
   "thousand": "Thousand",
   "lakh": "Lakh",
   "crore": "Crore",
+  "hundreds": [
+    "",
+    "One Hundred",
+    "Two Hundred",
+    "Three Hundred",
+    "Four Hundred",
+    "Five Hundred",
+    "Six Hundred",
+    "Seven Hundred",
+    "Eight Hundred",
+    "Nine Hundred"
+  ],
+  "hundredsBefore": [
+    "",
+    "One Hundred",
+    "Two Hundred",
+    "Three Hundred",
+    "Four Hundred",
+    "Five Hundred",
+    "Six Hundred",
+    "Seven Hundred",
+    "Eight Hundred",
+    "Nine Hundred"
+  ],
+  "before": {
+    "thousand": "Thousand",
+    "lakh": "Lakh",
+    "crore": "Crore"
+  },
   "rupee": "Rupees",
   "rupees": "Rupees",
   "amount": "{{unit}} {{rupees}} Only",
