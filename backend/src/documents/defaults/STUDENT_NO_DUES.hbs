@@ -1,0 +1,42 @@
+{{!-- Student no-dues slip (A4) on the letterhead, for a student leaving: one row per desk with what its records show
+      on the leaving date, and a box for that desk to sign. Rows marked due (fees, library) must be cleared before the TC;
+      the rest are things the school winds up (bed, bus seat, wallet balance, later bills).
+      Main fields: student.*, leavingDate, tcNo, rows[] (desk, shows, due, tidy, manual), clear. --}}
+<style>
+  .ns { font-size: 10pt; line-height: 1.45 }
+  .ns .refline { display: flex; justify-content: space-between; margin: 4mm 0 4mm }
+  .ns .title { text-align: center; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; margin: 0 0 4mm }
+  .ns table { width: 100%; border-collapse: collapse; font-size: 9pt; margin: 1mm 0 4mm }
+  .ns th, .ns td { border: 0.25mm solid #C9CDD6; padding: 1.8mm 2mm; text-align: left; vertical-align: top }
+  .ns th { background: #F1F3F6 }
+  .ns td.k { background: #F1F3F6; font-weight: 600; width: 22% }
+  .ns .due { color: #B42318; font-weight: 600 } .ns .tidy { color: #8A6116 } .ns .ok { color: #157347 } .ns .muted { color: #5B616E }
+  .ns .sig { width: 30mm }
+  .ns .open { border: 0.4mm solid #B42318; color: #B42318; padding: 2mm 3mm; margin: 0 0 4mm; font-weight: 600; text-align: center }
+  .ns .signs { display: flex; justify-content: space-between; gap: 10mm; margin-top: 14mm }
+  .ns .signs > div { flex: 1; text-align: center }
+  .ns .signs .line { border-top: 0.3mm solid #333; padding-top: 1.2mm; margin-top: 2mm }
+</style>
+{{#> letterhead}}{{/letterhead}}
+<div class="ns">
+  <div class="refline"><span>{{t "students.print.noDues.ref" "Ref. No.:"}} <b class="mono">{{refNo}}</b></span><span>{{t "students.print.noDues.date" "Date:"}} {{date date}}</span></div>
+  <div class="title">{{t "students.print.noDues.title" "No-dues slip"}}</div>
+  <table>
+    <tr><td class="k">{{t "students.print.noDues.student" "Student"}}</td><td>{{student.name}}</td><td class="k">{{t "students.print.noDues.admissionNo" "Admission no."}}</td><td class="mono">{{student.admissionNo}}</td></tr>
+    <tr><td class="k">{{t "students.print.noDues.class" "Class"}}</td><td>{{student.className}}{{#if student.rollNo}} · {{t "students.print.noDues.roll" "Roll"}} {{student.rollNo}}{{/if}}</td><td class="k">{{t "students.print.noDues.leaving" "Leaving on"}}</td><td>{{date leavingDate}}{{#if tcNo}} · TC {{tcNo}}{{/if}}</td></tr>
+    <tr><td class="k">{{t "students.print.noDues.guardian" "Parent / guardian"}}</td><td colspan="3">{{student.guardian}}{{#if student.mobile}} · {{student.mobile}}{{/if}}</td></tr>
+  </table>
+  {{#unless clear}}<div class="open">{{t "students.print.noDues.duesOpen" "Dues shown below must be cleared before the transfer certificate is issued."}}</div>{{/unless}}
+  <table>
+    <thead><tr><th>{{t "students.print.noDues.desk" "Desk"}}</th><th>{{t "students.print.noDues.records" "What the records show"}}</th><th class="sig">{{t "students.print.noDues.sign" "Sign & date"}}</th></tr></thead>
+    <tbody>
+      {{#each rows}}<tr><td>{{desk}}</td><td class="{{#if due}}due{{else if tidy}}tidy{{else if manual}}muted{{else}}ok{{/if}}">{{shows}}</td><td></td></tr>{{/each}}
+    </tbody>
+  </table>
+  <p class="muted">{{t "students.print.noDues.note" "Each desk checks its own records, settles anything open and signs. Bring the signed slip to the office to collect the transfer certificate."}}</p>
+  <div class="signs no-break">
+    <div><div class="line">{{t "students.print.noDues.parentSign" "Parent / guardian"}}</div></div>
+    <div>{{> seal role="PRINCIPAL" label=(t "students.print.noDues.seal" "Seal")}}<div class="line">{{t "students.print.noDues.signatory" "Principal / Authorised signatory"}}</div></div>
+  </div>
+</div>
+{{> footer}}

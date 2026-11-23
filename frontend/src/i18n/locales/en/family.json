@@ -540,6 +540,16 @@
       "call": "Call",
       "map": "Map",
       "buyAt": "Buy at: {{shops}}"
+    },
+    "left": {
+      "left": "Has left the school.",
+      "leftOn": "Left the school on {{date}}.",
+      "openUntil": "This app shows their records until {{date}}. Download anything you need before then.",
+      "records": "Their records",
+      "tc": "Transfer certificate (copy)",
+      "fees": "Fees and receipts",
+      "results": "Results and report cards",
+      "notices": "Notices"
     }
   }
 }

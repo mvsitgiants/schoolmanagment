@@ -1,9 +1,9 @@
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { BookOpenCheck, CalendarCheck, CalendarClock, IndianRupee, Megaphone, MessagesSquare, Trophy } from 'lucide-react'
+import { BookOpenCheck, CalendarCheck, CalendarClock, FileBadge, IndianRupee, Megaphone, MessagesSquare, Trophy } from 'lucide-react'
 import { formatINR } from '@schoolgiant/shared'
 import { FCard, FError, FRow, FSkeleton, useFamily, useFamilyQuery } from '../../components/family/FamilyKit'
-import { familyHome } from '../../api/family'
+import { familyDocUrl, familyHome } from '../../api/family'
 import { useFormat } from '../../context/SettingsContext'
 
 const MARK_TONE = { P: 'success', L: 'success', HD: 'success', A: 'danger', LV: undefined }
@@ -13,7 +13,8 @@ export default function FamilyHome() {
   const { t } = useTranslation('family')
   const { slug, studentId, student, has } = useFamily()
   const { date } = useFormat()
-  const { data: d, isLoading, error } = useFamilyQuery(['home'], () => familyHome(slug, studentId))
+  const { data: d, isLoading, error } = useFamilyQuery(['home'], () => familyHome(slug, studentId), { enabled: !!studentId && !student?.left })
+  if (student?.left) return <LeftHome />
   if (isLoading) return <FSkeleton className="h-64" />
   if (error) return <FError error={error} />
   if (!d) return null
@@ -53,6 +54,34 @@ export default function FamilyHome() {
           </div>
         </FCard>
       )}
+    </>
+  )
+}
+
+/**
+ * A child who has left the school: when, the TC to keep, and what the app still shows — read-only, until the day
+ * the school closes it.
+ */
+function LeftHome() {
+  const { t } = useTranslation('family')
+  const { slug, student, has } = useFamily()
+  const { date } = useFormat()
+  return (
+    <>
+      <FCard>
+        <p className="font-display text-xl font-semibold text-ink">{student.name}</p>
+        <p className="text-sm text-ink-muted">{[student.class, student.admissionNo].filter(Boolean).join(' · ')}</p>
+        <p className="mt-3 text-sm text-ink">{student.leftOn ? t('family.left.leftOn', { date: date(student.leftOn) }) : t('family.left.left')}</p>
+        {student.openUntil && <p className="mt-1 text-sm text-ink-muted">{t('family.left.openUntil', { date: date(student.openUntil) })}</p>}
+      </FCard>
+      <FCard title={t('family.left.records')}>
+        <div className="divide-y divide-border -my-2">
+          {student.tcId && <FRow href={familyDocUrl(slug, 'TRANSFER_CERTIFICATE', student.tcId)} icon={FileBadge} title={t('family.left.tc')} subtitle={student.tcNo ?? undefined} />}
+          {has('FEES') && <FRow to={`/app/${slug}/fees`} icon={IndianRupee} title={t('family.left.fees')} />}
+          {has('RESULTS') && <FRow to={`/app/${slug}/results`} icon={Trophy} title={t('family.left.results')} />}
+          {has('NOTICES') && <FRow to={`/app/${slug}/notices`} icon={Megaphone} title={t('family.left.notices')} />}
+        </div>
+      </FCard>
     </>
   )
 }

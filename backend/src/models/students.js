@@ -136,6 +136,10 @@ const tcSchema = new Schema({
   cancelledAt: Date,
   cancelledBy: String,
   cancelReason: String,
+  // issued while the records showed dues (fees, library): the approver's reason and what was open at the time
+  duesOverride: { type: new Schema({ reason: String, open: [String], by: String, byId: ObjectId, at: Date }, { _id: false }), default: undefined },
+  // what issuing it wound up (studentLeaving.js WIND_UP_KEYS): DONE · PENDING · UNDONE, with the records it changed
+  windUp: { type: [new Schema({ key: String, status: String, refs: [ObjectId], amount: Number, note: String, by: String, at: Date, undoneBy: String, undoneAt: Date }, { _id: false })], default: undefined },
 }, { timestamps: true, minimize: false })
 tcSchema.plugin(tenantPlugin)
 tcSchema.index({ tenantId: 1, status: 1, createdAt: -1 })

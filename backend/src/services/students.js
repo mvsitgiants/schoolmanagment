@@ -1,5 +1,5 @@
 import { randomInt } from 'node:crypto'
-import { HISTORY_EVENTS, LEAVING_REASONS, TC_STATUS, ageYears, countMarks, isValidAadhaar, sectionLabel, tcMismatch } from '@schoolgiant/shared'
+import { HISTORY_EVENTS, LEAVING_REASONS, TC_STATUS, ageYears, formatINR, countMarks, isValidAadhaar, sectionLabel, tcMismatch } from '@schoolgiant/shared'
 import { AcademicYear, ClassLevel, Section, Subject } from '../models/academics.js'
 import { AttendanceSheet } from '../models/attendance.js'
 import { Exam, ExamCandidate } from '../models/exams.js'
@@ -10,7 +10,7 @@ import { can } from '../platform/access.js'
 import { audit, diffFields } from '../platform/audit.js'
 import { blindIndex, decrypt, encrypt } from '../platform/crypto.js'
 import { clean, isOid, oid, withTransaction } from '../platform/db.js'
-import { badRequest, conflict, forbidden, notFound } from '../platform/errors.js'
+import { AppError, badRequest, conflict, forbidden, notFound } from '../platform/errors.js'
 import { emit } from '../platform/events.js'
 import { cell, checkRow, compact } from '../platform/importRows.js'
 import { nextNumber } from '../platform/numbering.js'
@@ -21,6 +21,7 @@ import { escapeRegex, listResponse } from '../platform/validate.js'
 import { currentYear, sectionsInScope } from './academics.js'
 import { assertWithinLimit } from './subscription.js'
 import { filesToStudent } from './files.js'
+import { WIND_UP_KEYS, leavingChecks, openSummary, undoWindUp, windUpOnIssue, windUpStep } from './studentLeaving.js'
 
 // Students (module `students`): admission, the directory, Student 360, guardians, promotion at
 // year end and transfer certificates. Who sees which students follows the role's data scope for
@@ -42,7 +43,7 @@ export async function scopeFilter(auth) {
   return ids ? { sectionId: { $in: ids } } : null
 }
 
-async function assertInScope(student, auth) {
+export async function assertInScope(student, auth) {
   const f = await scopeFilter(auth)
   if (!f) return
   if (!f.sectionId.$in.some((id) => String(id) === String(student.sectionId))) throw notFound('Student')
@@ -51,7 +52,7 @@ async function assertInScope(student, auth) {
 // ───────────────────────────────────────────────────────── shaping
 
 /** Section and class labels for many students at once. */
-async function placeMap(students) {
+export async function placeMap(students) {
   const ids = [...new Set(students.map((s) => idStr(s.sectionId)).filter(Boolean))]
   const sections = await Section.find({ _id: { $in: ids } }).lean()
   const classes = await ClassLevel.find({ _id: { $in: sections.map((s) => s.classId) } }).select('name code order').lean()
@@ -509,14 +510,22 @@ export async function requestTc(input, auth, req) {
   return tcDto(tc.toObject())
 }
 
-/** Approve and issue: the TC gets its number, the student is marked as left. */
-export async function issueTc(id, auth, req) {
+/**
+ * Approve and issue: the TC gets its number, the student is marked as left. While the records show dues on the
+ * leaving date (fees, library) it is only issued with `override.reason` — kept on the TC with what was open.
+ */
+export async function issueTc(id, auth, req, { override, windUp = [] } = {}) {
   const tc = await TransferCertificate.findById(id)
   if (!tc) throw notFound('Transfer certificate')
   if (tc.status !== 'REQUESTED') throw conflict(`This TC is ${TC_STATUS[tc.status]?.label.toLowerCase()}.`)
   if (String(tc.requestedById) === String(auth.userId) && !auth.fullAccess) throw forbidden('Someone other than the person who asked for it must approve a TC.')
   const s = await Student.findById(tc.studentId)
   await assertInScope(s, auth)
+  const open = await leavingChecks(s, tc.leavingDate, auth)
+  if (open.dues && !override?.reason) {
+    throw new AppError(409, `${studentName(s)} still has dues on the leaving date. Clear them, or issue anyway and say why.`, { code: 'DUES_OPEN', details: open })
+  }
+  if (open.dues) tc.duesOverride = { reason: override.reason, open: openSummary(open, formatINR), by: auth.user?.name, byId: isOid(auth.userId) ? auth.userId : undefined, at: new Date() }
   await withTransaction(async () => {
     tc.tcNo = await nextNumber('TC', { branchId: s.branchId })
     tc.status = 'ISSUED'
@@ -528,8 +537,23 @@ export async function issueTc(id, auth, req) {
     s.history.push({ event: 'TC_ISSUED', sectionId: s.sectionId, classLabel: tc.lastClassLabel, note: `TC ${tc.tcNo}`, by: auth.user?.name })
     await s.save()
   })
-  await audit({ action: 'APPROVE', module: 'students', entityType: 'tc', entityId: String(tc._id), entityName: studentName(s), studentId: s._id, summary: `Issued TC ${tc.tcNo} to ${studentName(s)}` }, req)
+  await audit({ action: 'APPROVE', module: 'students', entityType: 'tc', entityId: String(tc._id), entityName: studentName(s), studentId: s._id, summary: `Issued TC ${tc.tcNo} to ${studentName(s)}${tc.duesOverride ? ` with dues open (${tc.duesOverride.open.join('; ')}): ${tc.duesOverride.reason}` : ''}` }, req)
+  // wind up what the approver ticked (bills after leaving, bus seat, hostel bed) — never undoes the TC if a step fails
+  const steps = await windUpOnIssue(tc, s, windUp.filter((k) => WIND_UP_KEYS.includes(k)), auth, req)
+  if (steps.length) { tc.windUp = steps; await tc.save() }
   await emit('students.left', { studentId: String(s._id), tcNo: tc.tcNo })
+  return tcDto(tc.toObject())
+}
+
+/** One wind-up step on an issued TC, afterwards: do it now, or undo it. */
+export async function tcWindUpStep(id, key, action, input, auth, req) {
+  const tc = await TransferCertificate.findById(id)
+  if (!tc) throw notFound('Transfer certificate')
+  if (tc.status !== 'ISSUED') throw conflict('Only an issued TC has things to wind up.')
+  const s = await Student.findById(tc.studentId)
+  await assertInScope(s, auth)
+  tc.windUp = await windUpStep(tc, s, key, action, input, auth, req)
+  await tc.save()
   return tcDto(tc.toObject())
 }
 
@@ -551,8 +575,42 @@ export async function cancelTc(id, reason, auth, req) {
       await s.save()
     }
   })
+  // the student stays: bills, bus seat and bed the TC wound up go back where they still fit
+  if (wasIssued && tc.windUp?.length) { tc.windUp = await undoWindUp(tc, s, auth, req); await tc.save() }
   await audit({ action: 'CANCEL', module: 'students', entityType: 'tc', entityId: String(tc._id), entityName: studentName(s), studentId: s._id, summary: `Cancelled ${wasIssued ? `TC ${tc.tcNo}` : 'the TC request'} of ${studentName(s)}: ${reason}` }, req)
   return tcDto(tc.toObject())
+}
+
+/** What the records say is open for a student leaving on `leavingDate` — for the TC form and the issue step. */
+export async function tcChecks(studentId, leavingDate, auth) {
+  const s = await Student.findById(studentId).lean()
+  if (!s) throw notFound('Student')
+  await assertInScope(s, auth)
+  return leavingChecks(s, leavingDate, auth)
+}
+
+/**
+ * The student no-dues slip (STUDENT_NO_DUES, `id`: a student): what each desk's records show on the leaving date —
+ * the TC waiting for approval sets the date, else today — with a line for each desk to sign.
+ */
+export async function noDuesSlipData(studentId, auth) {
+  const s = isOid(studentId) ? await Student.findById(studentId).lean() : null
+  if (!s) throw notFound('Student')
+  await assertInScope(s, auth)
+  const [tc, place, now] = await Promise.all([
+    TransferCertificate.findOne({ studentId: s._id, status: { $ne: 'CANCELLED' } }).sort({ createdAt: -1 }).lean(),
+    placeMap([s]), institutionNow(),
+  ])
+  const leavingDate = tc?.leavingDate ?? s.leaving?.date ?? now.date
+  const open = await leavingChecks(s, leavingDate, auth)
+  return {
+    date: now.date, leavingDate, tcNo: tc?.tcNo ?? null, refNo: `ND/${s.admissionNo}`,
+    student: {
+      name: studentName(s), admissionNo: s.admissionNo, className: place.get(idStr(s.sectionId))?.label ?? tc?.lastClassLabel ?? null, rollNo: s.rollNo ?? null,
+      guardian: primaryGuardian(s)?.name ?? null, mobile: primaryGuardian(s)?.mobile ?? null,
+    },
+    ...open,
+  }
 }
 
 /** A TC waiting for approval can still be corrected (the details it prints); an issued one is fixed. */

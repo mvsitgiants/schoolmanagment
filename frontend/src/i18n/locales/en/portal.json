@@ -87,7 +87,9 @@
         "GUARDIAN_MOBILE": "Parents’ mobile numbers (last four digits)"
       },
       "staffPhones": "Show staff phone numbers",
-      "staffPhonesHint": "The bus driver’s and attendant’s, and the hostel warden’s. Off: only their names, so families call the office."
+      "staffPhonesHint": "The bus driver’s and attendant’s, and the hostel warden’s. Off: only their names, so families call the office.",
+      "afterLeaving": "Keep the app open after a child leaves (days)",
+      "afterLeavingHint": "Read-only: fees (and paying what is still due), results, certificates, notices and a copy of the TC. 0 closes it the day the TC is issued."
     }
   }
 }

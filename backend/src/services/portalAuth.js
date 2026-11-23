@@ -1,11 +1,13 @@
 import { createHmac, randomInt, timingSafeEqual } from 'node:crypto'
 import jwt from 'jsonwebtoken'
-import { PORTAL_OTP, PORTAL_SESSION_DAYS, maskMobile, mobile10, mobileVariants } from '@schoolgiant/shared'
+import { PORTAL_OTP, PORTAL_SESSION_DAYS, addDaysYmd, maskMobile, mobile10, mobileVariants } from '@schoolgiant/shared'
 import { config } from '../config.js'
 import { PortalOtp, PortalSession } from '../models/portal.js'
 import { Student } from '../models/students.js'
 import { isOid } from '../platform/db.js'
 import { AppError, conflict, unauthorized } from '../platform/errors.js'
+import { getSettings } from '../platform/settings.js'
+import { institutionNow } from '../platform/time.js'
 import { sendCodeSms, smsSender, testMode } from './codeDelivery.js'
 
 // Family sign-in for the parent & student app — a separate principal from staff, by design
@@ -36,8 +38,25 @@ const newCode = () => String(randomInt(0, 10 ** DIGITS)).padStart(DIGITS, '0')
 const tooMany = (msg) => new AppError(429, msg, { code: 'TOO_MANY' })
 const NO_SMS = 'This school can’t send sign-in codes yet. Please call the school office.'
 
-/** Active students with a guardian on this number (a parent), oldest admission first. */
-export const childrenOn = (ten) => Student.find({ status: 'ACTIVE', 'guardians.mobile': { $in: mobileVariants(ten) } }).sort({ admissionDate: 1, createdAt: 1 }).limit(10).lean()
+/**
+ * The first leaving date still kept in the app (Settings › App › days after leaving), or null when a child's app
+ * closes the day they leave.
+ */
+async function leaverCutoff() {
+  const days = Number((await getSettings('portal')).afterLeavingDays ?? 30)
+  if (!(days > 0)) return null
+  return addDaysYmd((await institutionNow()).date, -days)
+}
+
+/**
+ * Students with a guardian on this number (a parent), oldest admission first: those studying here, and those who left
+ * (TC issued) within the days the school keeps the app open — read-only for them (routes/portal.js leftReadOnly).
+ */
+export async function childrenOn(ten) {
+  const cutoff = await leaverCutoff()
+  const who = [{ status: 'ACTIVE' }, ...(cutoff ? [{ status: 'LEFT', 'leaving.date': { $gte: cutoff } }] : [])]
+  return Student.find({ $or: who, 'guardians.mobile': { $in: mobileVariants(ten) } }).sort({ admissionDate: 1, createdAt: 1 }).limit(10).lean()
+}
 /** An active student whose own mobile this is (a student's own sign-in). */
 export const studentOn = (ten) => Student.findOne({ status: 'ACTIVE', mobile: { $in: mobileVariants(ten) } }).lean()
 

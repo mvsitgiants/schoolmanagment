@@ -51,7 +51,11 @@ export const requestTc = (body) => post(`${BASE}/tc`, body)
 export const updateTc = (id, body) => patch(`${BASE}/tc/${id}`, body)
 /** What the school already knows for a new TC: subjects, working / present days, fees paid up to, concession, last exam. */
 export const fetchTcPrefill = (studentId) => get(`${BASE}/tc/prefill`, { studentId })
-export const issueTc = (id) => post(`${BASE}/tc/${id}/issue`)
+export const fetchTcChecks = (studentId, leavingDate) => get(`${BASE}/tc/checks`, { studentId, leavingDate })
+/** `override` — { reason } — issues it although the records show dues on the leaving date. */
+export const issueTc = (id, override, windUp = []) => post(`${BASE}/tc/${id}/issue`, { ...(override ? { override } : {}), windUp })
+/** After issue: `action` do | undo one wind-up step (laterBills · transport · hostel · canteen — canteen with mode, reference). */
+export const tcWindUpStep = (id, key, body) => post(`${BASE}/tc/${id}/wind-up/${key}`, body)
 export const cancelTc = (id, reason) => post(`${BASE}/tc/${id}/cancel`, { reason })
 
 export const fetchIdCardList = (sectionId) => get(`${BASE}/id-cards`, { sectionId })

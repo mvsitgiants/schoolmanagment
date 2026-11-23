@@ -34,6 +34,8 @@ import FamilyMore from './More'
 import FamilyNotices from './Notices'
 import FamilyChat from './Chat'
 
+// what the app still shows for a child who has left the school (read-only, for the days the school keeps it open)
+const LEFT_SECTIONS = ['FEES', 'RESULTS', 'CERTIFICATES', 'NOTICES']
 const childKey = (slug) => `sg_family_child:${slug}`
 const readChild = (slug) => { try { return localStorage.getItem(childKey(slug)) || '' } catch { return '' } }
 const rememberChild = (slug, id) => { try { localStorage.setItem(childKey(slug), id) } catch { /* private mode */ } }
@@ -86,10 +88,10 @@ export default function FamilyApp() {
     const m = me.data
     const students = m?.students ?? []
     const picked = students.some((s) => s.id === studentId) ? studentId : students[0]?.id ?? ''
-    const features = m?.features ?? info.data?.features ?? []
+    const student = students.find((s) => s.id === picked) ?? null
+    const features = (m?.features ?? info.data?.features ?? []).filter((f) => !student?.left || LEFT_SECTIONS.includes(f))
     return {
-      slug, info: info.data, me: m, students, features, studentId: picked,
-      student: students.find((s) => s.id === picked) ?? null,
+      slug, info: info.data, me: m, students, features, studentId: picked, student,
       setStudentId: (id) => { setStudentIdState(id); rememberChild(slug, id) },
       has: (f) => features.includes(f),
       signedIn: (data) => qc.setQueryData(['family-me', slug], data),

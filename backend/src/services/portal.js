@@ -1,6 +1,6 @@
 import {
   CERTIFICATE_KIND_BY, EXAM_STATUS, INVOICE_STATUS, LEAVE_STATUS, PAYMENT_MODE_LABEL, RESULT_STATUS, SUBMISSION_STATUS, attendancePct, countMarks,
-  FAMILY_PROFILE_FIELDS, familyPath, liveFamilyFeatures, maskMobile, monthRange, sectionLabel,
+  FAMILY_PROFILE_FIELDS, addDaysYmd, familyPath, liveFamilyFeatures, maskMobile, monthRange, sectionLabel,
 } from '@schoolgiant/shared'
 import { config } from '../config.js'
 import { qrSvg } from '../documents/engine.js'
@@ -14,7 +14,7 @@ import { FeeInvoice, FeePayment } from '../models/fees.js'
 import { Homework } from '../models/homework.js'
 import { Tenant } from '../models/platform.js'
 import { PortalContent } from '../models/portal.js'
-import { studentName } from '../models/students.js'
+import { TransferCertificate, studentName } from '../models/students.js'
 import { User } from '../models/tenant.js'
 import { audit } from '../platform/audit.js'
 import { getContext } from '../platform/context.js'
@@ -74,7 +74,11 @@ export async function meView(f) {
   const places = await Promise.all(f.students.map((s) => placeOf(s.sectionId)))
   return {
     kind: f.session.kind, mobile: maskMobile(f.session.mobile), features: f.features,
-    students: f.students.map((s, i) => ({ id: String(s._id), firstName: s.firstName, name: studentName(s), class: places[i]?.label ?? null, classShort: places[i]?.short ?? null, admissionNo: s.admissionNo, gender: s.gender ?? null })),
+    students: f.students.map((s, i) => ({
+      id: String(s._id), firstName: s.firstName, name: studentName(s), class: places[i]?.label ?? null, classShort: places[i]?.short ?? null, admissionNo: s.admissionNo, gender: s.gender ?? null,
+      // a child who has left: kept read-only until openUntil, with a copy of the TC
+      ...(s.status !== 'ACTIVE' ? { left: true, leftOn: s.leaving?.date ?? null, tcId: s.leaving?.tcId ? String(s.leaving.tcId) : null, tcNo: s.leaving?.tcNo ?? null, openUntil: s.leaving?.date ? addDaysYmd(s.leaving.date, Number(f.settings?.afterLeavingDays ?? 30)) : null } : {}),
+    })),
   }
 }
 
@@ -322,6 +326,10 @@ export async function documentFor(f, docType, recordId) {
   } else if (docType === 'YEAR_REPORT_CARD') {
     need(f, 'RESULTS')
     ok = mine.includes(String(recordId)) && !!(await familyYearResult(recordId))
+  } else if (docType === 'TRANSFER_CERTIFICATE') {
+    // the family's copy of an issued TC (it carries the school's QR check), for a child kept in the app after leaving
+    const tc = await TransferCertificate.findById(recordId).select('studentId status').lean()
+    ok = !!tc && tc.status === 'ISSUED' && mine.includes(String(tc.studentId))
   } else if (docType === 'CERTIFICATE') {
     need(f, 'CERTIFICATES')
     const c = await Certificate.findById(recordId).select('studentId status').lean()

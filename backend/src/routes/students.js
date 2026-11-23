@@ -8,7 +8,7 @@ import { studentOverview } from '../services/student360.js'
 import { cancelAdmissionForm, createAdmissionForm, getAdmissionForm, listAdmissionForms, resendAdmissionForm } from '../services/admissionForms.js'
 import {
   admitStudent, cancelTc, getStudent, importStudents, issueTc, listGuardians, listStudents, listTcs, promotionPreview, requestTc,
-  runPromotion, setStudentStatus, tcPrefill, updateStudent, updateTc,
+  runPromotion, setStudentStatus, tcChecks, tcPrefill, tcWindUpStep, updateStudent, updateTc,
 } from '../services/students.js'
 
 // Students: /api/v1/students/*
@@ -140,6 +140,11 @@ const tcDetails = {
 router.get('/tc/prefill', requirePermission('students.transfer.create', 'students.transfer.approve'), async (req, res) => {
   res.json({ data: await tcPrefill(objectId.parse(req.query.studentId), req.auth) })
 })
+// what the records say is still open on the leaving date (fees, library, hostel, bus, canteen wallet)
+router.get('/tc/checks', requirePermission('students.transfer.view', 'students.transfer.create', 'students.transfer.approve'), async (req, res) => {
+  const q = z.object({ studentId: objectId, leavingDate: ymd }).parse(req.query)
+  res.json({ data: await tcChecks(q.studentId, q.leavingDate, req.auth) })
+})
 router.post('/tc', requirePermission('students.transfer.create'), async (req, res) => {
   const input = z.object({
     studentId: objectId, leavingDate: ymd, reason: z.enum(values(LEAVING_REASONS)), reasonText: optionalText(200),
@@ -157,7 +162,18 @@ router.patch('/tc/:id', requirePermission('students.transfer.create', 'students.
   res.json({ data: await updateTc(objectId.parse(req.params.id), input, req.auth, req) })
 })
 router.post('/tc/:id/issue', requirePermission('students.transfer.approve'), async (req, res) => {
-  res.json({ data: await issueTc(objectId.parse(req.params.id), req.auth, req) })
+  // with dues open on the leaving date the TC is only issued "anyway", with a reason
+  // windUp: what to wind up as it is issued — bills after leaving cancelled, off the bus route, out of the hostel
+  const { override, windUp } = z.object({
+    override: z.object({ reason: z.string().trim().min(5, 'Say why').max(300) }).optional(),
+    windUp: z.array(z.enum(['laterBills', 'transport', 'hostel'])).max(3).default([]),
+  }).parse(req.body ?? {})
+  res.json({ data: await issueTc(objectId.parse(req.params.id), req.auth, req, { override, windUp }) })
+})
+router.post('/tc/:id/wind-up/:key', requirePermission('students.transfer.approve'), async (req, res) => {
+  const key = z.enum(['laterBills', 'transport', 'hostel', 'canteen']).parse(req.params.key)
+  const body = z.object({ action: z.enum(['do', 'undo']), mode: z.enum(['CASH', 'BANK']).optional(), reference: optionalText(60) }).parse(req.body ?? {})
+  res.json({ data: await tcWindUpStep(objectId.parse(req.params.id), key, body.action, { mode: body.mode, reference: body.reference }, req.auth, req) })
 })
 router.post('/tc/:id/cancel', requirePermission('students.transfer.create', 'students.transfer.approve'), async (req, res) => {
   const { reason } = z.object({ reason: z.string().trim().min(3, 'Say why').max(200) }).parse(req.body)

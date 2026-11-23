@@ -2,15 +2,17 @@ import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { ArrowLeftRight, CheckCircle2, Hourglass, Pencil, Plus, Printer, XCircle } from 'lucide-react'
-import { CONDUCT_OPTIONS, LEAVING_REASONS, TC_FAILED, TC_STATUS } from '@schoolgiant/shared'
-import { DateInput, CodeBadge, ColorChip, ControlChip, DataTable, DateCell, FormField, HeaderButton, Input, Modal, PageContainer, PageHeader, PersonCell, Select, StackCell, StatCardRow, StatusPill, Textarea, Toolbar, presetRange, useConfirm, usePrompt } from '../../components/system'
+import { ArrowLeftRight, CheckCircle2, ClipboardCheck, Hourglass, ListChecks, Pencil, Plus, Printer, RotateCcw, XCircle } from 'lucide-react'
+import { CONDUCT_OPTIONS, LEAVING_REASONS, TC_FAILED, TC_STATUS, formatINR } from '@schoolgiant/shared'
+import { DateInput, CodeBadge, ColorChip, ControlChip, DataTable, DateCell, FormField, HeaderButton, Input, Modal, PageContainer, PageHeader, PersonCell, Select, StackCell, StatCardRow, StatusPill, Textarea, Toolbar, presetRange, usePrompt } from '../../components/system'
 import Button from '../../components/ui/Button'
 import useDebouncedValue from '../../hooks/useDebouncedValue'
-import { cancelTc, fetchStudent, fetchStudents, fetchTcPrefill, fetchTcs, issueTc, requestTc, updateTc } from '../../api/students'
+import { cancelTc, fetchStudent, fetchStudents, fetchTcChecks, fetchTcPrefill, fetchTcs, issueTc, requestTc, tcWindUpStep, updateTc } from '../../api/students'
 import { hasPermission } from '../../api/auth'
+import { useFormat } from '../../context/SettingsContext'
 import { printDocument } from '../../components/print/printDocument'
 import { useSnackbar } from '../../context/SnackbarContext'
+import LeavingChecks from '../../components/students/LeavingChecks'
 
 const PAGE = 50
 // the leaving-date filter: every TC, or one financial year (1 Apr – 31 Mar, close to the school year)
@@ -57,6 +59,9 @@ function TcForm({ studentId: presetId, tc, onClose, onSaved }) {
       lastExamResult: f.lastExamResult || known.lastExamResult || '',
     }))
   }, [known])
+  // what the records say is still open on the leaving date: shown while the TC is asked for, so the family can be told
+  const leaving = useDebouncedValue(form.leavingDate, 400)
+  const { data: checks } = useQuery({ queryKey: ['tc-checks', form.studentId, leaving], queryFn: () => fetchTcChecks(form.studentId, leaving), enabled: !!form.studentId && /^\d{4}-\d{2}-\d{2}$/.test(leaving ?? '') })
   const save = useMutation({
     mutationFn: () => (editing ? updateTc(tc.id, toBody(Object.fromEntries(EDIT_KEYS.map((k) => [k, form[k]])))) : requestTc(toBody(form))),
     onSuccess: onSaved,
@@ -87,6 +92,7 @@ function TcForm({ studentId: presetId, tc, onClose, onSaved }) {
           <Select value={form.conduct} onChange={set('conduct')}>{CONDUCT_OPTIONS.map((c) => <option key={c} value={c}>{t(`students.transfer.conducts.${c.replace(/\s/g, '')}`, c)}</option>)}</Select>
         </FormField>
         {form.reason === 'OTHER' && <div className="sm:col-span-2"><FormField label={t('students.transfer.reasonText')}><Input value={form.reasonText} onChange={set('reasonText')} /></FormField></div>}
+        {form.studentId && checks?.checks?.length > 0 && <div className="sm:col-span-2"><LeavingChecks data={checks} compact /></div>}
 
         <Heading>{t('students.transfer.sections.studies')}</Heading>
         <FormField label={t('students.transfer.lastExam')} hint={t('students.transfer.lastExamHint')} error={errors.lastExam}><Input value={form.lastExam} onChange={set('lastExam')} placeholder={t('students.transfer.lastExamPlaceholder')} /></FormField>
@@ -116,10 +122,106 @@ function TcForm({ studentId: presetId, tc, onClose, onSaved }) {
   )
 }
 
+/**
+ * Issue a TC: first what the records show on the leaving date. All clear — issue. Dues open (fees, library) — they
+ * are listed and the TC is only issued "anyway" with a reason, which stays on the TC's record.
+ */
+function IssueTc({ tc, onClose, onIssued }) {
+  const { t } = useTranslation('students')
+  const { showError } = useSnackbar()
+  const [reason, setReason] = useState('')
+  const [skip, setSkip] = useState([]) // wind-up steps the approver unticked
+  const { data: checks, error } = useQuery({ queryKey: ['tc-checks', tc.studentId, tc.leavingDate], queryFn: () => fetchTcChecks(tc.studentId, tc.leavingDate) })
+  const dues = checks?.dues ?? 0
+  // what issuing can wind up on the leaving date (the canteen balance is paid back by hand, afterwards)
+  const windable = (checks?.checks ?? []).filter((c) => c.kind === 'TIDY' && !c.ok && c.key !== 'canteen')
+  const wallet = (checks?.checks ?? []).find((c) => c.key === 'canteen' && !c.ok)
+  const issue = useMutation({
+    mutationFn: () => issueTc(tc.id, dues ? { reason: reason.trim() } : undefined, windable.map((c) => c.key).filter((k) => !skip.includes(k))),
+    onSuccess: onIssued,
+    onError: (e) => showError(e.message),
+  })
+  return (
+    <Modal open onClose={onClose} size="md" title={t('students.transfer.issueConfirm.title', { name: tc.snapshot?.name })} subtitle={t('students.transfer.issueConfirm.message')}
+      footer={<>
+        <Button variant="ghost" icon={ClipboardCheck} className="me-auto" onClick={() => printDocument('STUDENT_NO_DUES', tc.studentId)}>{t('students.leaving.printSlip')}</Button>
+        <Button variant="secondary" onClick={onClose}>{t('actions.cancel')}</Button>
+        <Button variant={dues ? 'danger' : 'primary'} icon={CheckCircle2} loading={issue.isPending} disabled={!checks || (dues > 0 && reason.trim().length < 5)} onClick={() => issue.mutate()}>
+          {dues ? t('students.leaving.issueAnyway') : t('students.transfer.issue')}
+        </Button>
+      </>}>
+      <div className="space-y-4">
+        {error ? <p className="text-sm text-danger-600">{error.message}</p> : <LeavingChecks data={checks} />}
+        {checks && !checks.checks.length && <p className="text-sm text-ink-muted">{t('students.leaving.noModules')}</p>}
+        {dues > 0 && (
+          <FormField label={t('students.leaving.anywayReason')} hint={t('students.leaving.anywayHint')} required>
+            <Textarea rows={2} maxLength={300} value={reason} onChange={(e) => setReason(e.target.value)} />
+          </FormField>
+        )}
+        {windable.length > 0 && (
+          <div className="space-y-2">
+            <p className="text-sm font-medium text-ink">{t('students.leaving.windUpTitle')}</p>
+            {windable.map((c) => (
+              <label key={c.key} className="flex items-start gap-2.5 text-sm text-ink cursor-pointer">
+                <input type="checkbox" className="mt-0.5 rounded border-border text-brand-600" checked={!skip.includes(c.key)} onChange={(e) => setSkip((x) => (e.target.checked ? x.filter((k) => k !== c.key) : [...x, c.key]))} />
+                <span>{t(`students.leaving.windUp.${c.key}`, { count: c.bills?.length ?? 0, amount: formatINR(c.total ?? 0), route: c.route ?? '', place: [c.block, c.room].filter(Boolean).join(' ') })}</span>
+              </label>
+            ))}
+            <p className="text-xs text-ink-muted">{t('students.leaving.windUpHint')}</p>
+          </div>
+        )}
+        {wallet && <p className="text-xs text-ink-muted">{t('students.leaving.walletAfter', { amount: formatINR(wallet.balance) })}</p>}
+      </div>
+    </Modal>
+  )
+}
+
+const STEP_TONE = { DONE: 'success', PENDING: 'warning', UNDONE: 'neutral' }
+
+/** An issued TC's wind-up: each step with what it did — undo a done one, do one left to do, record the wallet paid back. */
+function WindUp({ tc, onClose, onChanged }) {
+  const { t } = useTranslation('students')
+  const { dateTime } = useFormat()
+  const { showError } = useSnackbar()
+  const [pay, setPay] = useState({ mode: 'CASH', reference: '' })
+  const [items, setItems] = useState(tc.windUp ?? [])
+  const step = useMutation({
+    mutationFn: ({ key, action }) => tcWindUpStep(tc.id, key, { action, ...(key === 'canteen' && action === 'do' ? { mode: pay.mode, reference: pay.reference.trim() || undefined } : {}) }),
+    onSuccess: (next) => { setItems(next.windUp ?? []); onChanged() },
+    onError: (e) => showError(e.message),
+  })
+  const busy = (key, action) => step.isPending && step.variables?.key === key && step.variables?.action === action
+  return (
+    <Modal open onClose={onClose} size="md" title={t('students.leaving.windUpOf', { name: tc.snapshot?.name, no: tc.tcNo })} footer={<Button variant="secondary" onClick={onClose}>{t('actions.close')}</Button>}>
+      <ul className="divide-y divide-border rounded-xl border border-border">
+        {items.map((it) => (
+          <li key={it.key} className="px-4 py-3 space-y-2">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+              <span className="min-w-0 flex-1">
+                <span className="block text-sm font-medium text-ink">{t(`students.leaving.steps.${it.key}`)}</span>
+                <span className="block text-xs text-ink-muted break-words">{[it.key === 'canteen' && it.amount ? formatINR(it.amount) : null, it.note, it.status === 'UNDONE' ? t('students.leaving.undoneBy', { name: it.undoneBy, at: dateTime(it.undoneAt) }) : it.by && `${it.by}, ${dateTime(it.at)}`].filter(Boolean).join(' · ')}</span>
+              </span>
+              <StatusPill tone={STEP_TONE[it.status]}>{t(`students.leaving.stepStatus.${it.status}`)}</StatusPill>
+              {it.status === 'DONE' && it.key !== 'canteen' && it.refs?.length > 0 && <Button size="sm" variant="ghost" icon={RotateCcw} loading={busy(it.key, 'undo')} onClick={() => step.mutate({ key: it.key, action: 'undo' })}>{t('students.leaving.undo')}</Button>}
+              {it.status !== 'DONE' && it.key !== 'canteen' && <Button size="sm" icon={CheckCircle2} loading={busy(it.key, 'do')} onClick={() => step.mutate({ key: it.key, action: 'do' })}>{t('students.leaving.doNow')}</Button>}
+            </div>
+            {it.key === 'canteen' && it.status === 'PENDING' && (
+              <div className="grid sm:grid-cols-[140px_1fr_auto] gap-2 items-end">
+                <FormField label={t('students.leaving.paidBy')}><Select value={pay.mode} onChange={(e) => setPay({ ...pay, mode: e.target.value })}><option value="CASH">{t('students.leaving.cash')}</option><option value="BANK">{t('students.leaving.bank')}</option></Select></FormField>
+                <FormField label={t('students.leaving.reference')}><Input value={pay.reference} maxLength={60} onChange={(e) => setPay({ ...pay, reference: e.target.value })} /></FormField>
+                <Button loading={busy('canteen', 'do')} onClick={() => step.mutate({ key: 'canteen', action: 'do' })}>{t('students.leaving.paidBack')}</Button>
+              </div>
+            )}
+          </li>
+        ))}
+      </ul>
+    </Modal>
+  )
+}
+
 export default function Transfer() {
   const { t } = useTranslation('students')
   const qc = useQueryClient()
-  const confirm = useConfirm()
   const prompt = usePrompt()
   const { showSuccess, showError } = useSnackbar()
   const [params, setParams] = useSearchParams()
@@ -129,6 +231,8 @@ export default function Transfer() {
   const [page, setPage] = useState(1)
   const [asking, setAsking] = useState(null)
   const [editing, setEditing] = useState(null)
+  const [issuing, setIssuing] = useState(null)
+  const [winding, setWinding] = useState(null)
   const q = useDebouncedValue(search.trim(), 250)
   const range = period ? presetRange(period) : null
   const query = { status: status || undefined, search: q || undefined, from: range?.from, to: range?.to, page, pageSize: PAGE }
@@ -176,12 +280,19 @@ export default function Transfer() {
           { key: 'leavingDate', header: t('students.transfer.leavingDate'), nowrap: true, render: (v) => <DateCell value={v} /> },
           { key: 'reasonLabel', header: t('students.transfer.reason'), mobileHidden: true, render: (v, r) => <ColorChip dot seed={r.reason} label={r.reason === 'OTHER' && r.reasonText ? r.reasonText : r.reason ? t(`students.transfer.reasons.${r.reason}`, v ?? r.reason) : v} /> },
           { key: 'requestedBy', header: t('students.transfer.requestedBy'), mobileHidden: true, render: (v, r) => <StackCell title={v ?? '—'} sub={r.issuedBy ? `→ ${r.issuedBy}` : undefined} /> },
-          { key: 'status', header: t('students.status.title'), render: (v) => <StatusPill tone={TC_STATUS[v]?.tone}>{statusLabel(v)}</StatusPill> },
-          { key: 'id', header: '', align: 'right', width: 170, render: (id, r) => (
+          { key: 'status', header: t('students.status.title'), render: (v, r) => (
+            <div className="flex flex-col items-start gap-1">
+              <StatusPill tone={TC_STATUS[v]?.tone}>{statusLabel(v)}</StatusPill>
+              {r.windUp?.some((i) => i.status === 'PENDING') && <span className="text-xs text-ink-muted">{t('students.leaving.toWindUp', { count: r.windUp.filter((i) => i.status === 'PENDING').length })}</span>}
+              {r.duesOverride?.reason && <span className="text-xs text-ink-muted" title={[...(r.duesOverride.open ?? []), r.duesOverride.reason].join(' — ')}>{t('students.leaving.issuedWithDues')}</span>}
+            </div>
+          ) },
+          { key: 'id', header: '', align: 'right', width: 200, render: (id, r) => (
             <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>
               {r.status === 'REQUESTED' && (hasPermission('students.transfer.create') || hasPermission('students.transfer.approve')) && <Button size="sm" variant="ghost" icon={Pencil} title={t('students.transfer.edit')} aria-label={t('students.transfer.edit')} onClick={() => setEditing(r)} />}
-              {r.status === 'REQUESTED' && hasPermission('students.transfer.approve') && <Button size="sm" variant="ghost" icon={CheckCircle2} title={t('students.transfer.issue')} aria-label={t('students.transfer.issue')}
-                onClick={async () => { if (await confirm({ title: t('students.transfer.issueConfirm.title', { name: r.snapshot?.name }), message: t('students.transfer.issueConfirm.message'), confirmLabel: t('students.transfer.issue') })) act.mutate({ fn: () => issueTc(id), done: t('students.transfer.issued') }) }} />}
+              {r.status === 'REQUESTED' && hasPermission('students.transfer.approve') && <Button size="sm" variant="ghost" icon={CheckCircle2} title={t('students.transfer.issue')} aria-label={t('students.transfer.issue')} onClick={() => setIssuing(r)} />}
+              {r.status === 'ISSUED' && r.windUp?.length > 0 && hasPermission('students.transfer.approve') && <Button size="sm" variant="ghost" icon={ListChecks} title={t('students.leaving.windUpButton')} aria-label={t('students.leaving.windUpButton')} onClick={() => setWinding(r)} />}
+              {r.status === 'REQUESTED' && <Button size="sm" variant="ghost" icon={ClipboardCheck} title={t('students.leaving.printSlip')} aria-label={t('students.leaving.printSlip')} onClick={() => printDocument('STUDENT_NO_DUES', r.studentId)} />}
               {hasPermission('students.transfer.print') && r.status !== 'CANCELLED' && <Button size="sm" variant="ghost" icon={Printer} title={t('students.transfer.print')} aria-label={t('students.transfer.print')} onClick={() => printDocument('TRANSFER_CERTIFICATE', id)} />}
               {r.status !== 'CANCELLED' && (r.status === 'REQUESTED' || hasPermission('students.transfer.approve')) && <Button size="sm" variant="ghost" icon={XCircle} title={t('students.transfer.cancel')} aria-label={t('students.transfer.cancel')}
                 onClick={async () => {
@@ -195,6 +306,8 @@ export default function Transfer() {
         pagination={total > PAGE ? { page: page - 1, size: PAGE, totalElements: total, totalPages: Math.ceil(total / PAGE), onPageChange: (p) => setPage(p + 1) } : undefined}
       />
       {asking && <TcForm studentId={asking === 'new' ? null : asking} onClose={() => setAsking(null)} onSaved={() => { refresh(); showSuccess(t('students.transfer.requested')); setAsking(null) }} />}
+      {issuing && <IssueTc tc={issuing} onClose={() => setIssuing(null)} onIssued={(done) => { refresh(); qc.invalidateQueries({ queryKey: ['tc-checks'] }); showSuccess(t('students.transfer.issued')); setIssuing(null); if (done?.windUp?.some((i) => i.status === 'PENDING')) setWinding(done) }} />}
+      {winding && <WindUp tc={winding} onClose={() => setWinding(null)} onChanged={refresh} />}
       {editing && <TcForm tc={editing} onClose={() => setEditing(null)} onSaved={() => { refresh(); showSuccess(t('students.transfer.saved')); setEditing(null) }} />}
     </PageContainer>
   )

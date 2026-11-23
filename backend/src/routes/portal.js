@@ -56,7 +56,7 @@ portalRouter.put('/settings', requirePermission('portal.settings.edit'), async (
   const list = z.array(z.string().max(40)).max(40)
   const input = z.object({
     enabled: z.boolean(), studentLogins: z.boolean(), showFees: z.boolean(), showMarks: z.boolean(), chat: z.boolean(),
-    hiddenSections: list, parentOnlySections: list, profileFields: list, staffPhones: z.boolean(),
+    hiddenSections: list, parentOnlySections: list, profileFields: list, staffPhones: z.boolean(), afterLeavingDays: z.number().int().min(0).max(365),
   }).partial().parse(req.body)
   const before = await getSettings('portal')
   const after = await saveSettings('portal', input)
@@ -108,6 +108,18 @@ async function familySchool(req, res, next) {
   next()
 }
 
+/**
+ * A child who has left (kept in the app for Settings › App › days after leaving) is read-only: anything but reading
+ * is refused, except paying fees still due and marking a notice read.
+ */
+const LEFT_ALLOWED = [/^\/pay(\/verify)?$/, /^\/notices\/[^/]+\/read$/]
+function leftReadOnly(req, res, next) {
+  if (req.method === 'GET' || req.method === 'HEAD') return next()
+  const s = req.family?.students?.find((x) => String(x._id) === String(req.params.studentId))
+  if (!s || s.status === 'ACTIVE' || LEFT_ALLOWED.some((re) => re.test(req.path))) return next()
+  next(new AppError(403, `${s.firstName} has left the school — the app only shows their records now.`, { code: 'STUDENT_LEFT' }))
+}
+
 /** A signed-in family of this school; sets the students this request may read. */
 async function requireFamily(req, res, next) {
   const { session, students } = await readFamilySession(req.cookies?.[FAMILY_COOKIE], req.family.tenant._id, { studentLogins: !!req.family.settings.studentLogins })
@@ -156,6 +168,7 @@ familyRouter.post('/verify', verifyLimiter, async (req, res) => {
 })
 
 familyRouter.use(requireFamily)
+familyRouter.use('/students/:studentId', leftReadOnly)
 
 familyRouter.get('/me', async (req, res) => { res.json({ data: await meView(req.family) }) })
 familyRouter.get('/push/key', async (req, res) => { res.json({ data: { publicKey: await pushPublicKey() } }) })
@@ -384,7 +397,7 @@ familyRouter.post('/students/:studentId/chat', async (req, res) => {
 
 /** One of the family's own printed documents (receipt, report card, hall ticket, certificate), as HTML. */
 familyRouter.get('/doc/:docType/:id', async (req, res) => {
-  const docType = z.enum(['FEE_RECEIPT', 'REPORT_CARD', 'HALL_TICKET', 'YEAR_REPORT_CARD', 'CERTIFICATE']).parse(req.params.docType)
+  const docType = z.enum(['FEE_RECEIPT', 'REPORT_CARD', 'HALL_TICKET', 'YEAR_REPORT_CARD', 'CERTIFICATE', 'TRANSFER_CERTIFICATE']).parse(req.params.docType)
   const html = await documentFor(req.family, docType, req.params.id)
   res.setHeader('Content-Type', 'text/html; charset=utf-8')
   res.send(html)

@@ -15,6 +15,7 @@ export const PRINT_DOCS = [
   { value: 'YEAR_REPORT_CARD', label: 'Annual report card', module: 'exams', paper: 'A4', ready: true, server: true },
   { value: 'HALL_TICKET', label: 'Hall ticket', module: 'exams', paper: 'A4', ready: true, server: true }, // a full A4 admit card: timetable, invigilator column, instructions
   { value: 'TRANSFER_CERTIFICATE', label: 'Transfer certificate', module: 'students', paper: 'A4', ready: true, server: true },
+  { value: 'STUDENT_NO_DUES', label: 'Student no-dues slip', module: 'students', paper: 'A4', ready: true, server: true },
   { value: 'CERTIFICATE', label: 'Certificates (bonafide, character, study, fee, merit)', module: 'certificates', paper: 'A4', ready: true, server: true },
   { value: 'ADMISSION_FORM', label: 'Admission form', module: 'students', paper: 'A4', ready: true, server: true },
   { value: 'STUDENT_ID_CARD', label: 'Student ID card', module: 'students', paper: 'CARD_PORTRAIT', ready: true, server: true, many: true },

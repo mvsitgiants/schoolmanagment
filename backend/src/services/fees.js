@@ -272,6 +272,42 @@ export async function generateInvoices(id, auth, req) {
 // ───────────────────────────────────────────────────────── a student's account
 
 /** What a student owes right now, late fees included: { due, lateFee, student } — for online payment. */
+/**
+ * Cancel a student's fee bills that nothing has been paid on (a student leaving: the bills for after the leaving
+ * date). Part-paid or paid bills are left alone — they need a refund or an adjustment at the fee office. Returns the
+ * ids cancelled and the ones skipped.
+ */
+export async function cancelUnpaidBills(ids, reason, auth, req) {
+  const bills = await FeeInvoice.find({ _id: { $in: ids }, status: { $in: ['UNPAID', 'PARTIAL'] } })
+  const cancelled = []; const skipped = []
+  for (const inv of bills) {
+    if ((inv.paid ?? 0) > 0) { skipped.push(inv); continue }
+    Object.assign(inv, { status: 'CANCELLED', cancelledAt: new Date(), cancelledBy: auth.user?.name, cancelReason: reason })
+    await inv.save()
+    cancelled.push(inv)
+  }
+  if (cancelled.length) {
+    const s = await Student.findById(cancelled[0].studentId).select('firstName middleName lastName').lean()
+    await audit({ action: 'CANCEL', module: 'fees', entityType: 'invoice', entityId: cancelled.map((i) => String(i._id)).join(','), entityName: studentName(s), studentId: cancelled[0].studentId, summary: `Cancelled ${cancelled.map((i) => `${i.invoiceNo} (${i.installment})`).join(', ')} of ${studentName(s)}: ${reason}` }, req)
+  }
+  return { cancelled: cancelled.map((i) => String(i._id)), skipped: skipped.map((i) => ({ id: String(i._id), invoiceNo: i.invoiceNo, installment: i.installment, paid: i.paid })), total: cancelled.reduce((n, i) => n + (i.balance ?? 0), 0) }
+}
+
+/** Put cancelled bills back (the TC behind the cancelling was undone): due again as they were. */
+export async function reopenBills(ids, note, auth, req) {
+  const bills = await FeeInvoice.find({ _id: { $in: ids }, status: 'CANCELLED' })
+  for (const inv of bills) {
+    inv.status = inv.balance <= 0 ? 'PAID' : inv.paid > 0 ? 'PARTIAL' : 'UNPAID'
+    inv.cancelledAt = undefined; inv.cancelledBy = undefined; inv.cancelReason = undefined
+    await inv.save()
+  }
+  if (bills.length) {
+    const s = await Student.findById(bills[0].studentId).select('firstName middleName lastName').lean()
+    await audit({ action: 'UPDATE', module: 'fees', entityType: 'invoice', entityId: bills.map((i) => String(i._id)).join(','), entityName: studentName(s), studentId: bills[0].studentId, summary: `Reopened ${bills.map((i) => i.invoiceNo).join(', ')} of ${studentName(s)}: ${note}` }, req)
+  }
+  return { reopened: bills.length }
+}
+
 export async function amountDueNow(studentId) {
   const s = isOid(studentId) ? await Student.findById(studentId).lean() : null
   if (!s) throw notFound('Student')

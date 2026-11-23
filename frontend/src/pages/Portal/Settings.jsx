@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { Copy, ExternalLink, Printer, Smartphone } from 'lucide-react'
 import { FAMILY_FEATURES, FAMILY_PROFILE_FIELDS } from '@schoolgiant/shared'
-import { Note, PageContainer, PageHeader, Panel, SegmentedControl } from '../../components/system'
+import { Input, Note, PageContainer, PageHeader, Panel, SegmentedControl } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { fetchAppLink, fetchAppSettings, saveAppSettings } from '../../api/family'
 import { getCurrentUser, hasPermission } from '../../api/auth'
@@ -82,6 +82,16 @@ function DetailsPanel({ settings, canEdit, save }) {
           <span className="block text-xs text-ink-muted">{t('portal.details.staffPhonesHint')}</span>
         </span>
       </label>
+      <div className="mt-4 pt-3 border-t border-border flex flex-wrap items-start justify-between gap-3">
+        <span className="min-w-0 flex-1">
+          <span className="block text-sm text-ink">{t('portal.details.afterLeaving')}</span>
+          <span className="block text-xs text-ink-muted">{t('portal.details.afterLeavingHint')}</span>
+        </span>
+        {/* saved when the box is left, so typing "30" doesn't save "3" first */}
+        <Input key={settings.afterLeavingDays ?? 30} type="number" min={0} max={365} className="w-24" defaultValue={settings.afterLeavingDays ?? 30} disabled={!canEdit || save.isPending}
+          aria-label={t('portal.details.afterLeaving')}
+          onBlur={(e) => { const n = Math.max(0, Math.min(365, Math.round(Number(e.target.value) || 0))); if (n !== (settings.afterLeavingDays ?? 30)) save.mutate({ afterLeavingDays: n }) }} />
+      </div>
     </Panel>
   )
 }

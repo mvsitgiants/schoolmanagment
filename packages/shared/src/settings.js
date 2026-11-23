@@ -149,6 +149,7 @@ export const SETTINGS = [
   { module: 'portal', key: 'parentOnlySections', type: 'multi', label: 'Sections only parents see', default: [], options: FAMILY_FEATURES.map((f) => ({ value: f.value, label: f.label })), help: 'A student signed in on their own does not see these.' },
   { module: 'portal', key: 'profileFields', type: 'multi', label: 'Child’s details shown in the app', default: FAMILY_PROFILE_FIELDS.map((f) => f.value), options: FAMILY_PROFILE_FIELDS, help: 'The name and class are always shown.' },
   { module: 'portal', key: 'staffPhones', type: 'bool', label: 'Show staff phone numbers in the app', default: true, help: 'The bus driver’s and attendant’s, and the hostel warden’s. Off: names only.' },
+  { module: 'portal', key: 'afterLeavingDays', type: 'number', label: 'Keep the app open after a child leaves (days)', default: 30, min: 0, max: 365, help: 'Read-only: fees (and paying them), results, certificates, notices and a copy of the TC. 0 closes it the day the TC is issued.' },
   { module: 'portal', key: 'chat', type: 'bool', label: 'Families can message teachers in the app', default: true, help: 'The class teacher and the subject teachers of the child’s class. Needs the Communication hub.' },
 
   // ── Staff chat & call bell (calls & emergency alerts)
