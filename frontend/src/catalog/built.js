@@ -11,7 +11,7 @@ export const BUILT_PAGES = new Set([
   'students.admit', 'students.directory', 'students.profile', 'students.guardians', 'students.promotion', 'students.transfer', 'students.id-cards',
   'admissions.enquiries', 'admissions.applications', 'admissions.tests', 'admissions.merit', 'admissions.settings',
   'timetable.timetable', 'timetable.substitutions', 'timetable.rooms',
-  'hrms.employees', 'hrms.attendance', 'hrms.leave', 'hrms.holidays', 'hrms.hiring', 'hrms.performance',
+  'hrms.employees', 'hrms.exits', 'hrms.attendance', 'hrms.leave', 'hrms.holidays', 'hrms.hiring', 'hrms.performance',
   'payroll.structures', 'payroll.statutory', 'payroll.loans', 'payroll.runs', 'payroll.payslips', 'payroll.exports',
   'finance.accounts', 'finance.journals', 'finance.expenses', 'finance.bank', 'finance.reports',
   'lms.courses', 'lms.create-content', 'lms.my-content', 'lms.content-library', 'lms.live-classes', 'lms.question-bank',

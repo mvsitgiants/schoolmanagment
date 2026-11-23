@@ -16,6 +16,7 @@ import { nextNumber } from '../platform/numbering.js'
 import { escapeRegex, listResponse } from '../platform/validate.js'
 import { createUser, revokeUserSessions } from './users.js'
 import { employeeScope, findEmployee, hrSettings, idStr, myEmployee, stamp, todayYmd } from './hrmsCommon.js'
+import { cancelClearance, moveClearance, startClearance } from './hrmsExits.js'
 
 // Staff & HR › Staff (module `hrms`): the staff records, their logins, job changes and exits; holidays.
 // Salary, bank and statutory ids are out of the default projection: salary needs `view_salary`, the ids `view_sensitive`
@@ -95,6 +96,7 @@ export async function getEmployee(id, auth) {
   const showIds = can(auth, 'hrms.employees.view_sensitive')
   const extra = ['+photo', showSalary && '+salary', showIds && '+statutory +bank'].filter(Boolean).join(' ')
   const e = await findEmployee(id, auth, { select: extra || undefined, lean: true })
+  const exitHandler = (can(auth, 'hrms.employees.terminate') || can(auth, 'hrms.exits.view')) && !(e.userId && String(e.userId) === String(auth.userId))
   const n = await names()
   const [manager, user, reports] = await Promise.all([
     e.reportingManagerId ? Employee.findById(e.reportingManagerId).select('name designation').lean() : null,
@@ -108,7 +110,9 @@ export async function getEmployee(id, auth) {
     manager: manager && { id: String(manager._id), name: manager.name, designation: manager.designation ?? null },
     login: user && { id: String(user._id), name: user.name, email: user.email, active: user.active, lastLoginAt: user.lastLoginAt ?? null },
     reports: reports.map((r) => ({ id: String(r._id), name: r.name, designation: r.designation ?? null })),
-    exit: e.exit?.type ? { ...e.exit, typeLabel: label(EXIT_TYPES, e.exit.type) } : null,
+    // the exit interview (the rehire call) and the letters log are for those who handle exits, never the person themselves
+    exit: e.exit?.type ? { ...e.exit, typeLabel: label(EXIT_TYPES, e.exit.type), interview: exitHandler ? e.exit.interview ?? null : undefined } : null,
+    letters: exitHandler ? (e.letters ?? []).slice().reverse() : undefined,
     jobHistory: (e.jobHistory ?? []).slice().reverse(),
     salary: showSalary ? (e.salary ?? null) : undefined,
     statutory: showIds ? maskIds(e.statutory) : undefined,
@@ -335,11 +339,13 @@ export async function exitEmployee(id, input, auth, req) {
   if (e.status === 'EXITED') throw conflict('This person has already left.')
   if (input.lastWorkingDate < e.joiningDate) throw badRequest('Some details need fixing.', { fields: { lastWorkingDate: 'Before they joined' } })
   const today = await todayYmd()
-  e.exit = { type: input.type, noticeDate: input.noticeDate || today, lastWorkingDate: input.lastWorkingDate, reason: input.reason, deactivateLogin: input.deactivateLogin !== false, ...stamp(auth) }
+  e.exit = { type: input.type, noticeDate: input.noticeDate || today, lastWorkingDate: input.lastWorkingDate, reason: input.reason, deactivateLogin: input.deactivateLogin !== false, misconduct: input.type === 'TERMINATED' ? !!input.misconduct : undefined, ...stamp(auth) }
   e.status = input.lastWorkingDate < today ? 'EXITED' : 'NOTICE'
   e.jobHistory.push({ type: 'EXIT', date: input.lastWorkingDate, note: `${label(EXIT_TYPES, input.type)}${input.reason ? ` — ${input.reason}` : ''}`, by: auth.user?.name, at: new Date() })
   await e.save()
   if (e.status === 'EXITED') await closeLogin(e)
+  // the exit clearance starts on its own (or follows a changed last working day)
+  if (!(await startClearance(e, auth))) await moveClearance(e._id, input.lastWorkingDate)
   await audit({ action: 'UPDATE', module: 'hrms', entityType: 'employee', entityId: String(e._id), entityName: e.name, summary: `${label(EXIT_TYPES, input.type)}: ${e.name}, last working day ${input.lastWorkingDate}` }, req)
   return getEmployee(id, auth)
 }
@@ -352,6 +358,7 @@ export async function cancelExit(id, auth, req) {
   e.exit = undefined
   e.status = 'ACTIVE'
   await e.save()
+  await cancelClearance(e._id, auth)
   await audit({ action: 'UPDATE', module: 'hrms', entityType: 'employee', entityId: String(e._id), entityName: e.name, summary: `Took back the exit of ${e.name}` }, req)
   return getEmployee(id, auth)
 }

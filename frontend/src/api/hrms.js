@@ -37,6 +37,14 @@ export const linkEmployeeLogin = (id, userId) => put(`${BASE}/employees/${id}/lo
 export const createEmployeeLogin = (id, body) => post(`${BASE}/employees/${id}/login`, body)
 export const exitEmployee = (id, body) => post(`${BASE}/employees/${id}/exit`, body)
 export const cancelEmployeeExit = (id) => post(`${BASE}/employees/${id}/exit/cancel`)
+/** The experience certificate's wording: { conduct, duties, showTeaching }. */
+export const saveExitCertificate = (id, body) => put(`${BASE}/employees/${id}/exit/certificate`, body)
+export const saveExitInterview = (id, body) => put(`${BASE}/employees/${id}/exit/interview`, body)
+// staff leaving: exit clearances
+export const fetchExitClearances = (params) => list(`${BASE}/exits`, { ...params, page: params?.page ?? 1 }) // → { data, meta, summary }
+export const fetchExitClearance = (id) => get(`${BASE}/exits/${id}`)
+export const updateClearanceItem = (id, itemId, body) => patch(`${BASE}/exits/${id}/items/${itemId}`, body)
+export const addClearanceItem = (id, body) => post(`${BASE}/exits/${id}/items`, body)
 export const fetchEmployeeLeave = (id) => get(`${BASE}/employees/${id}/leave`)
 export const fetchEmployeeLedger = (id, leaveTypeId) => get(`${BASE}/employees/${id}/leave/ledger`, { leaveTypeId })
 export const adjustEmployeeLeave = (id, body) => post(`${BASE}/employees/${id}/leave/adjust`, body)

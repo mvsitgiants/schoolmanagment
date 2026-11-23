@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { ChevronLeft, Eye, EyeOff, History, KeyRound, LogOut, Palmtree, Pencil, Printer, Undo2, Wallet } from 'lucide-react'
+import { ChevronLeft, DoorOpen, Eye, EyeOff, History, KeyRound, LogOut, MessageSquareText, Palmtree, Pencil, Printer, Undo2, Wallet } from 'lucide-react'
 import { printDocument } from '../../components/print/printDocument'
 import { EXIT_TYPES, SALARY_MODES, toPaise, toRupees } from '@schoolgiant/shared'
 import { DateInput, Attachments, ColorChip, DataTable, DateCell, FactGrid, FormField, Input, Modal, Money, Note, PageContainer, Panel, Select, StatCard, Tabs, Textarea, Timeline, hueTone, useConfirm } from '../../components/system'
@@ -18,6 +18,9 @@ import { useFormat } from '../../context/SettingsContext'
 import { useHrLabels, useHrMeta } from '../../components/hrms/HrKit'
 import { EmployeeEditModal } from '../../components/hrms/EmployeeForm'
 import { StaffOverview, StaffRail } from '../../components/hrms/StaffRail'
+import { useExperienceCertificate } from '../../components/hrms/ExperienceCertificateModal'
+import { useExitInterview } from '../../components/hrms/ExitInterviewModal'
+import EmployeeLetters from '../../components/hrms/EmployeeLetters'
 
 function SalaryForm({ emp, onClose, onSaved }) {
   const { t } = useTranslation('hrms')
@@ -87,10 +90,10 @@ function ExitForm({ emp, onClose, onSaved }) {
   const { t } = useTranslation('hrms')
   const L = useHrLabels()
   const { showError } = useSnackbar()
-  const [form, setForm] = useState({ type: 'RESIGNED', noticeDate: '', lastWorkingDate: '', reason: '', deactivateLogin: true })
+  const [form, setForm] = useState({ type: 'RESIGNED', noticeDate: '', lastWorkingDate: '', reason: '', deactivateLogin: true, misconduct: false })
   const [errors, setErrors] = useState({})
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.type === 'checkbox' ? e.target.checked : e.target.value }))
-  const save = useMutation({ mutationFn: () => exitEmployee(emp.id, form), onSuccess: onSaved, onError: (e) => { setErrors(e.response?.data?.details?.fields ?? {}); showError(e.message) } })
+  const save = useMutation({ mutationFn: () => exitEmployee(emp.id, { ...form, misconduct: form.type === 'TERMINATED' ? form.misconduct : undefined }), onSuccess: onSaved, onError: (e) => { setErrors(e.response?.data?.details?.fields ?? {}); showError(e.message) } })
   return (
     <Modal open onClose={onClose} title={t('hrms.profile.exitTitle', { name: emp.name })} footer={<>
       <Button variant="secondary" onClick={onClose}>{t('actions.cancel')}</Button>
@@ -101,6 +104,15 @@ function ExitForm({ emp, onClose, onSaved }) {
         <FormField label={t('hrms.profile.noticeDate')}><DateInput value={form.noticeDate} onChange={set('noticeDate')} /></FormField>
         <FormField label={t('hrms.profile.lastDay')} required error={errors.lastWorkingDate}><DateInput value={form.lastWorkingDate} onChange={set('lastWorkingDate')} /></FormField>
         <div className="col-span-2"><FormField label={t('hrms.profile.exitReason')}><Textarea rows={2} value={form.reason} onChange={set('reason')} /></FormField></div>
+        {form.type === 'TERMINATED' && (
+          <div className="col-span-2 rounded-lg border border-border px-3 py-2.5">
+            <label className="inline-flex items-center gap-2 text-sm text-ink">
+              <input type="checkbox" checked={form.misconduct} onChange={set('misconduct')} className="rounded border-border text-brand-500 focus:ring-brand-500" />
+              {t('hrms.profile.misconduct')}
+            </label>
+            <p className="mt-1 text-xs text-ink-muted">{form.misconduct ? t('hrms.profile.misconductOn') : t('hrms.profile.misconductOff')}</p>
+          </div>
+        )}
         {emp.login && (
           <label className="col-span-2 inline-flex items-center gap-2 text-sm text-ink">
             <input type="checkbox" checked={form.deactivateLogin} onChange={set('deactivateLogin')} className="rounded border-border text-brand-500 focus:ring-brand-500" />
@@ -240,6 +252,8 @@ export default function EmployeeProfile() {
   const [tab, setTab] = useState('overview')
   const [modal, setModal] = useState(null)
   const [reveal, setReveal] = useState(false)
+  const certificate = useExperienceCertificate()
+  const interview = useExitInterview()
   const { data: emp, isLoading, error } = useQuery({ queryKey: ['employee', id], queryFn: () => fetchEmployee(id) })
   const secret = useQuery({ queryKey: ['employee-sensitive', id], queryFn: () => fetchEmployeeSensitive(id), enabled: reveal, staleTime: Infinity, gcTime: 0 })
   const refresh = () => { qc.invalidateQueries({ queryKey: ['employee', id] }); qc.invalidateQueries({ queryKey: ['employees'] }); qc.invalidateQueries({ queryKey: ['hrms-meta'] }) }
@@ -254,6 +268,7 @@ export default function EmployeeProfile() {
     { value: 'leave', label: t('hrms.profile.tabs.leave') },
     ...(emp.salary !== undefined || showIds ? [{ value: 'pay', label: t('hrms.profile.tabs.pay') }] : []),
     { value: 'history', label: t('hrms.profile.tabs.history') },
+    ...(emp.letters !== undefined ? [{ value: 'letters', label: t('hrms.profile.tabs.letters') }] : []),
     ...(showIds ? [{ value: 'files', label: t('hrms.profile.tabs.files') }] : []),
   ]
   const s = secret.data
@@ -271,7 +286,20 @@ export default function EmployeeProfile() {
             onClick={async () => { if (await confirm({ title: t('hrms.profile.undoExitTitle'), message: t('hrms.profile.undoExitHint'), confirmLabel: t('hrms.profile.undoExit') })) undoExit.mutate() }}>{t('hrms.profile.undoExit')}</Button>}
         </div>
       </div>
-      {emp.exit && <Note tone="warning" className="mb-4">{t('hrms.profile.exitNote', { type: L.exit(emp.exit.type), date: date(emp.exit.lastWorkingDate), reason: emp.exit.reason ?? '' })}</Note>}
+      {emp.exit && (
+        <Note tone="warning" className="mb-4" actions={(
+          <div className="flex flex-wrap gap-2">
+            {hasPermission('hrms.exits.view') && <Button size="sm" variant="secondary" icon={DoorOpen} onClick={() => navigate('/hrms/exits')}>{t('hrms.profile.exitClearance')}</Button>}
+            <Button size="sm" variant="secondary" icon={Printer} onClick={() => printDocument('HR_RELIEVING_LETTER', emp.id)}>{t('hrms.profile.relievingLetter')}</Button>
+            <Button size="sm" variant="secondary" icon={Printer} onClick={() => certificate.open(emp.id)}>{t('hrms.profile.experienceCertificate')}</Button>
+            {hasPermission('hrms.exits.view') && <Button size="sm" variant="secondary" icon={Printer} onClick={() => printDocument('HR_NO_DUES', emp.id)}>{t('hrms.profile.noDues')}</Button>}
+            {hasPermission('hrms.exits.view') && <Button size="sm" variant="secondary" icon={MessageSquareText} onClick={() => interview.open(emp.id)}>{emp.exit.interview ? t('hrms.profile.exitInterviewDone') : t('hrms.profile.exitInterview')}</Button>}
+            {emp.status === 'EXITED' && hasPermission('payroll.payslips.view') && <Button size="sm" variant="secondary" icon={Printer} onClick={() => printDocument('HR_FNF_STATEMENT', emp.id)}>{t('hrms.profile.fnfStatement')}</Button>}
+          </div>
+        )}>{t('hrms.profile.exitNote', { type: L.exit(emp.exit.type), date: date(emp.exit.lastWorkingDate), reason: emp.exit.reason ?? '' })}</Note>
+      )}
+      {certificate.modal}
+      {interview.modal}
       <div className="grid lg:grid-cols-[320px_minmax(0,1fr)] gap-5 items-start">
       <StaffRail emp={emp} loginPanel={<LoginPanel emp={emp} onChanged={refresh} />} />
       <div className="min-w-0">
@@ -324,6 +352,7 @@ export default function EmployeeProfile() {
         </Panel>
       )}
 
+      {tab === 'letters' && <EmployeeLetters emp={emp} canUpload={canEdit && showIds} canSeeFiles={showIds} onShowFiles={() => setTab('files')} />}
       {tab === 'files' && <Panel title={t('hrms.profile.tabs.files')}><Attachments entityType="employee" entityId={emp.id} canAdd={canEdit} /></Panel>}
       </div>
       </div>

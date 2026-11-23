@@ -135,6 +135,7 @@ const TtRooms = lazy(() => import('./pages/Timetable/Rooms'))
 const HrEmployees = lazy(() => import('./pages/Hrms/Employees'))
 const HrNewEmployee = lazy(() => import('./pages/Hrms/NewEmployee'))
 const HrEmployeeProfile = lazy(() => import('./pages/Hrms/EmployeeProfile'))
+const HrExits = lazy(() => import('./pages/Hrms/Exits'))
 const HrAttendance = lazy(() => import('./pages/Hrms/Attendance'))
 const HrLeave = lazy(() => import('./pages/Hrms/Leave'))
 const HrHolidays = lazy(() => import('./pages/Hrms/Holidays'))
@@ -360,6 +361,7 @@ export default function App() {
           <Route path="hrms/employees" element={<HrEmployees />} />
           <Route path="hrms/employees/new" element={<HrNewEmployee />} />
           <Route path="hrms/employees/:id" element={<HrEmployeeProfile />} />
+          <Route path="hrms/exits" element={<HrExits />} />
           <Route path="hrms/attendance" element={<HrAttendance />} />
           <Route path="hrms/leave" element={<HrLeave />} />
           <Route path="hrms/holidays" element={<HrHolidays />} />

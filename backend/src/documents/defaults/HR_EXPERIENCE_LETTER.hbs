@@ -1,0 +1,32 @@
+{{!-- Experience certificate (A4) on the letterhead, for a staff member who has left: "to whom it may concern", the
+      post and the dates, for a teacher the subjects and classes taught and the years (Academic setup › teacher
+      allocations), the duties HR wrote, and the conduct line HR picked (left out for a termination or someone who
+      stopped coming). Main fields: staff.*, certificate.good / satisfactory / omit, certificate.duties,
+      certificate.taught, certificate.subjectList, certificate.classList, certificate.yearRange. --}}
+<style>
+  .xc { font-size: 10.5pt; line-height: 1.65 }
+  .xc .refline { display: flex; justify-content: space-between; margin: 4mm 0 6mm }
+  .xc .title { text-align: center; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; margin: 0 0 6mm }
+  .xc p { margin: 0 0 3.5mm; text-align: justify }
+  .xc .yours { display: flex; justify-content: flex-end; margin-top: 12mm }
+  .xc .yours > div { text-align: center; min-width: 62mm }
+  .xc .yours .line { border-top: 0.3mm solid #333; padding-top: 1.2mm; margin-top: 2mm }
+</style>
+{{#> letterhead}}{{/letterhead}}
+<div class="xc">
+  <div class="refline"><span>{{t "hrms.print.experience.ref" "Ref. No.:"}} <b class="mono">{{refNo}}</b></span><span>{{t "hrms.print.experience.date" "Date:"}} {{date date}}</span></div>
+  <div class="title">{{t "hrms.print.experience.title" "To whom it may concern"}}</div>
+  <p>{{#if staff.department}}{{t "hrms.print.experience.certifyDept" "This is to certify that <b>{{name}}</b> (staff code {{code}}) worked at {{school}} as <b>{{post}}</b> in the {{department}} department from <b>{{from}}</b> to <b>{{to}}</b>." name=(join (array staff.salutation staff.name) " ") code=staff.code school=institution.name post=staff.designation department=staff.department from=(date staff.joiningDate) to=(date staff.lastWorkingDate)}}{{else}}{{t "hrms.print.experience.certify" "This is to certify that <b>{{name}}</b> (staff code {{code}}) worked at {{school}} as <b>{{post}}</b> from <b>{{from}}</b> to <b>{{to}}</b>." name=(join (array staff.salutation staff.name) " ") code=staff.code school=institution.name post=staff.designation from=(date staff.joiningDate) to=(date staff.lastWorkingDate)}}{{/if}}</p>
+  {{#if certificate.taught}}<p>{{#if certificate.yearRange}}{{t "hrms.print.experience.taughtYears" "During this time {{name}} taught {{subjects}} in {{classes}}, in the academic years {{years}}." name=staff.name subjects=certificate.subjectList classes=certificate.classList years=certificate.yearRange}}{{else}}{{t "hrms.print.experience.taught" "During this time {{name}} taught {{subjects}} in {{classes}}." name=staff.name subjects=certificate.subjectList classes=certificate.classList}}{{/if}}</p>{{/if}}
+  {{#if certificate.duties}}<p>{{t "hrms.print.experience.duties" "{{name}}’s work also included {{duties}}." name=staff.name duties=certificate.duties}}</p>{{/if}}
+  {{#if certificate.good}}<p>{{t "hrms.print.experience.good" "We found {{name}} sincere, hard-working and of good conduct, and wish {{name}} every success." name=staff.name}}</p>{{/if}}
+  {{#if certificate.satisfactory}}<p>{{t "hrms.print.experience.satisfactory" "{{name}}’s work and conduct during this period were satisfactory." name=staff.name}}</p>{{/if}}
+  <div class="yours no-break">
+    <div>
+      <div>{{t "hrms.print.experience.for" "For {{school}}" school=institution.name}}</div>
+      {{> seal role="PRINCIPAL" label=(t "hrms.print.experience.seal" "Seal")}}
+      <div class="line">{{t "hrms.print.experience.signatory" "Principal / Authorised signatory"}}</div>
+    </div>
+  </div>
+</div>
+{{> footer}}

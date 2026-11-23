@@ -58,4 +58,69 @@ export const MONEY_SAMPLES = {
     requisition: { title: 'PGT Physics', category: 'TEACHING', employmentType: 'PERMANENT', requisitionNo: 'REQ2627000004' },
     department: { name: 'Science' }, branch: null, refNo: 'HR/OFFER/2026-27/0004',
   }),
+  HR_RELIEVING_LETTER: () => exitSample('RELIEVING'),
+  HR_EXPERIENCE_LETTER: () => exitSample('EXPERIENCE'),
+  HR_EXIT_INTERVIEW: () => {
+    const s = exitSample('RELIEVING')
+    const pick = (list, v) => list.map(([value, label]) => ({ label, on: value === v, chosen: value === v }))
+    return {
+      date: today(), refNo: 'HR/EXI/T0042', staff: s.staff,
+      interview: {
+        recorded: true, by: 'Office HR', on: today(),
+        reasons: pick([['PAY', 'Better pay elsewhere'], ['GROWTH', 'Higher post or promotion'], ['GOVT_JOB', 'Government job'], ['STUDIES', 'Higher studies (B.Ed., M.Ed., PhD)'], ['RELOCATION', 'Moving to another city'], ['FAMILY', 'Family reasons'], ['WORKLOAD', 'Workload or timetable'], ['MANAGEMENT', 'Management or head of department'], ['ENVIRONMENT', 'Working conditions'], ['HEALTH', 'Health'], ['RETIREMENT', 'Retirement'], ['OTHER', 'Other']], 'RELOCATION'),
+        reasonLabel: 'Moving to another city', otherReason: 'Spouse transferred to Pune',
+        ratings: [['The work itself', 5], ['Principal and head of department', 4], ['Pay and benefits', 3], ['Workload and timetable', 3], ['Colleagues', 5], ['Classrooms, labs and resources', 4]]
+          .map(([aspect, score]) => ({ aspect, score, boxes: [1, 2, 3, 4, 5].map((n) => ({ n, on: n === score })) })),
+        liked: 'Supportive colleagues and freedom to run the maths club.', improve: 'Fewer substitution periods; smart boards in the senior classes.',
+        rejoinOptions: pick([['YES', 'Yes'], ['MAYBE', 'Maybe'], ['NO', 'No']], 'YES'),
+        rehireOptions: pick([['YES', 'Can be taken back'], ['CONDITIONAL', 'Only on conditions'], ['NO', 'Not to be taken back']], 'YES'), rehireNote: null,
+      },
+    }
+  },
+  HR_NO_DUES: () => {
+    const s = exitSample('RELIEVING')
+    const items = [
+      ['Handover of classes, syllabus status, marks and registers', 'Head of department', 'DONE', 'Mrs. Rao'], ['Exam duties, question papers and answer scripts handed over', 'Examinations', 'DONE', 'Exam cell'],
+      ['Library books returned, fines paid', 'Library', 'DONE', 'Librarian'], ['ID card, keys, lab and store items returned', 'Admin office', 'DONE', 'Office'],
+      ['Login, email and app access switched off', 'IT', 'DONE', 'IT desk'], ['Advances and loans settled', 'Accounts', 'NA', ''],
+      ['Full and final settlement', 'Accounts', 'DONE', 'Accounts'], ['Relieving letter and experience certificate', 'HR', 'DONE', 'HR office'],
+    ].map(([title, ownerLabel, status, by]) => ({ title, ownerLabel, status, statusLabel: status === 'DONE' ? 'Cleared' : 'Not needed', cleared: status === 'DONE', notNeeded: status === 'NA', pending: false, done: { by }, on: by ? today() : null }))
+    return {
+      date: today(), refNo: 'HR/NOD/T0042', staff: s.staff,
+      clearance: { items, pending: 0, dues: 0, complete: true, completedOn: today() },
+      library: { key: 'library', ok: true, booksOut: [], fines: 0, fineTotal: 0 }, advances: { key: 'advances', ok: true, loans: [], total: 0 },
+    }
+  },
+  HR_FNF_STATEMENT: () => {
+    const salaryLines = [{ code: 'BASIC', label: 'Basic', amount: 1500000, basis: '15 of 30 days' }, { code: 'DA', label: 'Dearness allowance', amount: 300000, basis: '15 of 30 days' }]
+    const settlementLines = [{ code: 'LEAVE_ENCASHMENT', label: 'Leave encashment', amount: 1200000, basis: '12 day(s)' }]
+    const deductions = [{ code: 'PF', label: 'Provident fund', amount: 216000 }, { code: 'NOTICE_RECOVERY', label: 'Notice-period recovery', amount: 600000, basis: '6 day(s) short of 30' }]
+    return {
+      institution: { name: 'St. Thomas School' },
+      payslip: { no: 'PS2627000057', monthLabel: 'November 2026', draft: false, paid: true, paidOn: today(), paidMode: 'Bank transfer', reference: 'UTR 4471 2290' },
+      employee: { name: 'Meera Iyer', code: 'T0042', designation: 'TGT — Mathematics', departmentName: 'Mathematics', joiningDate: '2022-06-01' },
+      fnf: { lastWorkingDate: today(), serviceYears: 4.47, countedYears: 0, leaveDays: 12, noticeDays: 30, noticeServed: 24, note: 'No gratuity: 4 year(s) 5 month(s) of service (needs 5).' },
+      earnings: [...salaryLines, ...settlementLines], deductions,
+      totals: { gross: 3000000, deductions: 816000, net: 2184000 },
+      settlement: { leaveEncashment: 1200000, gratuity: 0, noticePay: 0, noticeRecovery: 600000, salaryLines, settlementLines, payable: 2184000, payableIsRecovery: false },
+      refNo: 'HR/FNF/T0042', today: today(),
+    }
+  },
+}
+
+// a teacher who resigned after four years, for the relieving letter and experience certificate previews
+function exitSample(kind) {
+  return {
+    kind, date: today(), refNo: `HR/${kind === 'EXPERIENCE' ? 'EXP' : 'REL'}/2026-27/T0042`,
+    staff: {
+      name: 'Meera Iyer', code: 'T0042', salutation: 'Ms.', designation: 'TGT — Mathematics', category: 'Teaching', teachingStaff: true,
+      department: 'Mathematics', campus: null, qualifications: 'M.Sc. Mathematics, B.Ed.', address: '14, 2nd Cross, Jayanagar, Bengaluru 560041',
+      joiningDate: '2022-06-01', lastWorkingDate: today(), noticeDate: '2026-09-30', exitType: 'Resigned',
+    },
+    certificate: {
+      conduct: 'GOOD', good: true, satisfactory: false, omit: false, duties: 'class teacher of 8 B and the school maths club',
+      subjects: ['Mathematics'], classes: ['Class 6', 'Class 7', 'Class 8'], years: ['2022-23', '2026-27'], taught: true,
+      subjectList: 'Mathematics', classList: 'Class 6, Class 7 and Class 8', yearRange: '2022-23 to 2026-27',
+    },
+  }
 }

@@ -125,19 +125,25 @@ async function fnfFor(e, month, fullOf, grossFull, stat) {
   const leaveDays = Math.max(0, Math.round((bal?.days ?? 0) * 100) / 100)
   const leaveEncashment = roundToRupee((leaveDays * basicDa) / (stat.encashment.divisor || 30))
   const g = gratuityFor({ joiningDate: e.joiningDate, lastWorkingDate: lwd, basicDaMonthly: basicDa, exitType: e.exit?.type }, stat.gratuity)
+  // Notice short of the rule: a resignation pays it back (recovery); a termination by the institution pays it
+  // to them (notice pay in lieu), unless it was for misconduct.
   let noticeServed = null
   let noticeShortfall = 0
-  if (e.exit?.type === 'RESIGNED' && e.exit?.noticeDate) {
+  const byInstitution = e.exit?.type === 'TERMINATED' && !e.exit?.misconduct
+  if ((e.exit?.type === 'RESIGNED' || byInstitution) && e.exit?.noticeDate) {
     noticeServed = daysInclusive(e.exit.noticeDate, lwd)
     noticeShortfall = Math.max(0, (stat.notice.days ?? 0) - noticeServed)
   }
-  const noticeRecovery = roundToRupee((grossFull * noticeShortfall) / 30)
+  const shortfallPay = roundToRupee((grossFull * noticeShortfall) / 30)
+  const noticeRecovery = e.exit?.type === 'RESIGNED' ? shortfallPay : 0
+  const noticePay = byInstitution ? shortfallPay : 0
   return {
     lastWorkingDate: lwd, exitType: e.exit?.type, leaveDays, leaveEncashment, gratuity: g.amount, serviceYears: Math.round(g.exact * 100) / 100, countedYears: g.eligible ? g.counted : 0,
-    noticeDays: stat.notice.days, noticeServed, noticeShortfall, noticeRecovery,
+    noticeDays: stat.notice.days, noticeServed, noticeShortfall, noticeRecovery, noticePay,
     encashmentBasis: `${leaveDays} day(s) × ${fmt(basicDa)} ÷ ${stat.encashment.divisor}`,
     gratuityBasis: g.eligible ? `${stat.gratuity.factor}/${stat.gratuity.divisor} × ${fmt(basicDa)} × ${g.counted} year(s)` : undefined,
-    noticeBasis: noticeShortfall ? `${noticeShortfall} day(s) short of ${stat.notice.days} × ${fmt(grossFull)} ÷ 30` : undefined,
+    noticeBasis: noticeRecovery ? `${noticeShortfall} day(s) short of ${stat.notice.days} × ${fmt(grossFull)} ÷ 30` : undefined,
+    noticePayBasis: noticePay ? `${noticeShortfall} day(s) of notice not given (of ${stat.notice.days}) × ${fmt(grossFull)} ÷ 30` : undefined,
     note: !g.eligible && basicDa ? `No gratuity: ${g.years} year(s) ${g.months} month(s) of service (needs ${stat.gratuity.minYears}).` : undefined,
   }
 }
@@ -236,7 +242,7 @@ async function buildPayslips(run, { employeeIds } = {}) {
       lopOverride: prev?.lopOverride ?? null, adjustments,
       earnings: r.earnings, deductions: r.deductions, employer: r.employer, loans: r.loans,
       arrearsFor: arrears.filter((x) => r.earnings.some((y) => y.code === 'ARREARS' && y.month === x.month)),
-      fnf: fnf ? { lastWorkingDate: fnf.lastWorkingDate, exitType: fnf.exitType, leaveDays: fnf.leaveDays, leaveEncashment: fnf.leaveEncashment, gratuity: fnf.gratuity, serviceYears: fnf.serviceYears, countedYears: fnf.countedYears, noticeDays: fnf.noticeDays, noticeServed: fnf.noticeServed, noticeShortfall: fnf.noticeShortfall, noticeRecovery: fnf.noticeRecovery, note: fnf.note } : null,
+      fnf: fnf ? { lastWorkingDate: fnf.lastWorkingDate, exitType: fnf.exitType, leaveDays: fnf.leaveDays, leaveEncashment: fnf.leaveEncashment, gratuity: fnf.gratuity, serviceYears: fnf.serviceYears, countedYears: fnf.countedYears, noticeDays: fnf.noticeDays, noticeServed: fnf.noticeServed, noticeShortfall: fnf.noticeShortfall, noticeRecovery: fnf.noticeRecovery, noticePay: fnf.noticePay, note: fnf.note } : null,
       gross: r.gross, totalDeductions: r.totalDeductions, net: r.net, employerContribution: r.employerContribution, employerCost: r.employerCost,
       fixedFull: r.fixedFull, fixedEarned: r.fixedEarned, pfWages: r.pfWages, esiWages: r.esiWages,
       ytd: { gross: r.gross + sum(ytdPast, (p) => p.gross), net: r.net + sum(ytdPast, (p) => p.net), pf: ded('PF'), esi: ded('ESI'), pt: ded('PT'), tds: ded('TDS') },
@@ -502,3 +508,34 @@ export function payslipModel({ payslip: p, institution }) {
     fnf: p.fnf?.lastWorkingDate ? p.fnf : null,
   }
 }
+
+/**
+ * Full and final settlement statement (HR_FNF_STATEMENT, `id`: a staff record): the payslip of the month they
+ * left — which carries the settlement (leave encashment, gratuity, notice pay or recovery) — as a statement to sign.
+ */
+export async function fnfStatementPrint(employeeId, auth) {
+  if (!isOid(employeeId)) throw notFound('Staff member')
+  const p = await Payslip.findOne({ employeeId, 'fnf.lastWorkingDate': { $ne: null } }).sort({ month: -1 }).select('_id').lean()
+  if (!p) throw conflict('No settlement yet: it is worked out in the payroll run of the month they left. Calculate that run first.')
+  return { ...(await payslipPrint(p._id, auth)), today: await todayYmd() }
+}
+
+/** Someone with a settlement, for the template editor's preview. */
+export const latestFnfEmployeeId = async () => (await Payslip.findOne({ 'fnf.lastWorkingDate': { $ne: null } }).sort({ createdAt: -1 }).select('employeeId').lean())?.employeeId
+
+/** What the settlement statement template sees: the payslip model plus the settlement lines picked out. */
+export function fnfStatementModel(raw) {
+  const m = payslipModel(raw)
+  const pick = (list, code) => (list.find((l) => l.code === code)?.amount ?? 0)
+  const fnfCodes = ['LEAVE_ENCASHMENT', 'GRATUITY', 'NOTICE_PAY', 'NOTICE_RECOVERY']
+  return {
+    ...m,
+    settlement: {
+      leaveEncashment: pick(m.earnings, 'LEAVE_ENCASHMENT'), gratuity: pick(m.earnings, 'GRATUITY'), noticePay: pick(m.earnings, 'NOTICE_PAY'), noticeRecovery: pick(m.deductions, 'NOTICE_RECOVERY'),
+      salaryLines: m.earnings.filter((l) => !fnfCodes.includes(l.code)), settlementLines: m.earnings.filter((l) => fnfCodes.includes(l.code)),
+      payable: m.totals.net, payableIsRecovery: (m.totals.net ?? 0) < 0,
+    },
+    refNo: `HR/FNF/${m.employee.code ?? ''}`, today: raw.today,
+  }
+}
+

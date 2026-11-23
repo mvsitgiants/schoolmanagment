@@ -245,6 +245,7 @@
       },
       "hrms": {
         "employees": "Staff",
+        "exits": "Staff leaving",
         "attendance": "Staff attendance",
         "leave": "Leave",
         "holidays": "Holidays",

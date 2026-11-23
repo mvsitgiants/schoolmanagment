@@ -1,0 +1,50 @@
+{{!-- No-dues certificate (A4) on the letterhead, for a staff member leaving: the exit clearance item by item (who
+      checked it, cleared or not needed, when), and what the records say is still due — library books out and unpaid
+      fines, advances not yet recovered. While anything is open it prints as a DRAFT that says how much is left.
+      Main fields: staff.*, clearance.items[], clearance.complete, clearance.pending, clearance.dues,
+      library.booksOut[], library.fineTotal, advances.total. --}}
+<style>
+  .nd { font-size: 10pt; line-height: 1.5 }
+  .nd .refline { display: flex; justify-content: space-between; margin: 4mm 0 4mm }
+  .nd .title { text-align: center; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; margin: 0 0 4mm }
+  .nd .draft { border: 0.4mm solid #B8862B; color: #8A6116; background: #FFF8E6; padding: 2mm 3mm; margin: 0 0 4mm; font-weight: 600; text-align: center }
+  .nd p { margin: 0 0 3mm; text-align: justify }
+  .nd table { width: 100%; border-collapse: collapse; font-size: 9pt; margin: 1mm 0 4mm }
+  .nd th, .nd td { border: 0.25mm solid #C9CDD6; padding: 1.5mm 2mm; text-align: left; vertical-align: top }
+  .nd th { background: #F1F3F6 }
+  .nd .ok { color: #157347; font-weight: 600 } .nd .na { color: #6B7280 } .nd .open { color: #B42318; font-weight: 600 }
+  .nd .sig { width: 24mm }
+  .nd h3 { font-size: 9.5pt; margin: 3mm 0 1.5mm }
+  .nd .signs { display: flex; justify-content: space-between; gap: 10mm; margin-top: 14mm }
+  .nd .signs > div { flex: 1; text-align: center }
+  .nd .signs .line { border-top: 0.3mm solid #333; padding-top: 1.2mm; margin-top: 2mm }
+</style>
+{{#> letterhead}}{{/letterhead}}
+<div class="nd">
+  <div class="refline"><span>{{t "hrms.print.noDues.ref" "Ref. No.:"}} <b class="mono">{{refNo}}</b></span><span>{{t "hrms.print.noDues.date" "Date:"}} {{date date}}</span></div>
+  <div class="title">{{t "hrms.print.noDues.title" "No-dues certificate"}}</div>
+  {{#unless clearance.complete}}<div class="draft">{{t "hrms.print.noDues.draft" "DRAFT — {{pending}} item(s) still to clear, {{dues}} check(s) showing dues" pending=clearance.pending dues=clearance.dues}}</div>{{/unless}}
+  <p>{{t "hrms.print.noDues.intro" "This is to certify that <b>{{name}}</b> (staff code {{code}}), {{post}}, last working day <b>{{lastDay}}</b>, has been cleared as below." name=(join (array staff.salutation staff.name) " ") code=staff.code post=(join (array staff.designation staff.department) ", ") lastDay=(date staff.lastWorkingDate)}}</p>
+  <table>
+    <thead><tr><th>{{t "hrms.print.noDues.item" "Item"}}</th><th>{{t "hrms.print.noDues.checkedBy" "Checked by"}}</th><th>{{t "hrms.print.noDues.status" "Status"}}</th><th>{{t "hrms.print.noDues.clearedBy" "Cleared by · on"}}</th><th class="sig">{{t "hrms.print.noDues.sign" "Sign"}}</th></tr></thead>
+    <tbody>
+      {{#each clearance.items}}<tr>
+        <td>{{title}}{{#if note}}<br><span class="na">{{note}}</span>{{/if}}</td><td>{{ownerLabel}}</td>
+        <td>{{#if cleared}}<span class="ok">{{statusLabel}}</span>{{else if notNeeded}}<span class="na">{{statusLabel}}</span>{{else}}<span class="open">{{statusLabel}}</span>{{/if}}</td>
+        <td>{{done.by}}{{#if on}} · {{date on}}{{/if}}</td><td class="sig"></td>
+      </tr>{{/each}}
+    </tbody>
+  </table>
+  {{#if library}}<h3>{{t "hrms.print.noDues.libraryTitle" "Library (from the library records)"}}</h3>
+  {{#if library.ok}}<p class="ok">{{t "hrms.print.noDues.libraryOk" "No books out and no fines due."}}</p>{{else}}
+  <p class="open">{{#if library.booksOut.length}}{{t "hrms.print.noDues.booksOut" "Books still out:"}} {{#each library.booksOut}}{{title}} ({{accessionNo}}){{#unless @last}}; {{/unless}}{{/each}}.{{/if}} {{#if library.fineTotal}}{{t "hrms.print.noDues.fines" "Fines unpaid: ₹{{amount}}." amount=(amount library.fineTotal)}}{{/if}}</p>{{/if}}{{/if}}
+  {{#if advances}}<h3>{{t "hrms.print.noDues.advancesTitle" "Advances and loans (from payroll)"}}</h3>
+  {{#if advances.ok}}<p class="ok">{{t "hrms.print.noDues.advancesOk" "Nothing left to recover."}}</p>{{else}}
+  <p class="open">{{t "hrms.print.noDues.advancesDue" "Still to recover: ₹{{amount}}" amount=(amount advances.total)}} ({{#each advances.loans}}{{loanNo}}{{#unless @last}}, {{/unless}}{{/each}}).</p>{{/if}}{{/if}}
+  {{#if clearance.complete}}<p>{{t "hrms.print.noDues.nothingDue" "Nothing is due from {{name}} to the institution, and nothing is due to them other than the full and final settlement." name=staff.name}}</p>{{/if}}
+  <div class="signs no-break">
+    <div><div class="line">{{t "hrms.print.noDues.staffSign" "Staff member"}}<br><b>{{staff.name}}</b></div></div>
+    <div>{{> seal role="PRINCIPAL" label=(t "hrms.print.noDues.seal" "Seal")}}<div class="line">{{t "hrms.print.noDues.signatory" "Principal / Authorised signatory"}}</div></div>
+  </div>
+</div>
+{{> footer}}

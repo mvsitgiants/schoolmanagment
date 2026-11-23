@@ -135,7 +135,9 @@ export async function printToPdf(docType, raw, { transform, ...opts } = {}) {
 /** One record's document for a signed-in user, checked against the document's permissions. */
 export async function renderDocument(docType, id, auth, opts = {}) {
   const raw = await loadDocument(docType, id, auth)
-  return renderData(docType, raw, opts)
+  const html = await renderData(docType, raw, opts)
+  await docOf(docType).issued?.(id, raw, auth) // an HR letter keeps a note on the staff record that it was printed
+  return html
 }
 
 async function loadDocument(docType, id, auth) {
@@ -210,6 +212,7 @@ export async function renderDocumentPdf(docType, id, auth, opts = {}) {
   const raw = await loadDocument(docType, id, auth)
   const out = await printToPdf(docType, raw, opts)
   if (!out) throw new AppError(409, 'PDF download isn’t available just now — use Print instead.', { code: 'PDF_UNAVAILABLE' })
+  await docOf(docType).issued?.(id, raw, auth)
   return out
 }
 

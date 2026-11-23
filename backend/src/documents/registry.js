@@ -31,7 +31,8 @@ import { hallTicketData, latestCandidate, reportCardData } from '../services/exa
 import { certificatePrintData, latestCertificate } from '../services/certificates.js'
 import { CERTIFICATE_KIND_BY, TC_FAILED, TUITION_HEAD_CODES } from '@schoolgiant/shared'
 import { translateDoc } from './engine.js'
-import { latestPayslipId, payslipModel, payslipPrint } from '../services/payrollRuns.js'
+import { fnfStatementModel, fnfStatementPrint, latestFnfEmployeeId, latestPayslipId, payslipModel, payslipPrint } from '../services/payrollRuns.js'
+import { logLetter } from '../services/hrmsExits.js'
 import { labelsModel, labelsPrint, latestCopyId } from '../services/library.js'
 import { latestSectionId, seatLabelsModel, seatLabelsPrint } from '../services/academics.js'
 import { EXAM_SEATING_DOCS } from './examSeatingDocs.js'
@@ -308,5 +309,15 @@ export const DOCS = {
     title: (m) => `${m.payslip.no} · ${m.employee.name}`,
     sample: () => latestPayslipId(),
     variables: [V.institution, 'payslip.no, payslip.monthLabel, payslip.runNo, payslip.status, payslip.draft, payslip.paid, payslip.paidOn, payslip.paidMode, payslip.reference', 'employee.name, employee.code, employee.designation, employee.departmentName, employee.branchName, employee.joiningDate, employee.lastWorkingDate, employee.panMasked, employee.uanMasked, employee.esiMasked, employee.bankName, employee.accountMasked, employee.paymentModeLabel · structureName', 'attendance.daysInMonth, attendance.baseDays, attendance.payDays, attendance.lop, attendance.lopEdited, attendance.lopReason, attendance.present, attendance.leave', 'earnings[] / deductions[] {code, label, amount, basis} · rows[] {earning, deduction} · employer[] {label, amount} · loans[] {label, amount}', 'totals.gross, totals.deductions, totals.net, totals.employerContributions · ytd {label, gross, pf, esi, pt, tds, net} · {{words totals.net}}', 'fnf {lastWorkingDate, leaveDays, leaveEncashment, gratuity, serviceYears, countedYears, noticeDays, noticeServed, noticeRecovery, note}', V.layout],
+  },
+  // the exit month's payslip as a settlement statement to sign (services/payrollRuns.js); id = staff record
+  HR_FNF_STATEMENT: {
+    perms: ['payroll.payslips.view'],
+    load: (id, auth) => fnfStatementPrint(id, auth),
+    model: fnfStatementModel,
+    title: (m) => `Full and final settlement · ${m.employee.name}`,
+    issued: (id, raw, auth) => logLetter('HR_FNF_STATEMENT', id, fnfStatementModel(raw).refNo, auth),
+    sample: () => latestFnfEmployeeId(),
+    variables: [V.institution, 'employee.name, employee.code, employee.designation, employee.departmentName, employee.joiningDate, employee.panMasked, employee.accountMasked, employee.paymentModeLabel', 'fnf.lastWorkingDate, fnf.serviceYears, fnf.countedYears, fnf.leaveDays, fnf.noticeDays, fnf.noticeServed, fnf.note', 'settlement.salaryLines[], settlement.settlementLines[] (label, amount, basis), settlement.noticePay, settlement.noticeRecovery, settlement.payableIsRecovery', 'deductions[] · totals.gross, totals.deductions, totals.net · payslip.draft, payslip.paid, payslip.paidOn, payslip.paidMode, payslip.reference · refNo · today'],
   },
 }

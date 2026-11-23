@@ -129,7 +129,7 @@ const payslipSchema = new Schema({
   earnings: [line], deductions: [line], employer: [line],
   loans: [{ loanId: ObjectId, label: String, amount: Number, _id: false }],
   arrearsFor: [{ month: String, amount: Number, _id: false }],
-  fnf: { lastWorkingDate: String, exitType: String, leaveDays: Number, leaveEncashment: Number, gratuity: Number, serviceYears: Number, countedYears: Number, noticeDays: Number, noticeServed: Number, noticeShortfall: Number, noticeRecovery: Number, note: String },
+  fnf: { lastWorkingDate: String, exitType: String, leaveDays: Number, leaveEncashment: Number, gratuity: Number, serviceYears: Number, countedYears: Number, noticeDays: Number, noticeServed: Number, noticeShortfall: Number, noticeRecovery: Number, noticePay: Number, note: String },
   gross: Number, totalDeductions: Number, net: Number, employerContribution: Number, employerCost: Number,
   fixedFull: Number, fixedEarned: Number, pfWages: Number, esiWages: Number,
   ytd: { gross: Number, pf: Number, esi: Number, pt: Number, tds: Number, net: Number },

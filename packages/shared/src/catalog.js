@@ -284,6 +284,7 @@ export const MODULES = [
     desc: 'Staff records, staff attendance, leave, recruitment and appraisal.',
     pages: [
       pg('employees', 'Staff', 'V C E D I X terminate! view_salary! view_sensitive!'),
+      pg('exits', 'Staff leaving', 'V E'),
       pg('attendance', 'Staff attendance', 'V E I X'),
       pg('leave', 'Leave', 'V E D Ap Ca apply_on_behalf'),
       pg('holidays', 'Holidays', 'V C E D', { setup: true }),

@@ -1,0 +1,54 @@
+{{!-- Full and final settlement statement (A4): the payslip of the month a staff member left, laid out as a settlement
+      for them to sign — pay for the days worked, leave encashment, gratuity, notice pay; deductions with any notice
+      recovery; the net in words; an acknowledgement. Data from services/payrollRuns.js (fnfStatementModel). --}}
+<style>
+  .fs { font-size: 9.6pt; line-height: 1.5 }
+  .fs .refline { display: flex; justify-content: space-between; margin: 4mm 0 4mm }
+  .fs .title { text-align: center; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; margin: 0 0 4mm }
+  .fs .draft { border: 0.4mm solid #B8862B; color: #8A6116; background: #FFF8E6; padding: 2mm 3mm; margin: 0 0 4mm; font-weight: 600; text-align: center }
+  .fs table { width: 100%; border-collapse: collapse; margin: 0 0 4mm }
+  .fs th, .fs td { border: 0.25mm solid #C9CDD6; padding: 1.5mm 2mm; text-align: left }
+  .fs th, .fs td.k { background: #F1F3F6 } .fs td.k { font-weight: 600; width: 22% }
+  .fs .amt { text-align: right; width: 32mm; font-variant-numeric: tabular-nums }
+  .fs tr.sub td { font-weight: 700 } .fs tr.net td { font-weight: 700; background: #EEF6F1 }
+  .fs .basis { color: #6B7280; font-size: 8pt }
+  .fs p { margin: 0 0 3mm }
+  .fs .signs { display: flex; justify-content: space-between; gap: 8mm; margin-top: 14mm }
+  .fs .signs > div { flex: 1; border-top: 0.3mm solid #333; padding-top: 1.2mm; text-align: center }
+</style>
+{{#> letterhead}}{{/letterhead}}
+<div class="fs">
+  <div class="refline"><span>{{t "payroll.print.fnfStatement.ref" "Ref. No.:"}} <b class="mono">{{refNo}}</b></span><span>{{t "payroll.print.fnfStatement.date" "Date:"}} {{date today}}</span></div>
+  <div class="title">{{t "payroll.print.fnfStatement.title" "Full and final settlement"}}</div>
+  {{#if payslip.draft}}<div class="draft">{{t "payroll.print.fnfStatement.draft" "DRAFT — the {{month}} payroll run is not approved yet" month=payslip.monthLabel}}</div>{{/if}}
+  <table>
+    <tr><td class="k">{{t "payroll.print.fnfStatement.name" "Name"}}</td><td>{{employee.name}} ({{employee.code}})</td><td class="k">{{t "payroll.print.fnfStatement.post" "Post"}}</td><td>{{employee.designation}}{{#if employee.departmentName}} · {{employee.departmentName}}{{/if}}</td></tr>
+    <tr><td class="k">{{t "payroll.print.fnfStatement.joined" "Joined"}}</td><td>{{date employee.joiningDate}}</td><td class="k">{{t "payroll.print.fnfStatement.lastDay" "Last working day"}}</td><td>{{date fnf.lastWorkingDate}}</td></tr>
+    <tr><td class="k">{{t "payroll.print.fnfStatement.service" "Service"}}</td><td>{{num fnf.serviceYears}} {{t "payroll.print.fnfStatement.years" "years"}}{{#if fnf.countedYears}} ({{t "payroll.print.fnfStatement.gratuityOn" "gratuity on"}} {{fnf.countedYears}}){{/if}}</td><td class="k">{{t "payroll.print.fnfStatement.notice" "Notice served"}}</td><td>{{#if fnf.noticeDays}}{{fnf.noticeServed}} {{t "payroll.print.fnfStatement.of" "of"}} {{fnf.noticeDays}} {{t "payroll.print.fnfStatement.days" "day(s)"}}{{else}}—{{/if}}</td></tr>
+  </table>
+  <table>
+    <thead><tr><th>{{t "payroll.print.fnfStatement.payable" "Payable to the staff member"}}</th><th class="amt">{{t "payroll.print.fnfStatement.amount" "Amount (₹)"}}</th></tr></thead>
+    <tbody>
+      {{#each settlement.salaryLines}}<tr><td>{{label}}{{#if basis}} <span class="basis">· {{basis}}</span>{{/if}}</td><td class="amt">{{amount amount}}</td></tr>{{/each}}
+      {{#each settlement.settlementLines}}<tr><td>{{label}}{{#if basis}} <span class="basis">· {{basis}}</span>{{/if}}</td><td class="amt">{{amount amount}}</td></tr>{{/each}}
+      <tr class="sub"><td>{{t "payroll.print.fnfStatement.totalPayable" "Total payable"}}</td><td class="amt">{{amount totals.gross}}</td></tr>
+    </tbody>
+  </table>
+  <table>
+    <thead><tr><th>{{t "payroll.print.fnfStatement.deducted" "Deducted / recovered"}}</th><th class="amt">{{t "payroll.print.fnfStatement.amount" "Amount (₹)"}}</th></tr></thead>
+    <tbody>
+      {{#each deductions}}<tr><td>{{label}}{{#if basis}} <span class="basis">· {{basis}}</span>{{/if}}</td><td class="amt">{{amount amount}}</td></tr>{{else}}<tr><td colspan="2" class="basis">{{t "payroll.print.fnfStatement.noDeductions" "Nothing deducted"}}</td></tr>{{/each}}
+      <tr class="sub"><td>{{t "payroll.print.fnfStatement.totalDeducted" "Total deducted"}}</td><td class="amt">{{amount totals.deductions}}</td></tr>
+      <tr class="net"><td>{{#if settlement.payableIsRecovery}}{{t "payroll.print.fnfStatement.netRecovery" "Net amount due from the staff member"}}{{else}}{{t "payroll.print.fnfStatement.net" "Net amount payable"}}{{/if}}</td><td class="amt">{{amount totals.net}}</td></tr>
+    </tbody>
+  </table>
+  <p>{{t "payroll.print.fnfStatement.inWords" "In words:"}} <b>{{words totals.net}}</b>{{#if payslip.paid}} · {{t "payroll.print.fnfStatement.paidOn" "paid on {{on}}" on=(date payslip.paidOn)}}{{#if payslip.reference}} ({{payslip.reference}}){{/if}}{{/if}}</p>
+  {{#if fnf.note}}<p class="basis">{{fnf.note}}</p>{{/if}}
+  <p>{{t "payroll.print.fnfStatement.ack" "I, {{name}}, have received the amount above in full and final settlement of all my dues from {{school}}, and I have no further claim against the institution." name=employee.name school=institution.name}}</p>
+  <div class="signs no-break">
+    <div>{{t "payroll.print.fnfStatement.staffSign" "Staff member · date"}}</div>
+    <div>{{t "payroll.print.fnfStatement.accountsSign" "Accounts"}}</div>
+    <div>{{t "payroll.print.fnfStatement.principalSign" "Principal"}}</div>
+  </div>
+</div>
+{{> footer}}

@@ -1,7 +1,8 @@
 import { Router } from 'express'
 import {
-  CANDIDATE_SOURCES, CANDIDATE_STAGES, EMPLOYEE_CATEGORIES, EMPLOYMENT_TYPES, EXIT_TYPES, GENDERS, LEAVE_ACCRUALS, LEAVE_APPROVER_TYPES,
-  LEAVE_CALENDAR_KINDS, LEAVE_CHAIN_MAX_STEPS, LEAVE_STATUSES, MARKABLE, NO_LEAVE_MODES, REQUISITION_STATUSES, SALARY_MODES,
+  CANDIDATE_SOURCES, CANDIDATE_STAGES, CERTIFICATE_CONDUCT, CLEARANCE_ITEM_STATUSES, CLEARANCE_OWNERS, CLEARANCE_STATUSES, EMPLOYEE_CATEGORIES,
+  EMPLOYMENT_TYPES, EXIT_INTERVIEW_ASPECTS, EXIT_REASONS, EXIT_TYPES, GENDERS, LEAVE_ACCRUALS, LEAVE_APPROVER_TYPES, LEAVE_CALENDAR_KINDS,
+  LEAVE_CHAIN_MAX_STEPS, LEAVE_STATUSES, MARKABLE, NO_LEAVE_MODES, REHIRE_OPTIONS, REJOIN_OPTIONS, REQUISITION_STATUSES, SALARY_MODES,
 } from '@schoolgiant/shared'
 import { authenticate, requireModule, requirePermission, subscriptionGate, tenantOnly } from '../platform/middleware.js'
 import { email, mobile, objectId, optionalText, pageParams, printImage, z } from '../platform/validate.js'
@@ -19,6 +20,7 @@ import { deleteLeaveApprovalRule, leaveApprovalOptions, listLeaveApprovalRules, 
 import {
   deleteCandidate, deleteRequisition, evaluateCandidate, getCandidate, hireCandidate, listCandidates, listRequisitions, moveCandidate, offerCandidate, saveCandidate, saveRequisition, setRequisitionStatus,
 } from '../services/hrmsHiring.js'
+import { addItem, getClearance, listClearances, saveCertificate, saveInterview, updateItem } from '../services/hrmsExits.js'
 import { closeCycle, cycleReviews, deleteCycle, getReview, launchCycle, listCycles, myReviews, saveCycle, setReviewer, submitManager, submitSelf } from '../services/hrmsPerformance.js'
 
 // Staff & HR: /api/v1/hrms/*  (self-service under /me needs no HR permission — only a linked staff record)
@@ -115,11 +117,42 @@ router.post('/employees/:id/login', requirePermission(`${EMP}.edit`), async (req
   res.status(201).json({ data: await createLogin(id(req), input, req.auth, req) })
 })
 router.post('/employees/:id/exit', requirePermission(`${EMP}.terminate`), async (req, res) => {
-  const input = z.object({ type: z.enum(values(EXIT_TYPES)), noticeDate: blank(ymd), lastWorkingDate: ymd, reason: optionalText(500), deactivateLogin: z.boolean().default(true) }).parse(req.body)
+  const input = z.object({ type: z.enum(values(EXIT_TYPES)), noticeDate: blank(ymd), lastWorkingDate: ymd, reason: optionalText(500), deactivateLogin: z.boolean().default(true), misconduct: z.boolean().optional() }).parse(req.body)
   res.json({ data: await exitEmployee(id(req), input, req.auth, req) })
 })
 router.post('/employees/:id/exit/cancel', requirePermission(`${EMP}.terminate`), async (req, res) => {
   res.json({ data: await cancelExit(id(req), req.auth, req) })
+})
+router.put('/employees/:id/exit/certificate', requirePermission(`${EMP}.terminate`), async (req, res) => {
+  const input = z.object({ conduct: z.enum(values(CERTIFICATE_CONDUCT)).optional(), duties: z.string().trim().max(400).optional(), showTeaching: z.boolean().optional() }).strict().parse(req.body)
+  res.json({ data: await saveCertificate(id(req), input, req.auth, req) })
+})
+router.put('/employees/:id/exit/interview', requirePermission(`${EMP}.terminate`), async (req, res) => {
+  const rating = z.number().int().min(1).max(5)
+  const input = z.object({
+    reason: z.enum(values(EXIT_REASONS)), otherReason: z.string().trim().max(200).optional(),
+    ratings: z.object(Object.fromEntries(EXIT_INTERVIEW_ASPECTS.map((a) => [a.value, rating.optional()]))).strict().default({}),
+    liked: z.string().trim().max(1000).optional(), improve: z.string().trim().max(1000).optional(),
+    wouldRejoin: z.enum(values(REJOIN_OPTIONS)).optional(),
+    rehire: z.enum(values(REHIRE_OPTIONS)).optional(), rehireNote: z.string().trim().max(300).optional(),
+  }).strict().parse(req.body)
+  res.json({ data: await saveInterview(id(req), input, req.auth, req) })
+})
+
+// ── staff leaving: the exit clearance
+router.get('/exits', requirePermission('hrms.exits.view'), async (req, res) => {
+  const q = z.object({ status: z.enum(Object.keys(CLEARANCE_STATUSES)).optional(), search: optionalText(60) }).parse(req.query)
+  if (req.query.page) return res.json(await listClearances(q, req.auth, pageParams(req.query)))
+  res.json({ data: await listClearances(q, req.auth) })
+})
+router.get('/exits/:id', requirePermission('hrms.exits.view'), async (req, res) => { res.json({ data: await getClearance(id(req), req.auth) }) })
+router.patch('/exits/:id/items/:itemId', requirePermission('hrms.exits.edit'), async (req, res) => {
+  const input = z.object({ status: z.enum(Object.keys(CLEARANCE_ITEM_STATUSES)).optional(), note: z.string().trim().max(300).optional() }).strict().parse(req.body)
+  res.json({ data: await updateItem(id(req), req.params.itemId, input, req.auth, req) })
+})
+router.post('/exits/:id/items', requirePermission('hrms.exits.edit'), async (req, res) => {
+  const input = z.object({ title: z.string().trim().min(3, 'Say what it is').max(160), owner: z.enum(values(CLEARANCE_OWNERS)) }).strict().parse(req.body)
+  res.status(201).json({ data: await addItem(id(req), input, req.auth, req) })
 })
 router.get('/employees/:id/leave', requirePermission('hrms.leave.view', `${EMP}.view`), async (req, res) => {
   res.json({ data: await employeeBalances(id(req), req.auth) })

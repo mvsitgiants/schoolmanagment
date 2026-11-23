@@ -100,6 +100,7 @@ export const PAY_EXTRA_LINES = {
   LEAVE_ENCASHMENT: { label: 'Leave encashment', kind: 'EARNING', fnf: true },
   GRATUITY: { label: 'Gratuity', kind: 'EARNING', fnf: true },
   NOTICE_RECOVERY: { label: 'Notice-period recovery', kind: 'DEDUCTION', fnf: true },
+  NOTICE_PAY: { label: 'Notice pay (in lieu of notice)', kind: 'EARNING', fnf: true },
   ADJUSTMENT_DEDUCTION: { label: 'Other deduction', kind: 'DEDUCTION' },
 }
 /** Manual lines payroll can add to a payslip before approval. */
@@ -331,7 +332,7 @@ export function gratuityFor({ joiningDate, lastWorkingDate, basicDaMonthly, exit
  *   stat (statutory rules) · ptState / lwfState (the state's entries)
  *   attendance { lop, notEmployedDays }
  *   extras { arrears[{month,amount}], adjustments[{code,label,amount}], loans[{loanId,amount,label}],
- *            fnf {leaveEncashment, gratuity, noticeRecovery}, tdsMonthly (override), esiContinuing }
+ *            fnf {leaveEncashment, gratuity, noticePay, noticeRecovery}, tdsMonthly (override), esiContinuing }
  */
 export function computePayslip({ month, employee, components, stat, ptState, lwfState, attendance = {}, extras = {} }) {
   const has = (code) => components.some((c) => c.code === code && c.rule?.type !== 'NONE')
@@ -354,9 +355,11 @@ export function computePayslip({ month, employee, components, stat, ptState, lwf
   const fnf = extras.fnf ?? {}
   if (fnf.leaveEncashment > 0) earnings.push({ code: 'LEAVE_ENCASHMENT', label: lineLabel('LEAVE_ENCASHMENT'), amount: rupee(fnf.leaveEncashment), basis: fnf.encashmentBasis })
   if (fnf.gratuity > 0) earnings.push({ code: 'GRATUITY', label: lineLabel('GRATUITY'), amount: rupee(fnf.gratuity), basis: fnf.gratuityBasis })
+  // the institution ended it with less notice than its rule: the shortfall is paid (not for misconduct)
+  if (fnf.noticePay > 0) earnings.push({ code: 'NOTICE_PAY', label: lineLabel('NOTICE_PAY'), amount: rupee(fnf.noticePay), basis: fnf.noticePayBasis })
   for (const a of extras.adjustments ?? []) if (PAY_EXTRA_LINES[a.code]?.kind === 'EARNING' && a.amount) earnings.push({ code: a.code, label: a.label || lineLabel(a.code), amount: rupee(a.amount), note: a.note, manual: true })
   const gross = earnings.reduce((s, e) => s + e.amount, 0)
-  const fnfEarnings = (fnf.leaveEncashment > 0 ? rupee(fnf.leaveEncashment) : 0) + (fnf.gratuity > 0 ? rupee(fnf.gratuity) : 0)
+  const fnfEarnings = (fnf.leaveEncashment > 0 ? rupee(fnf.leaveEncashment) : 0) + (fnf.gratuity > 0 ? rupee(fnf.gratuity) : 0) + (fnf.noticePay > 0 ? rupee(fnf.noticePay) : 0)
   const salaryGross = gross - fnfEarnings // what PT and ESI are on
 
   const deductions = []

@@ -1,0 +1,61 @@
+{{!-- Exit interview form (A4) on the letterhead, for a staff member leaving. Once HR has recorded it, it prints
+      filled in; before that it prints blank, to fill by hand and sign. The last box is for the school only.
+      Main fields: staff.*, interview.recorded, interview.reasons[] (label, chosen), interview.ratings[] (aspect, boxes[]),
+      interview.liked, interview.improve, interview.rejoinOptions[], interview.rehireOptions[], interview.rehireNote. --}}
+<style>
+  .xi { font-size: 9.5pt; line-height: 1.45 }
+  .xi .refline { display: flex; justify-content: space-between; margin: 4mm 0 4mm }
+  .xi .title { text-align: center; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; margin: 0 0 4mm }
+  .xi table { width: 100%; border-collapse: collapse; font-size: 9pt; margin: 0 0 3mm }
+  .xi td, .xi th { border: 0.25mm solid #C9CDD6; padding: 1.4mm 2mm; vertical-align: top }
+  .xi td.k { background: #F1F3F6; font-weight: 600; width: 20% }
+  .xi h3 { font-size: 9.5pt; margin: 3.5mm 0 1.5mm }
+  .xi .opts { display: flex; flex-wrap: wrap; gap: 1.5mm 6mm }
+  .xi .box { display: inline-block; width: 3.2mm; height: 3.2mm; border: 0.3mm solid #12141C; margin-inline-end: 1.5mm; vertical-align: -0.5mm; text-align: center; font-size: 7pt; line-height: 3mm }
+  .xi table.rate th, .xi table.rate td { text-align: center }
+  .xi table.rate .a { text-align: left }
+  .xi .lines { border: 0.25mm solid #C9CDD6; min-height: 16mm; padding: 2mm; white-space: pre-line }
+  .xi .office { margin-top: 4mm; border: 0.3mm dashed #9AA1AE; padding: 2.5mm 3mm }
+  .xi .muted { color: #5B616E; font-size: 8.5pt }
+  .xi .signs { display: flex; justify-content: space-between; gap: 10mm; margin-top: 14mm }
+  .xi .signs > div { flex: 1; text-align: center }
+  .xi .signs .line { border-top: 0.3mm solid #333; padding-top: 1.2mm; margin-top: 2mm }
+</style>
+{{#> letterhead}}{{/letterhead}}
+<div class="xi">
+  <div class="refline"><span>{{t "hrms.print.exitInterview.ref" "Ref. No.:"}} <b class="mono">{{refNo}}</b></span><span>{{t "hrms.print.exitInterview.date" "Date:"}} {{date date}}</span></div>
+  <div class="title">{{t "hrms.print.exitInterview.title" "Exit interview"}}</div>
+  <table>
+    <tr><td class="k">{{t "hrms.print.exitInterview.name" "Name"}}</td><td>{{staff.salutation}} {{staff.name}} ({{staff.code}})</td><td class="k">{{t "hrms.print.exitInterview.post" "Post"}}</td><td>{{staff.designation}}{{#if staff.department}} · {{staff.department}}{{/if}}</td></tr>
+    <tr><td class="k">{{t "hrms.print.exitInterview.joined" "Joined"}}</td><td>{{date staff.joiningDate}}</td><td class="k">{{t "hrms.print.exitInterview.lastDay" "Last working day"}}</td><td>{{date staff.lastWorkingDate}}{{#if staff.exitType}} · {{staff.exitType}}{{/if}}</td></tr>
+  </table>
+
+  <h3>{{t "hrms.print.exitInterview.reasonQ" "1. What is the main reason you are leaving?"}}</h3>
+  <div class="opts">{{#each interview.reasons}}<span><span class="box">{{#if chosen}}✓{{/if}}</span>{{label}}</span>{{/each}}</div>
+  {{#if interview.otherReason}}<p style="margin:2mm 0 0">{{interview.otherReason}}</p>{{/if}}
+
+  <h3>{{t "hrms.print.exitInterview.ratingQ" "2. How would you rate these? (1 = poor, 5 = very good)"}}</h3>
+  <table class="rate">
+    <tr><th class="a"></th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th></tr>
+    {{#each interview.ratings}}<tr><td class="a">{{aspect}}</td>{{#each boxes}}<td><span class="box">{{#if on}}✓{{/if}}</span></td>{{/each}}</tr>{{/each}}
+  </table>
+
+  <h3>{{t "hrms.print.exitInterview.likedQ" "3. What did you like about working here?"}}</h3>
+  <div class="lines">{{interview.liked}}</div>
+  <h3>{{t "hrms.print.exitInterview.improveQ" "4. What should the school change or do better?"}}</h3>
+  <div class="lines">{{interview.improve}}</div>
+  <h3>{{t "hrms.print.exitInterview.rejoinQ" "5. Would you work with us again?"}}</h3>
+  <div class="opts">{{#each interview.rejoinOptions}}<span><span class="box">{{#if on}}✓{{/if}}</span>{{label}}</span>{{/each}}</div>
+
+  <div class="office no-break">
+    <b>{{t "hrms.print.exitInterview.officeOnly" "For the school only"}}</b>
+    <div class="opts" style="margin-top:2mm">{{#each interview.rehireOptions}}<span><span class="box">{{#if on}}✓{{/if}}</span>{{label}}</span>{{/each}}</div>
+    {{#if interview.rehireNote}}<p style="margin:2mm 0 0">{{interview.rehireNote}}</p>{{/if}}
+    {{#if interview.recorded}}<p class="muted" style="margin:2mm 0 0">{{t "hrms.print.exitInterview.recordedBy" "Recorded by {{by}} on {{on}}" by=interview.by on=(date interview.on)}}</p>{{/if}}
+  </div>
+  <div class="signs no-break">
+    <div><div class="line">{{t "hrms.print.exitInterview.staffSign" "Staff member"}}<br><b>{{staff.name}}</b></div></div>
+    <div><div class="line">{{t "hrms.print.exitInterview.interviewer" "Interviewed by"}}{{#if interview.by}}<br><b>{{interview.by}}</b>{{/if}}</div></div>
+  </div>
+</div>
+{{> footer}}

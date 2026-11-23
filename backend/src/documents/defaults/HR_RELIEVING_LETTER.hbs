@@ -1,0 +1,33 @@
+{{!-- Relieving letter (A4) on the letterhead, for a staff member who has left: ref. no. and date, their name and
+      address, that they are relieved of their duties from the close of their last working day, and the seal and
+      signature. Printed from Staff › the person, or Staff & HR › Staff leaving, once an exit is recorded.
+      Main fields: letter refNo / date, staff.salutation, staff.name, staff.code, staff.designation, staff.department,
+      staff.campus, staff.address, staff.noticeDate, staff.lastWorkingDate. --}}
+<style>
+  .rl { font-size: 10.5pt; line-height: 1.6 }
+  .rl .refline { display: flex; justify-content: space-between; margin: 4mm 0 5mm }
+  .rl .to { margin-bottom: 4mm }
+  .rl .subj { margin: 0 0 4mm; font-weight: 700 }
+  .rl p { margin: 0 0 3mm; text-align: justify }
+  .rl .yours { display: flex; justify-content: flex-end; margin-top: 10mm }
+  .rl .yours > div { text-align: center; min-width: 62mm }
+  .rl .yours .line { border-top: 0.3mm solid #333; padding-top: 1.2mm; margin-top: 2mm }
+</style>
+{{#> letterhead}}{{/letterhead}}
+<div class="rl">
+  <div class="refline"><span>{{t "hrms.print.relieving.ref" "Ref. No.:"}} <b class="mono">{{refNo}}</b></span><span>{{t "hrms.print.relieving.date" "Date:"}} {{date date}}</span></div>
+  <div class="to">{{t "hrms.print.relieving.to" "To,"}}<br><b>{{staff.salutation}} {{staff.name}}</b> ({{staff.code}})<br>{{staff.designation}}{{#if staff.department}}, {{staff.department}}{{/if}}{{#if staff.address}}<br>{{staff.address}}{{/if}}</div>
+  <div class="subj"><u>{{t "hrms.print.relieving.subject" "Subject: Relieving letter"}}</u></div>
+  <p>{{t "hrms.print.relieving.dear" "Dear {{name}}," name=staff.name}}</p>
+  <p>{{#if staff.noticeDate}}{{t "hrms.print.relieving.withNotice" "With reference to your letter dated {{notice}}, you are relieved of your duties as <b>{{post}}</b> at {{school}} at the close of working hours on <b>{{lastDay}}</b>." notice=(date staff.noticeDate) post=staff.designation school=institution.name lastDay=(date staff.lastWorkingDate)}}{{else}}{{t "hrms.print.relieving.plain" "You are relieved of your duties as <b>{{post}}</b> at {{school}} at the close of working hours on <b>{{lastDay}}</b>." post=staff.designation school=institution.name lastDay=(date staff.lastWorkingDate)}}{{/if}}</p>
+  <p>{{t "hrms.print.relieving.settlement" "Your full and final settlement will be made as per the institution's rules once your exit clearance is complete."}}</p>
+  <p>{{t "hrms.print.relieving.thanks" "We thank you for your service to {{school}} and wish you well." school=institution.name}}</p>
+  <div class="yours no-break">
+    <div>
+      <div>{{t "hrms.print.relieving.for" "For {{school}}" school=institution.name}}</div>
+      {{> seal role="PRINCIPAL" label=(t "hrms.print.relieving.seal" "Seal")}}
+      <div class="line">{{t "hrms.print.relieving.signatory" "Principal / Authorised signatory"}}</div>
+    </div>
+  </div>
+</div>
+{{> footer}}

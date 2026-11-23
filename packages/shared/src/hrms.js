@@ -28,6 +28,79 @@ export const EMPLOYEE_STATUSES = {
   EXITED: { label: 'Left', tone: 'neutral' },
 }
 
+/**
+ * Exit clearance: what has to be handed back or settled before someone leaves, and who checks it. A
+ * clearance starts with these on its own when an exit is recorded; HR can add more to one person's.
+ */
+export const CLEARANCE_OWNERS = [
+  { value: 'HOD', label: 'Head of department' },
+  { value: 'EXAMS', label: 'Examinations' },
+  { value: 'LIBRARY', label: 'Library' },
+  { value: 'ADMIN', label: 'Admin office' },
+  { value: 'IT', label: 'IT' },
+  { value: 'ACCOUNTS', label: 'Accounts' },
+  { value: 'HR', label: 'HR' },
+]
+export const DEFAULT_EXIT_CLEARANCE = [
+  { title: 'Handover of classes, syllabus status, marks and registers', owner: 'HOD' },
+  { title: 'Exam duties, question papers and answer scripts handed over', owner: 'EXAMS' },
+  { title: 'Library books returned, fines paid', owner: 'LIBRARY' },
+  { title: 'ID card, keys, lab and store items returned', owner: 'ADMIN' },
+  { title: 'Login, email and app access switched off', owner: 'IT' },
+  { title: 'Advances and loans settled', owner: 'ACCOUNTS' },
+  { title: 'Full and final settlement', owner: 'ACCOUNTS' },
+  { title: 'Exit interview', owner: 'HR' },
+  { title: 'Relieving letter and experience certificate', owner: 'HR' },
+]
+export const CLEARANCE_STATUSES = {
+  OPEN: { label: 'In progress', tone: 'warning' },
+  DONE: { label: 'Cleared', tone: 'success' },
+  CANCELLED: { label: 'Cancelled', tone: 'neutral' },
+}
+export const CLEARANCE_ITEM_STATUSES = {
+  PENDING: { label: 'To do', tone: 'warning' },
+  DONE: { label: 'Cleared', tone: 'success' },
+  NA: { label: 'Not needed', tone: 'neutral' },
+}
+
+/** The conduct line on an experience certificate: HR's choice, else the default for the way they left. */
+export const CERTIFICATE_CONDUCT = [
+  { value: 'GOOD', label: 'Good — “sincere and hard-working”' },
+  { value: 'SATISFACTORY', label: 'Satisfactory' },
+  { value: 'OMIT', label: 'Leave out — dates and post only' },
+]
+export const defaultConduct = (exitType) => (['TERMINATED', 'ABSCONDED'].includes(exitType) ? 'OMIT' : 'GOOD')
+
+/** Exit interview: the main reason for leaving, six things rated out of 5, whether they'd come back — and the school's rehire call. */
+export const EXIT_REASONS = [
+  { value: 'PAY', label: 'Better pay elsewhere' },
+  { value: 'GROWTH', label: 'Higher post or promotion' },
+  { value: 'GOVT_JOB', label: 'Government job' },
+  { value: 'STUDIES', label: 'Higher studies (B.Ed., M.Ed., PhD)' },
+  { value: 'RELOCATION', label: 'Moving to another city' },
+  { value: 'FAMILY', label: 'Family reasons' },
+  { value: 'WORKLOAD', label: 'Workload or timetable' },
+  { value: 'MANAGEMENT', label: 'Management or head of department' },
+  { value: 'ENVIRONMENT', label: 'Working conditions' },
+  { value: 'HEALTH', label: 'Health' },
+  { value: 'RETIREMENT', label: 'Retirement' },
+  { value: 'OTHER', label: 'Other' },
+]
+export const EXIT_REASON_LABEL = Object.fromEntries(EXIT_REASONS.map((c) => [c.value, c.label]))
+export const EXIT_INTERVIEW_ASPECTS = [
+  { value: 'work', label: 'The work itself' },
+  { value: 'management', label: 'Principal and head of department' },
+  { value: 'pay', label: 'Pay and benefits' },
+  { value: 'workload', label: 'Workload and timetable' },
+  { value: 'colleagues', label: 'Colleagues' },
+  { value: 'facilities', label: 'Classrooms, labs and resources' },
+]
+export const REJOIN_OPTIONS = [{ value: 'YES', label: 'Yes' }, { value: 'MAYBE', label: 'Maybe' }, { value: 'NO', label: 'No' }]
+export const REHIRE_OPTIONS = [{ value: 'YES', label: 'Can be taken back' }, { value: 'CONDITIONAL', label: 'Only on conditions' }, { value: 'NO', label: 'Not to be taken back' }]
+
+/** HR papers that are logged each time they are printed for a staff member (Staff › the person › Letters). */
+export const LOGGED_LETTERS = ['HR_OFFER_LETTER', 'HR_RELIEVING_LETTER', 'HR_EXPERIENCE_LETTER', 'HR_NO_DUES', 'HR_EXIT_INTERVIEW', 'HR_FNF_STATEMENT']
+
 export const EXIT_TYPES = [
   { value: 'RESIGNED', label: 'Resigned' },
   { value: 'RETIRED', label: 'Retired' },

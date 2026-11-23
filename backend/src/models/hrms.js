@@ -1,6 +1,7 @@
 // Staff & HR (module `hrms`). Tenant-scoped.
 //
 //   Employee         the staff record: personal, job, exit; salary / bank / statutory ids hidden (select: false)
+//   ExitClearance    what someone leaving hands back or settles, item by item, and who cleared it
 //   Holiday          the institution's holidays (all campuses or some)
 //   StaffAttendance  one row a day per person: status, in/out, payable and loss of pay (payroll reads these)
 //   LeaveType        a kind of leave and its policy
@@ -52,7 +53,16 @@ const employeeSchema = new Schema({
 
   status: { type: String, default: 'ACTIVE' }, // EMPLOYEE_STATUSES — only the exit actions move it
   geofenceExempt: { type: Boolean, default: false }, // field staff: may mark themselves in and out anywhere
-  exit: { type: { type: String }, noticeDate: String, lastWorkingDate: String, reason: String, deactivateLogin: Boolean, ...by },
+  exit: {
+    type: { type: String }, noticeDate: String, lastWorkingDate: String, reason: String, deactivateLogin: Boolean, ...by,
+    misconduct: Boolean, // a termination for misconduct: no notice pay in the settlement
+    // the experience certificate: conduct line (CERTIFICATE_CONDUCT; unset = defaultConduct), duties, subjects and classes shown
+    certificate: { conduct: String, duties: String, showTeaching: { type: Boolean, default: true } },
+    // the exit interview (EXIT_REASONS, ratings 1–5 by EXIT_INTERVIEW_ASPECTS, REJOIN_OPTIONS, the school's REHIRE_OPTIONS)
+    interview: { reason: String, otherReason: String, ratings: Schema.Types.Mixed, liked: String, improve: String, wouldRejoin: String, rehire: String, rehireNote: String, ...by },
+  },
+  // HR papers printed for this person (LOGGED_LETTERS): which, its reference, who and when — newest last
+  letters: { type: [{ doc: String, ref: String, by: String, byId: Schema.Types.ObjectId, at: Date, _id: false }], default: undefined },
 
   statutory: { type: new Schema({ pan: secret, aadhaar: secret, uan: secret, esi: secret }, { _id: false }), select: false },
   bank: { type: new Schema({ bankName: String, ifsc: String, accountName: String, account: secret }, { _id: false }), select: false },
@@ -80,6 +90,32 @@ employeeSchema.index({ tenantId: 1, status: 1, departmentId: 1 })
 employeeSchema.index({ tenantId: 1, reportingManagerId: 1 })
 employeeSchema.index({ tenantId: 1, name: 1 })
 export const Employee = model('Employee', employeeSchema, 'employees')
+
+// ───────────────────────────────────────────────────────── exit clearance
+
+const clearanceItem = new Schema({
+  title: { type: String, required: true, trim: true },
+  owner: { type: String, required: true }, // CLEARANCE_OWNERS
+  status: { type: String, default: 'PENDING' }, // CLEARANCE_ITEM_STATUSES
+  note: String,
+  done: { ...by },
+})
+
+/** One person's exit clearance: started when the exit is recorded, cancelled if the exit is taken back. */
+const clearanceSchema = new Schema({
+  employeeId: { type: ObjectId, required: true },
+  employeeName: String, employeeCode: String, designation: String, departmentId: ObjectId, branchId: ObjectId,
+  lastWorkingDate: String,
+  status: { type: String, default: 'OPEN' }, // CLEARANCE_STATUSES
+  items: [clearanceItem],
+  started: by,
+  completed: by,
+  cancelled: by,
+}, { timestamps: true })
+clearanceSchema.plugin(tenantPlugin)
+clearanceSchema.index({ tenantId: 1, employeeId: 1 }, { unique: true, partialFilterExpression: { status: 'OPEN' } })
+clearanceSchema.index({ tenantId: 1, status: 1, lastWorkingDate: 1 })
+export const ExitClearance = model('ExitClearance', clearanceSchema, 'hr_exit_clearances')
 
 // ───────────────────────────────────────────────────────── holidays
 
