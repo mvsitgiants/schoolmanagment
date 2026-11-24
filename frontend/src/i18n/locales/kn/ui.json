@@ -315,7 +315,9 @@
         "trialExpired": "ಪ್ರಾಯೋಗಿಕ ಅವಧಿ ಮುಗಿದಿದೆ",
         "suspended": "ತಡೆಹಿಡಿಯಲಾಗಿದೆ",
         "cancelled": "ರದ್ದುಗೊಂಡಿದೆ"
-      }
+      },
+      "collapse": "Collapse menu",
+      "expand": "Expand menu"
     },
     "controls": {
       "lockedHint": "ಈ ಅನುಮತಿ ನಿಮಗೇ ಇಲ್ಲದ ಕಾರಣ, ಇದನ್ನು ಬೇರೆಯವರಿಗೆ ನೀಡಲು ಸಾಧ್ಯವಿಲ್ಲ",

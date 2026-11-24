@@ -315,7 +315,9 @@
         "trialExpired": "Trial ended",
         "suspended": "Suspended",
         "cancelled": "Cancelled"
-      }
+      },
+      "collapse": "Collapse menu",
+      "expand": "Expand menu"
     },
     "controls": {
       "lockedHint": "You don't hold this permission yourself, so you can't grant it",
