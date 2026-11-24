@@ -74,6 +74,7 @@ export const RECORD_TYPES = {
   lms_item: 'Study material',
   chat_message: 'Staff chat message',
   scholarship_doc: 'Scholarship document',
+  doc_folder: 'Library folder',
 }
 
 export const COMMENT_MAX = 2000

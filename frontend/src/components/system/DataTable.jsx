@@ -35,6 +35,7 @@ import { useIsMobile } from '../../hooks/useMediaQuery'
  *           list the caller should pass page-independent totals from its summary endpoint.
  *   totalsLabel: what to print in the first column of that strip (default 'Total')
  *   rowTone(row): 'danger' | 'warning' | 'success' | 'info' — tints an exception row
+ *   canSelectRow(row): false → that row has no checkbox (a folder row among files)
  *   selectable + selectedIds + onSelectionChange(ids): a checkbox per row (and a header box
  *           that selects every row on the page) for bulk actions; ids are rowKey values
  *
@@ -62,7 +63,7 @@ export default function DataTable({
   title, toolbar, exportable = false, exportName = 'export', exportAll,
   maxHeight, pagination, dense = false, className,
   totals, totalsLabel, rowTone,
-  selectable = false, selectedIds = [], onSelectionChange,
+  selectable = false, selectedIds = [], onSelectionChange, canSelectRow,
   // a record opened in place: the row whose key is `expandedKey` shows `renderExpanded(row)` under it, full width
   expandedKey, renderExpanded,
 }) {
@@ -105,7 +106,8 @@ export default function DataTable({
 
   // ---- multi-select for bulk actions
   const picked = useMemo(() => new Set(selectedIds), [selectedIds])
-  const pageKeys = rows.map((r, i) => keyOf(r, i))
+  const pickable = (r) => !canSelectRow || canSelectRow(r)
+  const pageKeys = rows.map((r, i) => (pickable(r) ? keyOf(r, i) : null)).filter((k) => k != null)
   const allOnPage = pageKeys.length > 0 && pageKeys.every((k) => picked.has(k))
   const someOnPage = !allOnPage && pageKeys.some((k) => picked.has(k))
   const togglePick = (k) => {
@@ -126,7 +128,7 @@ export default function DataTable({
   const selCol = {
     key: '__select', width: 44, clamp: false,
     header: checkbox(allOnPage, togglePage, t('ui.table.selectAllOnPage'), someOnPage),
-    render: (_, row) => { const k = keyOf(row, rows.indexOf(row)); return checkbox(picked.has(k), () => togglePick(k), t('ui.table.selectRow')) },
+    render: (_, row) => { if (!pickable(row)) return null; const k = keyOf(row, rows.indexOf(row)); return checkbox(picked.has(k), () => togglePick(k), t('ui.table.selectRow')) },
   }
   const cols = selectable ? [selCol, ...columns] : columns
 
@@ -190,7 +192,7 @@ export default function DataTable({
           <MobileList
             columns={columns} rows={sortedRows} loading={loading} keyOf={keyOf}
             selectedId={selectedId} onSelect={select} emptyBlock={emptyBlock}
-            selectable={selectable} picked={picked} onPick={togglePick}
+            selectable={selectable} picked={picked} onPick={togglePick} pickable={pickable}
             expandedKey={expandedKey} renderExpanded={renderExpanded}
           />
           {!loading && totalsRow && sortedRows.length > 0 && (
@@ -366,7 +368,7 @@ function labelFor(c) {
   return ''
 }
 
-function MobileList({ columns, rows, loading, keyOf, selectedId, onSelect, emptyBlock, selectable, picked, onPick, expandedKey, renderExpanded }) {
+function MobileList({ columns, rows, loading, keyOf, selectedId, onSelect, emptyBlock, selectable, picked, onPick, pickable = () => true, expandedKey, renderExpanded }) {
   const { t } = useTranslation('ui')
   const [open, setOpen] = useState(() => new Set())
 
@@ -406,7 +408,7 @@ function MobileList({ columns, rows, loading, keyOf, selectedId, onSelect, empty
           })
         return (
           <li key={k} className={clsx((selected || picked?.has(k)) && 'bg-brand-50/60', selectable && 'relative')}>
-            {selectable && (
+            {selectable && pickable(row) && (
               <input type="checkbox" aria-label={t('ui.table.selectRow')} checked={picked.has(k)} onChange={() => onPick(k)}
                 className="absolute start-4 top-3.5 h-4 w-4 rounded border-border text-brand-600 z-[1]" />
             )}

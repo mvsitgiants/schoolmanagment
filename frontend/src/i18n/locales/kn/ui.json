@@ -531,7 +531,16 @@
       "use_other": "Use {{count}} papers",
       "used_one": "Paper used — no upload needed.",
       "used_other": "{{count}} papers used — no upload needed.",
-      "checked": "Original checked"
+      "checked": "Original checked",
+      "tabStudent": "This student ({{count}})",
+      "tabLibrary": "Document library",
+      "hintLibrary": "Files in the document library’s folders — scans, forms, the school’s own papers. Picking one files it here; nothing is uploaded again.",
+      "search": "Search by file name",
+      "folder": "Folder",
+      "allFolders": "All folders",
+      "noneFound": "No file matches. Try another name or folder.",
+      "noneLibrary": "The library’s folders are empty. Upload files into a folder from Documents › Document library, then pick them here.",
+      "lookLibrary": "Look in the document library"
     }
   }
 }

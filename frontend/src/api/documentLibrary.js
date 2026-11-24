@@ -28,11 +28,18 @@ export async function downloadZip(body) {
   downloadBlob(res, `${(body.name || 'documents').replace(/\s+/g, '-')}.zip`)
 }
 
-// what is still to come, what was issued, what was removed
+// what is still to come, what was issued
 export const fetchMissing = async (params) => (await api.get(`${BASE}/missing`, { params: clean(params) })).data.data
 export const fetchExpiring = async (params) => (await api.get(`${BASE}/expiring`, { params: clean(params) })).data.data
 export const tellMissing = async (studentIds) => (await api.post(`${BASE}/missing/tell`, { studentIds })).data.data
 export const fetchIssued = async (params) => (await api.get(`${BASE}/issued`, { params: clean(params) })).data.data
-export const fetchRemoved = async (params) => (await api.get(`${BASE}/bin`, { params: clean(params) })).data.data
-export const restoreFile = async (id) => (await api.post(`${BASE}/bin/${id}/restore`)).data.data
 export const fetchStorage = async () => (await api.get(`${BASE}/storage`)).data.data
+
+// the library's folders — the school's own files (upload into one with api/files uploadFile('doc_folder', folderId, …))
+export const fetchFolders = async () => (await api.get(`${BASE}/folders`)).data.data
+export const createFolder = async (body) => (await api.post(`${BASE}/folders`, body)).data.data
+export const updateFolder = async (id, body) => (await api.patch(`${BASE}/folders/${id}`, body)).data.data
+export const removeFolder = async (id) => (await api.delete(`${BASE}/folders/${id}`)).data.data
+export const moveToFolder = async (id, ids) => (await api.post(`${BASE}/folders/${id}/move`, { ids })).data.data
+/** One place in the automatic folders ('scholarships/<classId>/<studentId>'): the way back up and the folders inside. */
+export const browseLibrary = async (path) => (await api.get(`${BASE}/browse`, { params: clean({ path }) })).data.data

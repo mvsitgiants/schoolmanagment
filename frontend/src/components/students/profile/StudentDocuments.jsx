@@ -67,7 +67,8 @@ export default function StudentDocuments({ s, canEdit }) {
       )}>
       <AdmissionDocuments checklist={checklist} items={items} busy={busy} readOnly={!canEdit}
         onAdd={(file, meta) => run(() => uploadFile('student', s.id, file, meta))}
-        onRemove={canEdit ? remove : undefined} onView={view} onVerify={canEdit ? verify : undefined} />
+        onRemove={canEdit ? remove : undefined} onView={view} onVerify={canEdit ? verify : undefined}
+        reuse={canEdit ? { entityType: 'student', entityId: s.id, onPicked: refresh } : undefined} />
     </SectionCard>
   )
 }

@@ -10,8 +10,11 @@ export const uploadFile = async (entityType, entityId, file, { category, title, 
   headers: { 'Content-Type': file.type || 'application/octet-stream', 'X-File-Name': encodeURIComponent(file.name || 'file') },
 })).data.data
 export const downloadFile = (id) => api.get(`/v1/files/${id}/content`, { responseType: 'blob' })
-/** Files the school already holds about this record's student — to use here instead of uploading again. */
-export const fetchReusable = async (entityType, entityId) => (await api.get('/v1/files/reusable', { params: { entityType, entityId } })).data.data
+/**
+ * Files the school already holds — to use here instead of uploading again: this record's student's own papers
+ * (from 'student'), or files in the document library's folders (from 'library', optionally { folderId, search }).
+ */
+export const fetchReusable = async (entityType, entityId, { from, folderId, search } = {}) => (await api.get('/v1/files/reusable', { params: { entityType, entityId, from, folderId: folderId || undefined, search: search || undefined } })).data.data
 /** Use one of them on this record (nothing copied). */
 export const linkFile = async (body) => (await api.post('/v1/files/link', body)).data.data
 /** The office checked a document against the original: VERIFIED, REJECTED (note says why) or PENDING again. */

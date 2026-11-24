@@ -1190,5 +1190,6 @@ export async function scholarshipDocRecord(id, auth) {
   if (!s) return null
   const sections = await scopeSectionIds(auth)
   if (sections && !sections.includes(String(s.sectionId))) return null
-  return { studentId: s._id, name: `${docLabel(d)} · ${studentName(s)} (${s.admissionNo})` }
+  // category: what kind of paper a file added here is (an income certificate on the income line), for the library
+  return { studentId: s._id, name: `${docLabel(d)} · ${studentName(s)} (${s.admissionNo})`, category: SCHOLARSHIP_DOC_FILE_CATEGORY[d.type] }
 }

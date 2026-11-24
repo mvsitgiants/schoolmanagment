@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Ban, Camera, Check, CheckCircle2, CircleAlert, Eye, FileText, RotateCcw, Upload, X } from 'lucide-react'
+import { Ban, Camera, Check, CheckCircle2, CircleAlert, Eye, FileText, FolderSearch, RotateCcw, Upload, X } from 'lucide-react'
 import { FILE_ACCEPT, FILE_CATEGORIES, FILE_MAX_MB, FILE_VERIFY_STATUS, TWO_SIDED_CATEGORIES } from '@schoolgiant/shared'
 import { FormField, Input, Modal, SegmentedControl, Select, StatusPill } from '../system'
 import CameraCapture from '../system/CameraCapture'
 import AddFileMenu from '../system/AddFileMenu'
+import ReuseFiles from '../system/ReuseFiles'
 import Button from '../ui/Button'
 import { useSnackbar } from '../../context/SnackbarContext'
 import { useFormat } from '../../context/SettingsContext'
@@ -16,6 +17,8 @@ import { useFormat } from '../../context/SettingsContext'
 //
 //   items: [{ key, category, side?, title?, fileName, size, contentType, url? (a preview), verification? }]
 //   onAdd(file, { category, side, title }) · onRemove(item) · onView?(item) · onVerify?(item, status) (Student 360: the office's check)
+//   reuse?: { entityType, entityId, onPicked } — a saved record (Student 360): also "Choose from existing" (the student's
+//   other papers, or a file from the document library's folders), filed as the row's kind
 
 const fmtSize = (n) => (n == null ? '' : n < 1024 * 1024 ? `${Math.max(1, Math.round(n / 1024))} KB` : `${(n / 1024 / 1024).toFixed(1)} MB`)
 const isImage = (it) => /^image\//i.test(it?.contentType || '')
@@ -94,7 +97,7 @@ function ItemRow({ it, onRemove, onView, onVerify, disabled }) {
   )
 }
 
-export default function AdmissionDocuments({ checklist = [], items, onAdd, onRemove, onView, onVerify, busy = false, readOnly = false }) {
+export default function AdmissionDocuments({ checklist = [], items, onAdd, onRemove, onView, onVerify, reuse, busy = false, readOnly = false }) {
   const { t } = useTranslation('students')
   const { showError } = useSnackbar()
   const fileRef = useRef(null)
@@ -102,6 +105,7 @@ export default function AdmissionDocuments({ checklist = [], items, onAdd, onRem
   const [camera, setCamera] = useState(null) // category to take a photo for
   const [picking, setPicking] = useState(null) // category the file input is for
   const [otherKind, setOtherKind] = useState('')
+  const [reusing, setReusing] = useState(null) // category to choose an existing file for
 
   const listed = new Set(checklist.map((d) => d.category))
   const extraKinds = useMemo(() => [...new Set(items.map((it) => it.category).filter((c) => !listed.has(c)))], [items, checklist]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -117,6 +121,11 @@ export default function AdmissionDocuments({ checklist = [], items, onAdd, onRem
   const add = async (file, meta) => {
     try { await onAdd(file, meta); setPending(null) } catch (e) { showError(e.message) }
   }
+  const menu = (category) => [
+    { key: 'camera', icon: Camera, label: t('students.docs.photo'), hint: t('students.docs.photoMenuHint'), onSelect: () => setCamera(category) },
+    { key: 'file', icon: Upload, label: t('students.docs.upload'), hint: t('students.docs.uploadMenuHint'), onSelect: () => pick(category) },
+    ...(reuse ? [{ key: 'existing', icon: FolderSearch, label: t('students.docs.existing'), hint: t('students.docs.existingMenuHint'), onSelect: () => setReusing(category) }] : []),
+  ]
   const kindLabel = (c) => t(`students.docs.kinds.${c}`, FILE_CATEGORIES.find((x) => x.value === c)?.label ?? c)
 
   return (
@@ -141,10 +150,7 @@ export default function AdmissionDocuments({ checklist = [], items, onAdd, onRem
                 </span>
                 {!readOnly && (
                   <span className="flex w-full items-center gap-1 ps-5 -ms-2 sm:w-auto sm:ps-0 sm:ms-0">
-                    <AddFileMenu variant="ghost" label={t('students.docs.addMenu')} disabled={busy} options={[
-                      { key: 'camera', icon: Camera, label: t('students.docs.photo'), hint: t('students.docs.photoMenuHint'), onSelect: () => setCamera(d.category) },
-                      { key: 'file', icon: Upload, label: t('students.docs.upload'), hint: t('students.docs.uploadMenuHint'), onSelect: () => pick(d.category) },
-                    ]} />
+                    <AddFileMenu variant="ghost" label={t('students.docs.addMenu')} disabled={busy} options={menu(d.category)} />
                   </span>
                 )}
               </div>
@@ -165,10 +171,7 @@ export default function AdmissionDocuments({ checklist = [], items, onAdd, onRem
               </Select>
             </FormField>
           </div>
-          <AddFileMenu size="md" label={t('students.docs.addMenu')} disabled={!otherKind || busy} options={[
-            { key: 'camera', icon: Camera, label: t('students.docs.photo'), hint: t('students.docs.photoMenuHint'), onSelect: () => setCamera(otherKind) },
-            { key: 'file', icon: Upload, label: t('students.docs.upload'), hint: t('students.docs.uploadMenuHint'), onSelect: () => pick(otherKind) },
-          ]} />
+          <AddFileMenu size="md" label={t('students.docs.addMenu')} disabled={!otherKind || busy} options={menu(otherKind)} />
         </div>
       )}
 
@@ -177,6 +180,7 @@ export default function AdmissionDocuments({ checklist = [], items, onAdd, onRem
         <CameraCapture title={t('students.docs.photoTitle', { kind: kindLabel(camera) })} hint={t('students.docs.photoHint')} addLabel={t('students.docs.usePhoto')}
           fileName={kindLabel(camera)} onClose={() => setCamera(null)} onPhoto={(file) => { setPending({ category: camera, file }); setCamera(null) }} />
       )}
+      {reusing && <ReuseFiles entityType={reuse.entityType} entityId={reuse.entityId} category={reusing} fileAs={reusing} onClose={() => setReusing(null)} onPicked={reuse.onPicked} />}
       {pending && <AddDialog pending={pending} busy={busy} onClose={() => setPending(null)} onAdd={add} />}
     </div>
   )

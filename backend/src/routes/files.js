@@ -23,10 +23,13 @@ files.get('/', async (req, res) => {
   res.json({ data: await listFiles({ ...q, includeDeleted: q.includeDeleted === '1' }, req.auth) })
 })
 
-/** Files the school already holds about this record's student, to use here instead of uploading again. */
+/** Files the school already holds — this record's student's papers, or the library's folders — to use here instead of uploading again. */
 files.get('/reusable', async (req, res) => {
-  const q = z.object({ entityType: recordType, entityId: objectId }).parse(req.query)
-  res.json({ data: await reusableFiles(q.entityType, q.entityId, req.auth) })
+  const q = z.object({
+    entityType: recordType, entityId: objectId,
+    from: z.enum(['student', 'library']).default('student'), folderId: objectId.optional().or(z.literal('').transform(() => undefined)), search: z.string().max(80).optional(),
+  }).parse(req.query)
+  res.json({ data: await reusableFiles(q.entityType, q.entityId, req.auth, q) })
 })
 /** Use one of them on this record (nothing is copied; removing it later leaves the original). */
 files.post('/link', async (req, res) => {

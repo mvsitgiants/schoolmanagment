@@ -108,8 +108,7 @@
       "documents": {
         "library": "Document library",
         "missing": "Missing & expiring",
-        "issued": "Issued documents",
-        "bin": "Recycle bin"
+        "issued": "Issued documents"
       },
       "core": {
         "setup": "ಸಿದ್ಧತಾ ಕೇಂದ್ರ",
@@ -400,7 +399,6 @@
       "refund": "ಮರುಪಾವತಿಸಿ",
       "reset_password": "ಪಾಸ್‌ವರ್ಡ್ ಮರುಹೊಂದಿಸಿ",
       "resolve": "ಪರಿಹರಿಸಿ",
-      "restore": "Restore",
       "reverse": "ಹಿಮ್ಮುಖಗೊಳಿಸಿ",
       "revoke_sessions": "ಸಾಧನಗಳಿಂದ ಸೈನ್ ಔಟ್ ಮಾಡಿ",
       "run": "ನಡೆಸಿ",

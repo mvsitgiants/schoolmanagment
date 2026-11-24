@@ -1,7 +1,7 @@
 {
   "documentLibrary": {
     "title": "Document library",
-    "subtitle": "Every document and picture the school keeps — students’, staff’s, applicants’ and the school’s own — in one place. Preview, or download many at once.",
+    "subtitle": "Every document and picture the school keeps, in folders that fill themselves — a paper added anywhere (a scholarship check, a student’s record, an admission, a staff record) is already in its place. Make your own folders for the school’s files.",
     "search": "Search by name, admission no., staff code or file name",
     "noun": "files",
     "pick": "Pick {{name}}",
@@ -107,7 +107,8 @@
       "lesson_plan": "Lesson plan",
       "lms_item": "Study material",
       "chat_message": "Staff chat",
-      "scholarship_doc": "Scholarship document"
+      "scholarship_doc": "Scholarship document",
+      "doc_folder": "Library folder"
     },
     "missing": {
       "title": "Missing & expiring papers",
@@ -163,7 +164,13 @@
         "MINORITY_DECLARATION": "Minority community declaration",
         "SPORTS_CERTIFICATE": "Sports certificate",
         "SELF_DECLARATION": "Self-declaration form"
-      }
+      },
+      "allClasses": "All classes",
+      "noClasses": "No class has anything here.",
+      "search": "Search by student name or admission no.",
+      "paperFilter": "Paper",
+      "addPapers": "Add papers (opens the student’s documents)",
+      "tellOne": "Tell this family"
     },
     "issued": {
       "title": "Issued documents",
@@ -197,21 +204,82 @@
         "HR_FNF_STATEMENT": "Full and final settlement"
       }
     },
-    "bin": {
-      "title": "Recycle bin",
-      "subtitle": "Files removed from records. Nothing is ever destroyed — see who removed what and why, and put a file back.",
-      "search": "Search by file name or reason",
-      "space": "{{used}} used",
-      "spaceOf": "{{used}} used of {{limit}}",
-      "spaceHint": "Space taken by all the school’s files. A paper used again in another place is counted once.",
-      "colRemoved": "Removed",
-      "colWhy": "Why",
-      "restore": "Restore",
-      "restoreTitle": "Put “{{name}}” back?",
-      "restoreMessage": "It goes back on the record it was removed from.",
-      "restored": "File put back.",
-      "empty": "Nothing removed",
-      "emptyHint": "Files removed from any record show here, with who removed them and why."
-    }
+    "upload": {
+      "button": "Upload",
+      "title": "Upload to the library",
+      "where": "Where should the files go?",
+      "existing": "An existing folder",
+      "new": "A new folder",
+      "folder": "Folder",
+      "pickFolder": "Pick a folder",
+      "kind": "What is it?",
+      "kindHint": "Helps find it later — leave “Other” for forms, circulars and the like.",
+      "titleLabel": "Name to show (optional)",
+      "titleHint": "For example “Fee concession form 2026”. Left empty, the file’s own name shows.",
+      "filesHint": "PDF, pictures, Word, Excel, PowerPoint or short videos — several at once.",
+      "chooseFiles": "Choose files",
+      "camera": "Take a photo",
+      "pickFiles": "Choose at least one file.",
+      "removeFile": "Take {{name}} off the list",
+      "save_one": "Upload {{count}} file",
+      "save_other": "Upload {{count}} files",
+      "progress": "Uploading {{done}} of {{total}}…",
+      "done_one": "{{count}} file put in “{{folder}}”.",
+      "done_other": "{{count}} files put in “{{folder}}”."
+    },
+    "folders": {
+      "one": "Folder",
+      "new": "New folder",
+      "newTitle": "Make a folder",
+      "make": "Make folder",
+      "made": "Folder “{{name}}” made.",
+      "name": "Folder name",
+      "nameHint": "A short name everyone will recognise.",
+      "namePlaceholder": "For example: Circulars 2026",
+      "nameNeeded": "Give the folder a name.",
+      "files_one": "{{count}} file",
+      "files_other": "{{count}} files",
+      "addHere": "Add files here",
+      "rename": "Rename",
+      "renameTitle": "Rename the folder",
+      "saveName": "Save name",
+      "renamed": "Folder renamed.",
+      "remove": "Remove folder",
+      "removeTitle": "Remove the folder “{{name}}”?",
+      "removeMessage": "The folder is empty, so nothing else changes.",
+      "notEmpty_one": "It still has {{count}} file. Move it to another folder or remove it first.",
+      "notEmpty_other": "It still has {{count}} files. Move them to another folder or remove them first.",
+      "removed": "Folder removed.",
+      "moveTo": "Move to folder",
+      "moved_one": "{{count}} file moved to “{{folder}}”.",
+      "moved_other": "{{count}} files moved to “{{folder}}”.",
+      "moveSkipped_one": "{{count}} file was not moved — a student’s or staff member’s paper stays on their record.",
+      "moveSkipped_other": "{{count}} files were not moved — a student’s or staff member’s papers stay on their record.",
+      "where": "Where you are",
+      "empty": "This folder is empty",
+      "emptyHint": "Use “Add files here” to put files in it.",
+      "mine": "School’s own folders",
+      "noneYet": "None yet — use “New folder”."
+    },
+    "auto": {
+      "students": "Students",
+      "scholarships": "Scholarships",
+      "admissions": "Admissions",
+      "staff": "Staff",
+      "candidates": "Job candidates",
+      "school": "School files",
+      "application": "Admission applications",
+      "admission_form": "Forms filled by families",
+      "noClass": "No class yet",
+      "empty": "Nothing in this folder yet",
+      "inHere": "In this folder",
+      "zip_one": "Download folder ({{count}} file)",
+      "zip_other": "Download folder ({{count}} files)",
+      "searchHere": "Search in this folder",
+      "all": "All documents",
+      "count_one": "{{count}} document",
+      "count_other": "{{count}} documents"
+    },
+    "download": "Download"
   }
 }

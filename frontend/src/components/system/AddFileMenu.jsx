@@ -11,7 +11,20 @@ import Button from '../ui/Button'
  */
 export default function AddFileMenu({ label, options = [], up = false, size = 'sm', variant = 'secondary', loading = false, disabled = false, className }) {
   const [open, setOpen] = useState(false)
+  const [side, setSide] = useState('end') // which edge of the button the menu lines up with
   const ref = useRef(null)
+  // open towards the side with room: a button near the left of the screen (beside the menu bar) opens to the right
+  const toggle = () => {
+    if (!open && ref.current) {
+      const r = ref.current.getBoundingClientRect()
+      const area = ref.current.closest('main')?.getBoundingClientRect() ?? { left: 0, right: window.innerWidth } // the page, not under the menu bar
+      const width = Math.min(288, window.innerWidth - 32)
+      const rtl = getComputedStyle(ref.current).direction === 'rtl'
+      const room = rtl ? area.right - r.left : r.right - area.left // space for a menu lined up with the button's end edge
+      setSide(room >= width + 8 ? 'end' : 'start')
+    }
+    setOpen((v) => !v)
+  }
   useEffect(() => {
     if (!open) return undefined
     const close = (e) => { if (!ref.current?.contains(e.target)) setOpen(false) }
@@ -22,11 +35,11 @@ export default function AddFileMenu({ label, options = [], up = false, size = 's
   }, [open])
   return (
     <div ref={ref} className={clsx('relative inline-block', className)}>
-      <Button size={size} variant={variant} icon={Plus} loading={loading} disabled={disabled} aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
+      <Button size={size} variant={variant} icon={Plus} loading={loading} disabled={disabled} aria-haspopup="menu" aria-expanded={open} onClick={toggle}>
         {label}<ChevronDown className={clsx('ms-1 h-4 w-4 transition-transform', open && 'rotate-180')} aria-hidden />
       </Button>
       {open && (
-        <div role="menu" className={clsx('absolute end-0 z-50 w-72 max-w-[calc(100vw-2rem)] rounded-lg border border-border bg-surface py-1 shadow-pop', up ? 'bottom-full mb-2' : 'top-full mt-2')}>
+        <div role="menu" className={clsx('absolute z-50 w-72 max-w-[calc(100vw-2rem)] rounded-lg border border-border bg-surface py-1 shadow-pop', up ? 'bottom-full mb-2' : 'top-full mt-2', side === 'end' ? 'end-0' : 'start-0')}>
           {options.map((o) => {
             const Icon = o.icon
             return (

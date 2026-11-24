@@ -19,11 +19,13 @@ import { audit } from '../platform/audit.js'
 import { clean, isOid, oid } from '../platform/db.js'
 import { badRequest, conflict, forbidden, notFound } from '../platform/errors.js'
 import { putFile, readStream } from '../platform/storage.js'
+import { escapeRegex } from '../platform/validate.js'
 import { assertWithinLimit } from './subscription.js'
 import { accrEvidenceRecord } from './accreditation.js'
 import { offerRecord } from './placementsOffers.js'
 import { StaffChatChannel, StaffChatMember } from '../models/comms.js'
 import { scholarshipDocRecord } from './scholarships.js'
+import { DocumentFolder } from '../models/documentLibrary.js'
 
 // Attachments and discussion on records (docs/00 §7 E15). Each record type says
 // which module it belongs to, who may see it and who may add to it, and which
@@ -131,6 +133,12 @@ const RECORDS = {
     module: 'scholarships', view: ['scholarships.applications.view'], add: ['scholarships.applications.create', 'scholarships.applications.edit', 'scholarships.applications.verify'],
     load: (id, auth) => scholarshipDocRecord(id, auth),
   },
+  // A folder in the document library: the school's own files (circulars, forms and formats, a day's scans to file
+  // later). Whoever may open the library sees them; they can be used again on any record (Choose from existing).
+  doc_folder: {
+    module: 'documents', view: ['documents.library.view'], add: ['documents.library.create', 'documents.library.edit'], remove: ['documents.library.delete'],
+    load: async (id) => { const f = await DocumentFolder.findById(id).select('name').lean(); return f && { studentId: null, name: `the folder “${f.name}”` } },
+  },
   // Staff chat: files are filed against the chat (entityId = channel id) and attached to a
   // message when it is sent. Only the chat's active members open them — the role permission
   // alone is not enough. Never about a student (a student is only a chip in the message).
@@ -209,13 +217,13 @@ function fileDto(a) {
     category: a.category, categoryLabel: FILE_CATEGORY_LABEL[a.category] ?? a.category, title: a.title, side: a.side ?? null, fileName: a.fileName,
     verification: a.verification?.status ? { status: a.verification.status, note: a.verification.note, by: a.verification.by, at: a.verification.at } : null,
     contentType: a.mime, size: a.size, uploadedBy: a.uploadedBy, uploadedById: a.uploadedById ? String(a.uploadedById) : null,
-    uploadedAt: a.createdAt, deleted: a.deleted?.at ? a.deleted : undefined, linkOf: a.linkOf ? String(a.linkOf) : null,
+    uploadedAt: a.createdAt, deleted: a.deleted?.at ? a.deleted : undefined, linkOf: a.linkOf ?? a.copyOf ? String(a.linkOf ?? a.copyOf) : null,
   }
 }
 
 export async function uploadFile({ entityType, entityId, category, title, side, fileName }, buffer, auth, req) {
   const rec = await recordFor(entityType, entityId, auth, { adding: true })
-  return storeFile({ entityType, entityId, studentId: rec.studentId, recordName: rec.name, category, title, side, fileName }, buffer, { tenantId: auth.tenantId, userId: auth.userId, name: auth.user.name }, req)
+  return storeFile({ entityType, entityId, studentId: rec.studentId, recordName: rec.name, category: category || rec.category, title, side, fileName }, buffer, { tenantId: auth.tenantId, userId: auth.userId, name: auth.user.name }, req)
 }
 
 /**
@@ -280,45 +288,68 @@ export async function filesToStudent(entityType, entityId, studentId) {
 /** Records whose files are a student's own papers, for reuse (not homework sheets or notices the student appears on). */
 const PAPER_TYPES = ['student', 'application', 'admission_form', 'scholarship_doc']
 
-/** A link row: the same stored file on another record (nothing copied). */
+/**
+ * A link row: the same stored file on another record (nothing copied). A school file from a library folder becomes
+ * the record's own paper (`copyOf`, so it shows under the student too); anything else stays a link (`linkOf`).
+ */
 export async function linkFileAs(src, { entityType, entityId, studentId, category, title, side }, by, req) {
-  const original = src.linkOf ?? src._id
   const same = await Attachment.findOne({ entityType, entityId: String(entityId), storageKey: src.storageKey, 'deleted.at': null }).lean()
   if (same) return fileDto(same)
+  const fromFolder = src.entityType === 'doc_folder'
   const [a] = await Attachment.create([{
     entityType, entityId: String(entityId), studentId: studentId ?? src.studentId, category: category ?? src.category, title: title ?? src.title, side: side ?? src.side,
     fileName: src.fileName, mime: src.mime, size: src.size, sha256: src.sha256, storageKey: src.storageKey,
     verification: src.verification?.status ? src.verification : undefined, // the same paper, checked once
-    uploadedById: by.userId || undefined, uploadedBy: by.name, linkOf: original,
+    uploadedById: by.userId || undefined, uploadedBy: by.name,
+    ...(fromFolder ? { copyOf: src.copyOf ?? src._id } : { linkOf: src.linkOf ?? src._id }),
   }])
-  await audit({ action: 'CREATE', module: RECORDS[entityType].module, entityType: 'attachment', entityId: String(a._id), entityName: a.fileName, studentId: a.studentId, summary: `Used “${a.fileName}” (already with the school) again` }, req)
+  await audit({ action: 'CREATE', module: RECORDS[entityType].module, entityType: 'attachment', entityId: String(a._id), entityName: a.fileName, studentId: a.studentId, summary: fromFolder ? `Filed “${a.fileName}” from the document library` : `Used “${a.fileName}” (already with the school) again` }, req)
   return fileDto(a.toObject())
 }
 
+const LIBRARY_PAGE = 60
+
 /**
- * Files the school already holds that could go on this record instead of uploading again: the same student's own
- * papers (admission, student record, scholarship documents), the latest first, without the ones already on it.
+ * Files the school already holds that could go on this record instead of uploading again.
+ *   from 'student' (default): the same student's own papers (admission, student record, scholarship documents)
+ *   from 'library': files in the document library's folders — one folder, or searched by name — for any record
+ * The latest first, without the ones already on the record.
  */
-export async function reusableFiles(entityType, entityId, auth) {
+export async function reusableFiles(entityType, entityId, auth, { from = 'student', folderId, search } = {}) {
   const rec = await recordFor(entityType, entityId, auth, { adding: true })
-  if (!rec.studentId) return []
-  const types = PAPER_TYPES.filter((t) => canSeeRecordType(auth, t))
-  const [rows, here] = await Promise.all([
-    Attachment.find({ studentId: rec.studentId, entityType: { $in: types }, linkOf: null, 'deleted.at': null }).sort({ createdAt: -1 }).limit(100).lean(),
-    Attachment.find({ entityType, entityId: String(entityId), 'deleted.at': null }).select('storageKey').lean(),
-  ])
+  let rows
+  if (from === 'library') {
+    if (!canSeeRecordType(auth, 'doc_folder')) return []
+    const filter = { entityType: 'doc_folder', linkOf: null, 'deleted.at': null }
+    if (folderId) filter.entityId = String(folderId)
+    const s = String(search ?? '').trim()
+    if (s) { const re = new RegExp(escapeRegex(s), 'i'); filter.$or = [{ fileName: re }, { title: re }] }
+    rows = await Attachment.find(filter).sort({ createdAt: -1 }).limit(LIBRARY_PAGE).lean()
+  } else {
+    if (!rec.studentId) return []
+    const types = PAPER_TYPES.filter((t) => canSeeRecordType(auth, t))
+    rows = await Attachment.find({ studentId: rec.studentId, entityType: { $in: types }, linkOf: null, 'deleted.at': null }).sort({ createdAt: -1 }).limit(100).lean()
+  }
+  const here = await Attachment.find({ entityType, entityId: String(entityId), 'deleted.at': null }).select('storageKey').lean()
   const have = new Set(here.map((a) => a.storageKey))
-  return rows.filter((a) => !have.has(a.storageKey)).map(fileDto)
+  const out = rows.filter((a) => !have.has(a.storageKey)).map(fileDto)
+  if (from === 'library') {
+    const folders = new Map((await DocumentFolder.find({ _id: { $in: [...new Set(out.map((f) => f.entityId))].filter(isOid).map(oid) } }).select('name').lean()).map((f) => [String(f._id), f.name]))
+    for (const f of out) f.folder = folders.get(String(f.entityId)) ?? null
+  }
+  return out
 }
 
-/** Use one of those files on this record. Only a file about the same student. */
+/** Use one of those files on this record: a paper of the same student, or a school file from a library folder. */
 export async function linkFile({ entityType, entityId, fileId, category, title, side }, auth, req) {
   const rec = await recordFor(entityType, entityId, auth, { adding: true })
   const src = isOid(fileId) ? await Attachment.findById(fileId).lean() : null
   if (!src || src.deleted?.at) throw notFound('File')
   await recordFor(src.entityType, src.entityId, auth) // the caller may see where it is
-  if (!rec.studentId || String(src.studentId) !== String(rec.studentId)) throw forbidden('Only a document of the same student can be used here.')
-  return linkFileAs(src, { entityType, entityId, studentId: rec.studentId, category, title, side }, { userId: auth.userId, name: auth.user?.name }, req)
+  const libraryFile = src.entityType === 'doc_folder' && !src.studentId
+  const samePerson = rec.studentId && String(src.studentId) === String(rec.studentId)
+  if (!libraryFile && !samePerson) throw forbidden('Only a document of the same student, or a file from the document library, can be used here.')
+  return linkFileAs(src, { entityType, entityId, studentId: rec.studentId ?? null, category, title, side }, { userId: auth.userId, name: auth.user?.name }, req)
 }
 
 /** Files on one record, or (studentId) on everything about one student that the caller may see. */

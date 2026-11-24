@@ -235,6 +235,11 @@ const attachmentSchema = new Schema({
    * papers): the original's id. Same stored bytes — nothing is copied; removing the link leaves the original.
    */
   linkOf: ObjectId,
+  /**
+   * A school file from a library folder (a scanned paper, a form) filed on this record: the folder file's id. Same
+   * stored bytes, but it is this record's own paper from now on — it shows under the student, not only in the folder.
+   */
+  copyOf: ObjectId,
 }, { timestamps: true })
 attachmentSchema.plugin(tenantPlugin)
 attachmentSchema.index({ tenantId: 1, entityType: 1, entityId: 1, createdAt: -1 })

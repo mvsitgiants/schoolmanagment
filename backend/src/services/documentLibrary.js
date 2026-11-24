@@ -15,6 +15,7 @@ import { institutionNow } from '../platform/time.js'
 import { limitsFor } from './subscription.js'
 import { ClassLevel, Section } from '../models/academics.js'
 import { Attachment } from '../models/engines.js'
+import { DocumentFolder } from '../models/documentLibrary.js'
 import { Candidate, Employee } from '../models/hrms.js'
 import { Application } from '../models/admissions.js'
 import { AdmissionForm } from '../models/students.js'
@@ -22,7 +23,7 @@ import { Student } from '../models/students.js'
 import { scopeOf } from '../platform/access.js'
 import { audit } from '../platform/audit.js'
 import { isOid, oid } from '../platform/db.js'
-import { badRequest, notFound } from '../platform/errors.js'
+import { badRequest, conflict, notFound } from '../platform/errors.js'
 import { readStream } from '../platform/storage.js'
 import { escapeRegex } from '../platform/validate.js'
 import { sectionsInScope, yearOrCurrent } from './academics.js'
@@ -35,7 +36,8 @@ import { canSeeRecordType } from './files.js'
 //
 // Who sees what: only record types the role may open (files.js RECORDS), and within them the role's data scope for
 // `documents` — ALL; BRANCH (the campus's students, staff and school files); CLASS (the students they teach); OWN
-// (their own staff record and what they uploaded). Staff chat files never show here.
+// (their own staff record and what they uploaded). Staff chat files never show here. The library's folders (the school's
+// own circulars, forms, scans) show to everyone who may open the library, whatever their scope.
 
 const NEVER = ['chat_message']
 const APPLICANT_TYPES = ['candidate', 'application', 'admission_form']
@@ -50,8 +52,8 @@ async function scopeMatch(auth) {
   const scope = auth.fullAccess ? 'ALL' : scopeOf(auth, 'documents')
   if (scope === 'ALL') return base
   const me = auth.userId ? await Employee.findOne({ userId: auth.userId }).select('_id').lean() : null
-  const own = [...(auth.userId ? [{ uploadedById: oid(auth.userId) }] : []), ...(me ? [{ entityType: 'employee', entityId: String(me._id) }] : [])]
-  if (scope === 'OWN') return { ...base, $or: own.length ? own : [{ _id: null }] }
+  const own = [...(auth.userId ? [{ uploadedById: oid(auth.userId) }] : []), ...(me ? [{ entityType: 'employee', entityId: String(me._id) }] : []), { entityType: 'doc_folder' }]
+  if (scope === 'OWN') return { ...base, $or: own }
   const sections = await sectionsInScope(auth, 'documents') // BRANCH: the campus's sections · CLASS: the ones they teach
   const studentIds = sections ? (await Student.find({ sectionId: { $in: sections.map(oid) } }).select('_id').lean()).map((s) => s._id) : null
   const or = [...own, studentIds ? { studentId: { $in: studentIds } } : { studentId: { $ne: null } }]
@@ -91,6 +93,8 @@ async function filterFor(q, auth) {
   if (q.from || q.to) and.push({ createdAt: { ...(q.from && { $gte: new Date(`${q.from}T00:00:00`) }), ...(q.to && { $lte: new Date(`${q.to}T23:59:59`) }) } })
   if (q.studentId) and.push({ studentId: oid(q.studentId) })
   if (q.employeeId) and.push({ entityType: 'employee', entityId: String(q.employeeId) })
+  if (q.folderId) and.push({ entityType: 'doc_folder', entityId: String(q.folderId) })
+  if (q.path) and.push(await pathFilter(parsePath(q.path)))
   if (q.classId || q.sectionId) and.push({ studentId: { $in: await studentsOf(q) } })
   const s = String(q.search ?? '').trim()
   if (s) {
@@ -107,13 +111,14 @@ async function filterFor(q, auth) {
 /** Who each file is about, for showing and for ZIP folder names. */
 async function peopleOf(rows) {
   const idsOf = (type) => rows.filter((a) => !a.studentId && a.entityType === type && isOid(a.entityId)).map((a) => oid(a.entityId))
-  const [students, staff, forms, apps, candidates] = await Promise.all([
+  const [students, staff, forms, apps, candidates, folders] = await Promise.all([
     studentLabels([...new Set(rows.filter((a) => a.studentId).map((a) => String(a.studentId)))].map(oid)),
     Employee.find({ _id: { $in: rows.filter((a) => a.entityType === 'employee' && isOid(a.entityId)).map((a) => oid(a.entityId)) } }).select('name employeeCode designation').lean()
       .then((x) => new Map(x.map((e) => [String(e._id), e]))),
     AdmissionForm.find({ _id: { $in: idsOf('admission_form') } }).select('childName data.firstName data.lastName').lean().then((x) => new Map(x.map((f) => [String(f._id), [f.data?.firstName, f.data?.lastName].filter(Boolean).join(' ') || f.childName || null]))),
     Application.find({ _id: { $in: idsOf('application') } }).select('applicationNo child.firstName child.lastName').lean().then((x) => new Map(x.map((a) => [String(a._id), { name: [a.child?.firstName, a.child?.lastName].filter(Boolean).join(' ') || null, no: a.applicationNo }]))),
     Candidate.find({ _id: { $in: idsOf('candidate') } }).select('name').lean().then((x) => new Map(x.map((c) => [String(c._id), c.name]))),
+    DocumentFolder.find({ _id: { $in: idsOf('doc_folder') } }).select('name').lean().then((x) => new Map(x.map((f) => [String(f._id), f.name]))),
   ])
   return (a) => {
     const kind = personKind(a)
@@ -130,18 +135,22 @@ async function peopleOf(rows) {
       if (a.entityType === 'application') { const x = apps.get(id); return { kind, id, name: x?.name ?? null, sub: x?.no ?? null } }
       return { kind, id, name: (a.entityType === 'candidate' ? candidates.get(id) : forms.get(id)) ?? null, sub: a.entityType === 'candidate' ? 'Job candidate' : 'Admission form' }
     }
+    if (a.entityType === 'doc_folder') return { kind, id: null, name: null, sub: null, folder: { id: String(a.entityId), name: folders.get(String(a.entityId)) ?? null } }
     return { kind, id: null, name: null, sub: null }
   }
 }
 
-const dto = (a, person) => ({
-  id: String(a._id), fileName: a.fileName, contentType: a.mime, size: a.size, title: a.title ?? null, side: a.side ?? null,
-  category: a.category, categoryLabel: FILE_CATEGORY_LABEL[a.category] ?? a.category,
-  source: a.entityType, sourceLabel: RECORD_TYPES[a.entityType] ?? a.entityType, entityId: a.entityId,
-  verification: a.verification?.status ? { status: a.verification.status, by: a.verification.by ?? null, at: a.verification.at ?? null, note: a.verification.note ?? null } : null,
-  personal: PERSONAL_TYPES.includes(a.entityType) || !!a.studentId,
-  uploadedBy: a.uploadedBy ?? null, uploadedAt: a.createdAt, person: person(a),
-})
+const dto = (a, personOf) => {
+  const { folder = null, ...person } = personOf(a)
+  return {
+    id: String(a._id), fileName: a.fileName, contentType: a.mime, size: a.size, title: a.title ?? null, side: a.side ?? null,
+    category: a.category, categoryLabel: FILE_CATEGORY_LABEL[a.category] ?? a.category,
+    source: a.entityType, sourceLabel: RECORD_TYPES[a.entityType] ?? a.entityType, entityId: a.entityId,
+    verification: a.verification?.status ? { status: a.verification.status, by: a.verification.by ?? null, at: a.verification.at ?? null, note: a.verification.note ?? null } : null,
+    personal: PERSONAL_TYPES.includes(a.entityType) || !!a.studentId,
+    uploadedBy: a.uploadedBy ?? null, uploadedAt: a.createdAt, person, folder,
+  }
+}
 
 /** The library: files a page at a time (newest first) and the picture of everything the filter covers. */
 export async function listDocuments(q, auth) {
@@ -196,7 +205,7 @@ const safe = (s, max = 80) => String(s ?? '').replace(/[\\/:*?"<>|\u0000-\u001f]
  * came from. Only what the person may see goes in.
  */
 export async function zipDocuments(q, auth, req, res) {
-  if (!q.ids?.length && !q.studentId && !q.employeeId && !q.classId && !q.sectionId) throw badRequest('Pick files, a student or a class to download.')
+  if (!q.ids?.length && !q.studentId && !q.employeeId && !q.classId && !q.sectionId && !q.path) throw badRequest('Pick files, a student, a class or a folder to download.')
   const filter = await filterFor(q, auth)
   const files = await Attachment.find(filter).sort({ studentId: 1, category: 1, createdAt: 1 }).limit(MAX_ZIP_FILES + 1).lean()
   if (!files.length) throw notFound('Documents')
@@ -209,7 +218,8 @@ export async function zipDocuments(q, auth, req, res) {
     const p = person(a)
     const folder = p.kind === 'STUDENT' || p.kind === 'STAFF' ? safe([p.sub?.split(' · ')[0], p.name].filter(Boolean).join(' '))
       : p.kind === 'APPLICANT' ? `Applicants/${safe(`${p.name ?? p.sub ?? 'Applicant'}${p.sub && p.name ? ` (${p.sub})` : ''}`)}`
-        : safe(`School - ${RECORD_TYPES[a.entityType] ?? a.entityType}`)
+        : p.folder ? `Library/${safe(p.folder.name ?? 'Folder')}`
+          : safe(`School - ${RECORD_TYPES[a.entityType] ?? a.entityType}`)
     const kind = a.title || (a.category && a.category !== 'OTHER' ? FILE_CATEGORY_LABEL[a.category] : '')
     const base = safe(kind ? `${kind} - ${a.fileName}` : a.fileName, 120)
     let name = `${folder}/${base}`
@@ -252,13 +262,22 @@ export async function zipDocuments(q, auth, req, res) {
 const today = async () => (await institutionNow()).date
 
 /** Students the person may see (their data scope for documents), optionally one class or section; current students only. */
-async function studentsInScope(auth, { classId, sectionId } = {}) {
+async function studentsInScope(auth, { classId, sectionId, search } = {}) {
   const sections = await sectionsInScope(auth, 'documents')
   const filter = { status: 'ACTIVE' }
   if (sections) filter.sectionId = { $in: sections.map(oid) }
   if (sectionId) filter.sectionId = sections && !sections.includes(String(sectionId)) ? { $in: [] } : oid(sectionId)
   else if (classId) filter._id = { $in: await studentsOf({ classId }) }
-  return Student.find(filter).select('_id branchId sectionId').lean()
+  const s = String(search ?? '').trim()
+  if (s) { const re = new RegExp(escapeRegex(s), 'i'); filter.$or = [{ firstName: re }, { lastName: re }, { admissionNo: re }] }
+  return Student.find(filter).select('_id branchId sectionId classId').lean()
+}
+
+/** How many of these rows fall in each class: { classId | 'none': n } — the class list beside the table. */
+function countByClass(rows, classOf) {
+  const out = {}
+  for (const r of rows) { const k = classOf.get(String(r.studentId ?? r.id)) ?? 'none'; out[k] = (out[k] ?? 0) + 1 }
+  return out
 }
 
 /** "studentId|KIND" for every kind of paper held: files on the student, and the photo kept on the student's profile. */
@@ -282,18 +301,22 @@ async function checklists() {
  * Students still missing papers from their campus's admission checklist, the ones needed at admission (NOW) first:
  * [{ student, missing: [{ category, when }], have }]. A paper counts when any file of its kind is on the student.
  */
-export async function missingDocuments({ classId, sectionId, kind, page = 1, pageSize = 50 } = {}, auth) {
-  const students = await studentsInScope(auth, { classId, sectionId })
+export async function missingDocuments({ classId, sectionId, kind, search, page = 1, pageSize = 50 } = {}, auth) {
+  const everyone = await studentsInScope(auth, { search }) // every class, for the class list's counts
+  const classOf = new Map(everyone.map((x) => [String(x._id), x.classId ? String(x.classId) : 'none']))
+  const inClass = classId ? new Set((await studentsOf({ classId })).map(String)) : null
   const listOf = await checklists()
-  const has = await papersHeld(students.map((x) => x._id))
-  let rows = students.map((st) => {
+  const has = await papersHeld(everyone.map((x) => x._id))
+  const allRows = everyone.map((st) => {
     const list = listOf(st.branchId)
     const missing = list.filter((d) => !has.has(`${st._id}|${d.category}`)).map((d) => ({ category: d.category, when: d.when ?? 'LATER' }))
     return { id: String(st._id), missing, total: list.length }
-  }).filter((r) => r.missing.length)
+  }).filter((r) => r.missing.length && (!kind || r.missing.some((m) => m.category === kind)))
+  const byClass = countByClass(allRows, classOf)
+  const students = inClass ? everyone.filter((x) => inClass.has(String(x._id))) : everyone
+  let rows = inClass ? allRows.filter((r) => inClass.has(r.id)) : allRows
   const byKind = {}
   for (const r of rows) for (const m of r.missing) byKind[m.category] = (byKind[m.category] ?? 0) + 1
-  if (kind) rows = rows.filter((r) => r.missing.some((m) => m.category === kind))
   rows.sort((a, b) => Number(b.missing.some((m) => m.when === 'NOW')) - Number(a.missing.some((m) => m.when === 'NOW')) || b.missing.length - a.missing.length)
   const pageRows = rows.slice((page - 1) * pageSize, page * pageSize)
   const names = await studentLabels(pageRows.map((r) => oid(r.id)))
@@ -303,6 +326,7 @@ export async function missingDocuments({ classId, sectionId, kind, page = 1, pag
     summary: {
       students: students.length, missingStudents: rows.length, neededNow: rows.filter((r) => r.missing.some((m) => m.when === 'NOW')).length,
       byKind: Object.entries(byKind).map(([k, n]) => ({ kind: k, label: FILE_CATEGORY_LABEL[k] ?? k, n })).sort((a, b) => b.n - a.n),
+      byClass, all: allRows.length,
     },
     ids: rows.slice(0, 2000).map((r) => r.id), // "tell all of them"
   }
@@ -312,10 +336,13 @@ export async function missingDocuments({ classId, sectionId, kind, page = 1, pag
  * Checked scholarship documents (income certificate, mark sheet…) that run out within `days` — or have run out —
  * for current students in scope: the office asks for a new one before it is needed.
  */
-export async function expiringDocuments({ days = 60, page = 1, pageSize = 50 } = {}, auth) {
+export async function expiringDocuments({ days = 60, classId, search, page = 1, pageSize = 50 } = {}, auth) {
   const t = await today()
-  const students = await studentsInScope(auth)
-  const docs = await ScholarshipDocument.find({ studentId: { $in: students.map((x) => x._id) }, status: 'ACCEPTED', validTill: { $lte: addDaysYmd(t, days) } }).sort({ validTill: 1 }).lean()
+  const students = await studentsInScope(auth, { search })
+  const classOf = new Map(students.map((x) => [String(x._id), x.classId ? String(x.classId) : 'none']))
+  const all = await ScholarshipDocument.find({ studentId: { $in: students.map((x) => x._id) }, status: 'ACCEPTED', validTill: { $lte: addDaysYmd(t, days) } }).sort({ validTill: 1 }).lean()
+  const byClass = countByClass(all, classOf)
+  const docs = classId ? all.filter((d) => classOf.get(String(d.studentId)) === String(classId)) : all
   const pageRows = docs.slice((page - 1) * pageSize, page * pageSize)
   const names = await studentLabels(pageRows.map((d) => d.studentId))
   return {
@@ -324,7 +351,7 @@ export async function expiringDocuments({ days = 60, page = 1, pageSize = 50 } =
       issuedOn: d.issuedOn ?? null, validTill: d.validTill, expired: d.validTill < t,
     })),
     total: docs.length, page, pageSize,
-    summary: { expired: docs.filter((d) => d.validTill < t).length, soon: docs.filter((d) => d.validTill >= t).length },
+    summary: { expired: docs.filter((d) => d.validTill < t).length, soon: docs.filter((d) => d.validTill >= t).length, byClass, all: all.length },
     ids: [...new Set(docs.map((d) => String(d.studentId)))].slice(0, 2000),
   }
 }
@@ -406,37 +433,13 @@ export async function issuedDocuments({ type, from, to, search, page = 1, pageSi
   }
 }
 
-// ───────────────────────────────────────────────────────── removed files (recycle bin) and space
-
-/** Files removed from records (never destroyed): who removed them and why, newest first. */
-export async function removedDocuments({ search, page = 1, pageSize = 50 } = {}, auth) {
-  const base = await scopeMatch(auth)
-  const filter = { ...base, 'deleted.at': { $ne: null }, ...(search && { $or: [{ fileName: new RegExp(escapeRegex(String(search).trim()), 'i') }, { 'deleted.reason': new RegExp(escapeRegex(String(search).trim()), 'i') }] }) }
-  const [rows, total] = await Promise.all([
-    Attachment.find(filter).sort({ 'deleted.at': -1 }).skip((page - 1) * pageSize).limit(pageSize).lean(),
-    Attachment.countDocuments(filter),
-  ])
-  const person = await peopleOf(rows)
-  return { rows: rows.map((a) => ({ ...dto(a, person), removed: { at: a.deleted.at, by: a.deleted.by ?? null, reason: a.deleted.reason ?? null } })), total, page, pageSize }
-}
-
-/** Put a removed file back on its record. */
-export async function restoreDocument(id, auth, req) {
-  const base = await scopeMatch(auth)
-  const a = isOid(id) ? await Attachment.findOne({ ...base, _id: oid(id), 'deleted.at': { $ne: null } }) : null
-  if (!a) throw notFound('Removed file')
-  const was = a.deleted
-  a.deleted = undefined
-  await a.save()
-  await audit({ action: 'UPDATE', module: 'documents', entityType: 'attachment', entityId: String(a._id), entityName: a.fileName, studentId: a.studentId, summary: `Restored “${a.fileName}” (removed by ${was?.by ?? '—'}: ${was?.reason ?? ''})` }, req)
-  return { restored: true }
-}
+// ───────────────────────────────────────────────────────── space
 
 /** Space the institution's files take, and what its plan allows (GB). */
 export async function storageUse(auth) {
   // exact bytes (the plan's own counter rounds to whole MB); a paper used again elsewhere shares the original's bytes
   const [[sum], tenant] = await Promise.all([
-    Attachment.aggregate([{ $match: { linkOf: null } }, { $group: { _id: null, bytes: { $sum: '$size' } } }]),
+    Attachment.aggregate([{ $match: { linkOf: null, copyOf: null } }, { $group: { _id: null, bytes: { $sum: '$size' } } }]),
     Tenant.findById(auth.tenantId).lean(),
   ])
   const plan = tenant ? await Plan.findOne({ code: tenant.planCode }).lean() : null
@@ -444,3 +447,203 @@ export async function storageUse(auth) {
   return { bytes, usedGb: bytes / 1e9, limitGb: tenant ? limitsFor(tenant, plan).storageGb ?? null : null }
 }
 
+
+// ───────────────────────────────────────────────────────── the library's folders (the school's own files)
+
+const folderDto = (f, n = 0, bytes = 0) => ({ id: String(f._id), name: f.name, note: f.note ?? null, files: n, bytes, createdBy: f.createdBy ?? null, createdAt: f.createdAt })
+const sameName = (name, notId) => DocumentFolder.exists({ name: new RegExp(`^${escapeRegex(name)}$`, 'i'), removedAt: null, ...(notId && { _id: { $ne: oid(notId) } }) })
+
+/** The folders, A–Z, with how many files each holds. */
+export async function listFolders() {
+  const [folders, counts] = await Promise.all([
+    DocumentFolder.find({ removedAt: null }).sort({ name: 1 }).lean(),
+    Attachment.aggregate([{ $match: { entityType: 'doc_folder', linkOf: null, 'deleted.at': null } }, { $group: { _id: '$entityId', n: { $sum: 1 }, bytes: { $sum: '$size' } } }]),
+  ])
+  const by = new Map(counts.map((c) => [String(c._id), c]))
+  return folders.map((f) => folderDto(f, by.get(String(f._id))?.n ?? 0, by.get(String(f._id))?.bytes ?? 0))
+}
+
+export async function createFolder({ name, note }, auth, req) {
+  const n = name.trim()
+  if (await sameName(n)) throw conflict(`There is already a folder called “${n}”.`)
+  const f = await DocumentFolder.create({ name: n, note: note?.trim() || undefined, createdById: auth.userId, createdBy: auth.user?.name })
+  await audit({ action: 'CREATE', module: 'documents', entityType: 'document_folder', entityId: String(f._id), entityName: n, summary: `Made the folder “${n}” in the document library` }, req)
+  return folderDto(f.toObject())
+}
+
+export async function updateFolder(id, { name, note }, auth, req) {
+  const f = isOid(id) ? await DocumentFolder.findOne({ _id: oid(id), removedAt: null }) : null
+  if (!f) throw notFound('Folder')
+  const was = f.name
+  if (name !== undefined) {
+    const n = name.trim()
+    if (await sameName(n, id)) throw conflict(`There is already a folder called “${n}”.`)
+    f.name = n
+  }
+  if (note !== undefined) f.note = note?.trim() || undefined
+  await f.save()
+  await audit({ action: 'UPDATE', module: 'documents', entityType: 'document_folder', entityId: String(f._id), entityName: f.name, summary: was !== f.name ? `Renamed the folder “${was}” to “${f.name}”` : `Changed the folder “${f.name}”` }, req)
+  return folderDto(f.toObject())
+}
+
+/** Remove an empty folder (files still in it must be moved or removed first). */
+export async function removeFolder(id, auth, req) {
+  const f = isOid(id) ? await DocumentFolder.findOne({ _id: oid(id), removedAt: null }) : null
+  if (!f) throw notFound('Folder')
+  const n = await Attachment.countDocuments({ entityType: 'doc_folder', entityId: String(f._id), 'deleted.at': null })
+  if (n) throw conflict(`The folder “${f.name}” still has ${n} file(s). Move or remove them first.`)
+  f.removedAt = new Date()
+  f.removedBy = auth.user?.name
+  await f.save()
+  await audit({ action: 'DELETE', module: 'documents', entityType: 'document_folder', entityId: String(f._id), entityName: f.name, summary: `Removed the empty folder “${f.name}”` }, req)
+  return { removed: true }
+}
+
+/** Move library files into another folder. Only folder files move — a student's or staff member's papers stay on their record. */
+export async function moveToFolder(id, fileIds, auth, req) {
+  const f = isOid(id) ? await DocumentFolder.findOne({ _id: oid(id), removedAt: null }).lean() : null
+  if (!f) throw notFound('Folder')
+  const r = await Attachment.updateMany({ _id: { $in: fileIds.map(oid) }, entityType: 'doc_folder', 'deleted.at': null }, { $set: { entityId: String(f._id) } })
+  if (r.modifiedCount) await audit({ action: 'UPDATE', module: 'documents', entityType: 'document_folder', entityId: String(f._id), entityName: f.name, summary: `Moved ${r.modifiedCount} file(s) into the folder “${f.name}”` }, req)
+  return { moved: r.modifiedCount, skipped: fileIds.length - r.modifiedCount }
+}
+
+// ───────────────────────────────────────────────────────── automatic folders
+//
+// Every file already has a place, from where it was added — nobody files anything by hand:
+//   Students › class › student          everything about the student (admission papers, record, scholarship …)
+//   Scholarships › class › student      the student's scholarship documents
+//   Admissions › applications | forms from families › applicant
+//   Staff › staff member  ·  Job candidates › candidate
+//   School files › notices | homework | lesson plans | events …
+//   + the school's own folders (folder/<id>) for scans, forms and circulars
+// A path names a place ('scholarships/<classId>/<studentId>'); the folder list and the files both follow it.
+
+const ROOTS = ['students', 'scholarships', 'admissions', 'staff', 'candidates', 'school', 'folder']
+const ADMISSION_TYPES = ['application', 'admission_form']
+const NO_CLASS = 'none'
+
+/** 'scholarships/abc/def' → ['scholarships', 'abc', 'def'], checked. */
+export function parsePath(path) {
+  const parts = String(path ?? '').split('/').filter(Boolean)
+  if (!parts.length) return []
+  if (!ROOTS.includes(parts[0]) || parts.length > 3) throw badRequest('That folder does not exist.')
+  const [root, a, b] = parts
+  const okId = (x) => x === undefined || isOid(x)
+  if ((root === 'students' || root === 'scholarships') && !((a === undefined || a === NO_CLASS || isOid(a)) && okId(b))) throw badRequest('That folder does not exist.')
+  if (root === 'admissions' && !((a === undefined || ADMISSION_TYPES.includes(a)) && okId(b))) throw badRequest('That folder does not exist.')
+  if ((root === 'staff' || root === 'candidates' || root === 'folder') && (!okId(a) || b !== undefined)) throw badRequest('That folder does not exist.')
+  if (root === 'school' && (b !== undefined || (a !== undefined && !RECORD_TYPES[a]))) throw badRequest('That folder does not exist.')
+  return parts
+}
+
+async function classStudents(classId) {
+  const filter = classId === NO_CLASS ? { $or: [{ classId: null }, { classId: { $exists: false } }] } : { classId: oid(classId) }
+  return (await Student.find(filter).select('_id').lean()).map((x) => x._id)
+}
+
+/** The files under a place (itself and every folder inside it). */
+async function pathFilter([root, a, b]) {
+  if (!root) return {}
+  if (root === 'students' || root === 'scholarships') {
+    const base = root === 'students' ? { studentId: { $ne: null } } : { entityType: 'scholarship_doc' }
+    if (b) return { ...base, studentId: oid(b) }
+    if (a) return { ...base, studentId: { $in: await classStudents(a) } }
+    return base
+  }
+  if (root === 'admissions') return { entityType: a ? a : { $in: ADMISSION_TYPES }, ...(b && { entityId: b }) }
+  if (root === 'staff') return { entityType: 'employee', ...(a && { entityId: a }) }
+  if (root === 'candidates') return { entityType: 'candidate', ...(a && { entityId: a }) }
+  if (root === 'school') return a ? { studentId: null, entityType: a } : { ...PERSON_FILTER.SCHOOL, entityType: { $nin: ['employee', ...APPLICANT_TYPES, 'doc_folder'] } }
+  if (root === 'folder') return a ? { entityType: 'doc_folder', entityId: a } : { entityType: 'doc_folder' }
+  return {}
+}
+
+/** Is this place a person's or a folder's own files (no folders inside)? */
+export const isLeaf = ([root, a, b]) => !!root && (((root === 'students' || root === 'scholarships' || root === 'admissions') && !!b) || ((root === 'staff' || root === 'candidates' || root === 'folder' || root === 'school') && !!a))
+
+const countBy = async (match, key) => new Map((await Attachment.aggregate([{ $match: match }, { $group: { _id: key, n: { $sum: 1 }, bytes: { $sum: '$size' } } }])).map((g) => [String(g._id), g]))
+
+const ROOT_NAMES = { students: 'Students', scholarships: 'Scholarships', admissions: 'Admissions', staff: 'Staff', candidates: 'Job candidates', school: 'School files' }
+
+/**
+ * One place in the library: where it is (crumbs), the folders inside it with how many files each holds, and whether
+ * it holds files itself. Only what the person may see is counted.
+ */
+export async function browseLibrary(path, auth) {
+  const parts = parsePath(path)
+  const [root, a, b] = parts
+  const scope = await scopeMatch(auth)
+  const under = { $and: [scope, await pathFilter(parts)] }
+  const folders = []
+  const add = (p, name, g, extra = {}) => g?.n && folders.push({ path: p, name, files: g.n, bytes: g.bytes, ...extra })
+
+  if (!root) {
+    const groups = ['students', 'scholarships', 'admissions', 'staff', 'candidates', 'school']
+    const counts = await Promise.all(groups.map(async (g) => (await countBy({ $and: [scope, await pathFilter([g])] }, null)).get('null')))
+    groups.forEach((g, i) => add(g, ROOT_NAMES[g], counts[i], { kind: g }))
+    const own = await countBy({ $and: [scope, { entityType: 'doc_folder' }] }, '$entityId')
+    for (const f of await DocumentFolder.find({ removedAt: null }).sort({ name: 1 }).lean()) {
+      const g = own.get(String(f._id))
+      folders.push({ path: `folder/${f._id}`, name: f.name, files: g?.n ?? 0, bytes: g?.bytes ?? 0, kind: 'own', id: String(f._id), createdBy: f.createdBy ?? null, createdAt: f.createdAt })
+    }
+  } else if ((root === 'students' || root === 'scholarships') && !a) {
+    const byStudent = await countBy(under, '$studentId')
+    const students = await Student.find({ _id: { $in: [...byStudent.keys()].filter(isOid).map(oid) } }).select('classId').lean()
+    const byClass = new Map()
+    for (const st of students) {
+      const k = st.classId ? String(st.classId) : NO_CLASS
+      const g = byStudent.get(String(st._id))
+      const c = byClass.get(k) ?? { n: 0, bytes: 0, people: 0 }
+      byClass.set(k, { n: c.n + g.n, bytes: c.bytes + g.bytes, people: c.people + 1 })
+    }
+    const classes = await ClassLevel.find({ _id: { $in: [...byClass.keys()].filter(isOid).map(oid) } }).select('name order').sort({ order: 1, name: 1 }).lean()
+    for (const c of classes) add(`${root}/${c._id}`, c.name, byClass.get(String(c._id)), { kind: 'class', people: byClass.get(String(c._id)).people })
+    add(`${root}/${NO_CLASS}`, 'No class yet', byClass.get(NO_CLASS), { kind: 'class', people: byClass.get(NO_CLASS)?.people })
+  } else if ((root === 'students' || root === 'scholarships') && !b) {
+    const byStudent = await countBy(under, '$studentId')
+    const names = await studentLabels([...byStudent.keys()].filter(isOid).map(oid))
+    const rows = [...byStudent.entries()].map(([id, g]) => ({ id, g, s: names.get(id) })).sort((x, y) => String(x.s?.name ?? '').localeCompare(String(y.s?.name ?? '')))
+    for (const r of rows) add(`${root}/${a}/${r.id}`, r.s?.name ?? '—', r.g, { kind: 'student', sub: [r.s?.admissionNo, r.s?.classShort].filter(Boolean).join(' · ') || null, classShort: r.s?.classShort ?? null, classId: r.s?.classId ?? null })
+  } else if (root === 'admissions' && !a) {
+    const byType = await countBy(under, '$entityType')
+    add('admissions/application', 'Admission applications', byType.get('application'), { kind: 'group' })
+    add('admissions/admission_form', 'Forms filled by families', byType.get('admission_form'), { kind: 'group' })
+  } else if ((root === 'admissions' && !b) || ((root === 'staff' || root === 'candidates') && !a)) {
+    const byEntity = await countBy(under, '$entityId')
+    const sample = [...byEntity.keys()].map((id) => ({ entityType: root === 'admissions' ? a : root === 'staff' ? 'employee' : 'candidate', entityId: id }))
+    const person = await peopleOf(sample)
+    const rows = sample.map((x) => ({ id: x.entityId, g: byEntity.get(x.entityId), p: person(x) })).sort((x, y) => String(x.p.name ?? '').localeCompare(String(y.p.name ?? '')))
+    for (const r of rows) add(`${root}/${root === 'admissions' ? `${a}/` : ''}${r.id}`, r.p.name ?? r.p.sub ?? '—', r.g, { kind: root === 'staff' ? 'staff' : 'person', sub: r.p.sub ?? null })
+  } else if (root === 'school' && !a) {
+    const byType = await countBy(under, '$entityType')
+    for (const [type, g] of [...byType.entries()].sort((x, y) => String(RECORD_TYPES[x[0]]).localeCompare(String(RECORD_TYPES[y[0]])))) add(`school/${type}`, RECORD_TYPES[type] ?? type, g, { kind: 'source', source: type })
+  }
+
+  return { path: parts.join('/'), crumbs: await crumbsOf(parts), folders, leaf: isLeaf(parts), own: root === 'folder' && a ? a : null }
+}
+
+/** The way back up: [{ path, name }] from the library down to here. */
+async function crumbsOf([root, a, b]) {
+  if (!root) return []
+  const out = [{ path: root, name: ROOT_NAMES[root] ?? root, kind: root }]
+  if (root === 'folder') {
+    const f = a && await DocumentFolder.findById(a).select('name').lean()
+    return f ? [{ path: `folder/${a}`, name: f.name, kind: 'own' }] : []
+  }
+  if (!a) return out
+  if (root === 'students' || root === 'scholarships') {
+    const c = a === NO_CLASS ? { name: 'No class yet' } : await ClassLevel.findById(a).select('name').lean()
+    out.push({ path: `${root}/${a}`, name: c?.name ?? '—', kind: 'class' })
+    if (b) out.push({ path: `${root}/${a}/${b}`, name: (await studentLabels([oid(b)])).get(b)?.name ?? '—', kind: 'student' })
+    return out
+  }
+  if (root === 'admissions') {
+    out.push({ path: `admissions/${a}`, name: a === 'application' ? 'Admission applications' : 'Forms filled by families', kind: 'group' })
+    if (b) out.push({ path: `admissions/${a}/${b}`, name: (await peopleOf([{ entityType: a, entityId: b }]))({ entityType: a, entityId: b }).name ?? '—', kind: 'person' })
+    return out
+  }
+  if (root === 'school') return [...out, { path: `school/${a}`, name: RECORD_TYPES[a] ?? a, kind: 'source', source: a }]
+  const type = root === 'staff' ? 'employee' : 'candidate'
+  return [...out, { path: `${root}/${a}`, name: (await peopleOf([{ entityType: type, entityId: a }]))({ entityType: type, entityId: a }).name ?? '—', kind: root === 'staff' ? 'staff' : 'person' }]
+}

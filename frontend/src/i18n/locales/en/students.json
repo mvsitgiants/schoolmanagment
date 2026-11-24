@@ -899,7 +899,9 @@
       "downloadAll": "Download all",
       "addMenu": "Add",
       "photoMenuHint": "Opens the camera on a phone or tablet",
-      "uploadMenuHint": "A scan, photo or PDF from this device"
+      "uploadMenuHint": "A scan, photo or PDF from this device",
+      "existing": "Choose from existing",
+      "existingMenuHint": "A paper the school already has, or a file from the document library"
     },
     "review": {
       "button": "Review admission",

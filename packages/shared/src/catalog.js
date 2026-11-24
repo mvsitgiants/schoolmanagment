@@ -43,7 +43,7 @@ const ACTION_LABELS = {
   terminate: 'Terminate', view_salary: 'See salary', apply_on_behalf: 'Apply on behalf', edit_lop: 'Edit LOP',
   evaluate: 'Evaluate', start: 'Start', configure: 'Configure', run: 'Run', schedule: 'Schedule', share: 'Share',
   resolve: 'Resolve', allot: 'Allot', checkin: 'Check in', checkout: 'Check out', track: 'Live tracking',
-  verify: 'Verify', upload: 'Upload', portal: 'Update portal status', money: 'Record scholarship money', restore: 'Restore', ask: 'Ask', moderate: 'Moderate', broadcast: 'Send emergency alerts',
+  verify: 'Verify', upload: 'Upload', portal: 'Update portal status', money: 'Record scholarship money', ask: 'Ask', moderate: 'Moderate', broadcast: 'Send emergency alerts',
 }
 
 const titleCase = (id) => id.replace(/_/g, ' ').replace(/^\w/, (c) => c.toUpperCase())
@@ -89,10 +89,9 @@ export const MODULES = [
   { id: 'documents', name: 'Documents', category: 'platform', icon: 'FolderOpen', mandatory: true, phase: 1, scopes: ['OWN', 'CLASS', 'BRANCH', 'ALL'],
     desc: 'Every document and picture in one place — students’, staff’s and the school’s — to find, preview and download many at once.',
     pages: [
-      pg('library', 'Document library', 'V X'),
+      pg('library', 'Document library', 'V C E D X'),
       pg('missing', 'Missing & expiring', 'V send'),
       pg('issued', 'Issued documents', 'V X'),
-      pg('bin', 'Recycle bin', 'V restore!'),
     ] },
   { id: 'core', name: 'Administration', category: 'platform', icon: 'Settings2', mandatory: true, phase: 0,
     desc: 'Institution profile, campuses, users, roles, subscription and every setting.',

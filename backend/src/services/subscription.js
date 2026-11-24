@@ -52,8 +52,8 @@ export function limitsFor(tenant, plan) {
 
 /** Attachments stored by the current tenant, in GB (3 decimals). */
 async function storageGb() {
-  // a paper used again elsewhere (linkOf) shares the original's stored bytes: counted once
-  const [files] = await Attachment.aggregate([{ $match: { linkOf: null } }, { $group: { _id: null, bytes: { $sum: '$size' } } }])
+  // a paper used again elsewhere (linkOf, copyOf) shares the original's stored bytes: counted once
+  const [files] = await Attachment.aggregate([{ $match: { linkOf: null, copyOf: null } }, { $group: { _id: null, bytes: { $sum: '$size' } } }])
   return Math.round((files?.bytes ?? 0) / 1e6) / 1e3
 }
 

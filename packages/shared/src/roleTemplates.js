@@ -106,7 +106,7 @@ const DEFS = [
       ['scholarships', ['schemes', 'visits'], 'W'],
       ['scholarships', ['reports'], 'V'],
       ['scholarships', ['applications'], '+portal'],
-      ['documents', ['library', 'missing', 'issued'], '+view export send'],
+      ['documents', ['library', 'missing', 'issued'], '+view create export send'],
       ['fees', ['dues'], 'V'],
     ] },
   { code: 'ADMISSION_COUNSELLOR', name: 'Admission Counsellor', icon: 'UserPlus', homePage: '/admissions/enquiries',
@@ -115,7 +115,7 @@ const DEFS = [
     grants: [
       ['admissions', ['enquiries', 'applications', 'tests', 'merit'], 'A'],
       ['admissions', ['enquiries', 'tests'], '+delete'], // an enquiry entered twice, a test set up by mistake (refused once used)
-      ['documents', ['library', 'missing', 'issued'], '+view export send'],
+      ['documents', ['library', 'missing', 'issued'], '+view create export send'],
       ['students', ['admit', 'directory'], 'W'],
       ['fees', ['collect'], '+view create'],
       ['communication', ['messages'], '+view create send'],
@@ -126,7 +126,7 @@ const DEFS = [
     grants: [
       ['frontoffice', '*', 'A'],
       ['frontoffice', ['visitors'], '+delete'], // today's mistaken visitor entry
-      ['documents', ['library', 'missing', 'issued'], '+view export send'],
+      ['documents', ['library', 'missing', 'issued'], '+view create export send'],
       ['parking', ['gate'], 'A'],
       ['parking', ['vehicles'], 'V'],
       ['students', ['directory'], 'V'],

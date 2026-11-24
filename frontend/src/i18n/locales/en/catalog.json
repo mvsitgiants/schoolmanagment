@@ -108,8 +108,7 @@
       "documents": {
         "library": "Document library",
         "missing": "Missing & expiring",
-        "issued": "Issued documents",
-        "bin": "Recycle bin"
+        "issued": "Issued documents"
       },
       "core": {
         "setup": "Setup hub",
@@ -400,7 +399,6 @@
       "refund": "Refund",
       "reset_password": "Reset password",
       "resolve": "Resolve",
-      "restore": "Restore",
       "reverse": "Reverse",
       "revoke_sessions": "Sign out devices",
       "run": "Run",
