@@ -7,6 +7,7 @@ import { formatINR } from '@schoolgiant/shared'
 import { ColorChip, ControlChip, DataTable, HeaderButton, LevelBar, PageContainer, PageHeader, StatusPill, Toolbar, useConfirm } from '../../components/system'
 import Button from '../../components/ui/Button'
 import { deleteScheme, fetchSchemes } from '../../api/scholarships'
+import { valueTextOf } from '../../components/scholarships/ScholarshipKit'
 import { hasPermission } from '../../api/auth'
 import { useSnackbar } from '../../context/SnackbarContext'
 
@@ -39,13 +40,13 @@ export default function Schemes() {
           options={[{ value: 'active', label: t('scholarships.schemes.activeOnly') }, { value: 'all', label: t('scholarships.schemes.allSchemes') }]} onChange={(v) => setAll(v === 'all')} />} />}
         columns={[
           { key: 'name', header: t('scholarships.schemes.name'), mobilePrimary: true, render: (v, r) => <div><p className="font-medium text-ink">{v}</p><p className="text-xs text-ink-faint">{t(`scholarships.provider.${r.provider}`)} · {t(`scholarships.benefit.${r.benefit}`)}</p></div> },
-          { key: 'valueText', header: t('scholarships.schemes.gives'), render: (v) => <ColorChip label={v} seed={v} /> },
+          { key: 'valueText', header: t('scholarships.schemes.gives'), mobilePrimary: true, render: (v, r) => <ColorChip label={valueTextOf(t, r)} seed={v} /> },
           { key: 'documents', header: t('scholarships.schemes.documents'), mobileHidden: true, render: (v) => <span className="text-sm text-ink-muted">{t('scholarships.schemes.docCount', { count: v.length })}</span> },
-          { key: 'usage', header: t('scholarships.schemes.thisYear'), render: (u, r) => (
+          { key: 'usage', header: t('scholarships.schemes.thisYear'), mobilePrimary: true, render: (u, r) => (
             <div className="space-y-1">
               <p className="text-xs text-ink-muted">{t('scholarships.schemes.usage', { applied: u.applied, approved: u.approved, open: u.open })}</p>
               {r.seats ? <LevelBar value={u.approved} max={r.seats} label={t('scholarships.schemes.seatsUsed', { used: u.approved, seats: r.seats })} highIsBad warnAt={r.seats} width="w-44" /> : null}
-              {r.budget ? <LevelBar value={u.approvedAmount} max={r.budget} label={t('scholarships.schemes.budgetUsed', { used: formatINR(u.approvedAmount), budget: formatINR(r.budget) })} highIsBad warnAt={r.budget} width="w-44" /> : null}
+              {r.budget ? <div className="w-44"><p className="text-[12.5px] text-ink">{t('scholarships.schemes.budgetUsed', { used: formatINR(u.approvedAmount), budget: formatINR(r.budget) })}</p><LevelBar value={u.approvedAmount} max={r.budget} highIsBad warnAt={r.budget} width="w-full" bare /></div> : null}
             </div>
           ) },
           { key: 'active', header: t('scholarships.schemes.state'), render: (v) => <StatusPill tone={v ? 'success' : 'neutral'}>{v ? t('scholarships.schemes.on') : t('scholarships.schemes.off')}</StatusPill> },

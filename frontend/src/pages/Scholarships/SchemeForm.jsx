@@ -24,7 +24,7 @@ const ORIGINAL_BY_DEFAULT = ['INCOME_CERTIFICATE', 'CASTE_CERTIFICATE']
 const EMPTY = {
   name: '', provider: 'INSTITUTION', benefit: 'FEE_WAIVER', kind: 'PCT', value: '', feeHeadIds: [],
   eligibility: { classIds: [], categories: [], genders: [], maxIncome: '', minMarksPct: '', minAttendancePct: '' },
-  seats: '', budget: '', approval: 'APPROVER', rankBy: 'NONE', holdFees: true, familyApply: true, lastDate: '',
+  seats: '', budget: '', approval: 'APPROVER', rankBy: 'NONE', holdFees: true, familyApply: true, renewalsFirst: true, lastDate: '',
   portal: { name: 'NSP', url: '', verifyBy: '' }, renewal: { minMarksPct: '', minAttendancePct: '' }, documents: [], description: '', active: true,
 }
 const rupees = (p) => (p == null || p === '' ? '' : String(p / 100))
@@ -93,7 +93,7 @@ export default function SchemeForm() {
         minMarksPct: num(form.eligibility.minMarksPct), minAttendancePct: num(form.eligibility.minAttendancePct),
       },
       seats: num(form.seats), budget: form.budget === '' ? null : toPaise(form.budget),
-      approval: form.approval, rankBy: form.rankBy, holdFees: form.holdFees, familyApply: form.familyApply !== false, lastDate: form.lastDate || null,
+      approval: form.approval, rankBy: form.rankBy, holdFees: form.holdFees, familyApply: form.familyApply !== false, renewalsFirst: !!form.renewalsFirst, lastDate: form.lastDate || null,
       documents: form.documents.map((d) => ({ type: d.type, label: d.type === 'OTHER' ? d.label : undefined, required: d.required, originalNeeded: d.originalNeeded, note: d.note || undefined })),
       description: form.description || undefined, active: form.active,
       portal: form.provider === 'GOVERNMENT' ? { name: form.portal.name, url: form.portal.url, verifyBy: form.portal.verifyBy } : undefined,
@@ -222,6 +222,10 @@ export default function SchemeForm() {
           <FormField label={t('scholarships.form.lastDate')} hint={t('scholarships.form.lastDateHint')}><DateInput value={form.lastDate} onChange={set('lastDate')} /></FormField>
           <FormField label={t('scholarships.form.renewMarks')} hint={t('scholarships.form.renewHint')}><Input type="number" min="0" max="100" value={form.renewal.minMarksPct} onChange={setR('minMarksPct')} /></FormField>
           <FormField label={t('scholarships.form.renewAttendance')} hint={t('scholarships.form.renewHint')}><Input type="number" min="0" max="100" value={form.renewal.minAttendancePct} onChange={setR('minAttendancePct')} /></FormField>
+          <label className="sm:col-span-2 xl:col-span-3 inline-flex items-start gap-2 text-sm text-ink">
+            <input type="checkbox" checked={!!form.renewalsFirst} onChange={set('renewalsFirst')} className="mt-0.5 rounded border-border text-brand-500 focus:ring-brand-500" />
+            <span>{t('scholarships.renewal.firstSetting')}<span className="block text-xs text-ink-faint">{t('scholarships.renewal.firstSettingHint')}</span></span>
+          </label>
           <label className="sm:col-span-2 xl:col-span-3 inline-flex items-start gap-2 text-sm text-ink">
             <input type="checkbox" checked={form.holdFees} onChange={set('holdFees')} className="mt-0.5 rounded border-border text-brand-500 focus:ring-brand-500" />
             <span>{t('scholarships.form.holdFees')}<span className="block text-xs text-ink-faint">{t('scholarships.form.holdFeesHint')}</span></span>

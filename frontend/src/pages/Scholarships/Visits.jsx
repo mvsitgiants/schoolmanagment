@@ -58,7 +58,7 @@ function Bookings({ day, onClose }) {
         <div className="space-y-4">
           {day.place && <p className="text-sm text-ink-muted">{day.place}</p>}
           <Note>{t('scholarships.visit.deskHint')}</Note>
-          <DataTable rows={rows} rowKey="id" onSelect={(r) => navigate(`/scholarships/applications?open=${r.id}`)}
+          <DataTable rows={rows} rowKey="id" onSelect={(r) => navigate(`/scholarships/applications/${r.id}`)}
             columns={[
               { key: 'time', header: t('scholarships.visit.time'), width: 70, render: (v) => <span className="tabular-nums font-medium text-ink">{v}</span> },
               { key: 'student', header: t('scholarships.list.student'), mobilePrimary: true, render: (v, r) => <PersonCell name={v?.name ?? '—'} sub={[v?.classShort, r.applicationNo].filter(Boolean).join(' · ')} size={28} /> },
@@ -93,10 +93,10 @@ export default function Visits() {
         toolbar={<Toolbar right={<ControlChip label={t('scholarships.schemes.showing')} active={all} value={all ? t('scholarships.visit.allDays') : t('scholarships.visit.coming')}
           options={[{ value: 'coming', label: t('scholarships.visit.coming') }, { value: 'all', label: t('scholarships.visit.allDays') }]} onChange={(v) => setAll(v === 'all')} />} />}
         columns={[
-          { key: 'date', header: t('scholarships.visit.date'), mobilePrimary: true, render: (v) => <DateCell value={v} /> },
-          { key: 'from', header: t('scholarships.visit.hours'), render: (v, r) => <span className="tabular-nums text-ink">{r.from}–{r.to}<span className="block text-xs text-ink-faint">{t('scholarships.visit.every', { count: r.slotMinutes, per: r.perSlot })}</span></span> },
+          { key: 'date', header: t('scholarships.visit.date'), mobileTitle: true, render: (v) => <DateCell value={v} /> },
+          { key: 'from', header: t('scholarships.visit.hours'), mobilePrimary: true, render: (v, r) => <span className="tabular-nums text-ink">{r.from}–{r.to}<span className="block text-xs text-ink-faint">{t('scholarships.visit.every', { count: r.slotMinutes, per: r.perSlot })}</span></span> },
           { key: 'place', header: t('scholarships.visit.place'), mobileHidden: true, render: (v) => v || <span className="text-ink-faint">—</span> },
-          { key: 'booked', header: t('scholarships.visit.bookedCol'), render: (v, r) => <LevelBar value={v} max={r.times.length * r.perSlot} label={t('scholarships.visit.ofPlaces', { booked: v, total: r.times.length * r.perSlot })} highIsBad warnAt={r.times.length * r.perSlot} width="w-36" /> },
+          { key: 'booked', header: t('scholarships.visit.bookedCol'), mobilePrimary: true, render: (v, r) => <LevelBar value={v} max={r.times.length * r.perSlot} label={t('scholarships.visit.ofPlaces', { booked: v, total: r.times.length * r.perSlot })} highIsBad warnAt={r.times.length * r.perSlot} width="w-36" /> },
           { key: 'active', header: t('scholarships.schemes.state'), render: (v) => <StatusPill tone={v ? 'success' : 'neutral'}>{v ? t('scholarships.visit.open') : t('scholarships.visit.closed')}</StatusPill> },
           { key: 'id', header: '', align: 'right', width: 100, render: (id, r) => (
             <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>

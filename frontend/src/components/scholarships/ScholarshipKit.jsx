@@ -8,6 +8,21 @@ import { Attachments, DateInput, FormField, Input, Modal, Select, StatusPill, Ta
 import Button from '../ui/Button'
 import { useFormat } from '../../context/SettingsContext'
 
+/** A document's name in the reader's language (from its type); a document the scheme named itself keeps its name. */
+export function docName(t, d) {
+  if (!d) return ''
+  const type = d.type ?? d.key
+  return !type || String(type).startsWith('OTHER') ? d.label : t(`scholarships.docType.${type}`, d.label)
+}
+
+/** "50% of fees" / "₹12,000 a year" in the reader's language. */
+export function valueTextOf(t, s) {
+  if (!s) return ''
+  if (s.kind === 'PCT' && s.value != null) return t('scholarships.value.pct', { value: s.value })
+  if (s.kind === 'AMOUNT' && s.value != null) return t('scholarships.value.amount', { amount: formatINR(s.value) })
+  return s.valueText ?? ''
+}
+
 /** The application's status as a pill. */
 export function ApplicationStatus({ status }) {
   const { t } = useTranslation('scholarships')
@@ -18,6 +33,43 @@ export function ApplicationStatus({ status }) {
 export function DocState({ state }) {
   const { t } = useTranslation('scholarships')
   return <StatusPill tone={SCHOLARSHIP_DOC_STATUS[state]?.tone}>{t(`scholarships.docState.${state}`, SCHOLARSHIP_DOC_STATUS[state]?.label)}</StatusPill>
+}
+
+const DOT = {
+  ACCEPTED: { icon: Check, cls: 'bg-success-500 text-white' },
+  ORIGINAL_DUE: { icon: Stamp, cls: 'bg-success-50 text-success-700 ring-1 ring-success-200' },
+  SUBMITTED: { icon: Eye, cls: 'bg-brand-500 text-white' },
+  NOT_ACCEPTED: { icon: X, cls: 'bg-danger-500 text-white' },
+  EXPIRED: { icon: X, cls: 'bg-danger-50 text-danger-600 ring-1 ring-danger-200' },
+  MISSING: { icon: null, cls: 'bg-surface ring-1 ring-border' },
+}
+
+/** One small round mark per document — green correct, blue to check, red to fix, empty not given — named on hover. */
+export function DocDots({ items = [] }) {
+  const { t } = useTranslation('scholarships')
+  if (!items.length) return <span className="text-xs text-ink-faint">{t('scholarships.app.noDocuments')}</span>
+  return (
+    <span className="inline-flex flex-wrap items-center gap-1">
+      {items.map((d) => {
+        const s = DOT[d.state] ?? DOT.MISSING
+        const Icon = s.icon
+        const label = `${docName(t, d)}: ${t(`scholarships.docState.${d.state}`)}`
+        return <span key={d.key} title={label} aria-label={label} className={`inline-flex h-5 w-5 items-center justify-center rounded-full ${s.cls}`}>{Icon && <Icon className="h-3 w-3" strokeWidth={3} aria-hidden />}</span>
+      })}
+    </span>
+  )
+}
+
+/** What the document marks mean, shown under a list that uses them. */
+export function DocKey() {
+  const { t } = useTranslation('scholarships')
+  return (
+    <p className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-ink-muted">
+      {['ACCEPTED', 'SUBMITTED', 'NOT_ACCEPTED', 'ORIGINAL_DUE', 'MISSING'].map((st) => (
+        <span key={st} className="inline-flex items-center gap-1.5"><DocDots items={[{ key: st, label: '', state: st }]} />{t(`scholarships.docState.${st}`)}</span>
+      ))}
+    </p>
+  )
 }
 
 /** "3 of 5 correct" and what is left, in a few calm words. */
@@ -47,9 +99,8 @@ export function DocProgress({ docs }) {
  * The scheme's rules against the student: a tick, a cross, or a question mark when the system can't tell
  * (no marks or attendance yet, income not given) and the paper decides.
  */
-export function EligibilityList({ checks = [], classes = [] }) {
-  const { t } = useTranslation('scholarships')
-  if (!checks.length) return <p className="text-sm text-ink-muted">{t('scholarships.eligibility.open')}</p>
+/** How a check's value and the scheme's need read: "₹1,70,000" against "up to ₹2,50,000 a year". */
+function checkTexts(t, classes = []) {
   const className = (id) => classes.find((c) => c.id === id)?.name ?? '—'
   const show = (c) => {
     if (c.value == null) return t('scholarships.eligibility.unknown')
@@ -68,6 +119,17 @@ export function EligibilityList({ checks = [], classes = [] }) {
     if (c.key === 'gender') return c.need.map((v) => t(`scholarships.gender.${v}`, v)).join(', ')
     return ''
   }
+  return { show, need }
+}
+
+/**
+ * The scheme's rules against the student: a tick, a cross, or a question mark when the system can't tell
+ * (no marks or attendance yet, income not given) and the paper decides.
+ */
+export function EligibilityList({ checks = [], classes = [] }) {
+  const { t } = useTranslation('scholarships')
+  if (!checks.length) return <p className="text-sm text-ink-muted">{t('scholarships.eligibility.open')}</p>
+  const { show, need } = checkTexts(t, classes)
   return (
     <ul className="divide-y divide-border rounded-lg border border-border">
       {checks.map((c) => {
@@ -87,6 +149,28 @@ export function EligibilityList({ checks = [], classes = [] }) {
   )
 }
 
+/** The same checks as small chips on one line (the review page's header): the need shows on hover. */
+export function EligibilityChips({ checks = [], classes = [] }) {
+  const { t } = useTranslation('scholarships')
+  if (!checks.length) return <span className="text-sm text-ink-muted">{t('scholarships.eligibility.open')}</span>
+  const { show, need } = checkTexts(t, classes)
+  return (
+    <span className="flex flex-wrap gap-1.5">
+      {checks.map((c) => {
+        const Icon = c.ok === true ? Check : c.ok === false ? X : CircleHelp
+        const cls = c.ok === true ? 'border-success-200 bg-success-50 text-success-700' : c.ok === false ? 'border-danger-200 bg-danger-50 text-danger-700' : 'border-border bg-bg text-ink-muted'
+        const title = `${t('scholarships.eligibility.needs', { what: need(c) })}${c.ok == null ? ` · ${t('scholarships.eligibility.checkPaper')}` : ''}`
+        return (
+          <span key={c.key} title={title} className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs ${cls}`}>
+            <Icon className="h-3.5 w-3.5" aria-hidden />{t(`scholarships.check.${c.key}`)}: <span className="font-semibold">{show(c)}</span>
+            <span className="opacity-70">({need(c)})</span>
+          </span>
+        )
+      })}
+    </span>
+  )
+}
+
 /** "Correct" (details, the original seen) or "Needs fixing" (the reason the family is told) for one document. */
 export function CheckDocument({ item, mode, onClose, onSave, saving, errors = {} }) {
   const { t } = useTranslation('scholarships')
@@ -102,7 +186,7 @@ export function CheckDocument({ item, mode, onClose, onSave, saving, errors = {}
     ? { result: 'ACCEPT', number: form.number || undefined, issuedOn: form.issuedOn || undefined, originalSeen: form.originalSeen }
     : { result: 'NOT_ACCEPT', reason: form.reason, note: form.note || undefined })
   return (
-    <Modal open onClose={onClose} title={accept ? t('scholarships.checkDoc.correctTitle', { doc: item.label }) : t('scholarships.checkDoc.fixTitle', { doc: item.label })} footer={<>
+    <Modal open onClose={onClose} title={accept ? t('scholarships.checkDoc.correctTitle', { doc: docName(t, item) }) : t('scholarships.checkDoc.fixTitle', { doc: docName(t, item) })} footer={<>
       <Button variant="secondary" onClick={onClose}>{t('scholarships.common.cancel')}</Button>
       <Button icon={accept ? FileCheck2 : FileX2} variant={accept ? 'primary' : 'danger'} loading={saving} disabled={!ok} onClick={submit}>{accept ? t('scholarships.checkDoc.markCorrect') : t('scholarships.checkDoc.markFix')}</Button>
     </>}>
@@ -148,7 +232,7 @@ export function DocumentLine({ item, open: decided, canWork, canVerify, onAddFil
     <div className={`rounded-lg border p-3 ${highlight ? 'border-danger-200 bg-danger-50/40' : 'border-border'}`}>
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0">
-          <p className="text-sm font-medium text-ink">{item.label}</p>
+          <p className="text-sm font-medium text-ink">{docName(t, item)}</p>
           <div className="flex flex-wrap items-center gap-1.5 mt-1">
             <Tag tone={item.required ? 'neutral' : 'info'}>{item.required ? t('scholarships.doc.required') : t('scholarships.doc.optional')}</Tag>
             {item.originalNeeded && <Tag tone="info" icon={Stamp}>{t('scholarships.doc.originalNeeded')}</Tag>}

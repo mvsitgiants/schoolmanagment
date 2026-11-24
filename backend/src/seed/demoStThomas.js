@@ -2232,6 +2232,80 @@ async function fillScholarships(admin) {
   return `3 schemes, a day for originals, ${all.summary.total} applications (${all.summary.byStatus.APPROVED} approved, ${all.summary.docsToCheck} documents to check, ${all.summary.portalToVerify} to verify on the UP portal)${fromApp ? ', one made from the family app' : ''}`
 }
 
+/**
+ * Last year (2025-26) for scholarship renewals: the year itself (closed), and scholarships approved then for students
+ * who have not applied this year — need-based, merit and the UP government one (with its portal number and the money
+ * received). Their documents were checked last year: photos, Aadhaar and caste certificates still count, the income
+ * certificate and mark sheet have run out — so a renewal asks only for those. Try it in Applications › Who can apply ›
+ * Renew last year's, or in the family app (a "Renew" card).
+ */
+async function fillScholarshipHistory(admin) {
+  const schemes = (await admin.get('/scholarships/schemes', { all: '1' }).catch(() => null))?.rows
+  if (!schemes?.length) return 'no scholarship schemes yet (run the Scholarships step first)'
+  const years = await admin.get('/academics/years')
+  const list = years.rows ?? years
+  const current = list.find((y) => y.isCurrent)
+  const startOf = (ymd) => `${Number(ymd.slice(0, 4)) - 1}${ymd.slice(4)}`
+  const prevName = `${Number(current.startDate.slice(0, 4)) - 1}-${current.startDate.slice(2, 4)}`
+  let prev = list.find((y) => y.name === prevName)
+  if (!prev) prev = await admin.post('/academics/years', { name: prevName, startDate: startOf(current.startDate), endDate: addDaysYmd(current.startDate, -1), closed: true })
+  const byName = (re) => schemes.find((x) => re.test(x.name))
+  const plan = [
+    [byName(/Merit/), 5, ['MARKSHEET', 'PHOTO']],
+    [byName(/Need-based/), 4, ['INCOME_CERTIFICATE', 'PARENT_ID', 'SELF_DECLARATION']],
+    [byName(/UP Pre-matric/), 3, ['INCOME_CERTIFICATE', 'CASTE_CERTIFICATE', 'DOMICILE', 'STUDENT_AADHAAR', 'BANK_PASSBOOK', 'PHOTO']],
+  ].filter(([x]) => x)
+  const picks = []
+  for (const [scheme, n, docs] of plan) {
+    const el = await admin.get(`/scholarships/schemes/${scheme.id}/eligible`)
+    // the end of the list, so these are not the students whose applications this year were started from the top
+    for (const r of el.rows.slice(-n)) picks.push({ scheme, studentId: r.studentId, docs })
+  }
+  if (!picks.length) return 'nobody to give last year’s scholarships to'
+  const made = await runAsTenant(tenant._id, async () => {
+    const { ScholarshipApplication, ScholarshipDocument, ScholarshipScheme } = await import('../models/scholarships.js')
+    const { Student } = await import('../models/students.js')
+    const { scholarshipDocValidTill, SCHOLARSHIP_DOC_TYPE_BY } = await import('@schoolgiant/shared')
+    if (await ScholarshipApplication.exists({ academicYearId: prev.id })) return 0
+    const issuedLastYear = `${prevName.slice(0, 4)}-06-20`
+    const marksheetLastYear = `${prevName.slice(0, 4)}-03-28`
+    let i = 0
+    for (const { scheme, studentId, docs } of picks) {
+      const s = await Student.findById(studentId).lean()
+      const x = await ScholarshipScheme.findById(scheme.id).lean()
+      if (!s || !x) continue
+      i++
+      // the student's documents as checked last year (kept for this year where still good)
+      for (const type of docs) {
+        if (await ScholarshipDocument.exists({ studentId: s._id, key: type })) continue
+        const months = SCHOLARSHIP_DOC_TYPE_BY[type]?.validMonths
+        const issuedOn = months ? (type === 'MARKSHEET' ? marksheetLastYear : issuedLastYear) : undefined
+        await ScholarshipDocument.create({
+          studentId: s._id, key: type, type, status: 'ACCEPTED', paperCopy: true, issuedOn, validTill: issuedOn ? scholarshipDocValidTill(type, issuedOn) : undefined,
+          originalSeen: true, originalSeenBy: 'Rohit Chandra', originalSeenAt: new Date(`${prevName.slice(0, 4)}-07-15`),
+          checkedBy: 'Rohit Chandra', checkedAt: new Date(`${prevName.slice(0, 4)}-07-15`), log: [{ at: new Date(`${prevName.slice(0, 4)}-07-15`), by: 'Rohit Chandra', text: 'Correct — original seen' }],
+        })
+      }
+      const govt = x.provider === 'GOVERNMENT'
+      const amount = x.kind === 'AMOUNT' ? x.value : 1200000
+      const decided = new Date(`${prevName.slice(0, 4)}-08-${String(5 + i).padStart(2, '0')}`)
+      await ScholarshipApplication.create({
+        applicationNo: `SCH${prevName.slice(2, 4)}${String(100 + i).padStart(5, '0')}`, schemeId: x._id, studentId: s._id, academicYearId: prev.id,
+        branchId: s.branchId, sectionId: s.sectionId, source: 'OFFICE', familyIncome: (1.1 + (i % 4) * 0.3) * 100000 * 100,
+        marksPct: 70 + ((i * 7) % 25), marksFrom: 'EXAM', attendancePct: 85 + (i % 10), items: x.documents, holdFees: false,
+        status: 'APPROVED', expectedAmount: amount, createdBy: 'Rohit Chandra', decidedBy: 'Principal', decidedAt: decided, decisionNote: undefined,
+        ...(govt && {
+          portal: { applicationId: `UP25${String(300000 + i * 4111)}`, status: 'PAID', statusOn: decided, history: [{ at: decided, by: 'Rohit Chandra', status: 'PAID' }] },
+          received: [{ at: decided, date: decided.toISOString().slice(0, 10), amount, reference: 'UP treasury e-transfer', by: 'Accounts office' }],
+        }),
+        log: [{ at: new Date(`${prevName.slice(0, 4)}-07-01`), by: 'Rohit Chandra', text: 'Application started' }, { at: decided, by: 'Principal', text: 'Approved' }],
+      })
+    }
+    return i
+  })
+  return made ? `${prevName} added (closed) with ${made} scholarships approved then — renew them from Who can apply › Renew last year's` : `${prevName} already has scholarships`
+}
+
 async function fillAlumni(admin) {
   const r = await admin.getRaw('/alumni/directory', {})
   if (r.body?.total || r.body?.data?.length) return 'already there'
@@ -2316,6 +2390,7 @@ async function main() {
   await step('Transfer certificate', () => fillTc(admin))
   await step('Alumni', () => fillAlumni(admin))
   await step('Scholarships', () => fillScholarships(admin))
+  await step('Scholarship history (last year, for renewals)', () => fillScholarshipHistory(admin))
   await mongoose.disconnect()
   console.log('Done.')
 }

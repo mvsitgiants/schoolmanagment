@@ -49,6 +49,8 @@ const schemeSchema = new Schema({
   portal: { name: String, url: String, verifyBy: ymd },
   /** Renewing next year: last year's scholars stay in if they still have these marks and attendance. */
   renewal: { minMarksPct: Number, minAttendancePct: Number },
+  /** Last year's scholars come before new applicants in the merit list (so they keep their seats). */
+  renewalsFirst: { type: Boolean, default: false },
   /** Families can apply from the parent / student app (otherwise only the office starts applications). */
   familyApply: { type: Boolean, default: true },
   documents: { type: [checklistItem], default: [] },
@@ -106,6 +108,7 @@ const applicationSchema = new Schema({
   /** On the government portal: the portal's own application id and where it stands (SCHOLARSHIP_PORTAL_STATUS). */
   portal: {
     applicationId: { type: String, trim: true }, status: String, statusOn: Date, sanctionedAmount: Number, note: String,
+    previousId: String, // last year's portal application number (a renewal is made against it)
     history: { type: [{ _id: false, at: Date, by: String, status: String, note: String }], default: undefined },
   },
   /** Approved, paid to the institution later (benefit PAID_TO_INSTITUTION): the fees stay held until it comes. */

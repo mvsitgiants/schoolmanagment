@@ -40,7 +40,7 @@ export function PortalStatus({ ids, app, onClose, onDone }) {
             <Select value={form.status} onChange={set('status')}>{Object.keys(SCHOLARSHIP_PORTAL_STATUS).map((k) => <option key={k} value={k}>{t(`scholarships.portalStatus.${k}`, SCHOLARSHIP_PORTAL_STATUS[k].label)}</option>)}</Select>
           </FormField>
         </div>
-        {one && <FormField label={t('scholarships.portal.applicationId')} hint={t('scholarships.portal.applicationIdHint')}><Input value={form.applicationId} onChange={set('applicationId')} /></FormField>}
+        {one && <FormField label={t('scholarships.portal.applicationId')} hint={app?.portal?.previousId ? t('scholarships.renewal.portalPrevious', { id: app.portal.previousId }) : t('scholarships.portal.applicationIdHint')}><Input value={form.applicationId} onChange={set('applicationId')} /></FormField>}
         {one && <FormField label={t('scholarships.portal.sanctioned')} hint={t('scholarships.portal.sanctionedHint')}><Input type="number" min="0" value={form.sanctionedAmount} onChange={set('sanctionedAmount')} /></FormField>}
         <div className="sm:col-span-2"><FormField label={t('scholarships.portal.note')}><Textarea rows={2} value={form.note} onChange={set('note')} /></FormField></div>
         {!one && <div className="sm:col-span-2"><Note>{t('scholarships.portal.manyHint')}</Note></div>}

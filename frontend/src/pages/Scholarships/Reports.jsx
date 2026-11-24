@@ -4,6 +4,7 @@ import { BadgeCheck, ChartColumn, Clock, IndianRupee, UsersRound } from 'lucide-
 import { formatINR } from '@schoolgiant/shared'
 import { ColorChip, DataTable, DateCell, LevelBar, Money, PageContainer, PageHeader, Panel, PersonCell, Skeleton, StatCardRow } from '../../components/system'
 import { fetchScholarshipReport } from '../../api/scholarships'
+import { valueTextOf } from '../../components/scholarships/ScholarshipKit'
 import { hasPermission } from '../../api/auth'
 
 /** A small "who got it" table: students and money per group. */
@@ -15,12 +16,15 @@ function GroupTable({ title, rows, label }) {
       {!rows.length ? <p className="text-sm text-ink-muted">{t('scholarships.report.nothing')}</p> : (
         <ul className="space-y-2.5">
           {rows.map((r) => (
-            <li key={r.key} className="flex items-center justify-between gap-3">
-              <span className="min-w-0 truncate text-sm text-ink">{label(r)}</span>
-              <span className="flex items-center gap-3">
-                <LevelBar value={r.students} max={max} label={t('scholarships.report.studentsN', { count: r.students })} width="w-32" bare />
-                <span className="w-24 text-end text-sm tabular-nums text-ink-muted">{formatINR(r.amount)}</span>
-              </span>
+            <li key={r.key}>
+              <div className="flex items-baseline justify-between gap-3">
+                <span className="text-sm text-ink">{label(r)}</span>
+                <span className="shrink-0 text-sm tabular-nums text-ink">{formatINR(r.amount)}</span>
+              </div>
+              <div className="mt-1 flex items-center gap-2">
+                <LevelBar value={r.students} max={max} width="w-full" bare />
+                <span className="shrink-0 text-xs text-ink-muted">{t('scholarships.report.studentsN', { count: r.students })}</span>
+              </div>
             </li>
           ))}
         </ul>
@@ -51,14 +55,14 @@ export default function Reports() {
 
           <DataTable title={t('scholarships.report.byScheme')} rows={r.schemes} rowKey="id"
             columns={[
-              { key: 'name', header: t('scholarships.schemes.name'), mobilePrimary: true, render: (v, x) => <div><p className="font-medium text-ink">{v}</p><p className="text-xs text-ink-faint">{t(`scholarships.provider.${x.provider}`)} · {x.valueText}</p></div> },
-              { key: 'applied', header: t('scholarships.report.appliedCol'), align: 'right' },
-              { key: 'approved', header: t('scholarships.report.approvedCol'), align: 'right', render: (v, x) => (x.seats ? <LevelBar value={v} max={x.seats} label={`${v} / ${x.seats}`} highIsBad warnAt={x.seats} width="w-24" /> : v) },
+              { key: 'name', header: t('scholarships.schemes.name'), mobilePrimary: true, render: (v, x) => <div><p className="font-medium text-ink">{v}</p><p className="text-xs text-ink-faint">{t(`scholarships.provider.${x.provider}`)} · {valueTextOf(t, x)}</p></div> },
+              { key: 'applied', header: t('scholarships.report.appliedCol'), align: 'right', mobileHidden: true },
+              { key: 'approved', header: t('scholarships.report.approvedCol'), align: 'right', mobilePrimary: true, render: (v, x) => (x.seats ? <LevelBar value={v} max={x.seats} label={v} highIsBad warnAt={x.seats} width="w-24" /> : v) },
               { key: 'notApproved', header: t('scholarships.report.notApprovedCol'), align: 'right', mobileHidden: true },
               { key: 'open', header: t('scholarships.report.openCol'), align: 'right', mobileHidden: true },
-              { key: 'amount', header: t('scholarships.report.amountCol'), align: 'right', render: (v, x) => (x.budget ? <LevelBar value={v} max={x.budget} label={formatINR(v)} highIsBad warnAt={x.budget} width="w-28" /> : <Money value={v} paise />) },
+              { key: 'amount', header: t('scholarships.report.amountCol'), align: 'right', mobileTrail: true, render: (v, x) => (x.budget ? <div className="inline-flex w-36 flex-col items-end gap-1"><span className="text-sm tabular-nums text-ink">{formatINR(v)} <span className="text-xs text-ink-faint">/ {formatINR(x.budget)}</span></span><LevelBar value={v} max={x.budget} highIsBad warnAt={x.budget} width="w-full" bare /></div> : <Money value={v} paise />) },
               { key: 'received', header: t('scholarships.report.receivedCol'), align: 'right', mobileHidden: true, render: (v) => (v ? <Money value={v} paise /> : <span className="text-ink-faint">—</span>) },
-              { key: 'awaited', header: t('scholarships.report.awaitedCol'), align: 'right', render: (v) => (v ? <Money value={v} paise /> : <span className="text-ink-faint">—</span>) },
+              { key: 'awaited', header: t('scholarships.report.awaitedCol'), align: 'right', mobilePrimary: true, render: (v) => (v ? <Money value={v} paise /> : <span className="text-ink-faint">—</span>) },
             ]}
             emptyIcon={ChartColumn} emptyTitle={t('scholarships.report.noApplications')} />
 

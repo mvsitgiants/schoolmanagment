@@ -36,7 +36,7 @@
       "GATE_PASS": "गेट पास",
       "CANTEEN_TOKEN": "कैंटीन टोकन",
       "VEHICLE": "वाहन",
-      "SCHOLARSHIP": "Scholarship application"
+      "SCHOLARSHIP": "छात्रवृत्ति आवेदन"
     },
     "status": {
       "CANCELLED": "रद्द",
@@ -59,11 +59,11 @@
       "DISPOSED": "निपटाया गया",
       "EXPIRED": "पास समाप्त",
       "REVOKED": "पास रद्द",
-      "IN_PROGRESS": "Collecting documents",
-      "NEEDS_FIX": "Sent back to fix",
-      "READY": "Ready for decision",
-      "NOT_APPROVED": "Not approved",
-      "APPROVED": "Approved"
+      "IN_PROGRESS": "दस्तावेज़ एकत्र हो रहे हैं",
+      "NEEDS_FIX": "सुधार हेतु लौटाया गया",
+      "READY": "निर्णय हेतु तैयार",
+      "NOT_APPROVED": "अस्वीकृत",
+      "APPROVED": "स्वीकृत"
     },
     "action": {
       "profile": "छात्र की प्रोफ़ाइल खोलें",
@@ -91,7 +91,7 @@
       "parkingIn": "गेट पर अंदर दर्ज करें",
       "parkingOut": "गेट पर बाहर दर्ज करें",
       "parkingPass": "पास खोलें",
-      "scholarshipOpen": "Open the application"
+      "scholarshipOpen": "आवेदन खोलें"
     },
     "gate": {
       "title": "गेट स्कैनर",

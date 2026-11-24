@@ -9,7 +9,7 @@ import { institutionNow } from '../platform/time.js'
 import { yearOrCurrent } from './academics.js'
 import { storeFile } from './files.js'
 import { need, studentFor } from './portal.js'
-import { docLabel, eligibilityChecks, factsOf, freeVisitTimes, linesOf, refreshStudent, say, startApplication, walletOf } from './scholarships.js'
+import { docLabel, eligibilityChecks, factsOf, freeVisitTimes, lastAward, linesOf, refreshStudent, renewalEligibility, say, startApplication, walletOf } from './scholarships.js'
 
 // The family app › Scholarships (feature SCHOLARSHIPS). One visit or none:
 //   · the schemes this child can apply for, with the documents asked for — and which of them are already with the
@@ -91,12 +91,16 @@ export async function familyScholarships(f, studentId) {
     removable: !a.uploadedById && (!docById.get(a.entityId)?.checkedAt || new Date(a.createdAt) > new Date(docById.get(a.entityId).checkedAt)),
   })) : [])
 
-  const open = schemes
-    .filter((x) => x.familyApply !== false && (!x.lastDate || x.lastDate >= t) && !applied.has(String(x._id)))
-    .map((x) => ({ x, checks: eligibilityChecks(x, facts) }))
+  // a scheme the child held last year is a renewal: checked by the renewal rule, and shown first
+  const candidates = schemes.filter((x) => x.familyApply !== false && (!x.lastDate || x.lastDate >= t) && !applied.has(String(x._id)))
+  const lastOf = new Map(await Promise.all(candidates.map(async (x) => [String(x._id), await lastAward(x, s._id, year)])))
+  const open = candidates
+    .map((x) => ({ x, prev: lastOf.get(String(x._id)), checks: lastOf.get(String(x._id)) ? renewalEligibility(x, facts) : eligibilityChecks(x, facts) }))
     .filter((r) => !r.checks.some((c) => c.ok === false))
-    .map(({ x }) => ({
-      id: String(x._id), name: x.name, description: x.description ?? null, provider: x.provider, benefit: x.benefit, valueText: scholarshipValueText(x, formatINR),
+    .sort((a, b) => Number(!a.prev) - Number(!b.prev))
+    .map(({ x, prev }) => ({
+      renewal: prev ? { applicationNo: prev.applicationNo, portalId: prev.portal?.applicationId ?? null } : null,
+      id: String(x._id), name: x.name, description: x.description ?? null, provider: x.provider, benefit: x.benefit, kind: x.kind, value: x.value, valueText: scholarshipValueText(x, formatINR),
       lastDate: x.lastDate ?? null, needsIncome: !!x.eligibility?.maxIncome, maxIncome: x.eligibility?.maxIncome ?? null,
       documents: (x.documents ?? []).map((d) => {
         const doc = wallet.get(`${s._id}|${d.key}`)
@@ -112,7 +116,7 @@ export async function familyScholarships(f, studentId) {
     const { step, next } = scholarshipFamilyStep(a.status, mine.filter((l) => l.required || l.state !== 'MISSING').map((l) => l.state))
     return {
       id: String(a._id), applicationNo: a.applicationNo, status: a.status, step, next, open: isOpen,
-      scheme: x ? { name: x.name, valueText: scholarshipValueText(x, formatINR), benefit: x.benefit, lastDate: x.lastDate ?? null } : null,
+      scheme: x ? { name: x.name, kind: x.kind, value: x.value, valueText: scholarshipValueText(x, formatINR), benefit: x.benefit, lastDate: x.lastDate ?? null } : null,
       decisionNote: a.status === 'NOT_APPROVED' ? a.decisionNote ?? null : null, decidedAt: a.decidedAt ?? null, createdAt: a.createdAt,
       items: mine.map((l) => ({
         key: l.key, label: l.label, required: l.required, originalNeeded: l.originalNeeded, note: l.note ?? null, state: l.state,
@@ -135,9 +139,10 @@ export async function familyApply(f, studentId, schemeId, { familyIncome } = {},
   if (!scheme || !scheme.active) throw notFound('Scholarship')
   if (scheme.familyApply === false) throw forbidden('For this scholarship, the office starts the application. Please speak to the office.')
   if (scheme.lastDate && scheme.lastDate < await today()) throw conflict('The last day to apply for this scholarship has passed.')
-  if (scheme.eligibility?.maxIncome && familyIncome == null) throw badRequest('Enter the family income from the income certificate.', { fields: { familyIncome: 'Needed for this scholarship' } })
+  if (scheme.eligibility?.maxIncome && familyIncome == null && !(await lastAward(scheme, s._id, await yearOrCurrent()))) throw badRequest('Enter the family income from the income certificate.', { fields: { familyIncome: 'Needed for this scholarship' } })
   const year = await yearOrCurrent()
-  await startApplication({ s, scheme, year, familyIncome, source: 'FAMILY' }, standIn(f, s), req)
+  const renewedFrom = await lastAward(scheme, s._id, year) // last year's scholarship of this scheme: this continues it
+  await startApplication({ s, scheme, year, familyIncome, source: 'FAMILY', renewedFrom: renewedFrom ?? undefined }, standIn(f, s), req)
   return familyScholarships(f, studentId)
 }
 
@@ -153,6 +158,7 @@ export async function familySendDocument(f, studentId, appId, key, { fileName, i
     if (await Attachment.countDocuments({ entityType: 'scholarship_doc', entityId: String(doc._id), 'deleted.at': null, ...since }) >= MAX_FILES) throw conflict(`Up to ${MAX_FILES} photos can wait to be checked. Remove one first.`)
   }
   const who = whoOf(f, s)
+  if (line.state === 'EXPIRED') { doc.status = 'SUBMITTED'; doc.issuedOn = undefined; doc.validTill = undefined }
   if (issuedOn) { doc.issuedOn = issuedOn; doc.validTill = scholarshipDocValidTill(doc.type, issuedOn) || undefined }
   if (number) doc.number = number
   doc.log.push({ at: new Date(), by: who, text: 'Sent from the app' })

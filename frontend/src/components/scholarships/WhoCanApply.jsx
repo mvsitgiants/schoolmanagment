@@ -6,6 +6,7 @@ import { ColorChip, DataTable, FormField, Modal, Note, PersonCell, SegmentedCont
 import Button from '../ui/Button'
 import useDebouncedValue from '../../hooks/useDebouncedValue'
 import { createApplications, fetchEligibleStudents } from '../../api/scholarships'
+import { valueTextOf } from './ScholarshipKit'
 import { useSnackbar } from '../../context/SnackbarContext'
 
 /**
@@ -45,7 +46,7 @@ export default function WhoCanApply({ schemes = [], classes = [], schemeId: pres
         <div className="grid sm:grid-cols-2 gap-4">
           <FormField label={t('scholarships.new.scheme')}>
             <Select value={schemeId} onChange={(e) => { setSchemeId(e.target.value); setPicked([]); setResult(null) }}>
-              {schemes.map((s) => <option key={s.id} value={s.id}>{s.name} — {s.valueText}</option>)}
+              {schemes.map((s) => <option key={s.id} value={s.id}>{s.name} — {valueTextOf(t, s)}</option>)}
             </Select>
           </FormField>
           {!renewal && <FormField label={t('scholarships.who.class')}>

@@ -635,7 +635,7 @@
             "HOSTEL": "छात्रावास कक्ष, आउटपास और मेस मेनू",
             "HEALTH": "स्वास्थ्य कार्ड: एलर्जी, टीकाकरण, चिकित्सा कक्ष विज़िट",
             "PLACEMENTS": "प्लेसमेंट ड्राइव और ऑफ़र",
-            "SCHOLARSHIPS": "Scholarships: apply, send documents, see the decision",
+            "SCHOLARSHIPS": "छात्रवृत्ति: आवेदन करें, दस्तावेज़ भेजें, निर्णय देखें",
             "COMPLAINTS": "शिकायतें और समस्याएँ",
             "SURVEYS": "सर्वेक्षण और फ़ीडबैक",
             "CANTEEN": "कैंटीन वॉलेट और अग्रिम ऑर्डर",
@@ -662,7 +662,7 @@
             "HOSTEL": "छात्रावास कक्ष, आउटपास और मेस मेनू",
             "HEALTH": "स्वास्थ्य कार्ड: एलर्जी, टीकाकरण, चिकित्सा कक्ष विज़िट",
             "PLACEMENTS": "प्लेसमेंट ड्राइव और ऑफ़र",
-            "SCHOLARSHIPS": "Scholarships: apply, send documents, see the decision",
+            "SCHOLARSHIPS": "छात्रवृत्ति: आवेदन करें, दस्तावेज़ भेजें, निर्णय देखें",
             "COMPLAINTS": "शिकायतें और समस्याएँ",
             "SURVEYS": "सर्वेक्षण और फ़ीडबैक",
             "CANTEEN": "कैंटीन वॉलेट और अग्रिम ऑर्डर",
@@ -693,8 +693,8 @@
           "help": "बस चालक, परिचारक और छात्रावास वार्डन के। बंद होने पर केवल नाम दिखेंगे।"
         },
         "afterLeavingDays": {
-          "label": "Keep the app open after a child leaves (days)",
-          "help": "Read-only: fees (and paying them), results, certificates, notices and a copy of the TC. 0 closes it the day the TC is issued."
+          "label": "बच्चे के विद्यालय छोड़ने के बाद ऐप खुला रखें (दिन)",
+          "help": "केवल देखने हेतु: शुल्क (और उसका भुगतान), परिणाम, प्रमाण पत्र, सूचनाएँ और TC की प्रति। 0 रखने पर TC जारी होने के दिन ही बंद हो जाता है।"
         },
         "chat": {
           "label": "परिवार ऐप में शिक्षकों को संदेश भेज सकते हैं",

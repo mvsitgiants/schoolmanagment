@@ -2,7 +2,7 @@ import { useRef, useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import clsx from 'clsx'
-import { Award, CalendarClock, Camera, Check, CheckCircle2, CircleAlert, Clock, FileCheck2, Send, X, XCircle } from 'lucide-react'
+import { Award, CalendarClock, Camera, RefreshCw, Upload, Check, CheckCircle2, CircleAlert, Clock, FileCheck2, Send, X, XCircle } from 'lucide-react'
 import { FILE_MAX_MB, toPaise } from '@schoolgiant/shared'
 import { DateInput, FormField, localIso } from '../../components/system'
 import { FCard, FEmpty, FError, FSkeleton, useFamily, useFamilyQuery } from '../../components/family/FamilyKit'
@@ -11,6 +11,7 @@ import {
   familyScholarshipApply, familyScholarshipBook, familyScholarshipCancelVisit, familyScholarshipRemoveFile, familyScholarshipSend, familyScholarships,
 } from '../../api/family'
 import { useFormat } from '../../context/SettingsContext'
+import { docName, valueTextOf } from '../../components/scholarships/ScholarshipKit'
 
 const STEPS = ['applied', 'documents', 'checking', 'decision']
 const STATE_TONE = { ACCEPTED: 'text-success-700', ORIGINAL_DUE: 'text-brand-700', SUBMITTED: 'text-ink-muted', MISSING: 'text-ink-muted', NOT_ACCEPTED: 'text-danger-600', EXPIRED: 'text-danger-600' }
@@ -42,6 +43,7 @@ function DocRow({ app, item, onSent }) {
   const { slug, studentId } = useFamily()
   const { date } = useFormat()
   const fileRef = useRef(null)
+  const pickRef = useRef(null)
   const [issuedOn, setIssuedOn] = useState(item.issuedOn ?? '')
   const today = localIso(new Date())
   const [error, setError] = useState(null)
@@ -64,7 +66,7 @@ function DocRow({ app, item, onSent }) {
       <div className="flex items-start gap-3">
         <Icon className={clsx('mt-0.5 h-5 w-5 shrink-0', STATE_TONE[item.state])} aria-hidden />
         <div className="min-w-0 flex-1">
-          <p className="text-[15px] font-medium text-ink">{item.label}{!item.required && <span className="font-normal text-ink-faint"> · {t('scholarships.doc.optional')}</span>}</p>
+          <p className="text-[15px] font-medium text-ink">{docName(t, item)}{!item.required && <span className="font-normal text-ink-faint"> · {t('scholarships.doc.optional')}</span>}</p>
           <p className={clsx('text-sm', STATE_TONE[item.state])}>{t(`scholarships.family.state.${item.state}`)}</p>
           {item.state === 'NOT_ACCEPTED' && item.reason && <p className="mt-1 rounded-lg bg-danger-50 px-2.5 py-1.5 text-sm text-danger-700">{t(`scholarships.reason.${item.reason}`)}{item.reasonNote ? ` — ${item.reasonNote}` : ''}</p>}
           {item.note && <p className="text-xs text-ink-faint">{item.note}</p>}
@@ -82,10 +84,15 @@ function DocRow({ app, item, onSent }) {
               {item.needsIssueDate && (
                 <FormField label={t('scholarships.family.issuedOn')}><DateInput value={issuedOn} max={today} onChange={(e) => setIssuedOn(e.target.value)} /></FormField>
               )}
-              <input ref={fileRef} type="file" accept="image/*,application/pdf" capture="environment" className="hidden" onChange={pick} />
+              <input ref={fileRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={pick} />
+              <input ref={pickRef} type="file" accept="image/*,application/pdf" className="hidden" onChange={pick} />
               <button type="button" disabled={send.isPending || needDate} onClick={() => fileRef.current?.click()}
                 className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-brand-300 bg-brand-50/70 px-4 text-sm font-semibold text-brand-700 disabled:opacity-50">
                 <Camera className="h-4 w-4" />{send.isPending ? t('scholarships.family.sending') : item.state === 'NOT_ACCEPTED' || item.state === 'EXPIRED' ? t('scholarships.family.sendAgain') : item.files.length ? t('scholarships.family.sendMore') : t('scholarships.family.send')}
+              </button>
+              <button type="button" disabled={send.isPending || needDate} onClick={() => pickRef.current?.click()}
+                className="ms-2 inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-border px-4 text-sm font-medium text-ink disabled:opacity-50">
+                <Upload className="h-4 w-4" />{t('scholarships.family.chooseFile')}
               </button>
               {needDate && <p className="text-xs text-ink-faint">{t('scholarships.family.dateFirst')}</p>}
             </div>
@@ -106,7 +113,7 @@ function Visit({ app, times, onDone }) {
   const [time, setTime] = useState('')
   const book = useMutation({ mutationFn: () => familyScholarshipBook(slug, studentId, app.id, { dayId, time }), onSuccess: onDone })
   const cancel = useMutation({ mutationFn: () => familyScholarshipCancelVisit(slug, studentId, app.id), onSuccess: onDone })
-  const originals = app.items.filter((i) => i.state === 'ORIGINAL_DUE').map((i) => i.label)
+  const originals = app.items.filter((i) => i.state === 'ORIGINAL_DUE').map((i) => docName(t, i))
   if (app.visit) {
     return (
       <div className="rounded-xl border border-brand-200 bg-brand-50/50 p-3 space-y-3">
@@ -158,7 +165,7 @@ function Application({ app, times, onChanged }) {
   return (
     <FCard title={app.scheme?.name} action={<span className="text-xs text-ink-faint">{app.applicationNo}</span>}>
       <div className="space-y-4">
-        <p className="text-sm text-ink-muted">{app.scheme?.valueText}{app.scheme?.lastDate && app.open ? ` · ${t('scholarships.family.lastDate', { date: date(app.scheme.lastDate) })}` : ''}</p>
+        <p className="text-sm text-ink-muted">{valueTextOf(t, app.scheme)}{app.scheme?.lastDate && app.open ? ` · ${t('scholarships.family.lastDate', { date: date(app.scheme.lastDate) })}` : ''}</p>
         <Steps step={app.step} failed={failed} />
         <p className={clsx('rounded-xl px-3 py-2.5 text-[15px]', app.next === 'APPROVED' ? 'bg-success-50 text-success-700' : failed ? 'bg-danger-50 text-danger-700' : app.next === 'FIX_DOCS' ? 'bg-amber-50 text-amber-600' : 'bg-bg text-ink')}>
           {t(`scholarships.family.next.${app.next}`)}{app.next === 'NOT_APPROVED' && app.decisionNote ? ` ${t('scholarships.family.reasonWas', { reason: app.decisionNote })}` : ''}
@@ -185,20 +192,23 @@ function Scheme({ scheme, onApplied }) {
   const toGive = scheme.documents.filter((d) => !d.have)
   const have = scheme.documents.filter((d) => d.have)
   return (
-    <FCard title={scheme.name} action={<span className="rounded-full bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700">{scheme.valueText}</span>}>
+    <FCard title={scheme.name} action={<span className="rounded-full bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700">{valueTextOf(t, scheme)}</span>}>
       <div className="space-y-3">
+        {scheme.renewal && (
+          <p className="flex items-start gap-2 rounded-xl bg-brand-50 px-3 py-2.5 text-[15px] text-brand-700"><RefreshCw className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />{t('scholarships.renewal.familyNote', { no: scheme.renewal.applicationNo })}</p>
+        )}
         {scheme.description && <p className="text-[15px] text-ink">{scheme.description}</p>}
         {scheme.lastDate && <p className="text-sm text-ink-muted">{t('scholarships.family.lastDate', { date: date(scheme.lastDate) })}</p>}
         {scheme.documents.length > 0 && (
           <div className="space-y-1.5">
             <p className="text-sm font-semibold text-ink">{t('scholarships.family.youNeed')}</p>
-            <ul className="space-y-1">{toGive.map((d) => <li key={d.key} className="text-sm text-ink">• {d.label}{!d.required && <span className="text-ink-faint"> · {t('scholarships.doc.optional')}</span>}{d.note && <span className="text-ink-faint"> — {d.note}</span>}</li>)}</ul>
-            {have.length > 0 && <ul className="space-y-1">{have.map((d) => <li key={d.key} className="flex items-center gap-1.5 text-sm text-success-700"><FileCheck2 className="h-4 w-4" />{t('scholarships.family.alreadyHave', { doc: d.label })}</li>)}</ul>}
+            <ul className="space-y-1">{toGive.map((d) => <li key={d.key} className="text-sm text-ink">• {docName(t, d)}{!d.required && <span className="text-ink-faint"> · {t('scholarships.doc.optional')}</span>}{d.note && <span className="text-ink-faint"> — {d.note}</span>}</li>)}</ul>
+            {have.length > 0 && <ul className="space-y-1">{have.map((d) => <li key={d.key} className="flex items-center gap-1.5 text-sm text-success-700"><FileCheck2 className="h-4 w-4" />{t('scholarships.family.alreadyHave', { doc: docName(t, d) })}</li>)}</ul>}
           </div>
         )}
         {open ? (
           <div className="space-y-3">
-            {scheme.needsIncome && (
+            {scheme.needsIncome && !scheme.renewal && (
               <label className="block">
                 <span className="mb-1 block text-sm font-medium text-ink">{t('scholarships.family.income')}</span>
                 <input type="number" inputMode="numeric" min="0" value={income} onChange={(e) => setIncome(e.target.value)} className={inputCls} />
@@ -212,7 +222,7 @@ function Scheme({ scheme, onApplied }) {
             </div>
           </div>
         ) : (
-          <button type="button" onClick={() => setOpen(true)} className="h-12 w-full rounded-xl bg-brand-500 text-sm font-semibold text-white">{t('scholarships.family.apply')}</button>
+          <button type="button" onClick={() => setOpen(true)} className="h-12 w-full rounded-xl bg-brand-500 text-sm font-semibold text-white">{scheme.renewal ? t('scholarships.renewal.familyButton', { name: student?.firstName ?? '' }) : t('scholarships.family.apply')}</button>
         )}
       </div>
     </FCard>

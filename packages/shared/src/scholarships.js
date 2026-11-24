@@ -71,7 +71,7 @@ export const SCHOLARSHIP_DOC_TYPES = [
   { value: 'BPL_CARD', label: 'BPL / ration card', validMonths: null },
   { value: 'MINORITY_DECLARATION', label: 'Minority community declaration', validMonths: 12 },
   { value: 'SPORTS_CERTIFICATE', label: 'Sports certificate', validMonths: null },
-  { value: 'SELF_DECLARATION', label: 'Self-declaration form', validMonths: 12 },
+  { value: 'SELF_DECLARATION', label: 'Self-declaration form', validMonths: null }, // signed for the application; no issue date to track
   { value: 'OTHER', label: 'Other document', validMonths: null },
 ]
 export const SCHOLARSHIP_DOC_TYPE_BY = Object.fromEntries(SCHOLARSHIP_DOC_TYPES.map((d) => [d.value, d]))
@@ -145,7 +145,11 @@ export function scholarshipDocState(doc, { originalNeeded = false } = {}, today)
     return reuploaded ? 'SUBMITTED' : 'NOT_ACCEPTED'
   }
   if (doc.status === 'ACCEPTED') {
-    if (doc.validTill && today && doc.validTill < today) return 'EXPIRED'
+    if (doc.validTill && today && doc.validTill < today) {
+      // a new photo or scan sent since it was checked: the new one waits to be checked
+      const resent = doc.lastFileAt && doc.checkedAt && new Date(doc.lastFileAt) > new Date(doc.checkedAt)
+      return resent ? 'SUBMITTED' : 'EXPIRED'
+    }
     if (originalNeeded && !doc.originalSeen) return 'ORIGINAL_DUE'
     return 'ACCEPTED'
   }

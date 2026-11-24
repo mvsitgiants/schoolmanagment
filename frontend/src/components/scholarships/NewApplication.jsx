@@ -7,7 +7,7 @@ import { FormField, Input, Modal, Note, Select, Textarea } from '../system'
 import Button from '../ui/Button'
 import StudentPicker from '../fees/StudentPicker'
 import useDebouncedValue from '../../hooks/useDebouncedValue'
-import { DocState, EligibilityList } from './ScholarshipKit'
+import { DocState, EligibilityList, docName, valueTextOf } from './ScholarshipKit'
 import { createApplication, previewApplication } from '../../api/scholarships'
 import { useSnackbar } from '../../context/SnackbarContext'
 
@@ -46,7 +46,7 @@ export default function NewApplication({ schemes = [], classes = [], schemeId: p
         <div className="sm:col-span-2">
           <FormField label={t('scholarships.new.scheme')} required>
             <Select value={form.schemeId} onChange={set('schemeId')}>
-              {schemes.map((s) => <option key={s.id} value={s.id}>{s.name} — {s.valueText}</option>)}
+              {schemes.map((s) => <option key={s.id} value={s.id}>{s.name} — {valueTextOf(t, s)}</option>)}
             </Select>
           </FormField>
         </div>
@@ -66,12 +66,12 @@ export default function NewApplication({ schemes = [], classes = [], schemeId: p
               <div className="grid sm:grid-cols-2 gap-4">
                 <div>
                   <p className="text-xs font-medium text-ink-muted mb-2">{t('scholarships.new.toGive', { count: need.length })}</p>
-                  <ul className="space-y-1.5">{need.map((i) => <li key={i.key} className="flex items-center justify-between gap-2 text-sm"><span className="text-ink">{i.label}{!i.required && <span className="text-ink-faint"> · {t('scholarships.doc.optional')}</span>}</span><DocState state={i.state} /></li>)}</ul>
+                  <ul className="space-y-1.5">{need.map((i) => <li key={i.key} className="flex items-center justify-between gap-2 text-sm"><span className="text-ink">{docName(t, i)}{!i.required && <span className="text-ink-faint"> · {t('scholarships.doc.optional')}</span>}</span><DocState state={i.state} /></li>)}</ul>
                   {!need.length && <p className="text-sm text-ink-muted">{t('scholarships.new.nothingToGive')}</p>}
                 </div>
                 <div>
                   <p className="text-xs font-medium text-ink-muted mb-2">{t('scholarships.new.alreadyHave', { count: have.length })}</p>
-                  <ul className="space-y-1.5">{have.map((i) => <li key={i.key} className="flex items-center gap-2 text-sm text-ink"><FileCheck2 className="w-4 h-4 text-success-600" aria-hidden />{i.label}</li>)}</ul>
+                  <ul className="space-y-1.5">{have.map((i) => <li key={i.key} className="flex items-center gap-2 text-sm text-ink"><FileCheck2 className="w-4 h-4 text-success-600" aria-hidden />{docName(t, i)}</li>)}</ul>
                   {!have.length && <p className="text-sm text-ink-muted">{t('scholarships.new.nothingYet')}</p>}
                 </div>
               </div>

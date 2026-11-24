@@ -65,6 +65,7 @@ const schemeSchema = z.object({
   rankBy: z.enum(values(SCHOLARSHIP_RANK_BY)).default('NONE'),
   holdFees: z.boolean().default(true),
   familyApply: z.boolean().default(true),
+  renewalsFirst: z.boolean().default(false),
   portal: z.object({ name: z.enum(values(SCHOLARSHIP_PORTALS)).optional(), url: z.string().trim().url('Enter the full address (https://…)').max(300).optional().or(z.literal('').transform(() => undefined)), verifyBy: optYmd }).optional(),
   renewal: z.object({ minMarksPct: pct.nullable().optional(), minAttendancePct: pct.nullable().optional() }).optional(),
   lastDate: ymd.nullable().optional().or(z.literal('').transform(() => null)),
@@ -100,6 +101,8 @@ router.get('/applications', requirePermission('scholarships.applications.view'),
   const q = z.object({
     academicYearId: optId, schemeId: optId, status: z.enum(Object.keys(SCHOLARSHIP_STATUS)).optional().or(z.literal('').transform(() => undefined)),
     view: z.enum(['TO_CHECK', 'FAMILY', 'PORTAL_VERIFY', 'MONEY']).optional().or(z.literal('').transform(() => undefined)),
+    tab: z.enum(['CHECK', 'FAMILY', 'DECIDE', 'APPROVED', 'CLOSED']).optional().or(z.literal('').transform(() => undefined)),
+    renewal: z.enum(['RENEWAL', 'NEW']).optional().or(z.literal('').transform(() => undefined)),
     classId: optId, sectionId: optId, search: z.string().max(60).optional(), ...paging,
   }).parse(req.query)
   res.json({ data: await listApplications(q, req.auth) })

@@ -207,6 +207,7 @@ const ScholarshipSchemes = lazy(() => import('./pages/Scholarships/Schemes'))
 const ScholarshipSchemeForm = lazy(() => import('./pages/Scholarships/SchemeForm'))
 const ScholarshipVisits = lazy(() => import('./pages/Scholarships/Visits'))
 const ScholarshipReports = lazy(() => import('./pages/Scholarships/Reports'))
+const ScholarshipReview = lazy(() => import('./pages/Scholarships/Review'))
 const AccreditationReports = lazy(() => import('./pages/Accreditation/Reports'))
 const AccreditationEvidence = lazy(() => import('./pages/Accreditation/Evidence'))
 const PlacementsCompanies = lazy(() => import('./pages/Placements/Companies'))
@@ -502,6 +503,7 @@ export default function App() {
           <Route path="parking/areas" element={<ParkingAreas />} />
           <Route path="scholarships" element={<Navigate to="/scholarships/applications" replace />} />
           <Route path="scholarships/applications" element={<ScholarshipApplications />} />
+          <Route path="scholarships/applications/:id" element={<ScholarshipReview />} />
           <Route path="scholarships/schemes" element={<ScholarshipSchemes />} />
           <Route path="scholarships/schemes/new" element={<ScholarshipSchemeForm />} />
           <Route path="scholarships/schemes/:id" element={<ScholarshipSchemeForm />} />

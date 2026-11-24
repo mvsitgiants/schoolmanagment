@@ -33,7 +33,7 @@
       "research": "अनुसंधान",
       "alumni": "पूर्व छात्र (Alumni)",
       "fees": "शुल्क",
-      "scholarships": "Scholarships",
+      "scholarships": "छात्रवृत्ति",
       "finance": "लेखा (Accounts)",
       "hrms": "कर्मचारी एवं HR",
       "payroll": "वेतन (Payroll)",
@@ -77,7 +77,7 @@
       "research": "प्रकाशन, परियोजनाएं, अनुदान, पेटेंट और पीएचडी शोधार्थी।",
       "alumni": "पूर्व छात्र निर्देशिका, कार्यक्रम, दान और जॉब बोर्ड।",
       "fees": "शुल्क संरचनाएं, किस्तें, छूट, ऑनलाइन भुगतान, रसीदें, बकाया और रिफ़ंड।",
-      "scholarships": "Scholarship schemes with their document checklist, applications, document checking online and awards — one visit or none for families.",
+      "scholarships": "दस्तावेज़ सूची सहित छात्रवृत्ति योजनाएँ, आवेदन, ऑनलाइन दस्तावेज़ जाँच और स्वीकृति — परिवारों के लिए एक भेंट या बिल्कुल नहीं।",
       "finance": "खाताबही, आय और व्यय, बैंक समाधान, GST और Tally निर्यात।",
       "hrms": "कर्मचारी रिकॉर्ड, कर्मचारी उपस्थिति, अवकाश, भर्ती और मूल्यांकन।",
       "payroll": "वेतन संरचनाएं, पेरोल रन, वेतन पर्ची, PF/ESI/TDS और बैंक निर्यात।",
@@ -239,10 +239,10 @@
         "online": "ऑनलाइन भुगतान"
       },
       "scholarships": {
-        "applications": "Applications",
-        "schemes": "Schemes & documents",
-        "visits": "Visit times for originals",
-        "reports": "Beneficiaries & money"
+        "applications": "आवेदन",
+        "schemes": "योजनाएँ एवं दस्तावेज़",
+        "visits": "मूल प्रतियाँ दिखाने का समय",
+        "reports": "लाभार्थी एवं राशि"
       },
       "finance": {
         "accounts": "खाता सूची (Chart of accounts)",
@@ -380,9 +380,9 @@
       "lock": "अंक लॉक करें",
       "manage": "प्लान बदलें",
       "moderate": "मॉडरेट करें",
-      "money": "Record scholarship money",
+      "money": "छात्रवृत्ति राशि दर्ज करें",
       "pay": "भुगतान करें",
-      "portal": "Update portal status",
+      "portal": "पोर्टल स्थिति अद्यतन करें",
       "post": "पोस्ट करें",
       "print": "प्रिंट करें",
       "promote": "पदोन्नत करें",
@@ -403,7 +403,7 @@
       "terminate": "समाप्त करें",
       "track": "लाइव ट्रैकिंग",
       "unlock": "अंक अनलॉक करें",
-      "verify": "Verify",
+      "verify": "सत्यापित करें",
       "view": "देखें",
       "view_salary": "वेतन देखें",
       "view_sensitive": "अमास्क की गई ID देखें"

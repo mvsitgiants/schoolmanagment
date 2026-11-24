@@ -339,6 +339,15 @@ async function approveOne(app, scheme, auth, req, { auto = false, note } = {}) {
 
 const STATUS_ORDER = { NEEDS_FIX: 0, IN_PROGRESS: 1, READY: 2, APPROVED: 3, NOT_APPROVED: 4, WITHDRAWN: 5 }
 
+/** Merit order inside a scheme: renewals first (when the scheme says so), then by the scheme's order. */
+function compareRank(scheme, a, b) {
+  if (scheme?.renewalsFirst) {
+    const d = Number(!a.renewedFromId) - Number(!b.renewedFromId)
+    if (d) return d
+  }
+  return rankKey(scheme, a) - rankKey(scheme, b)
+}
+
 function rankKey(scheme, a) {
   if (scheme?.rankBy === 'MARKS') return -(a.marksPct ?? -1)
   if (scheme?.rankBy === 'INCOME') return a.familyIncome ?? Number.MAX_SAFE_INTEGER
@@ -351,7 +360,35 @@ function rankKey(scheme, a) {
  * application in scope for the year (what needs doing leads the screen). With a scheme picked, open and approved
  * applications get their rank (the scheme's merit order).
  */
-export async function listApplications({ academicYearId, schemeId, status, view, sectionId, classId, search, page = 1, pageSize = 50 } = {}, auth) {
+/**
+ * The list's tab: what the application needs next. CHECK — a document is waiting to be checked; DECIDE — every
+ * required document is correct; FAMILY — something is still to come from the family (or an original to show);
+ * APPROVED; CLOSED — not approved or withdrawn.
+ */
+const FAMILY_STATES = ['MISSING', 'NOT_ACCEPTED', 'EXPIRED', 'ORIGINAL_DUE']
+export const SCHOLARSHIP_TABS = ['CHECK', 'FAMILY', 'DECIDE', 'APPROVED', 'CLOSED']
+function tabOf(a, lines) {
+  if (a.status === 'APPROVED') return 'APPROVED'
+  if (!OPEN.includes(a.status)) return 'CLOSED'
+  if ((lines ?? []).some((l) => l.state === 'SUBMITTED')) return 'CHECK'
+  return a.status === 'READY' ? 'DECIDE' : 'FAMILY'
+}
+
+/** What happens next, for the list's "next step" column: { code, count }. */
+function nextStepOf(a, tab, lines) {
+  const n = (st) => (lines ?? []).filter((l) => (l.required || l.state !== 'MISSING') && st.includes(l.state)).length
+  if (tab === 'CHECK') return { code: 'CHECK', count: n(['SUBMITTED']) }
+  if (tab === 'DECIDE') return { code: 'DECIDE', count: 0 }
+  if (tab === 'FAMILY') {
+    if (n(['NOT_ACCEPTED', 'EXPIRED'])) return { code: 'FIX', count: n(['NOT_ACCEPTED', 'EXPIRED']) }
+    if (n(['MISSING'])) return { code: 'GIVE', count: n(['MISSING']) }
+    return { code: 'ORIGINALS', count: n(['ORIGINAL_DUE']) }
+  }
+  if (tab === 'APPROVED') return { code: a.awaitingMoney ? 'MONEY' : 'DONE', count: 0 }
+  return { code: a.status, count: 0 }
+}
+
+export async function listApplications({ academicYearId, schemeId, status, view, tab, renewal, sectionId, classId, search, page = 1, pageSize = 50 } = {}, auth) {
   const year = await yearOrCurrent(academicYearId)
   const t = await today()
   const sections = await scopeSectionIds(auth)
@@ -382,6 +419,13 @@ export async function listApplications({ academicYearId, schemeId, status, view,
 
   let rows = all
   if (schemeId) rows = rows.filter((a) => String(a.schemeId) === String(schemeId))
+  // the tabs count what is in the picked scheme, before the tab, search and other filters
+  for (const a of rows) a.tab = tabOf(a, lines.get(String(a._id)))
+  summary.tabs = Object.fromEntries(SCHOLARSHIP_TABS.map((k) => [k, rows.filter((a) => a.tab === k).length]))
+  summary.renewals = rows.filter((a) => a.renewedFromId).length
+  if (tab) rows = rows.filter((a) => a.tab === tab)
+  if (renewal === 'RENEWAL') rows = rows.filter((a) => a.renewedFromId)
+  if (renewal === 'NEW') rows = rows.filter((a) => !a.renewedFromId)
   if (status) rows = rows.filter((a) => a.status === status)
   if (view === 'TO_CHECK') rows = rows.filter((a) => OPEN.includes(a.status) && countsOf(a).SUBMITTED > 0)
   if (view === 'PORTAL_VERIFY') rows = rows.filter(verifyOnPortal)
@@ -402,15 +446,24 @@ export async function listApplications({ academicYearId, schemeId, status, view,
   if (schemeId) {
     const scheme = schemes.get(String(schemeId))
     all.filter((a) => String(a.schemeId) === String(schemeId) && (OPEN.includes(a.status) || a.status === 'APPROVED'))
-      .sort((a, b) => rankKey(scheme, a) - rankKey(scheme, b)).forEach((a, i) => rank.set(String(a._id), i + 1))
+      .sort((a, b) => compareRank(scheme, a, b)).forEach((a, i) => rank.set(String(a._id), i + 1))
     rows.sort((a, b) => (rank.get(String(a._id)) ?? 1e9) - (rank.get(String(b._id)) ?? 1e9) || STATUS_ORDER[a.status] - STATUS_ORDER[b.status])
   } else {
     rows.sort((a, b) => STATUS_ORDER[a.status] - STATUS_ORDER[b.status] || String(b.createdAt).localeCompare(String(a.createdAt)))
   }
 
+  if (schemeId) {
+    const x = schemes.get(String(schemeId))
+    const ok = all.filter((a) => String(a.schemeId) === String(schemeId) && a.status === 'APPROVED')
+    if (x) summary.scheme = { seats: x.seats ?? null, budget: x.budget ?? null, approved: ok.length, approvedAmount: ok.reduce((n, a) => n + (a.expectedAmount ?? 0), 0), rankBy: x.rankBy, approval: x.approval, renewalsFirst: !!x.renewalsFirst }
+  }
+
   const total = rows.length
   const pageRows = rows.slice((page - 1) * pageSize, page * pageSize)
-  const names = await studentLabels(pageRows.map((a) => a.studentId))
+  const [names, cats] = await Promise.all([
+    studentLabels(pageRows.map((a) => a.studentId)),
+    Student.find({ _id: { $in: pageRows.map((a) => a.studentId) } }).select('category').lean().then((x) => new Map(x.map((y) => [String(y._id), y.category ?? null]))),
+  ])
   return {
     year: { id: String(year._id), name: year.name },
     rows: pageRows.map((a) => {
@@ -419,15 +472,21 @@ export async function listApplications({ academicYearId, schemeId, status, view,
       return {
         id: String(a._id), applicationNo: a.applicationNo, status: a.status, createdAt: a.createdAt, familyToldAt: a.familyToldAt ?? null,
         student: names.get(String(a.studentId)) ?? null, studentId: String(a.studentId),
-        scheme: scheme ? { id: String(scheme._id), name: scheme.name, valueText: scholarshipValueText(scheme, formatINR), approval: scheme.approval } : null,
+        scheme: scheme ? { id: String(scheme._id), name: scheme.name, kind: scheme.kind, value: scheme.value, valueText: scholarshipValueText(scheme, formatINR), approval: scheme.approval } : null,
         expectedAmount: a.expectedAmount ?? 0, marksPct: a.marksPct ?? null, familyIncome: a.familyIncome ?? null, rank: rank.get(String(a._id)) ?? null,
-        docs: OPEN.includes(a.status) ? { required: mine.filter((l) => l.required).length, correct: mine.filter((l) => l.required && l.state === 'ACCEPTED').length, counts: countsOf(a) } : null,
+        docs: OPEN.includes(a.status) ? {
+          required: mine.filter((l) => l.required).length, correct: mine.filter((l) => l.required && l.state === 'ACCEPTED').length, counts: countsOf(a),
+          items: mine.filter((l) => l.required || l.state !== 'MISSING').map((l) => ({ key: l.key, label: l.label, state: l.state })),
+        } : null,
+        renewal: !!a.renewedFromId,
+        tab: a.tab ?? tabOf(a, mine), next: nextStepOf(a, a.tab ?? tabOf(a, mine), mine), category: cats.get(String(a.studentId)) ?? null,
         decidedBy: a.decidedBy ?? null, decidedAt: a.decidedAt ?? null,
         portal: a.portal?.status ? { status: a.portal.status, applicationId: a.portal.applicationId ?? null } : null,
         awaitingMoney: !!a.awaitingMoney, received: receivedOf(a), benefit: scheme?.benefit ?? null, provider: scheme?.provider ?? null,
       }
     }),
     total, page, pageSize, summary,
+    ids: rows.slice(0, 1000).map((a) => String(a._id)), // the whole filtered list in order: the review page's previous / next
   }
 }
 
@@ -442,10 +501,13 @@ export async function getApplication(id, auth) {
     linesOf([app.toObject()], t).then((m) => m.get(String(app._id))),
   ])
   const o = app.toObject()
+  const prev = o.renewedFromId ? await ScholarshipApplication.findById(o.renewedFromId).select('applicationNo academicYearId expectedAmount').lean() : null
+  const prevYear = prev ? await AcademicYear.findById(prev.academicYearId).select('name').lean() : null
   if (OPEN.includes(o.status)) o.status = scholarshipStatusFrom(lines.filter((l) => l.required).map((l) => l.state))
   return {
     ...clean(o), schemeId: String(o.schemeId), studentId: String(o.studentId), academicYearId: String(o.academicYearId),
     concessionId: idStr(o.concessionId), yearName: year?.name ?? null, student: label ?? null,
+    renewedFrom: prev ? { id: String(prev._id), applicationNo: prev.applicationNo, yearName: prevYear?.name ?? null, amount: prev.expectedAmount ?? 0 } : null,
     scheme: scheme ? schemeDto(scheme) : null,
     items: lines.map((l) => ({ key: l.key, type: l.type, label: l.label, required: l.required, originalNeeded: l.originalNeeded, note: l.note ?? null, state: l.state, doc: docDto(l.doc) })),
     eligible: !(o.eligibility ?? []).some((c) => c.ok === false),
@@ -490,8 +552,10 @@ export async function startApplication({ s, scheme, year, familyIncome, marksPct
   const existing = await ScholarshipApplication.findOne({ schemeId: scheme._id, studentId: s._id, academicYearId: year._id, status: { $nin: ['WITHDRAWN', 'NOT_APPROVED'] } }).select('applicationNo').lean()
   if (existing) throw conflict(`${studentName(s)} has already applied for “${scheme.name}” (${existing.applicationNo}).`)
   const facts = (await factsOf([s], year)).get(String(s._id))
-  const checks = eligibilityChecks(scheme, facts, { familyIncome, marksPct })
-  if (checks.some((c) => c.ok === false)) throw conflict(`${studentName(s)} can’t apply for “${scheme.name}” — ${failedText(checks)} does not match the scheme.`, { checks })
+  familyIncome = familyIncome ?? renewedFrom?.familyIncome ?? undefined // a renewal starts from last year's income (the new certificate confirms it)
+  // a renewal is held to the renewal rule, not to the marks and attendance a new applicant needs
+  const checks = renewedFrom ? renewalEligibility(scheme, facts, { familyIncome }) : eligibilityChecks(scheme, facts, { familyIncome, marksPct })
+  if (checks.some((c) => c.ok === false)) throw conflict(`${studentName(s)} can’t ${renewedFrom ? 'renew' : 'apply for'} “${scheme.name}” — ${failedText(checks)} does not match the scheme.`, { checks })
   const who = auth.user?.name
   const app = new ScholarshipApplication({
     applicationNo: await nextNumber('SCHOLARSHIP', { branchId: s.branchId }), schemeId: scheme._id, studentId: s._id, academicYearId: year._id,
@@ -499,7 +563,9 @@ export async function startApplication({ s, scheme, year, familyIncome, marksPct
     marksPct: marksPct ?? facts.marksPct ?? undefined, marksFrom: marksPct != null ? 'ENTERED' : facts.marksPct != null ? 'EXAM' : undefined,
     attendancePct: facts.attendancePct ?? undefined, eligibility: checks, items: scheme.documents, holdFees: !!scheme.holdFees,
     note: note || undefined, createdBy: who, createdById: auth.userId, status: 'IN_PROGRESS', renewedFromId: renewedFrom?._id,
-    familyIncome: familyIncome ?? renewedFrom?.familyIncome ?? undefined,
+    familyIncome,
+    // a government renewal is made on the portal against last year's application: keep its number at hand
+    ...(renewedFrom?.portal?.applicationId && { portal: { previousId: renewedFrom.portal.applicationId, status: 'NOT_APPLIED' } }),
   })
   say(app, who, source === 'FAMILY' ? 'Applied from the app' : renewedFrom ? `Renewed from ${renewedFrom.applicationNo} (last year)` : 'Application started')
   await app.save()
@@ -540,19 +606,24 @@ export async function createApplications({ schemeId, studentIds, tellFamily, ren
 }
 
 /** The student's approved application of this scheme in an earlier year (the latest), which a renewal continues. */
-async function lastAward(scheme, studentId, year) {
+export async function lastAward(scheme, studentId, year) {
   if (!scheme) return null
   const earlier = await AcademicYear.find({ startDate: { $lt: year.startDate } }).select('_id').lean()
   return ScholarshipApplication.findOne({ schemeId: scheme._id, studentId, status: 'APPROVED', academicYearId: { $in: earlier.map((y) => y._id) } }).sort({ createdAt: -1 }).lean()
 }
 
 /** The scheme's renewal rule (marks and attendance this year) against a student. */
-function renewalChecks(scheme, facts) {
+export function renewalChecks(scheme, facts) {
   const r = scheme.renewal ?? {}
   const out = []
   if (r.minMarksPct) out.push({ key: 'marks', value: facts.marksPct, need: r.minMarksPct, ok: facts.marksPct == null ? null : facts.marksPct >= r.minMarksPct })
   if (r.minAttendancePct) out.push({ key: 'attendance', value: facts.attendancePct, need: r.minAttendancePct, ok: facts.attendancePct == null ? null : facts.attendancePct >= r.minAttendancePct })
   return out
+}
+
+/** What a renewal is checked against: the scheme's rules except entry marks and attendance, plus the renewal rule. */
+export function renewalEligibility(scheme, facts, opts = {}) {
+  return [...eligibilityChecks(scheme, facts, opts).filter((c) => c.key !== 'marks' && c.key !== 'attendance'), ...renewalChecks(scheme, facts)]
 }
 
 /**
@@ -571,7 +642,7 @@ async function renewalStudents(scheme, year, sections) {
   const yearName = new Map(earlier.map((y) => [String(y._id), y.name]))
   return students.map((s) => {
     const f = facts.get(String(s._id))
-    const checks = [...eligibilityChecks(scheme, f).filter((c) => c.key !== 'marks' && c.key !== 'attendance'), ...renewalChecks(scheme, f)]
+    const checks = renewalEligibility(scheme, f)
     const prev = last.filter((a) => String(a.studentId) === String(s._id)).sort((a, b) => String(b.academicYearId).localeCompare(String(a.academicYearId)))[0]
     return { studentId: String(s._id), student: names.get(String(s._id)) ?? null, checks, ok: !checks.some((c) => c.ok === false), marksPct: f.marksPct, attendancePct: f.attendancePct, lastYear: yearName.get(String(prev?.academicYearId)) ?? null, lastNo: prev?.applicationNo ?? null }
   }).sort((a, b) => Number(b.ok) - Number(a.ok))
@@ -660,7 +731,9 @@ export async function saveDocument(id, key, { number, issuedOn, validTill, paper
   else if (validTill !== undefined) doc.validTill = validTill || undefined
   if (paperCopy) {
     doc.paperCopy = true
-    if (doc.status !== 'ACCEPTED') doc.status = 'SUBMITTED'
+    const expired = doc.status === 'ACCEPTED' && doc.validTill && doc.validTill < await today()
+    if (doc.status !== 'ACCEPTED' || expired) doc.status = 'SUBMITTED'
+    if (expired && issuedOn === undefined) { doc.issuedOn = undefined; doc.validTill = undefined } // the new paper's date is entered when it is checked
     doc.log.push({ at: new Date(), by: who, text: 'Paper copy received' })
   }
   await doc.save()
@@ -769,7 +842,7 @@ export async function decideApplications(ids, approve, note, auth, req) {
   const apps = []
   for (const id of ids) apps.push(await applicationInScope(id, auth))
   const schemes = new Map((await ScholarshipScheme.find({ _id: { $in: apps.map((a) => a.schemeId) } }).lean()).map((x) => [String(x._id), x]))
-  apps.sort((a, b) => rankKey(schemes.get(String(a.schemeId)), a) - rankKey(schemes.get(String(b.schemeId)), b))
+  apps.sort((a, b) => compareRank(schemes.get(String(a.schemeId)), a, b))
   let done = 0
   const skipped = []
   for (const app of apps) {
@@ -956,7 +1029,7 @@ export async function scholarshipReport({ academicYearId } = {}, auth) {
       const mine = apps.filter((a) => String(a.schemeId) === String(x._id))
       const ok = mine.filter((a) => a.status === 'APPROVED')
       return {
-        id: String(x._id), name: x.name, provider: x.provider, benefit: x.benefit, valueText: scholarshipValueText(x, formatINR), seats: x.seats ?? null, budget: x.budget ?? null,
+        id: String(x._id), name: x.name, provider: x.provider, benefit: x.benefit, kind: x.kind, value: x.value, valueText: scholarshipValueText(x, formatINR), seats: x.seats ?? null, budget: x.budget ?? null,
         applied: mine.length, approved: ok.length, notApproved: mine.filter((a) => a.status === 'NOT_APPROVED').length, open: mine.filter((a) => OPEN.includes(a.status)).length,
         amount: ok.reduce((n, a) => n + (a.expectedAmount ?? 0), 0), received: mine.reduce((n, a) => n + got(a), 0),
         awaited: mine.filter((a) => a.awaitingMoney).reduce((n, a) => n + Math.max(0, (a.expectedAmount ?? 0) - got(a)), 0),
@@ -1065,7 +1138,7 @@ export async function scholarshipScanResult(code, auth, can) {
   return {
     kind: 'SCHOLARSHIP', id: String(a._id), title: label?.name ?? a.applicationNo,
     subtitle: [scheme?.name, a.applicationNo, label?.classShort, a.visit?.time && a.visit.date ? `${a.visit.date} ${a.visit.time}` : null].filter(Boolean).join(' · '),
-    status: a.status, actions: [{ key: 'scholarshipOpen', link: `/scholarships/applications?open=${a._id}` }],
+    status: a.status, actions: [{ key: 'scholarshipOpen', link: `/scholarships/applications/${a._id}` }],
   }
 }
 

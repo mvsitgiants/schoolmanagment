@@ -134,7 +134,23 @@
       "noSchemes": "No scholarship schemes yet",
       "noSchemesHint": "Add a scheme first: what it gives, who can apply and which documents families give.",
       "portalVerify": "To verify on the portal",
-      "money": "Money awaited"
+      "money": "Money awaited",
+      "nextStep": "Next step",
+      "notTold": "Not told yet",
+      "approvedOn": "Approved on",
+      "closedOn": "Closed on",
+      "moneyCol": "Money",
+      "moneyIn": "{{amount}} received",
+      "given": {
+        "FEE_WAIVER": "Taken off the fees",
+        "PAID_TO_STUDENT": "Paid to the student",
+        "PAID_TO_INSTITUTION": "Paid to the school"
+      },
+      "portalLine_one": "{{count}} to verify on the portal",
+      "portalLine_other": "{{count}} to verify on the portal",
+      "startChecking": "Start checking",
+      "startCheckingHint_one": "{{count}} application has documents to check. Start with the first — Next takes you through the rest.",
+      "startCheckingHint_other": "{{count}} applications have documents to check. Start with the first — Next takes you through the rest."
     },
     "stat": {
       "toCheck": "Documents to check",
@@ -185,6 +201,17 @@
         "FEE_WAIVER": "It is taken off the fees that are still to be paid, and the family is told.",
         "PAID_TO_STUDENT": "The family is told it is approved. The money goes to the student’s bank account.",
         "PAID_TO_INSTITUTION": "The family is told it is approved. Their fees stay held — no late fee, no reminder — until the money comes and you record it."
+      },
+      "seats": "Seats",
+      "seatsUsed": "{{count}} used",
+      "noLimit": "{{count}} approved — no seat limit",
+      "budget": "Budget",
+      "noBudget": "{{amount}} given — no budget limit",
+      "pickScheme": "Pick a scheme (top right) to see its merit list with seats and budget.",
+      "order": {
+        "NONE": "In the order they applied.",
+        "MARKS": "Merit order: higher marks first. Approving a list goes from the top, so seats go to the best results.",
+        "INCOME": "Merit order: lower family income first. Approving a list goes from the top."
       }
     },
     "withdraw": {
@@ -450,9 +477,9 @@
       "documents": "Documents",
       "issuedOn": "Date it was issued (on the certificate)",
       "dateFirst": "Enter the date first — this certificate is asked for again once it is a year old.",
-      "send": "Send a photo",
-      "sendAgain": "Send it again",
-      "sendMore": "Send another photo",
+      "send": "Take a photo",
+      "sendAgain": "Take a new photo",
+      "sendMore": "Take another photo",
       "sending": "Sending…",
       "removeFile": "Take back this photo",
       "tooBig": "That file is too big. Please send one up to {{max}} MB.",
@@ -473,7 +500,8 @@
       "income": "Family income a year (₹)",
       "incomeHint": "As written on the income certificate.",
       "none": "No scholarships right now",
-      "noneHint": "When the school opens a scholarship this child can apply for, it shows here."
+      "noneHint": "When the school opens a scholarship this child can apply for, it shows here.",
+      "chooseFile": "Choose a file"
     },
     "visit": {
       "title": "Visit times for originals",
@@ -553,7 +581,8 @@
       "idShort": "Portal no. {{id}}",
       "sanctionedShort": "sanctioned {{amount}}",
       "verifyBy": "Verify on the portal by {{date}}.",
-      "none": "Not on the portal yet."
+      "none": "Not on the portal yet.",
+      "panel": "Government portal"
     },
     "money": {
       "title_one": "Money received for {{count}} student",
@@ -609,6 +638,102 @@
       "beneficiaries_other": "{{count}} beneficiaries",
       "approvedOn": "Approved on",
       "noBeneficiaries": "No approved scholarships yet"
+    },
+    "tab": {
+      "CHECK": "Check documents",
+      "FAMILY": "Waiting for family",
+      "DECIDE": "Decide",
+      "APPROVED": "Approved",
+      "CLOSED": "Closed"
+    },
+    "tabHint": {
+      "CHECK": "Families or staff sent documents. Open each application and mark every document correct or send it back.",
+      "FAMILY": "Something is still to come from the family — a document to give or fix, or an original to show. Tell them in one message.",
+      "DECIDE": "Every required document is correct. Approve them, or approve a whole list at once in merit order.",
+      "APPROVED": "Approved this year. Money from the government or a trust is recorded here when it comes.",
+      "CLOSED": "Not approved or withdrawn."
+    },
+    "tabEmpty": {
+      "CHECK": "Nothing to check right now",
+      "FAMILY": "Nobody is waiting on a family",
+      "DECIDE": "Nothing waiting for a decision",
+      "APPROVED": "No approved scholarships yet",
+      "CLOSED": "Nothing closed"
+    },
+    "next": {
+      "CHECK_one": "Check {{count}} document",
+      "CHECK_other": "Check {{count}} documents",
+      "DECIDE": "Ready to decide",
+      "FIX_one": "Family to fix {{count}} document",
+      "FIX_other": "Family to fix {{count}} documents",
+      "GIVE_one": "Family to give {{count}} document",
+      "GIVE_other": "Family to give {{count}} documents",
+      "ORIGINALS_one": "Family to show {{count}} original",
+      "ORIGINALS_other": "Family to show {{count}} originals",
+      "MONEY": "Money awaited",
+      "DONE": "Done",
+      "NOT_APPROVED": "Not approved",
+      "WITHDRAWN": "Withdrawn"
+    },
+    "review": {
+      "back": {
+        "CHECK": "Back to documents to check",
+        "FAMILY": "Back to waiting for family",
+        "DECIDE": "Back to decide",
+        "APPROVED": "Back to approved",
+        "CLOSED": "Back to closed"
+      },
+      "backAll": "Back to applications",
+      "position": "{{n}} of {{total}}",
+      "previous": "Previous",
+      "next": "Next",
+      "worth": "worth {{amount}}",
+      "files_one": "{{count}} file",
+      "files_other": "{{count}} files",
+      "paper": "paper copy in the office",
+      "noFile": "No photo or scan yet. Take a photo with the camera, choose a file, or mark the paper copy received.",
+      "openLarge": "Open large",
+      "page": "Page {{n}}",
+      "sentBy": "Sent by {{name}}",
+      "added_one": "File added.",
+      "added_other": "{{count}} files added.",
+      "allHistory": "Show all {{count}}",
+      "lessHistory": "Show less",
+      "approveNext": "Approve",
+      "bar": {
+        "IN_PROGRESS": "{{correct}} of {{total}} documents correct — check the rest, or tell the family what is missing.",
+        "NEEDS_FIX": "A document needs fixing — tell the family.",
+        "READY": "Every document is correct. Approve, or not.",
+        "DONE": "This application is decided."
+      },
+      "feesHeldFact": "Fees held",
+      "feesHeldHint": "No late fee or reminder until decided",
+      "canApply": "Can apply?",
+      "fix": "Send back",
+      "paperShort": "Paper copy",
+      "paperOnly": "The paper copy is kept in the office — check it there, then mark it here. You can also add a photo of it.",
+      "camera": "Take photo with camera",
+      "chooseFile": "Choose a file"
+    },
+    "value": {
+      "pct": "{{value}}% of fees",
+      "amount": "{{amount}} a year"
+    },
+    "renewal": {
+      "tag": "Renewal",
+      "filter": "Renewal",
+      "show": {
+        "ALL": "All",
+        "RENEWAL": "Renewals",
+        "NEW": "New applications"
+      },
+      "of": "Renewal of {{no}} ({{year}})",
+      "portalPrevious": "Last year’s portal number: {{id}}. Renew on the portal against it.",
+      "firstNote": "Renewals come first.",
+      "firstSetting": "Renewals first",
+      "firstSettingHint": "Last year’s scholars come before new applicants in the merit list, so they keep their seats.",
+      "familyNote": "Last year’s scholarship ({{no}}) can continue. Documents already checked are kept — usually only a new income certificate is needed.",
+      "familyButton": "Renew for {{name}}"
     }
   }
 }

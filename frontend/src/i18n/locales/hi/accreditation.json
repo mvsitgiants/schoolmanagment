@@ -40,7 +40,7 @@
       "placements": "प्लेसमेंट",
       "library": "पुस्तकालय",
       "manual": "दर्ज किया गया",
-      "scholarships": "Scholarships"
+      "scholarships": "छात्रवृत्ति"
     },
     "units": {
       "count": "{{value}}",
@@ -101,7 +101,7 @@
       "cosAttained": "प्राप्त COs (स्तर 2+)",
       "cos": "मूल्यांकित पाठ्यक्रम परिणाम",
       "outcomes": "कार्यक्रम परिणाम",
-      "scholarshipStudents": "Students with a scholarship"
+      "scholarshipStudents": "छात्रवृत्ति प्राप्त विद्यार्थी"
     },
     "narrative": {
       "bold": "बोल्ड",
