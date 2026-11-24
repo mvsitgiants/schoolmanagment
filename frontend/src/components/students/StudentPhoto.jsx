@@ -5,6 +5,7 @@ import clsx from 'clsx'
 import { Camera, Trash2, Upload } from 'lucide-react'
 import Button from '../ui/Button'
 import CameraCapture from '../system/CameraCapture'
+import AddFileMenu from '../system/AddFileMenu'
 import { fetchStudentPhoto, saveStudentPhoto } from '../../api/students'
 import { IMAGE_TYPES, shrinkImage } from '../../utils/shrinkImage'
 import { useSnackbar } from '../../context/SnackbarContext'
@@ -46,9 +47,14 @@ export default function StudentPhoto({ studentId, name, canEdit = false, size = 
       {canEdit && (
         <div className="flex flex-wrap justify-center gap-1">
           <input ref={input} type="file" accept={IMAGE_TYPES.join(',')} className="hidden" onChange={pick} />
-          <Button size="sm" variant={size === 'sm' ? 'ghost' : 'secondary'} icon={Camera} loading={save.isPending} onClick={() => setCamera(true)}
-            aria-label={t('students.photo.take')} title={t('students.photo.take')}>{size === 'sm' ? null : t('students.photo.take')}</Button>
-          {size !== 'sm' && <Button size="sm" variant="ghost" icon={Upload} disabled={save.isPending} onClick={() => input.current?.click()} aria-label={t('students.photo.upload')} title={t('students.photo.upload')} />}
+          {size === 'sm' ? (
+            <Button size="sm" variant="ghost" icon={Camera} loading={save.isPending} onClick={() => setCamera(true)} aria-label={t('students.photo.take')} title={t('students.photo.take')} />
+          ) : (
+            <AddFileMenu label={data?.photo ? t('students.photo.changeMenu') : t('students.photo.addMenu')} loading={save.isPending} options={[
+              { key: 'camera', icon: Camera, label: t('students.photo.take'), onSelect: () => setCamera(true) },
+              { key: 'file', icon: Upload, label: t('students.photo.upload'), onSelect: () => input.current?.click() },
+            ]} />
+          )}
           {data?.photo && size !== 'sm' && <Button size="sm" variant="ghost" icon={Trash2} aria-label={t('students.photo.remove')} title={t('students.photo.remove')} onClick={() => save.mutate('')} />}
         </div>
       )}

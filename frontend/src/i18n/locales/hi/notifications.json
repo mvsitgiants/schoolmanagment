@@ -504,6 +504,18 @@
           "subject": "छात्रवृत्ति स्वीकृत नहीं — {{student.name}}",
           "body": "प्रिय {{guardian.name}},\n\n{{student.name}} की छात्रवृत्ति “{{scheme.name}}” ({{scholarship.applicationNo}}) स्वीकृत नहीं हो सकी।\nकारण: {{scholarship.reason}}\n\nकोई प्रश्न हो तो कृपया कार्यालय से संपर्क करें।\n\n{{institution.name}}"
         }
+      },
+      "documents_missing": {
+        "SMS": {
+          "body": "प्रिय अभिभावक, {{student.name}} के कुछ कागज़ विद्यालय में अभी देने शेष हैं — WhatsApp या विद्यालय ऐप देखें। - {{institution.name}}"
+        },
+        "WHATSAPP": {
+          "body": "प्रिय {{guardian.name}},\nविद्यालय को {{student.firstName}} ({{student.class}}) के ये कागज़ अभी चाहिए:\n\n{{documents.list}}\n\nकृपया विद्यालय ऐप में इनका स्पष्ट फ़ोटो भेजें, या कार्यालय में जमा करें।\n\n{{institution.name}}"
+        },
+        "EMAIL": {
+          "subject": "कागज़ अभी आवश्यक — {{student.name}}",
+          "body": "प्रिय {{guardian.name}},\n\nविद्यालय को {{student.name}} ({{student.class}}) के ये कागज़ अभी चाहिए:\n\n{{documents.list}}\n\nकृपया विद्यालय ऐप में इनका स्पष्ट फ़ोटो भेजें, या कार्यालय में जमा करें।\n\n{{institution.name}}"
+        }
       }
     },
     "words": {

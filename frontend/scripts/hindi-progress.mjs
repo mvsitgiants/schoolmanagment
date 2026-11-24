@@ -10,7 +10,7 @@ const PHASES = [
   ['1 · Teaching & daily use', ['dashboard', 'hub', 'homework', 'lms', 'exams', 'questionPapers', 'tests', 'timetable', 'attendance', 'fees', 'students', 'me', 'family', 'common', 'ui', 'printWords']],
   ['2 · Office & student services', ['admissions', 'academics', 'certificates', 'frontoffice', 'communication', 'comms', 'events', 'notifications', 'health', 'transport', 'library', 'hostel', 'canteen', 'parking', 'scholarships']],
   ['3 · Staff & money', ['hrms', 'hrmsLeave', 'payroll', 'finance', 'inventory']],
-  ['4 · Settings & administration', ['admin', 'settings', 'integrations', 'superadmin', 'catalog', 'nav', 'errors', 'geo', 'registration', 'portal', 'website']],
+  ['4 · Settings & administration', ['admin', 'settings', 'integrations', 'superadmin', 'catalog', 'nav', 'errors', 'geo', 'registration', 'portal', 'website', 'documentLibrary']],
   ['5 · Higher education & extras', ['programs', 'coe', 'placements', 'alumni', 'research', 'accreditation', 'surveys', 'analytics', 'reports', 'ai', 'scan']],
 ]
 // which script counts as translated, per language (a text in English is not done yet)

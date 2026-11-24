@@ -12,6 +12,7 @@ import { requireTrustedOrigin } from './platform/middleware.js'
 import academicsRoutes from './routes/academics.js'
 import attendanceRoutes from './routes/attendance.js'
 import documentRoutes from './routes/documents.js'
+import documentLibraryRoutes from './routes/documentLibrary.js'
 import feeRoutes from './routes/fees.js'
 import examRoutes from './routes/exams.js'
 import coeRoutes from './routes/coe.js'
@@ -220,6 +221,7 @@ export function createApp() {
   app.use('/api/v1/events', eventRoutes)
   app.use('/api/v1/family/:slug', familyRouter)
   app.use('/api/v1/documents', documentRoutes)
+  app.use('/api/v1/document-library', documentLibraryRoutes)
 
   app.use(notFoundHandler)
   app.use(errorHandler)

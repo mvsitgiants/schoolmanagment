@@ -13,6 +13,7 @@
     },
     "modules": {
       "dashboard": "ಡ್ಯಾಶ್‌ಬೋರ್ಡ್",
+      "documents": "Documents",
       "core": "ಆಡಳಿತ",
       "students": "ವಿದ್ಯಾರ್ಥಿಗಳು",
       "admissions": "ಪ್ರವೇಶ",
@@ -57,6 +58,7 @@
     },
     "descriptions": {
       "dashboard": "ಪಾತ್ರಕ್ಕೆ ತಕ್ಕ ಮುಖಪುಟ, ಪ್ರಾಂಶುಪಾಲರ ನಿಯಂತ್ರಣ ಕೇಂದ್ರ ಮತ್ತು ಕ್ಯಾಂಪಸ್ ನೇರ ನೋಟ.",
+      "documents": "Every document and picture in one place — students’, staff’s and the school’s — to find, preview and download many at once.",
       "core": "ಸಂಸ್ಥೆಯ ಪ್ರೊಫೈಲ್, ಕ್ಯಾಂಪಸ್‌ಗಳು, ಬಳಕೆದಾರರು, ಪಾತ್ರಗಳು, ಚಂದಾದಾರಿಕೆ ಮತ್ತು ಎಲ್ಲಾ ಸೆಟ್ಟಿಂಗ್‌ಗಳು.",
       "students": "ವಿದ್ಯಾರ್ಥಿ ಮಾಹಿತಿ ವ್ಯವಸ್ಥೆ: ಪ್ರವೇಶ, ಪ್ರೊಫೈಲ್, ಪಾಲಕರು, ದಾಖಲೆಗಳು, ಬಡ್ತಿ ಮತ್ತು ವರ್ಗಾವಣೆ.",
       "admissions": "ವಿಚಾರಣೆಗಳ ನಿರ್ವಹಣೆ, ಆನ್‌ಲೈನ್ ಅರ್ಜಿ, ಪ್ರವೇಶ ಪರೀಕ್ಷೆ, ಅರ್ಹತಾ ಪಟ್ಟಿ ಮತ್ತು ಸೀಟು ಹಂಚಿಕೆ.",
@@ -102,6 +104,12 @@
     "pages": {
       "dashboard": {
         "live": "ಕ್ಯಾಂಪಸ್ ನೇರ ನೋಟ"
+      },
+      "documents": {
+        "library": "Document library",
+        "missing": "Missing & expiring",
+        "issued": "Issued documents",
+        "bin": "Recycle bin"
       },
       "core": {
         "setup": "ಸಿದ್ಧತಾ ಕೇಂದ್ರ",
@@ -392,6 +400,7 @@
       "refund": "ಮರುಪಾವತಿಸಿ",
       "reset_password": "ಪಾಸ್‌ವರ್ಡ್ ಮರುಹೊಂದಿಸಿ",
       "resolve": "ಪರಿಹರಿಸಿ",
+      "restore": "Restore",
       "reverse": "ಹಿಮ್ಮುಖಗೊಳಿಸಿ",
       "revoke_sessions": "ಸಾಧನಗಳಿಂದ ಸೈನ್ ಔಟ್ ಮಾಡಿ",
       "run": "ನಡೆಸಿ",

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Download, Eye, FileText, Image as ImageIcon, Loader2, Paperclip, Trash2, Upload } from 'lucide-react'
+import { Download, Eye, FileText, FolderSearch, Image as ImageIcon, Link2, Loader2, Paperclip, Trash2, Upload } from 'lucide-react'
 import { DOCUMENT_RECORD_TYPES, FILE_ACCEPT, FILE_CATEGORIES, FILE_MAX_MB, RECORD_TYPES } from '@schoolgiant/shared'
 import { deleteFile, downloadFile, fetchFiles, fetchStudentFiles, uploadFile } from '../../api/files'
 import { useSnackbar } from '../../context/SnackbarContext'
@@ -8,6 +8,11 @@ import { useFormat } from '../../context/SettingsContext'
 import { usePrompt } from './ConfirmDialog'
 import { openDocumentViewer } from './DocumentViewer'
 import { Select } from './Form'
+import ReuseFiles from './ReuseFiles'
+import AddFileMenu from './AddFileMenu'
+
+/** Records about one student whose papers can come from the ones the school already holds. */
+const REUSE_TYPES = ['student', 'scholarship_doc']
 
 const fmtSize = (n) => {
   if (n == null) return ''
@@ -36,6 +41,7 @@ export default function Attachments({ entityType, entityId, studentScope = false
   const [busy, setBusy] = useState(false)
   const [dragging, setDragging] = useState(false)
   const [category, setCategory] = useState(defaultCategory)
+  const [reusing, setReusing] = useState(false)
   // "kind of file" only means something for personal documents (a student's birth certificate, a staff ID proof)
   const withKind = DOCUMENT_RECORD_TYPES.includes(entityType)
   const inputRef = useRef(null)
@@ -112,9 +118,16 @@ export default function Attachments({ entityType, entityId, studentScope = false
         {canAdd && (
           <div className="flex items-center gap-2">
             {withKind && <div className="w-48"><Select aria-label={t('ui.attachments.kindOfFile')} value={category} onChange={(e) => setCategory(e.target.value)} className="!h-8 text-xs">{FILE_CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}</Select></div>}
-            <button type="button" onClick={() => inputRef.current?.click()} disabled={!entityId || busy} className="inline-flex items-center gap-1.5 text-xs font-medium text-brand-600 hover:text-brand-700 disabled:opacity-50">
-              {busy ? <Loader2 size={13} className="animate-spin" /> : <Upload size={13} />} {t('ui.attachments.upload')}
-            </button>
+            {REUSE_TYPES.includes(entityType) && !studentScope ? (
+              <AddFileMenu label={t('ui.attachments.add')} variant="ghost" loading={busy} disabled={!entityId} options={[
+                { key: 'file', icon: Upload, label: t('ui.attachments.upload'), hint: t('ui.attachments.uploadHint'), onSelect: () => inputRef.current?.click() },
+                { key: 'existing', icon: FolderSearch, label: t('ui.attachments.useExisting'), hint: t('ui.attachments.useExistingHint'), onSelect: () => setReusing(true) },
+              ]} />
+            ) : (
+              <button type="button" onClick={() => inputRef.current?.click()} disabled={!entityId || busy} className="inline-flex items-center gap-1.5 text-xs font-medium text-brand-600 hover:text-brand-700 disabled:opacity-50">
+                {busy ? <Loader2 size={13} className="animate-spin" /> : <Upload size={13} />} {t('ui.attachments.upload')}
+              </button>
+            )}
           </div>
         )}
         <input ref={inputRef} type="file" multiple accept={FILE_ACCEPT} className="hidden" onChange={(e) => { const f = Array.from(e.target.files || []); e.target.value = ''; uploadFiles(f) }} />
@@ -134,7 +147,7 @@ export default function Attachments({ entityType, entityId, studentScope = false
               <li key={row.id} className="flex items-center gap-2.5 px-3 py-2 text-sm">
                 {isImage(row) ? <ImageIcon size={15} className="text-ink-faint shrink-0" /> : <FileText size={15} className="text-ink-faint shrink-0" />}
                 <button type="button" onClick={() => view(row)} className="flex-1 min-w-0 text-start group" title={t('ui.attachments.viewName', { name: row.fileName })}>
-                  <span className="block truncate text-ink group-hover:text-brand-700 group-hover:underline">{row.title || row.fileName}</span>
+                  <span className="block truncate text-ink group-hover:text-brand-700 group-hover:underline">{row.title || row.fileName}{row.linkOf && <span className="ms-1.5 inline-flex items-center gap-0.5 align-middle text-[10px] font-medium text-brand-600" title={t('ui.attachments.linkedHint')}><Link2 size={11} aria-hidden />{t('ui.attachments.linked')}</span>}</span>
                   <span className="block text-[11px] text-ink-faint truncate">
                     {[DOCUMENT_RECORD_TYPES.includes(row.entityType) ? row.categoryLabel : null, studentScope && row.entityType !== 'student' ? t('ui.attachments.onRecord', { type: RECORD_TYPES[row.entityType]?.toLowerCase() }) : null, row.uploadedBy, dateTime(row.uploadedAt)].filter(Boolean).join(' · ')}
                   </span>
@@ -148,6 +161,7 @@ export default function Attachments({ entityType, entityId, studentScope = false
           </ul>
         )}
       </div>
+      {reusing && <ReuseFiles entityType={entityType} entityId={entityId} category={category !== 'OTHER' ? category : undefined} onClose={() => setReusing(false)} onPicked={() => { load(); onChange?.() }} />}
     </div>
   )
 }

@@ -33,6 +33,7 @@ import { familyComplaints, familyRaiseComplaint } from '../services/frontOfficeC
 import { FO_COMPLAINT_CATEGORIES } from '@schoolgiant/shared'
 import { familyPlacements, familyRegister as familyPlacementRegister, familyWithdraw as familyPlacementWithdraw } from '../services/placementsFamily.js'
 import { familyHealth } from '../services/health.js'
+import { familyDocumentFile, familyDocuments } from '../services/documentsFamily.js'
 import { familyApply as familyScholarshipApply, familyBookVisit, familyCancelVisit, familyRemoveDocumentFile, familyScholarships, familySendDocument } from '../services/scholarshipsFamily.js'
 import { familyCancelOutpass, familyHostel, familyRequestOutpass } from '../services/hostel.js'
 import { familyAlbum, familyAlbums, familyCalendar, familyEventReply, familyMeetingBook, familyMeetingCancel, familyMeetings, familyPhoto } from '../services/eventsFamily.js'
@@ -410,6 +411,11 @@ familyRouter.get('/students/:studentId/notices', async (req, res) => { res.json(
 familyRouter.post('/students/:studentId/notices/:noticeId/read', async (req, res) => { res.json({ data: await familyReadNotice(req.family, sid(req), req.params.noticeId) }) })
 familyRouter.get('/students/:studentId/notices/:noticeId/files/:fileId', async (req, res) => {
   await sendFile(res, req, await familyNoticeFile(req.family, sid(req), req.params.noticeId, req.params.fileId))
+})
+// the child's own papers the school holds (admission, student record, scholarships): see them, open, download
+familyRouter.get('/students/:studentId/documents', async (req, res) => { res.json({ data: await familyDocuments(req.family, sid(req)) }) })
+familyRouter.get('/students/:studentId/documents/:fileId', async (req, res) => {
+  await sendFile(res, req, await familyDocumentFile(req.family, sid(req), req.params.fileId))
 })
 familyRouter.get('/students/:studentId/chat/teachers', async (req, res) => { res.json({ data: await familyChatTeachers(req.family, sid(req)) }) })
 familyRouter.get('/students/:studentId/chat', async (req, res) => { res.json({ data: await familyChats(req.family, sid(req)) }) })

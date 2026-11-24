@@ -311,7 +311,8 @@
       "holdNote": "While it is decided, no late fee is charged and reminders leave this amount out.",
       "checking": "Checking…",
       "tellFamily": "Send the family the list of documents still needed",
-      "started": "Application {{no}} started."
+      "started": "Application {{no}} started.",
+      "onFile": "given at admission — will be used"
     },
     "who": {
       "button": "Who can apply",
@@ -477,9 +478,9 @@
       "documents": "Documents",
       "issuedOn": "Date it was issued (on the certificate)",
       "dateFirst": "Enter the date first — this certificate is asked for again once it is a year old.",
-      "send": "Take a photo",
-      "sendAgain": "Take a new photo",
-      "sendMore": "Take another photo",
+      "send": "Send document",
+      "sendAgain": "Send it again",
+      "sendMore": "Send another",
       "sending": "Sending…",
       "removeFile": "Take back this photo",
       "tooBig": "That file is too big. Please send one up to {{max}} MB.",
@@ -501,7 +502,9 @@
       "incomeHint": "As written on the income certificate.",
       "none": "No scholarships right now",
       "noneHint": "When the school opens a scholarship this child can apply for, it shows here.",
-      "chooseFile": "Choose a file"
+      "chooseFile": "Choose a file",
+      "onFile": "{{doc}} — the school has it from admission; no need to send",
+      "useCamera": "Take a photo"
     },
     "visit": {
       "title": "Visit times for originals",
@@ -713,7 +716,12 @@
       "paperShort": "Paper copy",
       "paperOnly": "The paper copy is kept in the office — check it there, then mark it here. You can also add a photo of it.",
       "camera": "Take photo with camera",
-      "chooseFile": "Choose a file"
+      "chooseFile": "Choose a file",
+      "useExisting": "Choose from existing",
+      "addDocument": "Add document",
+      "cameraHint": "Opens the camera on a phone or tablet",
+      "chooseFileHint": "A photo, scan or PDF from this device",
+      "useExistingHint": "A paper the school already holds — no upload"
     },
     "value": {
       "pct": "{{value}}% of fees",

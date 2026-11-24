@@ -792,7 +792,9 @@
       "cameraTitle": "Student photo",
       "cameraHint": "Stand the student against a plain wall in good light, facing the camera.",
       "cameraFrame": "Keep the face and shoulders inside the square, then take the photo.",
-      "cameraUse": "Use this photo"
+      "cameraUse": "Use this photo",
+      "addMenu": "Add photo",
+      "changeMenu": "Change photo"
     },
     "idCards": {
       "title": "ID cards",
@@ -893,7 +895,11 @@
       "someFailed": "The student is admitted, but these files did not upload: {{list}}. Add them on the student’s Documents tab.",
       "pendingCount_one": "1 document on the list is not in yet.",
       "pendingCount_other": "{{count}} documents on the list are not in yet.",
-      "allIn": "Every document on the list is in."
+      "allIn": "Every document on the list is in.",
+      "downloadAll": "Download all",
+      "addMenu": "Add",
+      "photoMenuHint": "Opens the camera on a phone or tablet",
+      "uploadMenuHint": "A scan, photo or PDF from this device"
     },
     "review": {
       "button": "Review admission",

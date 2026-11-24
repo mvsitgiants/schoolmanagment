@@ -76,6 +76,15 @@ export const SCHOLARSHIP_DOC_TYPES = [
 ]
 export const SCHOLARSHIP_DOC_TYPE_BY = Object.fromEntries(SCHOLARSHIP_DOC_TYPES.map((d) => [d.value, d]))
 
+/**
+ * The kind a scholarship document is filed as on the student's record (files.js FILE_CATEGORIES) — so a paper the
+ * school already holds (given at admission) is found and used again instead of asking the family a second time.
+ */
+export const SCHOLARSHIP_DOC_FILE_CATEGORY = {
+  INCOME_CERTIFICATE: 'CASTE_INCOME', CASTE_CERTIFICATE: 'CASTE_INCOME', STUDENT_AADHAAR: 'ID_PROOF', PARENT_ID: 'PARENT_ID_PROOF',
+  DOMICILE: 'ADDRESS_PROOF', MARKSHEET: 'MARKSHEET', PHOTO: 'PHOTO', DISABILITY_CERTIFICATE: 'MEDICAL',
+}
+
 /** A checklist line's state for one student. */
 export const SCHOLARSHIP_DOC_STATUS = {
   MISSING: { label: 'Not given yet', tone: 'neutral' },

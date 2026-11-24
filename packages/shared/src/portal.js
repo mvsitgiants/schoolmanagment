@@ -21,6 +21,7 @@ export const FAMILY_FEATURES = [
   { value: 'HEALTH', module: 'health', label: 'Health card: allergies, vaccinations, sick-room visits' },
   { value: 'PLACEMENTS', module: 'placements', label: 'Placement drives and offers' },
   { value: 'SCHOLARSHIPS', module: 'scholarships', label: 'Scholarships: apply, send documents, see the decision' },
+  { value: 'DOCUMENTS', module: 'documents', label: 'Documents the school has (admission papers, certificates sent)' },
   { value: 'COMPLAINTS', module: 'frontoffice', label: 'Complaints and concerns' },
   { value: 'SURVEYS', module: 'surveys', label: 'Surveys and feedback' },
   { value: 'CANTEEN', module: 'canteen', label: 'Canteen wallet and pre-orders' },

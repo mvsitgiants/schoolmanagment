@@ -1,4 +1,4 @@
-import { SCHOLARSHIP_DOC_TYPE_BY, SCHOLARSHIP_OPEN, formatINR, scholarshipDocValidTill, scholarshipFamilyStep, scholarshipValueText, scholarshipVisitTimes } from '@schoolgiant/shared'
+import { SCHOLARSHIP_DOC_FILE_CATEGORY, SCHOLARSHIP_DOC_TYPE_BY, SCHOLARSHIP_OPEN, formatINR, scholarshipDocValidTill, scholarshipFamilyStep, scholarshipValueText, scholarshipVisitTimes } from '@schoolgiant/shared'
 import { Attachment } from '../models/engines.js'
 import { ScholarshipApplication, ScholarshipDocument, ScholarshipScheme, ScholarshipVisitDay } from '../models/scholarships.js'
 import { Student, studentName } from '../models/students.js'
@@ -9,7 +9,7 @@ import { institutionNow } from '../platform/time.js'
 import { yearOrCurrent } from './academics.js'
 import { storeFile } from './files.js'
 import { need, studentFor } from './portal.js'
-import { docLabel, eligibilityChecks, factsOf, freeVisitTimes, lastAward, linesOf, refreshStudent, renewalEligibility, say, startApplication, walletOf } from './scholarships.js'
+import { docLabel, eligibilityChecks, factsOf, freeVisitTimes, lastAward, linesOf, papersOnFile, refreshStudent, renewalEligibility, say, startApplication, walletOf } from './scholarships.js'
 
 // The family app › Scholarships (feature SCHOLARSHIPS). One visit or none:
 //   · the schemes this child can apply for, with the documents asked for — and which of them are already with the
@@ -24,11 +24,7 @@ const MAX_FILES = 5 // waiting to be checked, per document
 const today = async () => (await institutionNow()).date
 const digits = (m) => String(m ?? '').replace(/\D/g, '').slice(-10)
 
-/** The file kind a scholarship document is filed as on the student's record (Student 360 › Documents). */
-const FILE_CATEGORY = {
-  INCOME_CERTIFICATE: 'CASTE_INCOME', CASTE_CERTIFICATE: 'CASTE_INCOME', STUDENT_AADHAAR: 'ID_PROOF', PARENT_ID: 'PARENT_ID_PROOF',
-  DOMICILE: 'ADDRESS_PROOF', MARKSHEET: 'MARKSHEET', PHOTO: 'PHOTO', DISABILITY_CERTIFICATE: 'MEDICAL',
-}
+const FILE_CATEGORY = SCHOLARSHIP_DOC_FILE_CATEGORY // the kind each document is filed as on the student's record
 
 async function child(f, studentId) {
   need(f, FEATURE)
@@ -79,7 +75,7 @@ export async function familyScholarships(f, studentId) {
     if (x) schemeOf.set(id, x)
   }
   const applied = new Set(apps.filter((a) => String(a.academicYearId) === String(year._id) && !['WITHDRAWN', 'NOT_APPROVED'].includes(a.status)).map((a) => String(a.schemeId)))
-  const wallet = await walletOf([s._id])
+  const [wallet, onFile] = await Promise.all([walletOf([s._id]), papersOnFile(s._id)])
   const lines = await linesOf(apps, t)
 
   // the family's own files still waiting to be checked (they may take one back)
@@ -105,7 +101,8 @@ export async function familyScholarships(f, studentId) {
       documents: (x.documents ?? []).map((d) => {
         const doc = wallet.get(`${s._id}|${d.key}`)
         const good = doc?.status === 'ACCEPTED' && (!doc.validTill || doc.validTill >= t)
-        return { key: d.key, label: docLabel(d), type: d.type, required: d.required, originalNeeded: d.originalNeeded, note: d.note ?? null, have: good }
+        // the school holds this paper already (given at admission): it is taken from there, not asked for again
+        return { key: d.key, label: docLabel(d), type: d.type, required: d.required, originalNeeded: d.originalNeeded, note: d.note ?? null, have: good, onFile: !good && onFile.has(FILE_CATEGORY[d.type]) }
       }),
     }))
 

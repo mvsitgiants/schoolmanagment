@@ -208,6 +208,10 @@ const ScholarshipSchemeForm = lazy(() => import('./pages/Scholarships/SchemeForm
 const ScholarshipVisits = lazy(() => import('./pages/Scholarships/Visits'))
 const ScholarshipReports = lazy(() => import('./pages/Scholarships/Reports'))
 const ScholarshipReview = lazy(() => import('./pages/Scholarships/Review'))
+const DocumentLibrary = lazy(() => import('./pages/DocumentLibrary/Library'))
+const DocumentMissing = lazy(() => import('./pages/DocumentLibrary/Missing'))
+const DocumentIssued = lazy(() => import('./pages/DocumentLibrary/Issued'))
+const DocumentBin = lazy(() => import('./pages/DocumentLibrary/Bin'))
 const AccreditationReports = lazy(() => import('./pages/Accreditation/Reports'))
 const AccreditationEvidence = lazy(() => import('./pages/Accreditation/Evidence'))
 const PlacementsCompanies = lazy(() => import('./pages/Placements/Companies'))
@@ -504,6 +508,11 @@ export default function App() {
           <Route path="scholarships" element={<Navigate to="/scholarships/applications" replace />} />
           <Route path="scholarships/applications" element={<ScholarshipApplications />} />
           <Route path="scholarships/applications/:id" element={<ScholarshipReview />} />
+          <Route path="documents" element={<Navigate to="/documents/library" replace />} />
+          <Route path="documents/library" element={<DocumentLibrary />} />
+          <Route path="documents/missing" element={<DocumentMissing />} />
+          <Route path="documents/issued" element={<DocumentIssued />} />
+          <Route path="documents/bin" element={<DocumentBin />} />
           <Route path="scholarships/schemes" element={<ScholarshipSchemes />} />
           <Route path="scholarships/schemes/new" element={<ScholarshipSchemeForm />} />
           <Route path="scholarships/schemes/:id" element={<ScholarshipSchemeForm />} />

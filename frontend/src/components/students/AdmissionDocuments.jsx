@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Ban, Camera, Check, CheckCircle2, CircleAlert, Eye, FileText, Plus, RotateCcw, Upload, X } from 'lucide-react'
+import { Ban, Camera, Check, CheckCircle2, CircleAlert, Eye, FileText, RotateCcw, Upload, X } from 'lucide-react'
 import { FILE_ACCEPT, FILE_CATEGORIES, FILE_MAX_MB, FILE_VERIFY_STATUS, TWO_SIDED_CATEGORIES } from '@schoolgiant/shared'
 import { FormField, Input, Modal, SegmentedControl, Select, StatusPill } from '../system'
 import CameraCapture from '../system/CameraCapture'
+import AddFileMenu from '../system/AddFileMenu'
 import Button from '../ui/Button'
 import { useSnackbar } from '../../context/SnackbarContext'
 import { useFormat } from '../../context/SettingsContext'
@@ -140,8 +141,10 @@ export default function AdmissionDocuments({ checklist = [], items, onAdd, onRem
                 </span>
                 {!readOnly && (
                   <span className="flex w-full items-center gap-1 ps-5 -ms-2 sm:w-auto sm:ps-0 sm:ms-0">
-                    <Button size="sm" variant="ghost" icon={Upload} disabled={busy} onClick={() => pick(d.category)}>{t('students.docs.upload')}</Button>
-                    <Button size="sm" variant="ghost" icon={Camera} disabled={busy} onClick={() => setCamera(d.category)}>{t('students.docs.photo')}</Button>
+                    <AddFileMenu variant="ghost" label={t('students.docs.addMenu')} disabled={busy} options={[
+                      { key: 'camera', icon: Camera, label: t('students.docs.photo'), hint: t('students.docs.photoMenuHint'), onSelect: () => setCamera(d.category) },
+                      { key: 'file', icon: Upload, label: t('students.docs.upload'), hint: t('students.docs.uploadMenuHint'), onSelect: () => pick(d.category) },
+                    ]} />
                   </span>
                 )}
               </div>
@@ -162,8 +165,10 @@ export default function AdmissionDocuments({ checklist = [], items, onAdd, onRem
               </Select>
             </FormField>
           </div>
-          <Button variant="secondary" icon={Plus} disabled={!otherKind || busy} onClick={() => pick(otherKind)}>{t('students.docs.upload')}</Button>
-          <Button variant="secondary" icon={Camera} disabled={!otherKind || busy} onClick={() => setCamera(otherKind)}>{t('students.docs.photo')}</Button>
+          <AddFileMenu size="md" label={t('students.docs.addMenu')} disabled={!otherKind || busy} options={[
+            { key: 'camera', icon: Camera, label: t('students.docs.photo'), hint: t('students.docs.photoMenuHint'), onSelect: () => setCamera(otherKind) },
+            { key: 'file', icon: Upload, label: t('students.docs.upload'), hint: t('students.docs.uploadMenuHint'), onSelect: () => pick(otherKind) },
+          ]} />
         </div>
       )}
 

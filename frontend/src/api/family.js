@@ -130,6 +130,11 @@ export const familyScholarshipRemoveFile = async (slug, id, appId, key, fileId) 
 export const familyScholarshipBook = (slug, id, appId, body) => fpost(slug, `${st(id)}/scholarships/${appId}/visit`, body)
 export const familyScholarshipCancelVisit = async (slug, id, appId) => (await family.delete(`${base(slug)}${st(id)}/scholarships/${appId}/visit`)).data.data
 
+// documents: the child's own papers the school holds (admission, student record, scholarships)
+export const familyDocuments = (slug, id) => fget(slug, `${st(id)}/documents`)
+/** One of them as a blob (to show or save). */
+export const familyDocumentBlob = async (slug, id, fileId) => (await family.get(`${base(slug)}${st(id)}/documents/${fileId}`, { responseType: 'blob' })).data
+
 // complaints (Front office)
 export const familyComplaints = (slug, id) => fget(slug, `${st(id)}/complaints`)
 export const familyRaiseComplaint = (slug, id, body) => fpost(slug, `${st(id)}/complaints`, body)

@@ -137,7 +137,13 @@
       "hint": "PDF, photos, Word, Excel, PowerPoint or short videos (MP4) up to {{max}} MB. Drag them in or paste a screenshot.",
       "empty": "No files yet.",
       "viewName": "View {{name}}",
-      "onRecord": "on {{type}}"
+      "onRecord": "on {{type}}",
+      "useExisting": "Choose from existing",
+      "linked": "from records",
+      "linkedHint": "The school already had this paper — used here without uploading again",
+      "add": "Add file",
+      "uploadHint": "A photo, scan or PDF from this device",
+      "useExistingHint": "A paper the school already holds for this student"
     },
     "record": {
       "overview": "Overview",
@@ -516,6 +522,16 @@
       "attachHint": "Screenshots or files, up to {{max}} MB each",
       "send": "Send",
       "tooBig": "This file is too big. Files can be up to {{max}} MB."
+    },
+    "reuse": {
+      "title": "Choose from the school’s papers",
+      "hint": "Papers this student already gave the school — at admission, on their record or for a scholarship. Picking one uses it here; nothing is uploaded again.",
+      "none": "The school holds no papers of this student yet.",
+      "use_one": "Use {{count}} paper",
+      "use_other": "Use {{count}} papers",
+      "used_one": "Paper used — no upload needed.",
+      "used_other": "{{count}} papers used — no upload needed.",
+      "checked": "Original checked"
     }
   }
 }

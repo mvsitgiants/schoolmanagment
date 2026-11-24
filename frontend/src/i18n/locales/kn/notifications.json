@@ -504,6 +504,18 @@
           "subject": "Scholarship not approved — {{student.name}}",
           "body": "Dear {{guardian.name}},\n\nThe scholarship “{{scheme.name}}” ({{scholarship.applicationNo}}) for {{student.name}} could not be approved.\nReason: {{scholarship.reason}}\n\nPlease contact the office if you have questions.\n\n{{institution.name}}"
         }
+      },
+      "documents_missing": {
+        "SMS": {
+          "body": "Dear Parent, some papers for {{student.name}} are still due at school — see WhatsApp or the school app. - {{institution.name}}"
+        },
+        "WHATSAPP": {
+          "body": "Dear {{guardian.name}},\nThe school still needs these papers for {{student.firstName}} ({{student.class}}):\n\n{{documents.list}}\n\nPlease send a clear photo in the school app, or give them at the office.\n\n{{institution.name}}"
+        },
+        "EMAIL": {
+          "subject": "Papers still needed — {{student.name}}",
+          "body": "Dear {{guardian.name}},\n\nThe school still needs these papers for {{student.name}} ({{student.class}}):\n\n{{documents.list}}\n\nPlease send a clear photo in the school app, or give them at the office.\n\n{{institution.name}}"
+        }
       }
     },
     "words": {

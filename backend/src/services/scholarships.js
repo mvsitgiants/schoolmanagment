@@ -1,5 +1,5 @@
 import {
-  SCHOLARSHIP_CHECKS, SCHOLARSHIP_DOC_TYPE_BY, SCHOLARSHIP_OPEN, SCHOLARSHIP_PORTAL_STATUS, SCHOLARSHIP_REJECT_REASON_LABEL, SCHOLARSHIP_STATUS,
+  SCHOLARSHIP_CHECKS, SCHOLARSHIP_DOC_FILE_CATEGORY, SCHOLARSHIP_DOC_TYPE_BY, SCHOLARSHIP_OPEN, SCHOLARSHIP_PORTAL_STATUS, SCHOLARSHIP_REJECT_REASON_LABEL, SCHOLARSHIP_STATUS,
   attendancePct, formatINR, scholarshipDocCounts, scholarshipDocState, scholarshipDocValidTill, scholarshipStatusFrom, scholarshipValueText, scholarshipVisitTimes,
 } from '@schoolgiant/shared'
 import { AcademicYear, ClassLevel } from '../models/academics.js'
@@ -20,6 +20,7 @@ import { escapeRegex } from '../platform/validate.js'
 import { sectionsInScope, yearOrCurrent } from './academics.js'
 import { collect, endScholarshipHold, estimateScholarship, grantScholarshipConcession, studentLabels, withdrawScholarshipConcession } from './fees.js'
 import { humanDate } from './notify.js'
+import { linkFileAs } from './files.js'
 
 // Scholarships (module `scholarships`). The aim is one visit or none for the family:
 //   · a scheme says up front who can apply and which documents to give (its checklist);
@@ -526,7 +527,7 @@ export async function previewApplication({ schemeId, studentId, familyIncome, ma
   const t = await today()
   const facts = (await factsOf([s], year)).get(String(s._id))
   const checks = eligibilityChecks(scheme, facts, { familyIncome, marksPct })
-  const wallet = await walletOf([s._id], scheme.documents.map((d) => d.key))
+  const [wallet, onFile] = await Promise.all([walletOf([s._id], scheme.documents.map((d) => d.key)), papersOnFile(s._id)])
   const existing = await ScholarshipApplication.findOne({ schemeId: scheme._id, studentId: s._id, academicYearId: year._id, status: { $nin: ['WITHDRAWN', 'NOT_APPROVED'] } }).select('applicationNo status').lean()
   return {
     student: (await studentLabels([s._id])).get(String(s._id)),
@@ -534,7 +535,8 @@ export async function previewApplication({ schemeId, studentId, familyIncome, ma
     checks, eligible: !checks.some((c) => c.ok === false),
     items: scheme.documents.map((d) => {
       const doc = wallet.get(`${s._id}|${d.key}`)
-      return { key: d.key, type: d.type, label: docLabel(d), required: d.required, originalNeeded: d.originalNeeded, state: stateOf(d, doc, t), validTill: doc?.validTill ?? null, checkedAt: doc?.checkedAt ?? null }
+      const state = stateOf(d, doc, t)
+      return { key: d.key, type: d.type, label: docLabel(d), required: d.required, originalNeeded: d.originalNeeded, state, validTill: doc?.validTill ?? null, checkedAt: doc?.checkedAt ?? null, onFile: state === 'MISSING' && onFile.has(SCHOLARSHIP_DOC_FILE_CATEGORY[d.type]) }
     }),
     expectedAmount: await estimateScholarship(s._id, year._id, scheme),
     existing: existing ? { id: String(existing._id), applicationNo: existing.applicationNo, status: existing.status } : null,
@@ -570,8 +572,44 @@ export async function startApplication({ s, scheme, year, familyIncome, marksPct
   say(app, who, source === 'FAMILY' ? 'Applied from the app' : renewedFrom ? `Renewed from ${renewedFrom.applicationNo} (last year)` : 'Application started')
   await app.save()
   await audit({ action: 'CREATE', module: 'scholarships', entityType: 'scholarship_application', entityId: String(app._id), entityName: app.applicationNo, studentId: s._id, summary: `${source === 'FAMILY' ? 'The family applied' : 'Started'} scholarship application ${app.applicationNo} for ${studentName(s)} (${scheme.name})` }, req)
+  await reuseStudentPapers(app, req) // papers the school already holds go on the checklist — the family isn't asked again
   await refresh(app, auth, req) // documents already in the wallet count straight away
   return app
+}
+
+/** Kinds of paper the school already holds for a student (given at admission, on the student record). */
+const PAPER_TYPES = ['student', 'application', 'admission_form']
+export async function papersOnFile(studentId) {
+  const rows = await Attachment.find({ studentId, entityType: { $in: PAPER_TYPES }, linkOf: null, 'deleted.at': null }).select('category').lean()
+  return new Set(rows.map((r) => r.category))
+}
+
+/**
+ * A new application's checklist takes the papers the school already holds (the student's Aadhaar, photo, caste or
+ * income certificate, mark sheet given at admission): linked to the document — nothing copied — and waiting to be
+ * checked like any other. The family is only asked for what the school does not have.
+ */
+async function reuseStudentPapers(app, req) {
+  const wallet = await walletOf([app.studentId], app.items.map((i) => i.key))
+  let n = 0
+  for (const item of app.items) {
+    const cat = SCHOLARSHIP_DOC_FILE_CATEGORY[item.type]
+    if (!cat) continue
+    const have = wallet.get(`${app.studentId}|${item.key}`)
+    if (have && (have.status !== 'NEW' || have.files > 0)) continue // already given or checked
+    const papers = await Attachment.find({ studentId: app.studentId, category: cat, entityType: { $in: PAPER_TYPES }, linkOf: null, 'deleted.at': null }).sort({ createdAt: -1 }).lean()
+    if (!papers.length) continue
+    // the newest paper — with its other side when it is a card (Aadhaar front and back)
+    const newest = papers[0]
+    const set = newest.side ? papers.filter((p) => p.side && p.entityType === newest.entityType && p.entityId === newest.entityId) : [newest]
+    const doc = (await ScholarshipDocument.findOne({ studentId: app.studentId, key: item.key }))
+      ?? new ScholarshipDocument({ studentId: app.studentId, key: item.key, type: item.type, label: item.type === 'OTHER' ? item.label : undefined, status: 'NEW' })
+    doc.log.push({ at: new Date(), by: 'System', text: 'Taken from the papers the school already has' })
+    await doc.save()
+    for (const p of set) await linkFileAs(p, { entityType: 'scholarship_doc', entityId: doc._id, studentId: app.studentId, title: docLabel(item) }, { name: 'From the school’s records' }, req)
+    n++
+  }
+  if (n) { say(app, 'System', `${n} document(s) taken from the papers the school already has`); await app.save() }
 }
 
 export async function createApplication({ schemeId, studentId, familyIncome, marksPct, note, tellFamily = false, renewal = false }, auth, req) {

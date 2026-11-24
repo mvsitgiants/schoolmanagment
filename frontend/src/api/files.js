@@ -10,6 +10,10 @@ export const uploadFile = async (entityType, entityId, file, { category, title, 
   headers: { 'Content-Type': file.type || 'application/octet-stream', 'X-File-Name': encodeURIComponent(file.name || 'file') },
 })).data.data
 export const downloadFile = (id) => api.get(`/v1/files/${id}/content`, { responseType: 'blob' })
+/** Files the school already holds about this record's student — to use here instead of uploading again. */
+export const fetchReusable = async (entityType, entityId) => (await api.get('/v1/files/reusable', { params: { entityType, entityId } })).data.data
+/** Use one of them on this record (nothing copied). */
+export const linkFile = async (body) => (await api.post('/v1/files/link', body)).data.data
 /** The office checked a document against the original: VERIFIED, REJECTED (note says why) or PENDING again. */
 export const verifyFile = async (id, status, note) => (await api.patch(`/v1/files/${id}/verify`, { status, note: note || undefined })).data.data
 export const deleteFile = async (id, reason) => (await api.delete(`/v1/files/${id}`, { data: { reason } })).data.data

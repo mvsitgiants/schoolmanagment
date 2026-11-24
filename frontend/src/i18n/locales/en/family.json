@@ -31,7 +31,8 @@
       "surveys": "Surveys",
       "canteen": "Canteen",
       "kit": "Books & uniform",
-      "scholarships": "Scholarships"
+      "scholarships": "Scholarships",
+      "documents": "Documents"
     },
     "marks": {
       "P": "Present",
@@ -551,6 +552,29 @@
       "fees": "Fees and receipts",
       "results": "Results and report cards",
       "notices": "Notices"
+    },
+    "docs": {
+      "intro": "Papers the school already has for {{name}} — given at admission or for a scholarship. You don’t need to send these again.",
+      "none": "No papers yet",
+      "noneHint": "Papers you give the school (birth certificate, Aadhaar, photos…) show here.",
+      "open": "Open {{name}}",
+      "save": "Save",
+      "checked": "Checked by the school",
+      "kind": {
+        "BIRTH_CERTIFICATE": "Birth certificate",
+        "ID_PROOF": "ID proof (Aadhaar, APAAR, passport)",
+        "PARENT_ID_PROOF": "Parent’s ID proof",
+        "ADDRESS_PROOF": "Address proof",
+        "PREVIOUS_TC": "Previous school’s TC",
+        "CHARACTER_CERTIFICATE": "Character certificate",
+        "MARKSHEET": "Mark sheet / report card",
+        "PHOTO": "Photo",
+        "MEDICAL": "Medical / fitness certificate",
+        "CASTE_INCOME": "Caste / income certificate",
+        "PAYMENT_PROOF": "Payment proof",
+        "HR_DOCUMENT": "Document",
+        "OTHER": "Document"
+      }
     }
   }
 }

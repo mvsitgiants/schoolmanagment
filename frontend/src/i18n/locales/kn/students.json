@@ -792,7 +792,9 @@
       "cameraTitle": "ವಿದ್ಯಾರ್ಥಿಯ ಭಾವಚಿತ್ರ",
       "cameraHint": "ವಿದ್ಯಾರ್ಥಿಯನ್ನು ಉತ್ತಮ ಬೆಳಕಿನಲ್ಲಿ ಸರಳ ಗೋಡೆಯ ಮುಂದೆ, ಕ್ಯಾಮೆರಾದ ಕಡೆಗೆ ಮುಖ ಮಾಡಿ ನಿಲ್ಲಿಸಿ.",
       "cameraFrame": "ಮುಖ ಮತ್ತು ಭುಜಗಳನ್ನು ಚೌಕದೊಳಗೆ ಇರಿಸಿ, ನಂತರ ಭಾವಚಿತ್ರ ತೆಗೆಯಿರಿ.",
-      "cameraUse": "ಈ ಭಾವಚಿತ್ರ ಬಳಸಿ"
+      "cameraUse": "ಈ ಭಾವಚಿತ್ರ ಬಳಸಿ",
+      "addMenu": "Add photo",
+      "changeMenu": "Change photo"
     },
     "idCards": {
       "title": "ಗುರುತಿನ ಚೀಟಿಗಳು",
@@ -893,7 +895,11 @@
       "someFailed": "ವಿದ್ಯಾರ್ಥಿಗೆ ಪ್ರವೇಶ ನೀಡಲಾಗಿದೆ, ಆದರೆ ಈ ಫೈಲ್‌ಗಳು ಅಪ್‌ಲೋಡ್ ಆಗಿಲ್ಲ: {{list}}. ಅವುಗಳನ್ನು ವಿದ್ಯಾರ್ಥಿಯ ದಾಖಲೆಗಳು ಟ್ಯಾಬ್‌ನಲ್ಲಿ ಸೇರಿಸಿ.",
       "pendingCount_one": "ಪಟ್ಟಿಯಲ್ಲಿರುವ 1 ದಾಖಲೆ ಇನ್ನೂ ಬಂದಿಲ್ಲ.",
       "pendingCount_other": "ಪಟ್ಟಿಯಲ್ಲಿರುವ {{count}} ದಾಖಲೆಗಳು ಇನ್ನೂ ಬಂದಿಲ್ಲ.",
-      "allIn": "ಪಟ್ಟಿಯಲ್ಲಿರುವ ಎಲ್ಲಾ ದಾಖಲೆಗಳು ಬಂದಿವೆ."
+      "allIn": "ಪಟ್ಟಿಯಲ್ಲಿರುವ ಎಲ್ಲಾ ದಾಖಲೆಗಳು ಬಂದಿವೆ.",
+      "downloadAll": "Download all",
+      "addMenu": "Add",
+      "photoMenuHint": "Opens the camera on a phone or tablet",
+      "uploadMenuHint": "A scan, photo or PDF from this device"
     },
     "review": {
       "button": "ಪ್ರವೇಶವನ್ನು ಪರಿಶೀಲಿಸಿ",

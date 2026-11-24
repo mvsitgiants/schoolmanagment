@@ -13,6 +13,7 @@
     },
     "modules": {
       "dashboard": "Dashboard",
+      "documents": "Documents",
       "core": "Administration",
       "students": "Students",
       "admissions": "Admissions",
@@ -57,6 +58,7 @@
     },
     "descriptions": {
       "dashboard": "Role home, the principal’s command centre and the live campus board.",
+      "documents": "Every document and picture in one place — students’, staff’s and the school’s — to find, preview and download many at once.",
       "core": "Institution profile, campuses, users, roles, subscription and every setting.",
       "students": "Student information system: admission, profile, guardians, documents, promotion and transfer.",
       "admissions": "Enquiry CRM, online application, entrance test, merit list and seat allotment.",
@@ -102,6 +104,12 @@
     "pages": {
       "dashboard": {
         "live": "Live campus"
+      },
+      "documents": {
+        "library": "Document library",
+        "missing": "Missing & expiring",
+        "issued": "Issued documents",
+        "bin": "Recycle bin"
       },
       "core": {
         "setup": "Setup hub",
@@ -392,6 +400,7 @@
       "refund": "Refund",
       "reset_password": "Reset password",
       "resolve": "Resolve",
+      "restore": "Restore",
       "reverse": "Reverse",
       "revoke_sessions": "Sign out devices",
       "run": "Run",

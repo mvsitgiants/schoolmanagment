@@ -45,6 +45,7 @@ function DocRow({ app, item, onSent }) {
   const fileRef = useRef(null)
   const pickRef = useRef(null)
   const [issuedOn, setIssuedOn] = useState(item.issuedOn ?? '')
+  const [choosing, setChoosing] = useState(false)
   const today = localIso(new Date())
   const [error, setError] = useState(null)
   const send = useMutation({
@@ -86,14 +87,21 @@ function DocRow({ app, item, onSent }) {
               )}
               <input ref={fileRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={pick} />
               <input ref={pickRef} type="file" accept="image/*,application/pdf" className="hidden" onChange={pick} />
-              <button type="button" disabled={send.isPending || needDate} onClick={() => fileRef.current?.click()}
+              {/* one button; it opens the two ways to send: the camera, or a photo / PDF already on the phone */}
+              <button type="button" disabled={send.isPending || needDate} aria-expanded={choosing} onClick={() => setChoosing((v) => !v)}
                 className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-brand-300 bg-brand-50/70 px-4 text-sm font-semibold text-brand-700 disabled:opacity-50">
-                <Camera className="h-4 w-4" />{send.isPending ? t('scholarships.family.sending') : item.state === 'NOT_ACCEPTED' || item.state === 'EXPIRED' ? t('scholarships.family.sendAgain') : item.files.length ? t('scholarships.family.sendMore') : t('scholarships.family.send')}
+                <Send className="h-4 w-4" />{send.isPending ? t('scholarships.family.sending') : item.state === 'NOT_ACCEPTED' || item.state === 'EXPIRED' ? t('scholarships.family.sendAgain') : item.files.length ? t('scholarships.family.sendMore') : t('scholarships.family.send')}
               </button>
-              <button type="button" disabled={send.isPending || needDate} onClick={() => pickRef.current?.click()}
-                className="ms-2 inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-border px-4 text-sm font-medium text-ink disabled:opacity-50">
-                <Upload className="h-4 w-4" />{t('scholarships.family.chooseFile')}
-              </button>
+              {choosing && (
+                <div className="grid grid-cols-2 gap-2">
+                  <button type="button" onClick={() => { setChoosing(false); fileRef.current?.click() }} className="flex min-h-[64px] flex-col items-center justify-center gap-1 rounded-xl border border-border bg-surface text-sm font-medium text-ink">
+                    <Camera className="h-5 w-5 text-brand-600" aria-hidden />{t('scholarships.family.useCamera')}
+                  </button>
+                  <button type="button" onClick={() => { setChoosing(false); pickRef.current?.click() }} className="flex min-h-[64px] flex-col items-center justify-center gap-1 rounded-xl border border-border bg-surface text-sm font-medium text-ink">
+                    <Upload className="h-5 w-5 text-brand-600" aria-hidden />{t('scholarships.family.chooseFile')}
+                  </button>
+                </div>
+              )}
               {needDate && <p className="text-xs text-ink-faint">{t('scholarships.family.dateFirst')}</p>}
             </div>
           )}
@@ -189,8 +197,8 @@ function Scheme({ scheme, onApplied }) {
   const [open, setOpen] = useState(false)
   const [income, setIncome] = useState('')
   const apply = useMutation({ mutationFn: () => familyScholarshipApply(slug, studentId, scheme.id, { familyIncome: income === '' ? undefined : toPaise(income) }), onSuccess: onApplied })
-  const toGive = scheme.documents.filter((d) => !d.have)
-  const have = scheme.documents.filter((d) => d.have)
+  const toGive = scheme.documents.filter((d) => !d.have && !d.onFile)
+  const have = scheme.documents.filter((d) => d.have || d.onFile)
   return (
     <FCard title={scheme.name} action={<span className="rounded-full bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700">{valueTextOf(t, scheme)}</span>}>
       <div className="space-y-3">
@@ -203,7 +211,7 @@ function Scheme({ scheme, onApplied }) {
           <div className="space-y-1.5">
             <p className="text-sm font-semibold text-ink">{t('scholarships.family.youNeed')}</p>
             <ul className="space-y-1">{toGive.map((d) => <li key={d.key} className="text-sm text-ink">• {docName(t, d)}{!d.required && <span className="text-ink-faint"> · {t('scholarships.doc.optional')}</span>}{d.note && <span className="text-ink-faint"> — {d.note}</span>}</li>)}</ul>
-            {have.length > 0 && <ul className="space-y-1">{have.map((d) => <li key={d.key} className="flex items-center gap-1.5 text-sm text-success-700"><FileCheck2 className="h-4 w-4" />{t('scholarships.family.alreadyHave', { doc: docName(t, d) })}</li>)}</ul>}
+            {have.length > 0 && <ul className="space-y-1">{have.map((d) => <li key={d.key} className="flex items-center gap-1.5 text-sm text-success-700"><FileCheck2 className="h-4 w-4" />{d.onFile ? t('scholarships.family.onFile', { doc: docName(t, d) }) : t('scholarships.family.alreadyHave', { doc: docName(t, d) })}</li>)}</ul>}
           </div>
         )}
         {open ? (

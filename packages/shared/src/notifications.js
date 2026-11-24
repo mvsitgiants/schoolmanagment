@@ -138,6 +138,7 @@ const VAR_HELP = {
   'scholarship.lastDate': 'Last day to give the documents (empty when there is none)',
   'scholarship.amount': 'What the scholarship gives, e.g. 50% of fees or ₹12,000 a year',
   'scholarship.reason': 'Why it was not approved',
+  'documents.list': 'The documents still to give (one per line)',
 }
 export const templateVarHelp = (v) => VAR_HELP[v] ?? v
 
@@ -566,6 +567,16 @@ export const NOTIFY_EVENTS = [
       EMAIL: { enabled: true, subject: 'Scholarship not approved — {{student.name}}', body: 'Dear {{guardian.name}},\n\nThe scholarship “{{scheme.name}}” ({{scholarship.applicationNo}}) for {{student.name}} could not be approved.\nReason: {{scholarship.reason}}\n\nPlease contact the office if you have questions.\n\n{{institution.name}}' },
     },
   },
+  {
+    event: 'documents.missing', module: 'documents', label: 'Documents still to give',
+    when: 'When the office sends families the papers still missing from the admission checklist (or about to expire).',
+    vars: [...STUDENT, 'documents.list', ...INSTITUTION],
+    defaults: {
+      SMS: { enabled: false, body: 'Dear Parent, some papers for {{student.name}} are still due at school — see WhatsApp or the school app. - {{institution.name}}' },
+      WHATSAPP: { enabled: true, body: 'Dear {{guardian.name}},\nThe school still needs these papers for {{student.firstName}} ({{student.class}}):\n\n{{documents.list}}\n\nPlease send a clear photo in the school app, or give them at the office.\n\n{{institution.name}}' },
+      EMAIL: { enabled: true, subject: 'Papers still needed — {{student.name}}', body: 'Dear {{guardian.name}},\n\nThe school still needs these papers for {{student.name}} ({{student.class}}):\n\n{{documents.list}}\n\nPlease send a clear photo in the school app, or give them at the office.\n\n{{institution.name}}' },
+    },
+  },
 ]
 
 export const NOTIFY_EVENT_BY = Object.fromEntries(NOTIFY_EVENTS.map((e) => [e.event, e]))
@@ -600,6 +611,7 @@ export const TEMPLATE_SAMPLE = {
   incident: { kind: 'fall', date: '2026-11-09', time: '11:20', place: 'Playground', severity: 'minor', firstAid: 'Knee cleaned and dressed' },
   canteen: { balance: '₹45', threshold: '₹100', amount: '₹500' },
   scheme: { name: 'Merit scholarship 2026' },
+  documents: { list: '• Birth certificate\n• Previous school’s TC' },
   scholarship: { applicationNo: 'SCH2600014', documents: '• Income certificate — the old one has expired\n• Bank passbook — the photo is blurred', lastDate: 'Fri, 12 Dec', amount: '50% of fees', reason: 'All seats are taken' },
 }
 

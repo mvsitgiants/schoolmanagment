@@ -1,12 +1,15 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { FolderCheck } from 'lucide-react'
+import { Download, FolderCheck } from 'lucide-react'
 import { DEFAULT_ADMISSION_DOCS } from '@schoolgiant/shared'
 import { SectionCard, openDocumentViewer, usePrompt } from '../../system'
 import AdmissionDocuments, { missingNow } from '../AdmissionDocuments'
 import { deleteFile, downloadFile, fetchFiles, uploadFile, verifyFile } from '../../../api/files'
 import { fetchAcademicLookup } from '../../../api/academics'
+import { downloadZip } from '../../../api/documentLibrary'
+import { hasPermission } from '../../../api/auth'
+import Button from '../../ui/Button'
 import { useSnackbar } from '../../../context/SnackbarContext'
 
 /**
@@ -54,7 +57,14 @@ export default function StudentDocuments({ s, canEdit }) {
 
   return (
     <SectionCard icon={FolderCheck} title={t('students.docs.title')} count={items.length || null}
-      hint={missing.length ? t('students.docs.pendingCount', { count: missing.length }) : t('students.docs.allIn')}>
+      hint={missing.length ? t('students.docs.pendingCount', { count: missing.length }) : t('students.docs.allIn')}
+      actions={items.length > 0 && hasPermission('documents.library.export') && (
+        // every document of the student (admission papers, scholarship documents …) as one ZIP — the TC file, a board form
+        <Button size="sm" variant="ghost" className="-my-1" icon={Download}
+          onClick={() => downloadZip({ studentId: s.id, name: `${s.admissionNo ?? ''} ${[s.firstName, s.lastName].filter(Boolean).join(' ')}`.trim() }).catch((e) => showError(e.message))}>
+          {t('students.docs.downloadAll')}
+        </Button>
+      )}>
       <AdmissionDocuments checklist={checklist} items={items} busy={busy} readOnly={!canEdit}
         onAdd={(file, meta) => run(() => uploadFile('student', s.id, file, meta))}
         onRemove={canEdit ? remove : undefined} onView={view} onVerify={canEdit ? verify : undefined} />

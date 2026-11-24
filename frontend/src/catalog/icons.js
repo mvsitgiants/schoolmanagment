@@ -2,7 +2,7 @@
 // Explicit imports keep the bundle small (no `import * as Icons`).
 import {
   Award, BadgeCheck, BarChart3, BedDouble, BookMarked, Boxes, Briefcase, Bus, CalendarCheck, CalendarDays, ClipboardCheck,
-  ConciergeBell, FileBadge, FileQuestion, FileText, FlaskConical, Globe, GraduationCap, HandHeart, HeartPulse,
+  ConciergeBell, FileBadge, FolderOpen, FileQuestion, FileText, FlaskConical, Globe, GraduationCap, HandHeart, HeartPulse,
   IndianRupee, Landmark, LayoutDashboard, Library, ListChecks, Megaphone, MessageSquareHeart, MonitorPlay,
   NotebookPen, PartyPopper, Plug, School, ScrollText, Settings2, Smartphone, Sparkles, Square, SquareParking, UserPlus,
   UsersRound, Utensils, Wallet,
@@ -10,7 +10,7 @@ import {
 
 const ICONS = {
   Award, BadgeCheck, BarChart3, BedDouble, BookMarked, Boxes, Briefcase, Bus, CalendarCheck, CalendarDays, ClipboardCheck,
-  ConciergeBell, FileBadge, FileQuestion, FileText, FlaskConical, Globe, GraduationCap, HandHeart, HeartPulse,
+  ConciergeBell, FileBadge, FolderOpen, FileQuestion, FileText, FlaskConical, Globe, GraduationCap, HandHeart, HeartPulse,
   IndianRupee, Landmark, LayoutDashboard, Library, ListChecks, Megaphone, MessageSquareHeart, MonitorPlay,
   NotebookPen, PartyPopper, Plug, School, ScrollText, Settings2, Smartphone, Sparkles, SquareParking, UserPlus,
   UsersRound, Utensils, Wallet,

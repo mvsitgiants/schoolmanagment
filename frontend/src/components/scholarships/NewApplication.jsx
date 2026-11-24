@@ -34,8 +34,9 @@ export default function NewApplication({ schemes = [], classes = [], schemeId: p
     }),
     onSuccess: onSaved, onError: (e) => showError(e.message),
   })
-  const have = preview?.items.filter((i) => i.state === 'ACCEPTED' || i.state === 'ORIGINAL_DUE') ?? []
-  const need = preview?.items.filter((i) => !(i.state === 'ACCEPTED' || i.state === 'ORIGINAL_DUE')) ?? []
+  // the school already holds a paper (given at admission): it is taken from there when the application starts
+  const have = preview?.items.filter((i) => i.state === 'ACCEPTED' || i.state === 'ORIGINAL_DUE' || i.onFile) ?? []
+  const need = preview?.items.filter((i) => !(i.state === 'ACCEPTED' || i.state === 'ORIGINAL_DUE' || i.onFile)) ?? []
 
   return (
     <Modal open onClose={onClose} size="lg" title={t('scholarships.new.title')} footer={<>
@@ -71,7 +72,7 @@ export default function NewApplication({ schemes = [], classes = [], schemeId: p
                 </div>
                 <div>
                   <p className="text-xs font-medium text-ink-muted mb-2">{t('scholarships.new.alreadyHave', { count: have.length })}</p>
-                  <ul className="space-y-1.5">{have.map((i) => <li key={i.key} className="flex items-center gap-2 text-sm text-ink"><FileCheck2 className="w-4 h-4 text-success-600" aria-hidden />{docName(t, i)}</li>)}</ul>
+                  <ul className="space-y-1.5">{have.map((i) => <li key={i.key} className="flex items-center gap-2 text-sm text-ink"><FileCheck2 className="w-4 h-4 text-success-600" aria-hidden />{docName(t, i)}{i.onFile && <span className="text-xs text-ink-faint"> · {t('scholarships.new.onFile')}</span>}</li>)}</ul>
                   {!have.length && <p className="text-sm text-ink-muted">{t('scholarships.new.nothingYet')}</p>}
                 </div>
               </div>

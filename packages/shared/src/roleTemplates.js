@@ -45,6 +45,7 @@ const DEFS = [
       ['fees', ['concessions'], '+approve'],
       ['fees', ['invoices'], '+cancel'],
       ['scholarships', ['applications'], '+approve'],
+      ['documents', '*', 'F'], // the whole library, missing papers, the issued register, and restoring removed files
       ['communication', ['notices'], 'A'],
       ['communication', ['notices'], '+publish'],
       ['hrms', ['leave'], '+approve'],
@@ -66,6 +67,7 @@ const DEFS = [
       ['exams', ['report-cards', 'year-results'], '+view print'],
       ['exams', ['hall-tickets'], '+view print'],
       ['scholarships', ['applications'], '+view create verify'], // collect and check papers in class, so parents need not come
+      ['documents', ['library', 'missing'], '+view export send'], // their class's documents and what is still to come (data scope CLASS)
     ] },
   { code: 'EXAM_INCHARGE', name: 'Exam in-charge', icon: 'ClipboardCheck', homePage: '/exams/schedule',
     description: 'Runs the school\u2019s exams: schedule, seating and invigilation, question papers (approves them), hall tickets, marks and results.',
@@ -104,6 +106,7 @@ const DEFS = [
       ['scholarships', ['schemes', 'visits'], 'W'],
       ['scholarships', ['reports'], 'V'],
       ['scholarships', ['applications'], '+portal'],
+      ['documents', ['library', 'missing', 'issued'], '+view export send'],
       ['fees', ['dues'], 'V'],
     ] },
   { code: 'ADMISSION_COUNSELLOR', name: 'Admission Counsellor', icon: 'UserPlus', homePage: '/admissions/enquiries',
@@ -112,6 +115,7 @@ const DEFS = [
     grants: [
       ['admissions', ['enquiries', 'applications', 'tests', 'merit'], 'A'],
       ['admissions', ['enquiries', 'tests'], '+delete'], // an enquiry entered twice, a test set up by mistake (refused once used)
+      ['documents', ['library', 'missing', 'issued'], '+view export send'],
       ['students', ['admit', 'directory'], 'W'],
       ['fees', ['collect'], '+view create'],
       ['communication', ['messages'], '+view create send'],
@@ -122,6 +126,7 @@ const DEFS = [
     grants: [
       ['frontoffice', '*', 'A'],
       ['frontoffice', ['visitors'], '+delete'], // today's mistaken visitor entry
+      ['documents', ['library', 'missing', 'issued'], '+view export send'],
       ['parking', ['gate'], 'A'],
       ['parking', ['vehicles'], 'V'],
       ['students', ['directory'], 'V'],

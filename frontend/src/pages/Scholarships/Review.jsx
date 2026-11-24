@@ -7,7 +7,7 @@ import {
   ArrowLeft, CalendarClock, Check, ChevronLeft, ChevronRight, CircleAlert, Clock, Eye, FilePlus2, Globe, History, IndianRupee, MessageSquareShare,
   PencilLine, RefreshCw, Stamp, Undo2, X,
 } from 'lucide-react'
-import { SCHOLARSHIP_DOC_TYPE_BY, SCHOLARSHIP_PORTAL_STATUS, formatINR, toPaise } from '@schoolgiant/shared'
+import { SCHOLARSHIP_DOC_FILE_CATEGORY, SCHOLARSHIP_DOC_TYPE_BY, SCHOLARSHIP_PORTAL_STATUS, formatINR, toPaise } from '@schoolgiant/shared'
 import { ColorChip, FormField, Input, Modal, Note, PageContainer, Panel, Skeleton, StatusPill, Textarea, Timeline, useConfirm, usePrompt } from '../../components/system'
 import Button from '../../components/ui/Button'
 import DocPreview from '../../components/scholarships/DocPreview'
@@ -277,7 +277,7 @@ export default function Review() {
         {sel && (
           <div className="min-w-0 lg:sticky lg:top-4 lg:col-span-7">
             <Panel title={docName(t, sel)} actions={<DocState state={sel.state} />}>
-              <DocPreview key={sel.key} docId={sel.doc?.id} label={docName(t, sel)} paperCopy={!!sel.doc?.paperCopy} canAdd={isOpen && canWork}
+              <DocPreview key={sel.key} docId={sel.doc?.id} label={docName(t, sel)} fileCategory={SCHOLARSHIP_DOC_FILE_CATEGORY[sel.type]} paperCopy={!!sel.doc?.paperCopy} canAdd={isOpen && canWork}
                 ensureDoc={async () => (await documentFor(app.id, sel.key)).id} onChanged={() => refresh()} />
               {sel.doc && (sel.doc.number || sel.doc.issuedOn || sel.doc.checkedAt) && (
                 <p className="mt-3 text-xs text-ink-muted">{[

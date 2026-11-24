@@ -230,6 +230,11 @@ const attachmentSchema = new Schema({
   uploadedById: ObjectId,
   uploadedBy: String,
   deleted: { at: Date, by: String, reason: String },
+  /**
+   * A file the school already had, used again on this record (Choose from existing; a scholarship taking the admission
+   * papers): the original's id. Same stored bytes — nothing is copied; removing the link leaves the original.
+   */
+  linkOf: ObjectId,
 }, { timestamps: true })
 attachmentSchema.plugin(tenantPlugin)
 attachmentSchema.index({ tenantId: 1, entityType: 1, entityId: 1, createdAt: -1 })

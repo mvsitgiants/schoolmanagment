@@ -2,9 +2,11 @@ import { useEffect, useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import clsx from 'clsx'
-import { Camera, Expand, FileText, ImageOff, Upload } from 'lucide-react'
+import { Camera, Expand, FileText, FolderSearch, ImageOff, Upload } from 'lucide-react'
 import { FILE_MAX_MB } from '@schoolgiant/shared'
 import { openDocumentViewer } from '../system/DocumentViewer'
+import ReuseFiles from '../system/ReuseFiles'
+import AddFileMenu from '../system/AddFileMenu'
 import Button from '../ui/Button'
 import { downloadFile, fetchFiles, uploadFile } from '../../api/files'
 import { useSnackbar } from '../../context/SnackbarContext'
@@ -16,7 +18,7 @@ const isPdf = (f) => /pdf/i.test(f?.contentType ?? '')
  * The photo or scan of one document, large enough to read while deciding, with the other pages as thumbnails and a
  * button to add one. Files sit on the student's wallet document (kept for next year).
  */
-export default function DocPreview({ docId, label, paperCopy = false, canAdd, ensureDoc, onChanged }) {
+export default function DocPreview({ docId, label, fileCategory, paperCopy = false, canAdd, ensureDoc, onChanged }) {
   const { t } = useTranslation('scholarships')
   const { showError, showSuccess } = useSnackbar()
   const inputRef = useRef(null)
@@ -24,6 +26,7 @@ export default function DocPreview({ docId, label, paperCopy = false, canAdd, en
   const [selId, setSelId] = useState(null)
   const [url, setUrl] = useState(null)
   const [busy, setBusy] = useState(false)
+  const [reuseId, setReuseId] = useState(null) // the wallet document to put an existing paper on
   const { data: files = [], refetch, isLoading } = useQuery({ queryKey: ['scholarship-doc-files', docId], queryFn: () => fetchFiles('scholarship_doc', docId), enabled: !!docId })
   const list = files.filter((f) => !f.deleted)
   const sel = list.find((f) => f.id === selId) ?? list[list.length - 1] // the newest first: a page sent again is what to check
@@ -79,15 +82,19 @@ export default function DocPreview({ docId, label, paperCopy = false, canAdd, en
         ))}
         {sel && <span className="text-xs text-ink-faint">{t('scholarships.review.sentBy', { name: sel.uploadedBy ?? '—' })}</span>}
         {canAdd && (
-          <div className="ms-auto flex flex-wrap gap-2">
+          <div className="ms-auto">
             {/* the phone's or tablet's camera opens straight away (on a computer it falls back to picking a picture) */}
             <input ref={cameraRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={add} />
             <input ref={inputRef} type="file" accept="image/*,application/pdf" multiple className="hidden" onChange={add} />
-            <Button size="sm" variant="secondary" icon={Camera} loading={busy} onClick={() => cameraRef.current?.click()}>{t('scholarships.review.camera')}</Button>
-            <Button size="sm" variant="ghost" icon={Upload} disabled={busy} onClick={() => inputRef.current?.click()}>{t('scholarships.review.chooseFile')}</Button>
+            <AddFileMenu up label={t('scholarships.review.addDocument')} loading={busy} options={[
+              { key: 'camera', icon: Camera, label: t('scholarships.review.camera'), hint: t('scholarships.review.cameraHint'), onSelect: () => cameraRef.current?.click() },
+              { key: 'file', icon: Upload, label: t('scholarships.review.chooseFile'), hint: t('scholarships.review.chooseFileHint'), onSelect: () => inputRef.current?.click() },
+              { key: 'existing', icon: FolderSearch, label: t('scholarships.review.useExisting'), hint: t('scholarships.review.useExistingHint'), onSelect: async () => { try { setReuseId(docId ?? (await ensureDoc())) } catch (e) { showError(e.message) } } },
+            ]} />
           </div>
         )}
       </div>
+      {reuseId && <ReuseFiles entityType="scholarship_doc" entityId={reuseId} category={fileCategory} title={label} onClose={() => setReuseId(null)} onPicked={async () => { await refetch(); onChanged?.() }} />}
     </div>
   )
 }
