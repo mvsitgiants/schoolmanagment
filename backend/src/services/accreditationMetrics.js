@@ -5,6 +5,7 @@ import { Employee } from '../models/hrms.js'
 import { LibraryCopy, LibraryLoan, LibraryTitle } from '../models/library.js'
 import { Program, ProgramCourse, ProgramEnrolment } from '../models/programs.js'
 import { ResearchProject, ResearchPublication, ResearchScholar } from '../models/research.js'
+import { ScholarshipApplication, ScholarshipScheme } from '../models/scholarships.js'
 import { Student } from '../models/students.js'
 import { Department } from '../models/tenant.js'
 import { logger } from '../platform/logger.js'
@@ -62,6 +63,18 @@ function figures(year, { programId } = {}) {
     const enr = await f.enrolments()
     if (enr.length || programId) return enr.length
     return Student.countDocuments({ status: 'ACTIVE' })
+  })
+  /** Students with an approved scholarship in the year, split by who gives it (Scholarships). Null with no scholarships at all. */
+  f.scholarshipBeneficiaries = once('scholarshipBeneficiaries', async () => {
+    const { ayId } = await f.range()
+    if (!ayId) return null
+    const apps = await ScholarshipApplication.find({ academicYearId: ayId, status: 'APPROVED' }).select('studentId schemeId').lean()
+    if (!apps.length) return null
+    const enrolled = programId ? new Set((await f.enrolments()).map((e) => String(e.studentId))) : null
+    const mine = enrolled ? apps.filter((a) => enrolled.has(String(a.studentId))) : apps
+    const provider = new Map((await ScholarshipScheme.find({ _id: { $in: mine.map((a) => a.schemeId) } }).select('provider').lean()).map((x) => [String(x._id), x.provider]))
+    const set = (pred) => new Set(mine.filter((a) => pred(provider.get(String(a.schemeId)))).map((a) => String(a.studentId))).size
+    return { government: set((p) => p === 'GOVERNMENT'), other: set((p) => p !== 'GOVERNMENT'), any: set(() => true) }
   })
   // async: keep the result, not the query (a mongoose query can only be awaited once)
   f.scholars = once('scholars', async () => ResearchScholar.find().select('guideId status registrationDate awardedOn').lean())
@@ -326,6 +339,22 @@ const CALC = {
     return { value: a.summary.poAverage, detail: [D('outcomes', Object.keys(a.po ?? {}).length)] }
   },
   // placements
+  async govtScholarshipPct(f) {
+    const b = await f.scholarshipBeneficiaries()
+    if (!b) return null
+    const students = await f.students()
+    return { value: pct(b.government, students), detail: [D('scholarshipStudents', b.government), D('students', students)] }
+  },
+  async otherScholarshipPct(f) {
+    const b = await f.scholarshipBeneficiaries()
+    if (!b) return null
+    const students = await f.students()
+    return { value: pct(b.other, students), detail: [D('scholarshipStudents', b.other), D('students', students)] }
+  },
+  async scholarshipsAwarded(f) {
+    const b = await f.scholarshipBeneficiaries()
+    return b ? { value: b.any, detail: [] } : null
+  },
   async placementPct(f) {
     const p = await f.placement()
     if (!p) return null

@@ -62,6 +62,8 @@ const invoiceSchema = new Schema({
   gross: paise,
   concession: paise,
   lateFee: paise, // charged when collected after the due date (Settings › Fees)
+  /** Late fee counts from this day instead of the due date: set when a scholarship the fees were held for ends, so it is never back-dated. */
+  lateFeeFrom: ymd,
   net: paise, // gross − concession + lateFee
   paid: paise,
   balance: paise,
@@ -128,6 +130,7 @@ const concessionSchema = new Schema({
   status: { type: String, default: 'PENDING' }, // CONCESSION_STATUS
   requestedBy: String, requestedById: ObjectId,
   decidedBy: String, decidedAt: Date,
+  scholarshipApplicationId: ObjectId, // made by an approved scholarship (Scholarships › Applications); withdrawn there
 }, { timestamps: true })
 concessionSchema.plugin(tenantPlugin)
 concessionSchema.index({ tenantId: 1, studentId: 1, academicYearId: 1, status: 1 })

@@ -635,6 +635,7 @@
             "HOSTEL": "ವಸತಿ ನಿಲಯದ ಕೊಠಡಿ, ಹೊರಹೋಗುವ ಅನುಮತಿಗಳು ಮತ್ತು ಊಟದ ಮೆನು",
             "HEALTH": "ಆರೋಗ್ಯ ಕಾರ್ಡ್: ಅಲರ್ಜಿಗಳು, ಲಸಿಕೆಗಳು, ಆರೋಗ್ಯ ಕೊಠಡಿ ಭೇಟಿಗಳು",
             "PLACEMENTS": "ನೇಮಕಾತಿ ಅಭಿಯಾನಗಳು ಮತ್ತು ಉದ್ಯೋಗ ಆಹ್ವಾನಗಳು",
+            "SCHOLARSHIPS": "Scholarships: apply, send documents, see the decision",
             "COMPLAINTS": "ದೂರುಗಳು ಮತ್ತು ಕಳವಳಗಳು",
             "SURVEYS": "ಸಮೀಕ್ಷೆಗಳು ಮತ್ತು ಪ್ರತಿಕ್ರಿಯೆ",
             "CANTEEN": "ಕ್ಯಾಂಟೀನ್ ವ್ಯಾಲೆಟ್ ಮತ್ತು ಮುಂಗಡ ಆರ್ಡರ್‌ಗಳು",
@@ -661,6 +662,7 @@
             "HOSTEL": "ವಸತಿ ನಿಲಯದ ಕೊಠಡಿ, ಹೊರಹೋಗುವ ಅನುಮತಿಗಳು ಮತ್ತು ಊಟದ ಮೆನು",
             "HEALTH": "ಆರೋಗ್ಯ ಕಾರ್ಡ್: ಅಲರ್ಜಿಗಳು, ಲಸಿಕೆಗಳು, ಆರೋಗ್ಯ ಕೊಠಡಿ ಭೇಟಿಗಳು",
             "PLACEMENTS": "ನೇಮಕಾತಿ ಅಭಿಯಾನಗಳು ಮತ್ತು ಉದ್ಯೋಗ ಆಹ್ವಾನಗಳು",
+            "SCHOLARSHIPS": "Scholarships: apply, send documents, see the decision",
             "COMPLAINTS": "ದೂರುಗಳು ಮತ್ತು ಕಳವಳಗಳು",
             "SURVEYS": "ಸಮೀಕ್ಷೆಗಳು ಮತ್ತು ಪ್ರತಿಕ್ರಿಯೆ",
             "CANTEEN": "ಕ್ಯಾಂಟೀನ್ ವ್ಯಾಲೆಟ್ ಮತ್ತು ಮುಂಗಡ ಆರ್ಡರ್‌ಗಳು",
@@ -689,6 +691,10 @@
         "staffPhones": {
           "label": "ಆ್ಯಪ್‌ನಲ್ಲಿ ಸಿಬ್ಬಂದಿಯ ದೂರವಾಣಿ ಸಂಖ್ಯೆಗಳನ್ನು ತೋರಿಸಿ",
           "help": "ಬಸ್ ಚಾಲಕರ ಮತ್ತು ಸಹಾಯಕರ, ಹಾಗೂ ವಸತಿ ನಿಲಯದ ವಾರ್ಡನ್ ಅವರ ಸಂಖ್ಯೆಗಳು. ಬಂದ್: ಹೆಸರುಗಳು ಮಾತ್ರ."
+        },
+        "afterLeavingDays": {
+          "label": "Keep the app open after a child leaves (days)",
+          "help": "Read-only: fees (and paying them), results, certificates, notices and a copy of the TC. 0 closes it the day the TC is issued."
         },
         "chat": {
           "label": "ಕುಟುಂಬಗಳು ಆ್ಯಪ್‌ನಲ್ಲಿ ಶಿಕ್ಷಕರಿಗೆ ಸಂದೇಶ ಕಳುಹಿಸಬಹುದು",

@@ -30,7 +30,8 @@
       "complaints": "ದೂರುಗಳು",
       "surveys": "ಸಮೀಕ್ಷೆಗಳು",
       "canteen": "ಕ್ಯಾಂಟೀನ್",
-      "kit": "ಪುಸ್ತಕಗಳು ಮತ್ತು ಸಮವಸ್ತ್ರ"
+      "kit": "ಪುಸ್ತಕಗಳು ಮತ್ತು ಸಮವಸ್ತ್ರ",
+      "scholarships": "Scholarships"
     },
     "marks": {
       "P": "ಹಾಜರು",
@@ -540,6 +541,16 @@
       "call": "ಕರೆ ಮಾಡಿ",
       "map": "ನಕ್ಷೆ",
       "buyAt": "ಇಲ್ಲಿ ಖರೀದಿಸಿ: {{shops}}"
+    },
+    "left": {
+      "left": "Has left the school.",
+      "leftOn": "Left the school on {{date}}.",
+      "openUntil": "This app shows their records until {{date}}. Download anything you need before then.",
+      "records": "Their records",
+      "tc": "Transfer certificate (copy)",
+      "fees": "Fees and receipts",
+      "results": "Results and report cards",
+      "notices": "Notices"
     }
   }
 }

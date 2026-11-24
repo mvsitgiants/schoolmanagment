@@ -420,7 +420,37 @@
       "computerGenerated": "ಇದು ಕಂಪ್ಯೂಟರ್‌ನಿಂದ ಸಿದ್ಧಪಡಿಸಿದ ವೇತನ ಚೀಟಿ ಮತ್ತು ಇದಕ್ಕೆ ಸಹಿಯ ಅಗತ್ಯವಿಲ್ಲ.",
       "employeeSign": "ನೌಕರರ ಸಹಿ",
       "authorisedSign": "ಪ್ರಾಂಶುಪಾಲರು / ಅಧಿಕೃತ ಸಹಿದಾರರು",
-      "seal": "ಶಾಲೆಯ ಮೊಹರು"
+      "seal": "ಶಾಲೆಯ ಮೊಹರು",
+      "fnfStatement": {
+        "ref": "Ref. No.:",
+        "date": "Date:",
+        "title": "Full and final settlement",
+        "draft": "DRAFT — the {{month}} payroll run is not approved yet",
+        "name": "Name",
+        "post": "Post",
+        "joined": "Joined",
+        "lastDay": "Last working day",
+        "service": "Service",
+        "years": "years",
+        "gratuityOn": "gratuity on",
+        "notice": "Notice served",
+        "of": "of",
+        "days": "day(s)",
+        "payable": "Payable to the staff member",
+        "amount": "Amount (₹)",
+        "totalPayable": "Total payable",
+        "deducted": "Deducted / recovered",
+        "noDeductions": "Nothing deducted",
+        "totalDeducted": "Total deducted",
+        "netRecovery": "Net amount due from the staff member",
+        "net": "Net amount payable",
+        "inWords": "In words:",
+        "paidOn": "paid on {{on}}",
+        "ack": "I, {{name}}, have received the amount above in full and final settlement of all my dues from {{school}}, and I have no further claim against the institution.",
+        "staffSign": "Staff member · date",
+        "accountsSign": "Accounts",
+        "principalSign": "Principal"
+      }
     }
   }
 }

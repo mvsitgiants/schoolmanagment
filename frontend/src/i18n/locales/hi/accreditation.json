@@ -39,7 +39,8 @@
       "research": "अनुसंधान",
       "placements": "प्लेसमेंट",
       "library": "पुस्तकालय",
-      "manual": "दर्ज किया गया"
+      "manual": "दर्ज किया गया",
+      "scholarships": "Scholarships"
     },
     "units": {
       "count": "{{value}}",
@@ -99,7 +100,8 @@
       "coursesMapped": "POs से जोड़े गए पाठ्यक्रम",
       "cosAttained": "प्राप्त COs (स्तर 2+)",
       "cos": "मूल्यांकित पाठ्यक्रम परिणाम",
-      "outcomes": "कार्यक्रम परिणाम"
+      "outcomes": "कार्यक्रम परिणाम",
+      "scholarshipStudents": "Students with a scholarship"
     },
     "narrative": {
       "bold": "बोल्ड",

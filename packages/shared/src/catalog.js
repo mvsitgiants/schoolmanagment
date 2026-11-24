@@ -43,7 +43,7 @@ const ACTION_LABELS = {
   terminate: 'Terminate', view_salary: 'See salary', apply_on_behalf: 'Apply on behalf', edit_lop: 'Edit LOP',
   evaluate: 'Evaluate', start: 'Start', configure: 'Configure', run: 'Run', schedule: 'Schedule', share: 'Share',
   resolve: 'Resolve', allot: 'Allot', checkin: 'Check in', checkout: 'Check out', track: 'Live tracking',
-  verify: 'Verify', upload: 'Upload', ask: 'Ask', moderate: 'Moderate', broadcast: 'Send emergency alerts',
+  verify: 'Verify', upload: 'Upload', portal: 'Update portal status', money: 'Record scholarship money', ask: 'Ask', moderate: 'Moderate', broadcast: 'Send emergency alerts',
 }
 
 const titleCase = (id) => id.replace(/_/g, ' ').replace(/^\w/, (c) => c.toUpperCase())
@@ -268,6 +268,14 @@ export const MODULES = [
       pg('refunds', 'Refunds', 'V C refund!'),
       pg('day-end', 'Day-end closing', 'V close approve_variance!'),
       pg('online', 'Online payments', 'V configure refund!'),
+    ] },
+  { id: 'scholarships', name: 'Scholarships', category: 'finance', icon: 'Award', deps: ['students', 'fees'], phase: 2, scopes: CLASS_SCOPES,
+    desc: 'Scholarship schemes with their document checklist, applications, document checking online and awards — one visit or none for families.',
+    pages: [
+      pg('applications', 'Applications', 'V C E verify Ap X portal money!'),
+      pg('schemes', 'Schemes & documents', 'V C E D', { setup: true }),
+      pg('visits', 'Visit times for originals', 'V C E D'),
+      pg('reports', 'Beneficiaries & money', 'V X'),
     ] },
   { id: 'finance', name: 'Accounts', category: 'finance', icon: 'Landmark', deps: ['fees'], phase: 2, scopes: SITE_SCOPES,
     desc: 'Ledgers, income and expense, bank reconciliation, GST and Tally export.',

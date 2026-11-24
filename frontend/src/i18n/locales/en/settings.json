@@ -635,6 +635,7 @@
             "HOSTEL": "Hostel room, outpasses and mess menu",
             "HEALTH": "Health card: allergies, vaccinations, sick-room visits",
             "PLACEMENTS": "Placement drives and offers",
+            "SCHOLARSHIPS": "Scholarships: apply, send documents, see the decision",
             "COMPLAINTS": "Complaints and concerns",
             "SURVEYS": "Surveys and feedback",
             "CANTEEN": "Canteen wallet and pre-orders",
@@ -661,6 +662,7 @@
             "HOSTEL": "Hostel room, outpasses and mess menu",
             "HEALTH": "Health card: allergies, vaccinations, sick-room visits",
             "PLACEMENTS": "Placement drives and offers",
+            "SCHOLARSHIPS": "Scholarships: apply, send documents, see the decision",
             "COMPLAINTS": "Complaints and concerns",
             "SURVEYS": "Surveys and feedback",
             "CANTEEN": "Canteen wallet and pre-orders",
@@ -689,6 +691,10 @@
         "staffPhones": {
           "label": "Show staff phone numbers in the app",
           "help": "The bus driver’s and attendant’s, and the hostel warden’s. Off: names only."
+        },
+        "afterLeavingDays": {
+          "label": "Keep the app open after a child leaves (days)",
+          "help": "Read-only: fees (and paying them), results, certificates, notices and a copy of the TC. 0 closes it the day the TC is issued."
         },
         "chat": {
           "label": "Families can message teachers in the app",

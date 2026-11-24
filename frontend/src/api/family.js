@@ -117,6 +117,19 @@ export const familyPlacements = (slug, id) => fget(slug, `${st(id)}/placements`)
 export const familyPlacementRegister = (slug, id, driveId, body) => fpost(slug, `${st(id)}/placements/${driveId}/register`, body)
 export const familyPlacementWithdraw = (slug, id, driveId) => fpost(slug, `${st(id)}/placements/${driveId}/withdraw`)
 
+// scholarships: apply, send each document as a photo, book a time to show the originals
+export const familyScholarships = (slug, id) => fget(slug, `${st(id)}/scholarships`)
+export const familyScholarshipApply = (slug, id, schemeId, body) => fpost(slug, `${st(id)}/scholarships/apply/${schemeId}`, body)
+const sitem = (id, appId, key) => `${st(id)}/scholarships/${appId}/items/${encodeURIComponent(key)}`
+/** The photo or PDF itself is the body; its issue date and number ride in the query. */
+export const familyScholarshipSend = async (slug, id, appId, key, file, { issuedOn, number } = {}) => (await family.post(`${base(slug)}${sitem(id, appId, key)}/files`, file, {
+  params: { issuedOn: issuedOn || undefined, number: number || undefined },
+  headers: { 'Content-Type': file.type || 'application/octet-stream', 'X-File-Name': encodeURIComponent(file.name || 'photo') },
+})).data.data
+export const familyScholarshipRemoveFile = async (slug, id, appId, key, fileId) => (await family.delete(`${base(slug)}${sitem(id, appId, key)}/files/${fileId}`)).data.data
+export const familyScholarshipBook = (slug, id, appId, body) => fpost(slug, `${st(id)}/scholarships/${appId}/visit`, body)
+export const familyScholarshipCancelVisit = async (slug, id, appId) => (await family.delete(`${base(slug)}${st(id)}/scholarships/${appId}/visit`)).data.data
+
 // complaints (Front office)
 export const familyComplaints = (slug, id) => fget(slug, `${st(id)}/complaints`)
 export const familyRaiseComplaint = (slug, id, body) => fpost(slug, `${st(id)}/complaints`, body)

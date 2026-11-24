@@ -124,6 +124,8 @@ export default function Collect() {
             { icon: AlertTriangle, label: t('fees.collect.overdue'), value: formatINR(totals.overdue), tone: totals.overdue ? 'danger' : 'neutral', sub: lateFee ? t('fees.collect.lateFeeSub', { amount: formatINR(lateFee) }) : undefined },
           ]} />
 
+          {ledger.scholarshipHeld && <Note>{t('fees.collect.scholarshipHeld', { amount: formatINR(ledger.scholarshipHeld.amount), schemes: ledger.scholarshipHeld.schemes.join(', ') })}</Note>}
+
           {last && (
             <Note tone="success" actions={<Button size="sm" variant="secondary" icon={Printer} onClick={() => printDocument('FEE_RECEIPT', last.id)}>{t('fees.collect.print')}</Button>}>
               {t('fees.collect.lastReceipt', { no: last.receiptNo, amount: formatINR(last.amount), balance: formatINR(last.balance) })}

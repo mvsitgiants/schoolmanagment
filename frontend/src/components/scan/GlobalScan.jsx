@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { Award, BookCopy, Boxes, Car, CalendarHeart, DoorClosed, CheckCircle2, DoorOpen, HandHelping, HelpCircle, Receipt, ScanQrCode, ShieldAlert, Ticket, UserRound, UsersRound, Utensils } from 'lucide-react'
+import { Award, BookCopy, Boxes, Car, GraduationCap, CalendarHeart, DoorClosed, CheckCircle2, DoorOpen, HandHelping, HelpCircle, Receipt, ScanQrCode, ShieldAlert, Ticket, UserRound, UsersRound, Utensils } from 'lucide-react'
 import { Modal, Note, PhoneLink, StatusPill } from '../system'
 import Button from '../ui/Button'
 import { fetchGates, resolveCode } from '../../api/scan'
@@ -11,7 +11,7 @@ import { useFormat } from '../../context/SettingsContext'
 import { ScanDialog, scanFeedback } from './Scanner'
 import { CanteenTokenCard } from '../canteen/TokenScan'
 
-const KIND_ICON = { VEHICLE: Car, CANTEEN_TOKEN: Utensils, VISITOR: DoorClosed, ASSET: Boxes, EVENT_PASS: CalendarHeart, MEETING_PASS: UsersRound, PICKUP_PASS: HandHelping, TC: Award, HALL_TICKET: Ticket, STUDENT: UserRound, STAFF: UsersRound, BOOK: BookCopy, RECEIPT: Receipt, CERTIFICATE: Award, UNKNOWN: HelpCircle }
+const KIND_ICON = { SCHOLARSHIP: GraduationCap, VEHICLE: Car, CANTEEN_TOKEN: Utensils, VISITOR: DoorClosed, ASSET: Boxes, EVENT_PASS: CalendarHeart, MEETING_PASS: UsersRound, PICKUP_PASS: HandHelping, TC: Award, HALL_TICKET: Ticket, STUDENT: UserRound, STAFF: UsersRound, BOOK: BookCopy, RECEIPT: Receipt, CERTIFICATE: Award, UNKNOWN: HelpCircle }
 export const OPEN_SCAN_EVENT = 'sg:open-scan'
 export const openScan = () => window.dispatchEvent(new Event(OPEN_SCAN_EVENT))
 

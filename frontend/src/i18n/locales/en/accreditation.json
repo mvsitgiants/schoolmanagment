@@ -39,7 +39,8 @@
       "research": "Research",
       "placements": "Placements",
       "library": "Library",
-      "manual": "Entered"
+      "manual": "Entered",
+      "scholarships": "Scholarships"
     },
     "units": {
       "count": "{{value}}",
@@ -99,7 +100,8 @@
       "coursesMapped": "Courses mapped to POs",
       "cosAttained": "COs attained (level 2+)",
       "cos": "Course outcomes assessed",
-      "outcomes": "Program outcomes"
+      "outcomes": "Program outcomes",
+      "scholarshipStudents": "Students with a scholarship"
     },
     "narrative": {
       "bold": "Bold",

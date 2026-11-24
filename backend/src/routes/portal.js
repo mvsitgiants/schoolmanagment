@@ -1,4 +1,4 @@
-import { Router } from 'express'
+import express, { Router } from 'express'
 import { cancelPickupPass, createPickupPass, familyPasses } from '../services/passes.js'
 import { studentSelfCheckIn, studentSelfStatus } from '../services/selfAttendance.js'
 import { forgetFamilySession, pushPublicKey, removePushSubscription, savePushSubscription } from '../services/push.js'
@@ -12,7 +12,7 @@ import { AppError } from '../platform/errors.js'
 import { authenticate, requireModule, requirePermission, subscriptionGate, tenantOnly } from '../platform/middleware.js'
 import { getSettings, saveSettings } from '../platform/settings.js'
 import { objectId, optionalText, z } from '../platform/validate.js'
-import { maskMobile } from '@schoolgiant/shared'
+import { FILE_MAX_MB, maskMobile } from '@schoolgiant/shared'
 import {
   appLink, applyLeave, attendanceFor, cancelLeave, certificatesFor, documentFor, featuresFor, feesFor, getContent, homeFor, homeworkFile, homeworkFor, timetableFor,
   familyChat, familyChatSend, familyChatTeachers, familyChats, familyNoticeFile, familyNotices, familyReadNotice,
@@ -33,6 +33,7 @@ import { familyComplaints, familyRaiseComplaint } from '../services/frontOfficeC
 import { FO_COMPLAINT_CATEGORIES } from '@schoolgiant/shared'
 import { familyPlacements, familyRegister as familyPlacementRegister, familyWithdraw as familyPlacementWithdraw } from '../services/placementsFamily.js'
 import { familyHealth } from '../services/health.js'
+import { familyApply as familyScholarshipApply, familyBookVisit, familyCancelVisit, familyRemoveDocumentFile, familyScholarships, familySendDocument } from '../services/scholarshipsFamily.js'
 import { familyCancelOutpass, familyHostel, familyRequestOutpass } from '../services/hostel.js'
 import { familyAlbum, familyAlbums, familyCalendar, familyEventReply, familyMeetingBook, familyMeetingCancel, familyMeetings, familyPhoto } from '../services/eventsFamily.js'
 import { attemptView, logEvent, resultView, saveAnswer, startTest, submitAttempt, testsFor } from '../services/onlineTests.js'
@@ -284,6 +285,29 @@ familyRouter.post('/students/:studentId/placements/:driveId/register', async (re
   res.json({ data: await familyPlacementRegister(req.family, sid(req), req.params.driveId, body, req) })
 })
 familyRouter.post('/students/:studentId/placements/:driveId/withdraw', async (req, res) => { res.json({ data: await familyPlacementWithdraw(req.family, sid(req), req.params.driveId, req) }) })
+// scholarships: apply, send each document as a photo (only what is missing or sent back), book a time for the originals
+familyRouter.get('/students/:studentId/scholarships', async (req, res) => { res.json({ data: await familyScholarships(req.family, sid(req)) }) })
+familyRouter.post('/students/:studentId/scholarships/apply/:schemeId', async (req, res) => {
+  const body = z.object({ familyIncome: z.coerce.number().int().min(0).optional() }).parse(req.body ?? {})
+  res.json({ data: await familyScholarshipApply(req.family, sid(req), req.params.schemeId, body, req) })
+})
+// the file itself is the body (as /api/v1/files); what it is rides in the query
+familyRouter.post('/students/:studentId/scholarships/:appId/items/:key/files', express.raw({ type: () => true, limit: `${FILE_MAX_MB}mb` }), async (req, res) => {
+  const q = z.object({ issuedOn: ymd.optional(), number: optionalText(60) }).parse(req.query)
+  let fileName = req.get('x-file-name') || 'file'
+  try { fileName = decodeURIComponent(fileName) } catch { /* keep as sent */ }
+  res.status(201).json({ data: await familySendDocument(req.family, sid(req), req.params.appId, String(req.params.key).slice(0, 80), { ...q, fileName }, Buffer.isBuffer(req.body) ? req.body : null, req) })
+})
+familyRouter.delete('/students/:studentId/scholarships/:appId/items/:key/files/:fileId', async (req, res) => {
+  res.json({ data: await familyRemoveDocumentFile(req.family, sid(req), req.params.appId, String(req.params.key).slice(0, 80), req.params.fileId, req) })
+})
+familyRouter.post('/students/:studentId/scholarships/:appId/visit', async (req, res) => {
+  const body = z.object({ dayId: objectId, time: z.string().regex(/^\d{2}:\d{2}$/) }).parse(req.body)
+  res.json({ data: await familyBookVisit(req.family, sid(req), req.params.appId, body, req) })
+})
+familyRouter.delete('/students/:studentId/scholarships/:appId/visit', async (req, res) => {
+  res.json({ data: await familyCancelVisit(req.family, sid(req), req.params.appId, req) })
+})
 // complaints: raise one about the child's school life, follow it to resolution
 familyRouter.get('/students/:studentId/complaints', async (req, res) => { res.json({ data: await familyComplaints(req.family, sid(req)) }) })
 familyRouter.post('/students/:studentId/complaints', async (req, res) => {

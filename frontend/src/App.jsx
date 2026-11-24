@@ -202,6 +202,11 @@ const FrontOfficeComplaints = lazy(() => import('./pages/FrontOffice/Complaints'
 const ParkingGate = lazy(() => import('./pages/Parking/Gate'))
 const ParkingVehicles = lazy(() => import('./pages/Parking/Vehicles'))
 const ParkingAreas = lazy(() => import('./pages/Parking/Areas'))
+const ScholarshipApplications = lazy(() => import('./pages/Scholarships/Applications'))
+const ScholarshipSchemes = lazy(() => import('./pages/Scholarships/Schemes'))
+const ScholarshipSchemeForm = lazy(() => import('./pages/Scholarships/SchemeForm'))
+const ScholarshipVisits = lazy(() => import('./pages/Scholarships/Visits'))
+const ScholarshipReports = lazy(() => import('./pages/Scholarships/Reports'))
 const AccreditationReports = lazy(() => import('./pages/Accreditation/Reports'))
 const AccreditationEvidence = lazy(() => import('./pages/Accreditation/Evidence'))
 const PlacementsCompanies = lazy(() => import('./pages/Placements/Companies'))
@@ -495,6 +500,13 @@ export default function App() {
           <Route path="parking/gate" element={<ParkingGate />} />
           <Route path="parking/vehicles" element={<ParkingVehicles />} />
           <Route path="parking/areas" element={<ParkingAreas />} />
+          <Route path="scholarships" element={<Navigate to="/scholarships/applications" replace />} />
+          <Route path="scholarships/applications" element={<ScholarshipApplications />} />
+          <Route path="scholarships/schemes" element={<ScholarshipSchemes />} />
+          <Route path="scholarships/schemes/new" element={<ScholarshipSchemeForm />} />
+          <Route path="scholarships/schemes/:id" element={<ScholarshipSchemeForm />} />
+          <Route path="scholarships/visits" element={<ScholarshipVisits />} />
+          <Route path="scholarships/reports" element={<ScholarshipReports />} />
           <Route path="accreditation" element={<Navigate to="/accreditation/reports" replace />} />
           <Route path="accreditation/reports" element={<AccreditationReports />} />
           <Route path="accreditation/evidence" element={<AccreditationEvidence />} />

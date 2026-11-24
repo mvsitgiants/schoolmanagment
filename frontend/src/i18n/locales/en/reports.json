@@ -226,7 +226,8 @@
         "BANK_TRANSFER": "Bank transfer",
         "ONLINE": "Online",
         "refunds": "Refunds",
-        "net": "Net"
+        "net": "Net",
+        "SCHOLARSHIP": "Scholarship money"
       },
       "fees.headwise": {
         "head": "Fee head",

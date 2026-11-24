@@ -73,6 +73,7 @@ export const RECORD_TYPES = {
   lesson_plan: 'Lesson plan',
   lms_item: 'Study material',
   chat_message: 'Staff chat message',
+  scholarship_doc: 'Scholarship document',
 }
 
 export const COMMENT_MAX = 2000

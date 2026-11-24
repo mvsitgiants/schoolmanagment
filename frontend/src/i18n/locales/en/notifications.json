@@ -468,6 +468,42 @@
           "subject": "Canteen wallet low — {{student.firstName}}",
           "body": "Dear {{guardian.name}},\n\n{{student.name}}’s canteen wallet has {{canteen.balance}} left (below {{canteen.threshold}}). Top it up in the school app or at the canteen counter.\n\n{{institution.name}}"
         }
+      },
+      "scholarships_documents_needed": {
+        "SMS": {
+          "body": "Scholarship {{scheme.name}} for {{student.firstName}}: documents still needed — see WhatsApp or the school app. - {{institution.name}}"
+        },
+        "WHATSAPP": {
+          "body": "Dear {{guardian.name}},\nFor the scholarship “{{scheme.name}}” for {{student.firstName}} ({{student.class}}), we still need:\n\n{{scholarship.documents}}\n\nPlease send only these. Everything else is already correct.\n\n{{institution.name}}"
+        },
+        "EMAIL": {
+          "subject": "Scholarship documents still needed — {{student.name}}",
+          "body": "Dear {{guardian.name}},\n\nFor the scholarship “{{scheme.name}}” ({{scholarship.applicationNo}}) for {{student.name}}, we still need:\n\n{{scholarship.documents}}\n\nPlease send only these. Everything else is already correct.\n\n{{institution.name}}"
+        }
+      },
+      "scholarships_approved": {
+        "SMS": {
+          "body": "Scholarship {{scheme.name}} approved for {{student.name}}: {{scholarship.amount}}. - {{institution.name}}"
+        },
+        "WHATSAPP": {
+          "body": "Dear {{guardian.name}},\nGood news: the scholarship “{{scheme.name}}” for {{student.firstName}} is approved — {{scholarship.amount}}.\n\nApplication: {{scholarship.applicationNo}}\n\n{{institution.name}}"
+        },
+        "EMAIL": {
+          "subject": "Scholarship approved — {{student.name}}",
+          "body": "Dear {{guardian.name}},\n\nThe scholarship “{{scheme.name}}” for {{student.name}} is approved: {{scholarship.amount}}.\nApplication: {{scholarship.applicationNo}}\n\n{{institution.name}}"
+        }
+      },
+      "scholarships_not_approved": {
+        "SMS": {
+          "body": "Scholarship {{scheme.name}} for {{student.name}} was not approved. Please contact the office. - {{institution.name}}"
+        },
+        "WHATSAPP": {
+          "body": "Dear {{guardian.name}},\nThe scholarship “{{scheme.name}}” for {{student.firstName}} could not be approved.\nReason: {{scholarship.reason}}\n\nPlease contact the office if you have questions.\n\n{{institution.name}}"
+        },
+        "EMAIL": {
+          "subject": "Scholarship not approved — {{student.name}}",
+          "body": "Dear {{guardian.name}},\n\nThe scholarship “{{scheme.name}}” ({{scholarship.applicationNo}}) for {{student.name}} could not be approved.\nReason: {{scholarship.reason}}\n\nPlease contact the office if you have questions.\n\n{{institution.name}}"
+        }
       }
     },
     "words": {

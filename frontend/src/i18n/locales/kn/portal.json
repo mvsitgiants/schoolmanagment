@@ -87,7 +87,9 @@
         "GUARDIAN_MOBILE": "ಪೋಷಕರ ಮೊಬೈಲ್ ಸಂಖ್ಯೆಗಳು (ಕೊನೆಯ ನಾಲ್ಕು ಅಂಕಿಗಳು)"
       },
       "staffPhones": "ಸಿಬ್ಬಂದಿಯ ದೂರವಾಣಿ ಸಂಖ್ಯೆಗಳನ್ನು ತೋರಿಸಿ",
-      "staffPhonesHint": "ಬಸ್ ಚಾಲಕರ ಮತ್ತು ಸಹಾಯಕರ, ಹಾಗೂ ವಸತಿ ನಿಲಯದ ವಾರ್ಡನ್ ಅವರ ಸಂಖ್ಯೆಗಳು. ಬಂದ್ ಆಗಿದ್ದರೆ: ಅವರ ಹೆಸರುಗಳು ಮಾತ್ರ, ಆದ್ದರಿಂದ ಕುಟುಂಬಗಳು ಕಚೇರಿಗೆ ಕರೆ ಮಾಡುತ್ತಾರೆ."
+      "staffPhonesHint": "ಬಸ್ ಚಾಲಕರ ಮತ್ತು ಸಹಾಯಕರ, ಹಾಗೂ ವಸತಿ ನಿಲಯದ ವಾರ್ಡನ್ ಅವರ ಸಂಖ್ಯೆಗಳು. ಬಂದ್ ಆಗಿದ್ದರೆ: ಅವರ ಹೆಸರುಗಳು ಮಾತ್ರ, ಆದ್ದರಿಂದ ಕುಟುಂಬಗಳು ಕಚೇರಿಗೆ ಕರೆ ಮಾಡುತ್ತಾರೆ.",
+      "afterLeaving": "Keep the app open after a child leaves (days)",
+      "afterLeavingHint": "Read-only: fees (and paying what is still due), results, certificates, notices and a copy of the TC. 0 closes it the day the TC is issued."
     }
   }
 }

@@ -33,6 +33,7 @@
       "research": "Research",
       "alumni": "Alumni",
       "fees": "Fees",
+      "scholarships": "Scholarships",
       "finance": "Accounts",
       "hrms": "Staff & HR",
       "payroll": "Payroll",
@@ -76,6 +77,7 @@
       "research": "Publications, projects, grants, patents and PhD scholars.",
       "alumni": "Alumni directory, events, donations and job board.",
       "fees": "Fee structures, installments, concessions, online payment, receipts, dues and refunds.",
+      "scholarships": "Scholarship schemes with their document checklist, applications, document checking online and awards — one visit or none for families.",
       "finance": "Ledgers, income and expense, bank reconciliation, GST and Tally export.",
       "hrms": "Staff records, staff attendance, leave, recruitment and appraisal.",
       "payroll": "Salary structures, payroll runs, payslips, PF/ESI/TDS and bank exports.",
@@ -236,6 +238,12 @@
         "day-end": "Day-end closing",
         "online": "Online payments"
       },
+      "scholarships": {
+        "applications": "Applications",
+        "schemes": "Schemes & documents",
+        "visits": "Visit times for originals",
+        "reports": "Beneficiaries & money"
+      },
       "finance": {
         "accounts": "Chart of accounts",
         "journals": "Journals",
@@ -372,7 +380,9 @@
       "lock": "Lock marks",
       "manage": "Change plan",
       "moderate": "Moderate",
+      "money": "Record scholarship money",
       "pay": "Pay",
+      "portal": "Update portal status",
       "post": "Post",
       "print": "Print",
       "promote": "Promote",
@@ -393,6 +403,7 @@
       "terminate": "Terminate",
       "track": "Live tracking",
       "unlock": "Unlock marks",
+      "verify": "Verify",
       "view": "View",
       "view_salary": "See salary",
       "view_sensitive": "See unmasked IDs"

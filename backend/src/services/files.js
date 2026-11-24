@@ -23,6 +23,7 @@ import { assertWithinLimit } from './subscription.js'
 import { accrEvidenceRecord } from './accreditation.js'
 import { offerRecord } from './placementsOffers.js'
 import { StaffChatChannel, StaffChatMember } from '../models/comms.js'
+import { scholarshipDocRecord } from './scholarships.js'
 
 // Attachments and discussion on records (docs/00 §7 E15). Each record type says
 // which module it belongs to, who may see it and who may add to it, and which
@@ -123,6 +124,12 @@ const RECORDS = {
     module: 'placements', view: ['placements.offers.view'], add: ['placements.offers.create'],
     load: (id) => offerRecord(id),
     locked: (rec) => (rec.locked ? 'This offer was revoked.' : null),
+  },
+  // A student's scholarship document (income certificate, bank passbook …) in their document wallet: checked once and
+  // used again for every scheme until it expires. Staff in scope for scholarships see and add them.
+  scholarship_doc: {
+    module: 'scholarships', view: ['scholarships.applications.view'], add: ['scholarships.applications.create', 'scholarships.applications.edit', 'scholarships.applications.verify'],
+    load: (id, auth) => scholarshipDocRecord(id, auth),
   },
   // Staff chat: files are filed against the chat (entityId = channel id) and attached to a
   // message when it is sent. Only the chat's active members open them — the role permission

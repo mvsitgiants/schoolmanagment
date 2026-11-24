@@ -102,7 +102,7 @@ export default function Dues() {
           { key: 'oldestDue', header: t('fees.dues.since'), nowrap: true, render: (v, r) => <DateCell value={v} tone={r.overdue > 0 ? 'danger' : undefined} /> },
           { key: 'invoices', header: t('fees.dues.installments'), align: 'right', mobileHidden: true },
           { key: 'overdue', header: t('fees.dues.overdue'), align: 'right', mobilePrimary: true, render: (v) => (v ? <Money value={v} paise tone="danger" /> : <span className="text-ink-faint">—</span>) },
-          { key: 'due', header: t('fees.dues.due'), align: 'right', mobileTrail: true, render: (v) => <Money value={v} paise className="font-semibold" /> },
+          { key: 'due', header: t('fees.dues.due'), align: 'right', mobileTrail: true, render: (v, r) => <div><Money value={v} paise className="font-semibold" />{r.scholarshipHeld > 0 && <p className="text-xs text-ink-faint">{t('fees.dues.scholarshipHeld', { amount: formatINR(r.scholarshipHeld) })}</p>}</div> },
         ]}
         onRowClick={hasPermission('fees.collect.view') ? (r) => navigate(`/fees/collect?student=${r.studentId}`) : undefined}
         totals={{ overdue: formatINR(totalOverdue), due: formatINR(totalDue) }}

@@ -39,7 +39,8 @@
       "research": "ಸಂಶೋಧನೆ",
       "placements": "ಉದ್ಯೋಗ ನೇಮಕಾತಿ",
       "library": "ಗ್ರಂಥಾಲಯ",
-      "manual": "ನಮೂದಿಸಲಾಗಿದೆ"
+      "manual": "ನಮೂದಿಸಲಾಗಿದೆ",
+      "scholarships": "Scholarships"
     },
     "units": {
       "count": "{{value}}",
@@ -99,7 +100,8 @@
       "coursesMapped": "POಗಳಿಗೆ ಜೋಡಿಸಿದ ಕೋರ್ಸ್‌ಗಳು",
       "cosAttained": "ಸಾಧಿಸಿದ COಗಳು (ಹಂತ 2+)",
       "cos": "ಮೌಲ್ಯಮಾಪನ ಮಾಡಿದ ಕೋರ್ಸ್ ಫಲಿತಾಂಶಗಳು",
-      "outcomes": "ಕಾರ್ಯಕ್ರಮ ಫಲಿತಾಂಶಗಳು"
+      "outcomes": "ಕಾರ್ಯಕ್ರಮ ಫಲಿತಾಂಶಗಳು",
+      "scholarshipStudents": "Students with a scholarship"
     },
     "narrative": {
       "bold": "ದಪ್ಪಕ್ಷರ",

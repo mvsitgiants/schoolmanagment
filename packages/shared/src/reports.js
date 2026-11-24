@@ -59,8 +59,8 @@ export const REPORTS = [
     id: 'fees.collection', module: 'fees', group: 'fees', label: 'Fee collection',
     desc: 'Money received each day, by payment mode.', needs: ['fees.invoices.view', 'fees.day-end.view'],
     params: [{ key: 'range', type: 'dateRange', label: 'Period', default: 'thisMonth', required: true }],
-    columns: [col('date', 'Date', 'date'), col('receipts', 'Receipts', 'number'), col('CASH', 'Cash', 'money'), col('UPI', 'UPI', 'money'), col('CARD', 'Card', 'money'), col('CHEQUE', 'Cheque / DD', 'money'), col('BANK_TRANSFER', 'Bank transfer', 'money'), col('ONLINE', 'Online', 'money'), col('refunds', 'Refunds', 'money'), col('net', 'Net', 'money')],
-    totals: ['receipts', 'CASH', 'UPI', 'CARD', 'CHEQUE', 'BANK_TRANSFER', 'ONLINE', 'refunds', 'net'],
+    columns: [col('date', 'Date', 'date'), col('receipts', 'Receipts', 'number'), col('CASH', 'Cash', 'money'), col('UPI', 'UPI', 'money'), col('CARD', 'Card', 'money'), col('CHEQUE', 'Cheque / DD', 'money'), col('BANK_TRANSFER', 'Bank transfer', 'money'), col('ONLINE', 'Online', 'money'), col('SCHOLARSHIP', 'Scholarship money', 'money'), col('refunds', 'Refunds', 'money'), col('net', 'Net', 'money')],
+    totals: ['receipts', 'CASH', 'UPI', 'CARD', 'CHEQUE', 'BANK_TRANSFER', 'ONLINE', 'SCHOLARSHIP', 'refunds', 'net'],
   },
   {
     id: 'fees.headwise', module: 'fees', group: 'fees', label: 'Collection by fee head',

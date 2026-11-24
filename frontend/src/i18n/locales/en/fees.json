@@ -11,7 +11,8 @@
       "CARD": "Card",
       "CHEQUE": "Cheque / DD",
       "BANK_TRANSFER": "Bank transfer (NEFT / IMPS)",
-      "ONLINE": "Online (payment gateway)"
+      "ONLINE": "Online (payment gateway)",
+      "SCHOLARSHIP": "Scholarship money (government or trust)"
     },
     "invoiceStatus": {
       "UNPAID": "Unpaid",
@@ -178,7 +179,8 @@
       "upiNote": "School fees {{no}}",
       "upiNotSet": "Set the school's UPI ID in Settings › Fees to show a payment QR here.",
       "chequeBank": "Bank the cheque is drawn on",
-      "chequeDate": "Cheque date"
+      "chequeDate": "Cheque date",
+      "scholarshipHeld": "{{amount}} is waiting for a scholarship ({{schemes}}). No late fee is charged on this year’s fees until it is decided — no need to ask the family for that part."
     },
     "invoices": {
       "title": "Invoices & receipts",
@@ -278,7 +280,8 @@
       "classDue": "{{amount}} due",
       "nothingDue": "Nothing due",
       "allSections": "All of {{name}}",
-      "sectionN": "Section {{name}}"
+      "sectionN": "Section {{name}}",
+      "scholarshipHeld": "{{amount}} waiting for a scholarship"
     },
     "concessions": {
       "title": "Concessions",

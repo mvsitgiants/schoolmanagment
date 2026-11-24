@@ -131,7 +131,8 @@
         "CARD": "Card",
         "CHEQUE": "Cheque / DD",
         "BANK_TRANSFER": "Bank transfer",
-        "ONLINE": "Online"
+        "ONLINE": "Online",
+        "SCHOLARSHIP": "Scholarship money"
       },
       "ageingTitle": "Ageing of dues",
       "ageingSub": "What is unpaid on the period’s invoices, by days past the due date (as of {{date}})",

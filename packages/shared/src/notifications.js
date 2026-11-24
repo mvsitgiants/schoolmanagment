@@ -132,6 +132,12 @@ const VAR_HELP = {
   'survey.link': 'Link to answer in the app',
   'canteen.balance': 'What is left in the canteen wallet',
   'canteen.threshold': 'The school’s low-balance mark',
+  'scheme.name': 'The scholarship, e.g. Merit scholarship 2026',
+  'scholarship.applicationNo': 'Scholarship application number',
+  'scholarship.documents': 'What to bring or upload, and what to fix (one per line)',
+  'scholarship.lastDate': 'Last day to give the documents (empty when there is none)',
+  'scholarship.amount': 'What the scholarship gives, e.g. 50% of fees or ₹12,000 a year',
+  'scholarship.reason': 'Why it was not approved',
 }
 export const templateVarHelp = (v) => VAR_HELP[v] ?? v
 
@@ -530,6 +536,36 @@ export const NOTIFY_EVENTS = [
       EMAIL: { enabled: false, subject: 'Canteen wallet low — {{student.firstName}}', body: 'Dear {{guardian.name}},\n\n{{student.name}}’s canteen wallet has {{canteen.balance}} left (below {{canteen.threshold}}). Top it up in the school app or at the canteen counter.\n\n{{institution.name}}' },
     },
   },
+  {
+    event: 'scholarships.documents_needed', module: 'scholarships', label: 'Scholarship — documents to give or fix',
+    when: 'When the office sends the family the documents still needed for a scholarship, and which ones to fix and why.',
+    vars: [...STUDENT, 'scheme.name', 'scholarship.applicationNo', 'scholarship.documents', 'scholarship.lastDate', ...INSTITUTION],
+    defaults: {
+      SMS: { enabled: false, body: 'Scholarship {{scheme.name}} for {{student.firstName}}: documents still needed — see WhatsApp or the school app. - {{institution.name}}' },
+      WHATSAPP: { enabled: true, body: 'Dear {{guardian.name}},\nFor the scholarship “{{scheme.name}}” for {{student.firstName}} ({{student.class}}), we still need:\n\n{{scholarship.documents}}\n\nPlease send only these. Everything else is already correct.\n\n{{institution.name}}' },
+      EMAIL: { enabled: true, subject: 'Scholarship documents still needed — {{student.name}}', body: 'Dear {{guardian.name}},\n\nFor the scholarship “{{scheme.name}}” ({{scholarship.applicationNo}}) for {{student.name}}, we still need:\n\n{{scholarship.documents}}\n\nPlease send only these. Everything else is already correct.\n\n{{institution.name}}' },
+    },
+  },
+  {
+    event: 'scholarships.approved', module: 'scholarships', label: 'Scholarship approved',
+    when: 'When a student’s scholarship is approved.',
+    vars: [...STUDENT, 'scheme.name', 'scholarship.applicationNo', 'scholarship.amount', ...INSTITUTION],
+    defaults: {
+      SMS: { enabled: true, body: 'Scholarship {{scheme.name}} approved for {{student.name}}: {{scholarship.amount}}. - {{institution.name}}' },
+      WHATSAPP: { enabled: true, body: 'Dear {{guardian.name}},\nGood news: the scholarship “{{scheme.name}}” for {{student.firstName}} is approved — {{scholarship.amount}}.\n\nApplication: {{scholarship.applicationNo}}\n\n{{institution.name}}' },
+      EMAIL: { enabled: true, subject: 'Scholarship approved — {{student.name}}', body: 'Dear {{guardian.name}},\n\nThe scholarship “{{scheme.name}}” for {{student.name}} is approved: {{scholarship.amount}}.\nApplication: {{scholarship.applicationNo}}\n\n{{institution.name}}' },
+    },
+  },
+  {
+    event: 'scholarships.not_approved', module: 'scholarships', label: 'Scholarship not approved',
+    when: 'When a student’s scholarship application is not approved.',
+    vars: [...STUDENT, 'scheme.name', 'scholarship.applicationNo', 'scholarship.reason', ...INSTITUTION],
+    defaults: {
+      SMS: { enabled: false, body: 'Scholarship {{scheme.name}} for {{student.name}} was not approved. Please contact the office. - {{institution.name}}' },
+      WHATSAPP: { enabled: true, body: 'Dear {{guardian.name}},\nThe scholarship “{{scheme.name}}” for {{student.firstName}} could not be approved.\nReason: {{scholarship.reason}}\n\nPlease contact the office if you have questions.\n\n{{institution.name}}' },
+      EMAIL: { enabled: true, subject: 'Scholarship not approved — {{student.name}}', body: 'Dear {{guardian.name}},\n\nThe scholarship “{{scheme.name}}” ({{scholarship.applicationNo}}) for {{student.name}} could not be approved.\nReason: {{scholarship.reason}}\n\nPlease contact the office if you have questions.\n\n{{institution.name}}' },
+    },
+  },
 ]
 
 export const NOTIFY_EVENT_BY = Object.fromEntries(NOTIFY_EVENTS.map((e) => [e.event, e]))
@@ -563,6 +599,8 @@ export const TEMPLATE_SAMPLE = {
   health: { complaint: 'fever', time: '11:40', note: 'Temperature 38.4 °C, paracetamol given.', pickedUpBy: 'Mother' },
   incident: { kind: 'fall', date: '2026-11-09', time: '11:20', place: 'Playground', severity: 'minor', firstAid: 'Knee cleaned and dressed' },
   canteen: { balance: '₹45', threshold: '₹100', amount: '₹500' },
+  scheme: { name: 'Merit scholarship 2026' },
+  scholarship: { applicationNo: 'SCH2600014', documents: '• Income certificate — the old one has expired\n• Bank passbook — the photo is blurred', lastDate: 'Fri, 12 Dec', amount: '50% of fees', reason: 'All seats are taken' },
 }
 
 const PLACEHOLDER = /\{\{\s*([a-zA-Z][\w.]*)\s*\}\}/g

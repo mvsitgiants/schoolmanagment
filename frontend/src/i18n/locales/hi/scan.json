@@ -35,7 +35,8 @@
       "ASSET": "संपत्ति",
       "GATE_PASS": "गेट पास",
       "CANTEEN_TOKEN": "कैंटीन टोकन",
-      "VEHICLE": "वाहन"
+      "VEHICLE": "वाहन",
+      "SCHOLARSHIP": "Scholarship application"
     },
     "status": {
       "CANCELLED": "रद्द",
@@ -57,7 +58,12 @@
       "UNDER_REPAIR": "मरम्मत में",
       "DISPOSED": "निपटाया गया",
       "EXPIRED": "पास समाप्त",
-      "REVOKED": "पास रद्द"
+      "REVOKED": "पास रद्द",
+      "IN_PROGRESS": "Collecting documents",
+      "NEEDS_FIX": "Sent back to fix",
+      "READY": "Ready for decision",
+      "NOT_APPROVED": "Not approved",
+      "APPROVED": "Approved"
     },
     "action": {
       "profile": "छात्र की प्रोफ़ाइल खोलें",
@@ -84,7 +90,8 @@
       "canteenCollected": "प्राप्त चिह्नित करें — सौंप दें",
       "parkingIn": "गेट पर अंदर दर्ज करें",
       "parkingOut": "गेट पर बाहर दर्ज करें",
-      "parkingPass": "पास खोलें"
+      "parkingPass": "पास खोलें",
+      "scholarshipOpen": "Open the application"
     },
     "gate": {
       "title": "गेट स्कैनर",

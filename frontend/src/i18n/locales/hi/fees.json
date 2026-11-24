@@ -11,7 +11,8 @@
       "CARD": "कार्ड (Card)",
       "CHEQUE": "चेक / DD",
       "BANK_TRANSFER": "बैंक ट्रांसफर (NEFT / IMPS)",
-      "ONLINE": "ऑनलाइन (पेमेंट गेटवे)"
+      "ONLINE": "ऑनलाइन (पेमेंट गेटवे)",
+      "SCHOLARSHIP": "Scholarship money (government or trust)"
     },
     "invoiceStatus": {
       "UNPAID": "अदत्त (Unpaid)",
@@ -178,7 +179,8 @@
       "upiNote": "विद्यालय शुल्क {{no}}",
       "upiNotSet": "यहाँ भुगतान QR दिखाने के लिए सेटिंग्स › शुल्क में विद्यालय की UPI ID दर्ज करें।",
       "chequeBank": "चेक किस बैंक का है",
-      "chequeDate": "चेक की तिथि"
+      "chequeDate": "चेक की तिथि",
+      "scholarshipHeld": "{{amount}} is waiting for a scholarship ({{schemes}}). No late fee is charged on this year’s fees until it is decided — no need to ask the family for that part."
     },
     "invoices": {
       "title": "चालान एवं रसीदें",
@@ -278,7 +280,8 @@
       "classDue": "{{amount}} देय",
       "nothingDue": "कुछ भी देय नहीं",
       "allSections": "{{name}} के सभी अनुभाग",
-      "sectionN": "अनुभाग {{name}}"
+      "sectionN": "अनुभाग {{name}}",
+      "scholarshipHeld": "{{amount}} waiting for a scholarship"
     },
     "concessions": {
       "title": "शुल्क छूट एवं छात्रवृत्ति",

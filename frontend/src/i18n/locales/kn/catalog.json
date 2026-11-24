@@ -33,6 +33,7 @@
       "research": "ಸಂಶೋಧನೆ",
       "alumni": "ಹಳೆಯ ವಿದ್ಯಾರ್ಥಿಗಳು",
       "fees": "ಶುಲ್ಕ",
+      "scholarships": "Scholarships",
       "finance": "ಲೆಕ್ಕಪತ್ರ",
       "hrms": "ಸಿಬ್ಬಂದಿ ಮತ್ತು ಮಾನವ ಸಂಪನ್ಮೂಲ",
       "payroll": "ವೇತನ ಪಾವತಿ",
@@ -76,6 +77,7 @@
       "research": "ಪ್ರಕಟಣೆಗಳು, ಯೋಜನೆಗಳು, ಅನುದಾನಗಳು, ಪೇಟೆಂಟ್‌ಗಳು ಮತ್ತು PhD ಸಂಶೋಧಕರು.",
       "alumni": "ಹಳೆಯ ವಿದ್ಯಾರ್ಥಿಗಳ ಪಟ್ಟಿ, ಕಾರ್ಯಕ್ರಮಗಳು, ದೇಣಿಗೆಗಳು ಮತ್ತು ಉದ್ಯೋಗ ಫಲಕ.",
       "fees": "ಶುಲ್ಕ ರಚನೆಗಳು, ಕಂತುಗಳು, ರಿಯಾಯಿತಿಗಳು, ಆನ್‌ಲೈನ್ ಪಾವತಿ, ರಸೀದಿಗಳು, ಬಾಕಿಗಳು ಮತ್ತು ಮರುಪಾವತಿಗಳು.",
+      "scholarships": "Scholarship schemes with their document checklist, applications, document checking online and awards — one visit or none for families.",
       "finance": "ಖಾತೆ ವಹಿಗಳು, ಆದಾಯ ಮತ್ತು ವೆಚ್ಚ, ಬ್ಯಾಂಕ್ ತಾಳೆ, GST ಮತ್ತು Tally ರಫ್ತು.",
       "hrms": "ಸಿಬ್ಬಂದಿ ದಾಖಲೆಗಳು, ಸಿಬ್ಬಂದಿ ಹಾಜರಾತಿ, ರಜೆ, ನೇಮಕಾತಿ ಮತ್ತು ಕಾರ್ಯನಿರ್ವಹಣಾ ಮೌಲ್ಯಮಾಪನ.",
       "payroll": "ವೇತನ ರಚನೆಗಳು, ಮಾಸಿಕ ವೇತನ ಲೆಕ್ಕ, ವೇತನ ಚೀಟಿಗಳು, PF/ESI/TDS ಮತ್ತು ಬ್ಯಾಂಕ್ ರಫ್ತುಗಳು.",
@@ -236,6 +238,12 @@
         "day-end": "ದಿನದ ಮುಕ್ತಾಯ",
         "online": "ಆನ್‌ಲೈನ್ ಪಾವತಿಗಳು"
       },
+      "scholarships": {
+        "applications": "Applications",
+        "schemes": "Schemes & documents",
+        "visits": "Visit times for originals",
+        "reports": "Beneficiaries & money"
+      },
       "finance": {
         "accounts": "ಖಾತೆಗಳ ಪಟ್ಟಿ",
         "journals": "ದಿನವಹಿ ನಮೂದುಗಳು",
@@ -245,6 +253,7 @@
       },
       "hrms": {
         "employees": "ಸಿಬ್ಬಂದಿ",
+        "exits": "Staff leaving",
         "attendance": "ಸಿಬ್ಬಂದಿ ಹಾಜರಾತಿ",
         "leave": "ರಜೆ",
         "holidays": "ರಜಾದಿನಗಳು",
@@ -371,7 +380,9 @@
       "lock": "ಅಂಕಗಳನ್ನು ಲಾಕ್ ಮಾಡಿ",
       "manage": "ಯೋಜನೆ ಬದಲಿಸಿ",
       "moderate": "ಪರಿಷ್ಕರಿಸಿ",
+      "money": "Record scholarship money",
       "pay": "ಪಾವತಿಸಿ",
+      "portal": "Update portal status",
       "post": "ದಾಖಲಿಸಿ",
       "print": "ಮುದ್ರಿಸಿ",
       "promote": "ಬಡ್ತಿ ನೀಡಿ",
@@ -392,6 +403,7 @@
       "terminate": "ಸೇವೆ ಕೊನೆಗೊಳಿಸಿ",
       "track": "ನೇರ ಸ್ಥಳ ವೀಕ್ಷಣೆ",
       "unlock": "ಅಂಕಗಳನ್ನು ಅನ್‌ಲಾಕ್ ಮಾಡಿ",
+      "verify": "Verify",
       "view": "ನೋಡಿ",
       "view_salary": "ವೇತನ ನೋಡಿ",
       "view_sensitive": "ಪೂರ್ಣ ಗುರುತಿನ ಸಂಖ್ಯೆಗಳನ್ನು ನೋಡಿ"

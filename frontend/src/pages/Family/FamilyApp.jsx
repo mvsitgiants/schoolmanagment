@@ -23,6 +23,7 @@ import FamilyCanteen from './Canteen'
 import FamilySurveys from './Surveys'
 import FamilyComplaints from './Complaints'
 import FamilyPlacements from './Placements'
+import FamilyScholarships from './Scholarships'
 import FamilyHealth from './Health'
 import FamilyHostel from './Hostel'
 import FamilyCalendar from './Calendar'
@@ -142,6 +143,7 @@ export default function FamilyApp() {
               <Route path="surveys" element={<FamilySurveys />} />
               <Route path="complaints" element={<FamilyComplaints />} />
               <Route path="placements" element={<FamilyPlacements />} />
+              <Route path="scholarships" element={<FamilyScholarships />} />
               <Route path="health" element={<FamilyHealth />} />
               <Route path="hostel" element={<FamilyHostel />} />
               <Route path="calendar" element={<FamilyCalendar />} />

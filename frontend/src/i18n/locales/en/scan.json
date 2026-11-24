@@ -35,7 +35,8 @@
       "ASSET": "Asset",
       "GATE_PASS": "Gate pass",
       "CANTEEN_TOKEN": "Canteen token",
-      "VEHICLE": "Vehicle"
+      "VEHICLE": "Vehicle",
+      "SCHOLARSHIP": "Scholarship application"
     },
     "status": {
       "CANCELLED": "Cancelled",
@@ -57,7 +58,12 @@
       "UNDER_REPAIR": "Under repair",
       "DISPOSED": "Disposed",
       "EXPIRED": "Pass expired",
-      "REVOKED": "Pass cancelled"
+      "REVOKED": "Pass cancelled",
+      "IN_PROGRESS": "Collecting documents",
+      "NEEDS_FIX": "Sent back to fix",
+      "READY": "Ready for decision",
+      "NOT_APPROVED": "Not approved",
+      "APPROVED": "Approved"
     },
     "action": {
       "profile": "Open student profile",
@@ -84,7 +90,8 @@
       "canteenCollected": "Mark collected — hand it over",
       "parkingIn": "Mark in at the gate",
       "parkingOut": "Mark out at the gate",
-      "parkingPass": "Open the pass"
+      "parkingPass": "Open the pass",
+      "scholarshipOpen": "Open the application"
     },
     "gate": {
       "title": "Gate scanner",

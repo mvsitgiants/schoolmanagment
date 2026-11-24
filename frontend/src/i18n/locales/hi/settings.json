@@ -635,6 +635,7 @@
             "HOSTEL": "छात्रावास कक्ष, आउटपास और मेस मेनू",
             "HEALTH": "स्वास्थ्य कार्ड: एलर्जी, टीकाकरण, चिकित्सा कक्ष विज़िट",
             "PLACEMENTS": "प्लेसमेंट ड्राइव और ऑफ़र",
+            "SCHOLARSHIPS": "Scholarships: apply, send documents, see the decision",
             "COMPLAINTS": "शिकायतें और समस्याएँ",
             "SURVEYS": "सर्वेक्षण और फ़ीडबैक",
             "CANTEEN": "कैंटीन वॉलेट और अग्रिम ऑर्डर",
@@ -661,6 +662,7 @@
             "HOSTEL": "छात्रावास कक्ष, आउटपास और मेस मेनू",
             "HEALTH": "स्वास्थ्य कार्ड: एलर्जी, टीकाकरण, चिकित्सा कक्ष विज़िट",
             "PLACEMENTS": "प्लेसमेंट ड्राइव और ऑफ़र",
+            "SCHOLARSHIPS": "Scholarships: apply, send documents, see the decision",
             "COMPLAINTS": "शिकायतें और समस्याएँ",
             "SURVEYS": "सर्वेक्षण और फ़ीडबैक",
             "CANTEEN": "कैंटीन वॉलेट और अग्रिम ऑर्डर",
@@ -689,6 +691,10 @@
         "staffPhones": {
           "label": "ऐप में कर्मचारियों के फ़ोन नंबर दिखाएँ",
           "help": "बस चालक, परिचारक और छात्रावास वार्डन के। बंद होने पर केवल नाम दिखेंगे।"
+        },
+        "afterLeavingDays": {
+          "label": "Keep the app open after a child leaves (days)",
+          "help": "Read-only: fees (and paying them), results, certificates, notices and a copy of the TC. 0 closes it the day the TC is issued."
         },
         "chat": {
           "label": "परिवार ऐप में शिक्षकों को संदेश भेज सकते हैं",

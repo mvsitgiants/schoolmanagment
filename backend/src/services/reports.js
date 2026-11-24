@@ -1,5 +1,5 @@
 import {
-  CERTIFICATE_KIND_BY, PAYMENT_MODES, REPORTS, REPORT_BY, attendancePct, countMarks, formatINR, nextRunAt, resolveRange, sectionLabel, paperScore } from '@schoolgiant/shared'
+  CERTIFICATE_KIND_BY, FEE_RECEIPT_MODES, REPORTS, REPORT_BY, attendancePct, countMarks, formatINR, nextRunAt, resolveRange, sectionLabel, paperScore } from '@schoolgiant/shared'
 import { config } from '../config.js'
 import { AcademicYear, ClassLevel, Section, Subject } from '../models/academics.js'
 import { AttendanceSheet } from '../models/attendance.js'
@@ -163,9 +163,9 @@ const RUNNERS = {
     const dates = [...new Set([...pays.map((x) => x._id.d), ...refunds.map((x) => x._id)])].sort()
     return dates.map((d) => {
       const row = { date: d, receipts: 0, refunds: refunds.find((r) => r._id === d)?.amount ?? 0 }
-      for (const m of PAYMENT_MODES) row[m.value] = 0
+      for (const m of FEE_RECEIPT_MODES) row[m.value] = 0
       for (const x of pays.filter((y) => y._id.d === d)) { row[x._id.m] = (row[x._id.m] ?? 0) + x.amount; row.receipts += x.n }
-      row.net = PAYMENT_MODES.reduce((n, m) => n + row[m.value], 0) - row.refunds
+      row.net = FEE_RECEIPT_MODES.reduce((n, m) => n + row[m.value], 0) - row.refunds
       return row
     })
   },

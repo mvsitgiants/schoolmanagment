@@ -30,6 +30,7 @@ import researchRoutes from './routes/research.js'
 import alumniRoutes from './routes/alumni.js'
 import hostelRoutes from './routes/hostel.js'
 import parkingRoutes from './routes/parking.js'
+import scholarshipRoutes from './routes/scholarships.js'
 import inventoryRoutes from './routes/inventory.js'
 import healthRoutes from './routes/health.js'
 import canteenRoutes from './routes/canteen.js'
@@ -192,6 +193,7 @@ export function createApp() {
   app.use('/api/v1/alumni', alumniRoutes)
   app.use('/api/v1/hostel', hostelRoutes)
   app.use('/api/v1/parking', parkingRoutes)
+  app.use('/api/v1/scholarships', scholarshipRoutes)
   app.use('/api/v1/inventory', inventoryRoutes)
   app.use('/api/v1/health', healthRoutes)
   app.use('/api/v1/canteen', canteenRoutes)

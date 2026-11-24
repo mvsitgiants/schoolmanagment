@@ -43,6 +43,7 @@ export const ACCR_SOURCES = {
   research: { label: 'Research', tone: 'orange' },
   placements: { label: 'Placements', tone: 'pink' },
   library: { label: 'Library', tone: 'info' },
+  scholarships: { label: 'Scholarships', tone: 'success' },
   manual: { label: 'Entered', tone: 'neutral' },
 }
 
@@ -127,8 +128,8 @@ const NAAC = [
   },
   {
     id: 'C5', code: 'V', title: 'Student support and progression', weight: 140, metrics: [
-      QN('5.1.1', 'Students benefited by government scholarships and freeships', 'manual', { unit: 'pct', dvv: ['Sanction letters of the scholarships', 'List of beneficiaries'] }),
-      QN('5.1.2', 'Students benefited by institution / non-government scholarships', 'manual', { unit: 'pct', dvv: ['List of beneficiaries with amounts'] }),
+      QN('5.1.1', 'Students benefited by government scholarships and freeships', 'scholarships', { auto: 'govtScholarshipPct', unit: 'pct', dvv: ['Sanction letters of the scholarships', 'List of beneficiaries'] }),
+      QN('5.1.2', 'Students benefited by institution / non-government scholarships', 'scholarships', { auto: 'otherScholarshipPct', unit: 'pct', dvv: ['List of beneficiaries with amounts'] }),
       QN('5.1.3', 'Capacity building and skills enhancement initiatives', 'manual', { dvv: ['Reports of each initiative'] }),
       QN('5.1.4', 'Students benefited by guidance for competitive exams and career counselling', 'manual', { unit: 'pct', dvv: ['Attendance and reports of the sessions'] }),
       QN('5.1.5', 'Grievance redressal (sexual harassment, ragging) mechanism', 'manual', { dvv: ['Committee constitution orders', 'Minutes of meetings'] }),
@@ -348,7 +349,7 @@ const AISHE = [
   {
     id: 'A4', code: '4', title: 'Infrastructure and finance', weight: null, metrics: [
       QL('4.1', 'Infrastructure (classrooms, labs, hostels, library)'),
-      QN('4.2', 'Scholarships awarded', 'manual'),
+      QN('4.2', 'Scholarships awarded', 'scholarships', { auto: 'scholarshipsAwarded' }),
       QN('4.3', 'Income and expenditure (₹ lakh)', 'manual', { unit: 'lakh' }),
     ],
   },

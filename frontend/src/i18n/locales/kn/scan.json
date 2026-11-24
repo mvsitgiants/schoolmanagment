@@ -35,7 +35,8 @@
       "ASSET": "ಸ್ವತ್ತು",
       "GATE_PASS": "ಗೇಟ್ ಪಾಸ್",
       "CANTEEN_TOKEN": "ಕ್ಯಾಂಟೀನ್ ಟೋಕನ್",
-      "VEHICLE": "ವಾಹನ"
+      "VEHICLE": "ವಾಹನ",
+      "SCHOLARSHIP": "Scholarship application"
     },
     "status": {
       "CANCELLED": "ರದ್ದಾಗಿದೆ",
@@ -57,7 +58,12 @@
       "UNDER_REPAIR": "ದುರಸ್ತಿಯಲ್ಲಿದೆ",
       "DISPOSED": "ವಿಲೇವಾರಿ ಮಾಡಲಾಗಿದೆ",
       "EXPIRED": "ಪಾಸ್ ಅವಧಿ ಮುಗಿದಿದೆ",
-      "REVOKED": "ಪಾಸ್ ರದ್ದಾಗಿದೆ"
+      "REVOKED": "ಪಾಸ್ ರದ್ದಾಗಿದೆ",
+      "IN_PROGRESS": "Collecting documents",
+      "NEEDS_FIX": "Sent back to fix",
+      "READY": "Ready for decision",
+      "NOT_APPROVED": "Not approved",
+      "APPROVED": "Approved"
     },
     "action": {
       "profile": "ವಿದ್ಯಾರ್ಥಿಯ ಪ್ರೊಫೈಲ್ ತೆರೆಯಿರಿ",
@@ -84,7 +90,8 @@
       "canteenCollected": "ಪಡೆದುಕೊಂಡಿದ್ದಾರೆ ಎಂದು ಗುರುತಿಸಿ — ಒಪ್ಪಿಸಿ",
       "parkingIn": "ಗೇಟ್‌ನಲ್ಲಿ ಒಳಗೆ ದಾಖಲಿಸಿ",
       "parkingOut": "ಗೇಟ್‌ನಲ್ಲಿ ಹೊರಗೆ ದಾಖಲಿಸಿ",
-      "parkingPass": "ಪಾಸ್ ತೆರೆಯಿರಿ"
+      "parkingPass": "ಪಾಸ್ ತೆರೆಯಿರಿ",
+      "scholarshipOpen": "Open the application"
     },
     "gate": {
       "title": "ದ್ವಾರದ ಸ್ಕ್ಯಾನರ್",

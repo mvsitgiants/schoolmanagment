@@ -756,6 +756,25 @@
         "checkedBy": "जाँचकर्ता (कार्यालय)",
         "seal": "विद्यालय की मुहर",
         "principal": "प्रधानाचार्य"
+      },
+      "noDues": {
+        "ref": "Ref. No.:",
+        "date": "Date:",
+        "title": "No-dues slip",
+        "student": "Student",
+        "admissionNo": "Admission no.",
+        "class": "Class",
+        "roll": "Roll",
+        "leaving": "Leaving on",
+        "guardian": "Parent / guardian",
+        "duesOpen": "Dues shown below must be cleared before the transfer certificate is issued.",
+        "desk": "Desk",
+        "records": "What the records show",
+        "sign": "Sign & date",
+        "note": "Each desk checks its own records, settles anything open and signs. Bring the signed slip to the office to collect the transfer certificate.",
+        "parentSign": "Parent / guardian",
+        "seal": "Seal",
+        "signatory": "Principal / Authorised signatory"
       }
     },
     "photo": {
@@ -967,6 +986,67 @@
       "closedTitle": "यह फ़ॉर्म खोला नहीं जा सकता",
       "privacy": "आपका विवरण केवल {{name}} को जाता है।",
       "help": "सहायता के लिए {{phone}} पर कॉल करें।"
+    },
+    "leaving": {
+      "title": "From the records, on the leaving date ({{date}})",
+      "clear": "Clear",
+      "due": "Due",
+      "toDo": "To wind up",
+      "allClear": "Nothing open — no fees or library dues, no bed, bus seat or wallet balance.",
+      "feesOk": "No fees due by the leaving date.",
+      "feesDue": "Fees {{amount}} due — {{bills}}",
+      "laterBills_one": "{{count}} fee bill due after the leaving date ({{amount}}) — stays open until it is cancelled",
+      "laterBills_other": "{{count}} fee bills due after the leaving date ({{amount}}) — stay open until they are cancelled",
+      "libraryOk": "No library books out, no fines.",
+      "booksOut_one": "{{count}} library book not returned: {{titles}}",
+      "booksOut_other": "{{count}} library books not returned: {{titles}}",
+      "fines": "library fines {{amount}}",
+      "hostelOk": "No hostel bed.",
+      "hostelBed": "Hostel bed still held: {{place}}",
+      "room": "room {{n}}",
+      "bed": "bed {{n}}",
+      "transportOk": "Not on a bus route.",
+      "onRoute": "Still on bus route {{route}} ({{stop}} stop)",
+      "canteenOk": "No money left in the canteen wallet.",
+      "walletLeft": "{{amount}} left in the canteen wallet — to pay back to the family",
+      "printSlip": "No-dues slip",
+      "issueAnyway": "Issue anyway",
+      "anywayReason": "Why issue the TC with dues open?",
+      "anywayHint": "For example: the board needs the TC by a date, dues to be paid by cheque. This stays on the TC’s record.",
+      "noModules": "Fees, Library, Hostel, Transport and Canteen are all switched off, so there is nothing to check.",
+      "issuedWithDues": "Issued with dues open",
+      "windUpTitle": "Also, from the leaving date:",
+      "windUp": {
+        "laterBills_one": "Cancel the fee bill due after the leaving date ({{amount}})",
+        "laterBills_other": "Cancel the {{count}} fee bills due after the leaving date ({{amount}})",
+        "transport": "Take them off bus route {{route}}",
+        "hostel": "Check them out of the hostel ({{place}})"
+      },
+      "windUpHint": "Part-paid bills are left open for the fee office. Each step can be undone from the TC afterwards.",
+      "walletAfter": "{{amount}} is left in the canteen wallet. After issuing, record how it was paid back to the family.",
+      "windUpButton": "Wind-up after leaving",
+      "windUpOf": "Wind-up · {{name}} (TC {{no}})",
+      "steps": {
+        "laterBills": "Fee bills after the leaving date",
+        "transport": "Bus route",
+        "hostel": "Hostel bed",
+        "canteen": "Canteen wallet balance"
+      },
+      "stepStatus": {
+        "DONE": "Done",
+        "PENDING": "To do",
+        "UNDONE": "Undone"
+      },
+      "undo": "Undo",
+      "doNow": "Do it now",
+      "undoneBy": "undone by {{name}}, {{at}}",
+      "paidBy": "Paid back by",
+      "cash": "Cash",
+      "bank": "Bank transfer",
+      "reference": "Reference (optional)",
+      "paidBack": "Mark paid back",
+      "toWindUp_one": "{{count}} thing to wind up",
+      "toWindUp_other": "{{count}} things to wind up"
     }
   }
 }

@@ -87,7 +87,9 @@
         "GUARDIAN_MOBILE": "माता-पिता के मोबाइल नंबर (अंतिम चार अंक)"
       },
       "staffPhones": "कर्मचारियों के फ़ोन नंबर दिखाएँ",
-      "staffPhonesHint": "बस चालक, परिचारक और छात्रावास वार्डन के। बंद होने पर केवल नाम दिखेंगे, ताकि परिवार कार्यालय को फ़ोन करें।"
+      "staffPhonesHint": "बस चालक, परिचारक और छात्रावास वार्डन के। बंद होने पर केवल नाम दिखेंगे, ताकि परिवार कार्यालय को फ़ोन करें।",
+      "afterLeaving": "Keep the app open after a child leaves (days)",
+      "afterLeavingHint": "Read-only: fees (and paying what is still due), results, certificates, notices and a copy of the TC. 0 closes it the day the TC is issued."
     }
   }
 }

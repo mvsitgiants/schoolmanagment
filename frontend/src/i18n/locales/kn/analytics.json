@@ -131,7 +131,8 @@
         "CARD": "ಕಾರ್ಡ್",
         "CHEQUE": "ಚೆಕ್ / DD",
         "BANK_TRANSFER": "ಬ್ಯಾಂಕ್ ವರ್ಗಾವಣೆ",
-        "ONLINE": "ಆನ್‌ಲೈನ್"
+        "ONLINE": "ಆನ್‌ಲೈನ್",
+        "SCHOLARSHIP": "Scholarship money"
       },
       "ageingTitle": "ಬಾಕಿಗಳ ಅವಧಿ ವಿಶ್ಲೇಷಣೆ",
       "ageingSub": "ಅವಧಿಯ ಬಿಲ್‌ಗಳಲ್ಲಿ ಪಾವತಿಯಾಗದ ಮೊತ್ತ, ಬಾಕಿ ದಿನಾಂಕ ಮೀರಿದ ದಿನಗಳ ಪ್ರಕಾರ ({{date}} ರಂತೆ)",

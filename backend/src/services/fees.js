@@ -1,8 +1,9 @@
 import {
-  CONCESSION_STATUS, INVOICE_STATUS, PAYMENT_MODE_LABEL, allocateOldestFirst, concessionOn, formatINR, lateFeeFor, sectionLabel,
+  CONCESSION_STATUS, INVOICE_STATUS, PAYMENT_MODE_LABEL, SCHOLARSHIP_OPEN, allocateOldestFirst, concessionOn, formatINR, lateFeeFor, sectionLabel,
 } from '@schoolgiant/shared'
 import { AcademicYear, ClassLevel, Section } from '../models/academics.js'
 import { Concession, FeeDayEnd, FeeHead, FeeInvoice, FeePayment, FeeRefund, FeeStructure, newReceiptCode } from '../models/fees.js'
+import { ScholarshipApplication, ScholarshipScheme } from '../models/scholarships.js'
 import { Student, studentName } from '../models/students.js'
 import { Tenant } from '../models/platform.js'
 import { BankAccount } from '../models/finance.js'
@@ -94,10 +95,44 @@ function applyConcessions(lines, concessions) {
   return lines
 }
 
-const invoiceDto = (inv, t, cfg) => ({
+// ───────────────────────────────────────────────────────── scholarships waiting (Scholarships › Applications)
+
+/**
+ * Fees held for scholarships still being decided: studentId → { amount, years (Set of academic year ids), schemes }.
+ * While held, no late fee is charged on that year's installments and reminders leave the amount out.
+ */
+export async function scholarshipHolds(studentIds) {
+  const ids = [].concat(studentIds).filter(isOid)
+  const out = new Map()
+  if (!ids.length) return out
+  // being decided (fees held by the scheme), or approved and paid to the institution later (held until the money comes)
+  const apps = await ScholarshipApplication.find({ studentId: { $in: ids }, $or: [{ status: { $in: SCHOLARSHIP_OPEN }, holdFees: true }, { status: 'APPROVED', awaitingMoney: true }] })
+    .select('studentId academicYearId expectedAmount schemeId received').lean()
+  if (!apps.length) return out
+  const names = new Map((await ScholarshipScheme.find({ _id: { $in: apps.map((a) => a.schemeId) } }).select('name').lean()).map((x) => [String(x._id), x.name]))
+  for (const a of apps) {
+    const k = String(a.studentId)
+    if (!out.has(k)) out.set(k, { amount: 0, years: new Set(), schemes: [] })
+    const h = out.get(k)
+    h.amount += Math.max(0, (a.expectedAmount ?? 0) - (a.received ?? []).reduce((n, r) => n + (r.amount ?? 0), 0))
+    h.years.add(String(a.academicYearId))
+    h.schemes.push(names.get(String(a.schemeId)) ?? '')
+  }
+  return out
+}
+
+/** The late fee on an invoice today: none while a scholarship holds its year; counted from `lateFeeFrom` when one ended. */
+function lateFeeOf(inv, t, cfg, hold) {
+  if (inv.status === 'CANCELLED') return 0
+  if (hold?.years?.has(String(inv.academicYearId))) return 0
+  const from = inv.lateFeeFrom && inv.lateFeeFrom > inv.dueDate ? inv.lateFeeFrom : inv.dueDate
+  return lateFeeFor({ dueDate: from, balance: inv.balance }, t, cfg)
+}
+
+const invoiceDto = (inv, t, cfg, hold) => ({
   ...clean(inv), studentId: String(inv.studentId), structureId: idStr(inv.structureId),
   statusLabel: INVOICE_STATUS[inv.status]?.label,
-  lateFeeDue: inv.status === 'CANCELLED' ? 0 : lateFeeFor({ dueDate: inv.dueDate, balance: inv.balance }, t, cfg),
+  lateFeeDue: lateFeeOf(inv, t, cfg, hold),
   overdue: inv.balance > 0 && inv.dueDate < t && inv.status !== 'CANCELLED',
 })
 
@@ -312,22 +347,24 @@ export async function amountDueNow(studentId) {
   const s = isOid(studentId) ? await Student.findById(studentId).lean() : null
   if (!s) throw notFound('Student')
   const [cfg, t] = await Promise.all([feeSettings(), today()])
-  const open = await FeeInvoice.find({ studentId: s._id, status: { $in: ['UNPAID', 'PARTIAL'] } }).lean()
-  const lateFee = open.reduce((n, i) => n + Math.max(0, lateFeeFor({ dueDate: i.dueDate, balance: i.balance }, t, cfg) - (i.lateFee ?? 0)), 0)
+  const [open, holds] = await Promise.all([FeeInvoice.find({ studentId: s._id, status: { $in: ['UNPAID', 'PARTIAL'] } }).lean(), scholarshipHolds(s._id)])
+  const lateFee = open.reduce((n, i) => n + Math.max(0, lateFeeOf(i, t, cfg, holds.get(String(s._id))) - (i.lateFee ?? 0)), 0)
   return { due: open.reduce((n, i) => n + i.balance, 0) + lateFee, lateFee, student: s }
 }
 
 export async function studentLedger(studentId, auth) {
   const s = await studentInScope(studentId, auth)
   const [cfg, t, place] = await Promise.all([feeSettings(), today(), placeOf(s.sectionId)])
-  const [invoices, payments, refunds, concessions] = await Promise.all([
+  const [invoices, payments, refunds, concessions, holds] = await Promise.all([
     FeeInvoice.find({ studentId: s._id }).sort({ dueDate: 1, invoiceNo: 1 }).lean(),
     FeePayment.find({ studentId: s._id }).sort({ at: -1 }).lean(),
     FeeRefund.find({ studentId: s._id }).sort({ createdAt: -1 }).lean(),
     Concession.find({ studentId: s._id }).sort({ createdAt: -1 }).lean(),
+    scholarshipHolds(s._id),
   ])
+  const hold = holds.get(String(s._id))
   const open = invoices.filter((i) => i.status !== 'CANCELLED')
-  const rows = invoices.map((i) => invoiceDto(i, t, cfg))
+  const rows = invoices.map((i) => invoiceDto(i, t, cfg, hold))
   return {
     student: { id: String(s._id), name: studentName(s), admissionNo: s.admissionNo, status: s.status, classLabel: place?.label ?? null, classShort: place?.short ?? null },
     // the counter's UPI QR (Settings › Fees › UPI ID): the payee and what the parent's app shows as the note
@@ -336,6 +373,8 @@ export async function studentLedger(studentId, auth) {
     payments: payments.map((p) => ({ ...clean(p), studentId: String(p.studentId), modeLabel: PAYMENT_MODE_LABEL[p.mode] ?? p.mode })),
     refunds: clean(refunds),
     concessions: concessions.map((c) => ({ ...clean(c), statusLabel: CONCESSION_STATUS[c.status]?.label })),
+    // a scholarship being decided: the counter shows it and does not press for that amount
+    scholarshipHeld: hold ? { amount: hold.amount, schemes: hold.schemes } : null,
     totals: {
       billed: open.reduce((n, i) => n + i.net, 0),
       paid: open.reduce((n, i) => n + i.paid, 0),
@@ -353,18 +392,22 @@ export async function studentLedger(studentId, auth) {
  * Take a payment. The late fee due on each overdue installment is charged first (unless waived by
  * someone who may give concessions at the counter), then the money pays installments oldest first.
  */
-export async function collect({ studentId, amount, mode, reference, chequeBank, chequeDate, waiveLateFee = false, note, invoiceIds, online = false }, auth, req) {
-  const s = await studentInScope(studentId, auth)
+export async function collect({ studentId, amount, mode, reference, chequeBank, chequeDate, waiveLateFee = false, note, invoiceIds, online = false, scholarship = false }, auth, req) {
+  // scholarship money (Scholarships › record money): the office's own check of the student, no late fee, any part of the dues
+  const s = scholarship ? await Student.findById(studentId).lean() : await studentInScope(studentId, auth)
+  if (!s) throw notFound('Student')
   if (amount <= 0) throw fieldsError({ amount: 'Enter the amount received' })
-  if (waiveLateFee && !can(auth, 'fees.collect.discount')) throw forbidden('Your role can’t waive late fees.')
+  if (scholarship) { waiveLateFee = true; online = true }
+  else if (waiveLateFee && !can(auth, 'fees.collect.discount')) throw forbidden('Your role can’t waive late fees.')
   const [cfg, t] = await Promise.all([feeSettings(), today()])
   const payment = await withTransaction(async () => {
     const filter = { studentId: s._id, status: { $in: ['UNPAID', 'PARTIAL'] }, ...(invoiceIds?.length && { _id: { $in: invoiceIds } }) }
     const invoices = await FeeInvoice.find(filter).sort({ dueDate: 1 })
     if (!invoices.length) throw conflict(`${studentName(s)} has nothing due.`)
     if (!waiveLateFee) {
+      const hold = (await scholarshipHolds(s._id)).get(String(s._id))
       for (const inv of invoices) {
-        const fee = lateFeeFor({ dueDate: inv.dueDate, balance: inv.balance }, t, cfg)
+        const fee = lateFeeOf(inv, t, cfg, hold)
         if (fee > inv.lateFee) { inv.lateFee = fee; recompute(inv) }
       }
     }
@@ -455,7 +498,7 @@ export async function refundReceipt(id, { amount, mode, reference, reason }, aut
 
 // ───────────────────────────────────────────────────────── lists
 
-async function studentLabels(ids) {
+export async function studentLabels(ids) {
   const students = await Student.find({ _id: { $in: ids } }).select('firstName middleName lastName admissionNo sectionId').lean()
   const sections = await Section.find({ _id: { $in: students.map((s) => s.sectionId).filter(Boolean) } }).lean()
   const classes = new Map((await ClassLevel.find({ _id: { $in: sections.map((x) => x.classId) } }).select('code name').lean()).map((c) => [String(c._id), c]))
@@ -484,7 +527,7 @@ export async function listInvoices(q, paging, auth) {
     FeeInvoice.countDocuments(filter),
     FeeInvoice.find(wide).select('net balance status dueDate').lean(),
   ])
-  const names = await studentLabels(rows.map((r) => r.studentId))
+  const [names, holds] = await Promise.all([studentLabels(rows.map((r) => r.studentId)), scholarshipHolds(rows.map((r) => r.studentId))])
   const summary = { billed: 0, outstanding: 0, overdue: 0, overdueCount: 0, invoices: 0, counts: {} }
   for (const i of all) {
     summary.counts[i.status] = (summary.counts[i.status] ?? 0) + 1
@@ -495,7 +538,7 @@ export async function listInvoices(q, paging, auth) {
     if (i.balance > 0 && i.dueDate < t) { summary.overdue += i.balance; summary.overdueCount += 1 }
   }
   summary.collected = summary.billed - summary.outstanding
-  return { ...listResponse(rows.map((r) => ({ ...invoiceDto(r, t, cfg), student: names.get(String(r.studentId)) ?? null })), total, paging), summary }
+  return { ...listResponse(rows.map((r) => ({ ...invoiceDto(r, t, cfg, holds.get(String(r.studentId))), student: names.get(String(r.studentId)) ?? null })), total, paging), summary }
 }
 
 export async function listReceipts(q, paging, auth) {
@@ -569,11 +612,12 @@ function duesFilter({ classId, sectionId, search }) {
 const DUES_SORT = { $sort: { overdue: -1, due: -1, _id: 1 } }
 
 async function duesRows(rows) {
-  const names = await studentLabels(rows.map((r) => r._id))
+  const [names, holds] = await Promise.all([studentLabels(rows.map((r) => r._id)), scholarshipHolds(rows.map((r) => r._id))])
   const guardians = new Map((await Student.find({ _id: { $in: rows.map((r) => r._id) } }).select('guardians').lean()).map((s) => [String(s._id), s.guardians?.find((g) => g.isPrimary) ?? s.guardians?.[0]]))
   return rows.map((r) => ({
     studentId: String(r._id), ...names.get(String(r._id)), due: r.due, overdue: r.overdue, oldestDue: r.oldest, invoices: r.invoices,
     guardianName: guardians.get(String(r._id))?.name ?? null, guardianMobile: guardians.get(String(r._id))?.mobile ?? null,
+    scholarshipHeld: holds.get(String(r._id))?.amount ?? 0,
   }))
 }
 
@@ -623,8 +667,10 @@ export async function sendReminders(studentIds, auth, req) {
     const s = await studentInScope(id, auth).catch(() => null)
     if (!s) continue
     const open = await FeeInvoice.find({ studentId: s._id, status: { $in: ['UNPAID', 'PARTIAL'] } }).sort({ dueDate: 1 }).lean()
-    const due = open.reduce((n, i) => n + i.balance, 0)
-    if (!due) continue
+    // a scholarship being decided covers part of it: remind only for the rest
+    const held = (await scholarshipHolds(s._id)).get(String(s._id))?.amount ?? 0
+    const due = open.reduce((n, i) => n + i.balance, 0) - held
+    if (due <= 0) continue
     const place = await placeOf(s.sectionId)
     const next = open.find((i) => i.dueDate >= t) ?? open[0]
     await emit('fees.due_reminder', { studentId: String(s._id), data: { student: { class: place?.short ?? '' }, fees: { due: formatINR(due), dueDate: humanDate(next.dueDate) }, pay: { link: payLink } } })
@@ -709,6 +755,7 @@ export async function withdrawConcession(id, auth, req) {
   if (!c) throw notFound('Concession')
   await studentInScope(c.studentId, auth)
   if (c.status === 'WITHDRAWN' || c.status === 'REJECTED') throw conflict('This concession is not active.')
+  if (c.scholarshipApplicationId) throw conflict('This concession comes from a scholarship. Withdraw the scholarship in Scholarships › Applications.')
   if (c.status === 'APPROVED' && !can(auth, 'fees.concessions.approve')) throw forbidden('Only someone who approves concessions can withdraw an approved one.')
   const was = c.status
   await withTransaction(async () => {
@@ -718,6 +765,82 @@ export async function withdrawConcession(id, auth, req) {
   })
   await audit({ action: 'UPDATE', module: 'fees', entityType: 'concession', entityId: String(c._id), entityName: String(c.studentId), studentId: c.studentId, summary: `Withdrew a concession (${c.reason})` }, req)
   return clean(c.toObject())
+}
+
+// ───────────────────────────────────────────────────────── scholarship awards (services/scholarships.js)
+
+const onHeads = (feeHeadIds) => (l) => !feeHeadIds?.length || feeHeadIds.some((h) => String(h) === String(l.feeHeadId))
+
+/**
+ * A student's fee lines for a year, one list per installment: their invoices (`open` = not yet paid in full), or —
+ * before invoices are raised — their class's fee structures split by installment.
+ */
+async function yearLines(studentId, academicYearId) {
+  const invoices = await FeeInvoice.find({ studentId, academicYearId, status: { $ne: 'CANCELLED' } }).select('lines status').lean()
+  if (invoices.length) return invoices.map((i) => ({ lines: i.lines ?? [], open: i.status === 'UNPAID' || i.status === 'PARTIAL' }))
+  const st = await Student.findById(studentId).select('classId admissionDate').lean()
+  if (!st?.classId) return []
+  const [year, structures] = await Promise.all([
+    AcademicYear.findById(academicYearId).select('startDate').lean(),
+    FeeStructure.find({ academicYearId, classIds: st.classId, active: true }).lean(),
+  ])
+  const out = []
+  for (const x of structures) {
+    if (x.appliesTo === 'NEW' && !(st.admissionDate && year?.startDate && st.admissionDate >= year.startDate)) continue
+    const total = x.lines.reduce((n, l) => n + l.amount, 0) || 1
+    for (const ins of x.installments) out.push({ lines: x.lines.map((l) => ({ feeHeadId: l.feeHeadId, amount: Math.round((l.amount * ins.amount) / total) })), open: true })
+  }
+  return out
+}
+
+/** What a scholarship is worth to a student for a year, in paise (the fees held while it is decided, the budget it uses). */
+export async function estimateScholarship(studentId, academicYearId, { benefit, kind, value, feeHeadIds }) {
+  if (benefit === 'PAID_TO_STUDENT') return kind === 'AMOUNT' ? Math.round(value) : 0
+  const eligible = (await yearLines(studentId, academicYearId)).flatMap((i) => i.lines).filter(onHeads(feeHeadIds)).reduce((n, l) => n + (l.amount ?? 0), 0)
+  if (kind === 'PCT') return Math.round((eligible * Math.min(100, Math.max(0, value))) / 100)
+  return eligible ? Math.min(eligible, Math.round(value)) : Math.round(value)
+}
+
+/**
+ * An approved scholarship that is taken off the fees becomes an approved concession on the student's unpaid
+ * installments. A yearly amount is spread over the installments still to be paid (all of them before invoices exist).
+ */
+export async function grantScholarshipConcession({ studentId, academicYearId, kind, value, feeHeadIds, reason, note, applicationId }, auth) {
+  let perInstallment = value
+  if (kind === 'AMOUNT') {
+    const lines = (await yearLines(studentId, academicYearId)).filter((i) => i.lines.some(onHeads(feeHeadIds)))
+    const n = lines.filter((i) => i.open).length || lines.length || 1
+    perInstallment = Math.round(value / n)
+  }
+  const who = auth.user?.name ?? 'Scholarships'
+  const [c] = await Concession.create([{
+    studentId, academicYearId, kind, value: perInstallment, feeHeadIds, reason, note, status: 'APPROVED',
+    requestedBy: who, requestedById: auth.userId, decidedBy: who, decidedAt: new Date(), scholarshipApplicationId: applicationId,
+  }])
+  return { concessionId: c._id, invoicesUpdated: await reapply(studentId, academicYearId) }
+}
+
+/** Take back the concession a scholarship made (the scholarship was withdrawn). */
+export async function withdrawScholarshipConcession(concessionId) {
+  const c = concessionId ? await Concession.findById(concessionId) : null
+  if (!c || c.status !== 'APPROVED') return 0
+  c.status = 'WITHDRAWN'
+  await c.save()
+  return reapply(c.studentId, c.academicYearId)
+}
+
+/**
+ * A scholarship the fees were held for is decided or withdrawn. When nothing else holds that year, late fee on its
+ * overdue installments counts from today (with the usual grace days), never back-dated to the old due dates.
+ */
+export async function endScholarshipHold(studentId, academicYearId) {
+  if (await ScholarshipApplication.exists({ studentId, academicYearId, $or: [{ status: { $in: SCHOLARSHIP_OPEN }, holdFees: true }, { status: 'APPROVED', awaitingMoney: true }] })) return 0
+  const t = await today()
+  const r = await FeeInvoice.updateMany(
+    { studentId, academicYearId, status: { $in: ['UNPAID', 'PARTIAL'] }, dueDate: { $lt: t } },
+    { $set: { lateFeeFrom: t } },
+  )
+  return r.modifiedCount ?? 0
 }
 
 // ───────────────────────────────────────────────────────── day-end
@@ -808,7 +931,7 @@ export async function invoicePrintData(id, auth) {
   ])
   return {
     invoice: inv, student: s, place, year: year?.name ?? null, today: t,
-    lateFeeDue: inv.status === 'CANCELLED' ? 0 : lateFeeFor({ dueDate: inv.dueDate, balance: inv.balance }, t, cfg),
+    lateFeeDue: lateFeeOf(inv, t, cfg, (await scholarshipHolds(s._id)).get(String(s._id))),
     lateFee: { perDay: cfg.perDay, graceDays: cfg.graceDays }, upiId: cfg.upiId || null,
     bank: bank ? { name: bank.name, bankName: bank.bankName, branch: bank.branch, ifsc: bank.ifsc, last4: bank.accountNoLast4 } : null,
     arrears: others.reduce((n, i) => n + Math.max(0, i.balance), 0),

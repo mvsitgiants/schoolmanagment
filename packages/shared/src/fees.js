@@ -8,7 +8,12 @@ export const PAYMENT_MODES = [
   { value: 'BANK_TRANSFER', label: 'Bank transfer (NEFT / IMPS)' },
   { value: 'ONLINE', label: 'Online (payment gateway)' },
 ]
-export const PAYMENT_MODE_LABEL = Object.fromEntries(PAYMENT_MODES.map((m) => [m.value, m.label]))
+/**
+ * Every way a fee receipt can be paid: the counter's modes, and scholarship money a government or trust pays the
+ * institution for a student (recorded from Scholarships, never picked at the counter).
+ */
+export const FEE_RECEIPT_MODES = [...PAYMENT_MODES, { value: 'SCHOLARSHIP', label: 'Scholarship money (government or trust)' }]
+export const PAYMENT_MODE_LABEL = Object.fromEntries(FEE_RECEIPT_MODES.map((m) => [m.value, m.label]))
 /** Modes that need a reference (UTR, cheque no., last 4 of the card). */
 export const MODES_WITH_REFERENCE = ['UPI', 'CARD', 'CHEQUE', 'BANK_TRANSFER', 'ONLINE']
 

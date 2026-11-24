@@ -22,6 +22,7 @@ export const DOC_TYPES = [
   { code: 'FEE_INVOICE', label: 'Fee invoice / challan', module: 'fees', pattern: 'FI{FY}{SEQ:6}', reset: 'FY', perBranch: true },
   { code: 'RECEIPT', label: 'Fee receipt', module: 'fees', pattern: 'RC{FY}{SEQ:6}', reset: 'FY', perBranch: true },
   { code: 'REFUND', label: 'Fee refund', module: 'fees', pattern: 'RF{FY}{SEQ:4}', reset: 'FY', perBranch: true },
+  { code: 'SCHOLARSHIP', label: 'Scholarship application', module: 'scholarships', pattern: 'SCH{YY}{SEQ:5}', reset: 'YEAR', perBranch: false },
   { code: 'GATE_PASS', label: 'Gate pass', module: 'frontoffice', pattern: 'GP{YY}{MM}{SEQ:4}', reset: 'MONTH', perBranch: true },
   { code: 'COMPLAINT', label: 'Complaint', module: 'frontoffice', pattern: 'CMP{YY}{SEQ:5}', reset: 'YEAR', perBranch: false },
   { code: 'EMPLOYEE', label: 'Employee code', module: 'hrms', pattern: 'EMP{SEQ:5}', reset: 'NEVER', perBranch: false, hint: 'One per employee, shared by every campus.' },

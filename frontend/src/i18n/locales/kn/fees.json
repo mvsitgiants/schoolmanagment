@@ -11,7 +11,8 @@
       "CARD": "ಕಾರ್ಡ್",
       "CHEQUE": "ಚೆಕ್ / DD",
       "BANK_TRANSFER": "ಬ್ಯಾಂಕ್ ವರ್ಗಾವಣೆ (NEFT / IMPS)",
-      "ONLINE": "ಆನ್‌ಲೈನ್ (ಪಾವತಿ ಗೇಟ್‌ವೇ)"
+      "ONLINE": "ಆನ್‌ಲೈನ್ (ಪಾವತಿ ಗೇಟ್‌ವೇ)",
+      "SCHOLARSHIP": "Scholarship money (government or trust)"
     },
     "invoiceStatus": {
       "UNPAID": "ಪಾವತಿಸಿಲ್ಲ",
@@ -178,7 +179,8 @@
       "upiNote": "ಶಾಲಾ ಶುಲ್ಕ {{no}}",
       "upiNotSet": "ಇಲ್ಲಿ ಪಾವತಿ QR ತೋರಿಸಲು ಸೆಟ್ಟಿಂಗ್‌ಗಳು › ಶುಲ್ಕ ಇಲ್ಲಿ ಶಾಲೆಯ UPI ID ಹೊಂದಿಸಿ.",
       "chequeBank": "ಚೆಕ್ ನೀಡಿದ ಬ್ಯಾಂಕ್",
-      "chequeDate": "ಚೆಕ್ ದಿನಾಂಕ"
+      "chequeDate": "ಚೆಕ್ ದಿನಾಂಕ",
+      "scholarshipHeld": "{{amount}} is waiting for a scholarship ({{schemes}}). No late fee is charged on this year’s fees until it is decided — no need to ask the family for that part."
     },
     "invoices": {
       "title": "ಬಿಲ್‌ಗಳು ಮತ್ತು ರಸೀದಿಗಳು",
@@ -278,7 +280,8 @@
       "classDue": "{{amount}} ಬಾಕಿ",
       "nothingDue": "ಯಾವುದೇ ಬಾಕಿ ಇಲ್ಲ",
       "allSections": "{{name}} ಪೂರ್ತಿ",
-      "sectionN": "ವಿಭಾಗ {{name}}"
+      "sectionN": "ವಿಭಾಗ {{name}}",
+      "scholarshipHeld": "{{amount}} waiting for a scholarship"
     },
     "concessions": {
       "title": "ರಿಯಾಯಿತಿಗಳು",

@@ -131,7 +131,8 @@
         "CARD": "कार्ड",
         "CHEQUE": "चेक / DD",
         "BANK_TRANSFER": "बैंक ट्रांसफ़र",
-        "ONLINE": "ऑनलाइन"
+        "ONLINE": "ऑनलाइन",
+        "SCHOLARSHIP": "Scholarship money"
       },
       "ageingTitle": "बकाया की अवधि",
       "ageingSub": "इस अवधि के चालानों की अदत्त राशि, अंतिम तिथि के बाद बीते दिनों के अनुसार ({{date}} तक)",

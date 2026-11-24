@@ -226,7 +226,8 @@
         "BANK_TRANSFER": "ಬ್ಯಾಂಕ್ ವರ್ಗಾವಣೆ",
         "ONLINE": "ಆನ್‌ಲೈನ್",
         "refunds": "ಮರುಪಾವತಿಗಳು",
-        "net": "ನಿವ್ವಳ"
+        "net": "ನಿವ್ವಳ",
+        "SCHOLARSHIP": "Scholarship money"
       },
       "fees.headwise": {
         "head": "ಶುಲ್ಕ ಶೀರ್ಷಿಕೆ",

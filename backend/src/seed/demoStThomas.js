@@ -2111,6 +2111,127 @@ async function fillParentChat(admin) {
 
 // ───────────────────────────────────────────────────────── alumni
 
+// ───────────────────────────────────────────────────────── scholarships
+
+/**
+ * Three schemes (a merit scholarship on the UP Board senior classes, need-based fee support that approves itself, and
+ * the UP government scholarship for SC / ST / OBC that the government pays the school), a day for originals, and
+ * applications in every state: documents to check, one sent back to fix, ready for decision, approved, on the
+ * government portal, money received — and one a family made from the app.
+ */
+async function fillScholarships(admin) {
+  await admin.post('/core/modules/scholarships', { enabled: true }, { quiet: [400, 403, 404, 409, 422] })
+  const have = await admin.get('/scholarships/schemes', { all: '1' }).catch(() => null)
+  if (!have) return 'the scholarships module is not on this plan'
+  if (have.rows.length) return 'already there'
+  if (!students.length) await loadStudents(admin)
+  const meta = await admin.get('/scholarships/meta')
+  const tuition = meta.heads.find((h) => /tuition/i.test(h.name))?.id
+  const LAKH = 100000 * 100
+  const doc = (type, extra = {}) => ({ type, required: true, originalNeeded: false, ...extra })
+  const merit = await admin.post('/scholarships/schemes', {
+    name: 'Merit scholarship 2026-27 (Classes 9–12)', provider: 'INSTITUTION', benefit: 'FEE_WAIVER', kind: 'PCT', value: 50, feeHeadIds: tuition ? [tuition] : [],
+    eligibility: { classIds: codesFor('UP', 9, 12).map((c) => classByCode(c)?.id).filter(Boolean), minMarksPct: 75 },
+    seats: 6, approval: 'APPROVER', rankBy: 'MARKS', holdFees: true, renewal: { minMarksPct: 70, minAttendancePct: 80 },
+    description: 'Half the tuition fee for the best results in Classes 9 to 12 — six seats a year, given in merit order.',
+    documents: [doc('MARKSHEET', { note: 'Last year’s final mark sheet' }), doc('PHOTO')],
+  })
+  const need = await admin.post('/scholarships/schemes', {
+    name: 'Need-based fee support', provider: 'INSTITUTION', benefit: 'FEE_WAIVER', kind: 'PCT', value: 25, feeHeadIds: tuition ? [tuition] : [],
+    eligibility: { maxIncome: 2.5 * LAKH }, approval: 'AUTO', holdFees: true, familyApply: true,
+    description: 'A quarter of the tuition fee for families earning up to ₹2.5 lakh a year. Approved as soon as the documents are correct.',
+    documents: [doc('INCOME_CERTIFICATE', { originalNeeded: true, note: 'Issued by the tehsildar' }), doc('PARENT_ID'), doc('SELF_DECLARATION')],
+  })
+  const govt = await admin.post('/scholarships/schemes', {
+    name: 'UP Pre-matric & Post-matric scholarship (SC / ST / OBC)', provider: 'GOVERNMENT', benefit: 'PAID_TO_INSTITUTION', kind: 'AMOUNT', value: 12000 * 100,
+    eligibility: { categories: ['SC', 'ST', 'OBC'], maxIncome: 2.5 * LAKH }, approval: 'APPROVER', holdFees: true, lastDate: addDaysYmd(today, 25),
+    portal: { name: 'UP', url: 'https://scholarship.up.gov.in', verifyBy: addDaysYmd(today, 20) },
+    description: 'The Uttar Pradesh government scholarship. Families apply on the UP portal; the school verifies, and the money comes to the school against the fees.',
+    documents: [doc('INCOME_CERTIFICATE', { originalNeeded: true }), doc('CASTE_CERTIFICATE', { originalNeeded: true }), doc('DOMICILE'), doc('STUDENT_AADHAAR'), doc('BANK_PASSBOOK'), doc('PHOTO')],
+  })
+  const day = await admin.post('/scholarships/visits', { date: addDaysYmd(today, 1), from: '10:00', to: '13:00', slotMinutes: 10, perSlot: 2, place: 'Scholarship desk, office block (CBSE campus)', note: 'Bring only the originals the app lists.' })
+
+  const start = async (scheme, n, offset = 0) => {
+    const el = await admin.get(`/scholarships/schemes/${scheme.id}/eligible`)
+    const ids = el.rows.slice(offset, offset + n).map((r) => r.studentId)
+    if (ids.length) await admin.post('/scholarships/applications/bulk', { schemeId: scheme.id, studentIds: ids })
+    return (await admin.get('/scholarships/applications', { schemeId: scheme.id, pageSize: 100 })).rows
+  }
+  const item = (a, key) => `/scholarships/applications/${a.id}/items/${encodeURIComponent(key)}`
+  const correct = async (a, key, { original = true, issuedOn } = {}) => {
+    await admin.put(item(a, key), { paperCopy: true }, { quiet: [400, 409] })
+    await admin.post(`${item(a, key)}/check`, { result: 'ACCEPT', originalSeen: original, ...(issuedOn && { issuedOn }) }, { quiet: [400, 409] })
+  }
+  const wrong = async (a, key, reason, note) => {
+    await admin.put(item(a, key), { paperCopy: true }, { quiet: [400, 409] })
+    await admin.post(`${item(a, key)}/check`, { result: 'NOT_ACCEPT', reason, ...(note && { note }) }, { quiet: [400, 409] })
+  }
+  const given = async (a, key) => admin.put(item(a, key), { paperCopy: true }, { quiet: [400, 409] })
+  const issued = addDaysYmd(today, -75)
+
+  // need-based: approved on their own once the papers are right; one income certificate sent back; some still coming in
+  const needApps = await start(need, 9)
+  for (const [i, a] of needApps.entries()) {
+    await admin.put(`/scholarships/applications/${a.id}`, { familyIncome: (1.2 + (i % 5) * 0.25) * LAKH }, { quiet: [400, 409] })
+    if (i < 5) { for (const k of ['PARENT_ID', 'SELF_DECLARATION']) await correct(a, k); await correct(a, 'INCOME_CERTIFICATE', { issuedOn: issued }) }
+    else if (i === 5) { await correct(a, 'PARENT_ID'); await correct(a, 'SELF_DECLARATION'); await wrong(a, 'INCOME_CERTIFICATE', 'TOO_OLD', 'Issued in 2024 — a certificate from this year is needed') }
+    else if (i === 6) { await given(a, 'INCOME_CERTIFICATE'); await given(a, 'PARENT_ID') }
+  }
+  if (needApps.some((a, i) => i === 5)) await admin.post('/scholarships/applications/tell-family', { ids: [needApps[5].id] }, { quiet: [400, 409] })
+
+  // merit: ranked by marks; the top three approved, two more ready for the committee
+  const meritApps = await start(merit, 8)
+  for (const [i, a] of meritApps.entries()) {
+    if (i < 6) { await correct(a, 'MARKSHEET', { issuedOn: '2026-03-28' }); await correct(a, 'PHOTO') }
+    else await given(a, 'MARKSHEET')
+  }
+  const ranked = (await admin.get('/scholarships/applications', { schemeId: merit.id, status: 'READY', pageSize: 100 })).rows
+  if (ranked.length) await admin.post('/scholarships/applications/decide', { ids: ranked.slice(0, 3).map((a) => a.id), approve: true }, { quiet: [400, 409] })
+
+  // government: on the UP portal — some to verify, some verified, two approved (money awaited; part of it received)
+  const govtApps = await start(govt, 6)
+  for (const [i, a] of govtApps.entries()) {
+    await admin.put(`/scholarships/applications/${a.id}`, { familyIncome: (0.9 + i * 0.2) * LAKH }, { quiet: [400, 409] })
+    await admin.post('/scholarships/applications/portal', { ids: [a.id], status: i < 2 ? 'APPLIED' : 'INSTITUTE_VERIFIED', applicationId: `UP26${String(410000 + hash(a.id) % 89999)}` }, { quiet: [400, 409] })
+    if (i < 4) {
+      for (const k of ['DOMICILE', 'STUDENT_AADHAAR', 'BANK_PASSBOOK', 'PHOTO']) await correct(a, k)
+      // two families still to show the originals of their certificates (the copies are checked)
+      for (const k of ['INCOME_CERTIFICATE', 'CASTE_CERTIFICATE']) await correct(a, k, { original: i >= 2, issuedOn: k === 'INCOME_CERTIFICATE' ? issued : undefined })
+    } else await given(a, 'STUDENT_AADHAAR')
+  }
+  const govtReady = (await admin.get('/scholarships/applications', { schemeId: govt.id, status: 'READY', pageSize: 100 })).rows
+  if (govtReady.length) {
+    await admin.post('/scholarships/applications/decide', { ids: govtReady.map((a) => a.id), approve: true }, { quiet: [400, 409] })
+    await admin.post('/scholarships/applications/portal', { ids: govtReady.map((a) => a.id), status: 'SANCTIONED' }, { quiet: [400, 409] })
+    await admin.post('/scholarships/applications/money', { rows: [{ id: govtReady[0].id, amount: 6000 * 100 }], reference: 'UP treasury e-transfer', date: today }, { quiet: [400, 409] })
+  }
+
+  // a family applies from the app, and one with only originals left books a time
+  let fromApp = 0
+  try {
+    const el = await admin.get(`/scholarships/schemes/${need.id}/eligible`)
+    const s = el.rows[0]
+    const mobile = s && await primaryMobile(admin, s.studentId)
+    if (mobile) {
+      const fam = await familySignIn(mobile)
+      if (fam.me.students?.some((x) => x.id === s.studentId)) { await fam.post(`/students/${s.studentId}/scholarships/apply/${need.id}`, { familyIncome: 1.8 * LAKH }); fromApp++ }
+    }
+    const waiting = govtApps.slice(0, 2)
+    for (const a of waiting) {
+      const m = await primaryMobile(admin, a.studentId)
+      if (!m) continue
+      const fam = await familySignIn(m)
+      const v = await fam.get(`/students/${a.studentId}/scholarships`)
+      const mine = v.applications.find((x) => x.id === a.id)
+      const slot = v.visitTimes.find((d) => d.id === day.id)?.times.find((x) => x.free > 0)
+      if (mine?.canBook && slot) await fam.post(`/students/${a.studentId}/scholarships/${a.id}/visit`, { dayId: day.id, time: slot.time })
+    }
+  } catch (err) { log(`(family part skipped: ${err.message})`) }
+
+  const all = await admin.get('/scholarships/applications', { pageSize: 1 })
+  return `3 schemes, a day for originals, ${all.summary.total} applications (${all.summary.byStatus.APPROVED} approved, ${all.summary.docsToCheck} documents to check, ${all.summary.portalToVerify} to verify on the UP portal)${fromApp ? ', one made from the family app' : ''}`
+}
+
 async function fillAlumni(admin) {
   const r = await admin.getRaw('/alumni/directory', {})
   if (r.body?.total || r.body?.data?.length) return 'already there'
@@ -2194,6 +2315,7 @@ async function main() {
   await step('Parent–teacher chat', () => fillParentChat(admin))
   await step('Transfer certificate', () => fillTc(admin))
   await step('Alumni', () => fillAlumni(admin))
+  await step('Scholarships', () => fillScholarships(admin))
   await mongoose.disconnect()
   console.log('Done.')
 }

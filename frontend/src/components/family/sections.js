@@ -1,4 +1,4 @@
-import { BedDouble, BookOpenCheck, Shirt, Briefcase, Bus, CalendarCheck, CalendarClock, CalendarDays, CalendarRange, ClipboardCheck, GraduationCap, HeartPulse, Images, IndianRupee, Library, Megaphone, MessageSquareHeart, MessageSquareWarning, MessagesSquare, Trophy, Utensils } from 'lucide-react'
+import { Award, BedDouble, BookOpenCheck, Shirt, Briefcase, Bus, CalendarCheck, CalendarClock, CalendarDays, CalendarRange, ClipboardCheck, GraduationCap, HeartPulse, Images, IndianRupee, Library, Megaphone, MessageSquareHeart, MessageSquareWarning, MessagesSquare, Trophy, Utensils } from 'lucide-react'
 
 /** The app's sections in order of use; the bar shows the first three the school has on (with Home and More), the rest are under More. */
 export function familySections(slug, has, t) {
@@ -14,6 +14,7 @@ export function familySections(slug, has, t) {
     has('HOSTEL') && { key: 'hostel', to: `/app/${slug}/hostel`, label: t('family.nav.hostel'), icon: BedDouble },
     has('HEALTH') && { key: 'health', to: `/app/${slug}/health`, label: t('family.nav.health'), icon: HeartPulse },
     has('PLACEMENTS') && { key: 'placements', to: `/app/${slug}/placements`, label: t('family.nav.placements'), icon: Briefcase },
+    has('SCHOLARSHIPS') && { key: 'scholarships', to: `/app/${slug}/scholarships`, label: t('family.nav.scholarships'), icon: Award },
     has('COMPLAINTS') && { key: 'complaints', to: `/app/${slug}/complaints`, label: t('family.nav.complaints'), icon: MessageSquareWarning },
     has('SURVEYS') && { key: 'surveys', to: `/app/${slug}/surveys`, label: t('family.nav.surveys'), icon: MessageSquareHeart },
     has('CANTEEN') && { key: 'canteen', to: `/app/${slug}/canteen`, label: t('family.nav.canteen'), icon: Utensils },

@@ -226,7 +226,8 @@
         "BANK_TRANSFER": "बैंक ट्रांसफ़र",
         "ONLINE": "ऑनलाइन",
         "refunds": "रिफ़ंड",
-        "net": "शुद्ध"
+        "net": "शुद्ध",
+        "SCHOLARSHIP": "Scholarship money"
       },
       "fees.headwise": {
         "head": "शुल्क मद",
