@@ -1,5 +1,6 @@
 import axios from 'axios'
 import { notify } from '../context/SnackbarContext.jsx'
+import i18n from '../i18n'
 import { translateServerMessage } from '../i18n/serverMessage'
 import { idleSeconds } from '../utils/activity'
 
@@ -120,17 +121,20 @@ const loggedIn = () => !!localStorage.getItem(USER_KEY)
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 
 export const SERVER_DOWN_MESSAGE = "Can't reach the server right now. Please try again in a moment."
-// An outage is not a sign-out: a rolling restart or a few seconds of bad Wi-Fi used to log out
-// every open tab and drop unsaved forms. Now the session stays and one notice says so; only a
-// session the server actually rejects (401 after a failed refresh) signs the user out.
+// The app's own messages, in the reader's language (English kept as the fallback).
+const say = (key, english) => i18n.t(`ui.session.${key}`, { ns: 'ui', defaultValue: english })
+const lostMessage = () => say('lost', 'Lost connection to the server. Please sign in again.')
+const expiredMessage = () => say('expired', 'Your session has expired. Please sign in again.')
+// A failed call that only looks like an outage gets one notice (a blip). When a probe confirms the
+// server is really gone — three tries over ~5 seconds — the user is signed out to the login page
+// with "lost connection" (as in mvserp), rather than left on screens where every call fails.
 let downNoticeAt = 0
 function noticeDown() {
   if (typeof navigator !== 'undefined' && navigator.onLine === false) return // the offline bar already says so (PwaPrompts)
   if (Date.now() - downNoticeAt < 15_000) return // one notice per outage, not one per request
   downNoticeAt = Date.now()
-  notify(SERVER_DOWN_MESSAGE, { variant: 'error' })
+  notify(say('down', SERVER_DOWN_MESSAGE), { variant: 'error' })
 }
-const EXPIRED_MESSAGE = 'Your session has expired. Please sign in again.'
 
 // pages for people who aren't staff (the family app, the certificate check) never bounce to the staff sign-in
 const onPublicPage = () => /^\/(app|verify|apply)\//.test(window.location.pathname)
@@ -221,15 +225,11 @@ function checkServer() {
 /** Probe, and sign the user out if the server is gone or the session can't be recovered. */
 async function verifyOrLogout() {
   const verdict = await checkServer()
-  if (verdict === 'down') { noticeDown(); return false }
-  if (verdict === 'idle') { forceLogin(translateServerMessage(idleReason) || EXPIRED_MESSAGE); return false }
+  if (verdict === 'down') { forceLogin(lostMessage()); return false }
+  if (verdict === 'idle') { forceLogin(translateServerMessage(idleReason) || expiredMessage()); return false }
   if (verdict === 'session') {
     try { await probeClient.post('/v1/auth/refresh'); return true }
-    catch (e) {
-      if (isServerDown(e)) noticeDown()
-      else forceLogin(EXPIRED_MESSAGE)
-      return false
-    }
+    catch (e) { forceLogin(isServerDown(e) ? lostMessage() : expiredMessage()); return false }
   }
   return true
 }
@@ -253,7 +253,7 @@ api.interceptors.response.use(
 
     // Signed out for being idle: the session is already ended, so no refresh — sign in again.
     if (isIdleTimeout(err)) {
-      forceLogin(translateServerMessage(err.response.data.message) || EXPIRED_MESSAGE)
+      forceLogin(translateServerMessage(err.response.data.message) || expiredMessage())
       return Promise.reject({ ...err, message: err.response.data.message })
     }
 
@@ -264,11 +264,15 @@ api.interceptors.response.use(
         await refreshOnce()
         return api(original)
       } catch (refreshErr) {
-        // the server is down mid-refresh: keep the session, it is retried on the next request
-        if (isServerDown(refreshErr)) { noticeDown(); return Promise.reject({ ...err, message: SERVER_DOWN_MESSAGE }) }
+        // the server went away mid-refresh: make sure (a short probe), then sign out with "lost connection"
+        if (isServerDown(refreshErr)) {
+          const stillOk = await verifyOrLogout()
+          if (stillOk) return api(original)
+          return Promise.reject({ ...err, message: lostMessage() })
+        }
         // a stopped subscription ends the session with the server's reason (already translated)
-        forceLogin(refreshErr?.response?.status === 402 || isIdleTimeout(refreshErr) ? refreshErr.message : EXPIRED_MESSAGE)
-        return Promise.reject({ ...err, message: 'Session expired' })
+        forceLogin(refreshErr?.response?.status === 402 || isIdleTimeout(refreshErr) ? refreshErr.message : expiredMessage())
+        return Promise.reject({ ...err, message: expiredMessage() })
       }
     }
 
@@ -277,12 +281,12 @@ api.interceptors.response.use(
     if (status === 402) window.dispatchEvent(new CustomEvent('erp:subscription-blocked'))
 
     if (status === 401 && !isAuthUrl(original.url)) {
-      forceLogin(EXPIRED_MESSAGE)
+      forceLogin(expiredMessage())
     } else if (!isAuthUrl(original.url) && loggedIn() && (isServerDown(err) || isUnknownRoute(err))) {
-      // Server stopped / restarting / not our API: confirm with a probe. Down → one notice, the
-      // session stays; a session the server rejects → sign in again. A passing probe was a blip.
+      // Server stopped / restarting / not our API: confirm with a probe. Still gone after ~5 seconds →
+      // sign out with "lost connection"; a session the server rejects → sign in again. A passing probe was a blip.
       const stillOk = await verifyOrLogout()
-      if (!stillOk) return Promise.reject({ ...err, message: SERVER_DOWN_MESSAGE })
+      if (!stillOk) return Promise.reject({ ...err, message: lostMessage() })
       if (isServerDown(err)) noticeDown()
     } else if (isServerDown(err) && !axios.isCancel(err)) {
       noticeDown()
@@ -290,7 +294,7 @@ api.interceptors.response.use(
 
     const serverMessage = err?.response?.data?.message
     const message = isServerDown(err)
-      ? SERVER_DOWN_MESSAGE
+      ? say('down', SERVER_DOWN_MESSAGE)
       : translateServerMessage(serverMessage) || err.message || 'Something went wrong'
     // Screens read either e.message or e.response.data.message — both get the translated text (English kept alongside).
     const response = serverMessage && err.response

@@ -543,6 +543,11 @@
       "noneFound": "No file matches. Try another name or folder.",
       "noneLibrary": "The library’s folders are empty. Upload files into a folder from Documents › Document library, then pick them here.",
       "lookLibrary": "Look in the document library"
+    },
+    "session": {
+      "lost": "Lost connection to the server. Please sign in again.",
+      "expired": "Your session has expired. Please sign in again.",
+      "down": "Can't reach the server right now. Please try again in a moment."
     }
   }
 }
